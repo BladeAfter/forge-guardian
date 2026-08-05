@@ -14,13 +14,325 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      boss_combats: {
+        Row: {
+          boss_attack: number
+          boss_attack_interval_seconds: number
+          boss_current_hp: number
+          boss_id: string | null
+          boss_last_attack_at: string
+          boss_level: number
+          boss_max_hp: number
+          boss_name: string
+          boss_next_attack_at: string
+          created_at: string
+          defeated_at: string | null
+          id: string
+          last_processed_at: string
+          next_hero_attack_at: string
+          reward_amount: number
+          reward_claimed_at: string | null
+          started_at: string
+          status: string
+          team_change_available_at: string | null
+          total_damage_dealt: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          boss_attack?: number
+          boss_attack_interval_seconds?: number
+          boss_current_hp?: number
+          boss_id?: string | null
+          boss_last_attack_at?: string
+          boss_level?: number
+          boss_max_hp?: number
+          boss_name?: string
+          boss_next_attack_at?: string
+          created_at?: string
+          defeated_at?: string | null
+          id?: string
+          last_processed_at?: string
+          next_hero_attack_at?: string
+          reward_amount?: number
+          reward_claimed_at?: string | null
+          started_at?: string
+          status?: string
+          team_change_available_at?: string | null
+          total_damage_dealt?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          boss_attack?: number
+          boss_attack_interval_seconds?: number
+          boss_current_hp?: number
+          boss_id?: string | null
+          boss_last_attack_at?: string
+          boss_level?: number
+          boss_max_hp?: number
+          boss_name?: string
+          boss_next_attack_at?: string
+          created_at?: string
+          defeated_at?: string | null
+          id?: string
+          last_processed_at?: string
+          next_hero_attack_at?: string
+          reward_amount?: number
+          reward_claimed_at?: string | null
+          started_at?: string
+          status?: string
+          team_change_available_at?: string | null
+          total_damage_dealt?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boss_combats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boss_reward_transactions: {
+        Row: {
+          amount: number
+          combat_id: string
+          created_at: string
+          currency: string
+          id: string
+          idempotency_key: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          combat_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          idempotency_key: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          combat_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          idempotency_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boss_reward_transactions_combat_id_fkey"
+            columns: ["combat_id"]
+            isOneToOne: false
+            referencedRelation: "boss_combats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boss_reward_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_players: {
+        Row: {
+          boss_defeats: number
+          created_at: string
+          forge_coins: number
+          id: string
+          telegram_id: number
+          updated_at: string
+        }
+        Insert: {
+          boss_defeats?: number
+          created_at?: string
+          forge_coins?: number
+          id?: string
+          telegram_id: number
+          updated_at?: string
+        }
+        Update: {
+          boss_defeats?: number
+          created_at?: string
+          forge_coins?: number
+          id?: string
+          telegram_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hero_catalog: {
+        Row: {
+          enabled: boolean
+          hero_key: string
+          image: string
+          name: string
+          rarity: string
+        }
+        Insert: {
+          enabled?: boolean
+          hero_key: string
+          image: string
+          name: string
+          rarity: string
+        }
+        Update: {
+          enabled?: boolean
+          hero_key?: string
+          image?: string
+          name?: string
+          rarity?: string
+        }
+        Relationships: []
+      }
+      hero_combat_state: {
+        Row: {
+          base_atk: number
+          base_hp: number
+          combat_id: string
+          created_at: string
+          current_hp: number
+          final_atk: number
+          hero_id: string
+          id: string
+          is_alive: boolean
+          knocked_out_at: string | null
+          level: number
+          max_hp: number
+          rarity: string
+          revive_at: string | null
+          slot: number | null
+          updated_at: string
+        }
+        Insert: {
+          base_atk: number
+          base_hp: number
+          combat_id: string
+          created_at?: string
+          current_hp: number
+          final_atk: number
+          hero_id: string
+          id?: string
+          is_alive?: boolean
+          knocked_out_at?: string | null
+          level: number
+          max_hp: number
+          rarity: string
+          revive_at?: string | null
+          slot?: number | null
+          updated_at?: string
+        }
+        Update: {
+          base_atk?: number
+          base_hp?: number
+          combat_id?: string
+          created_at?: string
+          current_hp?: number
+          final_atk?: number
+          hero_id?: string
+          id?: string
+          is_alive?: boolean
+          knocked_out_at?: string | null
+          level?: number
+          max_hp?: number
+          rarity?: string
+          revive_at?: string | null
+          slot?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_combat_state_combat_id_fkey"
+            columns: ["combat_id"]
+            isOneToOne: false
+            referencedRelation: "boss_combats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hero_combat_state_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_heroes: {
+        Row: {
+          created_at: string
+          hero_key: string
+          id: string
+          image: string | null
+          level: number
+          name: string
+          rarity: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_key: string
+          id?: string
+          image?: string | null
+          level?: number
+          name: string
+          rarity: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_key?: string
+          id?: string
+          image?: string | null
+          level?: number
+          name?: string
+          rarity?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_heroes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      ensure_boss_combat: { Args: { p_telegram_id: number }; Returns: string }
+      get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      normalize_hero_rarity: { Args: { value: string }; Returns: string }
+      process_boss_combat: {
+        Args: { p_now?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      rarity_base_atk: { Args: { r: string }; Returns: number }
+      rarity_base_hp: { Args: { r: string }; Returns: number }
+      rarity_resistance: { Args: { r: string }; Returns: number }
+      recruit_heroes: {
+        Args: { p_count: number; p_telegram_id: number }
+        Returns: Json
+      }
+      set_boss_team: {
+        Args: { p_hero_ids: string[]; p_telegram_id: number }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
