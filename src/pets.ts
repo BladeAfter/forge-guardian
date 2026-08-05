@@ -7,6 +7,23 @@ export type PetInventory={food:number;universalFragments:number};
 export type PetHistory={id:string;eggName:string;petName:string|null;rarity:PetRarity|null;duplicateFragments:number;createdAt:string};
 export type PetDashboard={activePet:PlayerPet|null;playerPets:PlayerPet[];catalog:PetCatalogItem[];eggs:PetEgg[];inventory:PetInventory;history:PetHistory[];bonuses:PetPassives;balance:number};
 
+export type MythicPetDefinition={slug:string;name:string;species:string;image:string;rarity:'legendary';eggTier:'mythic';weight:number};
+export const MYTHIC_PET_CATALOG:readonly MythicPetDefinition[]=[
+  {slug:'mythic-aetherion',name:'Aetherion',species:'Leão-Dragão Celestial',image:'/assets/game/pets/mythic/aetherion.png',rarity:'legendary',eggTier:'mythic',weight:20},
+  {slug:'mythic-nymbrak',name:'Nymbrak',species:'Urso Rúnico de Obsidiana',image:'/assets/game/pets/mythic/nymbrak.png',rarity:'legendary',eggTier:'mythic',weight:20},
+  {slug:'mythic-sylvaris',name:'Sylvaris',species:'Serpe-Cervo Ancestral',image:'/assets/game/pets/mythic/sylvaris.png',rarity:'legendary',eggTier:'mythic',weight:20},
+  {slug:'mythic-zephyrax',name:'Zephyrax',species:'Grifo da Tempestade',image:'/assets/game/pets/mythic/zephyrax.png',rarity:'legendary',eggTier:'mythic',weight:20},
+  {slug:'mythic-morvanna',name:'Morvanna',species:'Fênix-Serpe Carmesim',image:'/assets/game/pets/mythic/morvanna.png',rarity:'legendary',eggTier:'mythic',weight:20},
+] as const;
+
+export function selectMythicPetByRoll(roll:number):MythicPetDefinition{
+  const safe=Number.isFinite(roll)?Math.min(.999999999,Math.max(0,roll)):0;
+  const total=MYTHIC_PET_CATALOG.reduce((sum,pet)=>sum+pet.weight,0);
+  let cursor=0;
+  for(const pet of MYTHIC_PET_CATALOG){cursor+=pet.weight/total;if(safe<cursor)return pet}
+  return MYTHIC_PET_CATALOG[MYTHIC_PET_CATALOG.length-1];
+}
+
 export function buildPetDashboardPreview():PetDashboard{
   const definitions:Array<{id:string;name:string;species:string;category:string;rarity:PetRarity;image:string;bonus:PetPassives}>=[
     {id:'pyron',name:'Pyron',species:'Dragão de Fogo',category:'dragon',rarity:'epic' as PetRarity,image:'/assets/game/pets/pyron.webp',bonus:{boss_damage_percent:8}},

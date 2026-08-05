@@ -1,5 +1,6 @@
-import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus,calculatePetBonus,calculatePetEvolutionCostFc,canPetEvolve,canPhoenixRevive,canTriggerPetSkill,deterministicPercent,evolutionStage,foodCost,fragmentCost,levelCostFc,normalizePetRarity,petPower,xpRequired}from'./petRules';
+import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus,calculatePetBonus,calculatePetEvolutionCostFc,canPetEvolve,canPhoenixRevive,canTriggerPetSkill,deterministicPercent,evolutionStage,foodCost,fragmentCost,levelCostFc,normalizePetRarity,petPower,xpRequired}from'./petRules';import{MYTHIC_PET_CATALOG,selectMythicPetByRoll}from'./pets';
 describe('pet rules',()=>{
+ it('keeps Mythic Egg results legendary and inside its five-pet pool',()=>{expect(MYTHIC_PET_CATALOG).toHaveLength(5);expect(new Set(MYTHIC_PET_CATALOG.map(p=>p.slug)).size).toBe(5);expect(MYTHIC_PET_CATALOG.every(p=>p.eggTier==='mythic'&&p.rarity==='legendary')).toBe(true);expect([0,.2,.4,.6,.8,.999].map(selectMythicPetByRoll).every(p=>MYTHIC_PET_CATALOG.includes(p))).toBe(true)});
  it('keeps only one pet active',()=>expect(activateOnlyPet([{id:'a',isActive:true},{id:'b',isActive:false}],'b').filter(x=>x.isActive).map(x=>x.id)).toEqual(['b']));
  it('normalizes Portuguese rarities',()=>expect(['comum','incomum','raro','épico','lendário'].map(normalizePetRarity)).toEqual(['common','uncommon','rare','epic','legendary']));
  it('falls unknown rarity back to common',()=>expect(normalizePetRarity('mythic')).toBe('common'));

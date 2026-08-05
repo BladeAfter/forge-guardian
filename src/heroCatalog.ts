@@ -9,6 +9,7 @@ export type ShopHero = {
 
 const asset = (path: string) => `/assets/game/heroes/${path}`;
 const shop = (name: string) => asset(`shop/${name}.webp`);
+const expanded = (name: string) => asset(`shop/expanded/${name}.png`);
 
 export const HERO_CATALOG: ShopHero[] = [
   { id: 'common-1', name: 'Espadachim da Forja', rarity: 'common', image: asset('common-warrior.png') },
@@ -35,7 +36,32 @@ export const HERO_CATALOG: ShopHero[] = [
   { id: 'legendary-2', name: 'Rainha Fênix', rarity: 'legendary', image: shop('legendary-2') },
   { id: 'legendary-3', name: 'Rei Titã', rarity: 'legendary', image: shop('legendary-3') },
   { id: 'legendary-4', name: 'Imperatriz Lunar', rarity: 'legendary', image: shop('legendary-4') },
-  { id: 'legendary-5', name: 'Imperador da Forja', rarity: 'legendary', image: shop('legendary-5') }
+  { id: 'legendary-5', name: 'Imperador da Forja', rarity: 'legendary', image: shop('legendary-5') },
+  { id: 'common-6', name: 'Lâmina da Vila', rarity: 'common', image: expanded('common-village-blade') },
+  { id: 'common-7', name: 'Guardiã da Lança', rarity: 'common', image: expanded('common-spear-warden') },
+  { id: 'common-8', name: 'Brom Martelo-Firme', rarity: 'common', image: expanded('common-dwarf-smith') },
+  { id: 'common-9', name: 'Arqueira do Bosque', rarity: 'common', image: expanded('common-wood-elf-archer') },
+  { id: 'common-10', name: 'Escudo de Ferro', rarity: 'common', image: expanded('common-shield-bearer') },
+  { id: 'uncommon-6', name: 'Batedora das Lâminas', rarity: 'uncommon', image: expanded('uncommon-twinblade-scout') },
+  { id: 'uncommon-7', name: 'Elandor Folha-Verde', rarity: 'uncommon', image: expanded('uncommon-high-elf-ranger') },
+  { id: 'uncommon-8', name: 'Dagna Engrenarruna', rarity: 'uncommon', image: expanded('uncommon-dwarf-runesmith') },
+  { id: 'uncommon-9', name: 'Caçador da Besta', rarity: 'uncommon', image: expanded('uncommon-crossbow-hunter') },
+  { id: 'uncommon-10', name: 'Sentinela Lunar', rarity: 'uncommon', image: expanded('uncommon-moon-elf-warder') },
+  { id: 'rare-6', name: 'Thalion do Gelo', rarity: 'rare', image: expanded('rare-frost-elf') },
+  { id: 'rare-7', name: 'Cavaleira da Coroa', rarity: 'rare', image: expanded('rare-royal-knight') },
+  { id: 'rare-8', name: 'Dorrik Trovejante', rarity: 'rare', image: expanded('rare-dwarf-thunder') },
+  { id: 'rare-9', name: 'Arqueira Solar', rarity: 'rare', image: expanded('rare-sun-elf') },
+  { id: 'rare-10', name: 'Lanceiro Arcano', rarity: 'rare', image: expanded('rare-arcane-lancer') },
+  { id: 'epic-6', name: 'Nyxara do Vazio', rarity: 'epic', image: expanded('epic-void-elf') },
+  { id: 'epic-7', name: 'Templário da Chama', rarity: 'epic', image: expanded('epic-flame-templar') },
+  { id: 'epic-8', name: 'Brynja Cristalina', rarity: 'epic', image: expanded('epic-dwarf-crystal') },
+  { id: 'epic-9', name: 'Duelista das Estrelas', rarity: 'epic', image: expanded('epic-star-elf') },
+  { id: 'epic-10', name: 'Lanceira Dracônica', rarity: 'epic', image: expanded('epic-dragon-lancer') },
+  { id: 'legendary-6', name: 'Aurelius, Rei Celestial', rarity: 'legendary', image: expanded('legendary-celestial-king') },
+  { id: 'legendary-7', name: 'Seraphina, Rainha Fênix', rarity: 'legendary', image: expanded('legendary-phoenix-queen') },
+  { id: 'legendary-8', name: 'Thorgar, Alto Rei Anão', rarity: 'legendary', image: expanded('legendary-dwarf-high-king') },
+  { id: 'legendary-9', name: 'Astrid da Tempestade', rarity: 'legendary', image: expanded('legendary-storm-valkyrie') },
+  { id: 'legendary-10', name: 'Vaelor, Lâmina Sombria', rarity: 'legendary', image: expanded('legendary-shadow-blademaster') }
 ];
 
 export const RARITY_ODDS: Array<{ rarity: HeroRarity; chance: number }> = [
