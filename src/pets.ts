@@ -8,6 +8,13 @@ export type PetHistory={id:string;eggName:string;petName:string|null;rarity:PetR
 export type PetDashboard={activePet:PlayerPet|null;playerPets:PlayerPet[];catalog:PetCatalogItem[];eggs:PetEgg[];inventory:PetInventory;history:PetHistory[];bonuses:PetPassives;balance:number};
 
 export type MythicPetDefinition={slug:string;name:string;species:string;image:string;rarity:'legendary';eggTier:'mythic';weight:number};
+export const ANCESTRAL_NFT_CATALOG=[
+  {slug:'ancestral-nft-solkaris',name:'Solkaris',species:'Qilin-dragão Solar',image:'/assets/game/pets/ancestral-nft/solkaris.png',effect:'solar'},
+  {slug:'ancestral-nft-umbrael',name:'Umbrael',species:'Pantera Cósmica',image:'/assets/game/pets/ancestral-nft/umbrael.png',effect:'storm'},
+  {slug:'ancestral-nft-thalassor',name:'Thalassor',species:'Leviatã-Cidadela',image:'/assets/game/pets/ancestral-nft/thalassor.png',effect:'tide'},
+  {slug:'ancestral-nft-verdantia',name:'Verdantia',species:'Raposa-Cervo de Cristal',image:'/assets/game/pets/ancestral-nft/verdantia.png',effect:'nature'},
+  {slug:'ancestral-nft-ignivar',name:'Ignivar',species:'Carneiro-Fênix Vulcânico',image:'/assets/game/pets/ancestral-nft/ignivar.png',effect:'flame'},
+] as const;
 export const MYTHIC_PET_CATALOG:readonly MythicPetDefinition[]=[
   {slug:'mythic-aetherion',name:'Aetherion',species:'Leão-Dragão Celestial',image:'/assets/game/pets/mythic/aetherion.png',rarity:'legendary',eggTier:'mythic',weight:20},
   {slug:'mythic-nymbrak',name:'Nymbrak',species:'Urso Rúnico de Obsidiana',image:'/assets/game/pets/mythic/nymbrak.png',rarity:'legendary',eggTier:'mythic',weight:20},
@@ -31,7 +38,7 @@ export function buildPetDashboardPreview():PetDashboard{
     {id:'noctis',name:'Noctis',species:'Corvo Sombrio',category:'bird',rarity:'uncommon' as PetRarity,image:'/assets/game/pets/noctis.webp',bonus:{drop_chance_percent:3}},
   ];
   const playerPets:PlayerPet[]=definitions.map((pet,index)=>({id:`preview-pet-${index+1}`,petId:pet.id,name:pet.name,slug:pet.id,species:pet.species,category:pet.category,rarity:pet.rarity,level:[12,7,4][index],xp:[620,180,75][index],xpRequired:[7168,3496,1625][index],canEvolve:false,evolutionCostFc:[201200,59400,23400][index],isMaxLevel:false,evolutionStage:index===0?'young':'baby',fragments:[18,7,3][index],isActive:index===0,image:pet.image,passives:pet.bonus,power:[6420,3180,1740][index],activeSkill:index===0?{name:'Chama Ancestral'}:null}));
-  const catalog:PetCatalogItem[]=definitions.map((pet,index)=>({id:pet.id,name:pet.name,slug:pet.id,species:pet.species,category:pet.category,description:`Companheiro ${pet.species.toLowerCase()} das forjas.`,basePassives:pet.bonus,activeSkill:index===0?{name:'Chama Ancestral'}:null,images:{baby:pet.image,young:pet.image,adult:pet.image,ancestral:pet.image},discovered:true,bestRarity:pet.rarity,bestLevel:playerPets[index].level}));
+  const catalog:PetCatalogItem[]=[...definitions.map((pet,index)=>({id:pet.id,name:pet.name,slug:pet.id,species:pet.species,category:pet.category,description:`Companheiro ${pet.species.toLowerCase()} das forjas.`,basePassives:pet.bonus,activeSkill:index===0?{name:'Chama Ancestral'}:null,images:{baby:pet.image,young:pet.image,adult:pet.image,ancestral:pet.image},discovered:true,bestRarity:pet.rarity,bestLevel:playerPets[index].level})),...ANCESTRAL_NFT_CATALOG.map((pet,index):PetCatalogItem=>({id:`preview-${pet.slug}`,name:pet.name,slug:pet.slug,species:pet.species,category:'ancestral_nft',description:`Criatura NFT exclusiva da coleção Ancestral Genesis.`,basePassives:{boss_damage_percent:8+index},activeSkill:{name:'Poder Ancestral'},images:{baby:pet.image,young:pet.image,adult:pet.image,ancestral:pet.image},discovered:true,bestRarity:index<2?'legendary':'epic',bestLevel:1}))];
   const eggs:PetEgg[]=[
     {id:'preview-common-egg',name:'Ovo Comum',slug:'common',image:'/assets/game/pet-eggs/common-egg.webp',priceFc:25000,priceTon:null,quantity:2,rarityRates:{common:75,uncommon:20,rare:5}},
     {id:'preview-rare-egg',name:'Ovo Raro',slug:'rare',image:'/assets/game/pet-eggs/rare-egg.webp',priceFc:100000,priceTon:null,quantity:1,rarityRates:{common:35,uncommon:40,rare:20,epic:5}},
