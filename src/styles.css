@@ -333,6 +333,31 @@ button {
 @keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}@keyframes eggRise{from{opacity:0;transform:translateY(120px) scale(.6)}to{opacity:1;transform:none}}@keyframes eggFloat{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px)}}@keyframes eggShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-4px) rotate(-2deg)}40%{transform:translateX(5px) rotate(2deg)}60%{transform:translateX(-6px) rotate(-3deg)}80%{transform:translateX(6px) rotate(3deg)}}@keyframes drawCracks{to{stroke-dashoffset:0}}@keyframes crackPulse{50%{filter:drop-shadow(0 0 14px var(--pet-primary));opacity:.65}}@keyframes lightBurst{0%{opacity:0;transform:scale(1)}35%{opacity:1}100%{opacity:0;transform:scale(65)}}@keyframes rarityPulse{50%{opacity:.65;scale:1.08}}@keyframes creatureReveal{0%{opacity:0;filter:brightness(0) drop-shadow(0 0 40px var(--pet-primary));transform:translateY(30px) scale(.72)}45%{opacity:1;filter:brightness(0) drop-shadow(0 0 45px var(--pet-primary))}100%{filter:brightness(1) drop-shadow(0 24px 24px #000) drop-shadow(0 0 32px var(--pet-glow));transform:none}}@keyframes textReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes particleFly{0%{opacity:0;transform:rotate(var(--particle-angle)) translateY(35px) scale(.5)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--particle-angle)) translateY(var(--particle-distance)) scale(1.4)}}@keyframes resultCardEnter{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.pet-egg-overlay *{animation-duration:.2s!important;animation-iteration-count:1!important}.pet-egg-particles{display:none}.pet-light-burst{display:none}}
 
+/* Ancestral Genesis: the NFT seal is derived from the official creature asset,
+   so ordinary pets can never receive it through rarity alone. */
+.group:has(img[src*="/pets/ancestral-nft/"]) h3::after,
+.pet-reveal-creature:has(img[src*="/pets/ancestral-nft/"]) h1::after,
+div:has(> img[src*="/pets/ancestral-nft/"]) > b::after {
+  content:"NFT";
+  display:inline-flex;
+  margin-left:.45rem;
+  transform:translateY(-.18em);
+  border:1px solid rgba(254,240,138,.8);
+  border-radius:.3rem;
+  padding:.18rem .38rem;
+  background:linear-gradient(180deg,#fde68a,#d97706);
+  color:#100b02;
+  box-shadow:0 0 16px rgba(251,191,36,.65),inset 0 1px rgba(255,255,255,.5);
+  font-size:.43em;
+  font-weight:950;
+  line-height:1;
+  letter-spacing:.14em;
+  vertical-align:middle;
+}
+.group:has(img[src*="/pets/ancestral-nft/"]){
+  box-shadow:0 0 28px rgba(251,191,36,.2),0 18px 34px rgba(0,0,0,.55);
+}
+
 div:has(> img[src*="/pet-eggs/common-egg.webp"]) h3::after,
 div:has(> img[src*="/pet-eggs/rare-egg.webp"]) h3::after,
 div:has(> img[src*="/pet-eggs/epic-egg.webp"]) h3::after,
