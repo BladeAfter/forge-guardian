@@ -1,0 +1,24 @@
+import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus,calculatePetBonus,calculatePetEvolutionCostFc,canPetEvolve,canPhoenixRevive,canTriggerPetSkill,deterministicPercent,evolutionStage,foodCost,fragmentCost,levelCostFc,normalizePetRarity,petPower,xpRequired}from'./petRules';
+describe('pet rules',()=>{
+ it('keeps only one pet active',()=>expect(activateOnlyPet([{id:'a',isActive:true},{id:'b',isActive:false}],'b').filter(x=>x.isActive).map(x=>x.id)).toEqual(['b']));
+ it('normalizes Portuguese rarities',()=>expect(['comum','incomum','raro','épico','lendário'].map(normalizePetRarity)).toEqual(['common','uncommon','rare','epic','legendary']));
+ it('falls unknown rarity back to common',()=>expect(normalizePetRarity('mythic')).toBe('common'));
+ it('increases boss damage by the final bonus',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
+ it('increases team hp correctly',()=>expect(applyEligibleBonus(100,5,true)).toBe(105));
+ it('does not affect ineligible farm rewards',()=>expect(applyEligibleBonus(1000,15,false)).toBe(1000));
+ it('applies xp bonus once',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
+ it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(20));
+ it('caps critical chance',()=>expect(calculatePetBonus(20,'legendary',30,'critical_chance_percent')).toBe(10));
+ it('does not exceed max level stage',()=>expect(evolutionStage(99)).toBe('ancestral'));
+ it('has visual evolution thresholds',()=>expect([1,10,20,30].map(evolutionStage)).toEqual(['baby','young','adult','ancestral']));
+ it('skill respects cooldown',()=>{expect(canTriggerPetSkill(5,5,0)).toBe(true);expect(canTriggerPetSkill(4,5,0)).toBe(false)});
+ it('Phoenix revives once per battle',()=>{expect(canPhoenixRevive(false,1)).toBe(true);expect(canPhoenixRevive(true,1)).toBe(false)});
+ it('same seed produces same roll',()=>expect(deterministicPercent('seed')).toBe(deterministicPercent('seed')));
+ it('different seeds produce different rolls',()=>expect(deterministicPercent('a')).not.toBe(deterministicPercent('b')));
+ it('calculates positive finite costs',()=>{for(const n of[1,10,20,30])for(const v of[levelCostFc(n),foodCost(n),fragmentCost(n),xpRequired(n)])expect(Number.isFinite(v)&&v>=0).toBe(true)});
+ it('never returns NaN for bad bonuses',()=>expect(calculatePetBonus(Number.NaN,'unknown',Number.NaN)).toBe(0));
+ it('power is display-only and finite',()=>expect(Number.isFinite(petPower('legendary',30,{boss_damage_percent:20}))).toBe(true));
+ it('does not produce negative reward',()=>expect(applyEligibleBonus(-1,5,true)).toBe(0));
+ it('requires XP before evolution',()=>{expect(canPetEvolve(1,249)).toBe(false);expect(canPetEvolve(1,250)).toBe(true);expect(canPetEvolve(30,999999)).toBe(false)});
+ it('evolution cost grows by level and rarity',()=>{expect(calculatePetEvolutionCostFc(1,'common')).toBe(2500);expect(calculatePetEvolutionCostFc(1,'legendary')).toBe(8000);expect(calculatePetEvolutionCostFc(10,'rare')).toBeGreaterThan(calculatePetEvolutionCostFc(5,'rare'))});
+});

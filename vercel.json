@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/(village|missions|boss|wallet|profile|invites|pvp|pets|pool|hero-shop|calendar|season-pass)", "destination": "/index.html" }
+  ]
+}
