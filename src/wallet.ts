@@ -1,0 +1,3 @@
+export type WalletHistoryItem={id:string;type:'deposit'|'withdrawal'|'egg_order';label:string;amountFc:number|null;amountTon:number|null;status:string;createdAt:string};
+export type WalletSummary={balanceFc:number;equivalentTon:number;deposits:Array<{id:string;amountTon:number;amountFc:number;status:string;createdAt:string}>;withdrawals:Array<{id:string;amountFc:number;amountTon:number;status:string;createdAt:string}>;eggOrders:Array<{id:string;eggName:string;priceTon:number;status:string;createdAt:string}>;history:WalletHistoryItem[]};
+export type TonPaymentIntent={id:string;paymentAddress:string;amountNano:string;amountTon:number;amountFc?:number;paymentComment:string;expiresAt:string};

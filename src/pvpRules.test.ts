@@ -1,0 +1,15 @@
+import{describe,expect,it}from'vitest';import{PVP_RARITY_STATS,deterministicDamage,finalHeroStats,generateHeroStats,heroPower,matchmakingWindow,teamSummary,uniqueTeam}from'./pvpRules';
+describe('PvP rules',()=>{const base=['id','tpl','user','2026-01-01']as const;
+ it('same seed persists stats',()=>expect(generateHeroStats(...base,'rare')).toEqual(generateHeroStats(...base,'rare')));
+ it('same rarity can vary',()=>expect(generateHeroStats('a','tpl','user','2026-01-01','common')).not.toEqual(generateHeroStats('b','tpl','user','2026-01-01','common')));
+ it('legendary ranges exceed common',()=>expect(PVP_RARITY_STATS.legendary.minAtk).toBeGreaterThan(PVP_RARITY_STATS.common.maxAtk));
+ it('archetypes change attributes',()=>expect(generateHeroStats(...base,'rare','mage').baseAtk).toBeGreaterThan(generateHeroStats(...base,'rare','tank').baseAtk));
+ it('level raises atk and hp',()=>{const a=finalHeroStats(100,1000,.03,.04,1),b=finalHeroStats(100,1000,.03,.04,10);expect(b.finalAtk).toBeGreaterThan(a.finalAtk);expect(b.finalHp).toBeGreaterThan(a.finalHp)});
+ it('never generates negative or non finite stats',()=>{const s=finalHeroStats(NaN,-1,Infinity,-1,NaN);expect(s.finalAtk).toBe(1);expect(s.finalHp).toBe(1)});
+ it('sums a team',()=>expect(teamSummary([{heroId:'1',name:'A',finalAtk:100,finalHp:1000,level:1},{heroId:'2',name:'B',finalAtk:200,finalHp:2000,level:1}])).toMatchObject({atk:300,hp:3000}));
+ it('prevents duplicate and oversized teams',()=>{expect(uniqueTeam(['a','a'])).toBe(false);expect(uniqueTeam(['1','2','3','4','5','6'])).toBe(false)});
+ it('excludes self, banned and empty defenses',()=>expect(matchmakingWindow(1000,1000,[{id:'self',power:1000,trophies:1000,hasDefense:true},{id:'empty',power:1000,trophies:1000,hasDefense:false},{id:'banned',power:1000,trophies:1000,hasDefense:true,banned:true},{id:'ok',power:1000,trophies:1000,hasDefense:true}],'self').map(x=>x.id)).toEqual(['ok']));
+ it('returns at most three opponents',()=>expect(matchmakingWindow(1000,1000,Array.from({length:8},(_,i)=>({id:String(i),power:1000,trophies:1000,hasDefense:true})),'self')).toHaveLength(3));
+ it('uses deterministic bounded damage',()=>{const a={heroId:'a',name:'A',finalAtk:100,finalHp:1000,level:1},d={heroId:'d',name:'D',finalAtk:100,finalHp:1000,level:1,defense:100};const x=deterministicDamage(a,d,'battle',1);expect(x).toBe(deterministicDamage(a,d,'battle',1));expect(x).toBeGreaterThan(0);expect(x).toBeLessThanOrEqual(105)});
+ it('power is finite',()=>expect(Number.isFinite(heroPower(NaN,Infinity,1))).toBe(true));
+});
