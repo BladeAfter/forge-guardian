@@ -76,6 +76,7 @@ function App() {
   const [telegramStartParam,setTelegramStartParam]=useState<string|null>(null);
   const [shopResults, setShopResults] = useState<ShopHero[]>([]);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [outsideTelegram, setOutsideTelegram] = useState(false);
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const queryClient = useQueryClient();
