@@ -145,6 +145,185 @@ export type Database = {
           },
         ]
       }
+      calendar_chest_open_history: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          inventory_item_id: string
+          result_hero_id: string
+          result_rarity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          inventory_item_id: string
+          result_hero_id: string
+          result_rarity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          inventory_item_id?: string
+          result_hero_id?: string
+          result_rarity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_chest_open_history_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "player_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_chest_open_history_result_hero_id_fkey"
+            columns: ["result_hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_chest_open_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_reward_config: {
+        Row: {
+          amount_fc: number
+          day: number
+          enabled: boolean
+          item_code: string | null
+          rarity_rates: Json | null
+          reward_type: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount_fc?: number
+          day: number
+          enabled?: boolean
+          item_code?: string | null
+          rarity_rates?: Json | null
+          reward_type: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount_fc?: number
+          day?: number
+          enabled?: boolean
+          item_code?: string | null
+          rarity_rates?: Json | null
+          reward_type?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calendar_reward_history: {
+        Row: {
+          amount_fc: number
+          created_at: string
+          day: number
+          id: string
+          idempotency_key: string
+          result_data: Json | null
+          reward_code: string | null
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number
+          created_at?: string
+          day: number
+          id?: string
+          idempotency_key: string
+          result_data?: Json | null
+          reward_code?: string | null
+          reward_type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          created_at?: string
+          day?: number
+          id?: string
+          idempotency_key?: string
+          result_data?: Json | null
+          reward_code?: string | null
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_reward_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_calendar_claims: {
+        Row: {
+          amount_fc: number
+          calendar_cycle: string
+          claimed_at: string
+          created_at: string
+          day: number
+          id: string
+          idempotency_key: string
+          reward_code: string | null
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number
+          calendar_cycle: string
+          claimed_at?: string
+          created_at?: string
+          day: number
+          id?: string
+          idempotency_key: string
+          reward_code?: string | null
+          reward_type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          calendar_cycle?: string
+          claimed_at?: string
+          created_at?: string
+          day?: number
+          id?: string
+          idempotency_key?: string
+          reward_code?: string | null
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_calendar_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       economy_settings: {
         Row: {
           key: string
@@ -627,6 +806,7 @@ export type Database = {
         Row: {
           archetype: string
           attack_growth: number
+          attribute_seed: string | null
           base_atk: number
           base_hp: number
           bonus_atk: number
@@ -650,6 +830,7 @@ export type Database = {
         Insert: {
           archetype: string
           attack_growth: number
+          attribute_seed?: string | null
           base_atk: number
           base_hp: number
           bonus_atk?: number
@@ -673,6 +854,7 @@ export type Database = {
         Update: {
           archetype?: string
           attack_growth?: number
+          attribute_seed?: string | null
           base_atk?: number
           base_hp?: number
           bonus_atk?: number
@@ -696,6 +878,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "player_heroes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_inventory: {
+        Row: {
+          id: string
+          item_code: string
+          item_type: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_code: string
+          item_type: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_code?: string
+          item_type?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_inventory_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -1420,6 +1637,10 @@ export type Database = {
         Returns: Json
       }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      claim_calendar_day: {
+        Args: { p_day: number; p_telegram_id: number }
+        Returns: Json
+      }
       confirm_pet_egg_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: undefined
@@ -1472,6 +1693,7 @@ export type Database = {
       }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -1506,6 +1728,10 @@ export type Database = {
       }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
+      open_calendar_hero_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
       process_boss_combat: {
