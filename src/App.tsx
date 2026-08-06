@@ -17,7 +17,7 @@ import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import { backgrounds, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
-import { isDemoMode, isProduction } from './config';
+import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
