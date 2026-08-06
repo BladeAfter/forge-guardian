@@ -315,6 +315,10 @@ function App() {
     { key: 'profile', label: lang.tabs.profile }
   ] as const;
 
+  if (outsideTelegram) {
+    return <OpenInTelegramGate />;
+  }
+
   if (bootstrapError) {
     return <StatusScreen title="Telegram necessário" message={bootstrapError} />;
   }
