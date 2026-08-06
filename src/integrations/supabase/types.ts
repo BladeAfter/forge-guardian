@@ -295,6 +295,229 @@ export type Database = {
           },
         ]
       }
+      pet_eggs: {
+        Row: {
+          allowed_pet_categories: Json | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_enabled: boolean
+          name: string
+          price_fc: number | null
+          price_ton: number | null
+          rarity_rates: Json
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_pet_categories?: Json | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_enabled?: boolean
+          name: string
+          price_fc?: number | null
+          price_ton?: number | null
+          rarity_rates: Json
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_pet_categories?: Json | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_enabled?: boolean
+          name?: string
+          price_fc?: number | null
+          price_ton?: number | null
+          rarity_rates?: Json
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pet_hatch_history: {
+        Row: {
+          created_at: string
+          duplicate_fragments: number
+          egg_id: string
+          id: string
+          idempotency_key: string
+          result_pet_id: string | null
+          result_rarity: string | null
+          seed_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duplicate_fragments?: number
+          egg_id: string
+          id?: string
+          idempotency_key: string
+          result_pet_id?: string | null
+          result_rarity?: string | null
+          seed_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duplicate_fragments?: number
+          egg_id?: string
+          id?: string
+          idempotency_key?: string
+          result_pet_id?: string | null
+          result_rarity?: string | null
+          seed_hash?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_hatch_history_egg_id_fkey"
+            columns: ["egg_id"]
+            isOneToOne: false
+            referencedRelation: "pet_eggs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_hatch_history_result_pet_id_fkey"
+            columns: ["result_pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_hatch_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      pet_upgrade_history: {
+        Row: {
+          created_at: string
+          fc_spent: number
+          food_spent: number
+          fragments_spent: number
+          id: string
+          new_level: number | null
+          old_level: number | null
+          player_pet_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fc_spent?: number
+          food_spent?: number
+          fragments_spent?: number
+          id?: string
+          new_level?: number | null
+          old_level?: number | null
+          player_pet_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fc_spent?: number
+          food_spent?: number
+          fragments_spent?: number
+          id?: string
+          new_level?: number | null
+          old_level?: number | null
+          player_pet_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_upgrade_history_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_upgrade_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pets: {
+        Row: {
+          active_skill: Json | null
+          base_passives: Json
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_adult_url: string | null
+          image_ancestral_url: string | null
+          image_baby_url: string | null
+          image_young_url: string | null
+          is_enabled: boolean
+          name: string
+          slug: string
+          species: string
+          updated_at: string
+        }
+        Insert: {
+          active_skill?: Json | null
+          base_passives?: Json
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_adult_url?: string | null
+          image_ancestral_url?: string | null
+          image_baby_url?: string | null
+          image_young_url?: string | null
+          is_enabled?: boolean
+          name: string
+          slug: string
+          species: string
+          updated_at?: string
+        }
+        Update: {
+          active_skill?: Json | null
+          base_passives?: Json
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_adult_url?: string | null
+          image_ancestral_url?: string | null
+          image_baby_url?: string | null
+          image_young_url?: string | null
+          is_enabled?: boolean
+          name?: string
+          slug?: string
+          species?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_heroes: {
         Row: {
           created_at: string
@@ -376,6 +599,108 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "player_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_pet_inventory: {
+        Row: {
+          id: string
+          item_id: string | null
+          item_type: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_id?: string | null
+          item_type: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string | null
+          item_type?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_pet_inventory_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pet_eggs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_pet_inventory_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_pets: {
+        Row: {
+          created_at: string
+          evolution_stage: string
+          fragments: number
+          id: string
+          is_active: boolean
+          level: number
+          obtained_at: string
+          pet_id: string
+          rarity: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          evolution_stage?: string
+          fragments?: number
+          id?: string
+          is_active?: boolean
+          level?: number
+          obtained_at?: string
+          pet_id: string
+          rarity: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          evolution_stage?: string
+          fragments?: number
+          id?: string
+          is_active?: boolean
+          level?: number
+          obtained_at?: string
+          pet_id?: string
+          rarity?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_pets_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_pets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
