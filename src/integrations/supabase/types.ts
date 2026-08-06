@@ -169,8 +169,10 @@ export type Database = {
           boss_defeats: number
           created_at: string
           display_name: string | null
+          first_name: string | null
           forge_coins: number
           id: string
+          last_name: string | null
           last_seen_at: string
           pvp_banned: boolean
           pvp_losses: number
@@ -186,8 +188,10 @@ export type Database = {
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           forge_coins?: number
           id?: string
+          last_name?: string | null
           last_seen_at?: string
           pvp_banned?: boolean
           pvp_losses?: number
@@ -203,8 +207,10 @@ export type Database = {
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           forge_coins?: number
           id?: string
+          last_name?: string | null
           last_seen_at?: string
           pvp_banned?: boolean
           pvp_losses?: number
@@ -1060,12 +1066,31 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_commission_settings: {
+        Row: {
+          level: number
+          percent: number
+          updated_at: string
+        }
+        Insert: {
+          level: number
+          percent: number
+          updated_at?: string
+        }
+        Update: {
+          level?: number
+          percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_commissions: {
         Row: {
           amount_fc: number
           created_at: string
           from_user: string
           id: string
+          idempotency_key: string | null
           level: number
           purchase_id: string
           user_id: string
@@ -1075,6 +1100,7 @@ export type Database = {
           created_at?: string
           from_user: string
           id?: string
+          idempotency_key?: string | null
           level: number
           purchase_id: string
           user_id: string
@@ -1084,6 +1110,7 @@ export type Database = {
           created_at?: string
           from_user?: string
           id?: string
+          idempotency_key?: string | null
           level?: number
           purchase_id?: string
           user_id?: string
@@ -1455,6 +1482,15 @@ export type Database = {
       get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_referral_dashboard_v2: {
+        Args: {
+          p_level?: number
+          p_limit?: number
+          p_offset?: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       grant_referral_milestones: {
         Args: { p_user_id: string }
@@ -1551,6 +1587,16 @@ export type Database = {
       }
       upgrade_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      upsert_telegram_player_profile: {
+        Args: {
+          p_first_name: string
+          p_last_name?: string
+          p_photo_url?: string
+          p_telegram_id: number
+          p_username?: string
+        }
         Returns: Json
       }
       wallet_hot_address: { Args: never; Returns: string }
