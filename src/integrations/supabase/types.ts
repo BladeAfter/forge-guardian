@@ -498,6 +498,48 @@ export type Database = {
           },
         ]
       }
+      pet_action_idempotency: {
+        Row: {
+          action: string
+          created_at: string
+          idempotency_key: string
+          player_pet_id: string
+          result: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          idempotency_key: string
+          player_pet_id: string
+          result?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          idempotency_key?: string
+          player_pet_id?: string
+          result?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_action_idempotency_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_action_idempotency_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_egg_orders: {
         Row: {
           amount_nano: string
@@ -620,6 +662,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pet_evolution_history: {
+        Row: {
+          created_at: string
+          fc_cost: number
+          id: string
+          idempotency_key: string
+          new_level: number
+          new_stage: string | null
+          old_level: number
+          old_stage: string | null
+          player_pet_id: string
+          rarity: string
+          user_id: string
+          xp_after: number
+          xp_before: number
+          xp_spent: number
+        }
+        Insert: {
+          created_at?: string
+          fc_cost: number
+          id?: string
+          idempotency_key: string
+          new_level: number
+          new_stage?: string | null
+          old_level: number
+          old_stage?: string | null
+          player_pet_id: string
+          rarity: string
+          user_id: string
+          xp_after: number
+          xp_before: number
+          xp_spent: number
+        }
+        Update: {
+          created_at?: string
+          fc_cost?: number
+          id?: string
+          idempotency_key?: string
+          new_level?: number
+          new_stage?: string | null
+          old_level?: number
+          old_stage?: string | null
+          player_pet_id?: string
+          rarity?: string
+          user_id?: string
+          xp_after?: number
+          xp_before?: number
+          xp_spent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_evolution_history_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_evolution_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pet_hatch_history: {
         Row: {
@@ -1070,24 +1178,33 @@ export type Database = {
         Row: {
           adventurer_owned: boolean
           legendary_owned: boolean
+          purchased_at: string | null
           season_id: string
+          tier: string
           updated_at: string
+          upgraded_at: string | null
           user_id: string
           xp: number
         }
         Insert: {
           adventurer_owned?: boolean
           legendary_owned?: boolean
+          purchased_at?: string | null
           season_id: string
+          tier?: string
           updated_at?: string
+          upgraded_at?: string | null
           user_id: string
           xp?: number
         }
         Update: {
           adventurer_owned?: boolean
           legendary_owned?: boolean
+          purchased_at?: string | null
           season_id?: string
+          tier?: string
           updated_at?: string
+          upgraded_at?: string | null
           user_id?: string
           xp?: number
         }
@@ -2250,6 +2367,7 @@ export type Database = {
           p_enabled: boolean
           p_level: number
           p_reward_id: string
+          p_tier: string
           p_title: string
           p_type: string
         }
@@ -2343,6 +2461,15 @@ export type Database = {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      feed_pet_v2: {
+        Args: {
+          p_food: number
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       finish_wallet_withdrawal: {
         Args: { p_status: string; p_tx_hash?: string; p_withdrawal_id: string }
         Returns: undefined
@@ -2396,8 +2523,10 @@ export type Database = {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json
       }
+      pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
+      pet_xp_required: { Args: { v: number }; Returns: number }
       pool_record_revenue: {
         Args: {
           p_amount_ton: number
@@ -2486,6 +2615,14 @@ export type Database = {
       }
       upgrade_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      upgrade_pet_v2: {
+        Args: {
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_telegram_id: number
+        }
         Returns: Json
       }
       upsert_telegram_player_profile: {
