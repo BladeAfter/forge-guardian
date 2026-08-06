@@ -142,30 +142,60 @@ export type Database = {
           },
         ]
       }
-      game_players: {
+      economy_settings: {
         Row: {
-          boss_defeats: number
-          created_at: string
-          forge_coins: number
-          id: string
-          telegram_id: number
+          key: string
           updated_at: string
+          value_numeric: number
         }
         Insert: {
-          boss_defeats?: number
-          created_at?: string
-          forge_coins?: number
-          id?: string
-          telegram_id: number
+          key: string
           updated_at?: string
+          value_numeric: number
         }
         Update: {
+          key?: string
+          updated_at?: string
+          value_numeric?: number
+        }
+        Relationships: []
+      }
+      game_players: {
+        Row: {
+          avatar_url: string | null
+          boss_defeats: number
+          created_at: string
+          display_name: string | null
+          forge_coins: number
+          id: string
+          last_seen_at: string
+          telegram_id: number
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
           boss_defeats?: number
           created_at?: string
+          display_name?: string | null
           forge_coins?: number
           id?: string
+          last_seen_at?: string
+          telegram_id: number
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          boss_defeats?: number
+          created_at?: string
+          display_name?: string | null
+          forge_coins?: number
+          id?: string
+          last_seen_at?: string
           telegram_id?: number
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -309,18 +339,279 @@ export type Database = {
           },
         ]
       }
+      player_notifications: {
+        Row: {
+          amount_fc: number | null
+          created_at: string
+          id: string
+          message: string
+          metadata: Json
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number | null
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number | null
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_bonus_claims: {
+        Row: {
+          amount_fc: number
+          created_at: string
+          id: string
+          milestone: number
+          user_id: string
+        }
+        Insert: {
+          amount_fc: number
+          created_at?: string
+          id?: string
+          milestone: number
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          created_at?: string
+          id?: string
+          milestone?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_bonus_claims_milestone_fkey"
+            columns: ["milestone"]
+            isOneToOne: false
+            referencedRelation: "referral_bonus_rules"
+            referencedColumns: ["milestone"]
+          },
+          {
+            foreignKeyName: "referral_bonus_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_bonus_rules: {
+        Row: {
+          bonus_fc: number
+          enabled: boolean
+          milestone: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_fc?: number
+          enabled?: boolean
+          milestone: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_fc?: number
+          enabled?: boolean
+          milestone?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referral_commissions: {
+        Row: {
+          amount_fc: number
+          created_at: string
+          from_user: string
+          id: string
+          level: number
+          purchase_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc: number
+          created_at?: string
+          from_user: string
+          id?: string
+          level: number
+          purchase_id: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          created_at?: string
+          from_user?: string
+          id?: string
+          level?: number
+          purchase_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_from_user_fkey"
+            columns: ["from_user"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "referral_purchase_events"
+            referencedColumns: ["purchase_id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_purchase_events: {
+        Row: {
+          amount_fc: number
+          buyer_id: string
+          created_at: string
+          eligible: boolean
+          event_type: string
+          id: string
+          purchase_id: string
+          source_amount: number | null
+          source_currency: string
+        }
+        Insert: {
+          amount_fc: number
+          buyer_id: string
+          created_at?: string
+          eligible: boolean
+          event_type: string
+          id?: string
+          purchase_id: string
+          source_amount?: number | null
+          source_currency?: string
+        }
+        Update: {
+          amount_fc?: number
+          buyer_id?: string
+          created_at?: string
+          eligible?: boolean
+          event_type?: string
+          id?: string
+          purchase_id?: string
+          source_amount?: number | null
+          source_currency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_purchase_events_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          inviter_id: string
+          level: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inviter_id: string
+          level?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inviter_id?: string
+          level?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      bind_referral: {
+        Args: { p_inviter_telegram_id: number; p_telegram_id: number }
+        Returns: Json
+      }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      distribute_referral_commission: {
+        Args: {
+          p_amount_fc: number
+          p_buyer_id: string
+          p_eligible: boolean
+          p_event_type: string
+          p_purchase_id: string
+          p_source_amount?: number
+          p_source_currency?: string
+        }
+        Returns: Json
+      }
       ensure_boss_combat: { Args: { p_telegram_id: number }; Returns: string }
       equip_combat_hero: {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
       }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      get_referral_admin_stats: { Args: never; Returns: Json }
+      get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      grant_referral_milestones: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
@@ -329,6 +620,17 @@ export type Database = {
       rarity_base_atk: { Args: { r: string }; Returns: number }
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
+      record_eligible_purchase: {
+        Args: {
+          p_amount: number
+          p_buyer_id: string
+          p_currency: string
+          p_eligible?: boolean
+          p_event_type: string
+          p_purchase_id: string
+        }
+        Returns: Json
+      }
       recruit_heroes: {
         Args: { p_count: number; p_telegram_id: number }
         Returns: Json
@@ -336,6 +638,15 @@ export type Database = {
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
         Returns: Json
+      }
+      touch_referral_player: {
+        Args: {
+          p_avatar: string
+          p_name: string
+          p_telegram_id: number
+          p_username: string
+        }
+        Returns: string
       }
     }
     Enums: {
