@@ -148,7 +148,7 @@ function App() {
       return;
     }
     if (!webApp?.initData) {
-      setBootstrapError('Abra o Forge Village pelo botão de Web App do Telegram. O modo de navegador é permitido apenas em desenvolvimento.');
+      setOutsideTelegram(true);
       return;
     }
     validateTelegramSession(webApp.initData)
