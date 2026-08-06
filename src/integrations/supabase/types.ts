@@ -172,6 +172,11 @@ export type Database = {
           forge_coins: number
           id: string
           last_seen_at: string
+          pvp_banned: boolean
+          pvp_losses: number
+          pvp_tickets: number
+          pvp_trophies: number
+          pvp_wins: number
           telegram_id: number
           updated_at: string
           username: string | null
@@ -184,6 +189,11 @@ export type Database = {
           forge_coins?: number
           id?: string
           last_seen_at?: string
+          pvp_banned?: boolean
+          pvp_losses?: number
+          pvp_tickets?: number
+          pvp_trophies?: number
+          pvp_wins?: number
           telegram_id: number
           updated_at?: string
           username?: string | null
@@ -196,6 +206,11 @@ export type Database = {
           forge_coins?: number
           id?: string
           last_seen_at?: string
+          pvp_banned?: boolean
+          pvp_losses?: number
+          pvp_tickets?: number
+          pvp_trophies?: number
+          pvp_wins?: number
           telegram_id?: number
           updated_at?: string
           username?: string | null
@@ -523,35 +538,71 @@ export type Database = {
       }
       player_heroes: {
         Row: {
+          archetype: string
+          attack_growth: number
+          base_atk: number
+          base_hp: number
+          bonus_atk: number
+          bonus_hp: number
           created_at: string
+          final_atk: number
+          final_hp: number
           hero_key: string
+          hero_template_id: string | null
+          hp_growth: number
           id: string
           image: string | null
           level: number
           name: string
           rarity: string
+          stats_generated_at: string | null
+          stats_seed: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          archetype: string
+          attack_growth: number
+          base_atk: number
+          base_hp: number
+          bonus_atk?: number
+          bonus_hp?: number
           created_at?: string
+          final_atk: number
+          final_hp: number
           hero_key: string
+          hero_template_id?: string | null
+          hp_growth: number
           id?: string
           image?: string | null
           level?: number
           name: string
           rarity: string
+          stats_generated_at?: string | null
+          stats_seed: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          archetype?: string
+          attack_growth?: number
+          base_atk?: number
+          base_hp?: number
+          bonus_atk?: number
+          bonus_hp?: number
           created_at?: string
+          final_atk?: number
+          final_hp?: number
           hero_key?: string
+          hero_template_id?: string | null
+          hp_growth?: number
           id?: string
           image?: string | null
           level?: number
           name?: string
           rarity?: string
+          stats_generated_at?: string | null
+          stats_seed?: string
           updated_at?: string
           user_id?: string
         }
@@ -704,6 +755,163 @@ export type Database = {
           },
           {
             foreignKeyName: "player_pets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_battles: {
+        Row: {
+          attacker_id: string
+          attacker_power: number
+          attacker_team_snapshot: Json
+          battle_log: Json
+          completed_at: string
+          created_at: string
+          defender_id: string
+          defender_power: number
+          defender_team_snapshot: Json
+          id: string
+          result: string
+          reward_fc: number
+          total_turns: number
+          trophy_change: number
+          winner_id: string | null
+        }
+        Insert: {
+          attacker_id: string
+          attacker_power: number
+          attacker_team_snapshot: Json
+          battle_log?: Json
+          completed_at?: string
+          created_at?: string
+          defender_id: string
+          defender_power: number
+          defender_team_snapshot: Json
+          id?: string
+          result: string
+          reward_fc?: number
+          total_turns: number
+          trophy_change?: number
+          winner_id?: string | null
+        }
+        Update: {
+          attacker_id?: string
+          attacker_power?: number
+          attacker_team_snapshot?: Json
+          battle_log?: Json
+          completed_at?: string
+          created_at?: string
+          defender_id?: string
+          defender_power?: number
+          defender_team_snapshot?: Json
+          id?: string
+          result?: string
+          reward_fc?: number
+          total_turns?: number
+          trophy_change?: number
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_battles_attacker_id_fkey"
+            columns: ["attacker_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvp_battles_defender_id_fkey"
+            columns: ["defender_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvp_battles_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_opponent_impressions: {
+        Row: {
+          last_shown_at: string
+          opponent_id: string
+          shown_count: number
+          user_id: string
+        }
+        Insert: {
+          last_shown_at?: string
+          opponent_id: string
+          shown_count?: number
+          user_id: string
+        }
+        Update: {
+          last_shown_at?: string
+          opponent_id?: string
+          shown_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_opponent_impressions_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvp_opponent_impressions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_team_slots: {
+        Row: {
+          created_at: string
+          hero_id: string
+          id: string
+          slot: number
+          team_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id: string
+          id?: string
+          slot: number
+          team_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string
+          id?: string
+          slot?: number
+          team_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_team_slots_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pvp_team_slots_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -963,11 +1171,15 @@ export type Database = {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
+      get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       grant_referral_milestones: {
@@ -990,6 +1202,17 @@ export type Database = {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
       }
+      pvp_hero_json: {
+        Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
+        Returns: Json
+      }
+      pvp_league: { Args: { t: number }; Returns: string }
+      pvp_stat_unit: { Args: { v: string }; Returns: number }
+      pvp_team_json: { Args: { p_type: string; p_user: string }; Returns: Json }
+      pvp_team_power: {
+        Args: { p_type: string; p_user: string }
+        Returns: number
+      }
       rarity_base_atk: { Args: { r: string }; Returns: number }
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
@@ -1008,8 +1231,30 @@ export type Database = {
         Args: { p_count: number; p_telegram_id: number }
         Returns: Json
       }
+      remove_pvp_team_slot: {
+        Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
+        Returns: Json
+      }
+      save_pvp_team_slot: {
+        Args: {
+          p_hero_id: string
+          p_slot: number
+          p_team_type: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
+        Returns: Json
+      }
+      simulate_pvp_battle: {
+        Args: { a: Json; d: Json; seed: string }
+        Returns: Json
+      }
+      start_pvp_battle: {
+        Args: { p_opponent_id: string; p_telegram_id: number }
         Returns: Json
       }
       touch_referral_player: {
