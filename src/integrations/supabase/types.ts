@@ -313,6 +313,72 @@ export type Database = {
           },
         ]
       }
+      pet_egg_orders: {
+        Row: {
+          amount_nano: string
+          created_at: string
+          delivered_at: string | null
+          egg_id: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          created_at?: string
+          delivered_at?: string | null
+          egg_id: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          created_at?: string
+          delivered_at?: string | null
+          egg_id?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_egg_orders_egg_id_fkey"
+            columns: ["egg_id"]
+            isOneToOne: false
+            referencedRelation: "pet_eggs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_egg_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_eggs: {
         Row: {
           allowed_pet_categories: Json | null
@@ -1129,6 +1195,130 @@ export type Database = {
           },
         ]
       }
+      wallet_deposits: {
+        Row: {
+          amount_fc: number
+          amount_ton: number
+          confirmed_at: string | null
+          created_at: string
+          credited_at: string | null
+          expires_at: string
+          from_wallet: string | null
+          id: string
+          idempotency_key: string
+          payment_comment: string
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_fc: number
+          amount_ton: number
+          confirmed_at?: string | null
+          created_at?: string
+          credited_at?: string | null
+          expires_at?: string
+          from_wallet?: string | null
+          id?: string
+          idempotency_key: string
+          payment_comment: string
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number
+          confirmed_at?: string | null
+          created_at?: string
+          credited_at?: string | null
+          expires_at?: string
+          from_wallet?: string | null
+          id?: string
+          idempotency_key?: string
+          payment_comment?: string
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_deposits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value_numeric: number | null
+          value_text: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Relationships: []
+      }
+      wallet_withdrawals: {
+        Row: {
+          amount_fc: number
+          amount_ton: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          processed_at: string | null
+          status: string
+          tx_hash: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          amount_fc: number
+          amount_ton: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          processed_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          processed_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_withdrawals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1203,6 +1393,31 @@ export type Database = {
         Returns: Json
       }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      confirm_pet_egg_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      confirm_wallet_deposit: {
+        Args: { p_amount_nano: string; p_deposit_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      create_pet_egg_order: {
+        Args: {
+          p_egg_id: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      create_wallet_deposit: {
+        Args: {
+          p_amount_ton: number
+          p_from_wallet: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       distribute_referral_commission: {
         Args: {
           p_amount_fc: number
@@ -1224,6 +1439,10 @@ export type Database = {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      finish_wallet_withdrawal: {
+        Args: { p_status: string; p_tx_hash?: string; p_withdrawal_id: string }
+        Returns: undefined
+      }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
@@ -1236,6 +1455,7 @@ export type Database = {
       get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       grant_referral_milestones: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -1289,6 +1509,15 @@ export type Database = {
         Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
         Returns: Json
       }
+      request_wallet_withdrawal: {
+        Args: {
+          p_amount_fc: number
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
       save_pvp_team_slot: {
         Args: {
           p_hero_id: string
@@ -1324,6 +1553,7 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      wallet_hot_address: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
