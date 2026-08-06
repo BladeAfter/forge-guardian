@@ -6,6 +6,7 @@ declare interface ImportMetaEnv {
   readonly VITE_SUPABASE_PROJECT_ID: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_APP_URL?: string;
+  readonly VITE_TELEGRAM_APP_LINK?: string;
   readonly VITE_TONCONNECT_MANIFEST_URL?: string;
 }
 

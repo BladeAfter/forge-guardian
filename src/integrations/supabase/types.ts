@@ -145,6 +145,185 @@ export type Database = {
           },
         ]
       }
+      calendar_chest_open_history: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          inventory_item_id: string
+          result_hero_id: string
+          result_rarity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          inventory_item_id: string
+          result_hero_id: string
+          result_rarity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          inventory_item_id?: string
+          result_hero_id?: string
+          result_rarity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_chest_open_history_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "player_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_chest_open_history_result_hero_id_fkey"
+            columns: ["result_hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_chest_open_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_reward_config: {
+        Row: {
+          amount_fc: number
+          day: number
+          enabled: boolean
+          item_code: string | null
+          rarity_rates: Json | null
+          reward_type: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount_fc?: number
+          day: number
+          enabled?: boolean
+          item_code?: string | null
+          rarity_rates?: Json | null
+          reward_type: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount_fc?: number
+          day?: number
+          enabled?: boolean
+          item_code?: string | null
+          rarity_rates?: Json | null
+          reward_type?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      calendar_reward_history: {
+        Row: {
+          amount_fc: number
+          created_at: string
+          day: number
+          id: string
+          idempotency_key: string
+          result_data: Json | null
+          reward_code: string | null
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number
+          created_at?: string
+          day: number
+          id?: string
+          idempotency_key: string
+          result_data?: Json | null
+          reward_code?: string | null
+          reward_type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          created_at?: string
+          day?: number
+          id?: string
+          idempotency_key?: string
+          result_data?: Json | null
+          reward_code?: string | null
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_reward_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_calendar_claims: {
+        Row: {
+          amount_fc: number
+          calendar_cycle: string
+          claimed_at: string
+          created_at: string
+          day: number
+          id: string
+          idempotency_key: string
+          reward_code: string | null
+          reward_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number
+          calendar_cycle: string
+          claimed_at?: string
+          created_at?: string
+          day: number
+          id?: string
+          idempotency_key: string
+          reward_code?: string | null
+          reward_type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          calendar_cycle?: string
+          claimed_at?: string
+          created_at?: string
+          day?: number
+          id?: string
+          idempotency_key?: string
+          reward_code?: string | null
+          reward_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_calendar_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       economy_settings: {
         Row: {
           key: string
@@ -169,8 +348,10 @@ export type Database = {
           boss_defeats: number
           created_at: string
           display_name: string | null
+          first_name: string | null
           forge_coins: number
           id: string
+          last_name: string | null
           last_seen_at: string
           pvp_banned: boolean
           pvp_losses: number
@@ -186,8 +367,10 @@ export type Database = {
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           forge_coins?: number
           id?: string
+          last_name?: string | null
           last_seen_at?: string
           pvp_banned?: boolean
           pvp_losses?: number
@@ -203,8 +386,10 @@ export type Database = {
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           forge_coins?: number
           id?: string
+          last_name?: string | null
           last_seen_at?: string
           pvp_banned?: boolean
           pvp_losses?: number
@@ -313,14 +498,127 @@ export type Database = {
           },
         ]
       }
+      pet_action_idempotency: {
+        Row: {
+          action: string
+          created_at: string
+          idempotency_key: string
+          player_pet_id: string
+          result: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          idempotency_key: string
+          player_pet_id: string
+          result?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          idempotency_key?: string
+          player_pet_id?: string
+          result?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_action_idempotency_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_action_idempotency_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_egg_orders: {
+        Row: {
+          amount_nano: string
+          created_at: string
+          delivered_at: string | null
+          egg_id: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          created_at?: string
+          delivered_at?: string | null
+          egg_id: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          created_at?: string
+          delivered_at?: string | null
+          egg_id?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_egg_orders_egg_id_fkey"
+            columns: ["egg_id"]
+            isOneToOne: false
+            referencedRelation: "pet_eggs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_egg_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_eggs: {
         Row: {
           allowed_pet_categories: Json | null
+          availability_label: string | null
           created_at: string
+          daily_quantity: number | null
           id: string
           image_url: string | null
           is_enabled: boolean
+          is_purchasable: boolean
           name: string
+          per_player_limit: number | null
+          premium_only: boolean
           price_fc: number | null
           price_ton: number | null
           rarity_rates: Json
@@ -329,11 +627,16 @@ export type Database = {
         }
         Insert: {
           allowed_pet_categories?: Json | null
+          availability_label?: string | null
           created_at?: string
+          daily_quantity?: number | null
           id?: string
           image_url?: string | null
           is_enabled?: boolean
+          is_purchasable?: boolean
           name: string
+          per_player_limit?: number | null
+          premium_only?: boolean
           price_fc?: number | null
           price_ton?: number | null
           rarity_rates: Json
@@ -342,11 +645,16 @@ export type Database = {
         }
         Update: {
           allowed_pet_categories?: Json | null
+          availability_label?: string | null
           created_at?: string
+          daily_quantity?: number | null
           id?: string
           image_url?: string | null
           is_enabled?: boolean
+          is_purchasable?: boolean
           name?: string
+          per_player_limit?: number | null
+          premium_only?: boolean
           price_fc?: number | null
           price_ton?: number | null
           rarity_rates?: Json
@@ -354,6 +662,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pet_evolution_history: {
+        Row: {
+          created_at: string
+          fc_cost: number
+          id: string
+          idempotency_key: string
+          new_level: number
+          new_stage: string | null
+          old_level: number
+          old_stage: string | null
+          player_pet_id: string
+          rarity: string
+          user_id: string
+          xp_after: number
+          xp_before: number
+          xp_spent: number
+        }
+        Insert: {
+          created_at?: string
+          fc_cost: number
+          id?: string
+          idempotency_key: string
+          new_level: number
+          new_stage?: string | null
+          old_level: number
+          old_stage?: string | null
+          player_pet_id: string
+          rarity: string
+          user_id: string
+          xp_after: number
+          xp_before: number
+          xp_spent: number
+        }
+        Update: {
+          created_at?: string
+          fc_cost?: number
+          id?: string
+          idempotency_key?: string
+          new_level?: number
+          new_stage?: string | null
+          old_level?: number
+          old_stage?: string | null
+          player_pet_id?: string
+          rarity?: string
+          user_id?: string
+          xp_after?: number
+          xp_before?: number
+          xp_spent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_evolution_history_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_evolution_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pet_hatch_history: {
         Row: {
@@ -489,12 +863,17 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          exclusive_badge: string | null
+          exclusive_pass_tier: string | null
+          exclusive_passive: Json
+          exclusive_season_id: string | null
           id: string
           image_adult_url: string | null
           image_ancestral_url: string | null
           image_baby_url: string | null
           image_young_url: string | null
           is_enabled: boolean
+          is_season_exclusive: boolean
           name: string
           slug: string
           species: string
@@ -506,12 +885,17 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_season_exclusive?: boolean
           name: string
           slug: string
           species: string
@@ -523,28 +907,46 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_season_exclusive?: boolean
           name?: string
           slug?: string
           species?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pets_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_heroes: {
         Row: {
           archetype: string
           attack_growth: number
+          attribute_seed: string | null
           base_atk: number
           base_hp: number
           bonus_atk: number
           bonus_hp: number
           created_at: string
+          exclusive_badge: string | null
+          exclusive_pass_tier: string | null
+          exclusive_passive: Json
+          exclusive_season_id: string | null
           final_atk: number
           final_hp: number
           hero_key: string
@@ -552,22 +954,29 @@ export type Database = {
           hp_growth: number
           id: string
           image: string | null
+          is_season_exclusive: boolean
           level: number
           name: string
           rarity: string
           stats_generated_at: string | null
           stats_seed: string
+          tradable: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           archetype: string
           attack_growth: number
+          attribute_seed?: string | null
           base_atk: number
           base_hp: number
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           final_atk: number
           final_hp: number
           hero_key: string
@@ -575,22 +984,29 @@ export type Database = {
           hp_growth: number
           id?: string
           image?: string | null
+          is_season_exclusive?: boolean
           level?: number
           name: string
           rarity: string
           stats_generated_at?: string | null
           stats_seed: string
+          tradable?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           archetype?: string
           attack_growth?: number
+          attribute_seed?: string | null
           base_atk?: number
           base_hp?: number
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           final_atk?: number
           final_hp?: number
           hero_key?: string
@@ -598,17 +1014,83 @@ export type Database = {
           hp_growth?: number
           id?: string
           image?: string | null
+          is_season_exclusive?: boolean
           level?: number
           name?: string
           rarity?: string
           stats_generated_at?: string | null
           stats_seed?: string
+          tradable?: boolean
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "player_heroes_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "player_heroes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_inventory: {
+        Row: {
+          exclusive_reward_code: string | null
+          id: string
+          is_exclusive: boolean
+          item_code: string
+          item_type: string
+          pass_tier: string | null
+          quantity: number
+          season_id: string | null
+          tradable: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          exclusive_reward_code?: string | null
+          id?: string
+          is_exclusive?: boolean
+          item_code: string
+          item_type: string
+          pass_tier?: string | null
+          quantity?: number
+          season_id?: string | null
+          tradable?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          exclusive_reward_code?: string | null
+          id?: string
+          is_exclusive?: boolean
+          item_code?: string
+          item_type?: string
+          pass_tier?: string | null
+          quantity?: number
+          season_id?: string | null
+          tradable?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_inventory_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_inventory_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -706,13 +1188,17 @@ export type Database = {
         Row: {
           created_at: string
           evolution_stage: string
+          exclusive_badge: string | null
+          exclusive_season_id: string | null
           fragments: number
           id: string
           is_active: boolean
+          is_season_exclusive: boolean
           level: number
           obtained_at: string
           pet_id: string
           rarity: string
+          tradable: boolean
           updated_at: string
           user_id: string
           xp: number
@@ -720,13 +1206,17 @@ export type Database = {
         Insert: {
           created_at?: string
           evolution_stage?: string
+          exclusive_badge?: string | null
+          exclusive_season_id?: string | null
           fragments?: number
           id?: string
           is_active?: boolean
+          is_season_exclusive?: boolean
           level?: number
           obtained_at?: string
           pet_id: string
           rarity: string
+          tradable?: boolean
           updated_at?: string
           user_id: string
           xp?: number
@@ -734,18 +1224,29 @@ export type Database = {
         Update: {
           created_at?: string
           evolution_stage?: string
+          exclusive_badge?: string | null
+          exclusive_season_id?: string | null
           fragments?: number
           id?: string
           is_active?: boolean
+          is_season_exclusive?: boolean
           level?: number
           obtained_at?: string
           pet_id?: string
           rarity?: string
+          tradable?: boolean
           updated_at?: string
           user_id?: string
           xp?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "player_pets_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "player_pets_pet_id_fkey"
             columns: ["pet_id"]
@@ -755,6 +1256,406 @@ export type Database = {
           },
           {
             foreignKeyName: "player_pets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_season_pass: {
+        Row: {
+          adventurer_owned: boolean
+          legendary_owned: boolean
+          purchased_at: string | null
+          season_id: string
+          tier: string
+          updated_at: string
+          upgraded_at: string | null
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          adventurer_owned?: boolean
+          legendary_owned?: boolean
+          purchased_at?: string | null
+          season_id: string
+          tier?: string
+          updated_at?: string
+          upgraded_at?: string | null
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          adventurer_owned?: boolean
+          legendary_owned?: boolean
+          purchased_at?: string | null
+          season_id?: string
+          tier?: string
+          updated_at?: string
+          upgraded_at?: string | null
+          user_id?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_season_pass_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_season_pass_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_balance: {
+        Row: {
+          balance_ton: number
+          created_at: string
+          distribution_key: string | null
+          ends_at: string
+          id: string
+          starts_at: string
+          status: string
+          updated_at: string
+          week_label: string
+        }
+        Insert: {
+          balance_ton?: number
+          created_at?: string
+          distribution_key?: string | null
+          ends_at: string
+          id?: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+          week_label: string
+        }
+        Update: {
+          balance_ton?: number
+          created_at?: string
+          distribution_key?: string | null
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
+      pool_history: {
+        Row: {
+          amount_ton: number
+          distributed_at: string
+          id: string
+          pool_id: string
+          seed_hash: string
+          week_label: string
+          winner_count: number
+        }
+        Insert: {
+          amount_ton: number
+          distributed_at?: string
+          id?: string
+          pool_id: string
+          seed_hash: string
+          week_label: string
+          winner_count: number
+        }
+        Update: {
+          amount_ton?: number
+          distributed_at?: string
+          id?: string
+          pool_id?: string
+          seed_hash?: string
+          week_label?: string
+          winner_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_history_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: true
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_points: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          points: number
+          pool_id: string
+          source_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          points: number
+          pool_id: string
+          source_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          points?: number
+          pool_id?: string
+          source_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_points_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_revenue: {
+        Row: {
+          amount_ton: number
+          base_amount_ton: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          percent: number
+          pool_id: string
+          source_id: string
+          source_type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_ton: number
+          base_amount_ton: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          percent: number
+          pool_id: string
+          source_id: string
+          source_type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_ton?: number
+          base_amount_ton?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          percent?: number
+          pool_id?: string
+          source_id?: string
+          source_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_revenue_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_revenue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_rewards: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          history_id: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          position: number | null
+          reward_type: string
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          created_at?: string
+          history_id: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          position?: number | null
+          reward_type: string
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          history_id?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          position?: number | null
+          reward_type?: string
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_rewards_history_id_fkey"
+            columns: ["history_id"]
+            isOneToOne: false
+            referencedRelation: "pool_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_settings: {
+        Row: {
+          activity_points: Json
+          id: boolean
+          lottery_share_percent: number
+          lottery_winner_count: number
+          minimum_points: number
+          ranking_percentages: Json
+          ranking_share_percent: number
+          ranking_winner_limit: number
+          revenue_percentages: Json
+          season_days: number
+          updated_at: string
+        }
+        Insert: {
+          activity_points?: Json
+          id?: boolean
+          lottery_share_percent?: number
+          lottery_winner_count?: number
+          minimum_points?: number
+          ranking_percentages?: Json
+          ranking_share_percent?: number
+          ranking_winner_limit?: number
+          revenue_percentages?: Json
+          season_days?: number
+          updated_at?: string
+        }
+        Update: {
+          activity_points?: Json
+          id?: boolean
+          lottery_share_percent?: number
+          lottery_winner_count?: number
+          minimum_points?: number
+          ranking_percentages?: Json
+          ranking_share_percent?: number
+          ranking_winner_limit?: number
+          revenue_percentages?: Json
+          season_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pool_wallets: {
+        Row: {
+          connected_at: string
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          connected_at?: string
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          connected_at?: string
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_winners: {
+        Row: {
+          created_at: string
+          history_id: string
+          id: string
+          points: number
+          position: number | null
+          user_id: string
+          winner_type: string
+        }
+        Insert: {
+          created_at?: string
+          history_id: string
+          id?: string
+          points: number
+          position?: number | null
+          user_id: string
+          winner_type: string
+        }
+        Update: {
+          created_at?: string
+          history_id?: string
+          id?: string
+          points?: number
+          position?: number | null
+          user_id?: string
+          winner_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_winners_history_id_fkey"
+            columns: ["history_id"]
+            isOneToOne: false
+            referencedRelation: "pool_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_winners_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -979,12 +1880,31 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_commission_settings: {
+        Row: {
+          level: number
+          percent: number
+          updated_at: string
+        }
+        Insert: {
+          level: number
+          percent: number
+          updated_at?: string
+        }
+        Update: {
+          level?: number
+          percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_commissions: {
         Row: {
           amount_fc: number
           created_at: string
           from_user: string
           id: string
+          idempotency_key: string | null
           level: number
           purchase_id: string
           user_id: string
@@ -994,6 +1914,7 @@ export type Database = {
           created_at?: string
           from_user: string
           id?: string
+          idempotency_key?: string | null
           level: number
           purchase_id: string
           user_id: string
@@ -1003,6 +1924,7 @@ export type Database = {
           created_at?: string
           from_user?: string
           id?: string
+          idempotency_key?: string | null
           level?: number
           purchase_id?: string
           user_id?: string
@@ -1114,6 +2036,442 @@ export type Database = {
           },
         ]
       }
+      season_exclusive_deliveries: {
+        Row: {
+          created_at: string
+          delivery_kind: string
+          id: string
+          idempotency_key: string
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_kind: string
+          id?: string
+          idempotency_key: string
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_kind?: string
+          id?: string
+          idempotency_key?: string
+          reward_id?: string
+          season_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_exclusive_deliveries_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_exclusive_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_deliveries_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_exclusive_rewards: {
+        Row: {
+          badge: string
+          created_at: string
+          display_name: string
+          enabled: boolean
+          id: string
+          image_url: string
+          pass_tier: string
+          passive: Json
+          reward_code: string
+          reward_kind: string
+          season_id: string
+          target_pet_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          badge: string
+          created_at?: string
+          display_name: string
+          enabled?: boolean
+          id?: string
+          image_url: string
+          pass_tier: string
+          passive?: Json
+          reward_code: string
+          reward_kind: string
+          season_id: string
+          target_pet_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          badge?: string
+          created_at?: string
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string
+          pass_tier?: string
+          passive?: Json
+          reward_code?: string
+          reward_kind?: string
+          season_id?: string
+          target_pet_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_exclusive_rewards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_rewards_target_pet_id_fkey"
+            columns: ["target_pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_claims: {
+        Row: {
+          claimed_at: string
+          id: string
+          idempotency_key: string
+          reward_id: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          idempotency_key: string
+          reward_id: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          idempotency_key?: string
+          reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_claims_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_orders: {
+        Row: {
+          activated_at: string | null
+          amount_nano: string
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          season_id: string
+          status: string
+          tier: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          amount_nano: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          season_id: string
+          status?: string
+          tier: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          amount_nano?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          season_id?: string
+          status?: string
+          tier?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_orders_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_rewards: {
+        Row: {
+          amount: number
+          enabled: boolean
+          id: string
+          level: number
+          reward_code: string | null
+          reward_type: string
+          season_id: string
+          tier: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          enabled?: boolean
+          id?: string
+          level: number
+          reward_code?: string | null
+          reward_type: string
+          season_id: string
+          tier: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          enabled?: boolean
+          id?: string
+          level?: number
+          reward_code?: string | null
+          reward_type?: string
+          season_id?: string
+          tier?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_rewards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_seasons: {
+        Row: {
+          active: boolean
+          adventurer_price_ton: number
+          created_at: string
+          end_at: string
+          id: string
+          legendary_price_ton: number
+          levels: number
+          name: string
+          start_at: string
+          updated_at: string
+          xp_per_level: number
+        }
+        Insert: {
+          active?: boolean
+          adventurer_price_ton?: number
+          created_at?: string
+          end_at: string
+          id?: string
+          legendary_price_ton?: number
+          levels?: number
+          name: string
+          start_at: string
+          updated_at?: string
+          xp_per_level?: number
+        }
+        Update: {
+          active?: boolean
+          adventurer_price_ton?: number
+          created_at?: string
+          end_at?: string
+          id?: string
+          legendary_price_ton?: number
+          levels?: number
+          name?: string
+          start_at?: string
+          updated_at?: string
+          xp_per_level?: number
+        }
+        Relationships: []
+      }
+      wallet_deposits: {
+        Row: {
+          amount_fc: number
+          amount_ton: number
+          confirmed_at: string | null
+          created_at: string
+          credited_at: string | null
+          expires_at: string
+          from_wallet: string | null
+          id: string
+          idempotency_key: string
+          payment_comment: string
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_fc: number
+          amount_ton: number
+          confirmed_at?: string | null
+          created_at?: string
+          credited_at?: string | null
+          expires_at?: string
+          from_wallet?: string | null
+          id?: string
+          idempotency_key: string
+          payment_comment: string
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number
+          confirmed_at?: string | null
+          created_at?: string
+          credited_at?: string | null
+          expires_at?: string
+          from_wallet?: string | null
+          id?: string
+          idempotency_key?: string
+          payment_comment?: string
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_deposits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value_numeric: number | null
+          value_text: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Relationships: []
+      }
+      wallet_withdrawals: {
+        Row: {
+          amount_fc: number
+          amount_ton: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          processed_at: string | null
+          status: string
+          tx_hash: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          amount_fc: number
+          amount_ton: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          processed_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          processed_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_withdrawals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1123,6 +2481,11 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      admin_adjust_pool_balance: {
+        Args: { p_amount: number; p_reason: string }
+        Returns: number
+      }
+      admin_cancel_pool: { Args: never; Returns: undefined }
       admin_grant_pet_item: {
         Args: {
           p_item_id: string
@@ -1134,6 +2497,88 @@ export type Database = {
       }
       admin_set_pet_enabled: {
         Args: { p_enabled: boolean; p_pet_id: string }
+        Returns: undefined
+      }
+      admin_update_pet_egg_economy: {
+        Args: {
+          p_daily_quantity: number
+          p_egg_id: string
+          p_enabled: boolean
+          p_label: string
+          p_player_limit: number
+          p_premium_only: boolean
+          p_price_fc: number
+          p_price_ton: number
+          p_purchasable: boolean
+          p_rates: Json
+        }
+        Returns: {
+          allowed_pet_categories: Json | null
+          availability_label: string | null
+          created_at: string
+          daily_quantity: number | null
+          id: string
+          image_url: string | null
+          is_enabled: boolean
+          is_purchasable: boolean
+          name: string
+          per_player_limit: number | null
+          premium_only: boolean
+          price_fc: number | null
+          price_ton: number | null
+          rarity_rates: Json
+          slug: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pet_eggs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_pool_settings: {
+        Args: {
+          p_days: number
+          p_lottery: number
+          p_minimum: number
+          p_points: Json
+          p_ranking: number
+          p_ranking_config: Json
+          p_revenue: Json
+          p_winners: number
+        }
+        Returns: undefined
+      }
+      admin_update_season_pass: {
+        Args: {
+          p_active: boolean
+          p_adventurer_price: number
+          p_end_at: string
+          p_legendary_price: number
+          p_levels: number
+          p_name: string
+          p_season_id: string
+          p_start_at: string
+          p_xp_per_level: number
+        }
+        Returns: undefined
+      }
+      admin_update_season_reward: {
+        Args: {
+          p_amount: number
+          p_code: string
+          p_enabled: boolean
+          p_level: number
+          p_reward_id: string
+          p_tier: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
+      award_pool_points: {
+        Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
       }
       bind_referral: {
@@ -1150,6 +2595,55 @@ export type Database = {
         Returns: Json
       }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      claim_calendar_day: {
+        Args: { p_day: number; p_telegram_id: number }
+        Returns: Json
+      }
+      claim_season_pass_reward: {
+        Args: { p_reward_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      confirm_pet_egg_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      confirm_season_pass_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      confirm_wallet_deposit: {
+        Args: { p_amount_nano: string; p_deposit_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      create_pet_egg_order: {
+        Args: {
+          p_egg_id: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      create_season_pass_order: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_tier: string
+        }
+        Returns: Json
+      }
+      create_wallet_deposit: {
+        Args: {
+          p_amount_ton: number
+          p_from_wallet: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      distribute_community_pool: {
+        Args: { p_force?: boolean }
+        Returns: string
+      }
       distribute_referral_commission: {
         Args: {
           p_amount_fc: number
@@ -1171,17 +2665,50 @@ export type Database = {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      feed_pet_v2: {
+        Args: {
+          p_food: number
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      finish_wallet_withdrawal: {
+        Args: { p_status: string; p_tx_hash?: string; p_withdrawal_id: string }
+        Returns: undefined
+      }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_community_pool_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pet_egg_store: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
       get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_referral_dashboard_v2: {
+        Args: {
+          p_level?: number
+          p_limit?: number
+          p_offset?: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      get_season_pass_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       grant_referral_milestones: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -1196,8 +2723,27 @@ export type Database = {
       }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
+      open_calendar_hero_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      open_season_mythic_egg: {
+        Args: { p_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
+      pet_xp_required: { Args: { v: number }; Returns: number }
+      pool_record_revenue: {
+        Args: {
+          p_amount_ton: number
+          p_source_id: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
@@ -1235,6 +2781,15 @@ export type Database = {
         Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
         Returns: Json
       }
+      request_wallet_withdrawal: {
+        Args: {
+          p_amount_fc: number
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
       save_pvp_team_slot: {
         Args: {
           p_hero_id: string
@@ -1270,6 +2825,25 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      upgrade_pet_v2: {
+        Args: {
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      upsert_telegram_player_profile: {
+        Args: {
+          p_first_name: string
+          p_last_name?: string
+          p_photo_url?: string
+          p_telegram_id: number
+          p_username?: string
+        }
+        Returns: Json
+      }
+      wallet_hot_address: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

@@ -17,7 +17,7 @@ import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import { backgrounds, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
-import { isDemoMode, isProduction } from './config';
+import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
@@ -50,6 +50,24 @@ function StatusScreen({ title, message, details }: { title: string; message: str
   );
 }
 
+function OpenInTelegramGate() {
+  return (
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-forge-black px-6 text-white">
+      <img src={backgrounds.loading} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-[#07090d]/90" />
+      <main className="relative w-full max-w-sm text-center">
+        <img src={logo.icon} alt="Forge Village" className="mx-auto h-24 w-24 object-contain" />
+        <a
+          href={TELEGRAM_APP_LINK}
+          className="mt-8 block w-full rounded-2xl border border-amber-300/50 bg-gradient-to-b from-amber-400 to-amber-600 px-6 py-4 text-base font-black uppercase tracking-[.12em] text-forge-black shadow-[0_14px_30px_rgba(0,0,0,.6)] transition active:scale-95"
+        >
+          Abrir no Telegram
+        </a>
+      </main>
+    </div>
+  );
+}
+
 function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;subtitle?:string;onClick:()=>void}){
   return <button type="button" onClick={onClick} className="home-feature group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
@@ -76,6 +94,7 @@ function App() {
   const [telegramStartParam,setTelegramStartParam]=useState<string|null>(null);
   const [shopResults, setShopResults] = useState<ShopHero[]>([]);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
+  const [outsideTelegram, setOutsideTelegram] = useState(false);
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const queryClient = useQueryClient();
@@ -148,7 +167,7 @@ function App() {
       return;
     }
     if (!webApp?.initData) {
-      setBootstrapError('Abra o Forge Village pelo botão de Web App do Telegram. O modo de navegador é permitido apenas em desenvolvimento.');
+      setOutsideTelegram(true);
       return;
     }
     validateTelegramSession(webApp.initData)
@@ -313,6 +332,10 @@ function App() {
     { key: 'wallet', label: lang.tabs.wallet },
     { key: 'profile', label: lang.tabs.profile }
   ] as const;
+
+  if (outsideTelegram) {
+    return <OpenInTelegramGate />;
+  }
 
   if (bootstrapError) {
     return <StatusScreen title="Telegram necessário" message={bootstrapError} />;
