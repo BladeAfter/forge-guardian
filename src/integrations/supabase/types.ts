@@ -1108,6 +1108,355 @@ export type Database = {
           },
         ]
       }
+      pool_balance: {
+        Row: {
+          balance_ton: number
+          created_at: string
+          distribution_key: string | null
+          ends_at: string
+          id: string
+          starts_at: string
+          status: string
+          updated_at: string
+          week_label: string
+        }
+        Insert: {
+          balance_ton?: number
+          created_at?: string
+          distribution_key?: string | null
+          ends_at: string
+          id?: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+          week_label: string
+        }
+        Update: {
+          balance_ton?: number
+          created_at?: string
+          distribution_key?: string | null
+          ends_at?: string
+          id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          week_label?: string
+        }
+        Relationships: []
+      }
+      pool_history: {
+        Row: {
+          amount_ton: number
+          distributed_at: string
+          id: string
+          pool_id: string
+          seed_hash: string
+          week_label: string
+          winner_count: number
+        }
+        Insert: {
+          amount_ton: number
+          distributed_at?: string
+          id?: string
+          pool_id: string
+          seed_hash: string
+          week_label: string
+          winner_count: number
+        }
+        Update: {
+          amount_ton?: number
+          distributed_at?: string
+          id?: string
+          pool_id?: string
+          seed_hash?: string
+          week_label?: string
+          winner_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_history_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: true
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_points: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          points: number
+          pool_id: string
+          source_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          points: number
+          pool_id: string
+          source_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          points?: number
+          pool_id?: string
+          source_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_points_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_revenue: {
+        Row: {
+          amount_ton: number
+          base_amount_ton: number
+          created_at: string
+          id: string
+          idempotency_key: string
+          percent: number
+          pool_id: string
+          source_id: string
+          source_type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_ton: number
+          base_amount_ton: number
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          percent: number
+          pool_id: string
+          source_id: string
+          source_type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_ton?: number
+          base_amount_ton?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          percent?: number
+          pool_id?: string
+          source_id?: string
+          source_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_revenue_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "pool_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_revenue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_rewards: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          history_id: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          position: number | null
+          reward_type: string
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          created_at?: string
+          history_id: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          position?: number | null
+          reward_type: string
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          history_id?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          position?: number | null
+          reward_type?: string
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_rewards_history_id_fkey"
+            columns: ["history_id"]
+            isOneToOne: false
+            referencedRelation: "pool_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_settings: {
+        Row: {
+          activity_points: Json
+          id: boolean
+          lottery_share_percent: number
+          lottery_winner_count: number
+          minimum_points: number
+          ranking_percentages: Json
+          ranking_share_percent: number
+          ranking_winner_limit: number
+          revenue_percentages: Json
+          season_days: number
+          updated_at: string
+        }
+        Insert: {
+          activity_points?: Json
+          id?: boolean
+          lottery_share_percent?: number
+          lottery_winner_count?: number
+          minimum_points?: number
+          ranking_percentages?: Json
+          ranking_share_percent?: number
+          ranking_winner_limit?: number
+          revenue_percentages?: Json
+          season_days?: number
+          updated_at?: string
+        }
+        Update: {
+          activity_points?: Json
+          id?: boolean
+          lottery_share_percent?: number
+          lottery_winner_count?: number
+          minimum_points?: number
+          ranking_percentages?: Json
+          ranking_share_percent?: number
+          ranking_winner_limit?: number
+          revenue_percentages?: Json
+          season_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pool_wallets: {
+        Row: {
+          connected_at: string
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          connected_at?: string
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          connected_at?: string
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pool_winners: {
+        Row: {
+          created_at: string
+          history_id: string
+          id: string
+          points: number
+          position: number | null
+          user_id: string
+          winner_type: string
+        }
+        Insert: {
+          created_at?: string
+          history_id: string
+          id?: string
+          points: number
+          position?: number | null
+          user_id: string
+          winner_type: string
+        }
+        Update: {
+          created_at?: string
+          history_id?: string
+          id?: string
+          points?: number
+          position?: number | null
+          user_id?: string
+          winner_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_winners_history_id_fkey"
+            columns: ["history_id"]
+            isOneToOne: false
+            referencedRelation: "pool_history"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pool_winners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_battles: {
         Row: {
           attacker_id: string
@@ -1811,6 +2160,11 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      admin_adjust_pool_balance: {
+        Args: { p_amount: number; p_reason: string }
+        Returns: number
+      }
+      admin_cancel_pool: { Args: never; Returns: undefined }
       admin_grant_pet_item: {
         Args: {
           p_item_id: string
@@ -1862,6 +2216,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_update_pool_settings: {
+        Args: {
+          p_days: number
+          p_lottery: number
+          p_minimum: number
+          p_points: Json
+          p_ranking: number
+          p_ranking_config: Json
+          p_revenue: Json
+          p_winners: number
+        }
+        Returns: undefined
+      }
       admin_update_season_pass: {
         Args: {
           p_active: boolean
@@ -1886,6 +2253,10 @@ export type Database = {
           p_title: string
           p_type: string
         }
+        Returns: undefined
+      }
+      award_pool_points: {
+        Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
       }
       bind_referral: {
@@ -1947,6 +2318,10 @@ export type Database = {
         }
         Returns: Json
       }
+      distribute_community_pool: {
+        Args: { p_force?: boolean }
+        Returns: string
+      }
       distribute_referral_commission: {
         Args: {
           p_amount_fc: number
@@ -1975,6 +2350,10 @@ export type Database = {
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_community_pool_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -2019,6 +2398,15 @@ export type Database = {
       }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
+      pool_record_revenue: {
+        Args: {
+          p_amount_ton: number
+          p_source_id: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
