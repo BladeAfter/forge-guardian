@@ -30,6 +30,7 @@ export type Database = {
           id: string
           last_processed_at: string
           next_hero_attack_at: string
+          pet_next_skill_at: string | null
           reward_amount: number
           reward_claimed_at: string | null
           started_at: string
@@ -54,6 +55,7 @@ export type Database = {
           id?: string
           last_processed_at?: string
           next_hero_attack_at?: string
+          pet_next_skill_at?: string | null
           reward_amount?: number
           reward_claimed_at?: string | null
           started_at?: string
@@ -78,6 +80,7 @@ export type Database = {
           id?: string
           last_processed_at?: string
           next_hero_attack_at?: string
+          pet_next_skill_at?: string | null
           reward_amount?: number
           reward_claimed_at?: string | null
           started_at?: string
@@ -908,8 +911,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_pet: {
+        Args: { p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_grant_pet_item: {
+        Args: {
+          p_item_id: string
+          p_item_type: string
+          p_quantity: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      admin_set_pet_enabled: {
+        Args: { p_enabled: boolean; p_pet_id: string }
+        Returns: undefined
+      }
       bind_referral: {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
+        Returns: Json
+      }
+      calculate_pet_reward: {
+        Args: {
+          p_base: number
+          p_eligible: boolean
+          p_kind: string
+          p_user: string
+        }
         Returns: Json
       }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
@@ -930,14 +959,33 @@ export type Database = {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
       }
+      feed_pet: {
+        Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pet_admin_stats: { Args: never; Returns: Json }
+      get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
+      get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       grant_referral_milestones: {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      hatch_pet_egg: {
+        Args: {
+          p_egg_id: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
+      normalize_pet_rarity: { Args: { v: string }; Returns: string }
+      pet_evolution_stage: { Args: { v: number }; Returns: string }
+      pet_rarity_multiplier: { Args: { v: string }; Returns: number }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
@@ -972,6 +1020,10 @@ export type Database = {
           p_username: string
         }
         Returns: string
+      }
+      upgrade_pet: {
+        Args: { p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
       }
     }
     Enums: {
