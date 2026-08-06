@@ -316,6 +316,10 @@ export type Database = {
     Functions: {
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
       ensure_boss_combat: { Args: { p_telegram_id: number }; Returns: string }
+      equip_combat_hero: {
+        Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       process_boss_combat: {
