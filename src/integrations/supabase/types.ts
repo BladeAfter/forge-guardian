@@ -1066,6 +1066,48 @@ export type Database = {
           },
         ]
       }
+      player_season_pass: {
+        Row: {
+          adventurer_owned: boolean
+          legendary_owned: boolean
+          season_id: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          adventurer_owned?: boolean
+          legendary_owned?: boolean
+          season_id: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          adventurer_owned?: boolean
+          legendary_owned?: boolean
+          season_id?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_season_pass_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_season_pass_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_battles: {
         Row: {
           attacker_id: string
@@ -1439,6 +1481,203 @@ export type Database = {
           },
         ]
       }
+      season_pass_claims: {
+        Row: {
+          claimed_at: string
+          id: string
+          idempotency_key: string
+          reward_id: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          idempotency_key: string
+          reward_id: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          idempotency_key?: string
+          reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_claims_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_orders: {
+        Row: {
+          activated_at: string | null
+          amount_nano: string
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          season_id: string
+          status: string
+          tier: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          amount_nano: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          season_id: string
+          status?: string
+          tier: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          amount_nano?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          season_id?: string
+          status?: string
+          tier?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_orders_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_rewards: {
+        Row: {
+          amount: number
+          enabled: boolean
+          id: string
+          level: number
+          reward_code: string | null
+          reward_type: string
+          season_id: string
+          tier: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          enabled?: boolean
+          id?: string
+          level: number
+          reward_code?: string | null
+          reward_type: string
+          season_id: string
+          tier: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          enabled?: boolean
+          id?: string
+          level?: number
+          reward_code?: string | null
+          reward_type?: string
+          season_id?: string
+          tier?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_rewards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_pass_seasons: {
+        Row: {
+          active: boolean
+          adventurer_price_ton: number
+          created_at: string
+          end_at: string
+          id: string
+          legendary_price_ton: number
+          levels: number
+          name: string
+          start_at: string
+          updated_at: string
+          xp_per_level: number
+        }
+        Insert: {
+          active?: boolean
+          adventurer_price_ton?: number
+          created_at?: string
+          end_at: string
+          id?: string
+          legendary_price_ton?: number
+          levels?: number
+          name: string
+          start_at: string
+          updated_at?: string
+          xp_per_level?: number
+        }
+        Update: {
+          active?: boolean
+          adventurer_price_ton?: number
+          created_at?: string
+          end_at?: string
+          id?: string
+          legendary_price_ton?: number
+          levels?: number
+          name?: string
+          start_at?: string
+          updated_at?: string
+          xp_per_level?: number
+        }
+        Relationships: []
+      }
       wallet_deposits: {
         Row: {
           amount_fc: number
@@ -1623,6 +1862,32 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_update_season_pass: {
+        Args: {
+          p_active: boolean
+          p_adventurer_price: number
+          p_end_at: string
+          p_legendary_price: number
+          p_levels: number
+          p_name: string
+          p_season_id: string
+          p_start_at: string
+          p_xp_per_level: number
+        }
+        Returns: undefined
+      }
+      admin_update_season_reward: {
+        Args: {
+          p_amount: number
+          p_code: string
+          p_enabled: boolean
+          p_level: number
+          p_reward_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       bind_referral: {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
         Returns: Json
@@ -1641,7 +1906,15 @@ export type Database = {
         Args: { p_day: number; p_telegram_id: number }
         Returns: Json
       }
+      claim_season_pass_reward: {
+        Args: { p_reward_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       confirm_pet_egg_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: undefined
+      }
+      confirm_season_pass_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: undefined
       }
@@ -1654,6 +1927,14 @@ export type Database = {
           p_egg_id: string
           p_idempotency_key: string
           p_telegram_id: number
+        }
+        Returns: Json
+      }
+      create_season_pass_order: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_tier: string
         }
         Returns: Json
       }
@@ -1711,6 +1992,10 @@ export type Database = {
           p_offset?: number
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      get_season_pass_dashboard: {
+        Args: { p_telegram_id: number }
         Returns: Json
       }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
