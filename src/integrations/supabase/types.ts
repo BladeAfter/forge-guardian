@@ -316,11 +316,16 @@ export type Database = {
       pet_eggs: {
         Row: {
           allowed_pet_categories: Json | null
+          availability_label: string | null
           created_at: string
+          daily_quantity: number | null
           id: string
           image_url: string | null
           is_enabled: boolean
+          is_purchasable: boolean
           name: string
+          per_player_limit: number | null
+          premium_only: boolean
           price_fc: number | null
           price_ton: number | null
           rarity_rates: Json
@@ -329,11 +334,16 @@ export type Database = {
         }
         Insert: {
           allowed_pet_categories?: Json | null
+          availability_label?: string | null
           created_at?: string
+          daily_quantity?: number | null
           id?: string
           image_url?: string | null
           is_enabled?: boolean
+          is_purchasable?: boolean
           name: string
+          per_player_limit?: number | null
+          premium_only?: boolean
           price_fc?: number | null
           price_ton?: number | null
           rarity_rates: Json
@@ -342,11 +352,16 @@ export type Database = {
         }
         Update: {
           allowed_pet_categories?: Json | null
+          availability_label?: string | null
           created_at?: string
+          daily_quantity?: number | null
           id?: string
           image_url?: string | null
           is_enabled?: boolean
+          is_purchasable?: boolean
           name?: string
+          per_player_limit?: number | null
+          premium_only?: boolean
           price_fc?: number | null
           price_ton?: number | null
           rarity_rates?: Json
@@ -1136,6 +1151,44 @@ export type Database = {
         Args: { p_enabled: boolean; p_pet_id: string }
         Returns: undefined
       }
+      admin_update_pet_egg_economy: {
+        Args: {
+          p_daily_quantity: number
+          p_egg_id: string
+          p_enabled: boolean
+          p_label: string
+          p_player_limit: number
+          p_premium_only: boolean
+          p_price_fc: number
+          p_price_ton: number
+          p_purchasable: boolean
+          p_rates: Json
+        }
+        Returns: {
+          allowed_pet_categories: Json | null
+          availability_label: string | null
+          created_at: string
+          daily_quantity: number | null
+          id: string
+          image_url: string | null
+          is_enabled: boolean
+          is_purchasable: boolean
+          name: string
+          per_player_limit: number | null
+          premium_only: boolean
+          price_fc: number | null
+          price_ton: number | null
+          rarity_rates: Json
+          slug: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pet_eggs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       bind_referral: {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
         Returns: Json
@@ -1176,6 +1229,7 @@ export type Database = {
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pet_egg_store: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
       get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
