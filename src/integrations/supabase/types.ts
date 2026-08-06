@@ -863,12 +863,17 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          exclusive_badge: string | null
+          exclusive_pass_tier: string | null
+          exclusive_passive: Json
+          exclusive_season_id: string | null
           id: string
           image_adult_url: string | null
           image_ancestral_url: string | null
           image_baby_url: string | null
           image_young_url: string | null
           is_enabled: boolean
+          is_season_exclusive: boolean
           name: string
           slug: string
           species: string
@@ -880,12 +885,17 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_season_exclusive?: boolean
           name: string
           slug: string
           species: string
@@ -897,18 +907,31 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_season_exclusive?: boolean
           name?: string
           slug?: string
           species?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pets_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_heroes: {
         Row: {
@@ -920,6 +943,10 @@ export type Database = {
           bonus_atk: number
           bonus_hp: number
           created_at: string
+          exclusive_badge: string | null
+          exclusive_pass_tier: string | null
+          exclusive_passive: Json
+          exclusive_season_id: string | null
           final_atk: number
           final_hp: number
           hero_key: string
@@ -927,11 +954,13 @@ export type Database = {
           hp_growth: number
           id: string
           image: string | null
+          is_season_exclusive: boolean
           level: number
           name: string
           rarity: string
           stats_generated_at: string | null
           stats_seed: string
+          tradable: boolean
           updated_at: string
           user_id: string
         }
@@ -944,6 +973,10 @@ export type Database = {
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           final_atk: number
           final_hp: number
           hero_key: string
@@ -951,11 +984,13 @@ export type Database = {
           hp_growth: number
           id?: string
           image?: string | null
+          is_season_exclusive?: boolean
           level?: number
           name: string
           rarity: string
           stats_generated_at?: string | null
           stats_seed: string
+          tradable?: boolean
           updated_at?: string
           user_id: string
         }
@@ -968,6 +1003,10 @@ export type Database = {
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          exclusive_badge?: string | null
+          exclusive_pass_tier?: string | null
+          exclusive_passive?: Json
+          exclusive_season_id?: string | null
           final_atk?: number
           final_hp?: number
           hero_key?: string
@@ -975,15 +1014,24 @@ export type Database = {
           hp_growth?: number
           id?: string
           image?: string | null
+          is_season_exclusive?: boolean
           level?: number
           name?: string
           rarity?: string
           stats_generated_at?: string | null
           stats_seed?: string
+          tradable?: boolean
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "player_heroes_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "player_heroes_user_id_fkey"
             columns: ["user_id"]
@@ -995,30 +1043,52 @@ export type Database = {
       }
       player_inventory: {
         Row: {
+          exclusive_reward_code: string | null
           id: string
+          is_exclusive: boolean
           item_code: string
           item_type: string
+          pass_tier: string | null
           quantity: number
+          season_id: string | null
+          tradable: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          exclusive_reward_code?: string | null
           id?: string
+          is_exclusive?: boolean
           item_code: string
           item_type: string
+          pass_tier?: string | null
           quantity?: number
+          season_id?: string | null
+          tradable?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          exclusive_reward_code?: string | null
           id?: string
+          is_exclusive?: boolean
           item_code?: string
           item_type?: string
+          pass_tier?: string | null
           quantity?: number
+          season_id?: string | null
+          tradable?: boolean
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "player_inventory_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "player_inventory_user_id_fkey"
             columns: ["user_id"]
@@ -1118,13 +1188,17 @@ export type Database = {
         Row: {
           created_at: string
           evolution_stage: string
+          exclusive_badge: string | null
+          exclusive_season_id: string | null
           fragments: number
           id: string
           is_active: boolean
+          is_season_exclusive: boolean
           level: number
           obtained_at: string
           pet_id: string
           rarity: string
+          tradable: boolean
           updated_at: string
           user_id: string
           xp: number
@@ -1132,13 +1206,17 @@ export type Database = {
         Insert: {
           created_at?: string
           evolution_stage?: string
+          exclusive_badge?: string | null
+          exclusive_season_id?: string | null
           fragments?: number
           id?: string
           is_active?: boolean
+          is_season_exclusive?: boolean
           level?: number
           obtained_at?: string
           pet_id: string
           rarity: string
+          tradable?: boolean
           updated_at?: string
           user_id: string
           xp?: number
@@ -1146,18 +1224,29 @@ export type Database = {
         Update: {
           created_at?: string
           evolution_stage?: string
+          exclusive_badge?: string | null
+          exclusive_season_id?: string | null
           fragments?: number
           id?: string
           is_active?: boolean
+          is_season_exclusive?: boolean
           level?: number
           obtained_at?: string
           pet_id?: string
           rarity?: string
+          tradable?: boolean
           updated_at?: string
           user_id?: string
           xp?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "player_pets_exclusive_season_id_fkey"
+            columns: ["exclusive_season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "player_pets_pet_id_fkey"
             columns: ["pet_id"]
@@ -1947,6 +2036,121 @@ export type Database = {
           },
         ]
       }
+      season_exclusive_deliveries: {
+        Row: {
+          created_at: string
+          delivery_kind: string
+          id: string
+          idempotency_key: string
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_kind: string
+          id?: string
+          idempotency_key: string
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_kind?: string
+          id?: string
+          idempotency_key?: string
+          reward_id?: string
+          season_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_exclusive_deliveries_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_exclusive_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_deliveries_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_exclusive_rewards: {
+        Row: {
+          badge: string
+          created_at: string
+          display_name: string
+          enabled: boolean
+          id: string
+          image_url: string
+          pass_tier: string
+          passive: Json
+          reward_code: string
+          reward_kind: string
+          season_id: string
+          target_pet_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          badge: string
+          created_at?: string
+          display_name: string
+          enabled?: boolean
+          id?: string
+          image_url: string
+          pass_tier: string
+          passive?: Json
+          reward_code: string
+          reward_kind: string
+          season_id: string
+          target_pet_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          badge?: string
+          created_at?: string
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string
+          pass_tier?: string
+          passive?: Json
+          reward_code?: string
+          reward_kind?: string
+          season_id?: string
+          target_pet_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_exclusive_rewards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_exclusive_rewards_target_pet_id_fkey"
+            columns: ["target_pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_pass_claims: {
         Row: {
           claimed_at: string
@@ -2521,6 +2725,10 @@ export type Database = {
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       open_calendar_hero_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      open_season_mythic_egg: {
+        Args: { p_item_id: string; p_telegram_id: number }
         Returns: Json
       }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
