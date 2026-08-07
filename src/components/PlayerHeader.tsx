@@ -46,7 +46,7 @@ export function PlayerIdentity({
           <>
             <p className="player-name font-black text-white">Jogador</p>
             {!loading && onRetry ? (
-              <button type="button" onClick={onRetry} className="text-[9px] text-amber-300">
+              <button type="button" onClick={onRetry} className="block truncate whitespace-nowrap text-[9px] text-amber-300">
                 Tentar novamente
               </button>
             ) : null}

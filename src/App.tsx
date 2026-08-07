@@ -531,7 +531,7 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-            <HomeFeature image={mainScreenArt.heroShop} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
+            <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
           {shopOpen ? (
