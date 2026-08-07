@@ -374,3 +374,70 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   animation: fullscreen-enter .2s ease-out;
 }
 @keyframes fullscreen-enter { from { opacity:0;transform:translateX(10px) } to { opacity:1;transform:none } }
+
+/* ---- Responsive player header (Telegram Mini App safe) ---- */
+.player-header{
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  min-width:0;
+  overflow:hidden;
+  gap:clamp(4px,1.8vw,10px);
+  padding-left:max(0px,env(safe-area-inset-left));
+  padding-right:max(0px,env(safe-area-inset-right));
+}
+.player-identity{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:clamp(6px,2.2vw,10px);
+  overflow:hidden;
+}
+.player-avatar{
+  flex:0 0 auto;
+  width:clamp(34px,10vw,44px);
+  height:clamp(34px,10vw,44px);
+}
+.player-texts{flex:1 1 auto;min-width:0}
+.player-name{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:clamp(11px,3.4vw,14px);
+  line-height:1.15;
+}
+.balance-chip{
+  flex:0 0 auto;
+  box-sizing:border-box;
+  width:clamp(92px,26vw,115px);
+  min-width:92px;
+  max-width:115px;
+}
+.balance-chip-coin{width:clamp(20px,6vw,28px);height:clamp(20px,6vw,28px)}
+.balance-chip-value{
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(11px,3.2vw,14px);
+  line-height:1.1;
+}
+.balance-chip-label{font-size:8px;line-height:1.1;white-space:nowrap}
+.player-header-icon{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:clamp(30px,8.6vw,36px);
+  height:clamp(30px,8.6vw,36px);
+}
+.player-header-icon svg{width:clamp(14px,4.2vw,18px);height:clamp(14px,4.2vw,18px)}
+
+@media (max-width:379px){
+  .player-tgid{display:none}
+  .balance-chip-label{font-size:7px}
+}
+@media (max-width:339px){
+  .player-username{display:none}
+  .balance-chip{min-width:86px;width:clamp(86px,25vw,100px)}
+}

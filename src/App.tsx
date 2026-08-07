@@ -15,19 +15,21 @@ import { ReferralPage } from './pages/ReferralPage';
 import { PetsPage } from './pages/PetsPage';
 import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
+import {HeroesPage}from'./pages/HeroesPage';
+import {PlayerHeader}from'./components/PlayerHeader';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
-import { backgrounds, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
+import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
-import {getDisplayName,getInitials,type TelegramPlayerProfile} from './playerProfile';
+import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
@@ -72,11 +74,6 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
   return <button type="button" onClick={onClick} className="home-feature group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
 
-function TelegramAvatar({profile}:{profile:TelegramPlayerProfile|null}){
-  const [failed,setFailed]=useState(false);const name=profile?getDisplayName(profile):'Jogador';
-  useEffect(()=>setFailed(false),[profile?.photoUrl]);
-  return profile?.photoUrl&&!failed?<img src={profile.photoUrl} onError={()=>setFailed(true)} alt={name} className="h-11 w-11 shrink-0 rounded-full border-2 border-amber-400/60 bg-black object-cover"/>:<div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-amber-400/60 bg-slate-900 text-xs font-black text-amber-100">{getInitials(name)}</div>;
-}
 
 function App() {
   const [tab, setTab] = useState<TabKey>(tabFromPath);
@@ -474,6 +471,7 @@ function App() {
   if(activePage==='pets'&&telegramInitData)return <PetsPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='pvp'&&telegramInitData)return <PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='season-pass'&&telegramInitData)return <SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/>;
+  if(activePage==='heroes'&&telegramInitData)return <HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='pool'&&telegramInitData)return <CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
 
   return (
@@ -481,53 +479,42 @@ function App() {
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
-        <header className={`main-player-header mb-2 shrink-0 items-center justify-between border-b border-white/10 bg-[#080b10]/75 px-2 py-3 backdrop-blur-md ${tab === 'village' ? 'hidden' : 'flex'}`}>
-          <div className="flex min-w-0 items-center gap-2.5">{profileLoading&&!playerProfile?<div className="h-11 w-11 animate-pulse rounded-full bg-white/10"/>:<TelegramAvatar profile={playerProfile}/>}<div className="min-w-0">{playerProfile?<><p className="truncate text-sm font-bold text-white">{getDisplayName(playerProfile)}</p><p className="truncate text-[10px] text-sky-300">{playerProfile.username?`@${playerProfile.username}`:'Sem username'}</p><p className="text-[9px] text-slate-400">ID: {playerProfile.telegramId}</p></>:<><p className="text-sm font-bold">Jogador</p><button type="button" onClick={()=>void refetchProfile()} className="text-[9px] text-amber-300">Tentar novamente</button></>}</div></div>
-          <div className="flex items-center gap-2 rounded-xl border border-amber-400/40 bg-black/80 px-3 py-2 text-amber-200 shadow-[inset_0_0_18px_rgba(245,158,11,.08)]">
-            <img src={coin} alt="Forge Coin" className="h-9 w-9 object-contain drop-shadow-[0_0_7px_rgba(251,191,36,.45)]" />
-            <div className="text-right text-sm">
-              <p className="text-base font-bold">{formatCurrency(game.balance)}</p>
-              <p className="text-[9px] uppercase tracking-widest text-slate-400">Forge Coins</p>
-            </div>
-          </div>
+        <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' ? 'hidden' : 'block'}`}>
+          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={game.balance} />
         </header>
 
+
         {tab === 'village' ? <div className="village-home relative flex min-h-0 flex-1 flex-col items-start gap-2 pb-2 pt-2">
-          <div className="absolute right-0 top-2 z-30 flex gap-1.5">
-            <div className="flex h-9 items-center gap-1.5 rounded-xl border border-amber-400/25 bg-[#080c13]/90 px-2 text-amber-200 shadow-lg backdrop-blur-md" aria-label={`Saldo: ${formatCurrency(game.balance)} FC`}>
-              <img src={coin} alt="FC" className="h-5 w-5 object-contain drop-shadow-[0_0_5px_rgba(251,191,36,.45)]" />
-              <span className="max-w-[72px] truncate text-[10px] font-black">{formatCurrency(game.balance)}</span>
-            </div>
-            <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="relative grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
-              <Bell className="h-4 w-4" />
-              {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
-            </button>
-            <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
-              <Settings className="h-4 w-4" />
-            </button>
-          </div>
-          {notificationsOpen ? (
-            <div className="absolute right-0 top-12 z-40 w-56 rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
-              <p className="font-bold text-white">{t('notifications')}</p>
-              <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
-              {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
-            </div>
-          ) : null}
-          <section className="telegram-profile-card village-profile-card relative w-fit max-w-[285px] overflow-hidden rounded-2xl border border-amber-300/25 px-3 py-2.5 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#101d35]/95 via-[#080d17]/90 to-[#2a1609]/90" />
-            <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-amber-500/15 blur-3xl" />
-            <div className="relative flex items-center gap-2.5">
-              {profileLoading&&!playerProfile?<div className="h-11 w-11 animate-pulse rounded-full bg-white/10"/>:<TelegramAvatar profile={playerProfile}/>}
-              <div className="min-w-0">
-                <h1 className="truncate text-sm font-black leading-5 text-white">
-                  {playerProfile?getDisplayName(playerProfile):'Jogador'}
-                </h1>
-                <p className="truncate text-[9px] text-sky-300">{playerProfile?.username?`@${playerProfile.username}`:'Sem username'}</p>
-                <p className="text-[9px] text-slate-400">ID: {playerProfile?.telegramId??'--'}</p>
-                {!playerProfile&&!profileLoading?<button type="button" onClick={()=>void refetchProfile()} className="text-[8px] text-amber-300">Tentar novamente</button>:null}
+          <div className="relative z-30 w-full">
+            <section className="telegram-profile-card village-profile-card relative w-full overflow-hidden rounded-2xl border border-amber-300/25 px-2 py-2 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#101d35]/95 via-[#080d17]/90 to-[#2a1609]/90" />
+              <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-amber-500/15 blur-3xl" />
+              <PlayerHeader
+                className="relative"
+                profile={playerProfile}
+                loading={profileLoading}
+                onRetry={()=>void refetchProfile()}
+                balance={game.balance}
+                actions={<>
+                  <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
+                    <Bell />
+                    {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
+                  </button>
+                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
+                    <Settings />
+                  </button>
+                </>}
+              />
+            </section>
+            {notificationsOpen ? (
+              <div className="absolute right-0 top-full z-40 mt-1 w-56 max-w-full rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
+                <p className="font-bold text-white">{t('notifications')}</p>
+                <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
+                {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
               </div>
-            </div>
-          </section>
+            ) : null}
+          </div>
+
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={dailyReward?.claimed?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
@@ -544,7 +531,7 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-            <div className="home-feature-placeholder h-[112px] w-[108px]" aria-hidden="true" />
+            <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
           {shopOpen ? (
