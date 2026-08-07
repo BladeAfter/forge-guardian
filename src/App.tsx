@@ -481,16 +481,10 @@ function App() {
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
-        <header className={`main-player-header mb-2 shrink-0 items-center justify-between border-b border-white/10 bg-[#080b10]/75 px-2 py-3 backdrop-blur-md ${tab === 'village' ? 'hidden' : 'flex'}`}>
-          <div className="flex min-w-0 items-center gap-2.5">{profileLoading&&!playerProfile?<div className="h-11 w-11 animate-pulse rounded-full bg-white/10"/>:<TelegramAvatar profile={playerProfile}/>}<div className="min-w-0">{playerProfile?<><p className="truncate text-sm font-bold text-white">{getDisplayName(playerProfile)}</p><p className="truncate text-[10px] text-sky-300">{playerProfile.username?`@${playerProfile.username}`:'Sem username'}</p><p className="text-[9px] text-slate-400">ID: {playerProfile.telegramId}</p></>:<><p className="text-sm font-bold">Jogador</p><button type="button" onClick={()=>void refetchProfile()} className="text-[9px] text-amber-300">Tentar novamente</button></>}</div></div>
-          <div className="flex items-center gap-2 rounded-xl border border-amber-400/40 bg-black/80 px-3 py-2 text-amber-200 shadow-[inset_0_0_18px_rgba(245,158,11,.08)]">
-            <img src={coin} alt="Forge Coin" className="h-9 w-9 object-contain drop-shadow-[0_0_7px_rgba(251,191,36,.45)]" />
-            <div className="text-right text-sm">
-              <p className="text-base font-bold">{formatCurrency(game.balance)}</p>
-              <p className="text-[9px] uppercase tracking-widest text-slate-400">Forge Coins</p>
-            </div>
-          </div>
+        <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' ? 'hidden' : 'block'}`}>
+          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={game.balance} />
         </header>
+
 
         {tab === 'village' ? <div className="village-home relative flex min-h-0 flex-1 flex-col items-start gap-2 pb-2 pt-2">
           <div className="absolute right-0 top-2 z-30 flex gap-1.5">
