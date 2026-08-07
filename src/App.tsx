@@ -18,7 +18,7 @@ import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {HeroesPage}from'./pages/HeroesPage';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
-import { backgrounds, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
+import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
