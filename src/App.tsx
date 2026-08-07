@@ -15,6 +15,8 @@ import { ReferralPage } from './pages/ReferralPage';
 import { PetsPage } from './pages/PetsPage';
 import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
+import {HeroesPage}from'./pages/HeroesPage';
+import {PlayerHeader}from'./components/PlayerHeader';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import { backgrounds, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
@@ -26,8 +28,8 @@ import {getDisplayName,getInitials,type TelegramPlayerProfile} from './playerPro
 import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
@@ -474,6 +476,7 @@ function App() {
   if(activePage==='pets'&&telegramInitData)return <PetsPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='pvp'&&telegramInitData)return <PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='season-pass'&&telegramInitData)return <SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/>;
+  if(activePage==='heroes'&&telegramInitData)return <HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
   if(activePage==='pool'&&telegramInitData)return <CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal}/>;
 
   return (
@@ -533,7 +536,7 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-            <div className="home-feature-placeholder h-[112px] w-[108px]" aria-hidden="true" />
+            <HomeFeature image={mainScreenArt.heroShop} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
           {shopOpen ? (
