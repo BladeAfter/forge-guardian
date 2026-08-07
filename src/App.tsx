@@ -487,41 +487,36 @@ function App() {
 
 
         {tab === 'village' ? <div className="village-home relative flex min-h-0 flex-1 flex-col items-start gap-2 pb-2 pt-2">
-          <div className="absolute right-0 top-2 z-30 flex gap-1.5">
-            <div className="flex h-9 items-center gap-1.5 rounded-xl border border-amber-400/25 bg-[#080c13]/90 px-2 text-amber-200 shadow-lg backdrop-blur-md" aria-label={`Saldo: ${formatCurrency(game.balance)} FC`}>
-              <img src={coin} alt="FC" className="h-5 w-5 object-contain drop-shadow-[0_0_5px_rgba(251,191,36,.45)]" />
-              <span className="max-w-[72px] truncate text-[10px] font-black">{formatCurrency(game.balance)}</span>
-            </div>
-            <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="relative grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
-              <Bell className="h-4 w-4" />
-              {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
-            </button>
-            <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
-              <Settings className="h-4 w-4" />
-            </button>
-          </div>
-          {notificationsOpen ? (
-            <div className="absolute right-0 top-12 z-40 w-56 rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
-              <p className="font-bold text-white">{t('notifications')}</p>
-              <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
-              {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
-            </div>
-          ) : null}
-          <section className="telegram-profile-card village-profile-card relative w-fit max-w-[285px] overflow-hidden rounded-2xl border border-amber-300/25 px-3 py-2.5 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#101d35]/95 via-[#080d17]/90 to-[#2a1609]/90" />
-            <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-amber-500/15 blur-3xl" />
-            <div className="relative flex items-center gap-2.5">
-              {profileLoading&&!playerProfile?<div className="h-11 w-11 animate-pulse rounded-full bg-white/10"/>:<TelegramAvatar profile={playerProfile}/>}
-              <div className="min-w-0">
-                <h1 className="truncate text-sm font-black leading-5 text-white">
-                  {playerProfile?getDisplayName(playerProfile):'Jogador'}
-                </h1>
-                <p className="truncate text-[9px] text-sky-300">{playerProfile?.username?`@${playerProfile.username}`:'Sem username'}</p>
-                <p className="text-[9px] text-slate-400">ID: {playerProfile?.telegramId??'--'}</p>
-                {!playerProfile&&!profileLoading?<button type="button" onClick={()=>void refetchProfile()} className="text-[8px] text-amber-300">Tentar novamente</button>:null}
+          <div className="relative z-30 w-full">
+            <section className="telegram-profile-card village-profile-card relative w-full overflow-hidden rounded-2xl border border-amber-300/25 px-2 py-2 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#101d35]/95 via-[#080d17]/90 to-[#2a1609]/90" />
+              <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-amber-500/15 blur-3xl" />
+              <PlayerHeader
+                className="relative"
+                profile={playerProfile}
+                loading={profileLoading}
+                onRetry={()=>void refetchProfile()}
+                balance={game.balance}
+                actions={<>
+                  <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
+                    <Bell />
+                    {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
+                  </button>
+                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
+                    <Settings />
+                  </button>
+                </>}
+              />
+            </section>
+            {notificationsOpen ? (
+              <div className="absolute right-0 top-full z-40 mt-1 w-56 max-w-full rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
+                <p className="font-bold text-white">{t('notifications')}</p>
+                <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
+                {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
               </div>
-            </div>
-          </section>
+            ) : null}
+          </div>
+
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={dailyReward?.claimed?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
