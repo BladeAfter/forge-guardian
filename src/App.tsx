@@ -24,7 +24,7 @@ import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTel
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
-import {getDisplayName,getInitials,type TelegramPlayerProfile} from './playerProfile';
+import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
@@ -74,11 +74,6 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
   return <button type="button" onClick={onClick} className="home-feature group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
 
-function TelegramAvatar({profile}:{profile:TelegramPlayerProfile|null}){
-  const [failed,setFailed]=useState(false);const name=profile?getDisplayName(profile):'Jogador';
-  useEffect(()=>setFailed(false),[profile?.photoUrl]);
-  return profile?.photoUrl&&!failed?<img src={profile.photoUrl} onError={()=>setFailed(true)} alt={name} className="h-11 w-11 shrink-0 rounded-full border-2 border-amber-400/60 bg-black object-cover"/>:<div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-amber-400/60 bg-slate-900 text-xs font-black text-amber-100">{getInitials(name)}</div>;
-}
 
 function App() {
   const [tab, setTab] = useState<TabKey>(tabFromPath);
