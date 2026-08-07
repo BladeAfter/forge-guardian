@@ -333,6 +333,48 @@ button {
 @keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}@keyframes eggRise{from{opacity:0;transform:translateY(120px) scale(.6)}to{opacity:1;transform:none}}@keyframes eggFloat{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px)}}@keyframes eggShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-4px) rotate(-2deg)}40%{transform:translateX(5px) rotate(2deg)}60%{transform:translateX(-6px) rotate(-3deg)}80%{transform:translateX(6px) rotate(3deg)}}@keyframes drawCracks{to{stroke-dashoffset:0}}@keyframes crackPulse{50%{filter:drop-shadow(0 0 14px var(--pet-primary));opacity:.65}}@keyframes lightBurst{0%{opacity:0;transform:scale(1)}35%{opacity:1}100%{opacity:0;transform:scale(65)}}@keyframes rarityPulse{50%{opacity:.65;scale:1.08}}@keyframes creatureReveal{0%{opacity:0;filter:brightness(0) drop-shadow(0 0 40px var(--pet-primary));transform:translateY(30px) scale(.72)}45%{opacity:1;filter:brightness(0) drop-shadow(0 0 45px var(--pet-primary))}100%{filter:brightness(1) drop-shadow(0 24px 24px #000) drop-shadow(0 0 32px var(--pet-glow));transform:none}}@keyframes textReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes particleFly{0%{opacity:0;transform:rotate(var(--particle-angle)) translateY(35px) scale(.5)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--particle-angle)) translateY(var(--particle-distance)) scale(1.4)}}@keyframes resultCardEnter{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.pet-egg-overlay *{animation-duration:.2s!important;animation-iteration-count:1!important}.pet-egg-particles{display:none}.pet-light-burst{display:none}}
 
+/* Ancestral Genesis: the NFT seal is derived from the official creature asset,
+   so ordinary pets can never receive it through rarity alone. */
+.group:has(img[src*="/pets/ancestral-nft/"]) h3::after,
+.pet-reveal-creature:has(img[src*="/pets/ancestral-nft/"]) h1::after,
+div:has(> img[src*="/pets/ancestral-nft/"]) > b::after {
+  content:"NFT";
+  display:inline-flex;
+  margin-left:.45rem;
+  transform:translateY(-.18em);
+  border:1px solid rgba(254,240,138,.8);
+  border-radius:.3rem;
+  padding:.18rem .38rem;
+  background:linear-gradient(180deg,#fde68a,#d97706);
+  color:#100b02;
+  box-shadow:0 0 16px rgba(251,191,36,.65),inset 0 1px rgba(255,255,255,.5);
+  font-size:.43em;
+  font-weight:950;
+  line-height:1;
+  letter-spacing:.14em;
+  vertical-align:middle;
+}
+.group:has(img[src*="/pets/ancestral-nft/"]){
+  box-shadow:0 0 28px rgba(251,191,36,.2),0 18px 34px rgba(0,0,0,.55);
+}
+
+/* Living ancestral cards: every Genesis creature has its own restrained aura. */
+div:has(> img[src*="/pets/ancestral-nft/"]){position:relative;overflow:hidden;isolation:isolate}
+div:has(> img[src*="/pets/ancestral-nft/"]) > img{position:relative;z-index:2;animation:ancestralFloat 3.8s ease-in-out infinite;filter:drop-shadow(0 10px 12px #000) drop-shadow(0 0 13px var(--ancestral-glow,#fbbf24))}
+div:has(> img[src*="/pets/ancestral-nft/"])::before{content:"";position:absolute;z-index:0;inset:8% 12% 34%;border-radius:50%;background:radial-gradient(circle,var(--ancestral-aura,rgba(251,191,36,.42)),transparent 68%);filter:blur(8px);animation:ancestralPulse 2.2s ease-in-out infinite}
+div:has(> img[src*="/pets/ancestral-nft/"])::after{content:"";position:absolute;z-index:1;inset:8px;background:repeating-conic-gradient(from 0deg,var(--ancestral-spark,rgba(255,255,255,.65)) 0 1deg,transparent 1deg 28deg);border-radius:50%;opacity:.22;mask:radial-gradient(circle,transparent 0 47%,#000 65%,transparent 72%);animation:ancestralOrbit 12s linear infinite}
+div:has(> img[src$="solkaris.png"]){--ancestral-glow:#fbbf24;--ancestral-aura:rgba(251,146,60,.5);--ancestral-spark:#fde68a}
+div:has(> img[src$="umbrael.png"]){--ancestral-glow:#a855f7;--ancestral-aura:rgba(124,58,237,.5);--ancestral-spark:#c4b5fd}
+div:has(> img[src$="thalassor.png"]){--ancestral-glow:#38bdf8;--ancestral-aura:rgba(14,165,233,.45);--ancestral-spark:#bae6fd}
+div:has(> img[src$="verdantia.png"]){--ancestral-glow:#34d399;--ancestral-aura:rgba(16,185,129,.45);--ancestral-spark:#a7f3d0}
+div:has(> img[src$="ignivar.png"]){--ancestral-glow:#f97316;--ancestral-aura:rgba(239,68,68,.52);--ancestral-spark:#fdba74}
+div:has(> img[src$="umbrael.png"])::after{animation-duration:3.2s;opacity:.38}
+div:has(> img[src$="ignivar.png"])::before,div:has(> img[src$="solkaris.png"])::before{animation-duration:1.35s}
+@keyframes ancestralFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.025)}}
+@keyframes ancestralPulse{0%,100%{opacity:.45;transform:scale(.88)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes ancestralOrbit{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){div:has(> img[src*="/pets/ancestral-nft/"])::before,div:has(> img[src*="/pets/ancestral-nft/"])::after,div:has(> img[src*="/pets/ancestral-nft/"]) > img{animation:none!important}}
+
 div:has(> img[src*="/pet-eggs/common-egg.webp"]) h3::after,
 div:has(> img[src*="/pet-eggs/rare-egg.webp"]) h3::after,
 div:has(> img[src*="/pet-eggs/epic-egg.webp"]) h3::after,
