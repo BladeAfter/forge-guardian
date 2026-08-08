@@ -3116,9 +3116,28 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_ads_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_assert: { Args: { p_admin_id: number }; Returns: undefined }
+      admin_boss_control: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_code?: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_boss_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_broadcast_targets: {
+        Args: { p_admin_id: number; p_limit?: number; p_segment: string }
+        Returns: Json
+      }
       admin_bump_settings_version: { Args: never; Returns: number }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_create_snapshot: {
+        Args: { p_admin_id: number; p_label: string }
+        Returns: Json
+      }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
         Returns: Json
@@ -3157,6 +3176,31 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_hero_detail: {
+        Args: { p_admin_id: number; p_hero_key: string }
+        Returns: Json
+      }
+      admin_list_audit: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_heroes: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_pets: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_transactions: {
+        Args: {
+          p_admin_id: number
+          p_kind: string
+          p_limit?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
       admin_log: {
         Args: {
           p_action: string
@@ -3170,12 +3214,24 @@ export type Database = {
         }
         Returns: string
       }
+      admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
       admin_player_detail: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
       admin_player_history: {
         Args: { p_admin_id: number; p_limit?: number; p_ref: string }
+        Returns: Json
+      }
+      admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_overview: {
+        Args: { p_admin_id: number; p_top?: number }
+        Returns: Json
+      }
+      admin_referral_tree: {
+        Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
       admin_remove_hero: {
@@ -3190,7 +3246,35 @@ export type Database = {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
         Returns: Json
       }
+      admin_reset_missions: {
+        Args: { p_admin_id: number; p_reason: string; p_scope: string }
+        Returns: Json
+      }
+      admin_reset_pvp_season: {
+        Args: { p_admin_id: number; p_reason: string }
+        Returns: Json
+      }
       admin_resolve_player: { Args: { p_ref: string }; Returns: string }
+      admin_review_deposit: {
+        Args: {
+          p_admin_id: number
+          p_approve: boolean
+          p_deposit_id: string
+          p_reason?: string
+          p_tx_hash?: string
+        }
+        Returns: Json
+      }
+      admin_review_withdrawal: {
+        Args: {
+          p_admin_id: number
+          p_reason?: string
+          p_status: string
+          p_tx_hash?: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
       admin_search_players: {
         Args: { p_admin_id: number; p_limit?: number; p_query: string }
         Returns: Json
@@ -3201,6 +3285,15 @@ export type Database = {
           p_banned: boolean
           p_reason: string
           p_ref: string
+        }
+        Returns: Json
+      }
+      admin_set_hero_rarity_rates: {
+        Args: {
+          p_admin_id: number
+          p_normalize?: boolean
+          p_rates: Json
+          p_reason?: string
         }
         Returns: Json
       }
@@ -3222,6 +3315,15 @@ export type Database = {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
       }
+      admin_set_referral_percent: {
+        Args: {
+          p_admin_id: number
+          p_level: number
+          p_percent: number
+          p_reason?: string
+        }
+        Returns: Json
+      }
       admin_set_setting: {
         Args: {
           p_admin_id: number
@@ -3231,7 +3333,12 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_super_id: { Args: never; Returns: number }
+      admin_unlink_referral: {
+        Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
+      }
       admin_update_pet_egg_economy: {
         Args: {
           p_daily_quantity: number
@@ -3365,6 +3472,69 @@ export type Database = {
           p_type: string
         }
         Returns: undefined
+      }
+      admin_upsert_ad_provider: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_boss: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_hero: {
+        Args: {
+          p_admin_id: number
+          p_hero_key: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_league: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_mission: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_pet: {
+        Args: {
+          p_admin_id: number
+          p_patch: Json
+          p_reason?: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      admin_upsert_pet_food: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
       }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
