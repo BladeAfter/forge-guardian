@@ -95,10 +95,17 @@ export const fetchGameState = async (telegramInitData: string): Promise<GameStat
     telegram_init_data: telegramInitData
   });
 
+  // The village economy (buildings/missions) has no server table yet: when the
+  // RPC is absent we keep the local progression instead of breaking the screen.
+  if (error?.code === 'PGRST202' || error?.code === '42883') {
+    console.error('[FORGE API ERROR]', { feature: 'game-state', endpoint: 'rpc:get_game_state', status: 404, error, response: null });
+    return loadDemoState(telegramInitData);
+  }
   if (error) throw new Error(error.message);
   if (!data) throw new Error('The game backend returned no data.');
   return data as GameState;
 };
+
 
 export async function bossRequest(telegramInitData: string, action: 'get'|'process'|'team'|'claim'='process', heroIds?: string[]): Promise<BossCombat> {
   const response=await forgeFetch('boss',({initData:telegramInitData,action,heroIds}));
