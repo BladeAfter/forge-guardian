@@ -29,6 +29,7 @@ import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
+const PENDING_INVITER_KEY='forge-village-pending-inviter';
 type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
 const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
