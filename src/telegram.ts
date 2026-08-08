@@ -1,3 +1,4 @@
+import { forgeAuthProbe } from './apiClient';
 export type TelegramUser = {
   id: number;
   first_name: string;
@@ -52,15 +53,28 @@ export const initializeTelegram = () => {
   return webApp ?? null;
 };
 
-export const validateTelegramSession = async (initData: string) => {
-  const response = await fetch('/api/telegram/validate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ initData })
-  });
-
-  if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(payload?.error || 'Telegram authentication failed.');
+/**
+ * Telegram injects initData asynchronously on some clients, so we poll briefly
+ * instead of deciding "no session" on the very first render.
+ */
+export const waitForTelegramInitData = async (timeoutMs = 4000): Promise<TelegramWebApp | null> => {
+  const started = Date.now();
+  let webApp = initializeTelegram();
+  while (Date.now() - started < timeoutMs) {
+    if (webApp?.initData) return webApp;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    webApp = window.Telegram?.WebApp ?? webApp;
   }
+  return webApp ?? null;
+};
+
+/** Validates the session against the game bot token in the backend (never trusts initDataUnsafe). */
+export const validateTelegramSession = async (initData: string) => {
+  const probe = await forgeAuthProbe(initData);
+  if (!probe.ok) {
+    const error = new Error(probe.error || 'Sessão do Telegram inválida ou expirada.') as Error & { reason?: string };
+    error.reason = probe.reason;
+    throw error;
+  }
+  return probe;
 };

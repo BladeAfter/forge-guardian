@@ -26,14 +26,30 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Validates the signed Telegram Mini App initData server-side. Never trust client-sent ids. */
-export async function validateTelegramInitData(initData: string): Promise<TelegramUser> {
-  const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
-  if (!token) throw new Error('A autenticação do Telegram não está configurada.');
-  if (!initData) throw new Error('Sessão do Telegram ausente. Abra o jogo pelo Telegram.');
+/** The Mini App is signed by the GAME bot. The admin bot has its own token and must never be used here. */
+const gameBotToken = () => (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
+
+const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
+
+export class TelegramAuthError extends Error {
+  constructor(public reason: string, message: string) {
+    super(message);
+  }
+}
+
+export type TelegramAuthResult = { user: TelegramUser; authDate: number; ageSeconds: number };
+
+/**
+ * Validates the signed Telegram Mini App initData server-side (official algorithm).
+ * The raw initData string is used exactly as Telegram provided it — never decoded or re-encoded.
+ */
+export async function validateTelegramInitData(initData: string): Promise<TelegramAuthResult> {
+  const token = gameBotToken();
+  if (!token) throw new TelegramAuthError('bot_token_missing', 'A autenticação do Telegram não está configurada.');
+  if (!initData) throw new TelegramAuthError('init_data_missing', 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.');
 
   const params = new URLSearchParams(initData);
-  const hash = params.get('hash') || '';
+  const hash = (params.get('hash') || '').toLowerCase();
   params.delete('hash');
   const check = [...params.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -43,20 +59,52 @@ export async function validateTelegramInitData(initData: string): Promise<Telegr
   const secret = await hmac(encoder.encode('WebAppData'), token);
   const expected = toHex(await hmac(secret, check));
   const authDate = Number(params.get('auth_date'));
-  if (!safeEqual(expected, hash.toLowerCase()) || !Number.isFinite(authDate) || Math.abs(Date.now() / 1000 - authDate) > 86_400) {
-    throw new Error('Sessão do Telegram inválida ou expirada.');
+  const ageSeconds = Number.isFinite(authDate) ? Math.round(Date.now() / 1000 - authDate) : Number.NaN;
+
+  if (!hash) throw new TelegramAuthError('hash_missing', 'Sessão do Telegram inválida (assinatura ausente).');
+  if (!safeEqual(expected, hash)) {
+    // Signature mismatch means the initData was signed by a DIFFERENT bot than the configured token.
+    throw new TelegramAuthError('signature_mismatch', 'Assinatura do Telegram não confere com o bot configurado. Verifique o token do bot do jogo.');
+  }
+  if (!Number.isFinite(authDate)) throw new TelegramAuthError('auth_date_missing', 'Sessão do Telegram inválida (auth_date ausente).');
+  if (ageSeconds > AUTH_MAX_AGE_SECONDS) {
+    throw new TelegramAuthError('auth_date_expired', 'Sessão do Telegram expirada. Feche e abra o jogo novamente.');
   }
 
   const user = JSON.parse(params.get('user') || 'null') as TelegramUser | null;
-  if (!user?.id) throw new Error('Usuário do Telegram não encontrado.');
-  return user;
+  if (!user?.id) throw new TelegramAuthError('user_missing', 'Usuário do Telegram não encontrado.');
+  return { user, authDate, ageSeconds };
+}
+
+/** Reads initData from the header first (single API client contract) and falls back to the body. */
+function readInitData(req: Request, body: Record<string, any>): string {
+  const header = req.headers.get('X-Telegram-Init-Data') || '';
+  if (header) return header;
+  return typeof body.initData === 'string' ? body.initData : '';
+}
+
+async function botUsername(token: string): Promise<string | null> {
+  if (!token) return null;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const payload = await response.json().catch(() => null);
+    return payload?.ok && payload?.result?.username ? String(payload.result.username).replace(/^@/, '') : null;
+  } catch {
+    return null;
+  }
 }
 
 const isUuid = (value: unknown): value is string =>
   typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
+// The Mini App sends the raw initData in a custom header, so it must be allowed by CORS.
+const cors: Record<string, string> = {
+  ...corsHeaders,
+  'Access-Control-Allow-Headers': `${(corsHeaders as Record<string, string>)['Access-Control-Allow-Headers'] ?? 'authorization, apikey, content-type'}, x-telegram-init-data`,
+};
+
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 function serviceClient() {
   const url = Deno.env.get('SUPABASE_URL');
@@ -293,7 +341,7 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
 }
 
 async function botIdentity() {
-  const token = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
+  const token = gameBotToken();
   const configured = String(Deno.env.get('TELEGRAM_BOT_USERNAME') || '').trim().replace(/^@/, '');
   const appShortName = String(Deno.env.get('TELEGRAM_APP_SHORT_NAME') || '').trim() || null;
   if (configured) return { botUsername: configured, appShortName };
@@ -357,7 +405,11 @@ async function healthReport() {
     app: 'Forge Village',
     backend: 'online',
     database: 'offline',
-    telegram_auth: Boolean(Deno.env.get('TELEGRAM_BOT_TOKEN')) ? 'configured' : 'missing',
+    telegram_auth: gameBotToken() ? 'configured' : 'missing',
+    telegram_auth_max_age_seconds: AUTH_MAX_AGE_SECONDS,
+    game_bot_token_source: Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : (Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : 'missing'),
+    game_bot_username: await botUsername(gameBotToken()),
+    admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
     time: new Date().toISOString(),
   };
   try {
@@ -375,7 +427,7 @@ async function healthReport() {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const feature = new URL(req.url).pathname.split('/').filter(Boolean).pop() || '';
   // Public, secret-free diagnostics endpoint. No initData required.
@@ -385,6 +437,22 @@ Deno.serve(async (req) => {
   }
 
   if (req.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
+
+  // Dedicated auth probe: validates the session without touching any game data.
+  if (feature === 'auth') {
+    const probeBody = (await req.json().catch(() => ({}))) as Record<string, any>;
+    const initData = readInitData(req, probeBody);
+    try {
+      const { user, authDate, ageSeconds } = await validateTelegramInitData(initData);
+      return json({ ok: true, telegramId: user.id, username: user.username ?? null, authDate, ageSeconds, botUsername: await botUsername(gameBotToken()) });
+    } catch (error) {
+      const reason = error instanceof TelegramAuthError ? error.reason : 'unknown';
+      const message = error instanceof Error ? error.message : 'Falha na autenticação do Telegram.';
+      console.error('[TELEGRAM AUTH FAILED]', { route: 'auth', reason, initDataPresent: Boolean(initData), initDataLength: initData.length, authDate: new URLSearchParams(initData).get('auth_date') });
+      return json({ ok: false, error: message, reason, code: 'TELEGRAM_AUTH', botUsername: await botUsername(gameBotToken()) }, 401);
+    }
+  }
+
   const handler = handlers[feature];
   if (!handler) return json({ error: `Recurso desconhecido: ${feature}` }, 404);
 
@@ -396,12 +464,14 @@ Deno.serve(async (req) => {
   }
 
   let user: TelegramUser;
+  const initData = readInitData(req, body);
   try {
-    user = await validateTelegramInitData(typeof body.initData === 'string' ? body.initData : '');
+    user = (await validateTelegramInitData(initData)).user;
   } catch (error) {
+    const reason = error instanceof TelegramAuthError ? error.reason : 'unknown';
     const message = error instanceof Error ? error.message : 'Falha na autenticação do Telegram.';
-    console.error('[FORGE API ERROR]', { feature, stage: 'auth', message });
-    return json({ error: message, code: 'TELEGRAM_AUTH' }, 401);
+    console.error('[TELEGRAM AUTH FAILED]', { feature, reason, initDataPresent: Boolean(initData), initDataLength: initData.length, authDate: new URLSearchParams(initData).get('auth_date') });
+    return json({ error: message, reason, code: 'TELEGRAM_AUTH' }, 401);
   }
 
   try {

@@ -21,7 +21,7 @@ import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
-import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
+import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
@@ -93,6 +93,7 @@ function App() {
   const [shopResults, setShopResults] = useState<ShopHero[]>([]);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [outsideTelegram, setOutsideTelegram] = useState(false);
+  const [telegramBooting, setTelegramBooting] = useState(true);
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const queryClient = useQueryClient();
@@ -172,20 +173,42 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const webApp = initializeTelegram();
-    setTelegramUser(getTelegramUser(webApp));
-    setTelegramStartParam(getTelegramStartParam(webApp));
-    if (!isProduction || isDemoMode) {
-      setTelegramInitData(webApp?.initData || 'development-browser-session');
-      return;
-    }
-    if (!webApp?.initData) {
-      setOutsideTelegram(true);
-      return;
-    }
-    validateTelegramSession(webApp.initData)
-      .then(() => setTelegramInitData(webApp.initData))
-      .catch((validationError: unknown) => setBootstrapError(validationError instanceof Error ? validationError.message : 'Telegram authentication failed.'));
+    let cancelled = false;
+    // Telegram can deliver initData a few frames after mount; wait for it before any auth call.
+    (async () => {
+      const webApp = await waitForTelegramInitData();
+      if (cancelled) return;
+      const initData = webApp?.initData ?? '';
+      setTelegramUser(getTelegramUser(webApp));
+      setTelegramStartParam(getTelegramStartParam(webApp));
+      console.log('[TELEGRAM AUTH]', {
+        hasTelegram: Boolean(window.Telegram?.WebApp),
+        hasInitData: Boolean(initData),
+        initDataLength: initData.length,
+        userId: webApp?.initDataUnsafe?.user?.id ?? null,
+      });
+      if (!isProduction || isDemoMode) {
+        setTelegramInitData(initData || 'development-browser-session');
+        setTelegramBooting(false);
+        return;
+      }
+      if (!initData) {
+        setOutsideTelegram(true);
+        setTelegramBooting(false);
+        return;
+      }
+      try {
+        await validateTelegramSession(initData);
+        if (cancelled) return;
+        setTelegramInitData(initData);
+      } catch (validationError: unknown) {
+        if (cancelled) return;
+        setBootstrapError(validationError instanceof Error ? validationError.message : 'Falha na autenticação do Telegram.');
+      } finally {
+        if (!cancelled) setTelegramBooting(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(()=>{
@@ -348,6 +371,10 @@ function App() {
 
   if (outsideTelegram) {
     return <OpenInTelegramGate />;
+  }
+
+  if (telegramBooting && window.location.pathname !== '/admin/diagnostics') {
+    return <StatusScreen title="Forge Village" message="Inicializando Telegram..." />;
   }
 
   // Admin-only diagnostics screen (Telegram id checked against the super admin).
