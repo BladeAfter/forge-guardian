@@ -75,6 +75,8 @@ async function rpc(db: Db, fn: string, args: Record<string, unknown>) {
 
 async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'process');
+  // Hero shop pricing/odds are admin-controlled settings, read live on every open.
+  if (action === 'shop') return await rpc(db, 'get_hero_shop_config', {});
   const fn = action === 'equip' ? 'equip_combat_hero'
     : action === 'team' ? 'set_boss_team'
     : action === 'claim' ? 'claim_boss_reward'

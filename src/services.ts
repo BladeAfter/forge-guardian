@@ -114,6 +114,16 @@ export async function bossRequest(telegramInitData: string, action: 'get'|'proce
   return payload;
 }
 
+export type HeroShopConfig={prices:Record<string,number>;odds:Record<string,number>;version?:number};
+
+/** Recruitment prices and summon odds come from admin settings, never hardcoded. */
+export async function fetchHeroShopConfig(telegramInitData:string):Promise<HeroShopConfig>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'shop'}));
+  const payload=await response.json().catch(()=>null) as HeroShopConfig&{error?:string}|null;
+  if(!response.ok||!payload?.prices)throw new Error(payload?.error||'Unable to load hero shop config.');
+  return payload;
+}
+
 export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10){
   const response=await forgeFetch('boss',({initData:telegramInitData,action:'recruit',count}));
   const payload=await response.json().catch(()=>null) as {heroes:Array<{heroKey:string}>;balance:number;error?:string}|null;
