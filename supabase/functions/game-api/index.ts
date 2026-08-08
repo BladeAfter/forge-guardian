@@ -349,11 +349,40 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 };
 
+async function healthReport() {
+  const report: Record<string, unknown> = {
+    ok: false,
+    app: 'Forge Village',
+    backend: 'online',
+    database: 'offline',
+    telegram_auth: Boolean(Deno.env.get('TELEGRAM_BOT_TOKEN')) ? 'configured' : 'missing',
+    time: new Date().toISOString(),
+  };
+  try {
+    const db = serviceClient();
+    const { error } = await db.from('game_settings').select('key', { count: 'exact', head: true });
+    if (error) throw new Error(error.message);
+    report.database = 'online';
+    report.ok = report.telegram_auth === 'configured';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[FORGE ERROR]', { route: 'health', stage: 'database', message });
+    report.database_error = message;
+  }
+  return report;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  if (req.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
 
   const feature = new URL(req.url).pathname.split('/').filter(Boolean).pop() || '';
+  // Public, secret-free diagnostics endpoint. No initData required.
+  if (feature === 'health') {
+    const report = await healthReport();
+    return json(report, report.ok ? 200 : 503);
+  }
+
+  if (req.method !== 'POST') return json({ error: 'Método não permitido.' }, 405);
   const handler = handlers[feature];
   if (!handler) return json({ error: `Recurso desconhecido: ${feature}` }, 404);
 
