@@ -48,7 +48,7 @@ const MAIN_MENU = kb([
   [{ t: '👥 USUÁRIOS', d: 'm:users' }, { t: '🦸 HERÓIS', d: 'm:heroes' }],
   [{ t: '🐲 PETS', d: 'm:pets' }, { t: '⚔️ PVP', d: 'm:pvp' }],
   [{ t: '🎟 PASSE', d: 'm:pass' }, { t: '💰 POOL', d: 'm:pool' }],
-  [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA', d: 'm:shop' }],
+  [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }],
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 MISSÕES', d: 'm:missions' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
@@ -112,23 +112,97 @@ async function playerCard(ctx: Ctx, ref: string) {
   else await send(ctx, lines.join('\n'), markup);
 }
 
+
+// ---------------------------------------------------------------- hero shop (menu driven)
+const RARITY_LABEL: Record<string, string> = {
+  common: 'COMUM', uncommon: 'INCOMUM', rare: 'RARO', epic: 'ÉPICO', legendary: 'LENDÁRIO',
+};
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+const pct = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+
+type HeroShopOverview = {
+  config: { prices: Record<string, number>; odds: Record<string, number> };
+  heroes_total: number; heroes_enabled: number; by_rarity: Record<string, number>;
+};
+async function heroShopConfig(ctx: Ctx): Promise<HeroShopOverview> {
+  return await rpc('admin_hero_shop_overview', { p_admin_id: ctx.adminId }) as HeroShopOverview;
+}
+
+async function heroShopHub(ctx: Ctx) {
+  const d = await heroShopConfig(ctx);
+  const p = d.config.prices;
+  const text = [
+    '🏪 <b>LOJA DE HERÓIS</b>',
+    '',
+    `💰 1x <b>${fmt(p['1'])} FC</b> · 5x <b>${fmt(p['5'])} FC</b> · 10x <b>${fmt(p['10'])} FC</b>`,
+    `🎲 ${RARITY_ORDER.map((r) => `${RARITY_LABEL[r]} ${pct(d.config.odds[r])}%`).join(' · ')}`,
+    `🦸 ${fmt(d.heroes_enabled)} heróis ativos de ${fmt(d.heroes_total)}`,
+    '',
+    'Tudo aqui vale na hora no Mini App, sem deploy.',
+  ].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '💰 PREÇOS DE RECRUTAMENTO', d: 'hs:prices' }],
+    [{ t: '🎲 CHANCES DE INVOCAÇÃO', d: 'hs:odds' }],
+    [{ t: '🦸 EDITAR HERÓIS', d: 'hs:list' }],
+    [{ t: '➕ CRIAR HERÓI', d: 'ask:hero' }, { t: '🚫 ATIVAR/DESATIVAR', d: 'ask:herotoggle' }],
+    [{ t: '📦 ITENS DA LOJA', d: 'hs:store' }],
+    nav(),
+  ]));
+}
+
+async function heroPricesView(ctx: Ctx) {
+  const p = (await heroShopConfig(ctx)).config.prices;
+  const text = [
+    '🎯 <b>RECRUTAMENTO DE HERÓIS</b>', '', 'Preço atual:',
+    `1x — <b>${fmt(p['1'])} FC</b>`, `5x — <b>${fmt(p['5'])} FC</b>`, `10x — <b>${fmt(p['10'])} FC</b>`,
+    '', 'Cada pacote é independente, então dá para criar desconto no 5x e no 10x.',
+  ].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '✏️ ALTERAR 1x', d: 'hp:1' }],
+    [{ t: '✏️ ALTERAR 5x', d: 'hp:5' }],
+    [{ t: '✏️ ALTERAR 10x', d: 'hp:10' }],
+    [{ t: '🔄 RESET PADRÃO', d: 'hs:resetp' }],
+    nav('m:shop'),
+  ]));
+}
+
+async function heroOddsView(ctx: Ctx) {
+  const d = await heroShopConfig(ctx);
+  const o = d.config.odds;
+  const total = RARITY_ORDER.reduce((sum, r) => sum + Number(o[r] ?? 0), 0);
+  const text = [
+    '🎲 <b>CHANCES DE INVOCAÇÃO</b>', '',
+    ...RARITY_ORDER.map((r) => `${RARITY_LABEL[r]} — <b>${pct(o[r])}%</b> (${fmt(d.by_rarity[r] ?? 0)} heróis)`),
+    '', `Total: <b>${pct(total)}%</b> — precisa ser exatamente 100%.`,
+  ].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: 'COMUM', d: 'ho:common' }, { t: 'INCOMUM', d: 'ho:uncommon' }],
+    [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
+    [{ t: 'LENDÁRIO', d: 'ho:legendary' }],
+    [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
+    nav('m:shop'),
+  ]));
+}
+
 async function module(ctx: Ctx, name: string) {
   switch (name) {
     case 'users':
       return edit(ctx, '👥 <b>USUÁRIOS</b>\nBusque por Telegram ID, @usuário, nome, carteira ou ID interno.',
         kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 ÚLTIMOS ACESSOS', d: 'find:' }], nav()]));
-    case 'heroes': {
+    case 'heroes':
+    case 'shop':
+      return heroShopHub(ctx);
+    case 'herolist': {
       const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 20, p_offset: 0 });
-      const rates = (await rpc('admin_get_settings', { p_admin_id: ctx.adminId, p_category: 'heroes' })).settings?.[0]?.value ?? {};
       const list = d.heroes.map((h: any) => `• <code>${esc(h.hero_key)}</code> ${esc(h.name)} — ${esc(h.rarity)} ${h.enabled ? '✅' : '⛔'}${h.in_shop ? ' 🏪' : ''} ${h.price_fc ? fmt(h.price_fc) + ' FC' : ''}`).join('\n');
-      return edit(ctx, `🦸 <b>HERÓIS</b> (${d.total})\n${list}\n\n🎲 Raridades: <code>${esc(JSON.stringify(rates))}</code>`,
-        kb([[{ t: '✏️ CRIAR/EDITAR', d: 'ask:hero' }], [{ t: '🎲 RARIDADES', d: 'ask:rates' }], [{ t: '🦸 DAR A USUÁRIO', d: 'ask:granthero' }], nav()]));
+      return edit(ctx, `🦸 <b>HERÓIS</b> (${d.total})\n${list}\n\nO <code>price_fc</code> do herói é o preço avulso na loja, diferente do preço de recrutamento 1x/5x/10x.`,
+        kb([[{ t: '✏️ CRIAR/EDITAR (JSON)', d: 'ask:hero' }], [{ t: '🚫 ATIVAR/DESATIVAR', d: 'ask:herotoggle' }], [{ t: '🦸 DAR A USUÁRIO', d: 'ask:granthero' }], nav('m:shop')]));
     }
-    case 'shop': {
+    case 'store': {
       const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
       const shop = d.heroes.filter((h: any) => h.in_shop);
-      return edit(ctx, `🏪 <b>LOJA</b>\n${shop.length ? shop.map((h: any) => `• ${esc(h.name)} — ${fmt(h.price_fc)} FC / ${h.price_ton ?? '—'} TON · ordem ${h.sort_order}${h.featured ? ' ⭐' : ''}`).join('\n') : 'Nenhum item na loja.'}\n\nUse EDITAR HERÓI com <code>in_shop</code>, <code>price_fc</code>, <code>price_ton</code>, <code>discount_percent</code>, <code>stock</code>, <code>sort_order</code>, <code>featured</code>, <code>available_until</code>.`,
-        kb([[{ t: '✏️ EDITAR ITEM', d: 'ask:hero' }], nav()]));
+      return edit(ctx, `📦 <b>ITENS DA LOJA</b>\n${shop.length ? shop.map((h: any) => `• ${esc(h.name)} — ${fmt(h.price_fc)} FC / ${h.price_ton ?? '—'} TON · ordem ${h.sort_order}${h.featured ? ' ⭐' : ''}`).join('\n') : 'Nenhum item avulso na loja.'}\n\nCampos: <code>in_shop</code>, <code>price_fc</code>, <code>price_ton</code>, <code>discount_percent</code>, <code>stock</code>, <code>sort_order</code>, <code>featured</code>, <code>available_until</code>.`,
+        kb([[{ t: '✏️ EDITAR ITEM (JSON)', d: 'ask:hero' }], nav('m:shop')]));
     }
     case 'pets': {
       const list = await rpc('admin_list_pets', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
@@ -223,6 +297,8 @@ async function module(ctx: Ctx, name: string) {
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
+  hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
+  herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
   rates: 'Envie as chances em JSON (total 100). Ex.: <code>{"comum":45,"incomum":25,"raro":15,"epico":8,"lendario":5,"mitico":1.5,"ancestral":0.5}</code>',
   granthero: 'Envie: <code>usuário hero_key [nível]</code>',
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
@@ -283,6 +359,51 @@ async function handleCallback(ctx: Ctx, data: string) {
     const t = await rpc('admin_referral_tree', { p_admin_id: ctx.adminId, p_ref: rest[0] });
     const lines = t.levels.map((l: any) => `${'   '.repeat(l.level - 1)}└ N${l.level} ${esc(l.user.name)} ${l.user.username ? '@' + esc(l.user.username) : ''} — ${fmt(l.user.deposited_ton)} TON`);
     return send(ctx, `🌳 <b>Árvore de convites</b>\n${lines.join('\n') || '—'}\n\n💸 Comissão total: <b>${fmt(t.total_commission_fc)} FC</b>\n${t.commissions.map((c: any) => `• N${c.level} ${fmt(c.amount_fc)} FC de ${esc(c.from)}`).join('\n')}`, MAIN_MENU);
+  }
+  if (head === 'hs') {
+    const view = rest[0];
+    if (view === 'prices') return heroPricesView(ctx);
+    if (view === 'odds') return heroOddsView(ctx);
+    if (view === 'list') return module(ctx, 'herolist');
+    if (view === 'store') return module(ctx, 'store');
+    if (view === 'resetp' || view === 'reseto') {
+      const scope = view === 'resetp' ? 'prices' : 'odds';
+      return send(ctx, `⚠️ Restaurar o padrão de <b>${scope === 'prices' ? 'preços (25.000 / 125.000 / 250.000 FC)' : 'chances (62 / 25 / 10 / 2,7 / 0,3)'}</b>?`,
+        kb([[{ t: '✅ CONFIRMAR', d: `hsr:${scope}` }, { t: '❌ CANCELAR', d: 'm:shop' }]]));
+    }
+    return heroShopHub(ctx);
+  }
+  if (head === 'hsr') {
+    const r = await rpc('admin_reset_hero_shop', { p_admin_id: ctx.adminId, p_scope: rest[0] });
+    return send(ctx, `🔄 Padrão restaurado.\n1x ${fmt(r.prices['1'])} · 5x ${fmt(r.prices['5'])} · 10x ${fmt(r.prices['10'])} FC\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
+      kb([[{ t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }], nav()]));
+  }
+  if (head === 'hp') {
+    const count = Number(rest[0]);
+    const cfg = await heroShopConfig(ctx);
+    return ask(ctx, `hprice|${count}`, `Preço atual do <b>${count}x</b>: <b>${fmt(cfg.config.prices[String(count)])} FC</b>\n\nEnvie o novo preço em FC. Ex.: <code>30000</code>`);
+  }
+  if (head === 'hpok') {
+    const count = Number(rest[0]);
+    const before = (await heroShopConfig(ctx)).config.prices[String(count)];
+    const r = await rpc('admin_set_hero_recruit_price', { p_admin_id: ctx.adminId, p_count: count, p_price: Number(rest[1]), p_reason: 'painel admin (bot)' });
+    return send(ctx, `✅ <b>${count}x</b> atualizado.\nAntes: ${fmt(before)} FC\nDepois: <b>${fmt(r.prices[String(count)])} FC</b>\n\nJá está valendo na loja do jogo.`,
+      kb([[{ t: '💰 PREÇOS', d: 'hs:prices' }], nav('m:shop')]));
+  }
+  if (head === 'ho') {
+    const rarity = rest[0];
+    const cfg = await heroShopConfig(ctx);
+    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 5 raridades precisa fechar 100%.`);
+  }
+  if (head === 'hoc') {
+    const rarity = rest[0];
+    const cfg = await heroShopConfig(ctx);
+    const rates: Record<string, number> = {};
+    for (const k of RARITY_ORDER) rates[k] = Number(cfg.config.odds[k] ?? 0);
+    rates[rarity] = Number(rest[1]);
+    const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
+    return send(ctx, `✅ <b>${RARITY_LABEL[rarity]}</b>: ${pct(cfg.config.odds[rarity])}% → <b>${pct(r.odds[rarity])}%</b>\n\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
+      kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
   }
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
   if (head === 'pool') return ask(ctx, `pool|${rest[0]}`, `Envie o valor em TON para ${rest[0] === 'add' ? 'adicionar' : 'remover'}.`);
@@ -380,6 +501,48 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'ban': { const r = await rpc('admin_set_ban', { p_admin_id: ctx.adminId, p_ref: args[0], p_banned: true, p_reason: text }); return send(ctx, `🚫 Jogador banido (<code>${r.user_id}</code>).`, MAIN_MENU); }
     case 'reset': { const r = await rpc('admin_reset_account', { p_admin_id: ctx.adminId, p_ref: args[0], p_reason: text }); return send(ctx, `♻️ Conta resetada (<code>${r.user_id}</code>).`, MAIN_MENU); }
     case 'hero': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_hero', { p_admin_id: ctx.adminId, p_hero_key: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Herói salvo: <b>${esc(r.name)}</b> — ${esc(r.rarity)} ${r.enabled ? '✅' : '⛔'} ${r.price_fc ? fmt(r.price_fc) + ' FC' : ''}`, MAIN_MENU); }
+    case 'hprice': {
+      const count = Number(args[0]);
+      const price = Math.round(Number(text.replace(/[^\d]/g, '')));
+      if (!Number.isFinite(price) || price < 1) return send(ctx, '⚠️ Envie apenas números. Ex.: <code>30000</code>', kb([[{ t: '💰 PREÇOS', d: 'hs:prices' }], nav('m:shop')]));
+      const cfg = await heroShopConfig(ctx);
+      return send(ctx, `✏️ <b>ALTERAR PREÇO ${count}x</b>\n\nAntes: <b>${fmt(cfg.config.prices[String(count)])} FC</b>\nDepois: <b>${fmt(price)} FC</b>`,
+        kb([[{ t: '✅ CONFIRMAR', d: `hpok:${count}:${price}` }, { t: '❌ CANCELAR', d: 'hs:prices' }]]));
+    }
+    case 'hodd': {
+      const rarity = args[0];
+      const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(value) || value < 0 || value > 100) return send(ctx, '⚠️ Porcentagem inválida (0 a 100).', kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+      const cfg = await heroShopConfig(ctx);
+      const total = RARITY_ORDER.reduce((sum, k) => sum + (k === rarity ? value : Number(cfg.config.odds[k] ?? 0)), 0);
+      if (Math.abs(total - 100) > 0.001) {
+        return send(ctx, `❌ Total inválido: <b>${pct(total)}%</b>\nA soma das 5 raridades precisa ser exatamente 100%.\n\nAjuste outra raridade ou use EDITAR TODAS.`,
+          kb([[{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }], [{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+      }
+      return send(ctx, `✏️ <b>ALTERAR CHANCE — ${RARITY_LABEL[rarity]}</b>\n\nAntes: <b>${pct(cfg.config.odds[rarity])}%</b>\nDepois: <b>${pct(value)}%</b>\nTotal: <b>${pct(total)}%</b>`,
+        kb([[{ t: '✅ CONFIRMAR', d: `hoc:${rarity}:${value}` }, { t: '❌ CANCELAR', d: 'hs:odds' }]]));
+    }
+    case 'hodds': {
+      const parts = text.replace(/,/g, '.').split(/[\s;]+/).map(Number).filter((n) => Number.isFinite(n));
+      if (parts.length !== 5) return send(ctx, '⚠️ Envie 5 números: comum incomum raro épico lendário.', kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+      const total = parts.reduce((a, b) => a + b, 0);
+      if (Math.abs(total - 100) > 0.001) {
+        return send(ctx, `❌ Total inválido: <b>${pct(total)}%</b>\nA soma precisa ser exatamente 100%.`, kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+      }
+      const rates: Record<string, number> = {};
+      RARITY_ORDER.forEach((k, i) => { rates[k] = parts[i]; });
+      const before = (await heroShopConfig(ctx)).config.odds;
+      const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
+      return send(ctx, `✅ Chances salvas.\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]}: ${pct(before[k])}% → <b>${pct(r.odds[k])}%</b>`).join('\n')}`,
+        kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+    }
+    case 'herotoggle': {
+      const heroKey = text.split(/\s+/)[0];
+      const { data: hero } = await db.from('hero_catalog').select('hero_key,name,enabled').eq('hero_key', heroKey).maybeSingle();
+      if (!hero) return send(ctx, '⚠️ Herói não encontrado.', kb([[{ t: '🦸 HERÓIS', d: 'hs:list' }], nav('m:shop')]));
+      const r = await rpc('admin_upsert_hero', { p_admin_id: ctx.adminId, p_hero_key: heroKey, p_patch: { enabled: !hero.enabled }, p_reason: 'painel admin (bot)' });
+      return send(ctx, `${r.enabled ? '✅ Ativado' : '⛔ Desativado'}: <b>${esc(r.name)}</b>`, kb([[{ t: '🦸 HERÓIS', d: 'hs:list' }], nav('m:shop')]));
+    }
     case 'rates': {
       try {
         const r = await rpc('admin_set_hero_rarity_rates', { p_admin_id: ctx.adminId, p_rates: JSON.parse(text), p_normalize: false, p_reason: 'painel admin' });
@@ -463,6 +626,9 @@ const ERRORS: Record<string, string> = {
   reason_required: '⚠️ O motivo é obrigatório para esta ação.',
   already_confirmed: '⚠️ Este depósito já foi confirmado.',
   already_processed: '⚠️ Este saque já foi processado.',
+  rates_must_total_100: '❌ Total inválido. A soma das raridades precisa ser exatamente 100%.',
+  invalid_price: '⚠️ Preço inválido. Use um número entre 1 e 1.000.000.000.',
+  invalid_count: '⚠️ Pacote inválido. Use 1x, 5x ou 10x.',
   immutable_setting: '⚠️ O ID do administrador mestre não pode ser alterado pelo painel.',
 };
 
@@ -531,7 +697,7 @@ Deno.serve(async (req) => {
     const cmd = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
     const arg = text.slice(cmd.length).trim();
     const direct: Record<string, string> = {
-      '/heroes': 'heroes', '/pets': 'pets', '/pvp': 'pvp', '/pool': 'pool', '/pass': 'pass',
+      '/heroes': 'heroes', '/shop': 'shop', '/loja': 'shop', '/pets': 'pets', '/pvp': 'pvp', '/pool': 'pool', '/pass': 'pass',
       '/invites': 'invites', '/boss': 'boss', '/audit': 'audit', '/status': 'status',
       '/wallet': 'wallet', '/missions': 'missions', '/ads': 'ads', '/settings': 'settings', '/broadcast': 'cast',
     };
