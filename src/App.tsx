@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, useReferralDashboard, useTelegramProfile } from './hooks';
+import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { MissionsPage } from './pages/MissionsPage';
 import { BossPage } from './pages/BossPage';
@@ -29,6 +29,7 @@ import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
+const PENDING_INVITER_KEY='forge-village-pending-inviter';
 type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
 const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
@@ -211,13 +212,35 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
+  // The inviter id survives reloads: Telegram only delivers start_param on the first launch.
+  useEffect(()=>{
+    const inviter=Number(telegramStartParam);
+    if(Number.isSafeInteger(inviter)&&inviter>0)localStorage.setItem(PENDING_INVITER_KEY,String(inviter));
+  },[telegramStartParam]);
+
   useEffect(()=>{
     if(!backendEnabled||!telegramInitData||referralBound.current)return;
-    const inviter=Number(telegramStartParam);
-    if(!Number.isSafeInteger(inviter)||inviter<=0)return;
+    const stored=Number(localStorage.getItem(PENDING_INVITER_KEY)??telegramStartParam??'');
+    if(!Number.isSafeInteger(stored)||stored<=0)return;
     referralBound.current=true;
-    bindReferral(telegramInitData,inviter).then(()=>queryClient.invalidateQueries({queryKey:['referral-dashboard']})).catch(error=>toast.error(error instanceof Error?error.message:String(error)));
+    bindReferral(telegramInitData,stored)
+      .then(()=>{localStorage.removeItem(PENDING_INVITER_KEY);queryClient.invalidateQueries({queryKey:['referral-dashboard']})})
+      .catch(error=>{
+        const message=error instanceof Error?error.message:String(error);
+        // Permanent outcomes clear the pending inviter; transient failures retry on the next launch.
+        if(/SELF_REFERRAL_BLOCKED|SPONSOR_IMMUTABLE|REFERRAL_CYCLE_BLOCKED|Indicador inválido/.test(message))localStorage.removeItem(PENDING_INVITER_KEY);
+        else referralBound.current=false;
+        console.error('[REFERRAL BIND]',message);
+      });
   },[backendEnabled,telegramInitData,telegramStartParam,queryClient]);
+
+  // Forge Coins have a single source of truth: the server balance shown in the wallet.
+  const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
+  useEffect(()=>{
+    const serverBalance=serverWallet?.balanceFc;
+    if(typeof serverBalance!=='number'||!Number.isFinite(serverBalance))return;
+    setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
+  },[serverWallet?.balanceFc]);
 
   useEffect(()=>{
     const latest=referralDashboard?.notifications?.[0];if(!latest||latest.id===lastCommissionNotification.current)return;
