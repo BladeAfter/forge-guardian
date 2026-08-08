@@ -540,6 +540,27 @@ export type Database = {
           },
         ]
       }
+      pet_buff_pool: {
+        Row: {
+          buff_key: string
+          categories: Json
+          enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          buff_key: string
+          categories?: Json
+          enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          buff_key?: string
+          categories?: Json
+          enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pet_egg_orders: {
         Row: {
           amount_nano: string
@@ -728,6 +749,144 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pet_evolution_tiers: {
+        Row: {
+          enabled: boolean
+          evolution_stage: string
+          fc_cost: number
+          fragment_cost: number
+          label: string
+          max_secondary_buffs: number
+          new_buff_chance: number
+          primary_multiplier: number
+          required_level: number
+          tier: number
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          evolution_stage?: string
+          fc_cost?: number
+          fragment_cost?: number
+          label: string
+          max_secondary_buffs?: number
+          new_buff_chance?: number
+          primary_multiplier?: number
+          required_level: number
+          tier: number
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          evolution_stage?: string
+          fc_cost?: number
+          fragment_cost?: number
+          label?: string
+          max_secondary_buffs?: number
+          new_buff_chance?: number
+          primary_multiplier?: number
+          required_level?: number
+          tier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pet_evolutions: {
+        Row: {
+          created_at: string
+          evolution_from: number
+          evolution_to: number
+          fc_spent: number
+          fragments_spent: number
+          id: string
+          idempotency_key: string
+          level_at_evolution: number
+          player_pet_id: string
+          unlocked_buff: string | null
+          unlocked_buff_rarity: string | null
+          unlocked_buff_value: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evolution_from: number
+          evolution_to: number
+          fc_spent?: number
+          fragments_spent?: number
+          id?: string
+          idempotency_key: string
+          level_at_evolution: number
+          player_pet_id: string
+          unlocked_buff?: string | null
+          unlocked_buff_rarity?: string | null
+          unlocked_buff_value?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evolution_from?: number
+          evolution_to?: number
+          fc_spent?: number
+          fragments_spent?: number
+          id?: string
+          idempotency_key?: string
+          level_at_evolution?: number
+          player_pet_id?: string
+          unlocked_buff?: string | null
+          unlocked_buff_rarity?: string | null
+          unlocked_buff_value?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_evolutions_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_evolutions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_food_items: {
+        Row: {
+          code: string
+          enabled: boolean
+          icon: string
+          name: string
+          rarity: string
+          sort_order: number
+          updated_at: string
+          xp_value: number
+        }
+        Insert: {
+          code: string
+          enabled?: boolean
+          icon?: string
+          name: string
+          rarity?: string
+          sort_order?: number
+          updated_at?: string
+          xp_value?: number
+        }
+        Update: {
+          code?: string
+          enabled?: boolean
+          icon?: string
+          name?: string
+          rarity?: string
+          sort_order?: number
+          updated_at?: string
+          xp_value?: number
+        }
+        Relationships: []
       }
       pet_hatch_history: {
         Row: {
@@ -1142,6 +1301,42 @@ export type Database = {
           },
         ]
       }
+      player_pet_food: {
+        Row: {
+          food_code: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          food_code: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          food_code?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_pet_food_food_code_fkey"
+            columns: ["food_code"]
+            isOneToOne: false
+            referencedRelation: "pet_food_items"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "player_pet_food_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_pet_inventory: {
         Row: {
           id: string
@@ -1188,6 +1383,7 @@ export type Database = {
         Row: {
           created_at: string
           evolution_stage: string
+          evolution_tier: number
           exclusive_badge: string | null
           exclusive_season_id: string | null
           fragments: number
@@ -1198,6 +1394,7 @@ export type Database = {
           obtained_at: string
           pet_id: string
           rarity: string
+          secondary_buffs: Json
           tradable: boolean
           updated_at: string
           user_id: string
@@ -1206,6 +1403,7 @@ export type Database = {
         Insert: {
           created_at?: string
           evolution_stage?: string
+          evolution_tier?: number
           exclusive_badge?: string | null
           exclusive_season_id?: string | null
           fragments?: number
@@ -1216,6 +1414,7 @@ export type Database = {
           obtained_at?: string
           pet_id: string
           rarity: string
+          secondary_buffs?: Json
           tradable?: boolean
           updated_at?: string
           user_id: string
@@ -1224,6 +1423,7 @@ export type Database = {
         Update: {
           created_at?: string
           evolution_stage?: string
+          evolution_tier?: number
           exclusive_badge?: string | null
           exclusive_season_id?: string | null
           fragments?: number
@@ -1234,6 +1434,7 @@ export type Database = {
           obtained_at?: string
           pet_id?: string
           rarity?: string
+          secondary_buffs?: Json
           tradable?: boolean
           updated_at?: string
           user_id?: string
@@ -2733,8 +2934,12 @@ export type Database = {
       }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
+      pet_level_xp_required: { Args: { p_level: number }; Returns: number }
+      pet_max_level: { Args: never; Returns: number }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
+      pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
       pet_xp_required: { Args: { v: number }; Returns: number }
+      player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       pool_record_revenue: {
         Args: {
           p_amount_ton: number
