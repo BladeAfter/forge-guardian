@@ -342,7 +342,7 @@ function App() {
     }
     return (
       <DiagnosticsPage
-        telegramInitData={telegramInitData}
+        telegramInitData={telegramInitData ?? ''}
         telegramId={telegramUser?.id ?? null}
         onClose={() => {window.history.replaceState({}, '', '/village'); setActivePage(null); setTab('village')}}
       />
