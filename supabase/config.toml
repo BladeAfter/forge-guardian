@@ -1,1 +1,7 @@
 project_id = "oaivxwzrggfqhapohlht"
+
+[functions.admin-bot]
+verify_jwt = false
+
+[functions.game-api]
+verify_jwt = false

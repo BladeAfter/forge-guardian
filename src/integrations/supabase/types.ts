@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_providers: {
+        Row: {
+          code: string
+          config: Json
+          cooldown_seconds: number
+          daily_limit: number
+          enabled: boolean
+          name: string
+          reward_fc: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          config?: Json
+          cooldown_seconds?: number
+          daily_limit?: number
+          enabled?: boolean
+          name: string
+          reward_fc?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          config?: Json
+          cooldown_seconds?: number
+          daily_limit?: number
+          enabled?: boolean
+          name?: string
+          reward_fc?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_id: number
+          context: Json
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id: number
+          context?: Json
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Update: {
+          action?: string
+          admin_id?: number
+          context?: Json
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
+      admin_snapshots: {
+        Row: {
+          admin_id: number
+          created_at: string
+          id: string
+          label: string
+          payload: Json
+        }
+        Insert: {
+          admin_id: number
+          created_at?: string
+          id?: string
+          label: string
+          payload: Json
+        }
+        Update: {
+          admin_id?: number
+          created_at?: string
+          id?: string
+          label?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       boss_combats: {
         Row: {
           boss_attack: number
@@ -144,6 +240,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      boss_templates: {
+        Row: {
+          active: boolean
+          attack: number
+          attack_interval_seconds: number
+          attack_limit: number | null
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          defense: number
+          difficulty: string
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          level: number
+          max_hp: number
+          name: string
+          reward_amount: number
+          starts_at: string | null
+          ticket_cost: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          attack?: number
+          attack_interval_seconds?: number
+          attack_limit?: number | null
+          code: string
+          cooldown_seconds?: number
+          created_at?: string
+          defense?: number
+          difficulty?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          level?: number
+          max_hp?: number
+          name: string
+          reward_amount?: number
+          starts_at?: string | null
+          ticket_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          attack?: number
+          attack_interval_seconds?: number
+          attack_limit?: number | null
+          code?: string
+          cooldown_seconds?: number
+          created_at?: string
+          defense?: number
+          difficulty?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          level?: number
+          max_hp?: number
+          name?: string
+          reward_amount?: number
+          starts_at?: string | null
+          ticket_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       calendar_chest_open_history: {
         Row: {
@@ -342,9 +504,63 @@ export type Database = {
         }
         Relationships: []
       }
+      game_missions: {
+        Row: {
+          code: string
+          daily_limit: number | null
+          description: string | null
+          enabled: boolean
+          reward_amount: number
+          reward_code: string | null
+          reward_type: string
+          reward_xp: number
+          scope: string
+          sort_order: number
+          target_amount: number
+          target_metric: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          daily_limit?: number | null
+          description?: string | null
+          enabled?: boolean
+          reward_amount?: number
+          reward_code?: string | null
+          reward_type?: string
+          reward_xp?: number
+          scope?: string
+          sort_order?: number
+          target_amount?: number
+          target_metric?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          daily_limit?: number | null
+          description?: string | null
+          enabled?: boolean
+          reward_amount?: number
+          reward_code?: string | null
+          reward_type?: string
+          reward_xp?: number
+          scope?: string
+          sort_order?: number
+          target_amount?: number
+          target_metric?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_players: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned: boolean
+          banned_at: string | null
           boss_defeats: number
           created_at: string
           display_name: string | null
@@ -353,17 +569,23 @@ export type Database = {
           id: string
           last_name: string | null
           last_seen_at: string
+          premium_until: string | null
           pvp_banned: boolean
           pvp_losses: number
           pvp_tickets: number
           pvp_trophies: number
           pvp_wins: number
           telegram_id: number
+          ton_balance: number
           updated_at: string
           username: string | null
+          vip_until: string | null
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean
+          banned_at?: string | null
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
@@ -372,17 +594,23 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_seen_at?: string
+          premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id: number
+          ton_balance?: number
           updated_at?: string
           username?: string | null
+          vip_until?: string | null
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean
+          banned_at?: string | null
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
@@ -391,38 +619,134 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_seen_at?: string
+          premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id?: number
+          ton_balance?: number
           updated_at?: string
           username?: string | null
+          vip_until?: string | null
+        }
+        Relationships: []
+      }
+      game_settings: {
+        Row: {
+          category: string
+          key: string
+          label: string
+          updated_at: string
+          updated_by: number | null
+          value: Json
+        }
+        Insert: {
+          category?: string
+          key: string
+          label?: string
+          updated_at?: string
+          updated_by?: number | null
+          value?: Json
+        }
+        Update: {
+          category?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          updated_by?: number | null
+          value?: Json
         }
         Relationships: []
       }
       hero_catalog: {
         Row: {
+          available_from: string | null
+          available_until: string | null
+          base_atk: number | null
+          base_hp: number | null
+          battle_image: string | null
+          buffs: Json
+          description: string | null
+          discount_percent: number
+          drop_weight: number
           enabled: boolean
+          featured: boolean
+          hero_class: string
           hero_key: string
           image: string
+          in_shop: boolean
+          max_level: number
           name: string
+          per_player_limit: number | null
+          power: number | null
+          price_fc: number | null
+          price_ton: number | null
           rarity: string
+          skills: Json
+          sort_order: number
+          start_level: number
+          stock: number | null
+          updated_at: string
         }
         Insert: {
+          available_from?: string | null
+          available_until?: string | null
+          base_atk?: number | null
+          base_hp?: number | null
+          battle_image?: string | null
+          buffs?: Json
+          description?: string | null
+          discount_percent?: number
+          drop_weight?: number
           enabled?: boolean
+          featured?: boolean
+          hero_class?: string
           hero_key: string
           image: string
+          in_shop?: boolean
+          max_level?: number
           name: string
+          per_player_limit?: number | null
+          power?: number | null
+          price_fc?: number | null
+          price_ton?: number | null
           rarity: string
+          skills?: Json
+          sort_order?: number
+          start_level?: number
+          stock?: number | null
+          updated_at?: string
         }
         Update: {
+          available_from?: string | null
+          available_until?: string | null
+          base_atk?: number | null
+          base_hp?: number | null
+          battle_image?: string | null
+          buffs?: Json
+          description?: string | null
+          discount_percent?: number
+          drop_weight?: number
           enabled?: boolean
+          featured?: boolean
+          hero_class?: string
           hero_key?: string
           image?: string
+          in_shop?: boolean
+          max_level?: number
           name?: string
+          per_player_limit?: number | null
+          power?: number | null
+          price_fc?: number | null
+          price_ton?: number | null
           rarity?: string
+          skills?: Json
+          sort_order?: number
+          start_level?: number
+          stock?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1257,6 +1581,54 @@ export type Database = {
           },
         ]
       }
+      player_mission_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          cycle: string
+          id: string
+          mission_code: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          cycle: string
+          id?: string
+          mission_code: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          cycle?: string
+          id?: string
+          mission_code?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_mission_progress_mission_code_fkey"
+            columns: ["mission_code"]
+            isOneToOne: false
+            referencedRelation: "game_missions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "player_mission_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_notifications: {
         Row: {
           amount_fc: number | null
@@ -1939,6 +2311,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pvp_leagues: {
+        Row: {
+          code: string
+          enabled: boolean
+          icon: string
+          max_trophies: number | null
+          min_trophies: number
+          name: string
+          reward: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          enabled?: boolean
+          icon?: string
+          max_trophies?: number | null
+          min_trophies?: number
+          name: string
+          reward?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          enabled?: boolean
+          icon?: string
+          max_trophies?: number | null
+          min_trophies?: number
+          name?: string
+          reward?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       pvp_opponent_impressions: {
         Row: {
@@ -2682,11 +3090,79 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      admin_adjust_balance: {
+        Args: {
+          p_admin_id: number
+          p_amount: number
+          p_currency: string
+          p_mode: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
       admin_adjust_pool_balance: {
         Args: { p_amount: number; p_reason: string }
         Returns: number
       }
+      admin_adjust_pvp_stat: {
+        Args: {
+          p_admin_id: number
+          p_amount: number
+          p_mode: string
+          p_reason?: string
+          p_ref: string
+          p_stat: string
+        }
+        Returns: Json
+      }
+      admin_ads_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_assert: { Args: { p_admin_id: number }; Returns: undefined }
+      admin_boss_control: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_code?: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_boss_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_broadcast_targets: {
+        Args: { p_admin_id: number; p_limit?: number; p_segment: string }
+        Returns: Json
+      }
+      admin_bump_settings_version: { Args: never; Returns: number }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_create_snapshot: {
+        Args: { p_admin_id: number; p_label: string }
+        Returns: Json
+      }
+      admin_get_settings: {
+        Args: { p_admin_id: number; p_category?: string }
+        Returns: Json
+      }
+      admin_grant_hero: {
+        Args: {
+          p_admin_id: number
+          p_hero_key: string
+          p_level?: number
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_grant_pet: {
+        Args: {
+          p_admin_id: number
+          p_level?: number
+          p_pet_slug: string
+          p_rarity?: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
       admin_grant_pet_food: {
         Args: { p_code: string; p_quantity: number; p_telegram_id: number }
         Returns: Json
@@ -2700,6 +3176,137 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_hero_detail: {
+        Args: { p_admin_id: number; p_hero_key: string }
+        Returns: Json
+      }
+      admin_list_audit: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_heroes: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_pets: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_list_transactions: {
+        Args: {
+          p_admin_id: number
+          p_kind: string
+          p_limit?: number
+          p_status?: string
+        }
+        Returns: Json
+      }
+      admin_log: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_context?: Json
+          p_new: Json
+          p_old: Json
+          p_reason?: string
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: string
+      }
+      admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
+      admin_player_detail: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
+      admin_player_history: {
+        Args: { p_admin_id: number; p_limit?: number; p_ref: string }
+        Returns: Json
+      }
+      admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_overview: {
+        Args: { p_admin_id: number; p_top?: number }
+        Returns: Json
+      }
+      admin_referral_tree: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
+      admin_remove_hero: {
+        Args: { p_admin_id: number; p_hero_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_remove_pet: {
+        Args: { p_admin_id: number; p_player_pet_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_reset_account: {
+        Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
+      }
+      admin_reset_missions: {
+        Args: { p_admin_id: number; p_reason: string; p_scope: string }
+        Returns: Json
+      }
+      admin_reset_pvp_season: {
+        Args: { p_admin_id: number; p_reason: string }
+        Returns: Json
+      }
+      admin_resolve_player: { Args: { p_ref: string }; Returns: string }
+      admin_review_deposit: {
+        Args: {
+          p_admin_id: number
+          p_approve: boolean
+          p_deposit_id: string
+          p_reason?: string
+          p_tx_hash?: string
+        }
+        Returns: Json
+      }
+      admin_review_withdrawal: {
+        Args: {
+          p_admin_id: number
+          p_reason?: string
+          p_status: string
+          p_tx_hash?: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
+      admin_search_players: {
+        Args: { p_admin_id: number; p_limit?: number; p_query: string }
+        Returns: Json
+      }
+      admin_set_ban: {
+        Args: {
+          p_admin_id: number
+          p_banned: boolean
+          p_reason: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_set_hero_rarity_rates: {
+        Args: {
+          p_admin_id: number
+          p_normalize?: boolean
+          p_rates: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_set_membership: {
+        Args: {
+          p_admin_id: number
+          p_days: number
+          p_reason?: string
+          p_ref: string
+          p_tier: string
+        }
+        Returns: Json
+      }
       admin_set_pet_enabled: {
         Args: { p_enabled: boolean; p_pet_id: string }
         Returns: undefined
@@ -2707,6 +3314,30 @@ export type Database = {
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
+      }
+      admin_set_referral_percent: {
+        Args: {
+          p_admin_id: number
+          p_level: number
+          p_percent: number
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_set_setting: {
+        Args: {
+          p_admin_id: number
+          p_key: string
+          p_reason?: string
+          p_value: Json
+        }
+        Returns: Json
+      }
+      admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_super_id: { Args: never; Returns: number }
+      admin_unlink_referral: {
+        Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
       }
       admin_update_pet_egg_economy: {
         Args: {
@@ -2841,6 +3472,69 @@ export type Database = {
           p_type: string
         }
         Returns: undefined
+      }
+      admin_upsert_ad_provider: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_boss: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_hero: {
+        Args: {
+          p_admin_id: number
+          p_hero_key: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_league: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_mission: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_upsert_pet: {
+        Args: {
+          p_admin_id: number
+          p_patch: Json
+          p_reason?: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      admin_upsert_pet_food: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
       }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
@@ -2987,6 +3681,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_runtime_config: { Args: { p_telegram_id?: number }; Returns: Json }
       get_season_pass_dashboard: {
         Args: { p_telegram_id: number }
         Returns: Json
@@ -3091,6 +3786,19 @@ export type Database = {
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
         Returns: Json
+      }
+      setting_bool: {
+        Args: { p_default: boolean; p_key: string }
+        Returns: boolean
+      }
+      setting_json: { Args: { p_key: string }; Returns: Json }
+      setting_num: {
+        Args: { p_default: number; p_key: string }
+        Returns: number
+      }
+      setting_text: {
+        Args: { p_default: string; p_key: string }
+        Returns: string
       }
       simulate_pvp_battle: {
         Args: { a: Json; d: Json; seed: string }
