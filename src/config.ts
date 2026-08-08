@@ -1,4 +1,7 @@
+import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
+
 export const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
+
 
 export const TONCONNECT_MANIFEST_URL =
   import.meta.env.VITE_TONCONNECT_MANIFEST_URL || `${APP_URL}/tonconnect-manifest.json`;
