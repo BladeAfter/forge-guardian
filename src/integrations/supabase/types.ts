@@ -2687,6 +2687,10 @@ export type Database = {
         Returns: number
       }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_grant_pet_food: {
+        Args: { p_code: string; p_quantity: number; p_telegram_id: number }
+        Returns: Json
+      }
       admin_grant_pet_item: {
         Args: {
           p_item_id: string
@@ -2698,6 +2702,10 @@ export type Database = {
       }
       admin_set_pet_enabled: {
         Args: { p_enabled: boolean; p_pet_id: string }
+        Returns: undefined
+      }
+      admin_set_pet_setting: {
+        Args: { p_key: string; p_value: Json }
         Returns: undefined
       }
       admin_update_pet_egg_economy: {
@@ -2734,6 +2742,62 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "pet_eggs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_pet_evolution_tier: {
+        Args: {
+          p_chance: number
+          p_enabled: boolean
+          p_fc: number
+          p_fragments: number
+          p_max_buffs: number
+          p_multiplier: number
+          p_required_level: number
+          p_tier: number
+        }
+        Returns: {
+          enabled: boolean
+          evolution_stage: string
+          fc_cost: number
+          fragment_cost: number
+          label: string
+          max_secondary_buffs: number
+          new_buff_chance: number
+          primary_multiplier: number
+          required_level: number
+          tier: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pet_evolution_tiers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_pet_food: {
+        Args: {
+          p_code: string
+          p_enabled: boolean
+          p_name: string
+          p_rarity: string
+          p_xp: number
+        }
+        Returns: {
+          code: string
+          enabled: boolean
+          icon: string
+          name: string
+          rarity: string
+          sort_order: number
+          updated_at: string
+          xp_value: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pet_food_items"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -2862,8 +2926,26 @@ export type Database = {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
       }
+      evolve_pet: {
+        Args: {
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       feed_pet: {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      feed_pet_item: {
+        Args: {
+          p_food_code: string
+          p_idempotency_key: string
+          p_player_pet_id: string
+          p_quantity: number
+          p_telegram_id: number
+        }
         Returns: Json
       }
       feed_pet_v2: {
@@ -2940,6 +3022,7 @@ export type Database = {
       pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
       pet_xp_required: { Args: { v: number }; Returns: number }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
+      player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
       pool_record_revenue: {
         Args: {
           p_amount_ton: number
