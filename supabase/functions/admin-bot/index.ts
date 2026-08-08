@@ -24,8 +24,11 @@ async function tg(method: string, payload: Record<string, unknown>) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) console.error(`telegram ${method} failed [${res.status}]: ${await res.text()}`);
-  else await res.json().catch(() => null);
+  if (!res.ok) {
+    console.error(`telegram ${method} failed [${res.status}]: ${await res.text()}`);
+    return null;
+  }
+  return await res.json().catch(() => null);
 }
 
 async function rpc(fn: string, args: Record<string, unknown>) {
@@ -464,6 +467,23 @@ const ERRORS: Record<string, string> = {
 };
 
 Deno.serve(async (req) => {
+  if (req.method === 'GET') {
+    // One-time webhook registration helper, gated by a server-only setup key.
+    const url = new URL(req.url);
+    const setupKey = Deno.env.get('TELEGRAM_ADMIN_SETUP_KEY') || '';
+    if (url.searchParams.get('setup') && setupKey && url.searchParams.get('setup') === setupKey) {
+      const hookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/admin-bot`;
+      const res = await tg('setWebhook', {
+        url: hookUrl,
+        allowed_updates: ['message', 'callback_query'],
+        drop_pending_updates: true,
+        ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
+      });
+      const info = await tg('getWebhookInfo', {});
+      return new Response(JSON.stringify({ setWebhook: res, info }), { headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response('ok');
+  }
   if (req.method !== 'POST') return new Response('ok');
   if (WEBHOOK_SECRET && req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== WEBHOOK_SECRET) {
     return new Response('Unauthorized', { status: 401 });
