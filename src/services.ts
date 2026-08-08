@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { forgeFetch } from './apiClient';
+import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
 import {buildPetDashboardPreview,type PetDashboard} from './pets';
-import {buildPvpDashboardPreview,buildPvpOpponentPreview,type PvpBattleResult,type PvpDashboard,type PvpOpponent} from './pvp';
+import {buildPvpDashboardPreview,buildPvpOpponentPreview,type PvpBattleResult,type PvpDashboard,type PvpHero,type PvpOpponent} from './pvp';
 import type { TonPaymentIntent, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type {CalendarClaimResult,CalendarDashboard} from './calendarRewards';
@@ -77,8 +79,7 @@ export const saveDemoState = (state: GameState, telegramInitData: string) => {
   if (!supabase) localStorage.setItem(demoStorageKey(telegramInitData), JSON.stringify(state));
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+const supabaseKey = supabaseAnonKey;
 
 export const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey, {
   auth: {
@@ -94,62 +95,79 @@ export const fetchGameState = async (telegramInitData: string): Promise<GameStat
     telegram_init_data: telegramInitData
   });
 
+  // The village economy (buildings/missions) has no server table yet: when the
+  // RPC is absent we keep the local progression instead of breaking the screen.
+  if (error?.code === 'PGRST202' || error?.code === '42883') {
+    console.error('[FORGE API ERROR]', { feature: 'game-state', endpoint: 'rpc:get_game_state', status: 404, error, response: null });
+    return loadDemoState(telegramInitData);
+  }
   if (error) throw new Error(error.message);
   if (!data) throw new Error('The game backend returned no data.');
   return data as GameState;
 };
 
+
 export async function bossRequest(telegramInitData: string, action: 'get'|'process'|'team'|'claim'='process', heroIds?: string[]): Promise<BossCombat> {
-  const response=await fetch('/api/boss',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action,heroIds})});
+  const response=await forgeFetch('boss',({initData:telegramInitData,action,heroIds}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string} | null;
   if(!response.ok || !payload) throw new Error(payload?.error || 'Unable to synchronize boss combat.');
   return payload;
 }
 
 export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10){
-  const response=await fetch('/api/boss',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action:'recruit',count})});
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'recruit',count}));
   const payload=await response.json().catch(()=>null) as {heroes:Array<{heroKey:string}>;balance:number;error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Recruitment failed.'); return payload;
 }
 
 export async function equipCombatHeroOnServer(telegramInitData:string,heroId:string,slot:1|2|3|4|5):Promise<BossCombat>{
-  const response=await fetch('/api/boss',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action:'equip',hero_id:heroId,slot})});
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'equip',hero_id:heroId,slot}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível equipar o herói.');
   return payload;
 }
 
 export async function fetchReferralDashboard(telegramInitData:string,level?:1|2|3,offset=0):Promise<ReferralDashboard>{
-  const response=await fetch('/api/referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action:'dashboard',level,offset,limit:20})});
+  const response=await forgeFetch('referral',({initData:telegramInitData,action:'dashboard',level,offset,limit:20}));
   const payload=await response.json().catch(()=>null) as ReferralDashboard&{error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar seus convites.');
   return {...payload,invites:Array.isArray(payload.invites)?payload.invites:[],tree:Array.isArray(payload.tree)?payload.tree:[],ranking:Array.isArray(payload.ranking)?payload.ranking:[],bonuses:Array.isArray(payload.bonuses)?payload.bonuses:[],notifications:Array.isArray(payload.notifications)?payload.notifications:[]};
 }
 export async function bindReferral(telegramInitData:string,inviterTelegramId:number){
-  const response=await fetch('/api/referral',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action:'bind',inviterTelegramId})});
+  const response=await forgeFetch('referral',({initData:telegramInitData,action:'bind',inviterTelegramId}));
   const payload=await response.json().catch(()=>null) as {linked?:boolean;error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível registrar o convite.');return payload;
 }
 export type PetAction={action:'dashboard'}|{action:'activate';playerPetId:string}|{action:'upgrade';playerPetId:string;idempotencyKey?:string}|{action:'feed';playerPetId:string;amount:number;idempotencyKey?:string}|{action:'hatch';eggId:string;idempotencyKey:string};
-export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetDashboard|{result:{name:string;rarity:string;image:string;duplicateFragments:number};dashboard:PetDashboard}>{const response=await fetch('/api/pets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,...input})});if(response.status===404&&input.action==='dashboard')return buildPetDashboardPreview();if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null) as (PetDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar os pets.');return payload}
+export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetDashboard|{result:{name:string;rarity:string;image:string;duplicateFragments:number};dashboard:PetDashboard}>{const response=await forgeFetch('pets',({initData:telegramInitData,...input}));if(response.status===404&&input.action==='dashboard')return buildPetDashboardPreview();if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null) as (PetDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar os pets.');return payload}
 export type PvpAction={action:'dashboard'|'search'}|{action:'equip';teamType:'attack'|'defense';slot:number;heroId:string}|{action:'remove';teamType:'attack'|'defense';slot:number}|{action:'battle';opponentId:string};
-export async function pvpRequest<T=PvpDashboard>(telegramInitData:string,input:PvpAction={action:'dashboard'}):Promise<T>{const response=await fetch('/api/pvp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,...input})});if(response.status===404&&input.action==='dashboard')return buildPvpDashboardPreview()as T;if(response.status===404&&input.action==='search')return{opponents:buildPvpOpponentPreview()}as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'',friendly:Record<string,string>={ATTACK_TEAM_EMPTY:'Equipe de ataque vazia.',NO_PVP_TICKETS:'Você não possui tickets.',OPPONENT_UNAVAILABLE:'Adversário indisponível.',INVALID_DEFENSE_TEAM:'Equipe defensiva inválida.',BATTLE_ALREADY_STARTED:'A batalha já foi iniciada.'};throw new Error(friendly[raw]||raw||'Não foi possível processar o PvP.')}return payload}
+export async function pvpRequest<T=PvpDashboard>(telegramInitData:string,input:PvpAction={action:'dashboard'}):Promise<T>{const response=await forgeFetch('pvp',({initData:telegramInitData,...input}));if(response.status===404&&input.action==='dashboard')return buildPvpDashboardPreview()as T;if(response.status===404&&input.action==='search')return{opponents:buildPvpOpponentPreview()}as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'',friendly:Record<string,string>={ATTACK_TEAM_EMPTY:'Equipe de ataque vazia.',NO_PVP_TICKETS:'Você não possui tickets.',OPPONENT_UNAVAILABLE:'Adversário indisponível.',INVALID_DEFENSE_TEAM:'Equipe defensiva inválida.',BATTLE_ALREADY_STARTED:'A batalha já foi iniciada.'};throw new Error(friendly[raw]||raw||'Não foi possível processar o PvP.')}return payload}
 export const searchPvpOpponents=(initData:string)=>pvpRequest<{opponents:PvpOpponent[]}>(initData,{action:'search'});
 export const startPvpBattle=(initData:string,opponentId:string)=>pvpRequest<PvpBattleResult>(initData,{action:'battle',opponentId});
 export type WalletAction={action:'summary'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'withdraw';amountFc:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string};
-export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await fetch('/api/wallet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,...input})});const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
+export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey});
 export const requestWithdrawal=(initData:string,amountFc:number,walletAddress:string,idempotencyKey:string)=>walletRequest(initData,{action:'withdraw',amountFc,walletAddress,idempotencyKey});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 
 export async function fetchTelegramProfile(telegramInitData:string):Promise<TelegramPlayerProfile>{
-  const response=await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData})});
+  const response=await forgeFetch('profile',({initData:telegramInitData}));
   const payload=await response.json().catch(()=>null) as (TelegramPlayerProfile&{error?:string})|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar seu perfil do Telegram.');
   return {...payload,telegramId:String(payload.telegramId)};
 }
-export async function calendarRequest<T=CalendarDashboard>(telegramInitData:string,action:'dashboard'|'claim'='dashboard',day?:number):Promise<T>{const response=await fetch('/api/calendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:telegramInitData,action,day})});const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o calendário.');return payload}
+export async function calendarRequest<T=CalendarDashboard>(telegramInitData:string,action:'dashboard'|'claim'='dashboard',day?:number):Promise<T>{const response=await forgeFetch('calendar',({initData:telegramInitData,action,day}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o calendário.');return payload}
 export const claimCalendarDay=(initData:string,day:number)=>calendarRequest<CalendarClaimResult>(initData,'claim',day);
-export async function openCalendarChest(initData:string,inventoryItemId:string){const response=await fetch('/api/calendar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,action:'open-chest',inventoryItemId})});const payload=await response.json().catch(()=>null)as{hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível abrir o baú.');return payload}
-export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await fetch('/api/season-pass',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,action,...data})});if(response.status===404&&action==='dashboard')return buildSeasonPassPreview()as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
+export async function openCalendarChest(initData:string,inventoryItemId:string){const response=await forgeFetch('calendar',({initData,action:'open-chest',inventoryItemId}));const payload=await response.json().catch(()=>null)as{hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível abrir o baú.');return payload}
+export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404&&action==='dashboard')return buildSeasonPassPreview()as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 export const createSeasonPassOrder=(initData:string,tier:PassTier)=>seasonPassRequest<SeasonPassOrder>(initData,'order',{tier,idempotencyKey:crypto.randomUUID()});
-export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await fetch('/api/pool',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData,action:'dashboard'})});if(response.status===404)return buildCommunityPoolPreview();const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
+export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)return buildCommunityPoolPreview();const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
+
+// Hero collection is independent from PvP stats/matchmaking: a PvP failure must
+// never wipe the collection, and an empty collection is a valid empty state.
+export async function fetchPlayerHeroes(initData:string):Promise<{heroes:PvpHero[]}>{
+  const response=await forgeFetch('pvp',{initData,action:'heroes'});
+  if(response.status===404)return{heroes:buildPvpDashboardPreview().ownedHeroes};
+  const payload=await response.json().catch(()=>null)as{heroes?:PvpHero[];error?:string}|null;
+  if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar sua coleção de heróis.');
+  return {heroes:Array.isArray(payload.heroes)?payload.heroes:[]};
+}
