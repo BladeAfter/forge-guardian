@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { forgeBackendUrl, forgeFetch, forgeHealth, type ForgeHealth } from '../apiClient';
+import { forgeAuthProbe, forgeBackendUrl, forgeFetch, forgeHealth, type ForgeAuthProbe, type ForgeHealth } from '../apiClient';
 
 const FEATURES = ['profile', 'pets', 'pvp', 'referral', 'season-pass', 'pool', 'boss', 'wallet', 'calendar'] as const;
 
@@ -27,10 +27,12 @@ export function DiagnosticsPage({
   const [health, setHealth] = useState<ForgeHealth | null>(null);
   const [probes, setProbes] = useState<Probe[]>([]);
   const [running, setRunning] = useState(false);
+  const [auth, setAuth] = useState<ForgeAuthProbe | null>(null);
 
   const run = async () => {
     setRunning(true);
     setHealth(await forgeHealth());
+    setAuth(await forgeAuthProbe(telegramInitData).catch((error) => ({ ok: false, reason: 'network', error: error instanceof Error ? error.message : 'falha de rede' })));
     const results: Probe[] = [];
     for (const feature of FEATURES) {
       try {
@@ -75,6 +77,42 @@ export function DiagnosticsPage({
         <div className="flex items-center justify-between">
           <span>Telegram initData</span>
           <Badge ok={Boolean(telegramInitData)} label={telegramInitData ? 'ok' : 'falha'} />
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Telegram SDK</span>
+          <Badge ok={Boolean(window.Telegram?.WebApp)} label={window.Telegram?.WebApp ? 'ok' : 'fail'} />
+        </div>
+        <div className="flex items-center justify-between">
+          <span>initData length</span>
+          <span className="font-mono text-xs text-white/70">{telegramInitData.length}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Validação initData</span>
+          <Badge ok={Boolean(auth?.ok)} label={auth ? (auth.ok ? 'pass' : 'fail') : '...'} />
+        </div>
+        {auth && !auth.ok ? (
+          <div className="flex items-center justify-between gap-2">
+            <span>Motivo</span>
+            <span className="max-w-[55vw] truncate font-mono text-[10px] text-red-300">{auth.reason ?? auth.error}</span>
+          </div>
+        ) : null}
+        <div className="flex items-center justify-between">
+          <span>Bot do jogo</span>
+          <span className="font-mono text-xs text-white/70">
+            {health?.game_bot_username ? `@${health.game_bot_username}` : (health?.telegram_auth ?? '—')}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Token do jogo</span>
+          <Badge ok={health?.telegram_auth === 'configured'} label={health?.game_bot_token_source ?? '...'} />
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Token admin separado</span>
+          <Badge ok={Boolean(health?.admin_bot_token_separated)} label={health?.admin_bot_token_separated ? 'sim' : 'não'} />
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Janela auth_date</span>
+          <span className="font-mono text-xs text-white/70">{health?.telegram_auth_max_age_seconds ?? '—'}s</span>
         </div>
         <div className="flex items-center justify-between">
           <span>Telegram ID</span>
