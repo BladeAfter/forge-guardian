@@ -3180,6 +3180,7 @@ export type Database = {
         Args: { p_admin_id: number; p_hero_key: string }
         Returns: Json
       }
+      admin_hero_shop_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_list_audit: {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
         Returns: Json
@@ -3246,6 +3247,10 @@ export type Database = {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
         Returns: Json
       }
+      admin_reset_hero_shop: {
+        Args: { p_admin_id: number; p_scope?: string }
+        Returns: Json
+      }
       admin_reset_missions: {
         Args: { p_admin_id: number; p_reason: string; p_scope: string }
         Returns: Json
@@ -3295,6 +3300,19 @@ export type Database = {
           p_rates: Json
           p_reason?: string
         }
+        Returns: Json
+      }
+      admin_set_hero_recruit_price: {
+        Args: {
+          p_admin_id: number
+          p_count: number
+          p_price: number
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_set_hero_summon_rates: {
+        Args: { p_admin_id: number; p_rates: Json; p_reason?: string }
         Returns: Json
       }
       admin_set_membership: {
@@ -3662,6 +3680,7 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_hero_shop_config: { Args: never; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -3699,6 +3718,8 @@ export type Database = {
         }
         Returns: Json
       }
+      hero_recruit_price: { Args: { p_count: number }; Returns: number }
+      hero_summon_rates: { Args: never; Returns: Json }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       open_calendar_hero_chest: {

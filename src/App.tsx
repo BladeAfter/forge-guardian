@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
@@ -22,7 +22,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
-import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
+import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
@@ -114,6 +114,21 @@ function App() {
   const backendEnabled = Boolean(telegramInitData) && isProduction && !isDemoMode;
   const bossBackendEnabled = backendEnabled && tab === 'boss';
   const { data: bossCombat, isFetching: bossSyncing, refetch: refetchBoss } = useBossCombat(telegramInitData, bossBackendEnabled);
+  // Hero shop pricing and summon odds are admin-controlled (game_settings), refreshed on open.
+  const {data:heroShopConfig}=useQuery({
+    queryKey:['hero-shop-config',telegramInitData],
+    enabled:backendEnabled&&Boolean(telegramInitData),
+    queryFn:()=>fetchHeroShopConfig(telegramInitData??''),
+    staleTime:15_000,
+  });
+  const recruitPrice=(count:number)=>Number(heroShopConfig?.prices?.[String(count)]??25_000*count);
+  const summonOdds=useMemo(()=>{
+    const odds=heroShopConfig?.odds;
+    if(!odds)return RARITY_ODDS;
+    return (Object.entries(odds) as Array<[HeroRarity,number]>)
+      .map(([rarity,chance])=>({rarity,chance:Number(chance)}))
+      .sort((a,b)=>a.chance-b.chance);
+  },[heroShopConfig?.odds]);
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);
   const {data:calendarDashboard,refetch:refetchCalendar}=useCalendarDashboard(telegramInitData,backendEnabled);
@@ -441,7 +456,7 @@ function App() {
     const roll = Math.random() * 100;
     let accumulated = 0;
     let rarity: HeroRarity = 'common';
-    for (const entry of RARITY_ODDS) {
+    for (const entry of summonOdds) {
       accumulated += entry.chance;
       if (roll < accumulated) {
         rarity = entry.rarity;
@@ -461,8 +476,7 @@ function App() {
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }
-    const unitPrice = 25_000;
-    const cost = unitPrice * count;
+    const cost = recruitPrice(count);
     if (game.balance < cost) {
       toast.error(t('notEnoughFc'));
       return;
@@ -565,7 +579,7 @@ function App() {
                 </div>
                 <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400">{t('odds')}</p>
                 <div className="mt-2 grid grid-cols-5 gap-1">
-                  {RARITY_ODDS.slice().reverse().map((entry) => (
+                  {summonOdds.slice().reverse().map((entry) => (
                     <div key={entry.rarity} className="rounded-xl border border-white/5 bg-white/[.03] px-1 py-2 text-center">
                       <p className="truncate text-[8px] font-bold" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
                       <p className="mt-1 text-[10px] text-white">{entry.chance}%</p>
@@ -576,7 +590,7 @@ function App() {
                   {[1, 5, 10].map((count) => (
                     <button key={count} onClick={() => recruitHeroes(count)} className="rounded-2xl border border-amber-300/30 bg-gradient-to-b from-amber-400/20 to-orange-600/10 px-2 py-3 text-center">
                       <span className="block text-lg font-black text-white">{count}×</span>
-                      <span className="block text-[9px] text-amber-300">{formatCurrency(25_000 * count)} FC</span>
+                      <span className="block text-[9px] text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
                     </button>
                   ))}
                 </div>
