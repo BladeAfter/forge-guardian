@@ -441,3 +441,11 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .player-username{display:none}
   .balance-chip{min-width:86px;width:clamp(86px,25vw,100px)}
 }
+
+/* Overlay pages render above the Telegram header, so they own their safe area. */
+.forge-safe-page{padding-top:max(0.75rem,calc(env(safe-area-inset-top) + 0.5rem)) !important}
+
+.pet-evolution-overlay{animation:petEvolutionFlash .6s both}
+@keyframes petEvolutionFlash{0%{opacity:0;backdrop-filter:blur(0)}25%{background:rgba(196,132,252,.35)}100%{opacity:1;backdrop-filter:blur(2px)}}
+.pet-evolution-overlay>div{animation:petEvolutionRise .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes petEvolutionRise{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:none}}

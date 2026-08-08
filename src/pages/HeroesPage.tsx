@@ -13,7 +13,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
-      <div className="relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10">
+      <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10">
         <header className="mb-4 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.28em] text-amber-300">Forge Village</p>
