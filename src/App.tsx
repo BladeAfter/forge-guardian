@@ -18,6 +18,7 @@ import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {HeroesPage}from'./pages/HeroesPage';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
+import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
@@ -332,6 +333,20 @@ function App() {
 
   if (outsideTelegram) {
     return <OpenInTelegramGate />;
+  }
+
+  // Admin-only diagnostics screen (Telegram id checked against the super admin).
+  if (window.location.pathname === '/admin/diagnostics') {
+    if (telegramUser?.id !== 8118569391) {
+      return <StatusScreen title="Acesso restrito" message="Esta área é exclusiva do administrador." />;
+    }
+    return (
+      <DiagnosticsPage
+        telegramInitData={telegramInitData ?? ''}
+        telegramId={telegramUser?.id ?? null}
+        onClose={() => {window.history.replaceState({}, '', '/village'); setActivePage(null); setTab('village')}}
+      />
+    );
   }
 
   if (bootstrapError) {
