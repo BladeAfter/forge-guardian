@@ -1,13 +1,15 @@
 import { X } from 'lucide-react';
-import { usePvpDashboard } from '../hooks';
+import { usePlayerHeroes, usePvpDashboard } from '../hooks';
 import type { PvpHero } from '../pvp';
 
 const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24' };
 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
-  const { data, isLoading, error } = usePvpDashboard(telegramInitData, true);
-  const heroes: PvpHero[] = data?.ownedHeroes ?? [];
-  const equipped = new Set([...(data?.attackTeam ?? []), ...(data?.defenseTeam ?? [])].map((h) => h.heroId));
+  const { data, isLoading, error } = usePlayerHeroes(telegramInitData, true);
+  // PvP team info is optional decoration: its failure never blocks the collection.
+  const { data: pvp } = usePvpDashboard(telegramInitData, true);
+  const heroes: PvpHero[] = data?.heroes ?? [];
+  const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
@@ -30,7 +32,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         ) : error ? (
           <p className="py-20 text-center text-sm text-slate-300">{error instanceof Error ? error.message : 'Não foi possível carregar os heróis.'}</p>
         ) : heroes.length === 0 ? (
-          <p className="py-20 text-center text-sm text-slate-300">Nenhum herói na coleção ainda.</p>
+          <p className="py-20 text-center text-sm text-slate-300">Você ainda não possui heróis. Recrute heróis na Vila para começar.</p>
         ) : (
           <div className="mt-3 grid grid-cols-3 gap-2">
             {heroes.map((hero) => (
