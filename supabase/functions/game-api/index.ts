@@ -97,8 +97,14 @@ async function botUsername(token: string): Promise<string | null> {
 const isUuid = (value: unknown): value is string =>
   typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
+// The Mini App sends the raw initData in a custom header, so it must be allowed by CORS.
+const cors: Record<string, string> = {
+  ...corsHeaders,
+  'Access-Control-Allow-Headers': `${(corsHeaders as Record<string, string>)['Access-Control-Allow-Headers'] ?? 'authorization, apikey, content-type'}, x-telegram-init-data`,
+};
+
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 function serviceClient() {
   const url = Deno.env.get('SUPABASE_URL');
@@ -421,7 +427,7 @@ async function healthReport() {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const feature = new URL(req.url).pathname.split('/').filter(Boolean).pop() || '';
   // Public, secret-free diagnostics endpoint. No initData required.
