@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_providers: {
+        Row: {
+          code: string
+          config: Json
+          cooldown_seconds: number
+          daily_limit: number
+          enabled: boolean
+          name: string
+          reward_fc: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          config?: Json
+          cooldown_seconds?: number
+          daily_limit?: number
+          enabled?: boolean
+          name: string
+          reward_fc?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          config?: Json
+          cooldown_seconds?: number
+          daily_limit?: number
+          enabled?: boolean
+          name?: string
+          reward_fc?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_id: number
+          context: Json
+          created_at: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id: number
+          context?: Json
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Update: {
+          action?: string
+          admin_id?: number
+          context?: Json
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
+      admin_snapshots: {
+        Row: {
+          admin_id: number
+          created_at: string
+          id: string
+          label: string
+          payload: Json
+        }
+        Insert: {
+          admin_id: number
+          created_at?: string
+          id?: string
+          label: string
+          payload: Json
+        }
+        Update: {
+          admin_id?: number
+          created_at?: string
+          id?: string
+          label?: string
+          payload?: Json
+        }
+        Relationships: []
+      }
       boss_combats: {
         Row: {
           boss_attack: number
@@ -144,6 +240,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      boss_templates: {
+        Row: {
+          active: boolean
+          attack: number
+          attack_interval_seconds: number
+          attack_limit: number | null
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          defense: number
+          difficulty: string
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          level: number
+          max_hp: number
+          name: string
+          reward_amount: number
+          starts_at: string | null
+          ticket_cost: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          attack?: number
+          attack_interval_seconds?: number
+          attack_limit?: number | null
+          code: string
+          cooldown_seconds?: number
+          created_at?: string
+          defense?: number
+          difficulty?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          level?: number
+          max_hp?: number
+          name: string
+          reward_amount?: number
+          starts_at?: string | null
+          ticket_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          attack?: number
+          attack_interval_seconds?: number
+          attack_limit?: number | null
+          code?: string
+          cooldown_seconds?: number
+          created_at?: string
+          defense?: number
+          difficulty?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          level?: number
+          max_hp?: number
+          name?: string
+          reward_amount?: number
+          starts_at?: string | null
+          ticket_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       calendar_chest_open_history: {
         Row: {
@@ -342,9 +504,63 @@ export type Database = {
         }
         Relationships: []
       }
+      game_missions: {
+        Row: {
+          code: string
+          daily_limit: number | null
+          description: string | null
+          enabled: boolean
+          reward_amount: number
+          reward_code: string | null
+          reward_type: string
+          reward_xp: number
+          scope: string
+          sort_order: number
+          target_amount: number
+          target_metric: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          daily_limit?: number | null
+          description?: string | null
+          enabled?: boolean
+          reward_amount?: number
+          reward_code?: string | null
+          reward_type?: string
+          reward_xp?: number
+          scope?: string
+          sort_order?: number
+          target_amount?: number
+          target_metric?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          daily_limit?: number | null
+          description?: string | null
+          enabled?: boolean
+          reward_amount?: number
+          reward_code?: string | null
+          reward_type?: string
+          reward_xp?: number
+          scope?: string
+          sort_order?: number
+          target_amount?: number
+          target_metric?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_players: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned: boolean
+          banned_at: string | null
           boss_defeats: number
           created_at: string
           display_name: string | null
@@ -353,17 +569,23 @@ export type Database = {
           id: string
           last_name: string | null
           last_seen_at: string
+          premium_until: string | null
           pvp_banned: boolean
           pvp_losses: number
           pvp_tickets: number
           pvp_trophies: number
           pvp_wins: number
           telegram_id: number
+          ton_balance: number
           updated_at: string
           username: string | null
+          vip_until: string | null
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean
+          banned_at?: string | null
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
@@ -372,17 +594,23 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_seen_at?: string
+          premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id: number
+          ton_balance?: number
           updated_at?: string
           username?: string | null
+          vip_until?: string | null
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean
+          banned_at?: string | null
           boss_defeats?: number
           created_at?: string
           display_name?: string | null
@@ -391,38 +619,134 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_seen_at?: string
+          premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id?: number
+          ton_balance?: number
           updated_at?: string
           username?: string | null
+          vip_until?: string | null
+        }
+        Relationships: []
+      }
+      game_settings: {
+        Row: {
+          category: string
+          key: string
+          label: string
+          updated_at: string
+          updated_by: number | null
+          value: Json
+        }
+        Insert: {
+          category?: string
+          key: string
+          label?: string
+          updated_at?: string
+          updated_by?: number | null
+          value?: Json
+        }
+        Update: {
+          category?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          updated_by?: number | null
+          value?: Json
         }
         Relationships: []
       }
       hero_catalog: {
         Row: {
+          available_from: string | null
+          available_until: string | null
+          base_atk: number | null
+          base_hp: number | null
+          battle_image: string | null
+          buffs: Json
+          description: string | null
+          discount_percent: number
+          drop_weight: number
           enabled: boolean
+          featured: boolean
+          hero_class: string
           hero_key: string
           image: string
+          in_shop: boolean
+          max_level: number
           name: string
+          per_player_limit: number | null
+          power: number | null
+          price_fc: number | null
+          price_ton: number | null
           rarity: string
+          skills: Json
+          sort_order: number
+          start_level: number
+          stock: number | null
+          updated_at: string
         }
         Insert: {
+          available_from?: string | null
+          available_until?: string | null
+          base_atk?: number | null
+          base_hp?: number | null
+          battle_image?: string | null
+          buffs?: Json
+          description?: string | null
+          discount_percent?: number
+          drop_weight?: number
           enabled?: boolean
+          featured?: boolean
+          hero_class?: string
           hero_key: string
           image: string
+          in_shop?: boolean
+          max_level?: number
           name: string
+          per_player_limit?: number | null
+          power?: number | null
+          price_fc?: number | null
+          price_ton?: number | null
           rarity: string
+          skills?: Json
+          sort_order?: number
+          start_level?: number
+          stock?: number | null
+          updated_at?: string
         }
         Update: {
+          available_from?: string | null
+          available_until?: string | null
+          base_atk?: number | null
+          base_hp?: number | null
+          battle_image?: string | null
+          buffs?: Json
+          description?: string | null
+          discount_percent?: number
+          drop_weight?: number
           enabled?: boolean
+          featured?: boolean
+          hero_class?: string
           hero_key?: string
           image?: string
+          in_shop?: boolean
+          max_level?: number
           name?: string
+          per_player_limit?: number | null
+          power?: number | null
+          price_fc?: number | null
+          price_ton?: number | null
           rarity?: string
+          skills?: Json
+          sort_order?: number
+          start_level?: number
+          stock?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1257,6 +1581,54 @@ export type Database = {
           },
         ]
       }
+      player_mission_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          cycle: string
+          id: string
+          mission_code: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          cycle: string
+          id?: string
+          mission_code: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          cycle?: string
+          id?: string
+          mission_code?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_mission_progress_mission_code_fkey"
+            columns: ["mission_code"]
+            isOneToOne: false
+            referencedRelation: "game_missions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "player_mission_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_notifications: {
         Row: {
           amount_fc: number | null
@@ -1939,6 +2311,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pvp_leagues: {
+        Row: {
+          code: string
+          enabled: boolean
+          icon: string
+          max_trophies: number | null
+          min_trophies: number
+          name: string
+          reward: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          enabled?: boolean
+          icon?: string
+          max_trophies?: number | null
+          min_trophies?: number
+          name: string
+          reward?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          enabled?: boolean
+          icon?: string
+          max_trophies?: number | null
+          min_trophies?: number
+          name?: string
+          reward?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       pvp_opponent_impressions: {
         Row: {
