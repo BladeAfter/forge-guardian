@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchPlayerHeroes, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
-import type { PvpDashboard } from './pvp';
+import type { PvpDashboard, PvpHero } from './pvp';
 import type { WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type {CalendarDashboard} from './calendarRewards';
@@ -33,3 +33,5 @@ export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>
 export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<CalendarDashboard>({queryKey:['calendar-dashboard',telegramInitData],queryFn:()=>calendarRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
+
+export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});

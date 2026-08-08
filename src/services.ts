@@ -6,7 +6,7 @@ import { buildDefaults } from './utils';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
 import {buildPetDashboardPreview,type PetDashboard} from './pets';
-import {buildPvpDashboardPreview,buildPvpOpponentPreview,type PvpBattleResult,type PvpDashboard,type PvpOpponent} from './pvp';
+import {buildPvpDashboardPreview,buildPvpOpponentPreview,type PvpBattleResult,type PvpDashboard,type PvpHero,type PvpOpponent} from './pvp';
 import type { TonPaymentIntent, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type {CalendarClaimResult,CalendarDashboard} from './calendarRewards';
@@ -161,3 +161,13 @@ export async function openCalendarChest(initData:string,inventoryItemId:string){
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404&&action==='dashboard')return buildSeasonPassPreview()as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 export const createSeasonPassOrder=(initData:string,tier:PassTier)=>seasonPassRequest<SeasonPassOrder>(initData,'order',{tier,idempotencyKey:crypto.randomUUID()});
 export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)return buildCommunityPoolPreview();const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
+
+// Hero collection is independent from PvP stats/matchmaking: a PvP failure must
+// never wipe the collection, and an empty collection is a valid empty state.
+export async function fetchPlayerHeroes(initData:string):Promise<{heroes:PvpHero[]}>{
+  const response=await forgeFetch('pvp',{initData,action:'heroes'});
+  if(response.status===404)return{heroes:buildPvpDashboardPreview().ownedHeroes};
+  const payload=await response.json().catch(()=>null)as{heroes?:PvpHero[];error?:string}|null;
+  if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar sua coleção de heróis.');
+  return {heroes:Array.isArray(payload.heroes)?payload.heroes:[]};
+}
