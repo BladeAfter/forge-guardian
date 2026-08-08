@@ -5,13 +5,13 @@ import type { GameState } from './types';
 import { buildDefaults } from './utils';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
-import {buildPetDashboardPreview,type PetDashboard} from './pets';
-import {buildPvpDashboardPreview,buildPvpOpponentPreview,type PvpBattleResult,type PvpDashboard,type PvpHero,type PvpOpponent} from './pvp';
+import type {PetDashboard} from './pets';
+import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
 import type { TonPaymentIntent, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type {CalendarClaimResult,CalendarDashboard} from './calendarRewards';
-import{buildSeasonPassPreview,type PassTier,type SeasonPassDashboard,type SeasonPassOrder}from'./seasonPass';
-import{buildCommunityPoolPreview,type CommunityPoolDashboard}from'./communityPool';
+import type{PassTier,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
+import type{CommunityPoolDashboard}from'./communityPool';
 
 const demoPlayerId = (telegramInitData: string) => {
   try {
@@ -138,9 +138,9 @@ export async function bindReferral(telegramInitData:string,inviterTelegramId:num
   const payload=await response.json().catch(()=>null) as {linked?:boolean;error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível registrar o convite.');return payload;
 }
 export type PetAction={action:'dashboard'}|{action:'activate';playerPetId:string}|{action:'upgrade';playerPetId:string;idempotencyKey?:string}|{action:'feed';playerPetId:string;amount:number;idempotencyKey?:string}|{action:'hatch';eggId:string;idempotencyKey:string};
-export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetDashboard|{result:{name:string;rarity:string;image:string;duplicateFragments:number};dashboard:PetDashboard}>{const response=await forgeFetch('pets',({initData:telegramInitData,...input}));if(response.status===404&&input.action==='dashboard')return buildPetDashboardPreview();if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null) as (PetDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar os pets.');return payload}
+export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetDashboard|{result:{name:string;rarity:string;image:string;duplicateFragments:number};dashboard:PetDashboard}>{const response=await forgeFetch('pets',({initData:telegramInitData,...input}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor dos pets.');const payload=await response.json().catch(()=>null) as (PetDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar os pets.');return payload}
 export type PvpAction={action:'dashboard'|'search'}|{action:'equip';teamType:'attack'|'defense';slot:number;heroId:string}|{action:'remove';teamType:'attack'|'defense';slot:number}|{action:'battle';opponentId:string};
-export async function pvpRequest<T=PvpDashboard>(telegramInitData:string,input:PvpAction={action:'dashboard'}):Promise<T>{const response=await forgeFetch('pvp',({initData:telegramInitData,...input}));if(response.status===404&&input.action==='dashboard')return buildPvpDashboardPreview()as T;if(response.status===404&&input.action==='search')return{opponents:buildPvpOpponentPreview()}as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'',friendly:Record<string,string>={ATTACK_TEAM_EMPTY:'Equipe de ataque vazia.',NO_PVP_TICKETS:'Você não possui tickets.',OPPONENT_UNAVAILABLE:'Adversário indisponível.',INVALID_DEFENSE_TEAM:'Equipe defensiva inválida.',BATTLE_ALREADY_STARTED:'A batalha já foi iniciada.'};throw new Error(friendly[raw]||raw||'Não foi possível processar o PvP.')}return payload}
+export async function pvpRequest<T=PvpDashboard>(telegramInitData:string,input:PvpAction={action:'dashboard'}):Promise<T>{const response=await forgeFetch('pvp',({initData:telegramInitData,...input}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Arena.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'',friendly:Record<string,string>={ATTACK_TEAM_EMPTY:'Equipe de ataque vazia.',NO_PVP_TICKETS:'Você não possui tickets.',OPPONENT_UNAVAILABLE:'Adversário indisponível.',INVALID_DEFENSE_TEAM:'Equipe defensiva inválida.',BATTLE_ALREADY_STARTED:'A batalha já foi iniciada.'};throw new Error(friendly[raw]||raw||'Não foi possível processar o PvP.')}return payload}
 export const searchPvpOpponents=(initData:string)=>pvpRequest<{opponents:PvpOpponent[]}>(initData,{action:'search'});
 export const startPvpBattle=(initData:string,opponentId:string)=>pvpRequest<PvpBattleResult>(initData,{action:'battle',opponentId});
 export type WalletAction={action:'summary'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'withdraw';amountFc:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string};
@@ -158,15 +158,15 @@ export async function fetchTelegramProfile(telegramInitData:string):Promise<Tele
 export async function calendarRequest<T=CalendarDashboard>(telegramInitData:string,action:'dashboard'|'claim'='dashboard',day?:number):Promise<T>{const response=await forgeFetch('calendar',({initData:telegramInitData,action,day}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o calendário.');return payload}
 export const claimCalendarDay=(initData:string,day:number)=>calendarRequest<CalendarClaimResult>(initData,'claim',day);
 export async function openCalendarChest(initData:string,inventoryItemId:string){const response=await forgeFetch('calendar',({initData,action:'open-chest',inventoryItemId}));const payload=await response.json().catch(()=>null)as{hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível abrir o baú.');return payload}
-export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404&&action==='dashboard')return buildSeasonPassPreview()as T;if(response.status===404)throw new Error('Esta ação requer o backend do Forge Village.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
+export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 export const createSeasonPassOrder=(initData:string,tier:PassTier)=>seasonPassRequest<SeasonPassOrder>(initData,'order',{tier,idempotencyKey:crypto.randomUUID()});
-export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)return buildCommunityPoolPreview();const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
+export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Pool Comunitária.');const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
 
 // Hero collection is independent from PvP stats/matchmaking: a PvP failure must
 // never wipe the collection, and an empty collection is a valid empty state.
 export async function fetchPlayerHeroes(initData:string):Promise<{heroes:PvpHero[]}>{
   const response=await forgeFetch('pvp',{initData,action:'heroes'});
-  if(response.status===404)return{heroes:buildPvpDashboardPreview().ownedHeroes};
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível carregar sua coleção de heróis.');
   const payload=await response.json().catch(()=>null)as{heroes?:PvpHero[];error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar sua coleção de heróis.');
   return {heroes:Array.isArray(payload.heroes)?payload.heroes:[]};
