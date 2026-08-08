@@ -21,7 +21,7 @@ import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
-import { getTelegramStartParam, getTelegramUser, initializeTelegram, validateTelegramSession, type TelegramUser } from './telegram';
+import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
 import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
