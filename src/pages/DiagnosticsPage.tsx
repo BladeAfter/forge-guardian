@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { forgeBackendUrl, forgeFetch, forgeHealth, type ForgeHealth } from '../apiClient';
 
-const FEATURES = ['heroes', 'pets', 'pvp', 'referral', 'season-pass', 'pool', 'boss', 'wallet'] as const;
+const FEATURES = ['profile', 'pets', 'pvp', 'referral', 'season-pass', 'pool', 'boss', 'wallet', 'calendar'] as const;
 
 type Probe = { feature: string; status: number; ok: boolean; error?: string | null };
 
