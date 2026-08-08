@@ -105,43 +105,41 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
   const action = String(body.action || 'dashboard');
   let fn = 'get_pet_dashboard';
   const args: Record<string, unknown> = { p_telegram_id: user.id };
+  const requestKey = (prefix: string) => {
+    const key = String(body.idempotencyKey || crypto.randomUUID());
+    if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
+    return `${prefix}:${user.id}:${key}`;
+  };
   if (action === 'activate') {
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
     fn = 'activate_pet';
     args.p_player_pet_id = body.playerPetId;
   } else if (action === 'feed') {
+    // Feeding only grants XP/levels. Food type and XP value are resolved server-side.
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
-    const amount = Number(body.amount);
-    if (!Number.isInteger(amount) || amount < 1 || amount > 1000) throw new Error('Quantidade de comida inválida.');
-    fn = 'feed_pet_v2';
+    const quantity = Number(body.quantity ?? body.amount);
+    const foodCode = String(body.foodCode || '');
+    if (!/^[a-z0-9_]{3,40}$/.test(foodCode)) throw new Error('Comida inválida.');
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) throw new Error('Quantidade de comida inválida.');
+    fn = 'feed_pet_item';
     args.p_player_pet_id = body.playerPetId;
-    args.p_food = amount;
-    args.p_idempotency_key = `pet_feed:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`;
-  } else if (action === 'upgrade') {
+    args.p_food_code = foodCode;
+    args.p_quantity = quantity;
+    args.p_idempotency_key = requestKey('pet_feed_item');
+  } else if (action === 'evolve') {
+    // Evolution consumes Forge Coins + this pet's fragments and rolls buffs server-side.
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
-    fn = 'upgrade_pet_v2';
+    fn = 'evolve_pet';
     args.p_player_pet_id = body.playerPetId;
-    args.p_idempotency_key = `pet_upgrade:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`;
+    args.p_idempotency_key = requestKey('pet_evolve');
   } else if (action === 'hatch') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
-    const key = String(body.idempotencyKey || '');
-    if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
     fn = 'hatch_pet_egg';
     args.p_egg_id = body.eggId;
-    args.p_idempotency_key = `pet_hatch:${user.id}:${key}`;
+    args.p_idempotency_key = requestKey('pet_hatch');
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
 
   const data = await rpc(db, fn, args) as any;
-  if (data?.playerPets) {
-    const multiplier: Record<string, number> = { common: 1, uncommon: 1.25, rare: 1.6, epic: 2.2, legendary: 3.2 };
-    data.playerPets = data.playerPets.map((pet: any) => ({
-      ...pet,
-      canEvolve: pet.level < 30 && pet.xp >= pet.xpRequired,
-      evolutionCostFc: Math.ceil(2500 * Math.pow(Math.max(1, pet.level), 1.45) * (multiplier[pet.rarity] || 1) / 100) * 100,
-      isMaxLevel: pet.level >= 30,
-    }));
-    if (data.activePet) data.activePet = data.playerPets.find((pet: any) => pet.id === data.activePet.id) || data.activePet;
-  }
   const store = await db.rpc('get_pet_egg_store', { p_telegram_id: user.id });
   if (!store.error && data && typeof data === 'object') {
     if (data.dashboard) data.dashboard.eggs = store.data;
@@ -149,6 +147,7 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
   }
   return data;
 }
+
 
 async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'dashboard');
