@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, useReferralDashboard, useTelegramProfile } from './hooks';
+import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { MissionsPage } from './pages/MissionsPage';
 import { BossPage } from './pages/BossPage';
