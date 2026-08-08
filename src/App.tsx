@@ -442,7 +442,7 @@ function App() {
       try {
         const result = await recruitHeroesOnServer(telegramInitData, count);
         setShopResults(result.heroes.map((item) => HERO_CATALOG.find((hero) => hero.id === item.heroKey)).filter((hero): hero is ShopHero => Boolean(hero)));
-        await Promise.all([refetchBoss(), refetchGame()]);
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }
