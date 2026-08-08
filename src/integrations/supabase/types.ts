@@ -3511,6 +3511,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_runtime_config: { Args: { p_telegram_id?: number }; Returns: Json }
       get_season_pass_dashboard: {
         Args: { p_telegram_id: number }
         Returns: Json
@@ -3615,6 +3616,19 @@ export type Database = {
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
         Returns: Json
+      }
+      setting_bool: {
+        Args: { p_default: boolean; p_key: string }
+        Returns: boolean
+      }
+      setting_json: { Args: { p_key: string }; Returns: Json }
+      setting_num: {
+        Args: { p_default: number; p_key: string }
+        Returns: number
+      }
+      setting_text: {
+        Args: { p_default: string; p_key: string }
+        Returns: string
       }
       simulate_pvp_battle: {
         Args: { a: Json; d: Json; seed: string }
