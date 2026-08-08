@@ -24,8 +24,11 @@ async function tg(method: string, payload: Record<string, unknown>) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) console.error(`telegram ${method} failed [${res.status}]: ${await res.text()}`);
-  else await res.json().catch(() => null);
+  if (!res.ok) {
+    console.error(`telegram ${method} failed [${res.status}]: ${await res.text()}`);
+    return null;
+  }
+  return await res.json().catch(() => null);
 }
 
 async function rpc(fn: string, args: Record<string, unknown>) {
