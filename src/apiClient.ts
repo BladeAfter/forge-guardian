@@ -13,9 +13,41 @@ const functionsBase = supabaseUrl ? `${supabaseUrl.replace(/\/+$/, '')}/function
  * preview), it returns a synthetic 404 so callers keep their existing
  * local-preview behaviour instead of surfacing a fake backend error.
  */
+export const forgeBackendUrl = functionsBase;
+
+export type ForgeHealth = {
+  ok: boolean;
+  app?: string;
+  backend?: string;
+  database?: string;
+  telegram_auth?: string;
+  database_error?: string;
+};
+
+/** Public, secret-free diagnostics. Used before loading heavier systems. */
+export async function forgeHealth(): Promise<ForgeHealth> {
+  if (!functionsBase) return { ok: false, backend: 'not_configured' };
+  try {
+    const response = await fetch(`${functionsBase}/health`, {
+      headers: supabaseAnonKey ? { apikey: supabaseAnonKey } : undefined,
+    });
+    const payload = (await response.json().catch(() => null)) as ForgeHealth | null;
+    return payload ?? { ok: false, backend: 'offline' };
+  } catch (error) {
+    console.error('[FORGE REQUEST FAILED]', { endpoint: `${functionsBase}/health`, status: 0, error });
+    return { ok: false, backend: 'offline' };
+  }
+}
+
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
   if (!functionsBase || !supabaseAnonKey || !initData) {
+    console.error('[FORGE REQUEST FAILED]', {
+      endpoint: `${functionsBase || '(sem backend configurado)'}/${feature}`,
+      status: 404,
+      response: null,
+      error: !functionsBase || !supabaseAnonKey ? 'BACKEND_NOT_CONFIGURED' : 'MISSING_TELEGRAM_INITDATA',
+    });
     return { ok: false, status: 404, json: async () => null };
   }
 
