@@ -7,6 +7,7 @@ import { translate, type LanguageCode } from '../i18n';
 import { HERO_CATALOG, RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero } from '../combat';
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
+import { PetCompanion } from '../components/PetCompanion';
 
 type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onClaimReward:()=>Promise<void>|void};
 const labels:Record<HeroRarity,string>={common:'Comum',uncommon:'Incomum',rare:'Raro',epic:'Épico',legendary:'Lendário'};
