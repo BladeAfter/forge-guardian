@@ -187,7 +187,26 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     fn = 'hatch_pet_egg';
     args.p_egg_id = body.eggId;
     args.p_idempotency_key = requestKey('pet_hatch');
+  } else if (action === 'buy-egg') {
+    // Egg price, purchasability and balance are all resolved server-side.
+    if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
+    const quantity = Number(body.quantity ?? 1);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 50) throw new Error('Quantidade inválida.');
+    fn = 'buy_pet_egg';
+    args.p_egg_id = body.eggId;
+    args.p_quantity = quantity;
+    args.p_idempotency_key = requestKey('pet_egg_buy');
+  } else if (action === 'buy-food') {
+    const quantity = Number(body.quantity ?? 1);
+    const foodCode = String(body.foodCode || '');
+    if (!/^[a-z0-9_]{3,40}$/.test(foodCode)) throw new Error('Comida inválida.');
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 500) throw new Error('Quantidade inválida.');
+    fn = 'buy_pet_food';
+    args.p_food_code = foodCode;
+    args.p_quantity = quantity;
+    args.p_idempotency_key = requestKey('pet_food_buy');
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
+
 
   const data = await rpc(db, fn, args) as any;
   const store = await db.rpc('get_pet_egg_store', { p_telegram_id: user.id });
