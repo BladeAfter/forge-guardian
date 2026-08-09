@@ -685,3 +685,146 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
     </div>
   );
 }
+
+/** Purchase confirmation: prices come from the server payload, never from the client. */
+function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { egg: PetEgg; balance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const isTon = !egg.priceFc && !!egg.priceTon;
+  const unit = egg.priceFc ?? 0;
+  const total = unit * quantity;
+  const missing = !isTon && total > balance;
+  return (
+    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+      <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar ovo</p>
+            <h2 className="truncate text-lg font-black">🥚 {egg.name}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <img src={egg.image} alt={egg.name} className="mx-auto h-28 w-28 object-contain" />
+
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          {Object.entries(egg.rarityRates).map(([key, value]) => (
+            <span key={key} style={{ color: rarityColor[key] }} className="text-[9px] font-bold">{petRarityLabel(key)} {value}%</span>
+          ))}
+        </div>
+
+        {isTon ? (
+          <div className="mt-4 rounded-2xl border border-sky-300/30 bg-sky-500/10 p-3 text-center">
+            <p className="text-[9px] uppercase tracking-[.2em] text-sky-200">Preço</p>
+            <b className="text-2xl">{egg.priceTon} TON</b>
+            <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
+              Compra premium: o valor não é creditado como saldo sacável. O ovo é entregue após a confirmação na blockchain.
+            </p>
+          </div>
+        ) : (
+          <>
+            <QuantityPicker quantity={quantity} onChange={setQuantity} max={20} />
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
+              <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
+              <Row label="Quantidade" value={`${quantity}x`} />
+              <Row label="Total" value={`${fmt(total)} FC`} strong />
+              <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
+              <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+            </div>
+          </>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button
+            type="button"
+            disabled={pending || (!isTon && (missing || unit <= 0))}
+            onClick={() => (isTon ? onBuyTon() : onBuyFc(quantity))}
+            className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
+          >
+            <ShoppingCart className="h-3 w-3" />
+            {isTon ? 'Pagar com TON' : missing ? 'Saldo insuficiente' : 'Comprar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFood; balance: number; pending: boolean; onClose: () => void; onBuy: (quantity: number) => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const unit = food.priceFc ?? 0;
+  const total = unit * quantity;
+  const missing = total > balance;
+  return (
+    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+      <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar comida</p>
+            <h2 className="truncate text-lg font-black">{PET_FOOD_ICONS[food.icon] ?? '🍖'} {food.name}</h2>
+            <p className="text-[10px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <QuantityPicker quantity={quantity} onChange={setQuantity} max={200} shortcuts={[1, 5, 10, 25, 50]} />
+
+        <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
+          <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
+          <Row label="XP total" value={`+${fmt(food.xpValue * quantity)} XP`} />
+          <Row label="Total" value={`${fmt(total)} FC`} strong />
+          <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
+          <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button
+            type="button"
+            disabled={pending || missing || unit <= 0}
+            onClick={() => onBuy(quantity)}
+            className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
+          >
+            <ShoppingCart className="h-3 w-3" />
+            {missing ? 'Saldo insuficiente' : `Comprar ${quantity}x`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuantityPicker({ quantity, onChange, max, shortcuts = [1, 5, 10] }: { quantity: number; onChange: (value: number) => void; max: number; shortcuts?: number[] }) {
+  const clamp = (value: number) => Math.max(1, Math.min(max, value));
+  return (
+    <div className="mt-4">
+      <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Quantidade</p>
+      <div className="mt-2 flex items-center gap-2">
+        <button type="button" aria-label="Diminuir" onClick={() => onChange(clamp(quantity - 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Minus className="h-4 w-4" /></button>
+        <b className="flex-1 rounded-xl border border-amber-300/25 bg-black/50 py-2 text-center text-lg">{quantity}</b>
+        <button type="button" aria-label="Aumentar" onClick={() => onChange(clamp(quantity + 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Plus className="h-4 w-4" /></button>
+      </div>
+      <div className="mt-2 flex gap-1">
+        {shortcuts.filter((value) => value <= max).map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onChange(value)}
+            className={`flex-1 rounded-lg py-1.5 text-[9px] font-black ${quantity === value ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, strong, danger }: { label: string; value: string; strong?: boolean; danger?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-0.5">
+      <span className="text-slate-400">{label}</span>
+      <b className={danger ? 'text-rose-300' : strong ? 'text-amber-200' : 'text-slate-200'}>{value}</b>
+    </div>
+  );
+}
