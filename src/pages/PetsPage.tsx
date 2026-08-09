@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Shield, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
+import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Minus, Plus, Shield, ShoppingCart, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
-import { petRequest } from '../services';
-import type { PetActionResponse, PetDashboard, PetEvolveResult, PetFood, PlayerPet } from '../pets';
+import { createEggTonOrder, petRequest } from '../services';
+import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
@@ -37,6 +38,29 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string; pet?: PlayerPet } | null>(null);
   const [feedTarget, setFeedTarget] = useState<PlayerPet | null>(null);
   const [evolution, setEvolution] = useState<PetEvolveResult | null>(null);
+  const [eggTarget, setEggTarget] = useState<PetEgg | null>(null);
+  const [foodTarget, setFoodTarget] = useState<PetFood | null>(null);
+  const [tonUI] = useTonConnectUI();
+  const tonWallet = useTonWallet();
+
+  // TON eggs are a purchase, never a withdrawable deposit: the backend records
+  // the order and only delivers the egg after on-chain confirmation.
+  const tonPurchase = useMutation({
+    mutationFn: async (egg: PetEgg) => {
+      if (!tonWallet) {
+        await tonUI.openModal();
+        throw new Error('Conecte sua carteira TON e tente novamente.');
+      }
+      const order = await createEggTonOrder(telegramInitData, egg.id, crypto.randomUUID());
+      await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: order.paymentAddress, amount: order.amountNano }] });
+      return order;
+    },
+    onSuccess: () => {
+      setEggTarget(null);
+      toast.success('Pagamento enviado! O ovo será entregue após a confirmação na blockchain.');
+    },
+    onError: (tonError) => toast.error(tonError instanceof Error ? tonError.message : 'Falha ao pagar com TON.'),
+  });
 
   const sync = async (fresh?: PetDashboard) => {
     if (fresh) queryClient.setQueryData(['pet-dashboard', telegramInitData], fresh);
@@ -165,34 +189,72 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         )}
 
         {tab === 'eggs' && (
-          <div className="grid grid-cols-2 gap-2">
-            {data.eggs.map((egg) => (
-              <div key={egg.id} className="rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
-                <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
-                <h3 className="text-xs font-black">{egg.name}</h3>
-                <p className="text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
-                <div className="mt-2 flex flex-wrap justify-center gap-1">
-                  {Object.entries(egg.rarityRates).map(([key, value]) => (
-                    <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
-                      {petRarityLabel(key)} {value}%
-                    </span>
-                  ))}
-                </div>
-                <Action
-                  text="Abrir ovo"
-                  disabled={pending || egg.quantity < 1}
-                  onClick={() => mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <p className="mb-2 rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
+              Saldo disponível: <b className="text-amber-200">{fmt(data.balance)} FC</b>. Compre ovos e abra para receber companheiros.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {data.eggs.map((egg) => {
+                const owned = egg.quantity > 0;
+                const ton = !egg.priceFc && !!egg.priceTon;
+                const locked = !egg.isPurchasable || (!egg.priceFc && !egg.priceTon);
+                return (
+                  <div key={egg.id} className="flex flex-col rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
+                    <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
+                    <h3 className="truncate text-xs font-black">{egg.name}</h3>
+                    <p className="text-[9px] font-bold text-amber-200">
+                      {egg.priceFc ? `${fmt(egg.priceFc)} FC` : egg.priceTon ? `${egg.priceTon} TON` : egg.availabilityLabel || 'Evento exclusivo'}
+                    </p>
+                    <div className="mt-1 flex flex-wrap justify-center gap-1">
+                      {Object.entries(egg.rarityRates).map(([key, value]) => (
+                        <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
+                          {petRarityLabel(key)} {value}%
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
+                    <div className="mt-auto">
+                      {owned ? (
+                        <Action
+                          text="Abrir ovo"
+                          disabled={pending}
+                          onClick={() => mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}
+                        />
+                      ) : locked ? (
+                        <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
+                      ) : (
+                        <Action
+                          text={ton ? `Comprar · ${egg.priceTon} TON` : `Comprar · ${fmt(egg.priceFc ?? 0)} FC`}
+                          disabled={pending || tonPurchase.isPending}
+                          onClick={() => setEggTarget(egg)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {eggTarget && (
+              <BuyEggModal
+                egg={eggTarget}
+                balance={data.balance}
+                pending={pending || tonPurchase.isPending}
+                onClose={() => setEggTarget(null)}
+                onBuyFc={(quantity) => mutation.mutate({ action: 'buy-egg', eggId: eggTarget.id, quantity, idempotencyKey: crypto.randomUUID() })}
+                onBuyTon={() => tonPurchase.mutate(eggTarget)}
+              />
+            )}
+          </>
         )}
 
         {tab === 'food' && (
           <div className="space-y-3">
+            <p className="rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
+              Comida sobe o <b className="text-amber-200">nível</b> do pet. Saldo: <b className="text-amber-200">{fmt(data.balance)} FC</b>.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {data.foods.map((food) => (
-                <div key={food.code} className="rounded-2xl border border-amber-300/15 bg-black/55 p-3">
+                <div key={food.code} className="flex flex-col rounded-2xl border border-amber-300/15 bg-black/55 p-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl leading-none">{PET_FOOD_ICONS[food.icon] ?? '🍖'}</span>
                     <div className="min-w-0">
@@ -200,8 +262,18 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                       <p className="text-[9px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
                     </div>
                   </div>
-                  <p className="mt-2 text-[9px] text-slate-400">Quantidade</p>
-                  <b className="text-lg">{fmt(food.quantity)}</b>
+                  <p className="mt-2 text-[9px] text-slate-400">Você possui</p>
+                  <b className="text-lg leading-none">{fmt(food.quantity)}</b>
+                  <p className="mt-1 text-[9px] font-bold text-amber-200">
+                    {food.priceFc ? `${fmt(food.priceFc)} FC` : 'Indisponível'}
+                  </p>
+                  <div className="mt-auto">
+                    <Action
+                      text="Comprar"
+                      disabled={pending || !food.priceFc}
+                      onClick={() => setFoodTarget(food)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -217,6 +289,15 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 />
               ))}
             </div>
+            {foodTarget && (
+              <BuyFoodModal
+                food={foodTarget}
+                balance={data.balance}
+                pending={pending}
+                onClose={() => setFoodTarget(null)}
+                onBuy={(quantity) => mutation.mutate({ action: 'buy-food', foodCode: foodTarget.code, quantity, idempotencyKey: crypto.randomUUID() })}
+              />
+            )}
           </div>
         )}
 
@@ -230,15 +311,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
-            {data.catalog.map((pet) => (
-              <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30 grayscale'}`}>
-                <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0'}`} />
-                <b className="text-xs">{pet.discovered ? pet.name : 'Não descoberto'}</b>
-                <p className="text-[9px] text-slate-400">
-                  {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Disponível em ovos'}
-                </p>
-              </div>
-            ))}
+            {data.catalog.map((pet) => {
+              const buff = Object.entries(pet.basePassives)[0];
+              return (
+                <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30'}`}>
+                  <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
+                  <b className="block truncate text-xs">{pet.name}</b>
+                  <p className="text-[9px] text-slate-400">
+                    {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
+                  </p>
+                  {buff && <p className="mt-1 text-[9px] font-bold text-emerald-300">{petBuffLabel(buff[0])} +{buff[1]}%</p>}
+                  {pet.sources && pet.sources.length > 0 && (
+                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
