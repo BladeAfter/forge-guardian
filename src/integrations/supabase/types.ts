@@ -1185,6 +1185,7 @@ export type Database = {
           enabled: boolean
           icon: string
           name: string
+          price_fc: number
           rarity: string
           sort_order: number
           updated_at: string
@@ -1195,6 +1196,7 @@ export type Database = {
           enabled?: boolean
           icon?: string
           name: string
+          price_fc?: number
           rarity?: string
           sort_order?: number
           updated_at?: string
@@ -1205,6 +1207,7 @@ export type Database = {
           enabled?: boolean
           icon?: string
           name?: string
+          price_fc?: number
           rarity?: string
           sort_order?: number
           updated_at?: string
@@ -1270,6 +1273,32 @@ export type Database = {
           },
         ]
       }
+      pet_purchase_idempotency: {
+        Row: {
+          created_at: string
+          idempotency_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          idempotency_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          idempotency_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_purchase_idempotency_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_settings: {
         Row: {
           key: string
@@ -1287,6 +1316,62 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      pet_transactions: {
+        Row: {
+          balance_after: number | null
+          balance_before: number | null
+          created_at: string
+          event: string
+          fc_cost: number
+          id: string
+          item_name: string | null
+          item_ref: string | null
+          item_type: string | null
+          metadata: Json
+          quantity: number
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          event: string
+          fc_cost?: number
+          id?: string
+          item_name?: string | null
+          item_ref?: string | null
+          item_type?: string | null
+          metadata?: Json
+          quantity?: number
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          event?: string
+          fc_cost?: number
+          id?: string
+          item_name?: string | null
+          item_ref?: string | null
+          item_type?: string | null
+          metadata?: Json
+          quantity?: number
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pet_upgrade_history: {
         Row: {
@@ -3329,6 +3414,26 @@ export type Database = {
         Args: { p_enabled: boolean; p_pet_id: string }
         Returns: undefined
       }
+      admin_set_pet_food_price: {
+        Args: { p_admin_id: number; p_code: string; p_price: number }
+        Returns: {
+          code: string
+          enabled: boolean
+          icon: string
+          name: string
+          price_fc: number
+          rarity: string
+          sort_order: number
+          updated_at: string
+          xp_value: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "pet_food_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
@@ -3439,6 +3544,7 @@ export type Database = {
           enabled: boolean
           icon: string
           name: string
+          price_fc: number
           rarity: string
           sort_order: number
           updated_at: string
@@ -3560,6 +3666,24 @@ export type Database = {
       }
       bind_referral: {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
+        Returns: Json
+      }
+      buy_pet_egg: {
+        Args: {
+          p_egg_id: string
+          p_idempotency_key?: string
+          p_quantity?: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      buy_pet_food: {
+        Args: {
+          p_food_code: string
+          p_idempotency_key?: string
+          p_quantity?: number
+          p_telegram_id: number
+        }
         Returns: Json
       }
       calculate_pet_reward: {
@@ -3720,6 +3844,21 @@ export type Database = {
       }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_summon_rates: { Args: never; Returns: Json }
+      log_pet_transaction: {
+        Args: {
+          p_after: number
+          p_before: number
+          p_event: string
+          p_fc: number
+          p_item_name: string
+          p_item_ref: string
+          p_item_type: string
+          p_meta?: Json
+          p_quantity: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       open_calendar_hero_chest: {

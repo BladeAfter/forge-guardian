@@ -18,7 +18,7 @@ export type PetCatalogItem = {
   id: string; name: string; slug: string; species: string; category: string; description: string;
   basePassives: PetBuffs; activeSkill: Record<string, unknown> | null;
   images: Record<'baby' | 'young' | 'adult' | 'ancestral', string>;
-  discovered: boolean; bestRarity: PetRarity | null; bestLevel: number | null;
+  discovered: boolean; bestRarity: PetRarity | null; bestLevel: number | null; sources?: string[];
 };
 
 export type PlayerPet = {
@@ -32,7 +32,7 @@ export type PlayerPet = {
 };
 
 export type PetEgg = { id: string; name: string; slug: string; image: string; priceFc: number | null; priceTon: number | null; quantity: number; rarityRates: Record<string, number>; isPurchasable?: boolean; premiumOnly?: boolean; dailyQuantity?: number | null; perPlayerLimit?: number | null; availabilityLabel?: string | null };
-export type PetFood = { code: string; name: string; rarity: string; xpValue: number; icon: string; quantity: number };
+export type PetFood = { code: string; name: string; rarity: string; xpValue: number; icon: string; quantity: number; priceFc?: number };
 export type PetFragmentEntry = { playerPetId: string; petName: string; image: string; rarity: PetRarity; quantity: number };
 export type PetEvolutionTier = { tier: number; label: string; requiredLevel: number; fcCost: number; fragmentCost: number; newBuffChance: number };
 export type PetInventory = { food: number; universalFragments: number };

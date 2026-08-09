@@ -208,8 +208,10 @@ async function module(ctx: Ctx, name: string) {
       const list = await rpc('admin_list_pets', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
       const cfg = await rpc('admin_pet_config', { p_admin_id: ctx.adminId });
       return edit(ctx, `🐲 <b>PETS</b> (${list.total})\n${list.pets.map((p: any) => `• <code>${esc(p.slug)}</code> ${esc(p.name)} — ${esc(p.category)} ${p.is_enabled ? '✅' : '⛔'}`).join('\n')}\n\n🥚 Ovos: ${cfg.eggs.length} · 🍖 Comidas: ${cfg.food.length} · 🧬 Estágios: ${cfg.tiers.length}`,
-        kb([[{ t: '✏️ CRIAR/EDITAR PET', d: 'ask:pet' }], [{ t: '🍖 COMIDAS', d: 'ask:food' }, { t: '🥚 OVOS', d: 'view:eggs' }],
-            [{ t: '🧬 EVOLUÇÃO', d: 'view:tiers' }], [{ t: '🐲 DAR PET', d: 'ask:grantpet' }], nav()]));
+        kb([[{ t: '✏️ CRIAR/EDITAR PET', d: 'ask:pet' }],
+            [{ t: '🍖 COMIDAS', d: 'view:foods' }, { t: '🥚 OVOS', d: 'view:eggs' }],
+            [{ t: '🧬 EVOLUÇÃO', d: 'view:tiers' }, { t: '🧩 FRAGMENTOS', d: 'ask:givefrag' }],
+            [{ t: '🐲 DAR PET', d: 'ask:grantpet' }, { t: '🎁 ENVIAR ITEM', d: 'ask:giveitem' }], nav()]));
     }
     case 'pvp': {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 10 });
@@ -304,6 +306,11 @@ const PROMPTS: Record<string, string> = {
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
   food: 'Envie: <code>code {json}</code> — ex.: <code>racao {"name":"Ração","xp_value":50,"rarity":"comum","enabled":true}</code>',
   grantpet: 'Envie: <code>usuário slug [raridade] [nível]</code>',
+  foodprice: 'Envie: <code>code preço_fc</code> — ex.: <code>pet_ration 1000</code>',
+  eggprice: 'Envie: <code>slug preço_fc [preço_ton]</code> — ex.: <code>common-egg 25000</code> ou <code>epic-egg 0 3</code>',
+  egg: 'Envie: <code>slug {json}</code> — ex.: <code>common-egg {"price_fc":25000,"is_purchasable":true,"rarity_rates":{"common":75,"uncommon":20,"rare":5}}</code>',
+  giveitem: 'Envie: <code>usuário tipo item quantidade</code>\nTipos: <code>ovo</code> (slug do ovo), <code>comida</code> (code), <code>fragmento</code>.\nEx.: <code>8118569391 ovo epic-egg 3</code>',
+  givefrag: 'Envie: <code>usuário quantidade</code> para conceder fragmentos universais.',
   pvpset: 'Envie: <code>chave valor</code>\nChaves: pvp_trophy_win, pvp_trophy_loss, pvp_ticket_cost, pvp_ticket_start, pvp_ticket_max, pvp_ticket_regen_minutes, pvp_ticket_price_fc, pvp_win_reward_fc',
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
@@ -413,7 +420,10 @@ async function handleCallback(ctx: Ctx, data: string) {
   }
   if (head === 'view') {
     const cfg = await rpc('admin_pet_config', { p_admin_id: ctx.adminId });
-    if (rest[0] === 'eggs') return send(ctx, `🥚 <b>OVOS</b>\n${cfg.eggs.map((e: any) => `• ${esc(e.name)} <code>${e.id}</code> — ${fmt(e.price_fc)} FC / ${e.price_ton ?? '—'} TON ${e.is_enabled ? '✅' : '⛔'}\n   ${esc(JSON.stringify(e.rarity_rates))}`).join('\n')}`, MAIN_MENU);
+    if (rest[0] === 'eggs') return send(ctx, `🥚 <b>OVOS</b>\n${cfg.eggs.map((e: any) => `• ${esc(e.name)} <code>${e.slug ?? e.id}</code> — ${fmt(e.price_fc)} FC / ${e.price_ton ?? '—'} TON ${e.is_enabled ? '✅' : '⛔'}\n   ${esc(JSON.stringify(e.rarity_rates))}`).join('\n')}`,
+      kb([[{ t: '💰 PREÇO DO OVO', d: 'ask:eggprice' }], [{ t: '✏️ EDITAR OVO (JSON)', d: 'ask:egg' }], nav('m:pets')]));
+    if (rest[0] === 'foods') return send(ctx, `🍖 <b>COMIDAS</b>\n${cfg.food.map((f: any) => `• <code>${esc(f.code)}</code> ${esc(f.name)} — +${fmt(f.xp_value)} XP · ${fmt(f.price_fc ?? 0)} FC ${f.enabled ? '✅' : '⛔'}`).join('\n')}`,
+      kb([[{ t: '💰 PREÇO DA COMIDA', d: 'ask:foodprice' }], [{ t: '✏️ CRIAR/EDITAR COMIDA', d: 'ask:food' }], nav('m:pets')]));
     if (rest[0] === 'tiers') return send(ctx, `🧬 <b>EVOLUÇÃO</b>\n${cfg.tiers.map((t: any) => `• Tier ${t.tier} ${esc(t.label)} — NV${t.required_level} · ${fmt(t.fc_cost)} FC · ${t.fragment_cost} frag · x${t.primary_multiplier} · novo buff ${Math.round(t.new_buff_chance * 100)}%`).join('\n')}`, MAIN_MENU);
     if (rest[0] === 'leagues') {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
@@ -557,6 +567,64 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     }
     case 'pet': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_pet', { p_admin_id: ctx.adminId, p_slug: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Pet salvo: <b>${esc(r.name)}</b>`, MAIN_MENU); }
     case 'food': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_pet_food', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Comida salva: ${esc(r.name)} — ${r.xp_value} XP`, MAIN_MENU); }
+    case 'foodprice': {
+      const [code, price] = text.trim().split(/\s+/);
+      const r = await rpc('admin_set_pet_food_price', { p_admin_id: ctx.adminId, p_code: code, p_price: Number(price) });
+      return send(ctx, `✅ ${esc(r.name)} — novo preço <b>${fmt(r.price_fc)} FC</b> (+${fmt(r.xp_value)} XP)`, kb([[{ t: '🍖 COMIDAS', d: 'view:foods' }], nav('m:pets')]));
+    }
+    case 'eggprice': {
+      const [slug, fc, ton] = text.trim().split(/\s+/);
+      const patch: Record<string, unknown> = { price_fc: Number(fc) > 0 ? Number(fc) : null, updated_at: new Date().toISOString() };
+      if (ton !== undefined) patch.price_ton = Number(ton) > 0 ? Number(ton) : null;
+      const { data: egg, error } = await db.from('pet_eggs').update(patch).eq('slug', slug).select('*').maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!egg) return send(ctx, '⚠️ Ovo não encontrado.', MAIN_MENU);
+      await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pet_egg.price', p_target_type: 'pet_egg', p_target_id: slug, p_old: null, p_new: patch, p_reason: 'painel admin', p_context: { financial: true } });
+      return send(ctx, `✅ ${esc(egg.name)} — ${fmt(egg.price_fc ?? 0)} FC / ${egg.price_ton ?? '—'} TON`, kb([[{ t: '🥚 OVOS', d: 'view:eggs' }], nav('m:pets')]));
+    }
+    case 'egg': {
+      const i = text.indexOf(' ');
+      const patch = JSON.parse(text.slice(i + 1));
+      const { data: egg, error } = await db.from('pet_eggs').update({ ...patch, updated_at: new Date().toISOString() }).eq('slug', text.slice(0, i)).select('*').maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!egg) return send(ctx, '⚠️ Ovo não encontrado.', MAIN_MENU);
+      await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pet_egg.update', p_target_type: 'pet_egg', p_target_id: egg.slug, p_old: null, p_new: patch, p_reason: 'painel admin', p_context: {} });
+      return send(ctx, `✅ Ovo salvo: <b>${esc(egg.name)}</b>`, kb([[{ t: '🥚 OVOS', d: 'view:eggs' }], nav('m:pets')]));
+    }
+    case 'giveitem': {
+      const parts = text.trim().split(/\s+/);
+      const user = parts.shift()!;
+      const kind = (parts.shift() || '').toLowerCase();
+      const ref = parts.shift() || '';
+      const quantity = Number(parts.shift() || 1);
+      const player = await rpc('admin_resolve_player', { p_ref: user });
+      if (!player?.telegram_id) return send(ctx, '⚠️ Jogador não encontrado.', MAIN_MENU);
+      if (kind.startsWith('ovo') || kind.startsWith('egg')) {
+        const { data: egg } = await db.from('pet_eggs').select('id,name').or(`slug.eq.${ref},id.eq.${ref}`).maybeSingle();
+        if (!egg) return send(ctx, '⚠️ Ovo não encontrado.', MAIN_MENU);
+        await rpc('admin_grant_pet_item', { p_telegram_id: player.telegram_id, p_item_type: 'egg', p_item_id: egg.id, p_quantity: quantity });
+        await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pet_item.grant', p_target_type: 'player', p_target_id: String(player.telegram_id), p_old: null, p_new: { egg: egg.name, quantity }, p_reason: 'painel admin', p_context: {} });
+        return send(ctx, `🎁 <b>${quantity}x ${esc(egg.name)}</b> enviado para ${esc(String(player.telegram_id))}.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
+      }
+      if (kind.startsWith('comida') || kind.startsWith('food')) {
+        const r = await rpc('admin_grant_pet_food', { p_telegram_id: player.telegram_id, p_code: ref, p_quantity: quantity });
+        await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pet_food.grant', p_target_type: 'player', p_target_id: String(player.telegram_id), p_old: null, p_new: { food: ref, quantity }, p_reason: 'painel admin', p_context: {} });
+        return send(ctx, `🎁 <b>${quantity}x ${esc(ref)}</b> enviado.\n<code>${esc(JSON.stringify(r?.inventory ?? {})).slice(0, 300)}</code>`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
+      }
+      if (kind.startsWith('frag')) {
+        await rpc('admin_grant_pet_item', { p_telegram_id: player.telegram_id, p_item_type: 'universal_fragment', p_item_id: null, p_quantity: quantity });
+        return send(ctx, `🧩 <b>${quantity}</b> fragmentos universais enviados.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
+      }
+      return send(ctx, '⚠️ Tipo inválido. Use ovo, comida ou fragmento.', MAIN_MENU);
+    }
+    case 'givefrag': {
+      const [user, quantity] = text.trim().split(/\s+/);
+      const player = await rpc('admin_resolve_player', { p_ref: user });
+      if (!player?.telegram_id) return send(ctx, '⚠️ Jogador não encontrado.', MAIN_MENU);
+      await rpc('admin_grant_pet_item', { p_telegram_id: player.telegram_id, p_item_type: 'universal_fragment', p_item_id: null, p_quantity: Number(quantity || 1) });
+      await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pet_fragment.grant', p_target_type: 'player', p_target_id: String(player.telegram_id), p_old: null, p_new: { quantity: Number(quantity || 1) }, p_reason: 'painel admin', p_context: {} });
+      return send(ctx, `🧩 <b>${fmt(Number(quantity || 1))}</b> fragmentos universais enviados.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
+    }
     case 'league': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_league', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Liga salva: ${esc(r.name)} (${r.min_trophies}–${r.max_trophies ?? '∞'})`, MAIN_MENU); }
     case 'mission': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_mission', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Missão salva: ${esc(r.title)}`, MAIN_MENU); }
     case 'boss': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_boss', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Chefe salvo: ${esc(r.name)} — ${fmt(r.max_hp)} HP`, MAIN_MENU); }

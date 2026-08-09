@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Shield, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
+import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Minus, Plus, Shield, ShoppingCart, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
-import { petRequest } from '../services';
-import type { PetActionResponse, PetDashboard, PetEvolveResult, PetFood, PlayerPet } from '../pets';
+import { createEggTonOrder, petRequest } from '../services';
+import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
@@ -37,6 +38,29 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string; pet?: PlayerPet } | null>(null);
   const [feedTarget, setFeedTarget] = useState<PlayerPet | null>(null);
   const [evolution, setEvolution] = useState<PetEvolveResult | null>(null);
+  const [eggTarget, setEggTarget] = useState<PetEgg | null>(null);
+  const [foodTarget, setFoodTarget] = useState<PetFood | null>(null);
+  const [tonUI] = useTonConnectUI();
+  const tonWallet = useTonWallet();
+
+  // TON eggs are a purchase, never a withdrawable deposit: the backend records
+  // the order and only delivers the egg after on-chain confirmation.
+  const tonPurchase = useMutation({
+    mutationFn: async (egg: PetEgg) => {
+      if (!tonWallet) {
+        await tonUI.openModal();
+        throw new Error('Conecte sua carteira TON e tente novamente.');
+      }
+      const order = await createEggTonOrder(telegramInitData, egg.id, crypto.randomUUID());
+      await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: order.paymentAddress, amount: order.amountNano }] });
+      return order;
+    },
+    onSuccess: () => {
+      setEggTarget(null);
+      toast.success('Pagamento enviado! O ovo será entregue após a confirmação na blockchain.');
+    },
+    onError: (tonError) => toast.error(tonError instanceof Error ? tonError.message : 'Falha ao pagar com TON.'),
+  });
 
   const sync = async (fresh?: PetDashboard) => {
     if (fresh) queryClient.setQueryData(['pet-dashboard', telegramInitData], fresh);
@@ -165,34 +189,72 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         )}
 
         {tab === 'eggs' && (
-          <div className="grid grid-cols-2 gap-2">
-            {data.eggs.map((egg) => (
-              <div key={egg.id} className="rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
-                <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
-                <h3 className="text-xs font-black">{egg.name}</h3>
-                <p className="text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
-                <div className="mt-2 flex flex-wrap justify-center gap-1">
-                  {Object.entries(egg.rarityRates).map(([key, value]) => (
-                    <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
-                      {petRarityLabel(key)} {value}%
-                    </span>
-                  ))}
-                </div>
-                <Action
-                  text="Abrir ovo"
-                  disabled={pending || egg.quantity < 1}
-                  onClick={() => mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            <p className="mb-2 rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
+              Saldo disponível: <b className="text-amber-200">{fmt(data.balance)} FC</b>. Compre ovos e abra para receber companheiros.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {data.eggs.map((egg) => {
+                const owned = egg.quantity > 0;
+                const ton = !egg.priceFc && !!egg.priceTon;
+                const locked = !egg.isPurchasable || (!egg.priceFc && !egg.priceTon);
+                return (
+                  <div key={egg.id} className="flex flex-col rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
+                    <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
+                    <h3 className="truncate text-xs font-black">{egg.name}</h3>
+                    <p className="text-[9px] font-bold text-amber-200">
+                      {egg.priceFc ? `${fmt(egg.priceFc)} FC` : egg.priceTon ? `${egg.priceTon} TON` : egg.availabilityLabel || 'Evento exclusivo'}
+                    </p>
+                    <div className="mt-1 flex flex-wrap justify-center gap-1">
+                      {Object.entries(egg.rarityRates).map(([key, value]) => (
+                        <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
+                          {petRarityLabel(key)} {value}%
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
+                    <div className="mt-auto">
+                      {owned ? (
+                        <Action
+                          text="Abrir ovo"
+                          disabled={pending}
+                          onClick={() => mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}
+                        />
+                      ) : locked ? (
+                        <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
+                      ) : (
+                        <Action
+                          text={ton ? `Comprar · ${egg.priceTon} TON` : `Comprar · ${fmt(egg.priceFc ?? 0)} FC`}
+                          disabled={pending || tonPurchase.isPending}
+                          onClick={() => setEggTarget(egg)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {eggTarget && (
+              <BuyEggModal
+                egg={eggTarget}
+                balance={data.balance}
+                pending={pending || tonPurchase.isPending}
+                onClose={() => setEggTarget(null)}
+                onBuyFc={(quantity) => mutation.mutate({ action: 'buy-egg', eggId: eggTarget.id, quantity, idempotencyKey: crypto.randomUUID() })}
+                onBuyTon={() => tonPurchase.mutate(eggTarget)}
+              />
+            )}
+          </>
         )}
 
         {tab === 'food' && (
           <div className="space-y-3">
+            <p className="rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
+              Comida sobe o <b className="text-amber-200">nível</b> do pet. Saldo: <b className="text-amber-200">{fmt(data.balance)} FC</b>.
+            </p>
             <div className="grid grid-cols-2 gap-2">
               {data.foods.map((food) => (
-                <div key={food.code} className="rounded-2xl border border-amber-300/15 bg-black/55 p-3">
+                <div key={food.code} className="flex flex-col rounded-2xl border border-amber-300/15 bg-black/55 p-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl leading-none">{PET_FOOD_ICONS[food.icon] ?? '🍖'}</span>
                     <div className="min-w-0">
@@ -200,8 +262,18 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                       <p className="text-[9px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
                     </div>
                   </div>
-                  <p className="mt-2 text-[9px] text-slate-400">Quantidade</p>
-                  <b className="text-lg">{fmt(food.quantity)}</b>
+                  <p className="mt-2 text-[9px] text-slate-400">Você possui</p>
+                  <b className="text-lg leading-none">{fmt(food.quantity)}</b>
+                  <p className="mt-1 text-[9px] font-bold text-amber-200">
+                    {food.priceFc ? `${fmt(food.priceFc)} FC` : 'Indisponível'}
+                  </p>
+                  <div className="mt-auto">
+                    <Action
+                      text="Comprar"
+                      disabled={pending || !food.priceFc}
+                      onClick={() => setFoodTarget(food)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -217,6 +289,15 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 />
               ))}
             </div>
+            {foodTarget && (
+              <BuyFoodModal
+                food={foodTarget}
+                balance={data.balance}
+                pending={pending}
+                onClose={() => setFoodTarget(null)}
+                onBuy={(quantity) => mutation.mutate({ action: 'buy-food', foodCode: foodTarget.code, quantity, idempotencyKey: crypto.randomUUID() })}
+              />
+            )}
           </div>
         )}
 
@@ -230,15 +311,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
-            {data.catalog.map((pet) => (
-              <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30 grayscale'}`}>
-                <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0'}`} />
-                <b className="text-xs">{pet.discovered ? pet.name : 'Não descoberto'}</b>
-                <p className="text-[9px] text-slate-400">
-                  {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Disponível em ovos'}
-                </p>
-              </div>
-            ))}
+            {data.catalog.map((pet) => {
+              const buff = Object.entries(pet.basePassives)[0];
+              return (
+                <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30'}`}>
+                  <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
+                  <b className="block truncate text-xs">{pet.name}</b>
+                  <p className="text-[9px] text-slate-400">
+                    {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
+                  </p>
+                  {buff && <p className="mt-1 text-[9px] font-bold text-emerald-300">{petBuffLabel(buff[0])} +{buff[1]}%</p>}
+                  {pet.sources && pet.sources.length > 0 && (
+                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
@@ -594,6 +682,149 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
       <div className="h-8 w-8 text-amber-300">{icon}</div>
       <p className="mt-2 text-[9px] text-slate-400">{label}</p>
       <b>{fmt(value)}</b>
+    </div>
+  );
+}
+
+/** Purchase confirmation: prices come from the server payload, never from the client. */
+function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { egg: PetEgg; balance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const isTon = !egg.priceFc && !!egg.priceTon;
+  const unit = egg.priceFc ?? 0;
+  const total = unit * quantity;
+  const missing = !isTon && total > balance;
+  return (
+    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+      <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar ovo</p>
+            <h2 className="truncate text-lg font-black">🥚 {egg.name}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <img src={egg.image} alt={egg.name} className="mx-auto h-28 w-28 object-contain" />
+
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          {Object.entries(egg.rarityRates).map(([key, value]) => (
+            <span key={key} style={{ color: rarityColor[key] }} className="text-[9px] font-bold">{petRarityLabel(key)} {value}%</span>
+          ))}
+        </div>
+
+        {isTon ? (
+          <div className="mt-4 rounded-2xl border border-sky-300/30 bg-sky-500/10 p-3 text-center">
+            <p className="text-[9px] uppercase tracking-[.2em] text-sky-200">Preço</p>
+            <b className="text-2xl">{egg.priceTon} TON</b>
+            <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
+              Compra premium: o valor não é creditado como saldo sacável. O ovo é entregue após a confirmação na blockchain.
+            </p>
+          </div>
+        ) : (
+          <>
+            <QuantityPicker quantity={quantity} onChange={setQuantity} max={20} />
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
+              <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
+              <Row label="Quantidade" value={`${quantity}x`} />
+              <Row label="Total" value={`${fmt(total)} FC`} strong />
+              <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
+              <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+            </div>
+          </>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button
+            type="button"
+            disabled={pending || (!isTon && (missing || unit <= 0))}
+            onClick={() => (isTon ? onBuyTon() : onBuyFc(quantity))}
+            className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
+          >
+            <ShoppingCart className="h-3 w-3" />
+            {isTon ? 'Pagar com TON' : missing ? 'Saldo insuficiente' : 'Comprar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFood; balance: number; pending: boolean; onClose: () => void; onBuy: (quantity: number) => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const unit = food.priceFc ?? 0;
+  const total = unit * quantity;
+  const missing = total > balance;
+  return (
+    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+      <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar comida</p>
+            <h2 className="truncate text-lg font-black">{PET_FOOD_ICONS[food.icon] ?? '🍖'} {food.name}</h2>
+            <p className="text-[10px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <QuantityPicker quantity={quantity} onChange={setQuantity} max={200} shortcuts={[1, 5, 10, 25, 50]} />
+
+        <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
+          <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
+          <Row label="XP total" value={`+${fmt(food.xpValue * quantity)} XP`} />
+          <Row label="Total" value={`${fmt(total)} FC`} strong />
+          <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
+          <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button
+            type="button"
+            disabled={pending || missing || unit <= 0}
+            onClick={() => onBuy(quantity)}
+            className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
+          >
+            <ShoppingCart className="h-3 w-3" />
+            {missing ? 'Saldo insuficiente' : `Comprar ${quantity}x`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QuantityPicker({ quantity, onChange, max, shortcuts = [1, 5, 10] }: { quantity: number; onChange: (value: number) => void; max: number; shortcuts?: number[] }) {
+  const clamp = (value: number) => Math.max(1, Math.min(max, value));
+  return (
+    <div className="mt-4">
+      <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Quantidade</p>
+      <div className="mt-2 flex items-center gap-2">
+        <button type="button" aria-label="Diminuir" onClick={() => onChange(clamp(quantity - 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Minus className="h-4 w-4" /></button>
+        <b className="flex-1 rounded-xl border border-amber-300/25 bg-black/50 py-2 text-center text-lg">{quantity}</b>
+        <button type="button" aria-label="Aumentar" onClick={() => onChange(clamp(quantity + 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Plus className="h-4 w-4" /></button>
+      </div>
+      <div className="mt-2 flex gap-1">
+        {shortcuts.filter((value) => value <= max).map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onChange(value)}
+            className={`flex-1 rounded-lg py-1.5 text-[9px] font-black ${quantity === value ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, strong, danger }: { label: string; value: string; strong?: boolean; danger?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-0.5">
+      <span className="text-slate-400">{label}</span>
+      <b className={danger ? 'text-rose-300' : strong ? 'text-amber-200' : 'text-slate-200'}>{value}</b>
     </div>
   );
 }

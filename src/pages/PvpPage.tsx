@@ -2,7 +2,8 @@ import{useState}from'react';
 import{useMutation,useQuery,useQueryClient}from'@tanstack/react-query';
 import{History,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
 import{toast}from'sonner';
-import{usePvpDashboard}from'../hooks';
+import{usePetDashboard,usePvpDashboard}from'../hooks';
+import{PetCompanion}from'../components/PetCompanion';
 import{pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
 import type{PvpBattleResult,PvpHero,PvpOpponent}from'../pvp';
 
@@ -10,7 +11,7 @@ type Team='attack'|'defense';type View='teams'|'history'|'ranking';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24'};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
- const q=useQueryClient(),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[battle,setBattle]=useState<PvpBattleResult|null>(null);
+ const q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[battle,setBattle]=useState<PvpBattleResult|null>(null);
  const opponents=useQuery({queryKey:['pvp-opponents',telegramInitData],queryFn:async()=>[]as PvpOpponent[],enabled:false,initialData:[]});
  const refresh=()=>Promise.all([q.invalidateQueries({queryKey:['pvp-dashboard',telegramInitData]}),q.invalidateQueries({queryKey:['player-heroes']}),q.invalidateQueries({queryKey:['wallet-balance']}),q.invalidateQueries({queryKey:['game-state',telegramInitData]})]);
  const search=useMutation({mutationFn:()=>searchPvpOpponents(telegramInitData),onSuccess:r=>{q.setQueryData(['pvp-opponents',telegramInitData],r.opponents);setChosen(null);if(!r.opponents.length)toast.error('Nenhum adversário encontrado.')},onError:e=>toast.error(message(e))});
@@ -31,6 +32,7 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
    <div className="mt-6 grid grid-cols-3 gap-2"><Nav active={view==='teams'} onClick={()=>setView('teams')} icon={<Users/>} text="Equipes"/><Nav active={view==='history'} onClick={()=>setView('history')} icon={<History/>} text="Histórico"/><Nav active={view==='ranking'} onClick={()=>setView('ranking')} icon={<Trophy/>} text="Ranking"/></div>
   </section>
   {view==='teams'&&<>
+   <PetCompanion pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image,level:pets.data.activePet.level,rarity:pets.data.activePet.rarity}:null} buffKey={pets.data?.activePet?.primaryBuffKey} buffValue={pets.data?.activePet?.primaryBuffValue} label="Companheiro na Arena" />
    <div className="mt-5 grid grid-cols-2 gap-3"><button onClick={()=>setTeam('attack')} className={teamButton(team==='attack')}>Equipe Ataque</button><button onClick={()=>setTeam('defense')} className={teamButton(team==='defense')}>Equipe Defesa</button></div>
    <section className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3"><div className="grid grid-cols-5 gap-1">{[1,2,3,4,5].map(n=><HeroSlot key={n} slot={n} hero={current.find(x=>Number(x.slot)===n)} onClick={()=>setSlot(n)}/>)}</div><p className="mt-2 text-[9px] text-slate-400">{current.length}/5 heróis · ATK {current.reduce((s,h)=>s+h.finalAtk,0).toLocaleString()} · HP {current.reduce((s,h)=>s+h.finalHp,0).toLocaleString()}</p></section>
    <button type="button" disabled={search.isPending||data.attackTeam.length===0} onClick={()=>search.mutate()} className="mt-3 w-full rounded-2xl bg-gradient-to-b from-amber-300 to-orange-500 py-4 text-sm font-black text-black disabled:grayscale disabled:opacity-40"><Search className="mr-2 inline h-4 w-4"/>{search.isPending?'PROCURANDO...':'PROCURAR JOGADORES'}</button>
