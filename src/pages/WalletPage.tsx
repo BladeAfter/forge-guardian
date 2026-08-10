@@ -144,6 +144,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         <input type="number" min="0.01" step="0.01" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label="Quantidade de TON" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
         <Result label="Você receberá" value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
         <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending}>{deposit.isPending ? 'ABRINDO CARTEIRA...' : 'DEPOSITAR TON'}</Primary>
+        <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
+          {verify.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — VERIFICAR DEPÓSITO'}
+        </button>
       </Panel>
 
       <Panel title="SACAR FC" icon={<ArrowUpFromLine />}>
