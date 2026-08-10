@@ -9,6 +9,7 @@ import { coin } from '../gameAssets';
 import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
 import { createDepositIntent, createEggTonOrder, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { usePetDashboard, useWalletSummary } from '../hooks';
+import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
   game: GameState;
