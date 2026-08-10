@@ -427,6 +427,7 @@ async function module(ctx: Ctx, name: string) {
             ...viewButtons,
             [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
             [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
+            [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
@@ -534,6 +535,135 @@ function connectedWalletsText(items: any[]) {
   return `💳 <b>CONNECTED WALLETS</b>\nCarteiras TON vinculadas aos jogadores.\n\n${list}`;
 }
 
+// ---------------------------------------------------------------- payout announcements (payments channel)
+// The receipt must be posted by the MYTHREON game bot, so the game token comes first.
+const GAME_BOT_TOKEN = (Deno.env.get('TELEGRAM_BOT_TOKEN_GAME') || Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || BOT_TOKEN).trim();
+
+async function tgAs(token: string, method: string, payload: Record<string, unknown>) {
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  const body = await res.json().catch(() => null) as any;
+  if (!res.ok || !body?.ok) {
+    const reason = body?.description || `http_${res.status}`;
+    console.error(`payments channel ${method} failed: ${reason}`);
+    return { ok: false as const, error: String(reason) };
+  }
+  return { ok: true as const, result: body.result };
+}
+
+const fmtEn = (n: unknown) => Number(n ?? 0).toLocaleString('en-US');
+const shortHash = (h: string) => (h.length > 16 ? `${h.slice(0, 6)}...${h.slice(-6)}` : h);
+
+function payoutMessage(p: any) {
+  const hash = String(p.txHash || '');
+  const date = new Date(String(p.paidAt)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const player = p.username ? `@${esc(p.username)}` : `Telegram ID: <code>${esc(String(p.telegramId ?? '—'))}</code>`;
+  return [
+    '✅ <b>FC Coins Withdrawal Successful!</b>', '',
+    `🚀 Amount: <b>${fmtEn(p.amountFc)} FC</b>`, '',
+    `💵 TON Value: <b>${Number(p.amountTon ?? 0).toFixed(6)} TON</b>`, '',
+    `🔗 TxID: <a href="https://tonviewer.com/transaction/${encodeURIComponent(hash)}">${esc(shortHash(hash))}</a>`, '',
+    `👤 Player: ${player}`, '',
+    `🕒 Date: ${esc(date)}`,
+  ].join('\n');
+}
+
+function payoutKeyboard(appLink?: string | null, newsUrl?: string | null) {
+  const rows: { text: string; url: string }[][] = [];
+  const app = String(appLink || 'https://t.me/Mythreonbot/app');
+  if (app) rows.push([{ text: '🎮 PLAY GAME', url: app }]);
+  if (newsUrl) rows.push([{ text: '📢 NEWS CHANNEL', url: String(newsUrl) }]);
+  return rows.length ? { inline_keyboard: rows } : undefined;
+}
+
+/**
+ * Publishes the receipt for one completed withdrawal. Fully idempotent: the database claim
+ * refuses a second post for the same withdrawal and stores the channel message id.
+ */
+async function announcePayout(adminId: number, withdrawalId: string): Promise<{ status: 'sent' | 'skipped' | 'failed'; detail: string }> {
+  let claim: any;
+  try {
+    claim = await rpc('admin_payout_announcement_claim', { p_admin_id: adminId, p_withdrawal_id: withdrawalId });
+  } catch (error) {
+    return { status: 'failed', detail: error instanceof Error ? error.message : 'claim_failed' };
+  }
+  if (claim?.skip) return { status: 'skipped', detail: String(claim.skip) };
+  if (claim?.enabled === false) return { status: 'skipped', detail: 'channel_disabled' };
+  const chatId = String(claim.channelId || '').trim();
+  if (!chatId) {
+    await rpc('admin_payout_announcement_record', { p_admin_id: adminId, p_withdrawal_id: withdrawalId, p_status: 'failed', p_error: 'channel_not_configured' });
+    return { status: 'failed', detail: 'channel_not_configured' };
+  }
+  const sent = await tgAs(GAME_BOT_TOKEN, 'sendMessage', {
+    chat_id: chatId, text: payoutMessage(claim), parse_mode: 'HTML',
+    disable_web_page_preview: true, reply_markup: payoutKeyboard(claim.appLink, claim.newsUrl),
+  });
+  if (!sent.ok) {
+    await rpc('admin_payout_announcement_record', { p_admin_id: adminId, p_withdrawal_id: withdrawalId, p_status: 'failed', p_channel_id: chatId, p_error: sent.error });
+    return { status: 'failed', detail: sent.error };
+  }
+  await rpc('admin_payout_announcement_record', {
+    p_admin_id: adminId, p_withdrawal_id: withdrawalId, p_status: 'sent',
+    p_channel_id: chatId, p_message_id: Number(sent.result?.message_id) || null,
+  });
+  return { status: 'sent', detail: String(sent.result?.message_id ?? '') };
+}
+
+function payoutOverviewText(d: any) {
+  const items = (d.items as any[] || []).map((i) => {
+    const icon = i.status === 'sent' ? '✅' : i.status === 'failed' ? '⚠️' : '🕒';
+    return `${icon} <code>${esc(String(i.withdrawal_id).slice(0, 8))}</code> | ${i.player ? '@' + esc(i.player) : '—'} | ${fmtEn(i.amount_fc)} FC · ${Number(i.amount_ton ?? 0).toFixed(6)} TON`
+      + `\n   ${i.status === 'sent' ? `msg <code>${esc(String(i.message_id ?? '—'))}</code>` : esc(i.last_error || 'aguardando envio')}`;
+  }).join('\n') || '—';
+  return [
+    '📢 <b>PAYOUT ANNOUNCEMENTS</b>', '',
+    `Channel:\n<code>${esc(d.channelId || 'NÃO CONFIGURADO')}</code>`,
+    `Status: <b>${d.channelId ? 'Connected' : 'Error'}</b>${d.enabled === false ? ' (envio desativado)' : ''}`,
+    `Pendentes/falhos: <b>${(d.pending || []).length}</b>`, '',
+    items,
+  ].join('\n');
+}
+
+async function payoutMenu(ctx: Ctx, editing = true) {
+  const d = await rpc('admin_payout_announcements', { p_admin_id: ctx.adminId, p_limit: 8 });
+  const markup = kb([
+    [{ t: '📄 LAST PAYOUTS', d: 'pa:list' }],
+    [{ t: '♻️ RETRY FAILED', d: 'pa:retry' }],
+    [{ t: '🧪 SEND TEST MESSAGE', d: 'pa:test' }],
+    [{ t: '⚙️ CHANNEL SETTINGS', d: 'ask:pachat' }],
+    nav('m:wallet'),
+  ]);
+  const text = payoutOverviewText(d);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function handlePayoutAnnouncements(ctx: Ctx, action: string) {
+  if (action === 'list' || action === 'menu') return payoutMenu(ctx);
+  if (action === 'test') {
+    const d = await rpc('admin_payout_announcements', { p_admin_id: ctx.adminId, p_limit: 1 });
+    const chatId = String(d.channelId || '').trim();
+    if (!chatId) return send(ctx, '⚠️ Canal de pagamentos não configurado. Use CHANNEL SETTINGS.', kb([[{ t: '⚙️ CHANNEL SETTINGS', d: 'ask:pachat' }], nav('m:wallet')]));
+    const member = await tgAs(GAME_BOT_TOKEN, 'getChat', { chat_id: chatId });
+    if (!member.ok) return send(ctx, `❌ <b>Erro administrativo</b>\nO bot do jogo não acessa o canal <code>${esc(chatId)}</code>.\nMotivo: <code>${esc(member.error)}</code>\n\nAdicione o bot ao canal como administrador com permissão de postar.`, kb([[{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }], nav('m:wallet')]));
+    const res = await tgAs(GAME_BOT_TOKEN, 'sendMessage', { chat_id: chatId, text: '✅ <b>Mythreon Payments Channel Connected</b>', parse_mode: 'HTML' });
+    return send(ctx, res.ok ? `✅ Mensagem de teste publicada no canal <code>${esc(chatId)}</code>.` : `❌ Falha ao publicar: <code>${esc(res.error)}</code>\nVerifique se o bot é administrador com permissão de envio.`,
+      kb([[{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }], nav('m:wallet')]));
+  }
+  if (action === 'retry') {
+    const d = await rpc('admin_payout_announcements', { p_admin_id: ctx.adminId, p_limit: 30 });
+    const pending: string[] = (d.pending as string[]) || [];
+    if (!pending.length) return send(ctx, '✅ Nenhum comprovante pendente.', kb([[{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }], nav('m:wallet')]));
+    const results: string[] = [];
+    for (const id of pending.slice(0, 10)) {
+      const r = await announcePayout(ctx.adminId, id);
+      results.push(`${r.status === 'sent' ? '✅' : r.status === 'skipped' ? '🚫' : '⚠️'} <code>${esc(id.slice(0, 8))}</code> ${esc(r.detail)}`);
+    }
+    return send(ctx, `♻️ <b>RETRY FAILED</b>\n\n${results.join('\n')}`, kb([[{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }], nav('m:wallet')]));
+  }
+  return payoutMenu(ctx);
+}
+
 async function resolveWithdrawalId(ref: string): Promise<string | null> {
   const value = String(ref || '').trim();
   if (!value) return null;
@@ -541,6 +671,7 @@ async function resolveWithdrawalId(ref: string): Promise<string | null> {
   if (!data?.length || data.length > 1) return null;
   return data[0].id as string;
 }
+
 
 /** Full detail card: shows the destination wallet in full, never truncated. */
 async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
@@ -574,6 +705,7 @@ async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
   if (!closed && w.walletAddress) rows.push([{ t: '💎 PAY WITHDRAWAL', d: `wdpay:${w.id}` }]);
   if (!closed) rows.push([{ t: '✅ MARK AS PAID', d: `wdmk:${w.id}` }, { t: '❌ REJECT', d: `wdrj:${w.id}` }]);
   if (status === 'processing' || status === 'approved') rows.push([{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${w.id}` }]);
+  if (done && w.txHash) rows.push([{ t: '📢 PUBLICAR COMPROVANTE', d: `pasend:${w.id}` }]);
   rows.push([{ t: '⬅️ BACK', d: 'm:wallet' }, { t: '🏠 Menu', d: 'home' }]);
   const markup = kb(rows);
   return editing ? edit(ctx, lines.join('\n'), markup) : send(ctx, lines.join('\n'), markup);
@@ -636,6 +768,7 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  pachat: 'Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.',
   passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
   channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"chat_ref":"-1001234567890","reward_fc":5000,"enabled":true}</code>\n\nO <b>chat_ref</b> é o ID numérico (ou @publico) do canal; sem ele o jogo não consegue verificar a participação.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
@@ -694,6 +827,13 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
   // withdrawals: every financial action is resolved by withdrawal_id, never by username.
+  if (head === 'pa') { await clearSession(ctx); return handlePayoutAnnouncements(ctx, rest[0] || 'menu'); }
+  if (head === 'pasend') {
+    await clearSession(ctx);
+    const r = await announcePayout(ctx.adminId, rest.join(':'));
+    await send(ctx, r.status === 'sent' ? '📢 Comprovante publicado no canal de pagamentos.' : r.status === 'skipped' ? `🚫 Não publicado: <code>${esc(r.detail)}</code>` : `⚠️ Falha: <code>${esc(r.detail)}</code>`);
+    return withdrawalCard(ctx, rest.join(':'), false);
+  }
   if (['wd', 'wdcp', 'wdpay', 'wdgo', 'wdmk', 'wdfail', 'wdrj', 'wdrjgo'].includes(head)) {
     await clearSession(ctx);
     return handleWithdrawal(ctx, head, rest.join(':'));
@@ -1184,9 +1324,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const hash = text.split(/\s+/)[0];
       if (!hash || hash.length < 8) throw new Error('KEEP_SESSION::⚠️ Hash inválido. Envie o hash completo da transação TON.');
       await rpc('admin_withdrawal_mark_paid', { p_admin_id: ctx.adminId, p_withdrawal_id: id, p_tx_hash: hash });
-      await send(ctx, '✅ Saque marcado como <b>PAID</b>.');
+      // Receipt goes to the payments channel automatically; a failure never reverts the payout.
+      const posted = await announcePayout(ctx.adminId, id);
+      await send(ctx, `✅ Saque marcado como <b>PAID</b>.\n${posted.status === 'sent' ? '📢 Comprovante publicado no canal de pagamentos.' : posted.status === 'skipped' ? `🚫 Comprovante não publicado (${esc(posted.detail)}).` : `⚠️ Falha ao publicar o comprovante: <code>${esc(posted.detail)}</code> — use RETRY FAILED.`}`);
       return withdrawalCard(ctx, id, false);
     }
+    case 'pachat': {
+      const chat = text.trim().split(/\s+/)[0];
+      if (!/^-?\d{5,}$|^@[\w]{4,}$/.test(chat)) throw new Error('KEEP_SESSION::⚠️ Envie o chat id numérico (ex.: <code>-1004303374351</code>) ou @canalpublico.');
+      await rpc("admin_set_setting", { p_admin_id: ctx.adminId, p_key: "payments_channel_chat_id", p_value: chat });
+      await send(ctx, `✅ Canal de pagamentos salvo: <code>${esc(chat)}</code>`);
+      return payoutMenu(ctx, false);
+    }
+
     case 'findwallet': {
       const d = await rpc('admin_connected_wallets', { p_admin_id: ctx.adminId, p_query: text, p_limit: 12 });
       if (!d.items?.length) throw new Error('KEEP_SESSION::⚠️ Nenhuma carteira encontrada. Tente Telegram ID, @usuário, nome, endereço TON ou ID interno.');

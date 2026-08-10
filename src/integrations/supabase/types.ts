@@ -1028,6 +1028,53 @@ export type Database = {
           },
         ]
       }
+      payout_announcements: {
+        Row: {
+          attempts: number
+          channel_id: string | null
+          created_at: string
+          last_error: string | null
+          message_id: number | null
+          sent_at: string | null
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          withdrawal_id: string
+        }
+        Insert: {
+          attempts?: number
+          channel_id?: string | null
+          created_at?: string
+          last_error?: string | null
+          message_id?: number | null
+          sent_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          withdrawal_id: string
+        }
+        Update: {
+          attempts?: number
+          channel_id?: string | null
+          created_at?: string
+          last_error?: string | null
+          message_id?: number | null
+          sent_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          withdrawal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_announcements_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: true
+            referencedRelation: "wallet_withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_action_idempotency: {
         Row: {
           action: string
@@ -3889,6 +3936,25 @@ export type Database = {
         Returns: Json
       }
       admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_payout_announcement_claim: {
+        Args: { p_admin_id: number; p_withdrawal_id: string }
+        Returns: Json
+      }
+      admin_payout_announcement_record: {
+        Args: {
+          p_admin_id: number
+          p_channel_id?: string
+          p_error?: string
+          p_message_id?: number
+          p_status: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
+      admin_payout_announcements: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
       admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
       admin_player_detail: {
         Args: { p_admin_id: number; p_ref: string }
