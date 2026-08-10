@@ -3,6 +3,7 @@ import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
+import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
@@ -88,6 +89,8 @@ function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
+  const passRecoveryRef = useRef(false);
+
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const [activePage,setActivePage]=useState<InternalPage|null>(internalFromPath);
   const [calendarResult,setCalendarResult]=useState<CalendarClaimResult|null>(null);
@@ -225,6 +228,27 @@ function App() {
       })
       .catch(() => undefined);
   }, [backendEnabled, telegramInitData, queryClient]);
+
+  // Battle pass payments made with the app closed are activated here, exactly once per session.
+  useEffect(() => {
+    if (!backendEnabled || !telegramInitData || passRecoveryRef.current) return;
+    passRecoveryRef.current = true;
+    reconcilePendingPassPurchases(telegramInitData)
+      .then(async (verification) => {
+        const activated = activatedPass(verification);
+        if (!activated) return;
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['season-pass'] }),
+          queryClient.invalidateQueries({ queryKey: ['season-pass-profile'] }),
+          queryClient.invalidateQueries({ queryKey: ['community-pool'] }),
+          queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
+        ]);
+        toast.success(`${passTierLabel(activated.tier)} ATIVO!`);
+      })
+      .catch(() => undefined);
+  }, [backendEnabled, telegramInitData, queryClient]);
+
+
 
   useEffect(() => {
     let cancelled = false;

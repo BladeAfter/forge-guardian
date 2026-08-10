@@ -4316,7 +4316,7 @@ export type Database = {
       }
       confirm_season_pass_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
-        Returns: undefined
+        Returns: Json
       }
       confirm_wallet_deposit: {
         Args: { p_amount_nano: string; p_deposit_id: string; p_tx_hash: string }
@@ -4517,6 +4517,10 @@ export type Database = {
         Returns: Json
       }
       pending_pet_egg_orders: { Args: { p_telegram_id: number }; Returns: Json }
+      pending_season_pass_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_hatch_result_json: {
