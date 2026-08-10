@@ -699,7 +699,8 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const text = input.trim();
 
   switch (key) {
-    case 'find': return playerCard(ctx, text);
+    case 'find': return playerSearch(ctx, text, 0);
+    case 'passuser': return passCard(ctx, text);
     case 'tree': return handleCallback(ctx, `tree:${text}`);
     case 'bal': {
       const [cur, mode, user] = args;
