@@ -8,7 +8,7 @@ import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
 import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
-import { eggPurchaseStatusLabel, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
+import { eggPurchaseStatusLabel, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
@@ -195,7 +195,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         <Primary onClick={() => withdrawal.mutate()} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
       </Panel>
 
-      {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{egg.priceTon} TON</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR POR {egg.priceTon} TON</button></div>)}</div>
+      {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR · {formatEggPrice(egg)}</button></div>)}</div>
         <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
           {reconcile.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — RECEBER MEU OVO'}
         </button></Panel> : null}

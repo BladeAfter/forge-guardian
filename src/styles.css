@@ -333,16 +333,7 @@ button {
 @keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}@keyframes eggRise{from{opacity:0;transform:translateY(120px) scale(.6)}to{opacity:1;transform:none}}@keyframes eggFloat{0%,100%{transform:translateY(-8px)}50%{transform:translateY(8px)}}@keyframes eggShake{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-4px) rotate(-2deg)}40%{transform:translateX(5px) rotate(2deg)}60%{transform:translateX(-6px) rotate(-3deg)}80%{transform:translateX(6px) rotate(3deg)}}@keyframes drawCracks{to{stroke-dashoffset:0}}@keyframes crackPulse{50%{filter:drop-shadow(0 0 14px var(--pet-primary));opacity:.65}}@keyframes lightBurst{0%{opacity:0;transform:scale(1)}35%{opacity:1}100%{opacity:0;transform:scale(65)}}@keyframes rarityPulse{50%{opacity:.65;scale:1.08}}@keyframes creatureReveal{0%{opacity:0;filter:brightness(0) drop-shadow(0 0 40px var(--pet-primary));transform:translateY(30px) scale(.72)}45%{opacity:1;filter:brightness(0) drop-shadow(0 0 45px var(--pet-primary))}100%{filter:brightness(1) drop-shadow(0 24px 24px #000) drop-shadow(0 0 32px var(--pet-glow));transform:none}}@keyframes textReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes particleFly{0%{opacity:0;transform:rotate(var(--particle-angle)) translateY(35px) scale(.5)}25%{opacity:1}100%{opacity:0;transform:rotate(var(--particle-angle)) translateY(var(--particle-distance)) scale(1.4)}}@keyframes resultCardEnter{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.pet-egg-overlay *{animation-duration:.2s!important;animation-iteration-count:1!important}.pet-egg-particles{display:none}.pet-light-burst{display:none}}
 
-div:has(> img[src*="/pet-eggs/common-egg.webp"]) h3::after,
-div:has(> img[src*="/pet-eggs/rare-egg.webp"]) h3::after,
-div:has(> img[src*="/pet-eggs/epic-egg.webp"]) h3::after,
-div:has(> img[src*="/pet-eggs/dragon-egg.webp"]) h3::after,
-div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) h3::after { display: block; margin-top: 3px; font-size: 10px; font-weight: 900; color: #fde68a; }
-div:has(> img[src*="/pet-eggs/common-egg.webp"]) h3::after { content: "25.000 FC"; }
-div:has(> img[src*="/pet-eggs/rare-egg.webp"]) h3::after { content: "100.000 FC"; }
-div:has(> img[src*="/pet-eggs/epic-egg.webp"]) h3::after { content: "3 TON"; color: #d8b4fe; }
-div:has(> img[src*="/pet-eggs/dragon-egg.webp"]) h3::after { content: "10 TON · LOJA PREMIUM"; color: #fbbf24; }
-div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) h3::after { content: "EVENTO EXCLUSIVO"; color: #fca5a5; }
+/* Prices/labels are rendered by React from the backend catalog (single source of truth). */
 div:has(> img[src*="/pet-eggs/rare-egg.webp"]) { border-color: rgba(96,165,250,.55) !important; box-shadow: 0 0 24px rgba(37,99,235,.24); }
 div:has(> img[src*="/pet-eggs/epic-egg.webp"]) { border-color: rgba(192,132,252,.62) !important; box-shadow: 0 0 28px rgba(147,51,234,.28); }
 div:has(> img[src*="/pet-eggs/dragon-egg.webp"]) { border-color: rgba(251,191,36,.7) !important; box-shadow: 0 0 30px rgba(245,158,11,.32); }

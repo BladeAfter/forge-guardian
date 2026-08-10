@@ -18,6 +18,16 @@ export type EggPurchaseOutcome = {
 
 export type EggPurchaseVerification = { checked: number; completed: string[]; pending: string[]; results: EggPurchaseOutcome[] };
 
+/**
+ * The ONE egg price formatter. An egg is priced in FC *or* in TON — never both, never twice.
+ * When neither price exists the egg is not for sale and we show its availability label instead.
+ */
+export function formatEggPrice(egg: { priceFc?: number | null; priceTon?: number | null; availabilityLabel?: string | null }): string {
+  if (egg.priceFc) return `${new Intl.NumberFormat('pt-BR').format(egg.priceFc)} FC`;
+  if (egg.priceTon) return `${egg.priceTon} TON`;
+  return egg.availabilityLabel || 'Evento exclusivo';
+}
+
 type SendTon = (tx: { validUntil: number; messages: Array<{ address: string; amount: string; payload?: string }> }) => Promise<unknown>;
 
 /**
