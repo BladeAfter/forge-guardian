@@ -68,15 +68,63 @@ async function edit(ctx: Ctx, text: string, markup?: unknown) {
   if (!ctx.messageId) return send(ctx, text, markup);
   await tg('editMessageText', { chat_id: ctx.chatId, message_id: ctx.messageId, text, parse_mode: 'HTML', reply_markup: markup });
 }
-/** Stateless prompt: the next reply carries the pending command inside the quoted message. */
+// ---------------------------------------------------------------- conversation state (persisted: serverless-safe)
+// Edge functions are stateless per request, so pending admin actions live in the database,
+// keyed by (admin_telegram_id, chat_id) and expiring after 15 minutes.
+const SESSION_TTL_MS = 15 * 60 * 1000;
+
+type AdminSession = { action: string; step: string; context: Record<string, unknown> };
+
+async function getSession(ctx: Ctx): Promise<AdminSession | null> {
+  const { data, error } = await db
+    .from('admin_bot_sessions')
+    .select('action, step, context, expires_at')
+    .eq('admin_telegram_id', ctx.adminId)
+    .eq('chat_id', ctx.chatId)
+    .maybeSingle();
+  if (error) { console.error('session read failed:', error.message); return null; }
+  if (!data) return null;
+  if (new Date(data.expires_at).getTime() < Date.now()) { await clearSession(ctx); return null; }
+  return { action: data.action, step: data.step || 'awaiting_input', context: (data.context || {}) as Record<string, unknown> };
+}
+
+async function setSession(ctx: Ctx, action: string, step = 'awaiting_input', context: Record<string, unknown> = {}) {
+  const { error } = await db.from('admin_bot_sessions').upsert({
+    admin_telegram_id: ctx.adminId,
+    chat_id: ctx.chatId,
+    action,
+    step,
+    context,
+    updated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+  }, { onConflict: 'admin_telegram_id,chat_id' });
+  if (error) console.error('session write failed:', error.message);
+}
+
+async function clearSession(ctx: Ctx) {
+  const { error } = await db.from('admin_bot_sessions').delete()
+    .eq('admin_telegram_id', ctx.adminId).eq('chat_id', ctx.chatId);
+  if (error) console.error('session clear failed:', error.message);
+}
+
+/** Prompt: persists the pending action so the next plain text reply is executed. */
 async function ask(ctx: Ctx, cmd: string, question: string) {
+  await setSession(ctx, cmd, 'awaiting_input');
   await tg('sendMessage', {
     chat_id: ctx.chatId,
-    text: `${question}\n\n<code>#${cmd}</code>`,
+    text: `${question}\n\n<i>Responda com o valor nesta conversa. Toque em ❌ CANCELAR para sair.</i>`,
     parse_mode: 'HTML',
-    reply_markup: { force_reply: true, input_field_placeholder: 'Digite o valor' },
+    reply_markup: kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]),
   });
 }
+
+/** Accepts 20, 20.5 and 20,5 — returns NaN for anything else. */
+function parseAmount(raw: string): number {
+  const cleaned = String(raw).trim().replace(/\s/g, '').replace(',', '.');
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return NaN;
+  return Number(cleaned);
+}
+
 
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
