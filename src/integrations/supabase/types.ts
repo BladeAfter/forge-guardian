@@ -4300,6 +4300,10 @@ export type Database = {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: undefined
       }
+      confirm_pet_egg_purchase: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
       confirm_season_pass_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: undefined
@@ -4501,6 +4505,7 @@ export type Database = {
         Args: { p_item_id: string; p_telegram_id: number }
         Returns: Json
       }
+      pending_pet_egg_orders: { Args: { p_telegram_id: number }; Returns: Json }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_hatch_result_json: {

@@ -436,6 +436,65 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   return { checked: deposits.length, confirmed, alreadyCredited, pending: stillPending, summary };
 }
 
+
+/** Reads the configured hot wallet address (settings first, env as fallback). */
+async function hotWalletAddress(db: Db): Promise<string> {
+  const settings = await db.from('wallet_settings').select('value_text').eq('key', 'ton_hot_wallet').maybeSingle();
+  if (settings.error) throw new Error(settings.error.message);
+  const hotWallet = String(settings.data?.value_text || Deno.env.get('TON_HOT_WALLET') || '').trim();
+  if (!hotWallet) throw new Error('A carteira de recebimento não está configurada.');
+  return hotWallet;
+}
+
+/**
+ * Single reconciler for TON premium egg purchases (wallet tab and pet shop share it).
+ * A purchase is NOT a deposit: nothing is credited as FC — the paid egg is hatched at once.
+ */
+async function verifyEggPurchases(db: Db, user: TelegramUser) {
+  const orders = await rpc(db, 'pending_pet_egg_orders', { p_telegram_id: user.id }) as any[];
+  if (!Array.isArray(orders) || !orders.length) return { checked: 0, completed: [], pending: [], results: [] as any[] };
+
+  const hotWallet = await hotWalletAddress(db);
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const completed: string[] = [];
+  const stillPending: string[] = [];
+  const results: any[] = [];
+
+  for (const order of orders) {
+    const comment = String(order.paymentComment || '').trim();
+    const expectedNano = BigInt(String(order.amountNano || '0'));
+    const createdAt = new Date(String(order.createdAt)).getTime();
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      // 1% tolerance covers sender-side fee rounding.
+      return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 99n) / 100n;
+    }) ?? transactions.find((tx: any) => {
+      // Legacy orders were paid without a comment: match the exact value inside this order's time window only.
+      const inMsg = tx?.in_msg;
+      if (!inMsg || msgComment(inMsg)) return false;
+      const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
+      return BigInt(String(inMsg.value ?? '0')) === expectedNano && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
+    });
+    if (!match) { stillPending.push(order.id); continue; }
+    const txHash = String(match.hash || match.in_msg?.hash || '');
+    try {
+      // The database is the only place that can turn a paid order into a pet (idempotent).
+      const outcome = await rpc(db, 'confirm_pet_egg_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: order.amountNano }) as any;
+      results.push({ ...outcome, eggName: order.eggName, priceTon: order.priceTon });
+      completed.push(order.id);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error('[FORGE ERROR] egg-purchase-confirm', { orderId: order.id, reason });
+      if (reason.includes('TX_ALREADY_USED')) stillPending.push(order.id);
+      else throw error;
+    }
+  }
+
+  const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
+  return { checked: orders.length, completed, pending: stillPending, results, summary };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
   if (hotWallet) {
@@ -444,6 +503,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   }
   const action = String(body.action || 'summary');
   if (action === 'verify-deposit') return await verifyPendingDeposits(db, user);
+  if (action === 'verify-egg-purchases') return await verifyEggPurchases(db, user);
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'deposit') {

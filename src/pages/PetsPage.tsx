@@ -4,7 +4,8 @@ import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
-import { createEggTonOrder, petRequest } from '../services';
+import { petRequest } from '../services';
+import { hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
@@ -57,13 +58,21 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         await tonUI.openModal();
         throw new Error('Conecte sua carteira TON e tente novamente.');
       }
-      const order = await createEggTonOrder(telegramInitData, egg.id, crypto.randomUUID());
-      await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: order.paymentAddress, amount: order.amountNano }] });
-      return order;
+      const order = await purchasePremiumEgg({ telegramInitData, eggId: egg.id, source: 'pet_shop', sendTransaction: (tx) => tonUI.sendTransaction(tx) });
+      const verification = await waitForEggPurchase(telegramInitData);
+      return { order, verification, egg };
     },
-    onSuccess: () => {
+    onSuccess: async ({ verification, egg }) => {
       setEggTarget(null);
-      toast.success('Pagamento enviado! O ovo será entregue após a confirmação na blockchain.');
+      const hatched = hatchedPurchase(verification);
+      if (!hatched?.result) { toast('Pagamento enviado. Estamos confirmando na blockchain — o ovo abre automaticamente.'); return; }
+      const dashboard = (hatched.dashboard ?? data) as PetDashboard | undefined;
+      if (dashboard) await sync(dashboard);
+      setReveal({
+        result: { ...hatched.result, rarity: hatched.result.rarity as PetRarity },
+        eggImage: egg.image,
+        pet: dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId || pet.name === hatched.result?.name),
+      });
     },
     onError: (tonError) => toast.error(tonError instanceof Error ? tonError.message : 'Falha ao pagar com TON.'),
   });
