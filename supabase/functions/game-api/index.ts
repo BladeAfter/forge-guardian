@@ -125,19 +125,24 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
   const action = String(body.action || 'process');
   // Hero shop pricing/odds are admin-controlled settings, read live on every open.
   if (action === 'shop') return await rpc(db, 'get_hero_shop_config', {});
+  // Team management (equip/unequip/team) never requires an active boss; only `attack` does.
   const fn = action === 'equip' ? 'equip_combat_hero'
+    : action === 'unequip' ? 'unequip_combat_hero'
     : action === 'team' ? 'set_boss_team'
     : action === 'claim' ? 'claim_boss_reward'
     : action === 'recruit' ? 'recruit_heroes'
+    : action === 'attack' ? 'attack_boss'
     : action === 'get' ? 'get_boss_combat'
     : 'process_boss_combat';
   const args: Record<string, unknown> = { p_telegram_id: user.id };
-  if (action === 'equip') {
+  if (action === 'equip' || action === 'unequip') {
     const slot = Number(body.slot);
     if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('Slot inválido.');
+    args.p_slot = slot;
+  }
+  if (action === 'equip') {
     if (!isUuid(body.hero_id)) throw new Error('Herói inválido.');
     args.p_hero_id = body.hero_id;
-    args.p_slot = slot;
   }
   if (action === 'team') args.p_hero_ids = Array.isArray(body.heroIds) ? body.heroIds : [];
   if (action === 'recruit') args.p_count = Number(body.count);

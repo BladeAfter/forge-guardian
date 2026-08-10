@@ -256,9 +256,13 @@ async function module(ctx: Ctx, name: string) {
     }
     case 'boss': {
       const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
-      return edit(ctx, `👑 <b>BOSS</b>\n${d.templates.map((b: any) => `• <code>${esc(b.code)}</code> ${esc(b.name)} NV${b.level} — ${fmt(b.max_hp)} HP · ATK ${fmt(b.attack)} · 🎁 ${fmt(b.reward_amount)} ${b.active ? '🟢' : '⚪'}`).join('\n')}\nCombates ativos: ${fmt(d.active_combats)}\n\n<b>Top dano</b>\n${d.top_damage.map((t: any) => `• ${esc(t.name)} — ${fmt(t.damage)}`).join('\n') || '—'}`,
-        kb([[{ t: '✏️ CRIAR/EDITAR', d: 'ask:boss' }], [{ t: '⚡ SPAWN', d: 'ask:bossspawn' }],
-            [{ t: '🛑 ENCERRAR', d: 'confirm:bossend' }, { t: '❤️ RESETAR HP', d: 'confirm:bosshp' }], nav()]));
+      const b = d.boss;
+      const when = (v: any) => (v ? esc(new Date(v).toLocaleString('pt-BR')) : '—');
+      return edit(ctx, `👹 <b>BOSS ATUAL</b>\nStatus: ${d.active ? '🟢 ATIVO' : '🔴 INATIVO'}\nBoss: <b>${b ? esc(b.name) : '—'}</b>\nHP: ${b ? `${fmt(d.currentHp ?? b.maxHp)} / ${fmt(d.maxHp || b.maxHp)}` : '—'}\nInício: ${when(b?.startsAt)}\nFim: ${when(b?.endsAt)}\nDuração: ${b ? `${Math.round((b.durationSeconds ?? 0) / 3600)}h` : '—'}\n🎁 Recompensa: ${b ? `${fmt(b.reward)} FC` : '—'}\nParticipantes: ${fmt(d.participants ?? 0)}\nDano total: ${fmt(d.totalDamage ?? 0)}\n\n<b>Chefes</b>\n${d.templates.map((t: any) => `• <code>${esc(t.code)}</code> ${esc(t.name)} NV${t.level} — ${fmt(t.maxHp)} HP ${t.active ? '🟢' : '⚪'}`).join('\n') || '—'}\n\n<b>Top dano</b>\n${d.top_damage.map((t: any) => `• ${esc(t.name)} — ${fmt(t.damage)}`).join('\n') || '—'}`,
+        kb([[{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }, { t: '🔴 DESATIVAR', d: 'confirm:bossend' }],
+            [{ t: '🔄 RESETAR', d: 'confirm:bosshp' }, { t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
+            [{ t: '⏱ ALTERAR DURAÇÃO', d: 'ask:bossdur' }, { t: '🎁 RECOMPENSAS', d: 'ask:bossreward' }],
+            [{ t: '👹 TROCAR BOSS', d: 'ask:bossspawn' }, { t: '✏️ CRIAR/EDITAR', d: 'ask:boss' }], nav()]));
     }
     case 'ads': {
       const d = await rpc('admin_ads_overview', { p_admin_id: ctx.adminId });
@@ -316,7 +320,10 @@ const PROMPTS: Record<string, string> = {
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   mission: 'Envie: <code>code {json}</code> — ex.: <code>daily_pvp_wins {"title":"Vença 3 batalhas","target_amount":3,"reward_amount":4000,"enabled":true}</code>',
   boss: 'Envie: <code>code {json}</code> — ex.: <code>golem_ancestral {"name":"Golem","max_hp":50000,"attack":300,"reward_amount":9000}</code>',
-  bossspawn: 'Envie o <code>code</code> do chefe para spawnar.',
+  bossspawn: 'Envie o <code>code</code> do chefe para ativar (ex.: <code>golem_ancestral</code>).',
+  bosshpval: 'Envie: <code>code hp</code> — ex.: <code>golem_ancestral 50000</code>',
+  bossdur: 'Envie: <code>code horas</code> — ex.: <code>golem_ancestral 24</code>',
+  bossreward: 'Envie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>',
   ads: 'Envie: <code>code {json}</code> — ex.: <code>adsgram {"enabled":true,"daily_limit":15,"reward_fc":800}</code>',
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward: 'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
@@ -628,7 +635,27 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'league': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_league', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Liga salva: ${esc(r.name)} (${r.min_trophies}–${r.max_trophies ?? '∞'})`, MAIN_MENU); }
     case 'mission': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_mission', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Missão salva: ${esc(r.title)}`, MAIN_MENU); }
     case 'boss': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_boss', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Chefe salvo: ${esc(r.name)} — ${fmt(r.max_hp)} HP`, MAIN_MENU); }
-    case 'bossspawn': { const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'spawn', p_code: text, p_reason: 'spawn manual' }); return send(ctx, `⚡ Chefe <b>${esc(text)}</b> ativado (${r.affected} combates reiniciados).`, MAIN_MENU); }
+    case 'bossspawn': {
+      const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'activate', p_code: text.trim(), p_reason: 'ativação manual' });
+      const ends = r.endsAt ? new Date(r.endsAt).toLocaleString('pt-BR') : '—';
+      return send(ctx, `✅ <b>BOSS ATIVADO</b>\n👹 ${esc(r.name ?? text)}\n❤️ HP: ${fmt(r.maxHp ?? 0)}\n⏱ Duração: ${Math.round((r.durationSeconds ?? 0) / 3600)}h\n📅 Final: ${esc(ends)}`, kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    }
+    case 'bosshpval': {
+      const [code, hp] = text.trim().split(/\s+/);
+      const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'set_hp', p_code: code, p_reason: `HP alterado para ${hp}`, p_value: Number(hp) });
+      return send(ctx, `❤️ HP de <b>${esc(r.name ?? code)}</b> definido para ${fmt(Number(hp))}.`, kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    }
+    case 'bossdur': {
+      const [code, hours] = text.trim().split(/\s+/);
+      const seconds = Math.round(Number(hours) * 3600);
+      const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'set_duration', p_code: code, p_reason: `duração ${hours}h`, p_value: seconds });
+      return send(ctx, `⏱ Duração de <b>${esc(r.name ?? code)}</b>: ${hours}h · fim ${esc(r.endsAt ? new Date(r.endsAt).toLocaleString('pt-BR') : '—')}`, kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    }
+    case 'bossreward': {
+      const [code, reward] = text.trim().split(/\s+/);
+      await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'set_reward', p_code: code, p_reason: `recompensa ${reward} FC`, p_value: Number(reward) });
+      return send(ctx, `🎁 Recompensa de <b>${esc(code)}</b> definida para ${fmt(Number(reward))} FC.`, kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    }
     case 'ads': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_ad_provider', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Provedor ${esc(r.name)} ${r.enabled ? 'ativo' : 'inativo'} — ${fmt(r.reward_fc)} FC`, MAIN_MENU); }
     case 'setting': { const i = text.indexOf(' '); const k = i < 0 ? text : text.slice(0, i); const v = i < 0 ? '' : text.slice(i + 1); const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ <code>${esc(k)}</code>\n${esc(JSON.stringify(r.old_value))} → <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
     case 'pvpset': { const [k, v] = text.split(/\s+/); const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ ${esc(k)}: ${esc(JSON.stringify(r.old_value))} → <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
