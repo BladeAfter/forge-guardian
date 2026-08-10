@@ -3499,6 +3499,7 @@ export type Database = {
       }
       admin_bump_settings_version: { Args: never; Returns: number }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
       admin_create_snapshot: {
         Args: { p_admin_id: number; p_label: string }
         Returns: Json
@@ -4115,6 +4116,7 @@ export type Database = {
         Args: { p_status: string; p_tx_hash?: string; p_withdrawal_id: string }
         Returns: undefined
       }
+      forge_random_seed: { Args: { p_salt?: string }; Returns: string }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -4239,6 +4241,7 @@ export type Database = {
       rarity_base_atk: { Args: { r: string }; Returns: number }
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
+      rates_allowed_rarities: { Args: { p_rates: Json }; Returns: string[] }
       record_eligible_purchase: {
         Args: {
           p_amount: number
@@ -4274,6 +4277,14 @@ export type Database = {
           p_wallet_address: string
         }
         Returns: Json
+      }
+      roll_hero_for_rarity: {
+        Args: { p_allowed: string[]; p_rarity: string }
+        Returns: Record<string, unknown>
+      }
+      roll_rarity_from_rates: {
+        Args: { p_luck?: number; p_rates: Json }
+        Returns: string
       }
       save_pvp_team_slot: {
         Args: {
