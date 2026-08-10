@@ -264,6 +264,18 @@ function App() {
     if (heroesReady) setBootStage((current) => Math.max(current, 90));
   }, [telegramInitData, playerProfileReady, game, heroesReady]);
 
+  // Gate the game on real readiness (never on the percentage), then fade the art out.
+  const appReady = !telegramBooting && Boolean(telegramInitData) && isReady && Boolean(game) && heroesReady;
+  const bootProgress = appReady ? 100 : Math.min(bootStage, 95);
+  useEffect(() => {
+    if (!appReady || bootDone) return;
+    const fadeTimer = setTimeout(() => setBootFading(true), 350);
+    const doneTimer = setTimeout(() => setBootDone(true), 900);
+    return () => { clearTimeout(fadeTimer); clearTimeout(doneTimer); };
+  }, [appReady, bootDone]);
+
+
+
 
   // The inviter id survives reloads: Telegram only delivers start_param on the first launch.
   useEffect(()=>{
