@@ -1174,12 +1174,25 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return handleCallback(ctx, `audit1:${p.telegram_id}`);
     }
     case 'wdpaid': case 'wdno': {
-      const [id, hash] = text.split(/\s+/);
-      const { data: rows } = await db.from('wallet_withdrawals').select('id').ilike('id', `${id}%`).limit(1);
-      if (!rows?.length) return send(ctx, '⚠️ Saque não encontrado.', MAIN_MENU);
-      const r = await rpc('admin_review_withdrawal', { p_admin_id: ctx.adminId, p_withdrawal_id: rows[0].id, p_status: key === 'wdpaid' ? 'paid' : 'rejected', p_tx_hash: hash ?? null, p_reason: 'painel admin' });
-      return send(ctx, `✅ Saque atualizado.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`, MAIN_MENU);
+      // Legacy prompts now open the detail card — payment/rejection always go through it.
+      const id = await resolveWithdrawalId(text.split(/\s+/)[0]);
+      if (!id) throw new Error('KEEP_SESSION::⚠️ Saque não encontrado (ou o prefixo é ambíguo). Envie mais caracteres do ID.');
+      return withdrawalCard(ctx, id, false);
     }
+    case 'wdhash': {
+      const [id] = args;
+      const hash = text.split(/\s+/)[0];
+      if (!hash || hash.length < 8) throw new Error('KEEP_SESSION::⚠️ Hash inválido. Envie o hash completo da transação TON.');
+      await rpc('admin_withdrawal_mark_paid', { p_admin_id: ctx.adminId, p_withdrawal_id: id, p_tx_hash: hash });
+      await send(ctx, '✅ Saque marcado como <b>PAID</b>.');
+      return withdrawalCard(ctx, id, false);
+    }
+    case 'findwallet': {
+      const d = await rpc('admin_connected_wallets', { p_admin_id: ctx.adminId, p_query: text, p_limit: 12 });
+      if (!d.items?.length) throw new Error('KEEP_SESSION::⚠️ Nenhuma carteira encontrada. Tente Telegram ID, @usuário, nome, endereço TON ou ID interno.');
+      return send(ctx, connectedWalletsText(d.items), kb([[{ t: '🔎 PESQUISAR', d: 'ask:findwallet' }], nav('m:wallet')]));
+    }
+
     case 'cast': {
       const seg = args[0];
       const t = await rpc('admin_broadcast_targets', { p_admin_id: ctx.adminId, p_segment: seg, p_limit: 2000 });
