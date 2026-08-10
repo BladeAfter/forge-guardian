@@ -351,6 +351,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const transactions = await fetchHotWalletIncoming(hotWallet);
   const confirmed: string[] = [];
   const stillPending: string[] = [];
+  const alreadyCredited: string[] = [];
 
   for (const deposit of deposits) {
     const comment = String(deposit.payment_comment || '').trim();
@@ -366,16 +367,17 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
     });
     if (match) {
       const txHash = String(match.hash || match.in_msg?.hash || '');
-      const amountNano = String(match.in_msg?.value ?? expectedNano.toString());
-      await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: amountNano });
-      confirmed.push(deposit.id);
+      // The on-chain transfer is verified here; the database credits FC using the official rate.
+      const result = await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: expectedNano.toString() });
+      if ((result as any)?.status === 'already_processed') alreadyCredited.push(deposit.id);
+      else confirmed.push(deposit.id);
     } else {
       stillPending.push(deposit.id);
     }
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
-  return { checked: deposits.length, confirmed, pending: stillPending, summary };
+  return { checked: deposits.length, confirmed, alreadyCredited, pending: stillPending, summary };
 }
 
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {

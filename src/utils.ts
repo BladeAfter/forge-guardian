@@ -219,7 +219,8 @@ export const getLocale = () => {
 export const formatCurrency = (value: number) => value.toLocaleString("en-US");
 
 export const buildDefaults = (): GameState => ({
-  balance: 850000,
+  // Forge Coins never start with a fictitious amount: the real balance always comes from the backend.
+  balance: 0,
   level: 7,
   loginStreak: 0,
   lastLoginDate: undefined,

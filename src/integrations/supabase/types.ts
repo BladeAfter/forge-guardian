@@ -3295,6 +3295,7 @@ export type Database = {
           amount_fc: number
           amount_ton: number
           confirmed_at: string | null
+          conversion_rate: number
           created_at: string
           credited_at: string | null
           expires_at: string
@@ -3310,6 +3311,7 @@ export type Database = {
           amount_fc: number
           amount_ton: number
           confirmed_at?: string | null
+          conversion_rate?: number
           created_at?: string
           credited_at?: string | null
           expires_at?: string
@@ -3325,6 +3327,7 @@ export type Database = {
           amount_fc?: number
           amount_ton?: number
           confirmed_at?: string | null
+          conversion_rate?: number
           created_at?: string
           credited_at?: string | null
           expires_at?: string
@@ -3339,6 +3342,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "wallet_deposits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_ledger: {
+        Row: {
+          amount_fc: number
+          amount_ton: number | null
+          balance_after: number
+          balance_before: number
+          conversion_rate: number | null
+          created_at: string
+          id: string
+          reference_id: string | null
+          tx_hash: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc?: number
+          amount_ton?: number | null
+          balance_after?: number
+          balance_before?: number
+          conversion_rate?: number | null
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          tx_hash?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number | null
+          balance_after?: number
+          balance_before?: number
+          conversion_rate?: number | null
+          created_at?: string
+          id?: string
+          reference_id?: string | null
+          tx_hash?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_ledger_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -3970,6 +4023,7 @@ export type Database = {
         Returns: Json
       }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
+      audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
@@ -4033,7 +4087,7 @@ export type Database = {
       }
       confirm_wallet_deposit: {
         Args: { p_amount_nano: string; p_deposit_id: string; p_tx_hash: string }
-        Returns: undefined
+        Returns: Json
       }
       create_pet_egg_order: {
         Args: {
@@ -4060,6 +4114,7 @@ export type Database = {
         }
         Returns: Json
       }
+      current_ton_fc_rate: { Args: never; Returns: number }
       distribute_community_pool: {
         Args: { p_force?: boolean }
         Returns: string

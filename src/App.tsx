@@ -300,13 +300,15 @@ function App() {
       });
   },[backendEnabled,telegramInitData,telegramStartParam,queryClient]);
 
-  // Forge Coins have a single source of truth: the server balance shown in the wallet.
+  // Forge Coins have a single source of truth: the server balance (game_players.forge_coins).
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
+  const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
+  // Header, shop, pets and every other screen read this value — never a local or default amount.
+  const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
   useEffect(()=>{
-    const serverBalance=serverWallet?.balanceFc;
-    if(typeof serverBalance!=='number'||!Number.isFinite(serverBalance))return;
+    if(serverBalance===null)return;
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
-  },[serverWallet?.balanceFc]);
+  },[serverBalance]);
 
   useEffect(()=>{
     const latest=referralDashboard?.notifications?.[0];if(!latest||latest.id===lastCommissionNotification.current)return;
@@ -587,7 +589,7 @@ function App() {
       return;
     }
     const cost = recruitPrice(count);
-    if (game.balance < cost) {
+    if (fcBalance < cost) {
       toast.error(t('notEnoughFc'));
       return;
     }
@@ -619,7 +621,7 @@ function App() {
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
         <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' || tab === 'profile' ? 'hidden' : 'block'}`}>
-          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={game.balance} />
+          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalance} />
         </header>
 
 
@@ -634,7 +636,7 @@ function App() {
                 profile={playerProfile}
                 loading={profileLoading}
                 onRetry={()=>void refetchProfile()}
-                balance={game.balance}
+                balance={fcBalance}
                 actions={<>
                   <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
                     <Bell />
@@ -686,7 +688,7 @@ function App() {
                 </div>
                 <div className="mt-3 flex items-center justify-between rounded-2xl border border-amber-300/15 bg-black/30 px-3 py-2">
                   <span className="text-xs text-slate-400">FC</span>
-                  <span className="font-black text-amber-300">{formatCurrency(game.balance)}</span>
+                  <span className="font-black text-amber-300">{formatCurrency(fcBalance)}</span>
                 </div>
                 <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400">{t('odds')}</p>
                 <div className="mt-2 grid grid-cols-5 gap-1">

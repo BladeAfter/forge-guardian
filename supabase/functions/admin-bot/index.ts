@@ -108,6 +108,7 @@ async function playerCard(ctx: Ctx, ref: string) {
     [{ t: '⭐ VIP', d: `vip:vip:${u}` }, { t: '💠 PREMIUM', d: `vip:premium:${u}` }],
     [{ t: p.banned ? '✅ DESBANIR' : '🚫 BANIR', d: `${p.banned ? 'unban' : 'ban'}:${u}` }, { t: '♻️ RESETAR', d: `reset:${u}` }],
     [{ t: '📜 HISTÓRICO', d: `hist:${u}` }, { t: '🤝 ÁRVORE', d: `tree:${u}` }],
+    [{ t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
     nav('m:users'),
   ]);
   if (p.avatar_url) await tg('sendPhoto', { chat_id: ctx.chatId, photo: p.avatar_url, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup });
@@ -245,11 +246,13 @@ async function module(ctx: Ctx, name: string) {
     case 'wallet': {
       const dep = await rpc('admin_list_transactions', { p_admin_id: ctx.adminId, p_kind: 'deposit', p_status: null, p_limit: 8 });
       const wd = await rpc('admin_list_transactions', { p_admin_id: ctx.adminId, p_kind: 'withdrawal', p_status: null, p_limit: 8 });
+      const rate = await rpc('current_ton_fc_rate', {});
       const row = (t: any) => `• <code>${String(t.id).slice(0, 8)}</code> ${esc(t.player)} — ${fmt(t.amount_ton)} TON [${esc(t.status)}]`;
-      return edit(ctx, `💳 <b>CARTEIRA</b>\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n<b>Saques</b>\n${wd.items.map(row).join('\n') || '—'}`,
+      return edit(ctx, `💳 <b>CARTEIRA / ECONOMIA</b>\n💱 Taxa atual: <b>1 TON = ${fmt(rate)} FC</b>\n(vale só para depósitos confirmados após a alteração)\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n<b>Saques</b>\n${wd.items.map(row).join('\n') || '—'}`,
         kb([[{ t: '✅ CONFIRMAR DEPÓSITO', d: 'ask:depok' }, { t: '❌ REJEITAR', d: 'ask:depno' }],
             [{ t: '💸 PAGAR SAQUE', d: 'ask:wdpaid' }, { t: '❌ REJEITAR SAQUE', d: 'ask:wdno' }],
-            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }], nav()]));
+            [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }],
+            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
     case 'missions': {
       const d = await rpc('admin_missions_overview', { p_admin_id: ctx.adminId });
@@ -350,6 +353,8 @@ const PROMPTS: Record<string, string> = {
   depno: 'Envie o ID do depósito a rejeitar.',
   wdpaid: 'Envie: <code>id [tx_hash]</code> para marcar o saque como pago.',
   wdno: 'Envie o ID do saque a rejeitar.',
+  tonrate: 'Envie a nova taxa: quantos FC vale 1 TON (ex.: <code>100000</code>). Vale apenas para depósitos confirmados depois da alteração.',
+  auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
 };
 
@@ -381,6 +386,22 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'reset') return send(ctx, '⚠️ Tem certeza que deseja <b>RESETAR</b> esta conta? A ação apaga heróis, pets e saldos.',
     kb([[{ t: '✅ CONFIRMAR ALTERAÇÃO', d: `reset2:${rest[0]}` }, { t: '❌ Cancelar', d: 'home' }]]));
   if (head === 'reset2') return ask(ctx, `reset|${rest[0]}`, 'Envie o motivo do reset (obrigatório).');
+  if (head === 'audit1') {
+    // Deposit audit: TON in, FC credited, ledger cross-check. Read-only, never touches balances.
+    const a = await rpc('audit_player_deposits', { p_telegram_id: Number(rest[0]) });
+    const last = a.lastDeposit;
+    const lines = [
+      `🔎 <b>AUDIT DEPOSITS</b> — ${a.username ? '@' + esc(a.username) : esc(String(a.telegramId))}`,
+      `FC balance: <b>${fmt(a.fcBalance)}</b>`,
+      `Rate: 1 TON = <b>${fmt(a.rate)} FC</b>`,
+      `Total TON deposited: <b>${fmt(a.totalTonDeposited)} TON</b>`,
+      `Total FC credited from deposits: <b>${fmt(a.totalFcCreditedFromDeposits)}</b>`,
+      `Ledger FC from deposits: <b>${fmt(a.ledgerFcFromDeposits)}</b> ${a.mismatch ? '⚠️ DIVERGÊNCIA' : '✅'}`,
+      `Depósitos pendentes: ${fmt(a.pendingCount)}`,
+      last ? `Último depósito: <b>${fmt(last.amountTon)} TON</b> → ${fmt(last.amountFc)} FC\nStatus: <b>${esc(String(last.status).toUpperCase())}</b>\nTX: <code>${esc(String(last.txHash || '—'))}</code>` : 'Último depósito: —',
+    ];
+    return send(ctx, lines.join('\n'), MAIN_MENU);
+  }
   if (head === 'hist') {
     const h = await rpc('admin_player_history', { p_admin_id: ctx.adminId, p_ref: rest[0], p_limit: 15 });
     return send(ctx, `📜 <b>Histórico</b>\n${h.events.map((e: any) => `• ${String(e.at).slice(5, 16).replace('T', ' ')} ${esc(e.action)} — ${esc(JSON.stringify(e.old))} → ${esc(JSON.stringify(e.new))}`).join('\n') || '—'}`, MAIN_MENU);
@@ -739,6 +760,21 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       if (!rows?.length) return send(ctx, '⚠️ Depósito não encontrado.', MAIN_MENU);
       const r = await rpc('admin_review_deposit', { p_admin_id: ctx.adminId, p_deposit_id: rows[0].id, p_approve: key === 'depok', p_tx_hash: null, p_reason: 'painel admin' });
       return send(ctx, `✅ Depósito ${key === 'depok' ? 'confirmado' : 'rejeitado'}.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`, MAIN_MENU);
+    }
+    case 'tonrate': {
+      const value = Number(text.replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(value) || value <= 0) return send(ctx, '⚠️ Taxa inválida.', MAIN_MENU);
+      const { error } = await db.from('economy_settings').upsert([
+        { key: 'ton_to_fc_rate', value_numeric: value, updated_at: new Date().toISOString() },
+        { key: 'fc_per_ton', value_numeric: value, updated_at: new Date().toISOString() },
+      ], { onConflict: 'key' });
+      if (error) return send(ctx, `⚠️ ${esc(error.message)}`, MAIN_MENU);
+      await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'wallet.ton_fc_rate', p_target_type: 'economy', p_target_id: null, p_old: null, p_new: { rate: value }, p_reason: 'alterado pelo painel', p_context: { financial: true } });
+      return send(ctx, `✅ Nova taxa: <b>1 TON = ${fmt(value)} FC</b>\nAplica-se somente a depósitos confirmados a partir de agora.`, kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
+    }
+    case 'auditdep': {
+      const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: text });
+      return handleCallback(ctx, `audit1:${p.telegram_id}`);
     }
     case 'wdpaid': case 'wdno': {
       const [id, hash] = text.split(/\s+/);
