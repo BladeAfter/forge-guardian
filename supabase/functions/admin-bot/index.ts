@@ -418,15 +418,23 @@ async function module(ctx: Ctx, name: string) {
     }
     case 'wallet': {
       const dep = await rpc('admin_list_transactions', { p_admin_id: ctx.adminId, p_kind: 'deposit', p_status: null, p_limit: 8 });
-      const wd = await rpc('admin_list_transactions', { p_admin_id: ctx.adminId, p_kind: 'withdrawal', p_status: null, p_limit: 8 });
+      const wd = await rpc('admin_list_withdrawals', { p_admin_id: ctx.adminId, p_status: null, p_limit: 10 });
       const rate = await rpc('current_ton_fc_rate', {});
       const row = (t: any) => `• <code>${String(t.id).slice(0, 8)}</code> ${esc(t.player)} — ${fmt(t.amount_ton)} TON [${esc(t.status)}]`;
-      return edit(ctx, `💳 <b>CARTEIRA / ECONOMIA</b>\n💱 Taxa atual: <b>1 TON = ${fmt(rate)} FC</b>\n(vale só para depósitos confirmados após a alteração)\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n<b>Saques</b>\n${wd.items.map(row).join('\n') || '—'}`,
+      const viewButtons = (wd.items as any[]).slice(0, 6).map((w) => [{ t: `👁 ${w.short_id} · ${fmt(w.amount_ton)} TON`, d: `wd:${w.id}` }]);
+      return edit(ctx, `💳 <b>CARTEIRA / ECONOMIA</b>\n💱 Taxa atual: <b>1 TON = ${fmt(rate)} FC</b>\n(vale só para depósitos confirmados após a alteração)\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n💸 <b>SAQUES</b>\n${withdrawalLines(wd.items)}`,
         kb([[{ t: '✅ CONFIRMAR DEPÓSITO', d: 'ask:depok' }, { t: '❌ REJEITAR', d: 'ask:depno' }],
-            [{ t: '💸 PAGAR SAQUE', d: 'ask:wdpaid' }, { t: '❌ REJEITAR SAQUE', d: 'ask:wdno' }],
+            ...viewButtons,
+            [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
+            [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
+    case 'wallets': {
+      const d = await rpc('admin_connected_wallets', { p_admin_id: ctx.adminId, p_query: null, p_limit: 12 });
+      return edit(ctx, connectedWalletsText(d.items), kb([[{ t: '🔎 PESQUISAR', d: 'ask:findwallet' }], nav('m:wallet')]));
+    }
+
     case 'missions': {
       const d = await rpc('admin_missions_overview', { p_admin_id: ctx.adminId });
       return edit(ctx, `🎯 <b>MISSÕES</b>\n${d.missions.map((m: any) => `• <code>${esc(m.code)}</code> [${esc(m.scope)}] ${esc(m.title)} → ${fmt(m.reward_amount)} ${esc(m.reward_type)} ${m.enabled ? '✅' : '⛔'}`).join('\n') || '—'}`,
