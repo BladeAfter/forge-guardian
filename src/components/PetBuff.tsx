@@ -15,9 +15,10 @@ export const petBuffIcon = (key?: string | null): JSX.Element => (key && BUFF_IC
 type Size = 'sm' | 'md';
 
 const SIZES: Record<Size, { box: string; icon: number; label: string; value: string }> = {
-  sm: { box: 'gap-2 px-2 py-2', icon: 24, label: 'text-[8px]', value: 'text-base' },
-  md: { box: 'gap-2.5 px-3 py-2.5', icon: 30, label: 'text-[10px]', value: 'text-xl' },
+  sm: { box: 'gap-1.5 px-2 py-1.5', icon: 20, label: 'text-[8px]', value: 'text-[13px]' },
+  md: { box: 'gap-2 px-2.5 py-2', icon: 26, label: 'text-[9px]', value: 'text-lg' },
 };
+
 
 export function PetBuff({
   buffKey,
