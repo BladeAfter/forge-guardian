@@ -7,8 +7,9 @@ import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
-import { createDepositIntent, createEggTonOrder, requestWithdrawal } from '../services';
+import { createDepositIntent, createEggTonOrder, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { usePetDashboard, useWalletSummary } from '../hooks';
+import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
   game: GameState;
@@ -44,15 +45,38 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     ]);
   };
 
+  const verify = useMutation({
+    mutationFn: async () => {
+      if (!telegramInitData) throw new Error('Abra o jogo pelo Telegram.');
+      return verifyPendingDeposits(telegramInitData);
+    },
+    onSuccess: async result => {
+      await invalidateWallet();
+      if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) confirmado(s) na blockchain.`);
+      else if (result.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
+      else toast('Nenhum depósito pendente para verificar.');
+    },
+    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar o depósito.')
+  });
+
   const deposit = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error('Conecte sua carteira TON.');
       if (!Number.isFinite(depositTon) || depositTon <= 0) throw new Error('Informe um valor de depósito válido.');
       const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
-      await tonConnectUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: intent.paymentAddress, amount: intent.amountNano }] });
+      await tonConnectUI.sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        // The comment is the on-chain marker the backend matches against the hot wallet transactions.
+        messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }]
+      });
       return intent;
     },
-    onSuccess: async () => { await invalidateWallet(); toast.success('Pagamento enviado. Aguardando confirmação on-chain.'); },
+    onSuccess: async () => {
+      await invalidateWallet();
+      toast.success('Pagamento enviado. Verificando na blockchain...');
+      // Give the network a few seconds to include the transfer before checking on-chain.
+      setTimeout(() => verify.mutate(), 8000);
+    },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível depositar.')
   });
 
@@ -120,6 +144,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         <input type="number" min="0.01" step="0.01" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label="Quantidade de TON" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
         <Result label="Você receberá" value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
         <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending}>{deposit.isPending ? 'ABRINDO CARTEIRA...' : 'DEPOSITAR TON'}</Primary>
+        <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
+          {verify.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — VERIFICAR DEPÓSITO'}
+        </button>
       </Panel>
 
       <Panel title="SACAR FC" icon={<ArrowUpFromLine />}>

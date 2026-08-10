@@ -26,8 +26,12 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** The Mini App is signed by the GAME bot (TELEGRAM_BOT_TOKEN). The admin bot has its own token and must never be used here. */
-const gameBotToken = () => (Deno.env.get('TELEGRAM_BOT_TOKEN') || Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim();
+/** Mini App initData is signed by the GAME bot. TELEGRAM_BOT_TOKEN is kept as a fallback candidate so a token swap never locks players out. */
+const gameBotToken = () => (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
+const candidateBotTokens = () =>
+  [Deno.env.get('TELEGRAM_GAME_BOT_TOKEN'), Deno.env.get('TELEGRAM_BOT_TOKEN')]
+    .map((token) => String(token || '').trim())
+    .filter((token, index, all) => token && all.indexOf(token) === index);
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
@@ -44,8 +48,8 @@ export type TelegramAuthResult = { user: TelegramUser; authDate: number; ageSeco
  * The raw initData string is used exactly as Telegram provided it — never decoded or re-encoded.
  */
 export async function validateTelegramInitData(initData: string): Promise<TelegramAuthResult> {
-  const token = gameBotToken();
-  if (!token) throw new TelegramAuthError('bot_token_missing', 'A autenticação do Telegram não está configurada.');
+  const tokens = candidateBotTokens();
+  if (!tokens.length) throw new TelegramAuthError('bot_token_missing', 'A autenticação do Telegram não está configurada.');
   if (!initData) throw new TelegramAuthError('init_data_missing', 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.');
 
   const params = new URLSearchParams(initData);
@@ -56,14 +60,20 @@ export async function validateTelegramInitData(initData: string): Promise<Telegr
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 
-  const secret = await hmac(encoder.encode('WebAppData'), token);
-  const expected = toHex(await hmac(secret, check));
   const authDate = Number(params.get('auth_date'));
   const ageSeconds = Number.isFinite(authDate) ? Math.round(Date.now() / 1000 - authDate) : Number.NaN;
 
   if (!hash) throw new TelegramAuthError('hash_missing', 'Sessão do Telegram inválida (assinatura ausente).');
-  if (!safeEqual(expected, hash)) {
-    // Signature mismatch means the initData was signed by a DIFFERENT bot than the configured token.
+  let matched = false;
+  for (const token of tokens) {
+    const secret = await hmac(encoder.encode('WebAppData'), token);
+    if (safeEqual(toHex(await hmac(secret, check)), hash)) {
+      matched = true;
+      break;
+    }
+  }
+  if (!matched) {
+    // Signature mismatch means the initData was signed by a bot whose token is not configured here.
     throw new TelegramAuthError('signature_mismatch', 'Assinatura do Telegram não confere com o bot configurado. Verifique o token do bot do jogo.');
   }
   if (!Number.isFinite(authDate)) throw new TelegramAuthError('auth_date_missing', 'Sessão do Telegram inválida (auth_date ausente).');
@@ -286,6 +296,81 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
   return data;
 }
 
+const TONCENTER_BASE = (Deno.env.get('TONCENTER_BASE_URL') || 'https://toncenter.com').replace(/\/+$/, '');
+
+/** Reads the hot wallet transactions from TonCenter (v3) and returns the incoming ones. */
+async function fetchHotWalletIncoming(hotWallet: string): Promise<any[]> {
+  const apiKey = String(Deno.env.get('TONCENTER_API_KEY') || '').trim();
+  if (!apiKey) throw new Error('A verificação on-chain não está configurada (TONCENTER_API_KEY).');
+  const url = `${TONCENTER_BASE}/api/v3/transactions?account=${encodeURIComponent(hotWallet)}&limit=100&offset=0&sort=desc`;
+  const response = await fetch(url, { headers: { 'X-API-Key': apiKey, Accept: 'application/json' } });
+  if (!response.ok) {
+    const details = await response.text();
+    console.error(`[FORGE ERROR] toncenter [${response.status}]: ${details}`);
+    throw new Error(`Não foi possível consultar a blockchain TON (${response.status}).`);
+  }
+  const payload = await response.json().catch(() => null);
+  return Array.isArray(payload?.transactions) ? payload.transactions : [];
+}
+
+const msgComment = (message: any): string =>
+  String(message?.message_content?.decoded?.comment ?? message?.decoded_body?.text ?? '').trim();
+
+/**
+ * Confirms pending deposits of this player by matching the payment comment and value
+ * against real incoming transfers to the project hot wallet.
+ */
+async function verifyPendingDeposits(db: Db, user: TelegramUser) {
+  const settings = await db.from('wallet_settings').select('value_text').eq('key', 'ton_hot_wallet').maybeSingle();
+  if (settings.error) throw new Error(settings.error.message);
+  const hotWallet = String(settings.data?.value_text || Deno.env.get('TON_HOT_WALLET') || '').trim();
+  if (!hotWallet) throw new Error('A carteira de recebimento não está configurada.');
+
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  if (!player.data?.id) throw new Error('Jogador não encontrado.');
+
+  const pending = await db
+    .from('wallet_deposits')
+    .select('id, amount_ton, payment_comment, status')
+    .eq('user_id', player.data.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (pending.error) throw new Error(pending.error.message);
+  const deposits = pending.data ?? [];
+  if (!deposits.length) return { checked: 0, confirmed: [], pending: [] };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+
+  for (const deposit of deposits) {
+    const comment = String(deposit.payment_comment || '').trim();
+    const expectedNano = BigInt(Math.round(Number(deposit.amount_ton) * 1e9));
+    // 1% tolerance covers wallet fee rounding on the sender side.
+    const minNano = (expectedNano * 99n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg) return false;
+      const value = BigInt(String(inMsg.value ?? '0'));
+      const sameComment = comment ? msgComment(inMsg) === comment : false;
+      return sameComment && value >= minNano;
+    });
+    if (match) {
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const amountNano = String(match.in_msg?.value ?? expectedNano.toString());
+      await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: amountNano });
+      confirmed.push(deposit.id);
+    } else {
+      stillPending.push(deposit.id);
+    }
+  }
+
+  const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
+  return { checked: deposits.length, confirmed, pending: stillPending, summary };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
   if (hotWallet) {
@@ -293,6 +378,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     if (configured.error) throw new Error(configured.error.message);
   }
   const action = String(body.action || 'summary');
+  if (action === 'verify-deposit') return await verifyPendingDeposits(db, user);
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'deposit') {
@@ -431,11 +517,13 @@ async function healthReport() {
     database: 'offline',
     telegram_auth: gameBotToken() ? 'configured' : 'missing',
     telegram_auth_max_age_seconds: AUTH_MAX_AGE_SECONDS,
-    game_bot_token_source: Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : 'missing'),
+    game_bot_token_source: Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : (Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : 'missing'),
+    accepted_bot_tokens: candidateBotTokens().length,
     game_bot_username: await botUsername(gameBotToken()),
     telegram_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim()),
     telegram_game_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim()),
     admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
+    ton_onchain_check: Deno.env.get('TONCENTER_API_KEY') ? 'configured' : 'missing',
     time: new Date().toISOString(),
   };
   try {
