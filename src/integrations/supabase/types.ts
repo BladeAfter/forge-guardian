@@ -481,6 +481,36 @@ export type Database = {
           },
         ]
       }
+      chest_reward_tables: {
+        Row: {
+          chest_code: string
+          created_at: string
+          enabled: boolean
+          name: string
+          rarity_rates: Json
+          subtitle: string
+          updated_at: string
+        }
+        Insert: {
+          chest_code: string
+          created_at?: string
+          enabled?: boolean
+          name: string
+          rarity_rates: Json
+          subtitle?: string
+          updated_at?: string
+        }
+        Update: {
+          chest_code?: string
+          created_at?: string
+          enabled?: boolean
+          name?: string
+          rarity_rates?: Json
+          subtitle?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_calendar_claims: {
         Row: {
           amount_fc: number
@@ -2772,6 +2802,48 @@ export type Database = {
           },
         ]
       }
+      reward_open_logs: {
+        Row: {
+          created_at: string
+          fallback_from: string | null
+          id: string
+          item_key: string
+          item_type: string
+          reward_id: string | null
+          reward_name: string | null
+          rolled_rarity: string | null
+          source: string
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fallback_from?: string | null
+          id?: string
+          item_key: string
+          item_type: string
+          reward_id?: string | null
+          reward_name?: string | null
+          rolled_rarity?: string | null
+          source?: string
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fallback_from?: string | null
+          id?: string
+          item_key?: string
+          item_type?: string
+          reward_id?: string | null
+          reward_name?: string | null
+          rolled_rarity?: string | null
+          source?: string
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       season_exclusive_deliveries: {
         Row: {
           created_at: string
@@ -3886,6 +3958,7 @@ export type Database = {
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_egg_store: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
+      get_player_inventory: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_ranking: { Args: never; Returns: Json }
@@ -3943,6 +4016,14 @@ export type Database = {
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       open_calendar_hero_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      open_hero_chest: {
+        Args: {
+          p_inventory_item_id: string
+          p_source?: string
+          p_telegram_id: number
+        }
         Returns: Json
       }
       open_season_mythic_egg: {
