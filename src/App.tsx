@@ -310,11 +310,21 @@ function App() {
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
   },[serverBalance]);
 
+  // Notifications are shown once and then marked as read ON THE SERVER, so relaunching the
+  // Mini App never replays an old commission toast (React state alone would reset every boot).
   useEffect(()=>{
-    const latest=referralDashboard?.notifications?.[0];if(!latest||latest.id===lastCommissionNotification.current)return;
-    lastCommissionNotification.current=latest.id;
-    if(latest.amountFc)toast.success(`${latest.message} · ${latest.title}`);
-  },[referralDashboard?.notifications]);
+    const unread=referralDashboard?.notifications??[];
+    if(!unread.length||!telegramInitData)return;
+    const latest=unread[0];
+    if(latest.id!==lastCommissionNotification.current){
+      lastCommissionNotification.current=latest.id;
+      if(latest.amountFc)toast.success(`${latest.message} · ${latest.title}`);
+    }
+    markNotificationsRead(telegramInitData,unread.map(item=>item.id))
+      .then(()=>queryClient.invalidateQueries({queryKey:['referral-dashboard']}))
+      .catch(error=>console.error('[NOTIFICATIONS]',error instanceof Error?error.message:error));
+  },[referralDashboard?.notifications,telegramInitData,queryClient]);
+
 
   useEffect(() => {
     if (data) {
