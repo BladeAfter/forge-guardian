@@ -42,11 +42,14 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', fc: 'Forge Coins', pass_reward: 'Battle Pass', item: 'Item' };
+const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', hero_chest: 'Hero Chest', pet_egg: 'Pet Egg', fc: 'Forge Coins', pass_reward: 'Battle Pass', item: 'Item' };
+
+/** Falls back to a readable label for any reward type the game adds later. */
+const typeLabel = (type: string) => TYPE_LABEL[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 function itemTitle(item: RewardHistoryItem): string {
   const quantity = Number(item.quantity ?? 1);
-  const base = item.reward_name || TYPE_LABEL[item.reward_type] || 'Reward';
+  const base = item.reward_name || typeLabel(item.reward_type) || 'Reward';
   if (quantity > 1) return `${base} x${quantity}`;
   return base;
 }
@@ -64,7 +67,7 @@ function RewardRow({ item }: { item: RewardHistoryItem }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-[12px] font-bold text-white">{itemTitle(item)}</p>
         <p className="truncate text-[9px] font-semibold uppercase tracking-[0.12em]" style={{ color }}>
-          {rarity ? rarity : TYPE_LABEL[item.reward_type] ?? item.reward_type}
+          {rarity ? rarity : typeLabel(item.reward_type)}
         </p>
       </div>
       <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-slate-400">{relativeTime(item.created_at)}</span>
