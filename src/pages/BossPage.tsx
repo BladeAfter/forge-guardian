@@ -9,8 +9,10 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 
-type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onClaimReward:()=>Promise<void>|void};
-const labels:Record<HeroRarity,string>={common:'Comum',uncommon:'Incomum',rare:'Raro',epic:'Épico',legendary:'Lendário'};
+type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
+type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onClaimReward:()=>Promise<void>|void};
+const RARITY_KEYS:HeroRarity[]=['common','uncommon','rare','epic','legendary'];
+const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroRarity>={common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',epic:'epic',epico:'epic','épico':'epic',legendary:'legendary',lendario:'legendary','lendário':'legendary'};return map[String(value??'').trim().toLowerCase()]??'common'};
 
 export function BossPage({game,lang,languageCode,combat,syncing,backendOfficial,isEquipping,onEquipHero,onClaimReward}:Props){
   const t=(key:string)=>translate(languageCode,key);
