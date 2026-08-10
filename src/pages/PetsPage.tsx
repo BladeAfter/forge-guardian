@@ -635,17 +635,20 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-200" style={{ width: `${pet.isMaxLevel ? 100 : Math.min(100, (pet.xp / Math.max(1, pet.xpRequired)) * 100)}%` }} />
       </div>
 
-      <div className="relative z-10 mt-2 rounded-xl border border-white/10 bg-black/45 px-2 py-2">
-        <div className="flex items-center justify-center gap-1.5 text-[8px] font-bold uppercase tracking-wide text-slate-300">
-          <span className="h-3.5 w-3.5" style={{ color: rarityColor[pet.rarity] }}>{buffIcon(pet.primaryBuffKey)}</span>
-          <span className="truncate">{petBuffLabel(pet.primaryBuffKey)}</span>
-        </div>
-        <b className="mt-1 block text-lg leading-none" style={{ color: rarityColor[pet.rarity] }}>+{pet.primaryBuffValue}%</b>
+      <div className="relative z-10 mt-2 rounded-xl border border-white/10 bg-black/45">
+        <PetBuff
+          buffKey={pet.primaryBuffKey}
+          label={petBuffLabel(pet.primaryBuffKey)}
+          value={`+${pet.primaryBuffValue}%`}
+          size="sm"
+          color={rarityColor[pet.rarity]}
+        />
         {pet.secondaryBuffs.length > 0 && (
-          <p className="mt-1 text-[8px] text-violet-300">
+          <p className="px-2 pb-2 text-[8px] text-violet-300">
             +{pet.secondaryBuffs.length} bônus secundário{pet.secondaryBuffs.length > 1 ? 's' : ''}
           </p>
         )}
+
       </div>
 
       <div className="relative z-10 mt-auto grid grid-cols-2 gap-1.5 pt-3">
