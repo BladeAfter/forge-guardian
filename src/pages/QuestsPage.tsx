@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { characters, chests, mainScreenArt, missionIcons } from '../gameAssets';
 import { formatCurrency } from '../utils';
 import { claimDailyQuest, claimDailyQuestChest } from '../services';
 import type { DailyQuest, DailyQuestsDashboard } from '../quests';
+
 
 type QuestsPageProps = {
   telegramInitData: string | null;
