@@ -466,7 +466,14 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `📈 <b>TOP ${rest[0]}</b>\n${d.ranking.map((r: any, i: number) => `${i + 1}. ${esc(r.name)} — ${fmt(r.trophies)}🏆`).join('\n').slice(0, 3500)}`, MAIN_MENU);
   }
   if (head === 'view') {
+    if (rest[0] === 'questrepair') {
+      // Recreates/reactivates only the five default daily quests. Never duplicates, never touches player progress.
+      const r = await rpc('admin_repair_daily_quests', { p_admin_id: ctx.adminId });
+      return send(ctx, `🔄 <b>DAILY QUESTS REPARADAS</b>\nQuests ativas agora: <b>${fmt(r.activeDailyCount)}</b>\nO progresso dos jogadores foi preservado.`,
+        kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()]));
+    }
     if (rest[0] === 'chests') {
+
       const d = await rpc('admin_chest_diagnostics', { p_admin_id: ctx.adminId });
       const chests = (d.chests || []).map((c: any) => {
         const missing = c.missing || [];
