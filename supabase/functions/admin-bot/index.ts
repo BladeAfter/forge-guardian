@@ -1315,6 +1315,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'wallet.ton_fc_rate', p_target_type: 'economy', p_target_id: null, p_old: null, p_new: { rate: value }, p_reason: 'alterado pelo painel', p_context: { financial: true } });
       return send(ctx, `✅ Nova taxa: <b>1 TON = ${fmt(value)} FC</b>\nAplica-se somente a depósitos confirmados a partir de agora.`, kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
     }
+    case 'wdfee': {
+      const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(value) || value < 0 || value > 50) return send(ctx, '⚠️ Informe um percentual entre 0 e 50.', MAIN_MENU);
+      const r = await rpc('admin_set_withdraw_fee_percent', { p_admin_id: ctx.adminId, p_percent: value });
+      return send(ctx, `✅ <b>WITHDRAWAL FEE</b> atualizada para <b>${Number(r.feePercent)}%</b>.\nSaques antigos mantêm a taxa usada na época.`, kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
+    }
     case 'auditdep': {
       const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: text });
       return handleCallback(ctx, `audit1:${p.telegram_id}`);
