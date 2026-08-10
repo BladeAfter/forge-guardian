@@ -229,7 +229,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                     <h3 className="truncate text-xs font-black">{egg.name}</h3>
                     {/* Price is rendered exactly once here; the buy button may repeat it. */}
                     <p className="text-[9px] font-bold uppercase text-amber-200">
-                      {egg.priceFc ? `${fmt(egg.priceFc)} FC` : egg.priceTon ? `${egg.priceTon} TON` : egg.availabilityLabel || 'Evento exclusivo'}
+                      {formatEggPrice(egg)}
                     </p>
                     <div className="mt-1 flex flex-wrap justify-center gap-1">
                       {sortedRates(egg.rarityRates).map(([key, value]) => (
@@ -250,7 +250,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                         <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
                       ) : (
                         <Action
-                          text={ton ? `Comprar · ${egg.priceTon} TON` : `Comprar · ${fmt(egg.priceFc ?? 0)} FC`}
+                          text={`Comprar · ${formatEggPrice(egg)}`}
                           disabled={pending || tonPurchase.isPending}
                           onClick={() => setEggTarget(egg)}
                         />
