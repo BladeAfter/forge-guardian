@@ -1993,6 +1993,92 @@ export type Database = {
           },
         ]
       }
+      player_quest_bonus: {
+        Row: {
+          claimed_at: string
+          id: string
+          item_code: string
+          item_type: string
+          quantity: number
+          quest_date: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          item_code: string
+          item_type: string
+          quantity?: number
+          quest_date: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          item_code?: string
+          item_type?: string
+          quantity?: number
+          quest_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_quest_bonus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_quest_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          id: string
+          progress: number
+          quest_code: string
+          quest_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          progress?: number
+          quest_code: string
+          quest_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          progress?: number
+          quest_code?: string
+          quest_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_quest_progress_quest_code_fkey"
+            columns: ["quest_code"]
+            isOneToOne: false
+            referencedRelation: "quest_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "player_quest_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_season_pass: {
         Row: {
           adventurer_owned: boolean
@@ -2585,6 +2671,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quest_definitions: {
+        Row: {
+          code: string
+          description: string
+          enabled: boolean
+          event_key: string
+          icon: string | null
+          reward_fc: number
+          reward_item_code: string | null
+          reward_item_quantity: number
+          reward_item_type: string | null
+          sort_order: number
+          target_amount: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          description?: string
+          enabled?: boolean
+          event_key: string
+          icon?: string | null
+          reward_fc?: number
+          reward_item_code?: string | null
+          reward_item_quantity?: number
+          reward_item_type?: string | null
+          sort_order?: number
+          target_amount?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          description?: string
+          enabled?: boolean
+          event_key?: string
+          icon?: string | null
+          reward_fc?: number
+          reward_item_code?: string | null
+          reward_item_quantity?: number
+          reward_item_type?: string | null
+          sort_order?: number
+          target_amount?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       referral_bonus_claims: {
         Row: {
@@ -3462,6 +3596,7 @@ export type Database = {
         Args: { p_admin_id: number; p_top?: number }
         Returns: Json
       }
+      admin_quests_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_referral_tree: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
@@ -3488,6 +3623,10 @@ export type Database = {
       }
       admin_reset_pvp_season: {
         Args: { p_admin_id: number; p_reason: string }
+        Returns: Json
+      }
+      admin_reset_quests: {
+        Args: { p_admin_id: number; p_reason?: string }
         Returns: Json
       }
       admin_resolve_player: { Args: { p_ref: string }; Returns: string }
@@ -3583,6 +3722,20 @@ export type Database = {
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
+      }
+      admin_set_quest_bonus: {
+        Args: {
+          p_admin_id: number
+          p_item_code: string
+          p_item_type: string
+          p_name: string
+          p_quantity?: number
+        }
+        Returns: Json
+      }
+      admin_set_quest_timezone: {
+        Args: { p_admin_id: number; p_timezone: string }
+        Returns: Json
       }
       admin_set_referral_percent: {
         Args: {
@@ -3806,6 +3959,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_upsert_quest: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
@@ -3846,6 +4008,14 @@ export type Database = {
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
       claim_calendar_day: {
         Args: { p_day: number; p_telegram_id: number }
+        Returns: Json
+      }
+      claim_daily_quest: {
+        Args: { p_quest_code: string; p_telegram_id: number }
+        Returns: Json
+      }
+      claim_daily_quest_chest: {
+        Args: { p_telegram_id: number }
         Returns: Json
       }
       claim_season_pass_reward: {
@@ -3952,6 +4122,7 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_daily_quests: { Args: { p_telegram_id: number }; Returns: Json }
       get_hero_shop_config: { Args: never; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
@@ -4063,6 +4234,8 @@ export type Database = {
         Args: { p_type: string; p_user: string }
         Returns: number
       }
+      quest_timezone: { Args: never; Returns: string }
+      quest_today: { Args: never; Returns: string }
       rarity_base_atk: { Args: { r: string }; Returns: number }
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
@@ -4076,6 +4249,14 @@ export type Database = {
           p_purchase_id: string
         }
         Returns: Json
+      }
+      record_quest_event: {
+        Args: { p_amount?: number; p_event: string; p_user_id: string }
+        Returns: undefined
+      }
+      record_quest_event_for_telegram: {
+        Args: { p_amount?: number; p_event: string; p_telegram_id: number }
+        Returns: undefined
       }
       recruit_heroes: {
         Args: { p_count: number; p_telegram_id: number }
