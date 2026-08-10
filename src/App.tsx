@@ -95,6 +95,9 @@ function App() {
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [outsideTelegram, setOutsideTelegram] = useState(false);
   const [telegramBooting, setTelegramBooting] = useState(true);
+  const [bootStage, setBootStage] = useState(5);
+  const [bootFading, setBootFading] = useState(false);
+  const [bootDone, setBootDone] = useState(false);
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const queryClient = useQueryClient();
