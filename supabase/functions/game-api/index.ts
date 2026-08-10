@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
 
 type TelegramUser = {
   id: number;
@@ -514,10 +515,10 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'withdraw') {
     const amount = Number(body.amountFc);
-    const address = String(body.walletAddress || '').trim();
-    // The connected wallet is snapshotted on the withdrawal row: it is mandatory and must be a real TON address.
-    if (!address) throw new Error('Connect your TON wallet before requesting a withdrawal.');
-    if (!/^[A-Za-z0-9_-]{48}$/.test(address) && !/^-?\d+:[0-9a-fA-F]{64}$/.test(address)) throw new Error('Endereço TON inválido.');
+    // The connected wallet is snapshotted on the withdrawal row in user-friendly mainnet form (UQ…).
+    const address = toFriendlyTonAddress(body.walletAddress);
+    if (!String(body.walletAddress || '').trim()) throw new Error('Connect your TON wallet before requesting a withdrawal.');
+    if (!address) throw new Error('Endereço TON inválido.');
     if (!Number.isInteger(amount) || amount < 100_000 || amount % 100_000 !== 0) throw new Error('O valor deve ser múltiplo de 100.000 FC.');
     fn = 'request_wallet_withdrawal';
     args = { ...args, p_amount_fc: amount, p_wallet_address: address, p_idempotency_key: `withdraw:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
@@ -530,7 +531,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
 
   const data = await rpc(db, fn, args);
   if (action === 'deposit' || action === 'withdraw') {
-    const walletAddress = String(body.walletAddress || '').trim();
+    const walletAddress = toFriendlyTonAddress(body.walletAddress) ?? '';
     const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
     if (player.error) throw new Error(player.error.message);
     if (player.data?.id && walletAddress) {
