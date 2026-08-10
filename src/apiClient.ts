@@ -65,9 +65,18 @@ export async function forgeHealth(): Promise<ForgeHealth> {
   }
 }
 
+const hasSignedInitData = (initData: string) => {
+  if (!initData) return false;
+  try {
+    return Boolean(new URLSearchParams(initData).get('hash'));
+  } catch {
+    return false;
+  }
+};
+
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
-  if (!functionsBase || !supabaseAnonKey || !initData) {
+  if (!functionsBase || !supabaseAnonKey || !hasSignedInitData(initData)) {
     console.error('[FORGE REQUEST FAILED]', {
       endpoint: `${functionsBase || '(sem backend configurado)'}/${feature}`,
       status: 404,
@@ -76,6 +85,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
     });
     return { ok: false, status: 404, json: async () => null };
   }
+
 
   const endpoint = `${functionsBase}/${feature}`;
   try {
