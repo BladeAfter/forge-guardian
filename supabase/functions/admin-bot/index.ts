@@ -260,6 +260,12 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, `🎯 <b>MISSÕES</b>\n${d.missions.map((m: any) => `• <code>${esc(m.code)}</code> [${esc(m.scope)}] ${esc(m.title)} → ${fmt(m.reward_amount)} ${esc(m.reward_type)} ${m.enabled ? '✅' : '⛔'}`).join('\n') || '—'}`,
         kb([[{ t: '✏️ CRIAR/EDITAR', d: 'ask:mission' }], [{ t: '♻️ RESETAR DIÁRIAS', d: 'confirm:missdaily' }, { t: '♻️ SEMANAIS', d: 'confirm:missweekly' }], nav()]));
     }
+    case 'channels': {
+      const d = await rpc('admin_channels_overview', { p_admin_id: ctx.adminId });
+      const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   chat: <code>${esc(c.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(c.rewardFc)} FC\n   resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
+      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n${list}`,
+        kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], nav()]));
+    }
     case 'quests': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
       const b = d.bonus || {};
