@@ -49,7 +49,7 @@ export async function reconcilePendingEggPurchases(telegramInitData: string | nu
     checked: Number(payload.checked ?? 0),
     completed: Array.isArray(payload.completed) ? payload.completed : [],
     pending: Array.isArray(payload.pending) ? payload.pending : [],
-    results: Array.isArray(payload.results) ? payload.results : [],
+    results: (Array.isArray(payload.results) ? payload.results : []) as unknown as EggPurchaseOutcome[],
   };
 }
 
