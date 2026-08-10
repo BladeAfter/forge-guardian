@@ -558,8 +558,57 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
   return rpc(db, 'get_calendar_dashboard', { p_telegram_id: user.id });
 }
 
+/**
+ * Single reconciler for TON battle pass purchases.
+ * A pass purchase is NOT a deposit: no FC is credited — the paid tier becomes owned by THIS player.
+ */
+async function verifyPassPurchases(db: Db, user: TelegramUser) {
+  const orders = await rpc(db, 'pending_season_pass_orders', { p_telegram_id: user.id }) as any[];
+  if (!Array.isArray(orders) || !orders.length) return { checked: 0, completed: [], pending: [], results: [] as any[] };
+
+  const hotWallet = await hotWalletAddress(db);
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const completed: string[] = [];
+  const stillPending: string[] = [];
+  const results: any[] = [];
+
+  for (const order of orders) {
+    const comment = String(order.paymentComment || '').trim();
+    const expectedNano = BigInt(String(order.amountNano || '0'));
+    const createdAt = new Date(String(order.createdAt)).getTime();
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 99n) / 100n;
+    }) ?? transactions.find((tx: any) => {
+      // Legacy/commentless payments: exact value inside this order's time window only.
+      const inMsg = tx?.in_msg;
+      if (!inMsg || msgComment(inMsg)) return false;
+      const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
+      return BigInt(String(inMsg.value ?? '0')) === expectedNano && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
+    });
+    if (!match) { stillPending.push(order.id); continue; }
+    const txHash = String(match.hash || match.in_msg?.hash || '');
+    try {
+      // Only the database turns a confirmed payment into pass ownership (atomic + idempotent).
+      const outcome = await rpc(db, 'confirm_season_pass_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: order.amountNano }) as any;
+      results.push({ ...outcome, tier: outcome?.tier ?? order.tier, priceTon: order.priceTon });
+      completed.push(order.id);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error('[FORGE ERROR] pass-purchase-confirm', { orderId: order.id, reason });
+      if (reason.includes('TX_ALREADY_USED')) stillPending.push(order.id);
+      else throw error;
+    }
+  }
+
+  const dashboard = await rpc(db, 'get_season_pass_dashboard', { p_telegram_id: user.id });
+  return { checked: orders.length, completed, pending: stillPending, results, dashboard };
+}
+
 async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'dashboard');
+  if (action === 'verify') return await verifyPassPurchases(db, user);
   let fn = 'get_season_pass_dashboard';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'order') {
@@ -577,6 +626,7 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
   return rpc(db, fn, args);
 }
+
 
 async function botIdentity() {
   const token = gameBotToken();
