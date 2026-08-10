@@ -44,15 +44,34 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     ]);
   };
 
+  const verify = useMutation({
+    mutationFn: async () => {
+      if (!telegramInitData) throw new Error('Abra o jogo pelo Telegram.');
+      return verifyPendingDeposits(telegramInitData);
+    },
+    onSuccess: async result => {
+      await invalidateWallet();
+      if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) confirmado(s) na blockchain.`);
+      else if (result.checked) toast.info('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
+      else toast.info('Nenhum depósito pendente para verificar.');
+    },
+    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar o depósito.')
+  });
+
   const deposit = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error('Conecte sua carteira TON.');
       if (!Number.isFinite(depositTon) || depositTon <= 0) throw new Error('Informe um valor de depósito válido.');
       const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
-      await tonConnectUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: intent.paymentAddress, amount: intent.amountNano }] });
+      await tonConnectUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: (intent as unknown as { payload?: string }).payload }] });
       return intent;
     },
-    onSuccess: async () => { await invalidateWallet(); toast.success('Pagamento enviado. Aguardando confirmação on-chain.'); },
+    onSuccess: async () => {
+      await invalidateWallet();
+      toast.success('Pagamento enviado. Verificando na blockchain...');
+      // Give the network a few seconds to include the transfer before checking on-chain.
+      setTimeout(() => verify.mutate(), 8000);
+    },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível depositar.')
   });
 
