@@ -693,6 +693,19 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  // withdrawals: every financial action is resolved by withdrawal_id, never by username.
+  if (['wd', 'wdcp', 'wdpay', 'wdgo', 'wdmk', 'wdfail', 'wdrj', 'wdrjgo'].includes(head)) {
+    await clearSession(ctx);
+    return handleWithdrawal(ctx, head, rest.join(':'));
+  }
+  if (head === 'wdlist') {
+    const status = rest[0] === 'paid' ? 'paid' : rest[0];
+    const d = await rpc('admin_list_withdrawals', { p_admin_id: ctx.adminId, p_status: status, p_limit: 12 });
+    const buttons = (d.items as any[]).slice(0, 8).map((w) => [{ t: `👁 ${w.short_id} · ${fmt(w.amount_ton)} TON`, d: `wd:${w.id}` }]);
+    return edit(ctx, `💸 <b>WITHDRAWALS</b> — ${esc(String(status).toUpperCase())}\n\n${withdrawalLines(d.items)}`,
+      kb([...buttons, [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }], nav('m:wallet')]));
+  }
+
   if (head === 'poolgo') {
     const mode = rest[0] === 'remove' ? 'remove' : 'add';
     const amount = parseAmount(rest[1]) * (mode === 'remove' ? -1 : 1);
