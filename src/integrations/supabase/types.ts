@@ -3968,6 +3968,10 @@ export type Database = {
         Returns: Json
       }
       admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
+      admin_player_detail: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
       admin_player_history: {
         Args: { p_admin_id: number; p_limit?: number; p_ref: string }
         Returns: Json
