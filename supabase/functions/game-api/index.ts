@@ -514,10 +514,14 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'withdraw') {
     const amount = Number(body.amountFc);
-    const address = String(body.walletAddress || '');
-    if (!Number.isInteger(amount) || amount < 100_000 || amount % 100_000 !== 0 || !address) throw new Error('O valor deve ser múltiplo de 100.000 FC.');
+    const address = String(body.walletAddress || '').trim();
+    // The connected wallet is snapshotted on the withdrawal row: it is mandatory and must be a real TON address.
+    if (!address) throw new Error('Connect your TON wallet before requesting a withdrawal.');
+    if (!/^[A-Za-z0-9_-]{48}$/.test(address) && !/^-?\d+:[0-9a-fA-F]{64}$/.test(address)) throw new Error('Endereço TON inválido.');
+    if (!Number.isInteger(amount) || amount < 100_000 || amount % 100_000 !== 0) throw new Error('O valor deve ser múltiplo de 100.000 FC.');
     fn = 'request_wallet_withdrawal';
     args = { ...args, p_amount_fc: amount, p_wallet_address: address, p_idempotency_key: `withdraw:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';

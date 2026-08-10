@@ -3640,40 +3640,58 @@ export type Database = {
       }
       wallet_withdrawals: {
         Row: {
+          admin_id: number | null
           amount_fc: number
           amount_ton: number
           created_at: string
           id: string
           idempotency_key: string
+          paid_at: string | null
           processed_at: string | null
+          refunded_at: string | null
           status: string
+          telegram_id: number | null
           tx_hash: string | null
           user_id: string
-          wallet_address: string
+          username: string | null
+          wallet_address: string | null
+          wallet_resolution_required: boolean
         }
         Insert: {
+          admin_id?: number | null
           amount_fc: number
           amount_ton: number
           created_at?: string
           id?: string
           idempotency_key: string
+          paid_at?: string | null
           processed_at?: string | null
+          refunded_at?: string | null
           status?: string
+          telegram_id?: number | null
           tx_hash?: string | null
           user_id: string
-          wallet_address: string
+          username?: string | null
+          wallet_address?: string | null
+          wallet_resolution_required?: boolean
         }
         Update: {
+          admin_id?: number | null
           amount_fc?: number
           amount_ton?: number
           created_at?: string
           id?: string
           idempotency_key?: string
+          paid_at?: string | null
           processed_at?: string | null
+          refunded_at?: string | null
           status?: string
+          telegram_id?: number | null
           tx_hash?: string | null
           user_id?: string
-          wallet_address?: string
+          username?: string | null
+          wallet_address?: string | null
+          wallet_resolution_required?: boolean
         }
         Relationships: [
           {
@@ -3776,6 +3794,10 @@ export type Database = {
       }
       admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
+      admin_connected_wallets: {
+        Args: { p_admin_id: number; p_limit?: number; p_query?: string }
+        Returns: Json
+      }
       admin_create_snapshot: {
         Args: { p_admin_id: number; p_label: string }
         Returns: Json
@@ -3842,6 +3864,10 @@ export type Database = {
           p_limit?: number
           p_status?: string
         }
+        Returns: Json
+      }
+      admin_list_withdrawals: {
+        Args: { p_admin_id: number; p_limit?: number; p_status?: string }
         Returns: Json
       }
       admin_log: {
@@ -4306,6 +4332,26 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_withdrawal_detail: {
+        Args: { p_admin_id: number; p_withdrawal_id: string }
+        Returns: Json
+      }
+      admin_withdrawal_lock: {
+        Args: { p_admin_id: number; p_withdrawal_id: string }
+        Returns: Json
+      }
+      admin_withdrawal_mark_paid: {
+        Args: { p_admin_id: number; p_tx_hash: string; p_withdrawal_id: string }
+        Returns: Json
+      }
+      admin_withdrawal_reject: {
+        Args: { p_admin_id: number; p_reason?: string; p_withdrawal_id: string }
+        Returns: Json
+      }
+      admin_withdrawal_unlock: {
+        Args: { p_admin_id: number; p_reason?: string; p_withdrawal_id: string }
+        Returns: Json
+      }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
@@ -4542,6 +4588,7 @@ export type Database = {
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_summon_rates: { Args: never; Returns: Json }
+      is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
       log_pet_transaction: {
         Args: {
           p_after: number
