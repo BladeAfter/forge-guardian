@@ -969,7 +969,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 const ERRORS: Record<string, string> = {
   unauthorized: DENIED,
-  player_not_found: '⚠️ Jogador não encontrado.',
+  player_not_found: '⚠️ Jogador não encontrado. Tente Telegram ID, @usuário, nome, carteira ou ID interno.',
+  season_not_found: '⚠️ Nenhuma temporada ativa do Battle Pass.',
+  invalid_tier: '⚠️ Tipo de passe inválido.',
   hero_not_found: '⚠️ Herói não encontrado.',
   pet_not_found: '⚠️ Pet não encontrado.',
   reason_required: '⚠️ O motivo é obrigatório para esta ação.',
