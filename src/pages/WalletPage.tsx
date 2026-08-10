@@ -52,7 +52,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     },
     onSuccess: async result => {
       await invalidateWallet();
-      if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) confirmado(s) na blockchain.`);
+      if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) creditado(s): saldo atualizado.`);
+      else if (result.alreadyCredited?.length) toast('Deposit already credited.');
       else if (result.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
       else toast('Nenhum depósito pendente para verificar.');
     },

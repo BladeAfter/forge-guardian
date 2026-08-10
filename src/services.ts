@@ -68,6 +68,8 @@ const loadDemoState = (telegramInitData: string): GameState => {
     return applyDailyCycle({
       ...defaults,
       ...state,
+      // Legacy local saves could hold a fake default balance; the server balance overwrites it on load.
+      balance: 0,
       offlineProduction: Math.min(capacity, Math.floor(productionPerHour * Math.min(elapsedHours, state.settings.offlineCapHours)))
     });
   } catch {
@@ -176,7 +178,7 @@ export const createDepositIntent=(initData:string,amountTon:number,walletAddress
 export const requestWithdrawal=(initData:string,amountFc:number,walletAddress:string,idempotencyKey:string)=>walletRequest(initData,{action:'withdraw',amountFc,walletAddress,idempotencyKey});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Asks the backend to check the TON blockchain and credit any confirmed pending deposit. */
-export const verifyPendingDeposits=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[]}>(initData,{action:'verify-deposit'});
+export const verifyPendingDeposits=(initData:string)=>walletRequest<{checked:number;confirmed:string[];alreadyCredited?:string[];pending:string[]}>(initData,{action:'verify-deposit'});
 
 export async function fetchTelegramProfile(telegramInitData:string):Promise<TelegramPlayerProfile>{
   const response=await forgeFetch('profile',({initData:telegramInitData}));
