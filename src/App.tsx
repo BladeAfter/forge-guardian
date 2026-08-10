@@ -254,6 +254,8 @@ function App() {
   }, []);
 
   // Real boot progress: each resolved dependency advances the single Mythreon loading screen.
+  const playerProfileReady = Boolean(playerProfile);
+  const heroesReady = !backendEnabled || Boolean(heroCollection.data) || Boolean(heroCollection.error);
   useEffect(() => {
     if (telegramInitData) setBootStage((current) => Math.max(current, 50));
     if (playerProfileReady) setBootStage((current) => Math.max(current, 65));
