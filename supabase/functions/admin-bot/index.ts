@@ -320,6 +320,7 @@ async function module(ctx: Ctx, name: string) {
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"chat_ref":"-1001234567890","reward_fc":5000,"enabled":true}</code>\n\nO <b>chat_ref</b> é o ID numérico (ou @publico) do canal; sem ele o jogo não consegue verificar a participação.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
