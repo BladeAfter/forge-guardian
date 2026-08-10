@@ -17,6 +17,7 @@ import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {HeroesPage}from'./pages/HeroesPage';
 import {PlayerHeader}from'./components/PlayerHeader';
+import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
