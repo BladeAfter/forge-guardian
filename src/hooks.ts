@@ -9,7 +9,6 @@ import type { PvpDashboard, PvpHero } from './pvp';
 import type { WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
-import type {CalendarDashboard} from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 
