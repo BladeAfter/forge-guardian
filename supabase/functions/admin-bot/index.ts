@@ -675,8 +675,10 @@ const PROMPTS: Record<string, string> = {
   unlink: 'Envie: <code>usuário motivo</code> para remover o vínculo de indicação.',
   depok: 'Envie o ID do depósito (pode ser o prefixo mostrado).',
   depno: 'Envie o ID do depósito a rejeitar.',
-  wdpaid: 'Envie: <code>id [tx_hash]</code> para marcar o saque como pago.',
-  wdno: 'Envie o ID do saque a rejeitar.',
+  wdpaid: 'Envie o ID do saque (prefixo aceito) para abrir os detalhes e pagar.',
+  wdno: 'Envie o ID do saque para abrir os detalhes e rejeitar.',
+  findwallet: 'Pesquise a carteira por Telegram ID, @usuário, nome, endereço TON ou ID interno.',
+
   tonrate: 'Envie a nova taxa: quantos FC vale 1 TON (ex.: <code>100000</code>). Vale apenas para depósitos confirmados depois da alteração.',
   auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
