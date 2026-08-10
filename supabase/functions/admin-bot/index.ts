@@ -1130,22 +1130,46 @@ Deno.serve(async (req) => {
     }
 
     const text = String(update.message?.text || '').trim();
+    const cmdWord = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+    const isCommand = cmdWord.startsWith('/');
+
+    // 1) pending conversation state wins over any normal command / menu fallback.
+    // Legacy quoted "#cmd" prompts still work; the persisted session is the source of truth.
     const replied = String(update.message?.reply_to_message?.text || '');
-    const pending = replied.match(/#([^\s]+)\s*$/)?.[1];
-    if (pending) {
-      await handlePrompt(ctx, pending, text);
+    const quoted = replied.match(/#([^\s]+)\s*$/)?.[1];
+    const session = quoted ? null : await getSession(ctx);
+    const pending = quoted || session?.action || null;
+
+    if (pending && !(isCommand && (cmdWord === '/start' || cmdWord === '/menu' || cmdWord === '/cancel'))) {
+      try {
+        await handlePrompt(ctx, pending, text);
+        await clearSession(ctx);
+      } catch (error) {
+        const raw = error instanceof Error ? error.message : String(error);
+        if (raw.startsWith('KEEP_SESSION::')) {
+          // Validation error: keep the flow alive, never bounce back to the menu.
+          await send(ctx, raw.slice('KEEP_SESSION::'.length), kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+          return new Response(JSON.stringify({ ok: true }));
+        }
+        throw error;
+      }
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    if (isCommand && cmdWord === '/cancel') {
+      await clearSession(ctx);
+      await send(ctx, '❌ Nenhuma ação pendente.', MAIN_MENU);
       return new Response(JSON.stringify({ ok: true }));
     }
 
-
-    const cmd = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+    // 2) no pending action: normal commands, then the menu fallback.
+    const cmd = cmdWord;
     const arg = text.slice(cmd.length).trim();
     const direct: Record<string, string> = {
       '/heroes': 'heroes', '/shop': 'shop', '/loja': 'shop', '/pets': 'pets', '/pvp': 'pvp', '/pool': 'pool', '/pass': 'pass',
       '/invites': 'invites', '/boss': 'boss', '/audit': 'audit', '/status': 'status',
       '/wallet': 'wallet', '/missions': 'missions', '/ads': 'ads', '/settings': 'settings', '/broadcast': 'cast',
     };
-    if (cmd === '/start' || cmd === '/admin' || cmd === '/menu') await home(ctx);
+    if (cmd === '/start' || cmd === '/admin' || cmd === '/menu') { await clearSession(ctx); await home(ctx); }
     else if (cmd === '/user' || cmd === '/player') { arg ? await playerCard(ctx, arg) : await ask(ctx, 'find', PROMPTS.find); }
     else if (cmd === '/balance') { arg ? await playerCard(ctx, arg) : await ask(ctx, 'find', PROMPTS.find); }
     else if (cmd === '/ban') { arg ? await handleCallback(ctx, `ban:${arg}`) : await ask(ctx, 'find', PROMPTS.find); }
@@ -1156,7 +1180,9 @@ Deno.serve(async (req) => {
     const raw = error instanceof Error ? error.message : String(error);
     const known = Object.keys(ERRORS).find((k) => raw.includes(k));
     console.error('admin-bot error:', raw);
+    await clearSession(ctx).catch(() => {});
     await send(ctx, known ? ERRORS[known] : `⚠️ Falha: <code>${esc(raw).slice(0, 400)}</code>`, MAIN_MENU);
   }
   return new Response(JSON.stringify({ ok: true }));
 });
+
