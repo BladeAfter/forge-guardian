@@ -264,7 +264,7 @@ async function module(ctx: Ctx, name: string) {
         kb([[{ t: '✏️ CRIAR/EDITAR QUEST', d: 'ask:quest' }],
             [{ t: '🎁 BAÚ EXTRA 5/5', d: 'ask:questbonus' }, { t: '🕒 FUSO DO RESET', d: 'ask:questtz' }],
             [{ t: '🚫 ATIVAR/DESATIVAR', d: 'ask:questtoggle' }, { t: '♻️ RESETAR HOJE', d: 'confirm:questreset' }],
-            [{ t: '📦 BAÚS DISPONÍVEIS', d: 'view:chests' }], nav()]));
+            [{ t: '📦 DIAGNÓSTICO DOS BAÚS', d: 'view:chests' }], nav()]));
     }
     case 'boss': {
       const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
@@ -443,8 +443,15 @@ async function handleCallback(ctx: Ctx, data: string) {
   }
   if (head === 'view') {
     if (rest[0] === 'chests') {
-      const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
-      return send(ctx, `📦 <b>BAÚS DISPONÍVEIS</b>\n${(d.chests || []).map((c: any) => `• <code>${esc(c.code)}</code> ${esc(c.name)}`).join('\n') || '—'}`,
+      const d = await rpc('admin_chest_diagnostics', { p_admin_id: ctx.adminId });
+      const chests = (d.chests || []).map((c: any) => {
+        const missing = c.missing || [];
+        const status = !c.enabled ? '⛔ disabled' : missing.length ? `⚠️ NO ACTIVE HEROES (${missing.map(esc).join(', ')})` : '✅ configured';
+        const rates = Object.entries(c.rates || {}).map(([k, v]) => `${esc(k)} ${v}%`).join(' · ');
+        return `📦 <b>${esc(String(c.code).toUpperCase())}</b>\n   ${status}\n   ${rates || 'sem taxas'}`;
+      }).join('\n') || '—';
+      const pools = Object.entries(d.heroPools || {}).map(([k, v]) => `• ${esc(k)}: ${Number(v) > 0 ? fmt(Number(v)) : '⚠️ NO ACTIVE HEROES'}`).join('\n');
+      return send(ctx, `📦 <b>DIAGNÓSTICO DOS BAÚS</b>\n${chests}\n\n🦸 <b>HERÓIS ATIVOS POR RARIDADE</b>\n${pools}`,
         kb([[{ t: '🎁 DEFINIR BAÚ 5/5', d: 'ask:questbonus' }], nav('m:quests')]));
     }
     const cfg = await rpc('admin_pet_config', { p_admin_id: ctx.adminId });
