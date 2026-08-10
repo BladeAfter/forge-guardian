@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_bot_sessions: {
+        Row: {
+          action: string
+          admin_telegram_id: number
+          chat_id: number
+          context: Json
+          created_at: string
+          expires_at: string
+          id: string
+          step: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          admin_telegram_id: number
+          chat_id: number
+          context?: Json
+          created_at?: string
+          expires_at?: string
+          id?: string
+          step?: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          admin_telegram_id?: number
+          chat_id?: number
+          context?: Json
+          created_at?: string
+          expires_at?: string
+          id?: string
+          step?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_snapshots: {
         Row: {
           admin_id: number

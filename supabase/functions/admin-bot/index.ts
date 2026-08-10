@@ -68,19 +68,67 @@ async function edit(ctx: Ctx, text: string, markup?: unknown) {
   if (!ctx.messageId) return send(ctx, text, markup);
   await tg('editMessageText', { chat_id: ctx.chatId, message_id: ctx.messageId, text, parse_mode: 'HTML', reply_markup: markup });
 }
-/** Stateless prompt: the next reply carries the pending command inside the quoted message. */
+// ---------------------------------------------------------------- conversation state (persisted: serverless-safe)
+// Edge functions are stateless per request, so pending admin actions live in the database,
+// keyed by (admin_telegram_id, chat_id) and expiring after 15 minutes.
+const SESSION_TTL_MS = 15 * 60 * 1000;
+
+type AdminSession = { action: string; step: string; context: Record<string, unknown> };
+
+async function getSession(ctx: Ctx): Promise<AdminSession | null> {
+  const { data, error } = await db
+    .from('admin_bot_sessions')
+    .select('action, step, context, expires_at')
+    .eq('admin_telegram_id', ctx.adminId)
+    .eq('chat_id', ctx.chatId)
+    .maybeSingle();
+  if (error) { console.error('session read failed:', error.message); return null; }
+  if (!data) return null;
+  if (new Date(data.expires_at).getTime() < Date.now()) { await clearSession(ctx); return null; }
+  return { action: data.action, step: data.step || 'awaiting_input', context: (data.context || {}) as Record<string, unknown> };
+}
+
+async function setSession(ctx: Ctx, action: string, step = 'awaiting_input', context: Record<string, unknown> = {}) {
+  const { error } = await db.from('admin_bot_sessions').upsert({
+    admin_telegram_id: ctx.adminId,
+    chat_id: ctx.chatId,
+    action,
+    step,
+    context,
+    updated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+  }, { onConflict: 'admin_telegram_id,chat_id' });
+  if (error) console.error('session write failed:', error.message);
+}
+
+async function clearSession(ctx: Ctx) {
+  const { error } = await db.from('admin_bot_sessions').delete()
+    .eq('admin_telegram_id', ctx.adminId).eq('chat_id', ctx.chatId);
+  if (error) console.error('session clear failed:', error.message);
+}
+
+/** Prompt: persists the pending action so the next plain text reply is executed. */
 async function ask(ctx: Ctx, cmd: string, question: string) {
+  await setSession(ctx, cmd, 'awaiting_input');
   await tg('sendMessage', {
     chat_id: ctx.chatId,
-    text: `${question}\n\n<code>#${cmd}</code>`,
+    text: `${question}\n\n<i>Responda com o valor nesta conversa. Toque em ❌ CANCELAR para sair.</i>`,
     parse_mode: 'HTML',
-    reply_markup: { force_reply: true, input_field_placeholder: 'Digite o valor' },
+    reply_markup: kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]),
   });
 }
 
+/** Accepts 20, 20.5 and 20,5 — returns NaN for anything else. */
+function parseAmount(raw: string): number {
+  const cleaned = String(raw).trim().replace(/\s/g, '').replace(',', '.');
+  if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return NaN;
+  return Number(cleaned);
+}
+
+
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
-  const text = '🎮 <b>FORGE VILLAGE ADMIN</b>\nControle total do jogo. Escolha um módulo:';
+  const text = '🎮 <b>MYTHREON ADMIN</b>\nControle total do jogo. Escolha um módulo:';
   editing ? await edit(ctx, text, MAIN_MENU) : await send(ctx, text, MAIN_MENU);
 }
 
@@ -502,9 +550,22 @@ const PROMPTS: Record<string, string> = {
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
-  if (data === 'home') return home(ctx, true);
-  if (head === 'm') return module(ctx, rest[0]);
+  // Navigation always leaves any pending flow in a clean state.
+  if (data === 'home') { await clearSession(ctx); return home(ctx, true); }
+  if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
+  if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  if (head === 'poolgo') {
+    const mode = rest[0] === 'remove' ? 'remove' : 'add';
+    const amount = parseAmount(rest[1]) * (mode === 'remove' ? -1 : 1);
+    if (!Number.isFinite(amount) || amount === 0) return send(ctx, '⚠️ Valor inválido.', MAIN_MENU);
+    await clearSession(ctx);
+    const r = await rpc('admin_adjust_pool_balance', { p_amount: amount, p_reason: 'painel admin' });
+    await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pool.adjust', p_target_type: 'pool', p_target_id: null, p_old: null, p_new: { amount }, p_reason: 'painel admin', p_context: { financial: true } });
+    return send(ctx, `✅ Pool ajustada em <b>${amount} TON</b>.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`,
+      kb([[{ t: '💰 POOL', d: 'm:pool' }], nav()]));
+  }
+
   if (head === 'find') return playerCard(ctx, rest.join(':') || '');
   if (head === 'pg') {
     const offset = Number(rest[0] || 0) || 0;
@@ -704,9 +765,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'tree': return handleCallback(ctx, `tree:${text}`);
     case 'bal': {
       const [cur, mode, user] = args;
-      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: Number(text.replace(/[^\d.]/g, '')), p_reason: 'ajuste pelo painel' });
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior ou igual a 0 (ex.: <code>1000</code> ou <code>20,5</code>).');
+      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: value, p_reason: 'ajuste pelo painel' });
       return send(ctx, `✅ <b>${cur.toUpperCase()}</b>\nAnterior: ${fmt(r.old_value)}\nNovo: <b>${fmt(r.new_value)}</b>`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
     }
+
     case 'stat': {
       const [stat, user] = args;
       const [mode, amount] = text.split(/\s+/);
@@ -899,7 +963,15 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'maintmsg': { await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'maintenance_message', p_value: text, p_reason: 'painel admin' }); return send(ctx, '✅ Mensagem atualizada.', MAIN_MENU); }
     case 'ref': { const r = await rpc('admin_set_referral_percent', { p_admin_id: ctx.adminId, p_level: Number(args[0]), p_percent: Number(text.replace(/[^\d.]/g, '')), p_reason: 'painel admin' }); return send(ctx, `✅ Nível ${r.level}: ${r.old_value}% → <b>${r.new_value}%</b>`, MAIN_MENU); }
     case 'unlink': { const i = text.indexOf(' '); const r = await rpc('admin_unlink_referral', { p_admin_id: ctx.adminId, p_ref: text.slice(0, i), p_reason: text.slice(i + 1) }); return send(ctx, `✂️ ${r.removed} vínculo(s) removido(s).`, MAIN_MENU); }
-    case 'pool': { const amount = Number(text.replace(/[^\d.]/g, '')) * (args[0] === 'remove' ? -1 : 1); const r = await rpc('admin_adjust_pool_balance', { p_amount: amount, p_reason: 'painel admin' }); await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pool.adjust', p_target_type: 'pool', p_target_id: null, p_old: null, p_new: { amount }, p_reason: 'painel admin', p_context: { financial: true } }); return send(ctx, `✅ Pool ajustada em ${amount} TON.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`, MAIN_MENU); }
+    case 'pool': {
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior que 0 (ex.: <code>20</code> ou <code>20,5</code>).');
+      const mode = args[0] === 'remove' ? 'remove' : 'add';
+      await setSession(ctx, `pool|${mode}`, 'awaiting_confirmation', { amount: value });
+      return send(ctx, `⚠️ Confirmar <b>${mode === 'remove' ? 'REMOVER' : 'ADICIONAR'} ${value} TON</b> na Community Pool?`,
+        kb([[{ t: '✅ CONFIRMAR', d: `poolgo:${mode}:${value}` }, { t: '❌ CANCELAR', d: 'cancel' }]]));
+    }
+
     case 'poolset': { const [k, v] = text.split(/\s+/); await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pool_' + k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ Configuração da pool <code>${esc(k)}</code> = ${esc(v)}`, MAIN_MENU); }
     case 'poolrate': { const pct = Number(text.replace(',', '.').replace(/[^\d.]/g, '')); if (!Number.isFinite(pct) || pct < 0 || pct > 100) return send(ctx, '⚠️ Informe um percentual entre 0 e 100.', MAIN_MENU); const r = await rpc('admin_set_pool_contribution_percent', { p_admin_id: ctx.adminId, p_percent: pct }); return send(ctx, `✅ Taxa da Community Pool agora é <b>${r}%</b> de toda receita TON confirmada.`, MAIN_MENU); }
 
@@ -1058,22 +1130,46 @@ Deno.serve(async (req) => {
     }
 
     const text = String(update.message?.text || '').trim();
+    const cmdWord = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+    const isCommand = cmdWord.startsWith('/');
+
+    // 1) pending conversation state wins over any normal command / menu fallback.
+    // Legacy quoted "#cmd" prompts still work; the persisted session is the source of truth.
     const replied = String(update.message?.reply_to_message?.text || '');
-    const pending = replied.match(/#([^\s]+)\s*$/)?.[1];
-    if (pending) {
-      await handlePrompt(ctx, pending, text);
+    const quoted = replied.match(/#([^\s]+)\s*$/)?.[1];
+    const session = quoted ? null : await getSession(ctx);
+    const pending = quoted || session?.action || null;
+
+    if (pending && !(isCommand && (cmdWord === '/start' || cmdWord === '/menu' || cmdWord === '/cancel'))) {
+      try {
+        await handlePrompt(ctx, pending, text);
+        await clearSession(ctx);
+      } catch (error) {
+        const raw = error instanceof Error ? error.message : String(error);
+        if (raw.startsWith('KEEP_SESSION::')) {
+          // Validation error: keep the flow alive, never bounce back to the menu.
+          await send(ctx, raw.slice('KEEP_SESSION::'.length), kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+          return new Response(JSON.stringify({ ok: true }));
+        }
+        throw error;
+      }
+      return new Response(JSON.stringify({ ok: true }));
+    }
+    if (isCommand && cmdWord === '/cancel') {
+      await clearSession(ctx);
+      await send(ctx, '❌ Nenhuma ação pendente.', MAIN_MENU);
       return new Response(JSON.stringify({ ok: true }));
     }
 
-
-    const cmd = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+    // 2) no pending action: normal commands, then the menu fallback.
+    const cmd = cmdWord;
     const arg = text.slice(cmd.length).trim();
     const direct: Record<string, string> = {
       '/heroes': 'heroes', '/shop': 'shop', '/loja': 'shop', '/pets': 'pets', '/pvp': 'pvp', '/pool': 'pool', '/pass': 'pass',
       '/invites': 'invites', '/boss': 'boss', '/audit': 'audit', '/status': 'status',
       '/wallet': 'wallet', '/missions': 'missions', '/ads': 'ads', '/settings': 'settings', '/broadcast': 'cast',
     };
-    if (cmd === '/start' || cmd === '/admin' || cmd === '/menu') await home(ctx);
+    if (cmd === '/start' || cmd === '/admin' || cmd === '/menu') { await clearSession(ctx); await home(ctx); }
     else if (cmd === '/user' || cmd === '/player') { arg ? await playerCard(ctx, arg) : await ask(ctx, 'find', PROMPTS.find); }
     else if (cmd === '/balance') { arg ? await playerCard(ctx, arg) : await ask(ctx, 'find', PROMPTS.find); }
     else if (cmd === '/ban') { arg ? await handleCallback(ctx, `ban:${arg}`) : await ask(ctx, 'find', PROMPTS.find); }
@@ -1084,7 +1180,9 @@ Deno.serve(async (req) => {
     const raw = error instanceof Error ? error.message : String(error);
     const known = Object.keys(ERRORS).find((k) => raw.includes(k));
     console.error('admin-bot error:', raw);
+    await clearSession(ctx).catch(() => {});
     await send(ctx, known ? ERRORS[known] : `⚠️ Falha: <code>${esc(raw).slice(0, 400)}</code>`, MAIN_MENU);
   }
   return new Response(JSON.stringify({ ok: true }));
 });
+
