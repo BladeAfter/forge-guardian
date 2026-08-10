@@ -51,7 +51,7 @@ const MAIN_MENU = kb([
   [{ t: '🐲 PETS', d: 'm:pets' }, { t: '⚔️ PVP', d: 'm:pvp' }],
   [{ t: '🎟 PASSE', d: 'm:pass' }, { t: '💰 POOL', d: 'm:pool' }],
   [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }],
-  [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 MISSÕES', d: 'm:missions' }],
+  [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
@@ -256,6 +256,16 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, `🎯 <b>MISSÕES</b>\n${d.missions.map((m: any) => `• <code>${esc(m.code)}</code> [${esc(m.scope)}] ${esc(m.title)} → ${fmt(m.reward_amount)} ${esc(m.reward_type)} ${m.enabled ? '✅' : '⛔'}`).join('\n') || '—'}`,
         kb([[{ t: '✏️ CRIAR/EDITAR', d: 'ask:mission' }], [{ t: '♻️ RESETAR DIÁRIAS', d: 'confirm:missdaily' }, { t: '♻️ SEMANAIS', d: 'confirm:missweekly' }], nav()]));
     }
+    case 'quests': {
+      const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
+      const b = d.bonus || {};
+      const list = (d.quests || []).map((q: any) => `• <code>${esc(q.code)}</code> ${esc(q.title)}\n   evento <code>${esc(q.event_key)}</code> · meta ${q.target_amount} · ${fmt(q.reward_fc)} FC ${q.enabled ? '✅' : '⛔'}`).join('\n') || '—';
+      return edit(ctx, `🎯 <b>DAILY QUESTS</b>\nFuso do reset: <b>${esc(d.timezone)}</b> · dia atual ${esc(d.questDate)}\nResgates hoje: ${fmt(d.claimedToday)}\n\n${list}\n\n🎁 Baú extra (5/5): <b>${esc(b.name || 'Rare Chest')}</b> — <code>${esc(b.item_code || 'rare_chest')}</code> x${b.quantity ?? 1}\n\nO progresso é gravado só pelo servidor (login, pet, boss, PvP, ovos/baús).`,
+        kb([[{ t: '✏️ CRIAR/EDITAR QUEST', d: 'ask:quest' }],
+            [{ t: '🎁 BAÚ EXTRA 5/5', d: 'ask:questbonus' }, { t: '🕒 FUSO DO RESET', d: 'ask:questtz' }],
+            [{ t: '🚫 ATIVAR/DESATIVAR', d: 'ask:questtoggle' }, { t: '♻️ RESETAR HOJE', d: 'confirm:questreset' }],
+            [{ t: '📦 BAÚS DISPONÍVEIS', d: 'view:chests' }], nav()]));
+    }
     case 'boss': {
       const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
       const b = d.boss;
@@ -320,6 +330,10 @@ const PROMPTS: Record<string, string> = {
   pvpset: 'Envie: <code>chave valor</code>\nChaves: pvp_trophy_win, pvp_trophy_loss, pvp_ticket_cost, pvp_ticket_start, pvp_ticket_max, pvp_ticket_regen_minutes, pvp_ticket_price_fc, pvp_win_reward_fc',
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
+  quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":10000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
+  questtoggle: 'Envie o <code>code</code> da quest para ativar/desativar.',
+  questbonus: 'Envie: <code>item_code quantidade [nome]</code> — ex.: <code>rare_chest 1 Rare Chest</code>',
+  questtz: 'Envie o fuso do reset diário — ex.: <code>America/Sao_Paulo</code>',
   mission: 'Envie: <code>code {json}</code> — ex.: <code>daily_pvp_wins {"title":"Vença 3 batalhas","target_amount":3,"reward_amount":4000,"enabled":true}</code>',
   boss: 'Envie: <code>code {json}</code> — ex.: <code>golem_ancestral {"name":"Golem","max_hp":50000,"attack":300,"reward_amount":9000}</code>',
   bossspawn: 'Envie o <code>code</code> do chefe para ativar (ex.: <code>golem_ancestral</code>).',
@@ -428,6 +442,11 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `📈 <b>TOP ${rest[0]}</b>\n${d.ranking.map((r: any, i: number) => `${i + 1}. ${esc(r.name)} — ${fmt(r.trophies)}🏆`).join('\n').slice(0, 3500)}`, MAIN_MENU);
   }
   if (head === 'view') {
+    if (rest[0] === 'chests') {
+      const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
+      return send(ctx, `📦 <b>BAÚS DISPONÍVEIS</b>\n${(d.chests || []).map((c: any) => `• <code>${esc(c.code)}</code> ${esc(c.name)}`).join('\n') || '—'}`,
+        kb([[{ t: '🎁 DEFINIR BAÚ 5/5', d: 'ask:questbonus' }], nav('m:quests')]));
+    }
     const cfg = await rpc('admin_pet_config', { p_admin_id: ctx.adminId });
     if (rest[0] === 'eggs') return send(ctx, `🥚 <b>OVOS</b>\n${cfg.eggs.map((e: any) => `• ${esc(e.name)} <code>${e.slug ?? e.id}</code> — ${fmt(e.price_fc)} FC / ${e.price_ton ?? '—'} TON ${e.is_enabled ? '✅' : '⛔'}\n   ${esc(JSON.stringify(e.rarity_rates))}`).join('\n')}`,
       kb([[{ t: '💰 PREÇO DO OVO', d: 'ask:eggprice' }], [{ t: '✏️ EDITAR OVO (JSON)', d: 'ask:egg' }], nav('m:pets')]));
@@ -462,6 +481,7 @@ async function handleCallback(ctx: Ctx, data: string) {
       poolcancel: 'CANCELAR o ciclo atual da pool',
       bossend: 'ENCERRAR o chefe ativo',
       bosshp: 'RESETAR o HP dos chefes ativos',
+      questreset: 'RESETAR as daily quests de hoje (progresso e resgates)',
       missdaily: 'RESETAR as missões diárias',
       missweekly: 'RESETAR as missões semanais',
     };
@@ -475,6 +495,7 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (key === 'poolcancel') { const r = await rpc('admin_cancel_pool', {}); await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pool.cancel', p_target_type: 'pool', p_target_id: null, p_old: null, p_new: r, p_reason: null, p_context: {} }); return send(ctx, '✅ Ciclo cancelado.', MAIN_MENU); }
     if (key === 'bossend') { const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'end', p_code: null, p_reason: 'encerrado pelo admin' }); return send(ctx, `✅ Chefes encerrados (${r.affected}).`, MAIN_MENU); }
     if (key === 'bosshp') { const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'reset_hp', p_code: null, p_reason: 'reset de HP' }); return send(ctx, `✅ HP resetado (${r.affected}).`, MAIN_MENU); }
+    if (key === 'questreset') { const r = await rpc('admin_reset_quests', { p_admin_id: ctx.adminId, p_reason: 'reset manual das daily quests' }); return send(ctx, `✅ Daily quests resetadas (${fmt(r.cleared)} registros).`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     if (key.startsWith('miss')) { const scope = key === 'missdaily' ? 'daily' : 'weekly'; const r = await rpc('admin_reset_missions', { p_admin_id: ctx.adminId, p_scope: scope, p_reason: 'reset manual' }); return send(ctx, `✅ Missões ${scope} resetadas (${r.cleared}).`, MAIN_MENU); }
   }
   return send(ctx, 'Comando não reconhecido.', MAIN_MENU);
@@ -635,6 +656,20 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `🧩 <b>${fmt(Number(quantity || 1))}</b> fragmentos universais enviados.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
     }
     case 'league': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_league', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Liga salva: ${esc(r.name)} (${r.min_trophies}–${r.max_trophies ?? '∞'})`, MAIN_MENU); }
+    case 'quest': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_quest', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Quest salva: <b>${esc(r.title)}</b> — ${esc(r.event_key)} · meta ${r.target_amount} · ${fmt(r.reward_fc)} FC ${r.enabled ? '✅' : '⛔'}`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
+    case 'questtoggle': {
+      const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
+      const current = (d.quests || []).find((q: any) => q.code === text);
+      if (!current) return send(ctx, '⚠️ Quest não encontrada.', kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()]));
+      const r = await rpc('admin_upsert_quest', { p_admin_id: ctx.adminId, p_code: text, p_patch: { enabled: !current.enabled }, p_reason: 'toggle pelo painel' });
+      return send(ctx, `✅ ${esc(r.title)} agora está ${r.enabled ? 'ATIVA ✅' : 'INATIVA ⛔'}.`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()]));
+    }
+    case 'questbonus': {
+      const [code, qty, ...name] = text.split(/\s+/);
+      const r = await rpc('admin_set_quest_bonus', { p_admin_id: ctx.adminId, p_item_type: 'hero_chest', p_item_code: code, p_name: name.join(' ') || code, p_quantity: Number(qty) || 1 });
+      return send(ctx, `✅ Baú 5/5: <b>${esc(r.name)}</b> — <code>${esc(r.item_code)}</code> x${r.quantity}`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()]));
+    }
+    case 'questtz': { const r = await rpc('admin_set_quest_timezone', { p_admin_id: ctx.adminId, p_timezone: text }); return send(ctx, `✅ Reset diário no fuso <b>${esc(r.timezone)}</b>.`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     case 'mission': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_mission', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Missão salva: ${esc(r.title)}`, MAIN_MENU); }
     case 'boss': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_boss', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Chefe salvo: ${esc(r.name)} — ${fmt(r.max_hp)} HP`, MAIN_MENU); }
     case 'bossspawn': {
