@@ -4,8 +4,10 @@ import{History,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
 import{toast}from'sonner';
 import{usePetDashboard,usePvpDashboard}from'../hooks';
 import{PetCompanion}from'../components/PetCompanion';
+import{PvpBattleArena}from'../components/PvpBattleArena';
 import{pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
 import type{PvpBattleResult,PvpHero,PvpOpponent}from'../pvp';
+
 
 type Team='attack'|'defense';type View='teams'|'history'|'ranking';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24'};
