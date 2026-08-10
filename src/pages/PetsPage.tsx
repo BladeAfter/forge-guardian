@@ -319,7 +319,16 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <p className="text-[9px] text-slate-400">
                     {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
                   </p>
-                  {buff && <p className="mt-1 text-[9px] font-bold text-emerald-300">{petBuffLabel(buff[0])} +{buff[1]}%</p>}
+                  {buff && (
+                    <PetBuff
+                      buffKey={buff[0]}
+                      label={petBuffLabel(buff[0])}
+                      value={`+${buff[1]}%`}
+                      size="sm"
+                      className="mt-1 rounded-xl bg-black/40 text-left"
+                    />
+                  )}
+
                   {pet.sources && pet.sources.length > 0 && (
                     <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
                   )}
