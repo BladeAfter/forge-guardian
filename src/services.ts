@@ -9,7 +9,7 @@ import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
 import type { TonPaymentIntent, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
-import type {CalendarClaimResult,CalendarDashboard} from './calendarRewards';
+import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,PlayerInventory} from './calendarRewards';
 import type{PassTier,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 
@@ -183,9 +183,13 @@ export async function fetchTelegramProfile(telegramInitData:string):Promise<Tele
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar seu perfil do Telegram.');
   return {...payload,telegramId:String(payload.telegramId)};
 }
-export async function calendarRequest<T=CalendarDashboard>(telegramInitData:string,action:'dashboard'|'claim'='dashboard',day?:number):Promise<T>{const response=await forgeFetch('calendar',({initData:telegramInitData,action,day}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o calendário.');return payload}
+export async function calendarRequest<T=CalendarDashboard>(telegramInitData:string,action:'dashboard'|'claim'|'inventory'='dashboard',day?:number):Promise<T>{const response=await forgeFetch('calendar',({initData:telegramInitData,action,day}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o calendário.');return payload}
 export const claimCalendarDay=(initData:string,day:number)=>calendarRequest<CalendarClaimResult>(initData,'claim',day);
-export async function openCalendarChest(initData:string,inventoryItemId:string){const response=await forgeFetch('calendar',({initData,action:'open-chest',inventoryItemId}));const payload=await response.json().catch(()=>null)as{hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};error?:string}|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível abrir o baú.');return payload}
+/** Chests and eggs the player already owns, so a stored item can always be opened later. */
+export async function fetchPlayerInventory(initData:string):Promise<PlayerInventory>{const payload=await calendarRequest<PlayerInventory>(initData,'inventory');return {chests:Array.isArray(payload.chests)?payload.chests:[],eggs:Array.isArray(payload.eggs)?payload.eggs:[]}}
+const CHEST_ERRORS:Record<string,string>={CHEST_NOT_OWNED:'Este baú não está no seu inventário.',CHEST_NOT_CONFIGURED:'Baú indisponível no momento.',NO_ELIGIBLE_HERO:'Nenhum herói disponível para este baú.',PLAYER_NOT_FOUND:'Jogador não encontrado.'};
+/** The rarity roll and the hero pick happen only on the server. */
+export async function openCalendarChest(initData:string,inventoryItemId:string,source:'calendar'|'shop'|'pass'|'mission'|'event'='calendar'):Promise<ChestOpenResult>{const response=await forgeFetch('calendar',({initData,action:'open-chest',inventoryItemId,source}));const payload=await response.json().catch(()=>null)as(ChestOpenResult&{error?:string})|null;if(!response.ok||!payload?.hero){const raw=payload?.error||'';throw new Error(CHEST_ERRORS[raw]||raw||'Não foi possível abrir o baú.')}return payload}
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 export const createSeasonPassOrder=(initData:string,tier:PassTier)=>seasonPassRequest<SeasonPassOrder>(initData,'order',{tier,idempotencyKey:crypto.randomUUID()});
 export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Pool Comunitária.');const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
