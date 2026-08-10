@@ -7,7 +7,7 @@ import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
-import { createDepositIntent, createEggTonOrder, requestWithdrawal } from '../services';
+import { createDepositIntent, createEggTonOrder, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { usePetDashboard, useWalletSummary } from '../hooks';
 
 type Props = {
@@ -52,8 +52,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     onSuccess: async result => {
       await invalidateWallet();
       if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) confirmado(s) na blockchain.`);
-      else if (result.checked) toast.info('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
-      else toast.info('Nenhum depósito pendente para verificar.');
+      else if (result.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
+      else toast('Nenhum depósito pendente para verificar.');
     },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar o depósito.')
   });
