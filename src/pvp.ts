@@ -1,5 +1,5 @@
 import type{HeroRarity}from'./combat';import type{HeroArchetype}from'./pvpRules';
-export type PvpHero={heroId:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;slot?:number};
+export type PvpHero={heroId:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;stars?:number;locked?:boolean;heroKey?:string;slot?:number};
 export type PvpHistory={id:string;opponentName:string;result:'win'|'loss';turns:number;trophyChange:number;rewardFc:number;createdAt:string};
 export type PvpRank={position:number;id:string;name:string;username?:string|null;avatarUrl:string|null;trophies:number;league:string;wins:number};
 export type PvpDashboard={userId:string;trophies:number;league:string;tickets:number;wins:number;losses:number;attackTeam:PvpHero[];defenseTeam:PvpHero[];teamPower:number;ownedHeroes:PvpHero[];history:PvpHistory[];ranking:PvpRank[]};
