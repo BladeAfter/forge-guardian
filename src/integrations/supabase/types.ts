@@ -3834,6 +3834,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_channel_chat_ref: {
+        Args: { p_admin_id: number; p_channel_key: string; p_chat_ref: string }
+        Returns: Json
+      }
       admin_set_channel_reward: {
         Args: {
           p_admin_id: number
@@ -4342,17 +4346,7 @@ export type Database = {
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
-      get_referral_dashboard:
-        | { Args: { p_telegram_id: number }; Returns: Json }
-        | {
-            Args: {
-              p_level?: number
-              p_limit?: number
-              p_offset?: number
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
+      get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_referral_dashboard_v2: {
         Args: {
           p_level?: number
