@@ -89,6 +89,8 @@ function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
+  const passRecoveryRef = useRef(false);
+
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const [activePage,setActivePage]=useState<InternalPage|null>(internalFromPath);
   const [calendarResult,setCalendarResult]=useState<CalendarClaimResult|null>(null);
