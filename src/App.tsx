@@ -463,10 +463,12 @@ function App() {
   }
 
   // One single boot screen: Telegram init, session validation and game data all live behind it.
-  if (!bootDone) {
+  if (!bootDone || !game) {
     const failure = bootstrapError ?? (error ? (error instanceof Error ? error.message : 'Erro inesperado ao consultar o backend.') : null);
     return <MythreonLoadingScreen progress={bootProgress} note={failure} fading={bootFading} />;
   }
+
+
 
 
   const tabContent = {
