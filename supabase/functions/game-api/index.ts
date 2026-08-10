@@ -296,6 +296,81 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
   return data;
 }
 
+const TONCENTER_BASE = (Deno.env.get('TONCENTER_BASE_URL') || 'https://toncenter.com').replace(/\/+$/, '');
+
+/** Reads the hot wallet transactions from TonCenter (v3) and returns the incoming ones. */
+async function fetchHotWalletIncoming(hotWallet: string): Promise<any[]> {
+  const apiKey = String(Deno.env.get('TONCENTER_API_KEY') || '').trim();
+  if (!apiKey) throw new Error('A verificação on-chain não está configurada (TONCENTER_API_KEY).');
+  const url = `${TONCENTER_BASE}/api/v3/transactions?account=${encodeURIComponent(hotWallet)}&limit=100&offset=0&sort=desc`;
+  const response = await fetch(url, { headers: { 'X-API-Key': apiKey, Accept: 'application/json' } });
+  if (!response.ok) {
+    const details = await response.text();
+    console.error(`[FORGE ERROR] toncenter [${response.status}]: ${details}`);
+    throw new Error(`Não foi possível consultar a blockchain TON (${response.status}).`);
+  }
+  const payload = await response.json().catch(() => null);
+  return Array.isArray(payload?.transactions) ? payload.transactions : [];
+}
+
+const msgComment = (message: any): string =>
+  String(message?.message_content?.decoded?.comment ?? message?.decoded_body?.text ?? '').trim();
+
+/**
+ * Confirms pending deposits of this player by matching the payment comment and value
+ * against real incoming transfers to the project hot wallet.
+ */
+async function verifyPendingDeposits(db: Db, user: TelegramUser) {
+  const settings = await db.from('wallet_settings').select('value_text').eq('key', 'ton_hot_wallet').maybeSingle();
+  if (settings.error) throw new Error(settings.error.message);
+  const hotWallet = String(settings.data?.value_text || Deno.env.get('TON_HOT_WALLET') || '').trim();
+  if (!hotWallet) throw new Error('A carteira de recebimento não está configurada.');
+
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  if (!player.data?.id) throw new Error('Jogador não encontrado.');
+
+  const pending = await db
+    .from('wallet_deposits')
+    .select('id, amount_ton, payment_comment, status')
+    .eq('user_id', player.data.id)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (pending.error) throw new Error(pending.error.message);
+  const deposits = pending.data ?? [];
+  if (!deposits.length) return { checked: 0, confirmed: [], pending: [] };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+
+  for (const deposit of deposits) {
+    const comment = String(deposit.payment_comment || '').trim();
+    const expectedNano = BigInt(Math.round(Number(deposit.amount_ton) * 1e9));
+    // 1% tolerance covers wallet fee rounding on the sender side.
+    const minNano = (expectedNano * 99n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg) return false;
+      const value = BigInt(String(inMsg.value ?? '0'));
+      const sameComment = comment ? msgComment(inMsg) === comment : false;
+      return sameComment && value >= minNano;
+    });
+    if (match) {
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const amountNano = String(match.in_msg?.value ?? expectedNano.toString());
+      await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: amountNano });
+      confirmed.push(deposit.id);
+    } else {
+      stillPending.push(deposit.id);
+    }
+  }
+
+  const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
+  return { checked: deposits.length, confirmed, pending: stillPending, summary };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
   if (hotWallet) {
