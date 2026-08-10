@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ChannelRewards, RewardHistory } from './services';
-import { channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
@@ -12,6 +12,7 @@ import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
+import type{FusionDashboard}from'./heroFusion';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -47,3 +48,6 @@ export const useChannelRewards=(telegramInitData:string|null,enabled:boolean)=>u
 
 /** Daily quests: server is the only source of progress, so refetch on focus. */
 export const useDailyQuests=(telegramInitData:string|null,enabled:boolean)=>useQuery<DailyQuestsDashboard>({queryKey:['daily-quests',telegramInitData],queryFn:()=>fetchDailyQuests(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
+
+/** Hero ascension state (stars, duplicates, costs) — server is the only source of truth. */
+export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<FusionDashboard>({queryKey:['hero-fusion',telegramInitData],queryFn:()=>fetchHeroFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});

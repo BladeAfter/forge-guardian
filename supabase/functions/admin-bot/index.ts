@@ -148,6 +148,7 @@ async function heroShopHub(ctx: Ctx) {
     [{ t: '💰 PREÇOS DE RECRUTAMENTO', d: 'hs:prices' }],
     [{ t: '🎲 CHANCES DE INVOCAÇÃO', d: 'hs:odds' }],
     [{ t: '🦸 EDITAR HERÓIS', d: 'hs:list' }],
+    [{ t: '✨ FUSION SETTINGS', d: 'hs:fusion' }],
     [{ t: '➕ CRIAR HERÓI', d: 'ask:hero' }, { t: '🚫 ATIVAR/DESATIVAR', d: 'ask:herotoggle' }],
     [{ t: '📦 ITENS DA LOJA', d: 'hs:store' }],
     nav(),
@@ -184,6 +185,23 @@ async function heroOddsView(ctx: Ctx) {
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
     [{ t: 'LENDÁRIO', d: 'ho:legendary' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
+    nav('m:shop'),
+  ]));
+}
+
+/** Fusion (ascension) settings: stars, bonuses, FC cost, copies and level caps — editable without deploy. */
+async function fusionView(ctx: Ctx) {
+  const cfg = await rpc('hero_fusion_config', {}) as any;
+  const max = Number(cfg.max_stars ?? 5);
+  const rows: string[] = [];
+  for (let star = 1; star <= max; star += 1) {
+    rows.push(`★${star} — +${cfg.bonus_percent?.[star] ?? 0}% ATK/HP · ${fmt(Number(cfg.cost_fc?.[star] ?? 0))} FC · ${cfg.duplicates?.[star] ?? 1} cópia(s) · Lv.máx ${cfg.level_cap?.[star] ?? 20}`);
+  }
+  const text = ['✨ <b>FUSION SETTINGS</b>', '', `Máximo de estrelas: <b>★${max}</b>`, `Lv. máx ★0: <b>${cfg.level_cap?.['0'] ?? 20}</b>`, '', ...rows,
+    '', 'Os stats são recalculados a partir do multiplicador (nunca somam heróis).'].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '✏️ EDITAR CONFIG (JSON)', d: 'ask:fusion' }],
+    [{ t: '🔄 RESET PADRÃO', d: 'fusr:1' }],
     nav('m:shop'),
   ]));
 }
@@ -332,6 +350,7 @@ const PROMPTS: Record<string, string> = {
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
+  fusion: 'Envie o JSON da fusão (merge parcial). Ex.:\n<code>{"max_stars":5,"bonus_percent":{"1":5,"2":5,"3":7,"4":8,"5":10},"cost_fc":{"1":5000,"2":15000,"3":35000,"4":75000,"5":150000},"duplicates":{"1":1,"2":1,"3":2,"4":2,"5":3},"level_cap":{"0":20,"1":20,"2":25,"3":25,"4":30,"5":35}}</code>',
   rates: 'Envie as chances em JSON (total 100). Ex.: <code>{"comum":45,"incomum":25,"raro":15,"epico":8,"lendario":5,"mitico":1.5,"ancestral":0.5}</code>',
   granthero: 'Envie: <code>usuário hero_key [nível]</code>',
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
@@ -429,12 +448,17 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (view === 'odds') return heroOddsView(ctx);
     if (view === 'list') return module(ctx, 'herolist');
     if (view === 'store') return module(ctx, 'store');
+    if (view === 'fusion') return fusionView(ctx);
     if (view === 'resetp' || view === 'reseto') {
       const scope = view === 'resetp' ? 'prices' : 'odds';
       return send(ctx, `⚠️ Restaurar o padrão de <b>${scope === 'prices' ? 'preços (25.000 / 125.000 / 250.000 FC)' : 'chances (62 / 25 / 10 / 2,7 / 0,3)'}</b>?`,
         kb([[{ t: '✅ CONFIRMAR', d: `hsr:${scope}` }, { t: '❌ CANCELAR', d: 'm:shop' }]]));
     }
     return heroShopHub(ctx);
+  }
+  if (head === 'fusr') {
+    const r = await rpc('admin_set_fusion_config', { p_admin_id: ctx.adminId, p_patch: { max_stars: 5, bonus_percent: { '1': 5, '2': 5, '3': 7, '4': 8, '5': 10 }, cost_fc: { '1': 5000, '2': 15000, '3': 35000, '4': 75000, '5': 150000 }, duplicates: { '1': 1, '2': 1, '3': 2, '4': 2, '5': 3 }, level_cap: { '0': 20, '1': 20, '2': 25, '3': 25, '4': 30, '5': 35 } }, p_reason: 'reset padrão (bot)' });
+    return send(ctx, `✅ Fusão restaurada ao padrão (★${r.max_stars}).`, kb([[{ t: '✨ FUSION SETTINGS', d: 'hs:fusion' }], nav('m:shop')]));
   }
   if (head === 'hsr') {
     const r = await rpc('admin_reset_hero_shop', { p_admin_id: ctx.adminId, p_scope: rest[0] });
@@ -622,6 +646,10 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
       return send(ctx, `✅ Chances salvas.\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]}: ${pct(before[k])}% → <b>${pct(r.odds[k])}%</b>`).join('\n')}`,
         kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+    }
+    case 'fusion': {
+      const r = await rpc('admin_set_fusion_config', { p_admin_id: ctx.adminId, p_patch: JSON.parse(text), p_reason: 'painel admin (bot)' });
+      return send(ctx, `✅ Fusão atualizada — máximo ★${r.max_stars}.`, kb([[{ t: '✨ FUSION SETTINGS', d: 'hs:fusion' }], nav('m:shop')]));
     }
     case 'herotoggle': {
       const heroKey = text.split(/\s+/)[0];

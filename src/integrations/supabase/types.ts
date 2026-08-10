@@ -933,6 +933,65 @@ export type Database = {
           },
         ]
       }
+      hero_fusion_history: {
+        Row: {
+          atk_after: number
+          atk_before: number
+          cost_fc: number
+          created_at: string
+          from_stars: number
+          hero_id: string
+          hero_key: string
+          hp_after: number
+          hp_before: number
+          id: string
+          material_ids: string[]
+          materials_consumed: number
+          to_stars: number
+          user_id: string
+        }
+        Insert: {
+          atk_after: number
+          atk_before: number
+          cost_fc?: number
+          created_at?: string
+          from_stars: number
+          hero_id: string
+          hero_key: string
+          hp_after: number
+          hp_before: number
+          id?: string
+          material_ids?: string[]
+          materials_consumed: number
+          to_stars: number
+          user_id: string
+        }
+        Update: {
+          atk_after?: number
+          atk_before?: number
+          cost_fc?: number
+          created_at?: string
+          from_stars?: number
+          hero_id?: string
+          hero_key?: string
+          hp_after?: number
+          hp_before?: number
+          id?: string
+          material_ids?: string[]
+          materials_consumed?: number
+          to_stars?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_fusion_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_action_idempotency: {
         Row: {
           action: string
@@ -1640,6 +1699,7 @@ export type Database = {
           exclusive_season_id: string | null
           final_atk: number
           final_hp: number
+          fusion_level: number
           hero_key: string
           hero_template_id: string | null
           hp_growth: number
@@ -1647,6 +1707,7 @@ export type Database = {
           image: string | null
           is_season_exclusive: boolean
           level: number
+          locked: boolean
           name: string
           rarity: string
           stats_generated_at: string | null
@@ -1670,6 +1731,7 @@ export type Database = {
           exclusive_season_id?: string | null
           final_atk: number
           final_hp: number
+          fusion_level?: number
           hero_key: string
           hero_template_id?: string | null
           hp_growth: number
@@ -1677,6 +1739,7 @@ export type Database = {
           image?: string | null
           is_season_exclusive?: boolean
           level?: number
+          locked?: boolean
           name: string
           rarity: string
           stats_generated_at?: string | null
@@ -1700,6 +1763,7 @@ export type Database = {
           exclusive_season_id?: string | null
           final_atk?: number
           final_hp?: number
+          fusion_level?: number
           hero_key?: string
           hero_template_id?: string | null
           hp_growth?: number
@@ -1707,6 +1771,7 @@ export type Database = {
           image?: string | null
           is_season_exclusive?: boolean
           level?: number
+          locked?: boolean
           name?: string
           rarity?: string
           stats_generated_at?: string | null
@@ -3851,6 +3916,10 @@ export type Database = {
         Args: { p_admin_id: number; p_quantity?: number; p_rates?: Json }
         Returns: Json
       }
+      admin_set_fusion_config: {
+        Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
+        Returns: Json
+      }
       admin_set_hero_rarity_rates: {
         Args: {
           p_admin_id: number
@@ -4322,6 +4391,14 @@ export type Database = {
         Returns: undefined
       }
       forge_random_seed: { Args: { p_salt?: string }; Returns: string }
+      fuse_heroes: {
+        Args: {
+          p_main_hero_id: string
+          p_material_ids: string[]
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -4331,6 +4408,10 @@ export type Database = {
         Returns: Json
       }
       get_daily_quests: { Args: { p_telegram_id: number }; Returns: Json }
+      get_hero_fusion_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_hero_shop_config: { Args: never; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
@@ -4378,6 +4459,9 @@ export type Database = {
         }
         Returns: Json
       }
+      hero_fusion_config: { Args: never; Returns: Json }
+      hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
+      hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_summon_rates: { Args: never; Returns: Json }
       log_pet_transaction: {
@@ -4519,6 +4603,10 @@ export type Database = {
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
+        Returns: Json
+      }
+      set_hero_lock: {
+        Args: { p_hero_id: string; p_locked: boolean; p_telegram_id: number }
         Returns: Json
       }
       setting_bool: {
