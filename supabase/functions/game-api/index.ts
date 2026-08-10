@@ -26,8 +26,8 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** The Mini App is signed by the GAME bot. The admin bot has its own token and must never be used here. */
-const gameBotToken = () => (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
+/** The Mini App is signed by the GAME bot (TELEGRAM_BOT_TOKEN). The admin bot has its own token and must never be used here. */
+const gameBotToken = () => (Deno.env.get('TELEGRAM_BOT_TOKEN') || Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim();
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
