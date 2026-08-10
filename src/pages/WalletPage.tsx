@@ -248,6 +248,17 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
 function Result({ label, value }: { label: string; value: string }) { return <div className="my-2 flex items-center justify-between rounded-xl bg-black/30 px-3 py-2"><span className="text-[9px] text-slate-400">{label}</span><strong className="text-xs text-emerald-300">{value}</strong></div>; }
+/** Linha de detalhamento sempre visível (nunca truncada) do saque. */
+function Line({ label, value, tone }: { label: string; value: string; tone?: 'fee' | 'net' }) {
+  const color = tone === 'fee' ? 'text-rose-300' : tone === 'net' ? 'text-emerald-300' : 'text-slate-100';
+  const size = tone === 'net' ? 'text-sm' : 'text-xs';
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+      <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">{label}</span>
+      <strong className={`${size} font-black ${color}`}>{value}</strong>
+    </div>
+  );
+}
 function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
 function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed','paid'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
 function statusLabel(status:string){return({pending:'Pendente',confirmed:'Confirmado',credited:'Creditado',processing:'Processando',completed:'Concluído',paid:'Pago',delivered:'Entregue',expired:'Expirado',rejected:'Rejeitado',cancelled:'Cancelado'}as Record<string,string>)[status]??status;}
