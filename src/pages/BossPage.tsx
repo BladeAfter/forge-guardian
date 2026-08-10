@@ -8,15 +8,16 @@ import { HERO_CATALOG, RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero } from '../combat';
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
+import type { PvpHero } from '../pvp';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
 type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onClaimReward:()=>Promise<void>|void};
 const RARITY_KEYS:HeroRarity[]=['common','uncommon','rare','epic','legendary'];
 const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroRarity>={common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',epic:'epic',epico:'epic','épico':'epic',legendary:'legendary',lendario:'legendary','lendário':'legendary'};return map[String(value??'').trim().toLowerCase()]??'common'};
 
-export function BossPage({game,lang,languageCode,combat,syncing,backendOfficial,isEquipping,onEquipHero,onClaimReward}:Props){
+export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,onEquipHero,onClaimReward}:Props){
   const t=(key:string)=>translate(languageCode,key);
-  const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity>('common'); const [hit,setHit]=useState(false);
+  const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const previous=useRef(combat?.bossCurrentHp ?? game.boss.healthPercent);
   const equipInFlight=useRef(false);
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer)},[]);
@@ -37,8 +38,16 @@ export function BossPage({game,lang,languageCode,combat,syncing,backendOfficial,
   const maxHp=combat?.bossMaxHp ?? game.boss.maxHealth ?? 67500; const hp=combat?.bossCurrentHp ?? Math.ceil(maxHp*game.boss.healthPercent/100); const progress=Math.min(100,Math.max(0,hp/maxHp*100));
   const remaining=calculateEstimatedSecondsRemaining(hp,damage); const totalAtk=heroes.reduce((s,h)=>s+h.finalAtk,0); const totalHp=heroes.reduce((s,h)=>s+h.currentHp,0); const totalMaxHp=heroes.reduce((s,h)=>s+h.maxHp,0);
   const secondsUntil=(date?:string|null)=>date?Math.max(0,Math.ceil((new Date(date).getTime()-now)/1000)):0;
-  const owned=combat?.ownedHeroes ?? HERO_CATALOG.flatMap(h=>Array.from({length:game.heroInventory?.[h.id]??0},(_,i)=>({id:`${h.id}:${i}`,heroKey:h.id,name:h.name,image:h.image,rarity:h.rarity,level:1})));
-  const openHeroSelector=(slotNumber:CombatSlot)=>{setSelectedSlot(slotNumber);setIsHeroModalOpen(true)};
+  // Single source of truth: the player's hero collection (player_heroes) — the same
+  // list used by "Meus Heróis" and PvP. Boss never keeps a separate inventory.
+  const owned=useMemo<OwnedHero[]>(()=>{
+    if(collection?.length)return collection.map(h=>({id:h.heroId,name:h.name,image:h.imageUrl,rarity:normalizeRarity(h.rarity),level:h.level,finalAtk:h.finalAtk,finalHp:h.finalHp,power:h.power}));
+    if(combat?.ownedHeroes?.length)return combat.ownedHeroes.map(h=>({id:h.id,heroKey:h.heroKey,name:h.name,image:h.image,rarity:normalizeRarity(h.rarity),level:h.level}));
+    return HERO_CATALOG.flatMap(h=>Array.from({length:game.heroInventory?.[h.id]??0},(_,i)=>({id:`${h.id}:${i}`,heroKey:h.id,name:h.name,image:h.image,rarity:normalizeRarity(h.rarity),level:1})));
+  },[collection,combat?.ownedHeroes,game.heroInventory]);
+  const visibleOwned=filter==='all'?owned:owned.filter(h=>h.rarity===filter);
+  useEffect(()=>{if(isHeroModalOpen){if(collectionError)console.error('[BOSS HEROES ERROR]',collectionError);console.log('[BOSS HEROES]',{source:collection?.length?'player_heroes':'boss_combat',totalUserHeroes:owned.length,filter,filteredCount:visibleOwned.length})}},[isHeroModalOpen,filter,owned.length,visibleOwned.length,collection?.length,collectionError]);
+  const openHeroSelector=(slotNumber:CombatSlot)=>{setSelectedSlot(slotNumber);setFilter('all');setIsHeroModalOpen(true)};
   const closeHeroSelector=()=>{if(isEquipping)return;setIsHeroModalOpen(false);setSelectedSlot(null)};
   const handleSelectHero=async(hero:{id:string})=>{
     if(equipInFlight.current)return;
