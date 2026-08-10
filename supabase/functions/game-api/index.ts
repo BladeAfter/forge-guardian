@@ -431,8 +431,11 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
   }
   if (action === 'open-chest') {
     if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
-    return rpc(db, 'open_calendar_hero_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
+    // The rarity roll always happens in the database: the client only names the item it owns.
+    const source = ['calendar', 'shop', 'pass', 'mission', 'event'].includes(String(body.source)) ? String(body.source) : 'calendar';
+    return rpc(db, 'open_hero_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId, p_source: source });
   }
+  if (action === 'inventory') return rpc(db, 'get_player_inventory', { p_telegram_id: user.id });
   if (action !== 'dashboard') throw new Error('Ação inválida.');
   return rpc(db, 'get_calendar_dashboard', { p_telegram_id: user.id });
 }
