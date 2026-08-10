@@ -506,6 +506,15 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') return module(ctx, rest[0]);
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
   if (head === 'find') return playerCard(ctx, rest.join(':') || '');
+  if (head === 'pg') {
+    const offset = Number(rest[0] || 0) || 0;
+    const token = rest.slice(1).join(':');
+    return playerSearch(ctx, token === 'all' ? '' : token.replace(/^q:/, ''), offset);
+  }
+  if (head === 'bpview') return passCard(ctx, rest[0]);
+  if (head === 'bp') return passConfirm(ctx, rest[0], rest[1]);
+  if (head === 'bpgo') return passApply(ctx, rest[0], rest[1]);
+  if (head === 'bphist') return passHistory(ctx);
   if (head === 'do' && rest[0] === 'snapshot') {
     const s = await rpc('admin_create_snapshot', { p_admin_id: ctx.adminId, p_label: 'manual' });
     return send(ctx, `💾 Snapshot registrado: <code>${s.snapshot_id}</code>`, MAIN_MENU);
