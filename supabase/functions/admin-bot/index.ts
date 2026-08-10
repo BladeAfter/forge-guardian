@@ -109,12 +109,111 @@ async function playerCard(ctx: Ctx, ref: string) {
     [{ t: '⭐ VIP', d: `vip:vip:${u}` }, { t: '💠 PREMIUM', d: `vip:premium:${u}` }],
     [{ t: p.banned ? '✅ DESBANIR' : '🚫 BANIR', d: `${p.banned ? 'unban' : 'ban'}:${u}` }, { t: '♻️ RESETAR', d: `reset:${u}` }],
     [{ t: '📜 HISTÓRICO', d: `hist:${u}` }, { t: '🤝 ÁRVORE', d: `tree:${u}` }],
-    [{ t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
+    [{ t: '🎟 BATTLE PASS', d: `bpview:${u}` }, { t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
     nav('m:users'),
   ]);
   if (p.avatar_url) await tg('sendPhoto', { chat_id: ctx.chatId, photo: p.avatar_url, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup });
   else await send(ctx, lines.join('\n'), markup);
 }
+
+// ---------------------------------------------------------------- player search (always live from the database)
+const PASS_LABEL: Record<string, string> = { none: 'SEM PASSE', adventurer: 'AVENTUREIRO', legendary: 'LENDÁRIO' };
+const ago = (iso: string) => {
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return `${min} min`;
+  if (min < 1440) return `${Math.round(min / 60)} h`;
+  return `${Math.round(min / 1440)} d`;
+};
+
+/** Lists players from `game_players` (the same table the Mini App uses). Never mock data. */
+async function playerSearch(ctx: Ctx, query: string, offset = 0) {
+  const d = await rpc('admin_search_players', { p_admin_id: ctx.adminId, p_query: query, p_limit: 10, p_offset: offset });
+  const players = (d.players ?? []) as any[];
+  console.log('[ADMIN USER SEARCH]', JSON.stringify({ query, searchType: query ? 'query' : 'latest', rowsFound: players.length, total: d.total, offset }));
+  if (!players.length) {
+    return send(ctx, `⚠️ Nenhum jogador encontrado para <code>${esc(query)}</code>.\nTente Telegram ID, @usuário, nome, carteira ou ID interno.`,
+      kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], nav('m:users')]));
+  }
+  if (players.length === 1 && query) return playerCard(ctx, String(players[0].telegram_id));
+  const lines = players.map((p, i) => [
+    `<b>${offset + i + 1}. ${esc(p.name)}</b>${p.banned ? ' 🚫' : ''}`,
+    `${p.username ? '@' + esc(p.username) : 'sem @usuário'} · <code>${p.telegram_id}</code>`,
+    `🪙 ${fmt(p.forge_coins)} FC · 🎟 ${esc(PASS_LABEL[p.pass_tier] ?? p.pass_tier)} · 👁 ${ago(p.last_seen_at)}`,
+  ].join('\n'));
+  const rows: { t: string; d: string }[][] = [];
+  for (let i = 0; i < players.length; i += 5) {
+    rows.push(players.slice(i, i + 5).map((p, j) => ({ t: `${offset + i + j + 1}`, d: `find:${p.telegram_id}` })));
+  }
+  const pageNav: { t: string; d: string }[] = [];
+  const token = query ? `q:${query}` : 'all';
+  if (offset > 0) pageNav.push({ t: '⬅️ ANTERIOR', d: `pg:${Math.max(0, offset - 10)}:${token}`.slice(0, 60) });
+  if (d.hasMore) pageNav.push({ t: 'PRÓXIMA ➡️', d: `pg:${offset + 10}:${token}`.slice(0, 60) });
+  if (pageNav.length) rows.push(pageNav);
+  rows.push([{ t: '🔎 PROCURAR', d: 'ask:find' }], nav('m:users'));
+  return send(ctx, `👥 <b>JOGADORES</b> (${offset + 1}–${offset + players.length} de ${fmt(d.total)})\n\n${lines.join('\n\n')}\n\nToque no número para abrir o jogador.`, kb(rows));
+}
+
+// ---------------------------------------------------------------- battle pass (manual activation)
+async function passCard(ctx: Ctx, ref: string) {
+  const p = await rpc('admin_player_pass', { p_admin_id: ctx.adminId, p_ref: ref });
+  console.log('[ADMIN PASS]', JSON.stringify({ targetUserId: p.user_id, telegramId: p.telegram_id, currentPass: p.tier, seasonId: p.season_id }));
+  const text = [
+    `🎟 <b>BATTLE PASS</b>`,
+    `👤 ${esc(p.name)} ${p.username ? '@' + esc(p.username) : ''}`,
+    `🆔 <code>${p.telegram_id}</code>`,
+    '',
+    `Current Pass: <b>${esc(PASS_LABEL[p.tier] ?? p.tier)}</b>`,
+    `Season: <b>${esc(p.season_name)}</b>`,
+    `Nível: <b>${p.level}</b>/${p.levels} · XP ${fmt(p.xp)}`,
+    `Recompensas coletadas: ${fmt(p.claimed)} · compras TON: ${fmt(p.paid_orders)}`,
+  ].join('\n');
+  const u = p.telegram_id;
+  return send(ctx, text, kb([
+    [{ t: '🎟 ACTIVATE ADVENTURER', d: `bp:adventurer:${u}` }],
+    [{ t: '👑 ACTIVATE LEGENDARY', d: `bp:legendary:${u}` }],
+    [{ t: '❌ REMOVE PASS', d: `bp:none:${u}` }],
+    [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
+    [{ t: '👤 VER JOGADOR', d: `find:${u}` }],
+    nav('m:pass'),
+  ]));
+}
+
+async function passConfirm(ctx: Ctx, tier: string, ref: string) {
+  const p = await rpc('admin_player_pass', { p_admin_id: ctx.adminId, p_ref: ref });
+  const text = [
+    tier === 'none' ? '⚠️ <b>REMOVER PASSE</b>' : '⚠️ <b>CONFIRMAR ATIVAÇÃO</b>',
+    `User: ${p.username ? '@' + esc(p.username) : esc(p.name)}`,
+    `Telegram ID: <code>${p.telegram_id}</code>`,
+    '',
+    `Current: <b>${esc(PASS_LABEL[p.tier] ?? p.tier)}</b>`,
+    `New: <b>${esc(PASS_LABEL[tier] ?? tier)}</b>`,
+    `Season: <b>${esc(p.season_name)}</b>`,
+    '',
+    'XP, nível e recompensas já coletadas são preservados.',
+  ].join('\n');
+  return send(ctx, text, kb([[{ t: '✅ CONFIRM', d: `bpgo:${tier}:${p.telegram_id}` }, { t: '❌ CANCEL', d: `bpview:${p.telegram_id}` }]]));
+}
+
+async function passApply(ctx: Ctx, tier: string, ref: string) {
+  const r = await rpc('admin_set_player_pass', { p_admin_id: ctx.adminId, p_ref: ref, p_tier: tier, p_reason: 'ativação manual pelo bot admin' });
+  const p = await rpc('admin_player_pass', { p_admin_id: ctx.adminId, p_ref: ref });
+  console.log('[ADMIN PASS]', JSON.stringify({ targetUserId: r.user_id, telegramId: p.telegram_id, currentPass: r.old_tier, newPass: r.tier, seasonId: r.season_id }));
+  const who = p.username ? '@' + esc(p.username) : esc(p.name);
+  const msg = tier === 'none'
+    ? `✅ Passe removido de ${who}.`
+    : `✅ <b>${esc(PASS_LABEL[tier])} PASS</b> ativado para ${who}.\nNível ${r.level} · XP ${fmt(r.xp)} preservados.`;
+  return send(ctx, `${msg}\nTemporada: ${esc(r.season_name)}`, kb([
+    [{ t: '🎟 VER PASSE', d: `bpview:${p.telegram_id}` }, { t: '👤 JOGADOR', d: `find:${p.telegram_id}` }], nav('m:pass'),
+  ]));
+}
+
+async function passHistory(ctx: Ctx) {
+  const d = await rpc('admin_pass_history', { p_admin_id: ctx.adminId, p_limit: 10 });
+  const rows = (d.entries ?? []) as any[];
+  const list = rows.map((e) => `• ${e.username ? '@' + esc(e.username) : esc(String(e.telegram_id ?? '—'))}: ${esc(PASS_LABEL[e.old] ?? e.old ?? '—')} → <b>${esc(PASS_LABEL[e.new] ?? e.new ?? '—')}</b> · ${String(e.created_at).slice(0, 16).replace('T', ' ')}`).join('\n');
+  return send(ctx, `📜 <b>PASS HISTORY</b>\n${list || 'Nenhuma alteração manual registrada.'}`, kb([nav('m:pass')]));
+}
+
 
 
 // ---------------------------------------------------------------- hero shop (menu driven)
@@ -210,7 +309,7 @@ async function module(ctx: Ctx, name: string) {
   switch (name) {
     case 'users':
       return edit(ctx, '👥 <b>USUÁRIOS</b>\nBusque por Telegram ID, @usuário, nome, carteira ou ID interno.',
-        kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 ÚLTIMOS ACESSOS', d: 'find:' }], nav()]));
+        kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 LATEST USERS', d: 'pg:0:all' }], [{ t: '📋 ALL USERS', d: 'pg:0:all' }], nav()]));
     case 'heroes':
     case 'shop':
       return heroShopHub(ctx);
@@ -246,7 +345,9 @@ async function module(ctx: Ctx, name: string) {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
       const s = d.season || {};
       return edit(ctx, `🎟 <b>PASSE</b>\n${esc(s.name)} · ${String(s.start_at).slice(0, 10)} → ${String(s.end_at).slice(0, 10)}\nNíveis ${s.levels} · XP/nível ${s.xp_per_level}\nAventureiro ${s.adventurer_price_ton} TON (${fmt(d.owners.adventurer)} donos) · Lendário ${s.legendary_price_ton} TON (${fmt(d.owners.legendary)} donos)\nRecompensas cadastradas: ${d.rewards.length}`,
-        kb([[{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
+        kb([[{ t: '🔎 SELECIONAR USUÁRIO', d: 'ask:passuser' }],
+            [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
+            [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
     }
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
@@ -351,6 +452,7 @@ async function module(ctx: Ctx, name: string) {
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
   channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"chat_ref":"-1001234567890","reward_fc":5000,"enabled":true}</code>\n\nO <b>chat_ref</b> é o ID numérico (ou @publico) do canal; sem ele o jogo não consegue verificar a participação.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
@@ -404,6 +506,15 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') return module(ctx, rest[0]);
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
   if (head === 'find') return playerCard(ctx, rest.join(':') || '');
+  if (head === 'pg') {
+    const offset = Number(rest[0] || 0) || 0;
+    const token = rest.slice(1).join(':');
+    return playerSearch(ctx, token === 'all' ? '' : token.replace(/^q:/, ''), offset);
+  }
+  if (head === 'bpview') return passCard(ctx, rest[0]);
+  if (head === 'bp') return passConfirm(ctx, rest[0], rest[1]);
+  if (head === 'bpgo') return passApply(ctx, rest[0], rest[1]);
+  if (head === 'bphist') return passHistory(ctx);
   if (head === 'do' && rest[0] === 'snapshot') {
     const s = await rpc('admin_create_snapshot', { p_admin_id: ctx.adminId, p_label: 'manual' });
     return send(ctx, `💾 Snapshot registrado: <code>${s.snapshot_id}</code>`, MAIN_MENU);
@@ -588,7 +699,8 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const text = input.trim();
 
   switch (key) {
-    case 'find': return playerCard(ctx, text);
+    case 'find': return playerSearch(ctx, text, 0);
+    case 'passuser': return passCard(ctx, text);
     case 'tree': return handleCallback(ctx, `tree:${text}`);
     case 'bal': {
       const [cur, mode, user] = args;
@@ -857,7 +969,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 const ERRORS: Record<string, string> = {
   unauthorized: DENIED,
-  player_not_found: '⚠️ Jogador não encontrado.',
+  player_not_found: '⚠️ Jogador não encontrado. Tente Telegram ID, @usuário, nome, carteira ou ID interno.',
+  season_not_found: '⚠️ Nenhuma temporada ativa do Battle Pass.',
+  invalid_tier: '⚠️ Tipo de passe inválido.',
   hero_not_found: '⚠️ Herói não encontrado.',
   pet_not_found: '⚠️ Pet não encontrado.',
   reason_required: '⚠️ O motivo é obrigatório para esta ação.',
