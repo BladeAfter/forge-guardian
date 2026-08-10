@@ -27,7 +27,7 @@ export type ForgeAuthProbe = {
 /** Validates the Telegram session against the game bot token, without touching game data. */
 export async function forgeAuthProbe(initData: string): Promise<ForgeAuthProbe> {
   if (!functionsBase || !supabaseAnonKey) return { ok: false, reason: 'backend_not_configured', error: 'Backend não configurado.' };
-  if (!initData) return { ok: false, reason: 'init_data_missing', error: 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.' };
+  if (!initData || !new URLSearchParams(initData).get('hash')) return { ok: false, reason: 'init_data_missing', error: 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.' };
   const response = await fetch(`${functionsBase}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey, 'X-Telegram-Init-Data': initData },
