@@ -309,7 +309,7 @@ async function module(ctx: Ctx, name: string) {
   switch (name) {
     case 'users':
       return edit(ctx, '👥 <b>USUÁRIOS</b>\nBusque por Telegram ID, @usuário, nome, carteira ou ID interno.',
-        kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 ÚLTIMOS ACESSOS', d: 'find:' }], nav()]));
+        kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 LATEST USERS', d: 'pg:0:all' }], [{ t: '📋 ALL USERS', d: 'pg:0:all' }], nav()]));
     case 'heroes':
     case 'shop':
       return heroShopHub(ctx);
