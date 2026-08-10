@@ -286,18 +286,21 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!player.data?.id) return { heroes: [] };
     const heroes = await db
       .from('player_heroes')
-      .select('id,name,rarity,level,image,archetype,final_atk,final_hp,is_season_exclusive,exclusive_badge')
+      .select('id,hero_key,name,rarity,level,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge')
       .eq('user_id', player.data.id)
       .order('created_at', { ascending: false });
     if (heroes.error) throw new Error(heroes.error.message);
     return {
       heroes: (heroes.data ?? []).map((hero) => ({
         heroId: hero.id,
+        heroKey: hero.hero_key,
         name: hero.name,
         rarity: hero.rarity,
         level: hero.level,
         imageUrl: hero.image,
         archetype: hero.archetype,
+        stars: Number(hero.fusion_level) || 0,
+        locked: Boolean(hero.locked),
         finalAtk: Math.round(Number(hero.final_atk) || 0),
         finalHp: Math.round(Number(hero.final_hp) || 0),
         defense: Math.round((Number(hero.final_hp) || 0) * 0.09),
@@ -306,6 +309,7 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
         exclusiveBadge: hero.is_season_exclusive ? hero.exclusive_badge : null,
       })),
     };
+
   }
 
   let fn = 'get_pvp_dashboard';
