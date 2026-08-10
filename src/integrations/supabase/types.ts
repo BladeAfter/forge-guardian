@@ -1841,6 +1841,7 @@ export type Database = {
         Row: {
           amount_fc: number | null
           created_at: string
+          dedupe_key: string | null
           id: string
           message: string
           metadata: Json
@@ -1852,6 +1853,7 @@ export type Database = {
         Insert: {
           amount_fc?: number | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           message: string
           metadata?: Json
@@ -1863,6 +1865,7 @@ export type Database = {
         Update: {
           amount_fc?: number | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           message?: string
           metadata?: Json
@@ -4339,7 +4342,17 @@ export type Database = {
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_ranking: { Args: never; Returns: Json }
       get_referral_admin_stats: { Args: never; Returns: Json }
-      get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_referral_dashboard:
+        | { Args: { p_telegram_id: number }; Returns: Json }
+        | {
+            Args: {
+              p_level?: number
+              p_limit?: number
+              p_offset?: number
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
       get_referral_dashboard_v2: {
         Args: {
           p_level?: number
@@ -4387,6 +4400,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mark_notifications_read: {
+        Args: { p_ids?: string[]; p_telegram_id: number }
+        Returns: Json
       }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
