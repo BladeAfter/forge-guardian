@@ -13,15 +13,17 @@ type Team='attack'|'defense';type View='teams'|'history'|'ranking';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24'};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
- const q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[battle,setBattle]=useState<PvpBattleResult|null>(null);
+ const q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null);
  const opponents=useQuery({queryKey:['pvp-opponents',telegramInitData],queryFn:async()=>[]as PvpOpponent[],enabled:false,initialData:[]});
  const refresh=()=>Promise.all([q.invalidateQueries({queryKey:['pvp-dashboard',telegramInitData]}),q.invalidateQueries({queryKey:['player-heroes']}),q.invalidateQueries({queryKey:['wallet-balance']}),q.invalidateQueries({queryKey:['game-state',telegramInitData]})]);
  const search=useMutation({mutationFn:()=>searchPvpOpponents(telegramInitData),onSuccess:r=>{q.setQueryData(['pvp-opponents',telegramInitData],r.opponents);setChosen(null);if(!r.opponents.length)toast.error('Nenhum adversário encontrado.')},onError:e=>toast.error(message(e))});
  const equip=useMutation({mutationFn:({heroId,targetSlot}:{heroId:string;targetSlot:number})=>pvpRequest(telegramInitData,{action:'equip',teamType:team,slot:targetSlot,heroId}),onSuccess:async d=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);setSlot(null);await refresh();toast.success('Herói equipado!')},onError:e=>toast.error(message(e))});
- const fight=useMutation({mutationFn:(id:string)=>startPvpBattle(telegramInitData,id),onSuccess:async r=>{setBattle(r);setChosen(null);q.setQueryData(['pvp-opponents',telegramInitData],[]);await refresh()},onError:e=>toast.error(message(e))});
+ const fight=useMutation({mutationFn:async(opponent:PvpOpponent)=>({battle:await startPvpBattle(telegramInitData,opponent.userId),opponent}),onSuccess:async r=>{setArena(r);setChosen(null);q.setQueryData(['pvp-opponents',telegramInitData],[]);await refresh()},onError:e=>toast.error(message(e))});
+ if(arena)return<PvpBattleArena battle={arena.battle} attackTeam={data?.attackTeam??[]} defenseTeam={arena.opponent.defenseTeam} opponentName={arena.opponent.name} pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image}:null} onContinue={async()=>{setArena(null);await refresh()}}/>;
  if(isLoading)return<Shell onClose={onClose}><Center text="Carregando arena..."/></Shell>;
  if(error||!data)return<Shell onClose={onClose}><Center text={message(error)}/></Shell>;
  const current=team==='attack'?data.attackTeam:data.defenseTeam;
+
  return <Shell onClose={onClose}>
   <section className="overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-b from-[#111b2d]/95 to-black/75 px-6 py-7 shadow-[0_18px_50px_rgba(0,0,0,.45)]">
    <div className="flex flex-col items-center justify-center text-center">
