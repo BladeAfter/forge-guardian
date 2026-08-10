@@ -26,12 +26,19 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Mini App initData is signed by the GAME bot. TELEGRAM_BOT_TOKEN is kept as a fallback candidate so a token swap never locks players out. */
-const gameBotToken = () => (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
+/** Mini App initData is signed by the GAME bot. Extra names are kept as fallback candidates so a token rename/swap never locks players out. */
+const GAME_TOKEN_VARS = ['TELEGRAM_BOT_TOKEN_GAME', 'TELEGRAM_GAME_BOT_TOKEN', 'TELEGRAM_BOT_TOKEN'] as const;
+const gameBotToken = () => {
+  for (const name of GAME_TOKEN_VARS) {
+    const token = String(Deno.env.get(name) || '').trim();
+    if (token) return token;
+  }
+  return '';
+};
 const candidateBotTokens = () =>
-  [Deno.env.get('TELEGRAM_GAME_BOT_TOKEN'), Deno.env.get('TELEGRAM_BOT_TOKEN')]
-    .map((token) => String(token || '').trim())
+  GAME_TOKEN_VARS.map((name) => String(Deno.env.get(name) || '').trim())
     .filter((token, index, all) => token && all.indexOf(token) === index);
+
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
@@ -494,9 +501,16 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   calendar: handleCalendar,
   'season-pass': handleSeasonPass,
   referral: handleReferral,
+  /** Read-only feed of rewards already delivered to the player (never grants anything). */
+  rewards: async (db, user, body) => {
+    const limit = Math.min(Math.max(Number(body.limit ?? 5) || 5, 1), 100);
+    const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
+    return rpc(db, 'get_reward_history', { p_telegram_id: user.id, p_limit: limit, p_offset: offset });
+  },
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },
+
   profile: async (db, user) => {
     if (!user.first_name) throw new Error('Usuário do Telegram não encontrado.');
     return rpc(db, 'upsert_telegram_player_profile', {
@@ -517,12 +531,11 @@ async function healthReport() {
     database: 'offline',
     telegram_auth: gameBotToken() ? 'configured' : 'missing',
     telegram_auth_max_age_seconds: AUTH_MAX_AGE_SECONDS,
-    game_bot_token_source: Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : (Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : 'missing'),
+    game_bot_token_source: GAME_TOKEN_VARS.find((name) => String(Deno.env.get(name) || '').trim()) ?? 'missing',
     accepted_bot_tokens: candidateBotTokens().length,
     game_bot_username: await botUsername(gameBotToken()),
-    telegram_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim()),
-    telegram_game_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim()),
-    admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
+    admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_BOT_TOKEN_Admin') || Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
+
     ton_onchain_check: Deno.env.get('TONCENTER_API_KEY') ? 'configured' : 'missing',
     time: new Date().toISOString(),
   };

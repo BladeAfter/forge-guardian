@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchPlayerHeroes, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import type { RewardHistory } from './services';
+import { fetchRewardHistory, fetchPlayerHeroes, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
@@ -35,3 +36,5 @@ export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQu
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
 
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
+
+export const useRewardHistory=(telegramInitData:string|null,enabled:boolean,limit=5)=>useQuery<RewardHistory>({queryKey:['reward-history',telegramInitData,limit],queryFn:()=>fetchRewardHistory(telegramInitData??'',limit),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
