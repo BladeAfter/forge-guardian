@@ -3663,6 +3663,7 @@ export type Database = {
         Args: { p_admin_id: number; p_player_pet_id: string; p_reason?: string }
         Returns: Json
       }
+      admin_repair_daily_quests: { Args: { p_admin_id: number }; Returns: Json }
       admin_reset_account: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
         Returns: Json
