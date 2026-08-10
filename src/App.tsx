@@ -207,8 +207,10 @@ function App() {
     let cancelled = false;
     // Telegram can deliver initData a few frames after mount; wait for it before any auth call.
     (async () => {
+      if (window.Telegram?.WebApp) setBootStage(10);
       const webApp = await waitForTelegramInitData();
       if (cancelled) return;
+      setBootStage((current) => Math.max(current, 20));
       const initData = webApp?.initData ?? '';
       setTelegramUser(getTelegramUser(webApp));
       setTelegramStartParam(getTelegramStartParam(webApp));
@@ -219,6 +221,7 @@ function App() {
         userId: webApp?.initDataUnsafe?.user?.id ?? null,
       });
       if (!isProduction || isDemoMode) {
+        setBootStage(50);
         setTelegramInitData(initData || 'development-browser-session');
         setTelegramBooting(false);
         return;
@@ -228,19 +231,36 @@ function App() {
         setTelegramBooting(false);
         return;
       }
-      try {
-        await validateTelegramSession(initData);
-        if (cancelled) return;
-        setTelegramInitData(initData);
-      } catch (validationError: unknown) {
-        if (cancelled) return;
-        setBootstrapError(validationError instanceof Error ? validationError.message : 'Falha na autenticação do Telegram.');
-      } finally {
-        if (!cancelled) setTelegramBooting(false);
+      setBootStage(35);
+      // Transient network failures should never flip the screen to an auth error: retry first.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          await validateTelegramSession(initData);
+          if (cancelled) return;
+          setBootStage(50);
+          setTelegramInitData(initData);
+          setBootstrapError(null);
+          break;
+        } catch (validationError: unknown) {
+          if (cancelled) return;
+          const message = validationError instanceof Error ? validationError.message : 'Falha na autenticação do Telegram.';
+          if (attempt === 2) setBootstrapError(message);
+          else await new Promise((resolve) => setTimeout(resolve, 1200));
+        }
       }
+      if (!cancelled) setTelegramBooting(false);
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Real boot progress: each resolved dependency advances the single Mythreon loading screen.
+  useEffect(() => {
+    if (telegramInitData) setBootStage((current) => Math.max(current, 50));
+    if (playerProfileReady) setBootStage((current) => Math.max(current, 65));
+    if (game) setBootStage((current) => Math.max(current, 80));
+    if (heroesReady) setBootStage((current) => Math.max(current, 90));
+  }, [telegramInitData, playerProfileReady, game, heroesReady]);
+
 
   // The inviter id survives reloads: Telegram only delivers start_param on the first launch.
   useEffect(()=>{
