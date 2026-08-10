@@ -78,7 +78,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   };
 
   const mutation = useMutation({
-    mutationFn: async (input: Parameters<typeof petRequest>[1]) => {
+    mutationFn: async (input: NonNullable<Parameters<typeof petRequest>[1]>) => {
       if (input.action !== 'hatch') return petRequest(telegramInitData, input) as Promise<PetActionResponse>;
       try {
         return await Promise.race([petRequest(telegramInitData, input),new Promise<never>((_,reject)=>window.setTimeout(()=>reject(new Error('HATCH_TIMEOUT')),30000))]);
