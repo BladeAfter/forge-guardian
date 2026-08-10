@@ -521,7 +521,7 @@ function withdrawalLines(items: any[]) {
   for (const w of items) (groups[w.status] ??= []).push(w);
   return Object.entries(groups).map(([status, rows]) => {
     const head = `${WD_STATUS_ICON[status] || '•'} <b>${esc(status.toUpperCase())}</b>`;
-    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_ton)} TON${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
+    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_fc)} FC → <b>${Number(w.net_ton ?? w.amount_ton ?? 0).toFixed(3)} TON</b> (fee ${Number(w.fee_percent ?? 0)}%)${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
     return `${head}\n${body}`;
   }).join('\n\n');
 }
