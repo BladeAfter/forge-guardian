@@ -1315,9 +1315,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const hash = text.split(/\s+/)[0];
       if (!hash || hash.length < 8) throw new Error('KEEP_SESSION::⚠️ Hash inválido. Envie o hash completo da transação TON.');
       await rpc('admin_withdrawal_mark_paid', { p_admin_id: ctx.adminId, p_withdrawal_id: id, p_tx_hash: hash });
-      await send(ctx, '✅ Saque marcado como <b>PAID</b>.');
+      // Receipt goes to the payments channel automatically; a failure never reverts the payout.
+      const posted = await announcePayout(ctx.adminId, id);
+      await send(ctx, `✅ Saque marcado como <b>PAID</b>.\n${posted.status === 'sent' ? '📢 Comprovante publicado no canal de pagamentos.' : posted.status === 'skipped' ? `🚫 Comprovante não publicado (${esc(posted.detail)}).` : `⚠️ Falha ao publicar o comprovante: <code>${esc(posted.detail)}</code> — use RETRY FAILED.`}`);
       return withdrawalCard(ctx, id, false);
     }
+    case 'pachat': {
+      const chat = text.trim().split(/\s+/)[0];
+      if (!/^-?\d{5,}$|^@[\w]{4,}$/.test(chat)) throw new Error('KEEP_SESSION::⚠️ Envie o chat id numérico (ex.: <code>-1004303374351</code>) ou @canalpublico.');
+      await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'payments_channel_chat_id', p_value: chat });
+      await send(ctx, `✅ Canal de pagamentos salvo: <code>${esc(chat)}</code>`);
+      return payoutMenu(ctx, false);
+    }
+
     case 'findwallet': {
       const d = await rpc('admin_connected_wallets', { p_admin_id: ctx.adminId, p_query: text, p_limit: 12 });
       if (!d.items?.length) throw new Error('KEEP_SESSION::⚠️ Nenhuma carteira encontrada. Tente Telegram ID, @usuário, nome, endereço TON ou ID interno.');
