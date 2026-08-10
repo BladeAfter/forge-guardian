@@ -174,6 +174,8 @@ export async function walletRequest<T=WalletSummary>(telegramInitData:string,inp
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey});
 export const requestWithdrawal=(initData:string,amountFc:number,walletAddress:string,idempotencyKey:string)=>walletRequest(initData,{action:'withdraw',amountFc,walletAddress,idempotencyKey});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
+/** Asks the backend to check the TON blockchain and credit any confirmed pending deposit. */
+export const verifyPendingDeposits=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[]}>(initData,{action:'verify-deposit'});
 
 export async function fetchTelegramProfile(telegramInitData:string):Promise<TelegramPlayerProfile>{
   const response=await forgeFetch('profile',({initData:telegramInitData}));
