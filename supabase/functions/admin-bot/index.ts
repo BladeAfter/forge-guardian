@@ -251,11 +251,16 @@ async function module(ctx: Ctx, name: string) {
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
       const p = d.pool || {};
-      return edit(ctx, `💰 <b>POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace('T', ' ')}\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
-        kb([[{ t: '➕ VALOR', d: 'pool:add' }, { t: '➖ VALOR', d: 'pool:remove' }],
+      const srcLabels: Record<string, string> = { deposit: 'Depósitos', battle_pass: 'Battle Pass', egg_purchase: 'Ovos', pet_purchase: 'Pets', premium_shop: 'Loja premium', event_purchase: 'Eventos', other: 'Outros' };
+      const sources = Object.entries(d.sourcesToday || {}).map(([k, v]: [string, any]) =>
+        `• ${esc(srcLabels[k] || k)}: ${fmt(v.poolTon)} TON (de ${fmt(v.grossTon)} TON)`).join('\n') || '• sem receita hoje';
+      return edit(ctx, `💰 <b>COMMUNITY POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nTaxa de contribuição: <b>${d.contributionPercent}%</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace('T', ' ')}\n\n💎 Receita hoje: ${fmt(d.revenueToday)} TON → pool ${fmt(d.poolToday)} TON\n📆 Receita do ciclo: ${fmt(d.revenuePeriod)} TON → pool ${fmt(d.poolPeriod)} TON\n\n<b>ORIGENS HOJE</b>\n${sources}\n\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
+        kb([[{ t: '⚙️ CONTRIBUTION RATE', d: 'ask:poolrate' }],
+            [{ t: '➕ VALOR', d: 'pool:add' }, { t: '➖ VALOR', d: 'pool:remove' }],
             [{ t: '⚙️ CONFIG', d: 'ask:poolset' }], [{ t: '🎉 DISTRIBUIR AGORA', d: 'confirm:pooldist' }],
             [{ t: '🚫 CANCELAR CICLO', d: 'confirm:poolcancel' }], nav()]));
     }
+
     case 'invites': {
       const s = await rpc('admin_get_settings', { p_admin_id: ctx.adminId, p_category: 'referral' });
       return edit(ctx, `🤝 <b>CONVITES</b>\n${s.settings.map((x: any) => `• ${esc(x.label)}: <b>${x.value}%</b>`).join('\n')}\n\nComissão paga somente em depósito TON confirmado, com idempotência.`,
