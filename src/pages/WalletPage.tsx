@@ -97,7 +97,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (!validWithdrawal(withdrawFc, balance)) throw new Error('Saldo FC insuficiente.');
       return requestWithdrawal(telegramInitData, withdrawFc, address, crypto.randomUUID());
     },
-    onSuccess: async () => { await invalidateWallet(); toast.success('Saque solicitado e saldo reservado.'); },
+    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success('Saque solicitado e saldo reservado.'); },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível solicitar o saque.')
   });
 
