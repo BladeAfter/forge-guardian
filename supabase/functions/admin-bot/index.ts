@@ -1,4 +1,4 @@
-// Forge Village :: Master Admin Bot (Telegram)
+// MYTHREON :: Master Admin Bot (Telegram)
 // Every operation re-validates the super admin Telegram ID server-side (bot + database).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 

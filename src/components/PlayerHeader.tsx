@@ -67,7 +67,7 @@ export function BalanceChip({ balance }: { balance: number }) {
       <img src={coin} alt="" className="balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(251,191,36,.45)]" />
       <span className="min-w-0 flex-1 text-right">
         <span className="balance-chip-value block font-black text-amber-100">{value}</span>
-        <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">Forge Coins</span>
+        <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">FC</span>
       </span>
     </div>
   );

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, Check, ChevronRight, Copy, Crown, Gift, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
-import { useRewardHistory, useSeasonPass } from '../hooks';
-import type { RewardHistoryItem } from '../services';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, Check, ChevronRight, Copy, Crown, Gift, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
+import { useChannelRewards, useRewardHistory, useSeasonPass } from '../hooks';
+import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../services';
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import type { GameState } from '../types';
 
@@ -13,13 +14,11 @@ type ProfilePageProps = {
   onOpenBattlePass: () => void;
 };
 
-const CHANNELS = [
-  { key: 'news', title: 'NEWS CHANNEL', subtitle: 'Stay updated with the latest news', url: 'https://t.me/+h5n08oLrHIlmOWQx', Icon: Megaphone },
-  { key: 'community', title: 'COMMUNITY CHAT', subtitle: 'Chat with other players', url: 'https://t.me/+7a9XTXSObkw4ODc5', Icon: MessageCircle },
-  { key: 'payments', title: 'PAYMENTS CHANNEL', subtitle: 'Deposits, withdrawals and payments', url: 'https://t.me/+M_ZLb9QUod0zZjcx', Icon: WalletIcon },
-] as const;
+const CHANNEL_ICON: Record<string, typeof Megaphone> = { news: Megaphone, community: MessageCircle, payments: WalletIcon };
 
-const RARITY_COLOR: Record<string, string> = { common: '#cbd5f5', uncommon: '#4ade80', rare: '#38bdf8', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', adventurer: '#38bdf8' };
+const RARITY_COLOR: Record<string, string> = { common: '#cbd5f5', uncommon: '#4ade80', rare: '#38bdf8', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', adventurer: '#38bdf8' };
+
+const formatFc = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 
 const openTelegramLink = (url: string) => {
   const webApp = (window as any)?.Telegram?.WebApp;
@@ -42,7 +41,7 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', hero_chest: 'Hero Chest', pet_egg: 'Pet Egg', fc: 'Forge Coins', pass_reward: 'Battle Pass', item: 'Item' };
+const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', hero_chest: 'Hero Chest', pet_egg: 'Pet Egg', fc: 'FC', pass_reward: 'Battle Pass', item: 'Item' };
 
 /** Falls back to a readable label for any reward type the game adds later. */
 const typeLabel = (type: string) => TYPE_LABEL[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -81,6 +80,26 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
   const enabled = Boolean(telegramInitData) && backendEnabled;
   const history = useRewardHistory(telegramInitData, enabled, showAll ? 50 : 5);
   const seasonPass = useSeasonPass(telegramInitData, enabled);
+  const channels = useChannelRewards(telegramInitData, enabled);
+  const queryClient = useQueryClient();
+  const [channelError, setChannelError] = useState<{ key: string; message: string } | null>(null);
+  const [joined, setJoined] = useState<Record<string, boolean>>({});
+
+  /** JOIN never pays: only this verify call (server-side getChatMember) can credit FC. */
+  const verify = useMutation({
+    mutationFn: (channelKey: string) => channelsRequest(telegramInitData ?? '', { action: 'verify', channelKey }),
+    onSuccess: () => {
+      setChannelError(null);
+      queryClient.invalidateQueries({ queryKey: ['channel-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['game-state'] });
+      queryClient.invalidateQueries({ queryKey: ['reward-history'] });
+    },
+    onError: (error: unknown, channelKey: string) =>
+      setChannelError({ key: channelKey, message: error instanceof Error ? error.message : 'Verification failed.' }),
+  });
+
+
 
   const name = profile ? getDisplayName(profile) : 'Player';
   const tier = seasonPass.data?.player.tier ?? 'none';

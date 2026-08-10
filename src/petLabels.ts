@@ -13,7 +13,7 @@ export const PET_BUFF_LABELS: Record<string, string> = {
   pvp_speed_percent: 'Velocidade na Arena',
   critical_chance_percent: 'Chance de crítico',
   critical_damage_percent: 'Dano crítico',
-  farm_fc_percent: 'Ganho de Forge Coins',
+  farm_fc_percent: 'Ganho de FC',
   offline_production_percent: 'Produção offline',
   mission_reward_percent: 'Recompensa de missões',
   mission_progress_percent: 'Progresso de missões',
