@@ -39,21 +39,14 @@ export function PetBuff({
   icon?: ReactNode;
 }) {
   const s = SIZES[size];
-  const node = icon ?? petBuffIcon(buffKey);
   return (
     <div className={`flex items-center ${s.box} ${className ?? ''}`}>
       <span
-        className="flex shrink-0 items-center justify-center"
-        style={{ width: s.icon, height: s.icon, color }}
         aria-hidden
+        className="flex shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+        style={{ width: s.icon, height: s.icon, color }}
       >
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {typeof node === 'object' && node !== null && 'type' in (node as any)
-          ? // clone-free sizing: lucide icons accept width/height via style on wrapper svg
-            (node as JSX.Element).type
-            ? <span style={{ display: 'flex', width: '100%', height: '100%' }} className="[&>svg]:h-full [&>svg]:w-full">{node}</span>
-            : node
-          : node}
+        {icon ?? petBuffIcon(buffKey)}
       </span>
       <div className="flex min-w-0 flex-col justify-center">
         <p className={`m-0 truncate font-bold uppercase leading-[1.1] tracking-wide text-slate-300 ${s.label}`}>{label}</p>
