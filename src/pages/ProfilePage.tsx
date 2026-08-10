@@ -190,25 +190,65 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       </div>
 
       <div className="rounded-3xl border border-amber-300/15 bg-[#080d17]/85 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Official Channels</p>
-        <div className="mt-2.5 space-y-1.5">
-          {CHANNELS.map(({ key, title, subtitle, url, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => openTelegramLink(url)}
-              className="flex w-full items-center gap-2.5 rounded-2xl border border-amber-300/10 bg-black/35 px-2.5 py-2.5 text-left active:scale-[0.99]"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-[#0b1120] text-amber-300"><Icon className="h-4 w-4" /></span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[11px] font-black uppercase tracking-wide text-white">{title}</span>
-                <span className="block truncate text-[9px] text-slate-400">{subtitle}</span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-amber-300/70" />
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Official Channels</p>
+          <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-emerald-300">+5,000 FC each</span>
         </div>
+        {channels.isLoading ? (
+          <p className="mt-3 text-[11px] text-slate-400">Loading channels...</p>
+        ) : (
+          <div className="mt-2.5 space-y-1.5">
+            {(channels.data?.channels ?? []).filter((channel) => channel.enabled).map((channel: ChannelReward) => {
+              const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
+              const pending = verify.isPending && verify.variables === channel.key;
+              const failed = channelError?.key === channel.key;
+              return (
+                <div key={channel.key} className="rounded-2xl border border-amber-300/10 bg-black/35 p-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-[#0b1120] text-amber-300"><Icon className="h-4 w-4" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-black uppercase tracking-wide text-white">{channel.title}</p>
+                      <p className="truncate text-[9px] text-slate-400">{channel.subtitle}</p>
+                    </div>
+                    {channel.claimed ? (
+                      <span className="flex shrink-0 items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                        <Check className="h-3 w-3" /> Joined
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} FC</span>
+                    )}
+                  </div>
+                  {channel.claimed ? null : (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => { setJoined((state) => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}
+                        className="flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border border-amber-300/25 bg-black/50 text-[10px] font-black uppercase tracking-wide text-amber-200 active:scale-[0.98]"
+                      >
+                        Join <ChevronRight className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending || !channel.verifiable}
+                        onClick={() => verify.mutate(channel.key)}
+                        className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border text-[10px] font-black uppercase tracking-wide active:scale-[0.98] ${joined[channel.key] ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/25 bg-amber-500/10 text-amber-200'} disabled:opacity-50`}
+                      >
+                        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                        {pending ? 'Checking' : 'Verify'}
+                      </button>
+                    </div>
+                  )}
+                  {failed ? <p className="mt-1.5 text-[9px] font-semibold text-rose-300">{channelError?.message}</p> : null}
+                  {!channel.verifiable && !channel.claimed ? (
+                    <p className="mt-1.5 text-[9px] text-slate-500">Membership check pending setup for this channel.</p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
     </section>
   );
 }
