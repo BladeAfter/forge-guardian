@@ -218,7 +218,20 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                       <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} FC</span>
                     )}
                   </div>
-                  {channel.claimed ? null : (
+                  {channel.claimed ? (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <p className="min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-wide text-emerald-300">
+                        +{formatFc(channel.rewardReceived || channel.rewardFc)} FC received
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openTelegramLink(channel.url)}
+                        className="flex h-9 shrink-0 items-center justify-center gap-1 rounded-xl border border-amber-300/25 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wide text-amber-200 active:scale-[0.98]"
+                      >
+                        Open channel <ChevronRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
                     <div className="mt-2 flex items-center gap-1.5">
                       <button
                         type="button"
@@ -229,7 +242,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                       </button>
                       <button
                         type="button"
-                        disabled={pending || !channel.verifiable}
+                        disabled={pending}
                         onClick={() => verify.mutate(channel.key)}
                         className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border text-[10px] font-black uppercase tracking-wide active:scale-[0.98] ${joined[channel.key] ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/25 bg-amber-500/10 text-amber-200'} disabled:opacity-50`}
                       >
@@ -239,9 +252,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                     </div>
                   )}
                   {failed ? <p className="mt-1.5 text-[9px] font-semibold text-rose-300">{channelError?.message}</p> : null}
-                  {!channel.verifiable && !channel.claimed ? (
-                    <p className="mt-1.5 text-[9px] text-slate-500">Membership check pending setup for this channel.</p>
-                  ) : null}
+
                 </div>
               );
             })}
