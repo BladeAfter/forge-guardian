@@ -15,7 +15,7 @@ import { PetBuff, petBuffIcon } from '../components/PetBuff';
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
 const TAB_LABELS: Record<Tab, string> = { pets: 'Meus Pets', eggs: 'Ovos', food: 'Comidas', evolution: 'Evolução', catalog: 'Catálogo' };
-const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24' };
+const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
 
 const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: string; badgeClass: string }> = {
   common: { borderClass: 'border-slate-400/55', glowClass: 'from-slate-400/20', badgeClass: 'border-slate-300/40 bg-slate-500/15 text-slate-200' },
@@ -23,6 +23,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   rare: { borderClass: 'border-blue-400/60', glowClass: 'from-blue-500/30', badgeClass: 'border-blue-300/50 bg-blue-500/15 text-blue-200' },
   epic: { borderClass: 'border-violet-400/65', glowClass: 'from-violet-500/35', badgeClass: 'border-violet-300/50 bg-violet-500/15 text-violet-200' },
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
+  ancestral: { borderClass: 'border-pink-300/80', glowClass: 'from-pink-400/40', badgeClass: 'border-pink-200/60 bg-pink-500/20 text-pink-100' },
 };
 
 
