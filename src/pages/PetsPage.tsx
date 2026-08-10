@@ -80,7 +80,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const sync = async (fresh?: PetDashboard) => {
     if (fresh) queryClient.setQueryData(['pet-dashboard', telegramInitData], fresh);
     await Promise.all(
-      ['pet-dashboard', 'boss-combat', 'pvp-dashboard', 'wallet-summary', 'game-state'].map((key) =>
+      ['pet-dashboard', 'boss-combat', 'pvp-dashboard', 'wallet-summary', 'game-state', 'community-pool'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );
