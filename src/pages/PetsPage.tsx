@@ -15,7 +15,12 @@ import { PetBuff, petBuffIcon } from '../components/PetBuff';
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
 const TAB_LABELS: Record<Tab, string> = { pets: 'Meus Pets', eggs: 'Ovos', food: 'Comidas', evolution: 'Evolução', catalog: 'Catálogo' };
-const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24' };
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'];
+/** Rates always render in ascending rarity order, once per rarity. */
+const sortedRates = (rates: Record<string, number>) =>
+  Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => RARITY_ORDER.indexOf(a[0]) - RARITY_ORDER.indexOf(b[0]));
+
+const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
 
 const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: string; badgeClass: string }> = {
   common: { borderClass: 'border-slate-400/55', glowClass: 'from-slate-400/20', badgeClass: 'border-slate-300/40 bg-slate-500/15 text-slate-200' },
@@ -23,6 +28,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   rare: { borderClass: 'border-blue-400/60', glowClass: 'from-blue-500/30', badgeClass: 'border-blue-300/50 bg-blue-500/15 text-blue-200' },
   epic: { borderClass: 'border-violet-400/65', glowClass: 'from-violet-500/35', badgeClass: 'border-violet-300/50 bg-violet-500/15 text-violet-200' },
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
+  ancestral: { borderClass: 'border-pink-300/80', glowClass: 'from-pink-400/40', badgeClass: 'border-pink-200/60 bg-pink-500/20 text-pink-100' },
 };
 
 
@@ -201,11 +207,12 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <div key={egg.id} className="flex flex-col rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
                     <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
                     <h3 className="truncate text-xs font-black">{egg.name}</h3>
-                    <p className="text-[9px] font-bold text-amber-200">
+                    {/* Price is rendered exactly once here; the buy button may repeat it. */}
+                    <p className="text-[9px] font-bold uppercase text-amber-200">
                       {egg.priceFc ? `${fmt(egg.priceFc)} FC` : egg.priceTon ? `${egg.priceTon} TON` : egg.availabilityLabel || 'Evento exclusivo'}
                     </p>
                     <div className="mt-1 flex flex-wrap justify-center gap-1">
-                      {Object.entries(egg.rarityRates).map(([key, value]) => (
+                      {sortedRates(egg.rarityRates).map(([key, value]) => (
                         <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
                           {petRarityLabel(key)} {value}%
                         </span>
@@ -721,7 +728,7 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
         <img src={egg.image} alt={egg.name} className="mx-auto h-28 w-28 object-contain" />
 
         <div className="mt-2 flex flex-wrap justify-center gap-2">
-          {Object.entries(egg.rarityRates).map(([key, value]) => (
+          {sortedRates(egg.rarityRates).map(([key, value]) => (
             <span key={key} style={{ color: rarityColor[key] }} className="text-[9px] font-bold">{petRarityLabel(key)} {value}%</span>
           ))}
         </div>

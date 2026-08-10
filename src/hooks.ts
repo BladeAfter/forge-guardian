@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { RewardHistory } from './services';
-import { fetchRewardHistory, fetchPlayerHeroes, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
@@ -8,7 +8,7 @@ import type { PetDashboard } from './pets';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
-import type {CalendarDashboard} from './calendarRewards';
+import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 
@@ -31,6 +31,8 @@ export const usePetDashboard=(telegramInitData:string|null,enabled:boolean)=>use
 export const usePvpDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<PvpDashboard>({queryKey:['pvp-dashboard',telegramInitData],queryFn:()=>pvpRequest<PvpDashboard>(telegramInitData??'',{action:'dashboard'}),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useWalletSummary=(telegramInitData:string|null,enabled:boolean)=>useQuery<WalletSummary>({queryKey:['wallet-summary',telegramInitData],queryFn:()=>walletRequest<WalletSummary>(telegramInitData??'',{action:'summary'}),enabled,staleTime:10_000,refetchInterval:20_000,refetchOnWindowFocus:true,retry:1});
 export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>useQuery<TelegramPlayerProfile>({queryKey:['telegram-profile',telegramInitData],queryFn:()=>fetchTelegramProfile(telegramInitData??''),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
+/** Stored chests and eggs; shares the ['player-inventory'] key so any grant refreshes it. */
+export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:10_000});
 export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<CalendarDashboard>({queryKey:['calendar-dashboard',telegramInitData],queryFn:()=>calendarRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
