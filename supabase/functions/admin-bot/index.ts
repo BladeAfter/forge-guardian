@@ -383,6 +383,8 @@ const PROMPTS: Record<string, string> = {
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward: 'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
   poolset: 'Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days',
+  poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
+
   tree: 'Envie o usuário para ver a árvore de convites.',
   unlink: 'Envie: <code>usuário motivo</code> para remover o vínculo de indicação.',
   depok: 'Envie o ID do depósito (pode ser o prefixo mostrado).',
