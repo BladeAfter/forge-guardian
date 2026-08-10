@@ -408,17 +408,20 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
   return (
     <div className="mt-3 grid grid-cols-2 gap-1">
       {entries.map(([key, value]) => (
-        <div key={key} className="rounded-xl bg-black/45 p-2">
-          <p className="flex items-center gap-1 text-[8px] text-slate-400">
-            <span className="h-3 w-3 text-amber-300">{buffIcon(key)}</span>
-            <span className="truncate">{petBuffLabel(key)}</span>
-          </p>
-          <b className={`text-xs ${secondary.has(key) ? 'text-violet-300' : 'text-emerald-300'}`}>+{value}%</b>
-        </div>
+        <PetBuff
+          key={key}
+          buffKey={key}
+          label={petBuffLabel(key)}
+          value={`+${value}%`}
+          size="sm"
+          className="rounded-xl bg-black/45"
+          valueClassName={secondary.has(key) ? 'text-violet-300' : 'text-emerald-300'}
+        />
       ))}
     </div>
   );
 }
+
 
 function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
   const next = pet.nextEvolution;
