@@ -752,9 +752,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'tree': return handleCallback(ctx, `tree:${text}`);
     case 'bal': {
       const [cur, mode, user] = args;
-      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: Number(text.replace(/[^\d.]/g, '')), p_reason: 'ajuste pelo painel' });
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior ou igual a 0 (ex.: <code>1000</code> ou <code>20,5</code>).');
+      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: value, p_reason: 'ajuste pelo painel' });
       return send(ctx, `✅ <b>${cur.toUpperCase()}</b>\nAnterior: ${fmt(r.old_value)}\nNovo: <b>${fmt(r.new_value)}</b>`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
     }
+
     case 'stat': {
       const [stat, user] = args;
       const [mode, amount] = text.split(/\s+/);
