@@ -53,6 +53,7 @@ const MAIN_MENU = kb([
   [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }],
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
+  [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }],
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
   [{ t: '📣 BROADCAST', d: 'm:cast' }, { t: '💾 SNAPSHOT', d: 'do:snapshot' }],
