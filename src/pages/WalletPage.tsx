@@ -10,7 +10,8 @@ import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from
 import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
-import type { PetDashboard, PetRarity } from '../pets';
+import type { PetDashboard } from '../pets';
+import type { PetRarity } from '../petRules';
 import { usePetDashboard, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 
