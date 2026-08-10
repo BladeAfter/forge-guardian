@@ -23,11 +23,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
 };
 
-const BUFF_ICONS: Record<string, JSX.Element> = {
-  boss_damage_percent: <Flame />, team_hp_percent: <Heart />, farm_fc_percent: <Coins />,
-  pvp_attack_percent: <Swords />, pvp_defense_percent: <Shield />, drop_chance_percent: <Star />,
-};
-const buffIcon = (key?: string | null) => (key && BUFF_ICONS[key]) || <Zap />;
+const buffIcon = petBuffIcon;
+
 
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
