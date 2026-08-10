@@ -550,9 +550,22 @@ const PROMPTS: Record<string, string> = {
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
-  if (data === 'home') return home(ctx, true);
-  if (head === 'm') return module(ctx, rest[0]);
+  // Navigation always leaves any pending flow in a clean state.
+  if (data === 'home') { await clearSession(ctx); return home(ctx, true); }
+  if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
+  if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  if (head === 'poolgo') {
+    const mode = rest[0] === 'remove' ? 'remove' : 'add';
+    const amount = parseAmount(rest[1]) * (mode === 'remove' ? -1 : 1);
+    if (!Number.isFinite(amount) || amount === 0) return send(ctx, '⚠️ Valor inválido.', MAIN_MENU);
+    await clearSession(ctx);
+    const r = await rpc('admin_adjust_pool_balance', { p_amount: amount, p_reason: 'painel admin' });
+    await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pool.adjust', p_target_type: 'pool', p_target_id: null, p_old: null, p_new: { amount }, p_reason: 'painel admin', p_context: { financial: true } });
+    return send(ctx, `✅ Pool ajustada em <b>${amount} TON</b>.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`,
+      kb([[{ t: '💰 POOL', d: 'm:pool' }], nav()]));
+  }
+
   if (head === 'find') return playerCard(ctx, rest.join(':') || '');
   if (head === 'pg') {
     const offset = Number(rest[0] || 0) || 0;
