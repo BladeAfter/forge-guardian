@@ -1328,36 +1328,48 @@ export type Database = {
       }
       pet_hatch_history: {
         Row: {
+          completed_at: string | null
           created_at: string
           duplicate_fragments: number
           egg_id: string
+          failure_reason: string | null
           id: string
           idempotency_key: string
+          opening_id: string
           result_pet_id: string | null
           result_rarity: string | null
           seed_hash: string
+          status: string
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           duplicate_fragments?: number
           egg_id: string
+          failure_reason?: string | null
           id?: string
           idempotency_key: string
+          opening_id: string
           result_pet_id?: string | null
           result_rarity?: string | null
           seed_hash: string
+          status?: string
           user_id: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           duplicate_fragments?: number
           egg_id?: string
+          failure_reason?: string | null
           id?: string
           idempotency_key?: string
+          opening_id?: string
           result_pet_id?: string | null
           result_rarity?: string | null
           seed_hash?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -4316,6 +4328,10 @@ export type Database = {
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_pet_egg_opening: {
+        Args: { p_opening_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       get_pet_egg_store: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
       get_player_inventory: { Args: { p_telegram_id: number }; Returns: Json }
@@ -4392,6 +4408,12 @@ export type Database = {
       }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
+      pet_hatch_result_json: {
+        Args: {
+          p_history: Database["public"]["Tables"]["pet_hatch_history"]["Row"]
+        }
+        Returns: Json
+      }
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
