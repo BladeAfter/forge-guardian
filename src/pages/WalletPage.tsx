@@ -197,9 +197,37 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       <Panel title="SACAR FC" icon={<ArrowUpFromLine />}>
         <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} mil</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>Máximo</Quick></div>
         <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label="Quantidade de FC" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
-        <Result label="Você receberá" value={`${fcToTon(withdrawFc).toLocaleString('pt-BR')} TON`} />
-        <Primary onClick={() => withdrawal.mutate()} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
+        <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
+          <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+          <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
+          <Line label={`TAXA DE SAQUE (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+          <div className="h-px w-full bg-white/10" />
+          <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+        </div>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">Debitamos exatamente {withdrawFc.toLocaleString('pt-BR')} FC do seu saldo. A taxa de {quote.feePercent}% é aplicada apenas sobre o valor convertido em TON.</p>
+        <div className="mt-3">
+          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
+        </div>
       </Panel>
+
+      {confirmWithdraw ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-xs rounded-2xl border border-amber-300/30 bg-[#0a0f19] p-4">
+            <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">CONFIRMAÇÃO DE SAQUE</h4>
+            <div className="mt-3 space-y-2">
+              <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+              <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
+              <Line label={`TAXA (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+              <div className="h-px w-full bg-white/10" />
+              <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+            </div>
+            <div className="mt-4 space-y-2">
+              <Primary onClick={() => withdrawal.mutate()} disabled={withdrawal.isPending}>{withdrawal.isPending ? 'ENVIANDO...' : 'CONFIRMAR'}</Primary>
+              <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={withdrawal.isPending} className="w-full rounded-xl border border-white/15 bg-black/40 py-2.5 text-[10px] font-black text-slate-300 disabled:opacity-40">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR · {formatEggPrice(egg)}</button></div>)}</div>
         <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
