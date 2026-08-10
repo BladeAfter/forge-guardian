@@ -521,7 +521,7 @@ function App() {
         languageCode={languageCode}
       />
     ),
-    profile: <ProfilePage game={game} lang={lang} profile={playerProfile} />
+    profile: <ProfilePage game={game} profile={playerProfile} telegramInitData={telegramInitData} backendEnabled={backendEnabled} onOpenBattlePass={()=>openInternal('season-pass')} />
   };
   const featuredMission = game.missions.find((mission) => !mission.claimed) ?? game.missions[0];
   const dailyReward = game.missions.find((mission) => mission.id === 'mission-1');
@@ -599,9 +599,10 @@ function App() {
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
-        <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' ? 'hidden' : 'block'}`}>
+        <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' || tab === 'profile' ? 'hidden' : 'block'}`}>
           <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={game.balance} />
         </header>
+
 
 
         {tab === 'village' ? <div className="village-home relative flex min-h-0 flex-1 flex-col items-start gap-2 pb-2 pt-2">

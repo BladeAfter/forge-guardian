@@ -3900,6 +3900,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_reward_history: {
+        Args: { p_limit?: number; p_offset?: number; p_telegram_id: number }
+        Returns: Json
+      }
       get_runtime_config: { Args: { p_telegram_id?: number }; Returns: Json }
       get_season_pass_dashboard: {
         Args: { p_telegram_id: number }

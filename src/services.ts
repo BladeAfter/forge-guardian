@@ -199,3 +199,13 @@ export async function fetchPlayerHeroes(initData:string):Promise<{heroes:PvpHero
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar sua coleção de heróis.');
   return {heroes:Array.isArray(payload.heroes)?payload.heroes:[]};
 }
+
+export type RewardHistoryItem={reward_type:string;reward_key:string|null;reward_name:string;rarity:string|null;quantity:number;image_url:string|null;source:string|null;created_at:string};
+export type RewardHistory={items:RewardHistoryItem[];total:number};
+/** Read-only history of rewards the player already received (no delivery side effects). */
+export async function fetchRewardHistory(telegramInitData:string,limit=5,offset=0):Promise<RewardHistory>{
+  const response=await forgeFetch('rewards',({initData:telegramInitData,limit,offset}));
+  const payload=await response.json().catch(()=>null) as (RewardHistory&{error?:string})|null;
+  if(!response.ok||!payload)throw new Error(payload?.error||'Unable to load your reward history.');
+  return {items:Array.isArray(payload.items)?payload.items:[],total:Number(payload.total??0)};
+}
