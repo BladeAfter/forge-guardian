@@ -26,8 +26,8 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** The Mini App is signed by the GAME bot. The admin bot has its own token and must never be used here. */
-const gameBotToken = () => (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
+/** The Mini App is signed by the GAME bot (TELEGRAM_BOT_TOKEN). The admin bot has its own token and must never be used here. */
+const gameBotToken = () => (Deno.env.get('TELEGRAM_BOT_TOKEN') || Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim();
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
@@ -431,8 +431,10 @@ async function healthReport() {
     database: 'offline',
     telegram_auth: gameBotToken() ? 'configured' : 'missing',
     telegram_auth_max_age_seconds: AUTH_MAX_AGE_SECONDS,
-    game_bot_token_source: Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : (Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : 'missing'),
+    game_bot_token_source: Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : (Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : 'missing'),
     game_bot_username: await botUsername(gameBotToken()),
+    telegram_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim()),
+    telegram_game_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim()),
     admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
     time: new Date().toISOString(),
   };

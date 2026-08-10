@@ -3,7 +3,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPER_ADMIN_ID = Number(Deno.env.get('TELEGRAM_SUPER_ADMIN_ID') || '8118569391');
-const BOT_TOKEN = Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '';
+// Admin bot must use its OWN token. Never fall back to the game bot token (TELEGRAM_BOT_TOKEN).
+const BOT_TOKEN = (Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN') || '').trim();
 const WEBHOOK_SECRET = Deno.env.get('TELEGRAM_ADMIN_WEBHOOK_SECRET') || '';
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
