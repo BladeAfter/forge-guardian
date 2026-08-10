@@ -5,9 +5,9 @@ import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
+import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
-import { MissionsPage } from './pages/MissionsPage';
+import { QuestsPage } from './pages/QuestsPage';
 import { BossPage } from './pages/BossPage';
 import { WalletPage } from './pages/WalletPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -74,7 +74,7 @@ function OpenInTelegramGate() {
 }
 
 function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;subtitle?:string;onClick:()=>void}){
-  return <button type="button" onClick={onClick} className="home-feature group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
+  return <button type="button" onClick={onClick} className="home-feature forge-golden-tile group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
 
 
@@ -140,6 +140,7 @@ function App() {
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);
   const {data:calendarDashboard,refetch:refetchCalendar}=useCalendarDashboard(telegramInitData,backendEnabled);
+  const dailyQuests=useDailyQuests(telegramInitData,backendEnabled);
   const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
   const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{toast.success(`${result.hero.name} · ${result.hero.rarity}`);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['game-state']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú.')});
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
@@ -487,7 +488,7 @@ function App() {
 
   const tabContent = {
     village: <VillagePage game={game} onUpgrade={upgradeBuilding} lang={lang} />,
-    missions: <MissionsPage game={game} lang={lang} onClaim={claimMission} languageCode={languageCode} />,
+    missions: <QuestsPage telegramInitData={telegramInitData} dashboard={dailyQuests.data} loading={dailyQuests.isLoading} error={dailyQuests.error instanceof Error?dailyQuests.error.message:null} />,
     boss: <BossPage
       game={game}
       lang={lang}

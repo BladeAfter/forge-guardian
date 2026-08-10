@@ -504,6 +504,18 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   calendar: handleCalendar,
   'season-pass': handleSeasonPass,
   referral: handleReferral,
+  /** Daily quests: progress is only written by server-side event hooks, never by the client. */
+  quests: async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'dashboard') return rpc(db, 'get_daily_quests', { p_telegram_id: user.id });
+    if (action === 'claim-chest') return rpc(db, 'claim_daily_quest_chest', { p_telegram_id: user.id });
+    if (action === 'claim') {
+      const code = String(body.code || '');
+      if (!/^[a-z0-9_]{3,40}$/.test(code)) throw new Error('QUEST_NOT_FOUND');
+      return rpc(db, 'claim_daily_quest', { p_telegram_id: user.id, p_quest_code: code });
+    }
+    throw new Error('Ação inválida.');
+  },
   /** Read-only feed of rewards already delivered to the player (never grants anything). */
   rewards: async (db, user, body) => {
     const limit = Math.min(Math.max(Number(body.limit ?? 5) || 5, 1), 100);

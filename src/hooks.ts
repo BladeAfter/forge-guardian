@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { RewardHistory } from './services';
-import { fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
@@ -11,6 +11,7 @@ import type { TelegramPlayerProfile } from './playerProfile';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
+import type{DailyQuestsDashboard}from'./quests';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -40,3 +41,6 @@ export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>us
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 
 export const useRewardHistory=(telegramInitData:string|null,enabled:boolean,limit=5)=>useQuery<RewardHistory>({queryKey:['reward-history',telegramInitData,limit],queryFn:()=>fetchRewardHistory(telegramInitData??'',limit),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
+
+/** Daily quests: server is the only source of progress, so refetch on focus. */
+export const useDailyQuests=(telegramInitData:string|null,enabled:boolean)=>useQuery<DailyQuestsDashboard>({queryKey:['daily-quests',telegramInitData],queryFn:()=>fetchDailyQuests(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});

@@ -12,6 +12,7 @@ import type { TelegramPlayerProfile } from './playerProfile';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,PlayerInventory} from './calendarRewards';
 import type{PassTier,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
+import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 
 const demoPlayerId = (telegramInitData: string) => {
   try {
@@ -213,3 +214,18 @@ export async function fetchRewardHistory(telegramInitData:string,limit=5,offset=
   if(!response.ok||!payload)throw new Error(payload?.error||'Unable to load your reward history.');
   return {items:Array.isArray(payload.items)?payload.items:[],total:Number(payload.total??0)};
 }
+
+// ---------------------------------------------------------------- daily quests
+export type QuestAction={action:'dashboard'}|{action:'claim';code:string}|{action:'claim-chest'};
+const QUEST_ERRORS:Record<string,string>={QUEST_NOT_FOUND:'This quest is no longer available.',QUEST_NOT_COMPLETED:'Finish this quest first.',QUEST_ALREADY_CLAIMED:'You already claimed this quest today.',QUESTS_NOT_COMPLETED:'Complete all 5 quests to unlock the chest.',BONUS_ALREADY_CLAIMED:'The daily quest chest was already claimed today.',PLAYER_NOT_FOUND:'Player not found.'};
+/** Quest progress is written only by server-side event hooks; the client can just read and claim. */
+export async function questsRequest<T=DailyQuestsDashboard>(telegramInitData:string,input:QuestAction={action:'dashboard'}):Promise<T>{
+  const response=await forgeFetch('quests',({initData:telegramInitData,...input}));
+  if(response.status===404)throw new Error('Backend unavailable: unable to reach the quests server.');
+  const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+  if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(QUEST_ERRORS[raw]||raw||'Unable to load your daily quests.')}
+  return payload;
+}
+export const fetchDailyQuests=(initData:string)=>questsRequest<DailyQuestsDashboard>(initData,{action:'dashboard'});
+export const claimDailyQuest=(initData:string,code:string)=>questsRequest<QuestClaimResult>(initData,{action:'claim',code});
+export const claimDailyQuestChest=(initData:string)=>questsRequest<QuestClaimResult>(initData,{action:'claim-chest'});
