@@ -335,7 +335,22 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!isUuid(body.opponentId)) throw new Error('Adversário inválido.');
     fn = 'start_pvp_battle';
     args = { ...args, p_opponent_id: body.opponentId };
+  } else if (action === 'fusion') {
+    fn = 'get_hero_fusion_dashboard';
+  } else if (action === 'fuse') {
+    // Every fusion rule (ownership, same hero_key, copies, FC, locks) is enforced inside the RPC.
+    const materials = Array.isArray(body.materialIds) ? body.materialIds : [];
+    if (!isUuid(body.mainHeroId) || !materials.length || materials.length > 5 || !materials.every((id: unknown) => isUuid(id))) {
+      throw new Error('Seleção de fusão inválida.');
+    }
+    fn = 'fuse_heroes';
+    args = { ...args, p_main_hero_id: body.mainHeroId, p_material_ids: materials };
+  } else if (action === 'lock') {
+    if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
+    fn = 'set_hero_lock';
+    args = { ...args, p_hero_id: body.heroId, p_locked: Boolean(body.locked) };
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
+
 
   const data = await rpc(db, fn, args) as any;
   if (action === 'battle' && Array.isArray(data?.battleLog)) {
