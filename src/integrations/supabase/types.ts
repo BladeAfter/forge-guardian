@@ -2382,6 +2382,7 @@ export type Database = {
           pool_id: string
           source_id: string
           source_type: string
+          tx_hash: string | null
           user_id: string | null
         }
         Insert: {
@@ -2394,6 +2395,7 @@ export type Database = {
           pool_id: string
           source_id: string
           source_type: string
+          tx_hash?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2406,6 +2408,7 @@ export type Database = {
           pool_id?: string
           source_id?: string
           source_type?: string
+          tx_hash?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -2485,6 +2488,7 @@ export type Database = {
       pool_settings: {
         Row: {
           activity_points: Json
+          community_pool_percent: number
           id: boolean
           lottery_share_percent: number
           lottery_winner_count: number
@@ -2498,6 +2502,7 @@ export type Database = {
         }
         Insert: {
           activity_points?: Json
+          community_pool_percent?: number
           id?: boolean
           lottery_share_percent?: number
           lottery_winner_count?: number
@@ -2511,6 +2516,7 @@ export type Database = {
         }
         Update: {
           activity_points?: Json
+          community_pool_percent?: number
           id?: boolean
           lottery_share_percent?: number
           lottery_winner_count?: number
@@ -3984,6 +3990,10 @@ export type Database = {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
       }
+      admin_set_pool_contribution_percent: {
+        Args: { p_admin_id: number; p_percent: number }
+        Returns: number
+      }
       admin_set_quest_bonus: {
         Args: {
           p_admin_id: number
@@ -4354,6 +4364,7 @@ export type Database = {
         }
         Returns: Json
       }
+      ensure_active_pool: { Args: never; Returns: string }
       ensure_boss_combat: { Args: { p_telegram_id: number }; Returns: string }
       equip_combat_hero: {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
@@ -4569,6 +4580,16 @@ export type Database = {
       record_quest_event_for_telegram: {
         Args: { p_amount?: number; p_event: string; p_telegram_id: number }
         Returns: undefined
+      }
+      record_ton_revenue: {
+        Args: {
+          p_amount_ton: number
+          p_reference_id: string
+          p_source: string
+          p_tx_hash?: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       recruit_heroes: {
         Args: { p_count: number; p_telegram_id: number }
