@@ -562,7 +562,9 @@ function payoutMessage(p: any) {
   return [
     '✅ <b>FC Coins Withdrawal Successful!</b>', '',
     `🚀 Amount: <b>${fmtEn(p.amountFc)} FC</b>`, '',
-    `💵 TON Value: <b>${Number(p.amountTon ?? 0).toFixed(6)} TON</b>`, '',
+    `💰 Gross Value: <b>${Number(p.grossTon ?? p.amountTon ?? 0).toFixed(3)} TON</b>`, '',
+    `💸 Fee (${Number(p.feePercent ?? 0)}%): <b>${Number(p.feeTon ?? 0).toFixed(3)} TON</b>`, '',
+    `✅ Received: <b>${Number(p.netTon ?? p.amountTon ?? 0).toFixed(3)} TON</b>`, '',
     `🔗 TxID: <a href="https://tonviewer.com/transaction/${encodeURIComponent(hash)}">${esc(shortHash(hash))}</a>`, '',
     `👤 Player: ${player}`, '',
     `🕒 Date: ${esc(date)}`,
