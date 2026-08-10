@@ -52,10 +52,23 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
     onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim the chest.'),
   });
 
+  // Temporary diagnostic: exposes the real definition/progress counts coming from the server.
+  useEffect(() => {
+    console.info('[DAILY QUESTS]', {
+      definitionsLoaded: Boolean(dashboard),
+      activeDailyCount: dashboard?.total ?? 0,
+      userProgressCount: dashboard?.quests?.length ?? 0,
+      completedCount: dashboard?.completed ?? 0,
+      date: dashboard?.questDate ?? null,
+      error: error ?? null,
+    });
+  }, [dashboard, error]);
+
   const percent = useMemo(() => {
     if (!dashboard?.total) return 0;
     return Math.min(100, Math.round((dashboard.completed / dashboard.total) * 100));
   }, [dashboard]);
+
 
   return (
     <section className="space-y-3">
