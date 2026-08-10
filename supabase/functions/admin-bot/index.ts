@@ -1332,7 +1332,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'pachat': {
       const chat = text.trim().split(/\s+/)[0];
       if (!/^-?\d{5,}$|^@[\w]{4,}$/.test(chat)) throw new Error('KEEP_SESSION::⚠️ Envie o chat id numérico (ex.: <code>-1004303374351</code>) ou @canalpublico.');
-      await rpc("admin_set_setting", { p_admin_id: ctx.adminId, p_key: "payments_channel_chat_id", p_value: JSON.stringify(chat) });
+      await rpc("admin_set_setting", { p_admin_id: ctx.adminId, p_key: "payments_channel_chat_id", p_value: chat });
       await send(ctx, `✅ Canal de pagamentos salvo: <code>${esc(chat)}</code>`);
       return payoutMenu(ctx, false);
     }
