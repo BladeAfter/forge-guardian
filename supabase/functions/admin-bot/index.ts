@@ -826,6 +826,13 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
   // withdrawals: every financial action is resolved by withdrawal_id, never by username.
+  if (head === 'pa') { await clearSession(ctx); return handlePayoutAnnouncements(ctx, rest[0] || 'menu'); }
+  if (head === 'pasend') {
+    await clearSession(ctx);
+    const r = await announcePayout(ctx.adminId, rest.join(':'));
+    await send(ctx, r.status === 'sent' ? '📢 Comprovante publicado no canal de pagamentos.' : r.status === 'skipped' ? `🚫 Não publicado: <code>${esc(r.detail)}</code>` : `⚠️ Falha: <code>${esc(r.detail)}</code>`);
+    return withdrawalCard(ctx, rest.join(':'), false);
+  }
   if (['wd', 'wdcp', 'wdpay', 'wdgo', 'wdmk', 'wdfail', 'wdrj', 'wdrjgo'].includes(head)) {
     await clearSession(ctx);
     return handleWithdrawal(ctx, head, rest.join(':'));
