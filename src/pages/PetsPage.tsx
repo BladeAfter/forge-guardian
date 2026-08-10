@@ -444,7 +444,7 @@ function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; bal
       type="button"
       onClick={onEvolve}
       disabled={pending || !ready}
-      className={`mt-2 flex w-full items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[9px] font-black uppercase transition disabled:grayscale disabled:opacity-40 ${
+      className={`mt-2 flex w-full items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-black uppercase transition disabled:grayscale disabled:opacity-40 ${
         ready
           ? 'animate-pulse border-violet-200/70 bg-gradient-to-b from-violet-400 to-fuchsia-600 text-black shadow-[0_0_22px_rgba(192,132,252,.55)]'
           : 'border-white/15 bg-white/5 text-slate-300'
@@ -665,12 +665,12 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
           type="button"
           onClick={onFeed}
           disabled={pending || pet.isMaxLevel}
-          className="flex h-9 items-center justify-center gap-1 rounded-lg border border-amber-300/35 bg-black/40 px-1 text-[8px] font-black text-amber-100 disabled:opacity-40"
+          className="flex h-10 items-center justify-center gap-1 rounded-lg border border-amber-300/35 bg-black/40 px-1 text-[9px] font-black text-amber-100 disabled:opacity-40"
         >
           <Info className="h-3 w-3" />ALIMENTAR
         </button>
         {pet.isActive ? (
-          <button type="button" disabled className="flex h-9 items-center justify-center gap-1 rounded-lg border border-emerald-300/30 bg-emerald-950/45 px-1 text-[8px] font-black text-emerald-300">
+          <button type="button" disabled className="flex h-10 items-center justify-center gap-1 rounded-lg border border-emerald-300/30 bg-emerald-950/45 px-1 text-[9px] font-black text-emerald-300">
             <Check className="h-3 w-3" />EQUIPADO
           </button>
         ) : (
@@ -678,7 +678,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
             type="button"
             onClick={onActivate}
             disabled={pending}
-            className="flex h-9 items-center justify-center rounded-lg border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 px-1 text-[8px] font-black text-black disabled:grayscale disabled:opacity-40"
+            className="flex h-10 items-center justify-center rounded-lg border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 px-1 text-[9px] font-black text-black disabled:grayscale disabled:opacity-40"
           >
             ATIVAR
           </button>
