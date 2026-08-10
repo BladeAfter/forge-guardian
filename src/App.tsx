@@ -855,7 +855,12 @@ function App() {
               onClick={() => navigateTo(item.key)}
               className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${tab === item.key ? 'bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
             >
-              <img src={tab === item.key ? navigationIcons[item.key].selected : navigationIcons[item.key].normal} alt="" className="h-7 w-7 object-contain" />
+              <img
+                src={tab === item.key ? navigationIcons[item.key].selected : navigationIcons[item.key].normal}
+                alt=""
+                className="h-7 w-7 object-contain transition duration-200"
+                style={tab === item.key ? { filter: 'sepia(1) saturate(1.8) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 6px rgba(251,191,36,.65))' } : undefined}
+              />
               <span className="mt-1">{item.label}</span>
             </button>
           ))}
