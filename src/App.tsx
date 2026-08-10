@@ -450,6 +450,9 @@ function App() {
       lang={lang}
       languageCode={languageCode}
       combat={bossCombat}
+      collection={heroCollection.data?.heroes}
+      collectionLoading={heroCollection.isLoading}
+      collectionError={heroCollection.error instanceof Error?heroCollection.error.message:heroCollection.error?'Não foi possível carregar sua coleção de heróis.':null}
       syncing={bossSyncing}
       backendOfficial={backendEnabled}
       onEquipHero={async(heroId,slot)=>{
