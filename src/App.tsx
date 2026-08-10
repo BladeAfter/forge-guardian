@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
+import { useBossCombat, useCalendarDashboard, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { MissionsPage } from './pages/MissionsPage';
 import { BossPage } from './pages/BossPage';
@@ -27,7 +27,7 @@ import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipC
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
-import {CALENDAR_REWARDS,type CalendarClaimResult} from './calendarRewards';
+import {CALENDAR_REWARDS,CHEST_LABELS,type CalendarClaimResult} from './calendarRewards';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
@@ -140,8 +140,9 @@ function App() {
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);
   const {data:calendarDashboard,refetch:refetchCalendar}=useCalendarDashboard(telegramInitData,backendEnabled);
-  const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
-  const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{toast.success(`${result.hero.name} · ${result.hero.rarity}`);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['game-state']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú.')});
+  const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
+  const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
+  const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{toast.success(`${result.hero.name} · ${result.hero.rarity}`);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['game-state']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú.')});
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
@@ -736,7 +737,7 @@ function App() {
                     const reward=calendarRewards.find(item=>item.day===day);const past = calendarDashboard?.claimedDays.includes(day)??day < calendarDay;
                     const current = day === calendarDay;
                     const collected = past||(current&&(calendarDashboard?!calendarDashboard.canClaim:Boolean(dailyReward?.claimed)));
-                    const chestIndex=reward?.itemCode==='hero_chest_special'?2:reward?.itemCode==='hero_chest_improved'?1:0;
+                    const chestIndex=reward?.itemCode==='epic_chest'||reward?.itemCode==='legendary_chest'?2:reward?.itemCode==='rare_chest'?1:0;
                     return (
                       <button
                         key={day}
@@ -752,6 +753,36 @@ function App() {
                   })}
                 </div>
                 <p className="mt-3 text-center text-[10px] text-slate-400">{t('selectDay')}</p>
+                {/* Stored rewards stay openable later: nothing is lost when the player closes the modal. */}
+                <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-3">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">MEU INVENTÁRIO</h3>
+                  {(playerInventory?.chests.length??0)+(playerInventory?.eggs.length??0)===0?(
+                    <p className="mt-2 text-[10px] text-slate-500">Nenhum baú ou ovo guardado.</p>
+                  ):(
+                    <ul className="mt-2 space-y-2">
+                      {playerInventory?.chests.map(chest=>(
+                        <li key={chest.id} className="flex items-center gap-2 rounded-xl border border-amber-300/20 bg-black/30 p-2">
+                          <img src={chests[chest.itemCode==='epic_chest'||chest.itemCode==='legendary_chest'?2:chest.itemCode==='rare_chest'?1:0]} alt="Baú" className="h-8 w-8 object-contain"/>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[11px] font-bold text-white">{chest.name||CHEST_LABELS[chest.itemCode]||'Baú de Herói'}</p>
+                            <p className="text-[9px] text-slate-400">x{chest.quantity} · {chest.subtitle}</p>
+                          </div>
+                          <button type="button" disabled={calendarChestMutation.isPending} onClick={()=>calendarChestMutation.mutate(chest.id)} className="rounded-lg bg-amber-400 px-3 py-2 text-[10px] font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'...':'ABRIR'}</button>
+                        </li>
+                      ))}
+                      {playerInventory?.eggs.map(egg=>(
+                        <li key={egg.id} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/30 p-2">
+                          <img src={egg.image??`/assets/game/pet-eggs/${egg.slug}.webp`} alt={egg.name} className="h-8 w-8 object-contain"/>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[11px] font-bold text-white">{egg.name}</p>
+                            <p className="text-[9px] text-slate-400">x{egg.quantity}</p>
+                          </div>
+                          <button type="button" onClick={()=>{setCalendarOpen(false);setPetsOpen(true)}} className="rounded-lg border border-amber-300/40 px-3 py-2 text-[10px] font-black text-amber-200">CHOCAR</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
               </div>
             </div>
           ) : null}
