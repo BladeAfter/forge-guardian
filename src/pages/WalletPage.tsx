@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Wallet } from 'lucide-react';
@@ -7,7 +7,10 @@ import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
-import { createDepositIntent, createEggTonOrder, requestWithdrawal, verifyPendingDeposits } from '../services';
+import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
+import { eggPurchaseStatusLabel, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
+import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
+import type { PetDashboard, PetRarity } from '../pets';
 import { usePetDashboard, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 
@@ -32,6 +35,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const balance = summary?.balanceFc ?? game.balance;
   const [depositTon, setDepositTon] = useState(1);
   const [withdrawFc, setWithdrawFc] = useState(MIN_WITHDRAWAL_FC);
+  const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
+  const recoveredRef = useRef(false);
   const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable) ?? [], [pets?.eggs]);
 
   const invalidateWallet = async () => {
@@ -93,24 +98,56 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível solicitar o saque.')
   });
 
+  const invalidateEggs = async () => {
+    await Promise.all(['pet-egg-orders', 'pet-inventory', 'pet-dashboard', 'wallet-history', 'wallet-summary', 'game-state'].map(key =>
+      queryClient.invalidateQueries({ queryKey: [key] })));
+  };
+
+  /** Shows the SAME hatching screen used by the pet tab. */
+  const revealPurchase = async (verification: Awaited<ReturnType<typeof reconcilePendingEggPurchases>>, fallbackImage?: string) => {
+    const hatched = hatchedPurchase(verification);
+    await invalidateEggs();
+    if (!hatched?.result) return false;
+    const dashboard = hatched.dashboard as PetDashboard | undefined;
+    const eggImage = dashboard?.eggs.find(egg => egg.id === hatched.eggId)?.image || fallbackImage || '/assets/game/pet-eggs/common-egg.webp';
+    setReveal({ result: { ...hatched.result, rarity: hatched.result.rarity as PetRarity }, eggImage });
+    return true;
+  };
+
+  // App closed right after paying? On reopen the purchase is recovered and the pet delivered (only once).
+  useEffect(() => {
+    if (!backendEnabled || recoveredRef.current) return;
+    recoveredRef.current = true;
+    reconcilePendingEggPurchases(telegramInitData)
+      .then(verification => { if (hatchedPurchase(verification)) void revealPurchase(verification); })
+      .catch(() => undefined);
+  }, [backendEnabled, telegramInitData]);
+
+  // Premium eggs use the exact same purchase pipeline as the pet shop (purchase, never a deposit).
   const buyEgg = useMutation({
-    mutationFn: async (eggId: string) => {
-      if (!telegramInitData || !connected) throw new Error('Conecte sua carteira TON.');
-      const order = await createEggTonOrder(telegramInitData, eggId, crypto.randomUUID());
-      await tonConnectUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: order.paymentAddress, amount: order.amountNano }] });
-      return order;
+    mutationFn: async (egg: { id: string; image: string }) => {
+      if (!connected) throw new Error('Conecte sua carteira TON.');
+      await purchasePremiumEgg({ telegramInitData, eggId: egg.id, source: 'wallet', sendTransaction: tx => tonConnectUI.sendTransaction(tx) });
+      toast.success('Pagamento enviado. Confirmando na blockchain...');
+      return { egg, verification: await waitForEggPurchase(telegramInitData) };
     },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['pet-egg-orders'] }),
-        queryClient.invalidateQueries({ queryKey: ['pet-inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['pet-dashboard', telegramInitData] }),
-        queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
-        queryClient.invalidateQueries({ queryKey: ['wallet-summary', telegramInitData] })
-      ]);
-      toast.success('Pagamento enviado. O ovo será entregue após a confirmação.');
+    onSuccess: async ({ egg, verification }) => {
+      const delivered = await revealPurchase(verification, egg.image);
+      if (!delivered) toast('Pagamento em processamento. O ovo abre automaticamente quando a rede confirmar.');
     },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível comprar o ovo.')
+  });
+
+  const reconcile = useMutation({
+    mutationFn: () => reconcilePendingEggPurchases(telegramInitData),
+    onSuccess: async verification => {
+      const delivered = await revealPurchase(verification);
+      if (delivered) return;
+      if (verification.completed.length) toast.success('Compra concluída.');
+      else if (verification.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
+      else toast('Nenhuma compra de ovo pendente.');
+    },
+    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar a compra.')
   });
 
   return (
@@ -157,11 +194,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         <Primary onClick={() => withdrawal.mutate()} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
       </Panel>
 
-      {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{egg.priceTon} TON</p><button onClick={() => buyEgg.mutate(egg.id)} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR POR {egg.priceTon} TON</button></div>)}</div></Panel> : null}
+      {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{egg.priceTon} TON</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR POR {egg.priceTon} TON</button></div>)}</div>
+        <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
+          {reconcile.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — RECEBER MEU OVO'}
+        </button></Panel> : null}
 
       <Panel title="HISTÓRICO" icon={<Clock3 />}>
-        <div className="max-h-60 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-center gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-bold">{item.label}</p><p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{statusLabel(item.status)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">Nenhuma movimentação.</p>}</div>
+        <div className="max-h-60 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-center gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-bold">{item.type === 'egg_order' ? `${item.label.toUpperCase()} · ${item.amountTon} TON` : item.label}</p><p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">Nenhuma movimentação.</p>}</div>
       </Panel>
+
+      {reveal ? <PetEggOpeningOverlay result={reveal.result} eggImage={reveal.eggImage} onContinue={() => setReveal(null)} /> : null}
     </section>
   );
 }
@@ -170,5 +212,5 @@ function Panel({ title, icon, children }: { title: string; icon: React.ReactNode
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
 function Result({ label, value }: { label: string; value: string }) { return <div className="my-2 flex items-center justify-between rounded-xl bg-black/30 px-3 py-2"><span className="text-[9px] text-slate-400">{label}</span><strong className="text-xs text-emerald-300">{value}</strong></div>; }
 function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
-function Status({ status }: { status: string }) { const done=['credited','completed','delivered','paid','confirmed'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
+function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
 function statusLabel(status:string){return({pending:'Pendente',confirmed:'Confirmado',credited:'Creditado',processing:'Processando',completed:'Concluído',paid:'Pago',delivered:'Entregue',expired:'Expirado',rejected:'Rejeitado',cancelled:'Cancelado'}as Record<string,string>)[status]??status;}
