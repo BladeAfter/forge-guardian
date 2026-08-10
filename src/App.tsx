@@ -226,6 +226,27 @@ function App() {
       .catch(() => undefined);
   }, [backendEnabled, telegramInitData, queryClient]);
 
+  // Battle pass payments made with the app closed are activated here, exactly once per session.
+  useEffect(() => {
+    if (!backendEnabled || !telegramInitData || passRecoveryRef.current) return;
+    passRecoveryRef.current = true;
+    reconcilePendingPassPurchases(telegramInitData)
+      .then(async (verification) => {
+        const activated = activatedPass(verification);
+        if (!activated) return;
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['season-pass'] }),
+          queryClient.invalidateQueries({ queryKey: ['season-pass-profile'] }),
+          queryClient.invalidateQueries({ queryKey: ['community-pool'] }),
+          queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
+        ]);
+        toast.success(`${passTierLabel(activated.tier)} ATIVO!`);
+      })
+      .catch(() => undefined);
+  }, [backendEnabled, telegramInitData, queryClient]);
+
+
+
   useEffect(() => {
     let cancelled = false;
     // Telegram can deliver initData a few frames after mount; wait for it before any auth call.
