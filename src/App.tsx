@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
@@ -86,6 +87,7 @@ function App() {
   const [isReady, setIsReady] = useState(false);
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
+  const eggRecoveryRef = useRef(false);
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const [activePage,setActivePage]=useState<InternalPage|null>(internalFromPath);
   const [calendarResult,setCalendarResult]=useState<CalendarClaimResult|null>(null);
@@ -204,6 +206,25 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Premium egg purchases paid earlier (even with the app closed) are finished here — a single
+  // reconciliation per session, always idempotent: one payment can only ever deliver one pet.
+  useEffect(() => {
+    if (!backendEnabled || !telegramInitData || eggRecoveryRef.current) return;
+    eggRecoveryRef.current = true;
+    reconcilePendingEggPurchases(telegramInitData)
+      .then(async (verification) => {
+        const delivered = hatchedPurchase(verification);
+        if (!delivered?.result) return;
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['pet-dashboard'] }),
+          queryClient.invalidateQueries({ queryKey: ['wallet-summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
+        ]);
+        toast.success(`Compra concluída: ${delivered.result.name} entregue!`);
+      })
+      .catch(() => undefined);
+  }, [backendEnabled, telegramInitData, queryClient]);
 
   useEffect(() => {
     let cancelled = false;
