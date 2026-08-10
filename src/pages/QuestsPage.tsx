@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { characters, chests, mainScreenArt, missionIcons } from '../gameAssets';
 import { formatCurrency } from '../utils';
 import { claimDailyQuest, claimDailyQuestChest } from '../services';
 import type { DailyQuest, DailyQuestsDashboard } from '../quests';
+
 
 type QuestsPageProps = {
   telegramInitData: string | null;
@@ -51,10 +52,23 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
     onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim the chest.'),
   });
 
+  // Temporary diagnostic: exposes the real definition/progress counts coming from the server.
+  useEffect(() => {
+    console.info('[DAILY QUESTS]', {
+      definitionsLoaded: Boolean(dashboard),
+      activeDailyCount: dashboard?.total ?? 0,
+      userProgressCount: dashboard?.quests?.length ?? 0,
+      completedCount: dashboard?.completed ?? 0,
+      date: dashboard?.questDate ?? null,
+      error: error ?? null,
+    });
+  }, [dashboard, error]);
+
   const percent = useMemo(() => {
     if (!dashboard?.total) return 0;
     return Math.min(100, Math.round((dashboard.completed / dashboard.total) * 100));
   }, [dashboard]);
+
 
   return (
     <section className="space-y-3">
@@ -65,7 +79,9 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
             <h1 className="text-2xl font-black uppercase tracking-wide text-white">Quests</h1>
           </div>
           <div className="text-right">
-            <p className="text-lg font-black text-amber-200">{dashboard?.completed ?? 0}/{dashboard?.total ?? 0}</p>
+            {/* Never fake a total: while the server answer is in flight we show a placeholder instead of 0/0. */}
+            <p className="text-lg font-black text-amber-200">{dashboard ? `${dashboard.completed}/${dashboard.total}` : '—/—'}</p>
+
             <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">Resets daily{dashboard?.timezone ? ` · ${dashboard.timezone}` : ''}</p>
           </div>
         </div>

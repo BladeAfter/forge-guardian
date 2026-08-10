@@ -263,11 +263,14 @@ async function module(ctx: Ctx, name: string) {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
       const b = d.bonus || {};
       const list = (d.quests || []).map((q: any) => `• <code>${esc(q.code)}</code> ${esc(q.title)}\n   evento <code>${esc(q.event_key)}</code> · meta ${q.target_amount} · ${fmt(q.reward_fc)} FC ${q.enabled ? '✅' : '⛔'}`).join('\n') || '—';
-      return edit(ctx, `🎯 <b>DAILY QUESTS</b>\nFuso do reset: <b>${esc(d.timezone)}</b> · dia atual ${esc(d.questDate)}\nResgates hoje: ${fmt(d.claimedToday)}\n\n${list}\n\n🎁 Baú extra (5/5): <b>${esc(b.name || 'Rare Chest')}</b> — <code>${esc(b.item_code || 'rare_chest')}</code> x${b.quantity ?? 1}\n\nO progresso é gravado só pelo servidor (login, pet, boss, PvP, ovos/baús).`,
+      const active = (d.quests || []).filter((q: any) => q.enabled).length;
+      return edit(ctx, `🎯 <b>DAILY QUESTS</b>\nFuso do reset: <b>${esc(d.timezone)}</b> · dia atual ${esc(d.questDate)}\nQuests ativas: <b>${active}</b> · Resgates hoje: ${fmt(d.claimedToday)}\n\n${list}\n\n🎁 Baú extra (5/5): <b>${esc(b.name || 'Rare Chest')}</b> — <code>${esc(b.item_code || 'rare_chest')}</code> x${b.quantity ?? 1}\n\nO progresso é gravado só pelo servidor (login, pet, boss, PvP, ovos/baús).`,
         kb([[{ t: '✏️ CRIAR/EDITAR QUEST', d: 'ask:quest' }],
+            [{ t: '🔄 REPAIR DEFAULT DAILY QUESTS', d: 'view:questrepair' }],
             [{ t: '🎁 BAÚ EXTRA 5/5', d: 'ask:questbonus' }, { t: '🕒 FUSO DO RESET', d: 'ask:questtz' }],
             [{ t: '🚫 ATIVAR/DESATIVAR', d: 'ask:questtoggle' }, { t: '♻️ RESETAR HOJE', d: 'confirm:questreset' }],
             [{ t: '📦 DIAGNÓSTICO DOS BAÚS', d: 'view:chests' }], nav()]));
+
     }
     case 'boss': {
       const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
@@ -463,7 +466,14 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `📈 <b>TOP ${rest[0]}</b>\n${d.ranking.map((r: any, i: number) => `${i + 1}. ${esc(r.name)} — ${fmt(r.trophies)}🏆`).join('\n').slice(0, 3500)}`, MAIN_MENU);
   }
   if (head === 'view') {
+    if (rest[0] === 'questrepair') {
+      // Recreates/reactivates only the five default daily quests. Never duplicates, never touches player progress.
+      const r = await rpc('admin_repair_daily_quests', { p_admin_id: ctx.adminId });
+      return send(ctx, `🔄 <b>DAILY QUESTS REPARADAS</b>\nQuests ativas agora: <b>${fmt(r.activeDailyCount)}</b>\nO progresso dos jogadores foi preservado.`,
+        kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()]));
+    }
     if (rest[0] === 'chests') {
+
       const d = await rpc('admin_chest_diagnostics', { p_admin_id: ctx.adminId });
       const chests = (d.chests || []).map((c: any) => {
         const missing = c.missing || [];
