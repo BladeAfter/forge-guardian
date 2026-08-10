@@ -444,16 +444,8 @@ function App() {
     { key: 'profile', label: lang.tabs.profile }
   ] as const;
 
-  if (outsideTelegram) {
-    return <OpenInTelegramGate />;
-  }
-
-  if (telegramBooting && window.location.pathname !== '/admin/diagnostics') {
-    return <StatusScreen title="Forge Village" message="Inicializando Telegram..." />;
-  }
-
   // Admin-only diagnostics screen (Telegram id checked against the super admin).
-  if (window.location.pathname === '/admin/diagnostics') {
+  if (window.location.pathname === '/admin/diagnostics' && !telegramBooting) {
     if (telegramUser?.id !== 8118569391) {
       return <StatusScreen title="Acesso restrito" message="Esta área é exclusiva do administrador." />;
     }
@@ -466,31 +458,16 @@ function App() {
     );
   }
 
-  if (bootstrapError) {
-    return <StatusScreen title="Telegram necessário" message={bootstrapError} />;
+  if (outsideTelegram) {
+    return <OpenInTelegramGate />;
   }
 
-  if (error) {
-    return <StatusScreen title="Não foi possível carregar o jogo" message={error instanceof Error ? error.message : 'Erro inesperado ao consultar o backend.'} />;
+  // One single boot screen: Telegram init, session validation and game data all live behind it.
+  if (!bootDone) {
+    const failure = bootstrapError ?? (error ? (error instanceof Error ? error.message : 'Erro inesperado ao consultar o backend.') : null);
+    return <MythreonLoadingScreen progress={bootProgress} note={failure} fading={bootFading} />;
   }
 
-  if (isLoading || !isReady || !game) {
-    return (
-      <div className="relative min-h-screen overflow-hidden bg-forge-black text-white">
-        <img src={backgrounds.loading} alt="" className="absolute inset-0 h-full w-full object-cover object-center" fetchPriority="high" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#06101f]/45 via-[#07090d]/45 to-[#07090d]/90" />
-        <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center">
-          <div className="mb-10 w-full max-w-sm rounded-3xl border border-white/10 bg-[#07090d]/70 p-8 shadow-card backdrop-blur-xl">
-            <img src={logo.horizontal} alt="Forge Village" className="mx-auto mb-6 h-auto w-full max-w-[280px] object-contain" />
-            <p className="mt-3 text-sm text-slate-300">{loadingMessage}</p>
-            <div className="mt-8 h-4 w-full overflow-hidden rounded-full bg-white/10">
-              <div className="h-full w-3/4 animate-pulse rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const tabContent = {
     village: <VillagePage game={game} onUpgrade={upgradeBuilding} lang={lang} />,
