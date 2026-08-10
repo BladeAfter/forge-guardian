@@ -705,6 +705,7 @@ async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
   if (!closed && w.walletAddress) rows.push([{ t: '💎 PAY WITHDRAWAL', d: `wdpay:${w.id}` }]);
   if (!closed) rows.push([{ t: '✅ MARK AS PAID', d: `wdmk:${w.id}` }, { t: '❌ REJECT', d: `wdrj:${w.id}` }]);
   if (status === 'processing' || status === 'approved') rows.push([{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${w.id}` }]);
+  if (done && w.txHash) rows.push([{ t: '📢 PUBLICAR COMPROVANTE', d: `pasend:${w.id}` }]);
   rows.push([{ t: '⬅️ BACK', d: 'm:wallet' }, { t: '🏠 Menu', d: 'home' }]);
   const markup = kb(rows);
   return editing ? edit(ctx, lines.join('\n'), markup) : send(ctx, lines.join('\n'), markup);
