@@ -466,19 +466,15 @@ async function verifyEggPurchases(db: Db, user: TelegramUser) {
     const createdAt = new Date(String(order.createdAt)).getTime();
     const match = transactions.find((tx: any) => {
       const inMsg = tx?.in_msg;
-      if (!inMsg) return false;
-      const value = BigInt(String(inMsg.value ?? '0'));
-      if (comment && msgComment(inMsg) === comment) return value >= (expectedNano * 99n) / 100n;
-      // Legacy orders were paid without a comment: fall back to exact value inside the purchase time window.
-      const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
-      const inWindow = utime > 0 && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
-      return !comment ? false : value === expectedNano && inWindow;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      // 1% tolerance covers sender-side fee rounding.
+      return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 99n) / 100n;
     }) ?? transactions.find((tx: any) => {
+      // Legacy orders were paid without a comment: match the exact value inside this order's time window only.
       const inMsg = tx?.in_msg;
       if (!inMsg || msgComment(inMsg)) return false;
-      const value = BigInt(String(inMsg.value ?? '0'));
       const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
-      return value === expectedNano && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
+      return BigInt(String(inMsg.value ?? '0')) === expectedNano && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
     });
     if (!match) { stillPending.push(order.id); continue; }
     const txHash = String(match.hash || match.in_msg?.hash || '');
