@@ -25,7 +25,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
 };
 
-const buffIcon = petBuffIcon;
+
 
 
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
