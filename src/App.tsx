@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
+import { useBossCombat, useCalendarDashboard, useGameState, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { MissionsPage } from './pages/MissionsPage';
 import { BossPage } from './pages/BossPage';
@@ -116,6 +116,8 @@ function App() {
   const backendEnabled = Boolean(telegramInitData) && isProduction && !isDemoMode;
   const bossBackendEnabled = backendEnabled && tab === 'boss';
   const { data: bossCombat, isFetching: bossSyncing, refetch: refetchBoss } = useBossCombat(telegramInitData, bossBackendEnabled);
+  // Single hero collection source (player_heroes) shared by Coleção, PvP and Boss.
+  const heroCollection = usePlayerHeroes(telegramInitData, backendEnabled);
   // Hero shop pricing and summon odds are admin-controlled (game_settings), refreshed on open.
   const {data:heroShopConfig}=useQuery({
     queryKey:['hero-shop-config',telegramInitData],
