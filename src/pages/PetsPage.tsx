@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Minus, Plus, Shield, ShoppingCart, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
+import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { createEggTonOrder, petRequest } from '../services';
@@ -9,6 +9,8 @@ import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood,
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
+import { PetBuff, petBuffIcon } from '../components/PetBuff';
+
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
@@ -23,11 +25,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
 };
 
-const BUFF_ICONS: Record<string, JSX.Element> = {
-  boss_damage_percent: <Flame />, team_hp_percent: <Heart />, farm_fc_percent: <Coins />,
-  pvp_attack_percent: <Swords />, pvp_defense_percent: <Shield />, drop_chance_percent: <Star />,
-};
-const buffIcon = (key?: string | null) => (key && BUFF_ICONS[key]) || <Zap />;
+
+
 
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
@@ -320,7 +319,16 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <p className="text-[9px] text-slate-400">
                     {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
                   </p>
-                  {buff && <p className="mt-1 text-[9px] font-bold text-emerald-300">{petBuffLabel(buff[0])} +{buff[1]}%</p>}
+                  {buff && (
+                    <PetBuff
+                      buffKey={buff[0]}
+                      label={petBuffLabel(buff[0])}
+                      value={`+${buff[1]}%`}
+                      size="sm"
+                      className="mt-1 rounded-xl bg-black/40 text-left"
+                    />
+                  )}
+
                   {pet.sources && pet.sources.length > 0 && (
                     <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
                   )}
@@ -408,17 +416,20 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
   return (
     <div className="mt-3 grid grid-cols-2 gap-1">
       {entries.map(([key, value]) => (
-        <div key={key} className="rounded-xl bg-black/45 p-2">
-          <p className="flex items-center gap-1 text-[8px] text-slate-400">
-            <span className="h-3 w-3 text-amber-300">{buffIcon(key)}</span>
-            <span className="truncate">{petBuffLabel(key)}</span>
-          </p>
-          <b className={`text-xs ${secondary.has(key) ? 'text-violet-300' : 'text-emerald-300'}`}>+{value}%</b>
-        </div>
+        <PetBuff
+          key={key}
+          buffKey={key}
+          label={petBuffLabel(key)}
+          value={`+${value}%`}
+          size="sm"
+          className="rounded-xl bg-black/45"
+          valueClassName={secondary.has(key) ? 'text-violet-300' : 'text-emerald-300'}
+        />
       ))}
     </div>
   );
 }
+
 
 function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
   const next = pet.nextEvolution;
@@ -633,17 +644,20 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-200" style={{ width: `${pet.isMaxLevel ? 100 : Math.min(100, (pet.xp / Math.max(1, pet.xpRequired)) * 100)}%` }} />
       </div>
 
-      <div className="relative z-10 mt-2 rounded-xl border border-white/10 bg-black/45 px-2 py-2">
-        <div className="flex items-center justify-center gap-1.5 text-[8px] font-bold uppercase tracking-wide text-slate-300">
-          <span className="h-3.5 w-3.5" style={{ color: rarityColor[pet.rarity] }}>{buffIcon(pet.primaryBuffKey)}</span>
-          <span className="truncate">{petBuffLabel(pet.primaryBuffKey)}</span>
-        </div>
-        <b className="mt-1 block text-lg leading-none" style={{ color: rarityColor[pet.rarity] }}>+{pet.primaryBuffValue}%</b>
+      <div className="relative z-10 mt-2 rounded-xl border border-white/10 bg-black/45">
+        <PetBuff
+          buffKey={pet.primaryBuffKey}
+          label={petBuffLabel(pet.primaryBuffKey)}
+          value={`+${pet.primaryBuffValue}%`}
+          size="sm"
+          color={rarityColor[pet.rarity]}
+        />
         {pet.secondaryBuffs.length > 0 && (
-          <p className="mt-1 text-[8px] text-violet-300">
+          <p className="px-2 pb-2 text-[8px] text-violet-300">
             +{pet.secondaryBuffs.length} bônus secundário{pet.secondaryBuffs.length > 1 ? 's' : ''}
           </p>
         )}
+
       </div>
 
       <div className="relative z-10 mt-auto grid grid-cols-2 gap-1.5 pt-3">
