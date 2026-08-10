@@ -221,8 +221,8 @@ export async function fetchRewardHistory(telegramInitData:string,limit=5,offset=
 export type ChannelReward={key:'news'|'community'|'payments';title:string;subtitle:string;url:string;rewardFc:number;enabled:boolean;verifiable:boolean;joined:boolean;claimed:boolean;rewardReceived:number;claimedAt:string|null};
 export type ChannelRewards={channels:ChannelReward[];status?:'claimed'|'already_claimed';creditedFc?:number};
 const CHANNEL_ERRORS:Record<string,string>={
-  MEMBERSHIP_NOT_VERIFIED:'We could not confirm you joined this channel yet. Join it and tap VERIFY MEMBERSHIP again.',
-  MEMBERSHIP_CHECK_UNAVAILABLE:'Membership check is not configured for this channel yet.',
+  MEMBERSHIP_NOT_VERIFIED:'NOT A MEMBER YET — join the channel and tap VERIFY again.',
+  MEMBERSHIP_CHECK_UNAVAILABLE:'Membership check unavailable: the admin must add the game bot to this channel.',
   CHANNEL_NOT_AVAILABLE:'This channel reward is not available right now.',
   PLAYER_NOT_FOUND:'Player not found.',
 };
@@ -233,6 +233,15 @@ export async function channelsRequest(telegramInitData:string,input:{action:'das
   if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(CHANNEL_ERRORS[raw]||raw||'Unable to load the official channels.')}
   return {...payload,channels:Array.isArray(payload.channels)?payload.channels:[]};
 }
+
+/** Marks the given notifications as read on the SERVER so they never show up again on relaunch. */
+export async function markNotificationsRead(telegramInitData:string,ids:string[]):Promise<{updated:number}>{
+  const response=await forgeFetch('notifications',{initData:telegramInitData,action:'mark-read',ids});
+  const payload=await response.json().catch(()=>null) as {updated?:number;error?:string}|null;
+  if(!response.ok)throw new Error(payload?.error||'Unable to update your notifications.');
+  return {updated:Number(payload?.updated??0)};
+}
+
 
 
 
