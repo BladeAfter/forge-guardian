@@ -559,7 +559,18 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   rewards: async (db, user, body) => {
     const limit = Math.min(Math.max(Number(body.limit ?? 5) || 5, 1), 100);
     const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
-    return rpc(db, 'get_reward_history', { p_telegram_id: user.id, p_limit: limit, p_offset: offset });
+    const payload = await rpc(db, 'get_reward_history', { p_telegram_id: user.id, p_limit: limit, p_offset: offset }) as Record<string, unknown>;
+    console.log('[RECENTLY UNLOCKED]', { telegramId: user.id, count: Array.isArray(payload?.items) ? payload.items.length : 0, total: payload?.total ?? 0 });
+    return payload;
+  },
+  /** Unread notifications are marked as read server-side so they never reappear on the next launch. */
+  notifications: async (db, user, body) => {
+    const action = String(body.action || 'mark-read');
+    if (action !== 'mark-read') throw new Error('Ação inválida.');
+    const ids = Array.isArray(body.ids) ? body.ids.filter((id: unknown) => isUuid(id)) : null;
+    const result = await rpc(db, 'mark_notifications_read', { p_telegram_id: user.id, p_ids: ids && ids.length ? ids : null });
+    console.log('[NOTIFICATIONS]', { telegramId: user.id, marked: (result as any)?.updated ?? 0 });
+    return result;
   },
   /**
    * Official channel rewards. FC is only credited after the Telegram Bot API confirms
@@ -578,11 +589,17 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!config?.enabled) throw new Error('CHANNEL_NOT_AVAILABLE');
-    if (!config.chat_ref) throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
-    const member = await telegramMembership(String(config.chat_ref), user.id);
-    if (!member) throw new Error('MEMBERSHIP_NOT_VERIFIED');
+    if (!config.chat_ref) {
+      console.error('[CHANNEL VERIFY] chat_ref missing — admin must capture the channel id', { channelKey: key });
+      throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
+    }
+    const check = await telegramMembership(String(config.chat_ref), user.id);
+    console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, telegramStatus: check.status, unavailable: check.unavailable });
+    if (check.unavailable) throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
+    if (!check.member) throw new Error('MEMBERSHIP_NOT_VERIFIED');
     return rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true });
   },
+
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },
