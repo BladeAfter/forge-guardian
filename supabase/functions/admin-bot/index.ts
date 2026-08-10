@@ -505,6 +505,134 @@ async function module(ctx: Ctx, name: string) {
   }
 }
 
+// ---------------------------------------------------------------- withdrawals (financial module)
+const WD_STATUS_ICON: Record<string, string> = {
+  pending: '🟡', processing: '🔵', approved: '🔵', paid: '✅', completed: '✅', rejected: '❌', cancelled: '❌',
+};
+
+const dt = (value: unknown) => value ? new Date(String(value)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
+
+/** Summary list: never hides the amount, flags withdrawals whose destination wallet is unknown. */
+function withdrawalLines(items: any[]) {
+  if (!items?.length) return '—';
+  const groups: Record<string, any[]> = {};
+  for (const w of items) (groups[w.status] ??= []).push(w);
+  return Object.entries(groups).map(([status, rows]) => {
+    const head = `${WD_STATUS_ICON[status] || '•'} <b>${esc(status.toUpperCase())}</b>`;
+    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_ton)} TON${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
+    return `${head}\n${body}`;
+  }).join('\n\n');
+}
+
+function connectedWalletsText(items: any[]) {
+  const list = (items || []).map((w) => [
+    `👤 ${w.player ? '@' + esc(w.player) : '—'}`,
+    `🆔 <code>${esc(String(w.telegram_id))}</code> · interno <code>${esc(String(w.user_id))}</code>`,
+    `👛 <code>${esc(w.wallet_address)}</code>`,
+    `📅 ${dt(w.connected_at)}`,
+  ].join('\n')).join('\n\n') || '—';
+  return `💳 <b>CONNECTED WALLETS</b>\nCarteiras TON vinculadas aos jogadores.\n\n${list}`;
+}
+
+async function resolveWithdrawalId(ref: string): Promise<string | null> {
+  const value = String(ref || '').trim();
+  if (!value) return null;
+  const { data } = await db.from('wallet_withdrawals').select('id').ilike('id', `${value}%`).limit(2);
+  if (!data?.length || data.length > 1) return null;
+  return data[0].id as string;
+}
+
+/** Full detail card: shows the destination wallet in full, never truncated. */
+async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
+  const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
+  const status = String(w.status);
+  const done = ['paid', 'completed'].includes(status);
+  const closed = done || ['rejected', 'cancelled'].includes(status);
+  const lines = [
+    '💸 <b>WITHDRAWAL DETAILS</b>',
+    '',
+    `👤 Player: ${w.username ? '@' + esc(w.username) : '—'}`,
+    `🆔 Telegram ID: <code>${esc(String(w.telegramId ?? '—'))}</code>`,
+    `🔑 Withdrawal ID: <code>${esc(w.shortId)}</code>`,
+    '',
+    `💰 FC burned: <b>${fmt(w.amountFc)} FC</b>`,
+    `💎 Amount: <b>${fmt(w.amountTon)} TON</b>`,
+    '',
+    '👛 <b>TON WALLET:</b>',
+    w.walletAddress ? `<code>${esc(w.walletAddress)}</code>` : '⚠️ <b>WALLET NOT FOUND — MANUAL REVIEW REQUIRED</b>',
+    '',
+    `📅 Requested:\n${dt(w.createdAt)}`,
+    '',
+    `${WD_STATUS_ICON[status] || '•'} Status:\n<b>${esc(status.toUpperCase())}</b>`,
+  ];
+  if (w.txHash) lines.push('', `🧾 TX:\n<code>${esc(w.txHash)}</code>`, `📅 Paid: ${dt(w.paidAt)}`);
+  if (!w.walletAddress && w.currentWallet) lines.push('', `ℹ️ Carteira atual do jogador (não vinculada a este saque):\n<code>${esc(w.currentWallet)}</code>`);
+  if (w.refundedAt) lines.push('', `↩️ FC devolvido em ${dt(w.refundedAt)}`);
+
+  const rows: { t: string; d: string }[][] = [];
+  if (w.walletAddress) rows.push([{ t: '📋 COPY WALLET', d: `wdcp:${w.id}` }]);
+  if (!closed && w.walletAddress) rows.push([{ t: '💎 PAY WITHDRAWAL', d: `wdpay:${w.id}` }]);
+  if (!closed) rows.push([{ t: '✅ MARK AS PAID', d: `wdmk:${w.id}` }, { t: '❌ REJECT', d: `wdrj:${w.id}` }]);
+  if (status === 'processing' || status === 'approved') rows.push([{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${w.id}` }]);
+  rows.push([{ t: '⬅️ BACK', d: 'm:wallet' }, { t: '🏠 Menu', d: 'home' }]);
+  const markup = kb(rows);
+  return editing ? edit(ctx, lines.join('\n'), markup) : send(ctx, lines.join('\n'), markup);
+}
+
+async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
+  switch (head) {
+    case 'wd':
+      return withdrawalCard(ctx, id);
+    case 'wdcp': {
+      const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
+      if (!w.walletAddress) return send(ctx, '⚠️ WALLET NOT FOUND — MANUAL REVIEW REQUIRED', kb([[{ t: '⬅️ BACK', d: `wd:${id}` }]]));
+      // Separate message with a plain code block: tap to copy inside Telegram.
+      return send(ctx, `<code>${esc(w.walletAddress)}</code>`, kb([[{ t: '⬅️ BACK', d: `wd:${id}` }]]));
+    }
+    case 'wdpay': {
+      const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
+      if (['paid', 'completed'].includes(String(w.status))) throw new Error('already_processed');
+      if (!w.walletAddress) throw new Error('wallet_missing');
+      if (Number(w.amountTon) <= 0) throw new Error('invalid_amount');
+      return edit(ctx, [
+        '⚠️ <b>CONFIRM WITHDRAWAL</b>', '',
+        `Player: ${w.username ? '@' + esc(w.username) : esc(String(w.telegramId))}`,
+        `Amount: <b>${fmt(w.amountTon)} TON</b>`, '',
+        'Destination:', `<code>${esc(w.walletAddress)}</code>`, '',
+        'O saque será bloqueado como <b>PROCESSING</b> para evitar pagamento duplicado. Ele só ficará <b>PAID</b> depois que você informar o hash da transação.',
+      ].join('\n'), kb([[{ t: '✅ CONFIRM PAYMENT', d: `wdgo:${id}` }], [{ t: '❌ CANCEL', d: `wd:${id}` }]]));
+    }
+    case 'wdgo': {
+      // pending -> processing (atomic lock in the database)
+      const w = await rpc('admin_withdrawal_lock', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
+      await send(ctx, [
+        '🔵 <b>WITHDRAWAL PROCESSING</b>', '',
+        `Envie <b>${fmt(w.amountTon)} TON</b> para:`,
+        `<code>${esc(w.walletAddress)}</code>`, '',
+        'Depois toque em <b>MARK AS PAID</b> e informe o hash da transação.\nSe o pagamento falhar, use <b>PAGAMENTO FALHOU</b> — o saque volta para PENDING.',
+      ].join('\n'), kb([[{ t: '✅ MARK AS PAID', d: `wdmk:${id}` }], [{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${id}` }], [{ t: '⬅️ BACK', d: `wd:${id}` }]]));
+      return;
+    }
+    case 'wdmk':
+      return ask(ctx, `wdhash|${id}`, 'Envie o <b>hash da transação TON</b> do pagamento.\nO saque só é marcado como PAGO com o hash.');
+    case 'wdfail': {
+      await rpc('admin_withdrawal_unlock', { p_admin_id: ctx.adminId, p_withdrawal_id: id, p_reason: 'pagamento não confirmado' });
+      await send(ctx, '❌ <b>Payment failed</b>\nNo TON was confirmed as sent.\nWithdrawal remains pending.');
+      return withdrawalCard(ctx, id, false);
+    }
+    case 'wdrj': {
+      const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
+      return edit(ctx, `❌ <b>REJEITAR SAQUE</b>\n<code>${esc(w.shortId)}</code> · ${fmt(w.amountTon)} TON\n\nO jogador receberá <b>${fmt(w.amountFc)} FC</b> de volta (uma única vez).`,
+        kb([[{ t: '✅ CONFIRMAR REJEIÇÃO', d: `wdrjgo:${id}` }], [{ t: '❌ CANCELAR', d: `wd:${id}` }]]));
+    }
+    case 'wdrjgo': {
+      await rpc('admin_withdrawal_reject', { p_admin_id: ctx.adminId, p_withdrawal_id: id, p_reason: 'rejeitado pelo painel admin' });
+      await send(ctx, '❌ Saque rejeitado e FC devolvido ao jogador.');
+      return withdrawalCard(ctx, id, false);
+    }
+  }
+}
+
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
