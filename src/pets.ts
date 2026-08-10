@@ -59,7 +59,7 @@ export type PetEvolveResult = {
   newBuff: { key: string; value: number; rarity: string } | null;
   fcSpent: number; fragmentsSpent: number;
 };
-export type PetHatchResult = { name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
+export type PetHatchResult = { openingId?: string; historyId?: string; status?: 'processing' | 'completed' | 'failed' | 'not_found'; name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
 
 /** Envelope returned by every pet action. Mutating actions wrap the fresh dashboard. */
 export type PetActionResponse = Partial<PetDashboard> & {

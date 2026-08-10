@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
@@ -47,6 +47,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const [foodTarget, setFoodTarget] = useState<PetFood | null>(null);
   const [tonUI] = useTonConnectUI();
   const tonWallet = useTonWallet();
+  const openingRef = useRef(false);
 
   // TON eggs are a purchase, never a withdrawable deposit: the backend records
   // the order and only delivers the egg after on-chain confirmation.
@@ -77,7 +78,16 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   };
 
   const mutation = useMutation({
-    mutationFn: (input: Parameters<typeof petRequest>[1]) => petRequest(telegramInitData, input) as Promise<PetActionResponse>,
+    mutationFn: async (input: NonNullable<Parameters<typeof petRequest>[1]>) => {
+      if (input.action !== 'hatch') return petRequest(telegramInitData, input) as Promise<PetActionResponse>;
+      try {
+        return await Promise.race([petRequest(telegramInitData, input),new Promise<never>((_,reject)=>window.setTimeout(()=>reject(new Error('HATCH_TIMEOUT')),30000))]);
+      } catch (hatchError) {
+        const recovered=await petRequest(telegramInitData,{action:'recover-hatch',idempotencyKey:input.idempotencyKey}) as PetActionResponse;
+        if (recovered.result) return recovered;
+        throw hatchError;
+      }
+    },
     onSuccess: async (payload, variables) => {
       const dashboard = (payload.dashboard ?? (payload as PetDashboard)) as PetDashboard;
       await sync(dashboard);
@@ -104,7 +114,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       }
       toast.success('Companheiro atualizado!');
     },
-    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : 'Falha ao atualizar o pet.'),
+    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : 'EGG OPENING FAILED'),
+    onSettled:()=>{openingRef.current=false},
   });
 
   const pending = mutation.isPending;
@@ -223,8 +234,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                       {owned ? (
                         <Action
                           text="Abrir ovo"
-                          disabled={pending}
-                          onClick={() => mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}
+                          disabled={pending||openingRef.current}
+                          onClick={() => {if(openingRef.current)return;openingRef.current=true;mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}}
                         />
                       ) : locked ? (
                         <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
@@ -369,7 +380,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           onActivate={
             reveal.pet && !reveal.pet.isActive
               ? async () => {
-                  await mutation.mutateAsync({ action: 'activate', playerPetId: reveal.pet!.id });
+                   const petId=reveal.pet?.id;if(!petId)return;await mutation.mutateAsync({ action: 'activate', playerPetId:petId });
                   setReveal(null);
                 }
               : undefined

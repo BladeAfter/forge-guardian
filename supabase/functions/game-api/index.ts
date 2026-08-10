@@ -232,6 +232,9 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     fn = 'hatch_pet_egg';
     args.p_egg_id = body.eggId;
     args.p_idempotency_key = requestKey('pet_hatch');
+  } else if (action === 'recover-hatch') {
+    fn = 'get_pet_egg_opening';
+    args.p_opening_id = requestKey('pet_hatch');
   } else if (action === 'buy-egg') {
     // Egg price, purchasability and balance are all resolved server-side.
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
