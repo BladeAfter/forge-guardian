@@ -6,8 +6,9 @@ import{createSeasonPassOrder,seasonPassRequest}from'../services';
 import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
 import{progressPercent,type PassReward,type PassTier}from'../seasonPass';
+import mythicEggAsset from'../assets/season-1-mythic-egg-transparent.webp.asset.json';
 
-const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':'/assets/game/pet-eggs/season-1-mythic-egg.png'};
+const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':mythicEggAsset.url};
 
 export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramInitData:string;onClose:()=>void;onMissions:()=>void}){
  const[tonUI]=useTonConnectUI(),wallet=useTonWallet(),q=useQueryClient(),{data,isLoading,error,refetch}=useSeasonPass(telegramInitData,true);
