@@ -79,7 +79,9 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
             <h1 className="text-2xl font-black uppercase tracking-wide text-white">Quests</h1>
           </div>
           <div className="text-right">
-            <p className="text-lg font-black text-amber-200">{dashboard?.completed ?? 0}/{dashboard?.total ?? 0}</p>
+            {/* Never fake a total: while the server answer is in flight we show a placeholder instead of 0/0. */}
+            <p className="text-lg font-black text-amber-200">{dashboard ? `${dashboard.completed}/${dashboard.total}` : '—/—'}</p>
+
             <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">Resets daily{dashboard?.timezone ? ` · ${dashboard.timezone}` : ''}</p>
           </div>
         </div>
