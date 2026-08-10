@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { Check, ChevronUp, Coins, Egg, Flame, Heart, Info, Minus, Plus, Shield, ShoppingCart, Sparkles, Star, Swords, X, Zap } from 'lucide-react';
+import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { createEggTonOrder, petRequest } from '../services';
