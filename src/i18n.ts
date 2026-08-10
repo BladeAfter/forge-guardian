@@ -230,7 +230,7 @@ const pt: Record<string, string> = {
   "building.royal-workshop": "Oficina Real",
   "building.dragon-foundry": "Fundição do Dragão",
   "mission.mission-1.title": "Abrir o jogo",
-  "mission.mission-1.desc": "Enter Mythreon today and keep your streak alive.",
+  "mission.mission-1.desc": "Entre no Mythreon hoje e mantenha sua sequência ativa.",
   "mission.mission-2.title": "Coletar produção",
   "mission.mission-2.desc": "Colete suas Forge Coins acumuladas.",
   "mission.mission-3.title": "Melhorar construção",
