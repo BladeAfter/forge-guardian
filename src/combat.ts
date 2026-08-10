@@ -24,12 +24,15 @@ export type CombatHero = {
 };
 
 export type BossCombat = {
-  id: string; bossId: string | null; bossName: string; bossLevel: number;
+  id: string | null; bossId: string | null; bossName: string; bossLevel: number;
   bossMaxHp: number; bossCurrentHp: number; bossAttack: number;
   bossAttackIntervalSeconds: number; rewardAmount: number;
-  status: 'active' | 'defeated' | 'rewarded'; totalDamageDealt: number;
+  status: 'active' | 'defeated' | 'rewarded' | 'inactive' | 'expired';
+  /** Single source of truth: an admin-activated boss template inside its time window. */
+  bossActive?: boolean; bossStartsAt?: string | null; bossEndsAt?: string | null;
+  totalDamageDealt: number;
   defeats: number; startedAt: string; lastProcessedAt: string;
-  nextHeroAttackAt: string; bossLastAttackAt: string; bossNextAttackAt: string;
+  nextHeroAttackAt: string | null; bossLastAttackAt: string | null; bossNextAttackAt: string | null;
   defeatedAt: string | null; rewardClaimedAt: string | null;
   teamChangeAvailableAt: string | null; serverNow: string; heroes: CombatHero[];
   ownedHeroes?: Array<{ id: string; heroKey: string; name: string; image?: string; rarity: HeroRarity; level: number }>;

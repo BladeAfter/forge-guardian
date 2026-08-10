@@ -107,12 +107,19 @@ export const fetchGameState = async (telegramInitData: string): Promise<GameStat
 };
 
 
-export async function bossRequest(telegramInitData: string, action: 'get'|'process'|'team'|'claim'='process', heroIds?: string[]): Promise<BossCombat> {
+const BOSS_ERRORS:Record<string,string>={BOSS_NOT_ACTIVE:'Nenhum chefe ativo no momento. Aguarde o próximo desafio.',BOSS_TEAM_EMPTY:'Monte sua equipe antes de atacar o chefe.',HERO_NOT_OWNED:'Este herói não pertence a você.',INVALID_SLOT:'Slot inválido.',INVALID_TEAM:'Equipe inválida.',PLAYER_NOT_FOUND:'Jogador não encontrado.'};
+const bossErrorMessage=(raw:string,fallback:string)=>{const key=Object.keys(BOSS_ERRORS).find(code=>raw.includes(code));return key?BOSS_ERRORS[key]:(raw||fallback)};
+
+export async function bossRequest(telegramInitData: string, action: 'get'|'process'|'team'|'claim'|'attack'='process', heroIds?: string[]): Promise<BossCombat> {
   const response=await forgeFetch('boss',({initData:telegramInitData,action,heroIds}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string} | null;
-  if(!response.ok || !payload) throw new Error(payload?.error || 'Unable to synchronize boss combat.');
+  if(!response.ok || !payload) throw new Error(bossErrorMessage(payload?.error||'','Unable to synchronize boss combat.'));
   return payload;
 }
+
+/** Attacking is the ONLY boss operation that requires an active boss. */
+export const attackBossOnServer=(initData:string)=>bossRequest(initData,'attack');
+
 
 export type HeroShopConfig={prices:Record<string,number>;odds:Record<string,number>;version?:number};
 
@@ -130,10 +137,18 @@ export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10
   if(!response.ok||!payload)throw new Error(payload?.error||'Recruitment failed.'); return payload;
 }
 
+/** Equipping/removing heroes works with or without an active boss (team is persisted server-side). */
 export async function equipCombatHeroOnServer(telegramInitData:string,heroId:string,slot:1|2|3|4|5):Promise<BossCombat>{
   const response=await forgeFetch('boss',({initData:telegramInitData,action:'equip',hero_id:heroId,slot}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string}|null;
-  if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível equipar o herói.');
+  if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível equipar o herói.'));
+  return payload;
+}
+
+export async function unequipCombatHeroOnServer(telegramInitData:string,slot:1|2|3|4|5):Promise<BossCombat>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'unequip',slot}));
+  const payload=await response.json().catch(()=>null) as BossCombat & {error?:string}|null;
+  if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível remover o herói.'));
   return payload;
 }
 

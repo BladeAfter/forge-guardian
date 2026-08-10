@@ -22,7 +22,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
@@ -155,6 +155,31 @@ function App() {
       toast.success(translate(languageCode,'heroEquipped'));
     },
     onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:translate(languageCode,'equipFailed'))
+  });
+  // Removing a hero from a Boss slot is also independent from an active boss.
+  const unequipHeroMutation=useMutation({
+    mutationFn:async(slot:1|2|3|4|5)=>{
+      if(!backendEnabled||!telegramInitData)throw new Error(translate(languageCode,'backendRequired'));
+      return unequipCombatHeroOnServer(telegramInitData,slot);
+    },
+    onSuccess:async(result)=>{
+      queryClient.setQueryData(['boss-combat',telegramInitData],result);
+      await queryClient.invalidateQueries({queryKey:['boss-combat',telegramInitData]});
+      toast.success('Herói removido do slot.');
+    },
+    onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:'Não foi possível remover o herói.')
+  });
+  // Only the attack action requires an active boss (backend raises BOSS_NOT_ACTIVE).
+  const attackBossMutation=useMutation({
+    mutationFn:async()=>{
+      if(!backendEnabled||!telegramInitData)throw new Error(translate(languageCode,'backendRequired'));
+      return attackBossOnServer(telegramInitData);
+    },
+    onSuccess:async(result)=>{
+      queryClient.setQueryData(['boss-combat',telegramInitData],result);
+      await queryClient.invalidateQueries({queryKey:['boss-combat',telegramInitData]});
+    },
+    onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:'Não foi possível atacar o chefe.')
   });
 
   useEffect(() => {
@@ -467,6 +492,17 @@ function App() {
         toast.success(translate(languageCode,'heroEquipped'));
       }}
       isEquipping={equipHeroMutation.isPending}
+      onRemoveHero={async(slot)=>{
+        if(backendEnabled)return void await unequipHeroMutation.mutateAsync(slot);
+        setGame(current=>{
+          if(!current)return current;
+          const next=current.bossTeam?.length===5?[...current.bossTeam]:['','','','',''];
+          next[slot-1]='';
+          return {...current,bossTeam:next};
+        });
+      }}
+      onAttack={async()=>{await attackBossMutation.mutateAsync()}}
+      isAttacking={attackBossMutation.isPending}
       onClaimReward={async () => {
         if (!telegramInitData || !backendEnabled) return;
         await bossRequest(telegramInitData,'claim'); await refetchBoss(); toast.success(translate(languageCode,'bossDefeated'));

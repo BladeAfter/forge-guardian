@@ -241,6 +241,45 @@ export type Database = {
           },
         ]
       }
+      boss_team_slots: {
+        Row: {
+          created_at: string
+          player_hero_id: string
+          slot: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_hero_id: string
+          slot: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          player_hero_id?: string
+          slot?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boss_team_slots_player_hero_id_fkey"
+            columns: ["player_hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boss_team_slots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boss_templates: {
         Row: {
           active: boolean
@@ -252,6 +291,7 @@ export type Database = {
           created_at: string
           defense: number
           difficulty: string
+          duration_seconds: number
           ends_at: string | null
           id: string
           image_url: string | null
@@ -273,6 +313,7 @@ export type Database = {
           created_at?: string
           defense?: number
           difficulty?: string
+          duration_seconds?: number
           ends_at?: string | null
           id?: string
           image_url?: string | null
@@ -294,6 +335,7 @@ export type Database = {
           created_at?: string
           defense?: number
           difficulty?: string
+          duration_seconds?: number
           ends_at?: string | null
           id?: string
           image_url?: string | null
@@ -3175,6 +3217,37 @@ export type Database = {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
       }
+      active_boss_template: {
+        Args: never
+        Returns: {
+          active: boolean
+          attack: number
+          attack_interval_seconds: number
+          attack_limit: number | null
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          defense: number
+          difficulty: string
+          duration_seconds: number
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          level: number
+          max_hp: number
+          name: string
+          reward_amount: number
+          starts_at: string | null
+          ticket_cost: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "boss_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_adjust_balance: {
         Args: {
           p_admin_id: number
@@ -3209,6 +3282,7 @@ export type Database = {
           p_admin_id: number
           p_code?: string
           p_reason?: string
+          p_value?: number
         }
         Returns: Json
       }
@@ -3660,6 +3734,7 @@ export type Database = {
         }
         Returns: Json
       }
+      attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
@@ -3668,6 +3743,7 @@ export type Database = {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
         Returns: Json
       }
+      boss_team_json: { Args: { p_user: string }; Returns: Json }
       buy_pet_egg: {
         Args: {
           p_egg_id: string
@@ -3968,6 +4044,7 @@ export type Database = {
         Args: { p_opponent_id: string; p_telegram_id: number }
         Returns: Json
       }
+      sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
       touch_referral_player: {
         Args: {
           p_avatar: string
@@ -3976,6 +4053,10 @@ export type Database = {
           p_username: string
         }
         Returns: string
+      }
+      unequip_combat_hero: {
+        Args: { p_slot: number; p_telegram_id: number }
+        Returns: Json
       }
       upgrade_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
