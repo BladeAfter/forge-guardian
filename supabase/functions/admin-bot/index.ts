@@ -128,7 +128,7 @@ function parseAmount(raw: string): number {
 
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
-  const text = '🎮 <b>FORGE VILLAGE ADMIN</b>\nControle total do jogo. Escolha um módulo:';
+  const text = '🎮 <b>MYTHREON ADMIN</b>\nControle total do jogo. Escolha um módulo:';
   editing ? await edit(ctx, text, MAIN_MENU) : await send(ctx, text, MAIN_MENU);
 }
 
