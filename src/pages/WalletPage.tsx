@@ -36,9 +36,13 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const balance = summary?.balanceFc ?? game.balance;
   const [depositTon, setDepositTon] = useState(1);
   const [withdrawFc, setWithdrawFc] = useState(MIN_WITHDRAWAL_FC);
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
   const recoveredRef = useRef(false);
   const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable) ?? [], [pets?.eggs]);
+  // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
+  const feePercent = summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
+  const quote = useMemo(() => withdrawalQuote(withdrawFc, feePercent), [withdrawFc, feePercent]);
 
   const invalidateWallet = async () => {
     await Promise.all([
