@@ -263,9 +263,10 @@ async function module(ctx: Ctx, name: string) {
     case 'channels': {
       const d = await rpc('admin_channels_overview', { p_admin_id: ctx.adminId });
       const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   chat: <code>${esc(c.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(c.rewardFc)} FC\n   resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
-      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n${list}`,
+      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n🔗 <b>Para capturar o chat id:</b> adicione o bot do jogo como administrador do canal/grupo e <b>encaminhe qualquer mensagem do canal para este chat</b> — eu mostro o id e os botões para salvar.\n\n${list}`,
         kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], nav()]));
     }
+
     case 'quests': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
       const b = d.bonus || {};
@@ -879,9 +880,29 @@ Deno.serve(async (req) => {
         const rates = JSON.parse(decodeURIComponent(data.slice(5)));
         const r = await rpc('admin_set_hero_rarity_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_normalize: true, p_reason: 'normalizado pelo painel' });
         await send(ctx, `✅ Raridades normalizadas:\n<code>${esc(JSON.stringify(r.rates))}</code>`, MAIN_MENU);
+      } else if (data.startsWith('chset:')) {
+        // chset:<news|community|payments>:<chat_id>
+        const [, key, chatRef] = data.split(':');
+        const r = await rpc('admin_set_channel_chat_ref', { p_admin_id: ctx.adminId, p_channel_key: key, p_chat_ref: chatRef });
+        await send(ctx, `✅ <b>${esc(r.title)}</b>\nchat id salvo: <code>${esc(r.chatRef)}</code>\nOs jogadores já podem usar VERIFY para receber ${fmt(r.rewardFc)} FC.`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
       } else {
         await handleCallback(ctx, data);
       }
+      return new Response(JSON.stringify({ ok: true }));
+    }
+
+    // Forwarded message from a channel/group: capture its real chat id for membership checks.
+    const forwarded = update.message?.forward_from_chat ?? update.message?.forward_origin?.chat;
+    if (forwarded?.id) {
+      const id = String(forwarded.id);
+      await send(ctx,
+        `🔗 <b>CHAT DETECTADO</b>\n${esc(forwarded.title || forwarded.username || '—')} (${esc(forwarded.type)})\nchat id: <code>${esc(id)}</code>\n\nEscolha em qual canal oficial salvar este id:`,
+        kb([
+          [{ t: '📰 NEWS', d: `chset:news:${id}` }],
+          [{ t: '💬 COMMUNITY', d: `chset:community:${id}` }],
+          [{ t: '💳 PAYMENTS', d: `chset:payments:${id}` }],
+          nav('m:channels'),
+        ]));
       return new Response(JSON.stringify({ ok: true }));
     }
 
@@ -892,6 +913,7 @@ Deno.serve(async (req) => {
       await handlePrompt(ctx, pending, text);
       return new Response(JSON.stringify({ ok: true }));
     }
+
 
     const cmd = text.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
     const arg = text.slice(cmd.length).trim();

@@ -23,7 +23,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
@@ -310,11 +310,21 @@ function App() {
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
   },[serverBalance]);
 
+  // Notifications are shown once and then marked as read ON THE SERVER, so relaunching the
+  // Mini App never replays an old commission toast (React state alone would reset every boot).
   useEffect(()=>{
-    const latest=referralDashboard?.notifications?.[0];if(!latest||latest.id===lastCommissionNotification.current)return;
-    lastCommissionNotification.current=latest.id;
-    if(latest.amountFc)toast.success(`${latest.message} · ${latest.title}`);
-  },[referralDashboard?.notifications]);
+    const unread=referralDashboard?.notifications??[];
+    if(!unread.length||!telegramInitData)return;
+    const latest=unread[0];
+    if(latest.id!==lastCommissionNotification.current){
+      lastCommissionNotification.current=latest.id;
+      if(latest.amountFc)toast.success(`${latest.message} · ${latest.title}`);
+    }
+    markNotificationsRead(telegramInitData,unread.map(item=>item.id))
+      .then(()=>queryClient.invalidateQueries({queryKey:['referral-dashboard']}))
+      .catch((error:unknown)=>console.error('[NOTIFICATIONS]',error instanceof Error?error.message:error));
+  },[referralDashboard?.notifications,telegramInitData,queryClient]);
+
 
   useEffect(() => {
     if (data) {

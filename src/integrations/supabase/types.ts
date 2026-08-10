@@ -1841,6 +1841,7 @@ export type Database = {
         Row: {
           amount_fc: number | null
           created_at: string
+          dedupe_key: string | null
           id: string
           message: string
           metadata: Json
@@ -1852,6 +1853,7 @@ export type Database = {
         Insert: {
           amount_fc?: number | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           message: string
           metadata?: Json
@@ -1863,6 +1865,7 @@ export type Database = {
         Update: {
           amount_fc?: number | null
           created_at?: string
+          dedupe_key?: string | null
           id?: string
           message?: string
           metadata?: Json
@@ -3831,6 +3834,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_channel_chat_ref: {
+        Args: { p_admin_id: number; p_channel_key: string; p_chat_ref: string }
+        Returns: Json
+      }
       admin_set_channel_reward: {
         Args: {
           p_admin_id: number
@@ -4387,6 +4394,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mark_notifications_read: {
+        Args: { p_ids?: string[]; p_telegram_id: number }
+        Returns: Json
       }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
