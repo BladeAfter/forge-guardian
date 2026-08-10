@@ -63,7 +63,11 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (!telegramInitData || !connected || !address) throw new Error('Conecte sua carteira TON.');
       if (!Number.isFinite(depositTon) || depositTon <= 0) throw new Error('Informe um valor de depósito válido.');
       const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
-      await tonConnectUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: (intent as unknown as { payload?: string }).payload }] });
+      await tonConnectUI.sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        // The comment is the on-chain marker the backend matches against the hot wallet transactions.
+        messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }]
+      });
       return intent;
     },
     onSuccess: async () => {
