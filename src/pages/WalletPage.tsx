@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
-import { FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, tonToFc, validWithdrawal } from '../economy';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validWithdrawal, withdrawalQuote } from '../economy';
 import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
@@ -36,9 +36,13 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const balance = summary?.balanceFc ?? game.balance;
   const [depositTon, setDepositTon] = useState(1);
   const [withdrawFc, setWithdrawFc] = useState(MIN_WITHDRAWAL_FC);
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
   const recoveredRef = useRef(false);
   const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable) ?? [], [pets?.eggs]);
+  // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
+  const feePercent = summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
+  const quote = useMemo(() => withdrawalQuote(withdrawFc, feePercent), [withdrawFc, feePercent]);
 
   const invalidateWallet = async () => {
     await Promise.all([
@@ -97,7 +101,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (!validWithdrawal(withdrawFc, balance)) throw new Error('Saldo FC insuficiente.');
       return requestWithdrawal(telegramInitData, withdrawFc, address, crypto.randomUUID());
     },
-    onSuccess: async () => { await invalidateWallet(); toast.success('Saque solicitado e saldo reservado.'); },
+    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success('Saque solicitado e saldo reservado.'); },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível solicitar o saque.')
   });
 
@@ -193,9 +197,37 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       <Panel title="SACAR FC" icon={<ArrowUpFromLine />}>
         <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} mil</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>Máximo</Quick></div>
         <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label="Quantidade de FC" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
-        <Result label="Você receberá" value={`${fcToTon(withdrawFc).toLocaleString('pt-BR')} TON`} />
-        <Primary onClick={() => withdrawal.mutate()} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
+        <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
+          <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+          <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
+          <Line label={`TAXA DE SAQUE (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+          <div className="h-px w-full bg-white/10" />
+          <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+        </div>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">Debitamos exatamente {withdrawFc.toLocaleString('pt-BR')} FC do seu saldo. A taxa de {quote.feePercent}% é aplicada apenas sobre o valor convertido em TON.</p>
+        <div className="mt-3">
+          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
+        </div>
       </Panel>
+
+      {confirmWithdraw ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-xs rounded-2xl border border-amber-300/30 bg-[#0a0f19] p-4">
+            <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">CONFIRMAÇÃO DE SAQUE</h4>
+            <div className="mt-3 space-y-2">
+              <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+              <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
+              <Line label={`TAXA (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+              <div className="h-px w-full bg-white/10" />
+              <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+            </div>
+            <div className="mt-4 space-y-2">
+              <Primary onClick={() => withdrawal.mutate()} disabled={withdrawal.isPending}>{withdrawal.isPending ? 'ENVIANDO...' : 'CONFIRMAR'}</Primary>
+              <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={withdrawal.isPending} className="w-full rounded-xl border border-white/15 bg-black/40 py-2.5 text-[10px] font-black text-slate-300 disabled:opacity-40">CANCELAR</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR · {formatEggPrice(egg)}</button></div>)}</div>
         <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
@@ -203,7 +235,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </button></Panel> : null}
 
       <Panel title="HISTÓRICO" icon={<Clock3 />}>
-        <div className="max-h-60 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-center gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-bold">{item.type === 'egg_order' ? `${item.label.toUpperCase()} · ${item.amountTon} TON` : item.label}</p><p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">Nenhuma movimentação.</p>}</div>
+        <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${item.label.toUpperCase()} · ${item.amountTon} TON` : item.label}</p>
+          {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">Bruto: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} TON · Taxa ({Number(item.feePercent ?? 0)}%): {formatTon(Number(item.feeTon ?? 0))} TON · Recebido: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
+          <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">Nenhuma movimentação.</p>}</div>
       </Panel>
 
       {reveal ? <PetEggOpeningOverlay result={reveal.result} eggImage={reveal.eggImage} onContinue={() => setReveal(null)} /> : null}
@@ -214,6 +248,17 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
 function Result({ label, value }: { label: string; value: string }) { return <div className="my-2 flex items-center justify-between rounded-xl bg-black/30 px-3 py-2"><span className="text-[9px] text-slate-400">{label}</span><strong className="text-xs text-emerald-300">{value}</strong></div>; }
+/** Linha de detalhamento sempre visível (nunca truncada) do saque. */
+function Line({ label, value, tone }: { label: string; value: string; tone?: 'fee' | 'net' }) {
+  const color = tone === 'fee' ? 'text-rose-300' : tone === 'net' ? 'text-emerald-300' : 'text-slate-100';
+  const size = tone === 'net' ? 'text-sm' : 'text-xs';
+  return (
+    <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+      <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">{label}</span>
+      <strong className={`${size} font-black ${color}`}>{value}</strong>
+    </div>
+  );
+}
 function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
 function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed','paid'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
 function statusLabel(status:string){return({pending:'Pendente',confirmed:'Confirmado',credited:'Creditado',processing:'Processando',completed:'Concluído',paid:'Pago',delivered:'Entregue',expired:'Expirado',rejected:'Rejeitado',cancelled:'Cancelado'}as Record<string,string>)[status]??status;}

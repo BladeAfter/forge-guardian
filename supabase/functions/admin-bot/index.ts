@@ -421,14 +421,15 @@ async function module(ctx: Ctx, name: string) {
       const wd = await rpc('admin_list_withdrawals', { p_admin_id: ctx.adminId, p_status: null, p_limit: 10 });
       const rate = await rpc('current_ton_fc_rate', {});
       const row = (t: any) => `• <code>${String(t.id).slice(0, 8)}</code> ${esc(t.player)} — ${fmt(t.amount_ton)} TON [${esc(t.status)}]`;
-      const viewButtons = (wd.items as any[]).slice(0, 6).map((w) => [{ t: `👁 ${w.short_id} · ${fmt(w.amount_ton)} TON`, d: `wd:${w.id}` }]);
-      return edit(ctx, `💳 <b>CARTEIRA / ECONOMIA</b>\n💱 Taxa atual: <b>1 TON = ${fmt(rate)} FC</b>\n(vale só para depósitos confirmados após a alteração)\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n💸 <b>SAQUES</b>\n${withdrawalLines(wd.items)}`,
+      const viewButtons = (wd.items as any[]).slice(0, 6).map((w) => [{ t: `👁 ${w.short_id} · ${fmt(w.net_ton ?? w.amount_ton)} TON`, d: `wd:${w.id}` }]);
+      const feePercent = Number(wd.feePercent ?? 0);
+      return edit(ctx, `💳 <b>CARTEIRA / ECONOMIA</b>\n💱 Taxa atual: <b>1 TON = ${fmt(rate)} FC</b>\n(vale só para depósitos confirmados após a alteração)\n💸 <b>WITHDRAWAL FEE: ${feePercent}%</b>\n\n<b>Depósitos</b>\n${dep.items.map(row).join('\n') || '—'}\n\n💸 <b>SAQUES</b>\n${withdrawalLines(wd.items)}`,
         kb([[{ t: '✅ CONFIRMAR DEPÓSITO', d: 'ask:depok' }, { t: '❌ REJEITAR', d: 'ask:depno' }],
             ...viewButtons,
             [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
             [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
             [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
-            [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }],
+            [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }, { t: `💸 WITHDRAWAL FEE (${feePercent}%)`, d: 'ask:wdfee' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
     case 'wallets': {
@@ -520,7 +521,7 @@ function withdrawalLines(items: any[]) {
   for (const w of items) (groups[w.status] ??= []).push(w);
   return Object.entries(groups).map(([status, rows]) => {
     const head = `${WD_STATUS_ICON[status] || '•'} <b>${esc(status.toUpperCase())}</b>`;
-    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_ton)} TON${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
+    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_fc)} FC → <b>${Number(w.net_ton ?? w.amount_ton ?? 0).toFixed(3)} TON</b> (fee ${Number(w.fee_percent ?? 0)}%)${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
     return `${head}\n${body}`;
   }).join('\n\n');
 }
@@ -562,7 +563,9 @@ function payoutMessage(p: any) {
   return [
     '✅ <b>FC Coins Withdrawal Successful!</b>', '',
     `🚀 Amount: <b>${fmtEn(p.amountFc)} FC</b>`, '',
-    `💵 TON Value: <b>${Number(p.amountTon ?? 0).toFixed(6)} TON</b>`, '',
+    `💰 Gross Value: <b>${Number(p.grossTon ?? p.amountTon ?? 0).toFixed(3)} TON</b>`, '',
+    `💸 Fee (${Number(p.feePercent ?? 0)}%): <b>${Number(p.feeTon ?? 0).toFixed(3)} TON</b>`, '',
+    `✅ Received: <b>${Number(p.netTon ?? p.amountTon ?? 0).toFixed(3)} TON</b>`, '',
     `🔗 TxID: <a href="https://tonviewer.com/transaction/${encodeURIComponent(hash)}">${esc(shortHash(hash))}</a>`, '',
     `👤 Player: ${player}`, '',
     `🕒 Date: ${esc(date)}`,
@@ -687,7 +690,9 @@ async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
     `🔑 Withdrawal ID: <code>${esc(w.shortId)}</code>`,
     '',
     `💰 FC burned: <b>${fmt(w.amountFc)} FC</b>`,
-    `💎 Amount: <b>${fmt(w.amountTon)} TON</b>`,
+    `💎 Gross: <b>${Number(w.grossTon ?? w.amountTon ?? 0).toFixed(3)} TON</b>`,
+    `💸 Fee (${Number(w.feePercent ?? 0)}%): <b>-${Number(w.feeTon ?? 0).toFixed(3)} TON</b>`,
+    `✅ Net to pay: <b>${Number(w.netTon ?? w.amountTon ?? 0).toFixed(3)} TON</b>`,
     '',
     '👛 <b>TON WALLET:</b>',
     w.walletAddress ? `<code>${esc(w.walletAddress)}</code>` : '⚠️ <b>WALLET NOT FOUND — MANUAL REVIEW REQUIRED</b>',
@@ -813,6 +818,7 @@ const PROMPTS: Record<string, string> = {
   findwallet: 'Pesquise a carteira por Telegram ID, @usuário, nome, endereço TON ou ID interno.',
 
   tonrate: 'Envie a nova taxa: quantos FC vale 1 TON (ex.: <code>100000</code>). Vale apenas para depósitos confirmados depois da alteração.',
+  wdfee: 'Envie a nova <b>WITHDRAWAL FEE</b> em % (0 a 50). Ex.: <code>10</code>. Vale só para saques criados depois da alteração.',
   auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
 };
@@ -1308,6 +1314,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       if (error) return send(ctx, `⚠️ ${esc(error.message)}`, MAIN_MENU);
       await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'wallet.ton_fc_rate', p_target_type: 'economy', p_target_id: null, p_old: null, p_new: { rate: value }, p_reason: 'alterado pelo painel', p_context: { financial: true } });
       return send(ctx, `✅ Nova taxa: <b>1 TON = ${fmt(value)} FC</b>\nAplica-se somente a depósitos confirmados a partir de agora.`, kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
+    }
+    case 'wdfee': {
+      const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(value) || value < 0 || value > 50) return send(ctx, '⚠️ Informe um percentual entre 0 e 50.', MAIN_MENU);
+      const r = await rpc('admin_set_withdraw_fee_percent', { p_admin_id: ctx.adminId, p_percent: value });
+      return send(ctx, `✅ <b>WITHDRAWAL FEE</b> atualizada para <b>${Number(r.feePercent)}%</b>.\nSaques antigos mantêm a taxa usada na época.`, kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
     }
     case 'auditdep': {
       const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: text });

@@ -3691,8 +3691,12 @@ export type Database = {
           amount_fc: number
           amount_ton: number
           created_at: string
+          fee_percent: number
+          fee_ton: number
+          gross_ton: number | null
           id: string
           idempotency_key: string
+          net_ton: number | null
           paid_at: string | null
           processed_at: string | null
           refunded_at: string | null
@@ -3709,8 +3713,12 @@ export type Database = {
           amount_fc: number
           amount_ton: number
           created_at?: string
+          fee_percent?: number
+          fee_ton?: number
+          gross_ton?: number | null
           id?: string
           idempotency_key: string
+          net_ton?: number | null
           paid_at?: string | null
           processed_at?: string | null
           refunded_at?: string | null
@@ -3727,8 +3735,12 @@ export type Database = {
           amount_fc?: number
           amount_ton?: number
           created_at?: string
+          fee_percent?: number
+          fee_ton?: number
+          gross_ton?: number | null
           id?: string
           idempotency_key?: string
+          net_ton?: number | null
           paid_at?: string | null
           processed_at?: string | null
           refunded_at?: string | null
@@ -4179,6 +4191,10 @@ export type Database = {
           p_reason?: string
           p_value: Json
         }
+        Returns: Json
+      }
+      admin_set_withdraw_fee_percent: {
+        Args: { p_admin_id: number; p_percent: number }
         Returns: Json
       }
       admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
@@ -4873,6 +4889,7 @@ export type Database = {
         Returns: Json
       }
       wallet_hot_address: { Args: never; Returns: string }
+      withdraw_fee_percent: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
