@@ -322,7 +322,7 @@ function App() {
     }
     markNotificationsRead(telegramInitData,unread.map(item=>item.id))
       .then(()=>queryClient.invalidateQueries({queryKey:['referral-dashboard']}))
-      .catch(error=>console.error('[NOTIFICATIONS]',error instanceof Error?error.message:error));
+      .catch((error:unknown)=>console.error('[NOTIFICATIONS]',error instanceof Error?error.message:error));
   },[referralDashboard?.notifications,telegramInitData,queryClient]);
 
 
