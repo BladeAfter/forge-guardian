@@ -378,6 +378,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     if (configured.error) throw new Error(configured.error.message);
   }
   const action = String(body.action || 'summary');
+  if (action === 'verify-deposit') return await verifyPendingDeposits(db, user);
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'deposit') {
