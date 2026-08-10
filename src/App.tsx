@@ -140,7 +140,6 @@ function App() {
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);
   const {data:calendarDashboard,refetch:refetchCalendar}=useCalendarDashboard(telegramInitData,backendEnabled);
-  const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
   const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{toast.success(`${result.hero.name} · ${result.hero.rarity}`);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['game-state']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú.')});
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
@@ -383,6 +382,7 @@ function App() {
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop';
+  const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
   const setPetsOpen=(open:boolean)=>open?openInternal('pets'):closeInternal();
   useEffect(()=>{if(!activePage)return;const back=window.Telegram?.WebApp?.BackButton;const handle=()=>closeInternal();back?.show();back?.onClick(handle);const previous=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{back?.offClick(handle);back?.hide();document.body.style.overflow=previous}},[activePage]);
