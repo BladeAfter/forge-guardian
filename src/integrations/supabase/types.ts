@@ -3652,6 +3652,7 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
       admin_create_snapshot: {
         Args: { p_admin_id: number; p_label: string }
@@ -3931,6 +3932,10 @@ export type Database = {
       admin_super_id: { Args: never; Returns: number }
       admin_unlink_referral: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
+      }
+      admin_update_channel: {
+        Args: { p_admin_id: number; p_channel_key: string; p_patch: Json }
         Returns: Json
       }
       admin_update_pet_egg_economy: {
