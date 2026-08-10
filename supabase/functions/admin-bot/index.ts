@@ -251,11 +251,16 @@ async function module(ctx: Ctx, name: string) {
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
       const p = d.pool || {};
-      return edit(ctx, `💰 <b>POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace('T', ' ')}\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
-        kb([[{ t: '➕ VALOR', d: 'pool:add' }, { t: '➖ VALOR', d: 'pool:remove' }],
+      const srcLabels: Record<string, string> = { deposit: 'Depósitos', battle_pass: 'Battle Pass', egg_purchase: 'Ovos', pet_purchase: 'Pets', premium_shop: 'Loja premium', event_purchase: 'Eventos', other: 'Outros' };
+      const sources = Object.entries(d.sourcesToday || {}).map(([k, v]: [string, any]) =>
+        `• ${esc(srcLabels[k] || k)}: ${fmt(v.poolTon)} TON (de ${fmt(v.grossTon)} TON)`).join('\n') || '• sem receita hoje';
+      return edit(ctx, `💰 <b>COMMUNITY POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nTaxa de contribuição: <b>${d.contributionPercent}%</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace('T', ' ')}\n\n💎 Receita hoje: ${fmt(d.revenueToday)} TON → pool ${fmt(d.poolToday)} TON\n📆 Receita do ciclo: ${fmt(d.revenuePeriod)} TON → pool ${fmt(d.poolPeriod)} TON\n\n<b>ORIGENS HOJE</b>\n${sources}\n\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
+        kb([[{ t: '⚙️ CONTRIBUTION RATE', d: 'ask:poolrate' }],
+            [{ t: '➕ VALOR', d: 'pool:add' }, { t: '➖ VALOR', d: 'pool:remove' }],
             [{ t: '⚙️ CONFIG', d: 'ask:poolset' }], [{ t: '🎉 DISTRIBUIR AGORA', d: 'confirm:pooldist' }],
             [{ t: '🚫 CANCELAR CICLO', d: 'confirm:poolcancel' }], nav()]));
     }
+
     case 'invites': {
       const s = await rpc('admin_get_settings', { p_admin_id: ctx.adminId, p_category: 'referral' });
       return edit(ctx, `🤝 <b>CONVITES</b>\n${s.settings.map((x: any) => `• ${esc(x.label)}: <b>${x.value}%</b>`).join('\n')}\n\nComissão paga somente em depósito TON confirmado, com idempotência.`,
@@ -378,6 +383,8 @@ const PROMPTS: Record<string, string> = {
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward: 'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
   poolset: 'Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days',
+  poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
+
   tree: 'Envie o usuário para ver a árvore de convites.',
   unlink: 'Envie: <code>usuário motivo</code> para remover o vínculo de indicação.',
   depok: 'Envie o ID do depósito (pode ser o prefixo mostrado).',
@@ -782,6 +789,8 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'unlink': { const i = text.indexOf(' '); const r = await rpc('admin_unlink_referral', { p_admin_id: ctx.adminId, p_ref: text.slice(0, i), p_reason: text.slice(i + 1) }); return send(ctx, `✂️ ${r.removed} vínculo(s) removido(s).`, MAIN_MENU); }
     case 'pool': { const amount = Number(text.replace(/[^\d.]/g, '')) * (args[0] === 'remove' ? -1 : 1); const r = await rpc('admin_adjust_pool_balance', { p_amount: amount, p_reason: 'painel admin' }); await rpc('admin_log', { p_admin_id: ctx.adminId, p_action: 'pool.adjust', p_target_type: 'pool', p_target_id: null, p_old: null, p_new: { amount }, p_reason: 'painel admin', p_context: { financial: true } }); return send(ctx, `✅ Pool ajustada em ${amount} TON.\n<code>${esc(JSON.stringify(r)).slice(0, 500)}</code>`, MAIN_MENU); }
     case 'poolset': { const [k, v] = text.split(/\s+/); await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pool_' + k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ Configuração da pool <code>${esc(k)}</code> = ${esc(v)}`, MAIN_MENU); }
+    case 'poolrate': { const pct = Number(text.replace(',', '.').replace(/[^\d.]/g, '')); if (!Number.isFinite(pct) || pct < 0 || pct > 100) return send(ctx, '⚠️ Informe um percentual entre 0 e 100.', MAIN_MENU); const r = await rpc('admin_set_pool_contribution_percent', { p_admin_id: ctx.adminId, p_percent: pct }); return send(ctx, `✅ Taxa da Community Pool agora é <b>${r}%</b> de toda receita TON confirmada.`, MAIN_MENU); }
+
     case 'pass': {
       const patch = JSON.parse(text);
       const { data: season } = await db.from('season_pass_seasons').select('*').eq('active', true).order('start_at', { ascending: false }).limit(1).maybeSingle();

@@ -47,7 +47,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       queryClient.invalidateQueries({ queryKey: ['wallet-withdrawals'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
       queryClient.invalidateQueries({ queryKey: ['fc-balance'] }),
-      queryClient.invalidateQueries({ queryKey: ['game-state', telegramInitData] })
+      queryClient.invalidateQueries({ queryKey: ['game-state', telegramInitData] }),
+      // Confirmed TON revenue feeds the 15% Community Pool contribution, so refresh it too.
+      queryClient.invalidateQueries({ queryKey: ['community-pool'] })
     ]);
   };
 
@@ -100,7 +102,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   });
 
   const invalidateEggs = async () => {
-    await Promise.all(['pet-egg-orders', 'pet-inventory', 'pet-dashboard', 'wallet-history', 'wallet-summary', 'game-state'].map(key =>
+    await Promise.all(['pet-egg-orders', 'pet-inventory', 'pet-dashboard', 'wallet-history', 'wallet-summary', 'game-state', 'community-pool'].map(key =>
       queryClient.invalidateQueries({ queryKey: [key] })));
   };
 
