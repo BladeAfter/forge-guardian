@@ -27,7 +27,7 @@ export type ForgeAuthProbe = {
 /** Validates the Telegram session against the game bot token, without touching game data. */
 export async function forgeAuthProbe(initData: string): Promise<ForgeAuthProbe> {
   if (!functionsBase || !supabaseAnonKey) return { ok: false, reason: 'backend_not_configured', error: 'Backend não configurado.' };
-  if (!initData) return { ok: false, reason: 'init_data_missing', error: 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.' };
+  if (!initData || !new URLSearchParams(initData).get('hash')) return { ok: false, reason: 'init_data_missing', error: 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.' };
   const response = await fetch(`${functionsBase}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey, 'X-Telegram-Init-Data': initData },
@@ -65,9 +65,18 @@ export async function forgeHealth(): Promise<ForgeHealth> {
   }
 }
 
+const hasSignedInitData = (initData: string) => {
+  if (!initData) return false;
+  try {
+    return Boolean(new URLSearchParams(initData).get('hash'));
+  } catch {
+    return false;
+  }
+};
+
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
-  if (!functionsBase || !supabaseAnonKey || !initData) {
+  if (!functionsBase || !supabaseAnonKey || !hasSignedInitData(initData)) {
     console.error('[FORGE REQUEST FAILED]', {
       endpoint: `${functionsBase || '(sem backend configurado)'}/${feature}`,
       status: 404,
@@ -76,6 +85,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
     });
     return { ok: false, status: 404, json: async () => null };
   }
+
 
   const endpoint = `${functionsBase}/${feature}`;
   try {
