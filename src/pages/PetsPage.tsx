@@ -5,7 +5,7 @@ import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star,
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { petRequest } from '../services';
-import { hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
+import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
