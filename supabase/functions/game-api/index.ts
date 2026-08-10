@@ -433,6 +433,8 @@ async function healthReport() {
     telegram_auth_max_age_seconds: AUTH_MAX_AGE_SECONDS,
     game_bot_token_source: Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ? 'TELEGRAM_GAME_BOT_TOKEN' : (Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : 'missing'),
     game_bot_username: await botUsername(gameBotToken()),
+    telegram_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim()),
+    telegram_game_bot_token_username: await botUsername(String(Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') || '').trim()),
     admin_bot_token_separated: Boolean(Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN')),
     time: new Date().toISOString(),
   };
