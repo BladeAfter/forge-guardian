@@ -427,6 +427,7 @@ async function module(ctx: Ctx, name: string) {
             ...viewButtons,
             [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
             [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
+            [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
