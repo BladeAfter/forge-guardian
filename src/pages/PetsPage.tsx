@@ -9,6 +9,8 @@ import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood,
 import type { PetRarity } from '../petRules';
 import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
+import { PetBuff, petBuffIcon } from '../components/PetBuff';
+
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
