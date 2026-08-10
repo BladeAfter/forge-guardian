@@ -14,7 +14,7 @@ export const HERO_CATALOG: ShopHero[] = [
   { id: 'common-1', name: 'Espadachim da Forja', rarity: 'common', image: asset('common-warrior.png') },
   { id: 'common-2', name: 'Guarda da Lança', rarity: 'common', image: shop('common-2') },
   { id: 'common-3', name: 'Batedor da Besta', rarity: 'common', image: shop('common-3') },
-  { id: 'common-4', name: 'Médica da Vila', rarity: 'common', image: shop('common-4') },
+  { id: 'common-4', name: 'Curandeira', rarity: 'common', image: shop('common-4') },
   { id: 'common-5', name: 'Portador do Escudo', rarity: 'common', image: shop('common-5') },
   { id: 'uncommon-1', name: 'Arqueira Élfica', rarity: 'uncommon', image: asset('uncommon-archer.png') },
   { id: 'uncommon-2', name: 'Lâminas do Deserto', rarity: 'uncommon', image: shop('uncommon-2') },

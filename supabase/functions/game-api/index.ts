@@ -111,6 +111,29 @@ async function botUsername(token: string): Promise<string | null> {
   }
 }
 
+/**
+ * Server-side membership check against the Telegram Bot API.
+ * Only member/administrator/creator/restricted-with-membership count as joined.
+ */
+async function telegramMembership(chatRef: string, telegramId: number): Promise<boolean> {
+  const token = gameBotToken();
+  if (!token || !chatRef) return false;
+  try {
+    const url = `https://api.telegram.org/bot${token}/getChatMember?chat_id=${encodeURIComponent(chatRef)}&user_id=${telegramId}`;
+    const response = await fetch(url);
+    const payload = await response.json().catch(() => null);
+    if (!payload?.ok) {
+      console.error('[CHANNEL MEMBERSHIP]', { chatRef, telegramId, error: payload?.description ?? 'unknown' });
+      return false;
+    }
+    const status = String(payload.result?.status || '');
+    return ['member', 'administrator', 'creator'].includes(status);
+  } catch (error) {
+    console.error('[CHANNEL MEMBERSHIP]', { chatRef, message: error instanceof Error ? error.message : String(error) });
+    return false;
+  }
+}
+
 const isUuid = (value: unknown): value is string =>
   typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
@@ -126,7 +149,7 @@ const json = (body: unknown, status = 200) =>
 function serviceClient() {
   const url = Deno.env.get('SUPABASE_URL');
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !key) throw new Error('O backend do Forge Village não está configurado.');
+  if (!url || !key) throw new Error('O backend do MYTHREON não está configurado.');
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
@@ -199,7 +222,7 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_quantity = quantity;
     args.p_idempotency_key = requestKey('pet_feed_item');
   } else if (action === 'evolve') {
-    // Evolution consumes Forge Coins + this pet's fragments and rolls buffs server-side.
+    // Evolution consumes FC + this pet's fragments and rolls buffs server-side.
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
     fn = 'evolve_pet';
     args.p_player_pet_id = body.playerPetId;
@@ -518,11 +541,33 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     throw new Error('Ação inválida.');
   },
-  /** Read-only feed of rewards already delivered to the player (never grants anything). */
+  /** Read-only feed of rewards already delivered to THIS player (never grants anything). */
   rewards: async (db, user, body) => {
     const limit = Math.min(Math.max(Number(body.limit ?? 5) || 5, 1), 100);
     const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
     return rpc(db, 'get_reward_history', { p_telegram_id: user.id, p_limit: limit, p_offset: offset });
+  },
+  /**
+   * Official channel rewards. FC is only credited after the Telegram Bot API confirms
+   * membership — a click on JOIN never pays by itself.
+   */
+  channels: async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'dashboard') return rpc(db, 'get_channel_rewards', { p_telegram_id: user.id });
+    if (action !== 'verify') throw new Error('Ação inválida.');
+    const key = String(body.channelKey || '');
+    if (!['news', 'community', 'payments'].includes(key)) throw new Error('CHANNEL_NOT_AVAILABLE');
+    const { data: config, error } = await db
+      .from('channel_reward_config')
+      .select('chat_ref, enabled')
+      .eq('channel_key', key)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!config?.enabled) throw new Error('CHANNEL_NOT_AVAILABLE');
+    if (!config.chat_ref) throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
+    const member = await telegramMembership(String(config.chat_ref), user.id);
+    if (!member) throw new Error('MEMBERSHIP_NOT_VERIFIED');
+    return rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true });
   },
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
@@ -543,7 +588,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
 async function healthReport() {
   const report: Record<string, unknown> = {
     ok: false,
-    app: 'Forge Village',
+    app: 'MYTHREON',
     backend: 'online',
     database: 'offline',
     telegram_auth: gameBotToken() ? 'configured' : 'missing',

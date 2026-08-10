@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { CalendarDays, Check, ChevronRight, Copy, Crown, Gift, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
-import { useRewardHistory, useSeasonPass } from '../hooks';
-import type { RewardHistoryItem } from '../services';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, Check, ChevronRight, Copy, Crown, Gift, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
+import { useChannelRewards, useRewardHistory, useSeasonPass } from '../hooks';
+import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../services';
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import type { GameState } from '../types';
 
@@ -13,13 +14,11 @@ type ProfilePageProps = {
   onOpenBattlePass: () => void;
 };
 
-const CHANNELS = [
-  { key: 'news', title: 'NEWS CHANNEL', subtitle: 'Stay updated with the latest news', url: 'https://t.me/+h5n08oLrHIlmOWQx', Icon: Megaphone },
-  { key: 'community', title: 'COMMUNITY CHAT', subtitle: 'Chat with other players', url: 'https://t.me/+7a9XTXSObkw4ODc5', Icon: MessageCircle },
-  { key: 'payments', title: 'PAYMENTS CHANNEL', subtitle: 'Deposits, withdrawals and payments', url: 'https://t.me/+M_ZLb9QUod0zZjcx', Icon: WalletIcon },
-] as const;
+const CHANNEL_ICON: Record<string, typeof Megaphone> = { news: Megaphone, community: MessageCircle, payments: WalletIcon };
 
-const RARITY_COLOR: Record<string, string> = { common: '#cbd5f5', uncommon: '#4ade80', rare: '#38bdf8', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', adventurer: '#38bdf8' };
+const RARITY_COLOR: Record<string, string> = { common: '#cbd5f5', uncommon: '#4ade80', rare: '#38bdf8', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', adventurer: '#38bdf8' };
+
+const formatFc = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 
 const openTelegramLink = (url: string) => {
   const webApp = (window as any)?.Telegram?.WebApp;
@@ -42,7 +41,7 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', hero_chest: 'Hero Chest', pet_egg: 'Pet Egg', fc: 'Forge Coins', pass_reward: 'Battle Pass', item: 'Item' };
+const TYPE_LABEL: Record<string, string> = { hero: 'Hero', pet: 'Pet', egg: 'Egg', food: 'Pet Food', fragment: 'Fragments', chest: 'Chest', hero_chest: 'Hero Chest', pet_egg: 'Pet Egg', fc: 'FC', pass_reward: 'Battle Pass', item: 'Item' };
 
 /** Falls back to a readable label for any reward type the game adds later. */
 const typeLabel = (type: string) => TYPE_LABEL[type] ?? type.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -81,6 +80,26 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
   const enabled = Boolean(telegramInitData) && backendEnabled;
   const history = useRewardHistory(telegramInitData, enabled, showAll ? 50 : 5);
   const seasonPass = useSeasonPass(telegramInitData, enabled);
+  const channels = useChannelRewards(telegramInitData, enabled);
+  const queryClient = useQueryClient();
+  const [channelError, setChannelError] = useState<{ key: string; message: string } | null>(null);
+  const [joined, setJoined] = useState<Record<string, boolean>>({});
+
+  /** JOIN never pays: only this verify call (server-side getChatMember) can credit FC. */
+  const verify = useMutation({
+    mutationFn: (channelKey: string) => channelsRequest(telegramInitData ?? '', { action: 'verify', channelKey }),
+    onSuccess: () => {
+      setChannelError(null);
+      queryClient.invalidateQueries({ queryKey: ['channel-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['game-state'] });
+      queryClient.invalidateQueries({ queryKey: ['reward-history'] });
+    },
+    onError: (error: unknown, channelKey: string) =>
+      setChannelError({ key: channelKey, message: error instanceof Error ? error.message : 'Verification failed.' }),
+  });
+
+
 
   const name = profile ? getDisplayName(profile) : 'Player';
   const tier = seasonPass.data?.player.tier ?? 'none';
@@ -171,25 +190,65 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       </div>
 
       <div className="rounded-3xl border border-amber-300/15 bg-[#080d17]/85 p-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Official Channels</p>
-        <div className="mt-2.5 space-y-1.5">
-          {CHANNELS.map(({ key, title, subtitle, url, Icon }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => openTelegramLink(url)}
-              className="flex w-full items-center gap-2.5 rounded-2xl border border-amber-300/10 bg-black/35 px-2.5 py-2.5 text-left active:scale-[0.99]"
-            >
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-[#0b1120] text-amber-300"><Icon className="h-4 w-4" /></span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[11px] font-black uppercase tracking-wide text-white">{title}</span>
-                <span className="block truncate text-[9px] text-slate-400">{subtitle}</span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-amber-300/70" />
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Official Channels</p>
+          <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-emerald-300">+5,000 FC each</span>
         </div>
+        {channels.isLoading ? (
+          <p className="mt-3 text-[11px] text-slate-400">Loading channels...</p>
+        ) : (
+          <div className="mt-2.5 space-y-1.5">
+            {(channels.data?.channels ?? []).filter((channel) => channel.enabled).map((channel: ChannelReward) => {
+              const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
+              const pending = verify.isPending && verify.variables === channel.key;
+              const failed = channelError?.key === channel.key;
+              return (
+                <div key={channel.key} className="rounded-2xl border border-amber-300/10 bg-black/35 p-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-[#0b1120] text-amber-300"><Icon className="h-4 w-4" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-black uppercase tracking-wide text-white">{channel.title}</p>
+                      <p className="truncate text-[9px] text-slate-400">{channel.subtitle}</p>
+                    </div>
+                    {channel.claimed ? (
+                      <span className="flex shrink-0 items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                        <Check className="h-3 w-3" /> Joined
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} FC</span>
+                    )}
+                  </div>
+                  {channel.claimed ? null : (
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => { setJoined((state) => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}
+                        className="flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border border-amber-300/25 bg-black/50 text-[10px] font-black uppercase tracking-wide text-amber-200 active:scale-[0.98]"
+                      >
+                        Join <ChevronRight className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending || !channel.verifiable}
+                        onClick={() => verify.mutate(channel.key)}
+                        className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border text-[10px] font-black uppercase tracking-wide active:scale-[0.98] ${joined[channel.key] ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/25 bg-amber-500/10 text-amber-200'} disabled:opacity-50`}
+                      >
+                        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                        {pending ? 'Checking' : 'Verify'}
+                      </button>
+                    </div>
+                  )}
+                  {failed ? <p className="mt-1.5 text-[9px] font-semibold text-rose-300">{channelError?.message}</p> : null}
+                  {!channel.verifiable && !channel.claimed ? (
+                    <p className="mt-1.5 text-[9px] text-slate-500">Membership check pending setup for this channel.</p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
     </section>
   );
 }

@@ -481,6 +481,45 @@ export type Database = {
           },
         ]
       }
+      channel_reward_config: {
+        Row: {
+          channel_key: string
+          chat_ref: string | null
+          created_at: string
+          enabled: boolean
+          reward_fc: number
+          sort_order: number
+          subtitle: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          channel_key: string
+          chat_ref?: string | null
+          created_at?: string
+          enabled?: boolean
+          reward_fc?: number
+          sort_order?: number
+          subtitle: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          channel_key?: string
+          chat_ref?: string | null
+          created_at?: string
+          enabled?: boolean
+          reward_fc?: number
+          sort_order?: number
+          subtitle?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       chest_reward_tables: {
         Row: {
           chest_code: string
@@ -3204,6 +3243,7 @@ export type Database = {
       season_pass_rewards: {
         Row: {
           amount: number
+          base_amount: number | null
           enabled: boolean
           id: string
           level: number
@@ -3216,6 +3256,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          base_amount?: number | null
           enabled?: boolean
           id?: string
           level: number
@@ -3228,6 +3269,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          base_amount?: number | null
           enabled?: boolean
           id?: string
           level?: number
@@ -3289,6 +3331,60 @@ export type Database = {
           xp_per_level?: number
         }
         Relationships: []
+      }
+      user_channel_rewards: {
+        Row: {
+          channel_key: string
+          claimed_at: string | null
+          created_at: string
+          id: string
+          joined_verified: boolean
+          reward_amount: number
+          reward_claimed: boolean
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          channel_key: string
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          joined_verified?: boolean
+          reward_amount?: number
+          reward_claimed?: boolean
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          channel_key?: string
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          joined_verified?: boolean
+          reward_amount?: number
+          reward_claimed?: boolean
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_channel_rewards_channel_key_fkey"
+            columns: ["channel_key"]
+            isOneToOne: false
+            referencedRelation: "channel_reward_config"
+            referencedColumns: ["channel_key"]
+          },
+          {
+            foreignKeyName: "user_channel_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallet_deposits: {
         Row: {
@@ -3552,6 +3648,11 @@ export type Database = {
       }
       admin_bump_settings_version: { Args: never; Returns: number }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_channel_rewards_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
       admin_create_snapshot: {
         Args: { p_admin_id: number; p_label: string }
@@ -3718,6 +3819,19 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_channel_reward: {
+        Args: {
+          p_admin_id: number
+          p_channel_key: string
+          p_enabled?: boolean
+          p_reward_fc?: number
+        }
+        Returns: Json
+      }
+      admin_set_fragment_config: {
+        Args: { p_admin_id: number; p_quantity?: number; p_rates?: Json }
+        Returns: Json
+      }
       admin_set_hero_rarity_rates: {
         Args: {
           p_admin_id: number
@@ -3748,6 +3862,10 @@ export type Database = {
           p_ref: string
           p_tier: string
         }
+        Returns: Json
+      }
+      admin_set_pass_fc_multiplier: {
+        Args: { p_admin_id: number; p_multiplier: number }
         Returns: Json
       }
       admin_set_pet_enabled: {
@@ -3814,6 +3932,10 @@ export type Database = {
       admin_super_id: { Args: never; Returns: number }
       admin_unlink_referral: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
+      }
+      admin_update_channel: {
+        Args: { p_admin_id: number; p_channel_key: string; p_patch: Json }
         Returns: Json
       }
       admin_update_pet_egg_economy: {
@@ -4066,6 +4188,14 @@ export type Database = {
         Args: { p_day: number; p_telegram_id: number }
         Returns: Json
       }
+      claim_channel_reward: {
+        Args: {
+          p_channel_key: string
+          p_membership_ok: boolean
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       claim_daily_quest: {
         Args: { p_quest_code: string; p_telegram_id: number }
         Returns: Json
@@ -4176,6 +4306,7 @@ export type Database = {
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_channel_rewards: { Args: { p_telegram_id: number }; Returns: Json }
       get_community_pool_dashboard: {
         Args: { p_telegram_id: number }
         Returns: Json
@@ -4342,6 +4473,7 @@ export type Database = {
         Args: { p_luck?: number; p_rates: Json }
         Returns: string
       }
+      roll_universal_fragment_rarity: { Args: never; Returns: string }
       save_pvp_team_slot: {
         Args: {
           p_hero_id: string

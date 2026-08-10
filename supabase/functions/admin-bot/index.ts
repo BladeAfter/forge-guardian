@@ -1,4 +1,4 @@
-// Forge Village :: Master Admin Bot (Telegram)
+// MYTHREON :: Master Admin Bot (Telegram)
 // Every operation re-validates the super admin Telegram ID server-side (bot + database).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -53,6 +53,7 @@ const MAIN_MENU = kb([
   [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }],
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
+  [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }],
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
   [{ t: '📣 BROADCAST', d: 'm:cast' }, { t: '💾 SNAPSHOT', d: 'do:snapshot' }],
@@ -259,6 +260,12 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, `🎯 <b>MISSÕES</b>\n${d.missions.map((m: any) => `• <code>${esc(m.code)}</code> [${esc(m.scope)}] ${esc(m.title)} → ${fmt(m.reward_amount)} ${esc(m.reward_type)} ${m.enabled ? '✅' : '⛔'}`).join('\n') || '—'}`,
         kb([[{ t: '✏️ CRIAR/EDITAR', d: 'ask:mission' }], [{ t: '♻️ RESETAR DIÁRIAS', d: 'confirm:missdaily' }, { t: '♻️ SEMANAIS', d: 'confirm:missweekly' }], nav()]));
     }
+    case 'channels': {
+      const d = await rpc('admin_channels_overview', { p_admin_id: ctx.adminId });
+      const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   chat: <code>${esc(c.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(c.rewardFc)} FC\n   resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
+      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n${list}`,
+        kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], nav()]));
+    }
     case 'quests': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
       const b = d.bonus || {};
@@ -320,6 +327,7 @@ async function module(ctx: Ctx, name: string) {
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"chat_ref":"-1001234567890","reward_fc":5000,"enabled":true}</code>\n\nO <b>chat_ref</b> é o ID numérico (ou @publico) do canal; sem ele o jogo não consegue verificar a participação.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
@@ -694,6 +702,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `🧩 <b>${fmt(Number(quantity || 1))}</b> fragmentos universais enviados.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
     }
     case 'league': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_league', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Liga salva: ${esc(r.name)} (${r.min_trophies}–${r.max_trophies ?? '∞'})`, MAIN_MENU); }
+    case 'channel': {
+      const i = text.indexOf(' ');
+      if (i < 0) return send(ctx, '⚠️ Envie a chave do canal e o JSON.', kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+      const r = await rpc('admin_update_channel', { p_admin_id: ctx.adminId, p_channel_key: text.slice(0, i).trim(), p_patch: JSON.parse(text.slice(i + 1)) });
+      return send(ctx, `✅ <b>${esc(r.title)}</b> ${r.enabled ? '✅' : '⛔'}\nchat: <code>${esc(r.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(r.rewardFc)} FC`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+    }
     case 'quest': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_quest', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Quest salva: <b>${esc(r.title)}</b> — ${esc(r.event_key)} · meta ${r.target_amount} · ${fmt(r.reward_fc)} FC ${r.enabled ? '✅' : '⛔'}`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     case 'questtoggle': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });

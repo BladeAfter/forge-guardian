@@ -61,7 +61,7 @@ function OpenInTelegramGate() {
       <img src={backgrounds.loading} alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[#07090d]/90" />
       <main className="relative w-full max-w-sm text-center">
-        <img src={logo.icon} alt="Forge Village" className="mx-auto h-24 w-24 object-contain" />
+        <img src={logo.icon} alt="MYTHREON" className="mx-auto h-24 w-24 object-contain" />
         <a
           href={TELEGRAM_APP_LINK}
           className="mt-8 block w-full rounded-2xl border border-amber-300/50 bg-gradient-to-b from-amber-400 to-amber-600 px-6 py-4 text-base font-black uppercase tracking-[.12em] text-forge-black shadow-[0_14px_30px_rgba(0,0,0,.6)] transition active:scale-95"
@@ -300,7 +300,7 @@ function App() {
       });
   },[backendEnabled,telegramInitData,telegramStartParam,queryClient]);
 
-  // Forge Coins have a single source of truth: the server balance (game_players.forge_coins).
+  // FC have a single source of truth: the server balance (game_players.forge_coins).
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
@@ -810,7 +810,7 @@ function App() {
           ) : null}
 
           <div className="hidden">
-        <img src={logo.horizontal} alt="Forge Village" className="main-game-logo relative z-10 mx-auto -mb-3 mt-0 h-auto w-full max-w-[280px] shrink-0 drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]" />
+        <img src={logo.horizontal} alt="MYTHREON" className="main-game-logo relative z-10 mx-auto -mb-3 mt-0 h-auto w-full max-w-[280px] shrink-0 drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]" />
 
         <section className="village-main-panel mb-2 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="village-level-bar mx-auto flex w-full max-w-[390px] shrink-0 items-center justify-between rounded-xl border border-amber-300/30 bg-[#0a0d12]/90 px-4 py-2 shadow-card">

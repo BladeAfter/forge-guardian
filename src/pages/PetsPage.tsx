@@ -150,7 +150,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               <EvolveButton pet={active} balance={data.balance} pending={pending} onEvolve={() => evolve(active)} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
-              Comida sobe o <b className="text-amber-200">nível</b>. Fragmentos e Forge Coins liberam a <b className="text-violet-200">evolução</b>.
+              Comida sobe o <b className="text-amber-200">nível</b>. Fragmentos e FC liberam a <b className="text-violet-200">evolução</b>.
             </p>
           </>
         ) : (
@@ -391,7 +391,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
       <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3">
         <header className="mb-3 flex items-center justify-between gap-2 rounded-2xl border border-amber-300/20 bg-black/70 p-3">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">Forge Village</p>
+            <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
             <h1 className="text-xl font-black">PETS</h1>
           </div>
           <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
@@ -445,7 +445,7 @@ function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; bal
   const missingFc = balance < next.fcCost;
   const missingFragments = pet.fragments < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
-  const label = missingLevel ? `Evoluir no nível ${next.requiredLevel}` : missingFc ? 'Forge Coins insuficientes' : missingFragments ? 'Fragmentos insuficientes' : `Evoluir · ${next.label}`;
+  const label = missingLevel ? `Evoluir no nível ${next.requiredLevel}` : missingFc ? 'FC insuficientes' : missingFragments ? 'Fragmentos insuficientes' : `Evoluir · ${next.label}`;
   return (
     <button
       type="button"

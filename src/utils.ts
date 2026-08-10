@@ -3,7 +3,7 @@ import type { GameState, LanguageStrings } from "./types";
 export const LANGUAGES: Record<string, LanguageStrings> = {
   en: {
     loading: "Loading game data...",
-    welcome: "Welcome back to Forge Village!",
+    welcome: "Welcome back to MYTHREON!",
     welcomeBack: "Welcome back, blacksmith",
     approxTon: "Approx. {amount}",
     productionPerHour: "Production / hour",
@@ -24,7 +24,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
     yourDamage: "Your damage",
     timeRemaining: "Time remaining",
     hoursLeft: "23h 12m left",
-    notEnoughFunds: "Not enough Forge Coins",
+    notEnoughFunds: "Not enough FC",
     wallet: "Wallet",
     profile: "Profile",
     connectWallet: "Connect wallet",
@@ -52,7 +52,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   pt: {
     loading: "Carregando dados do jogo...",
-    welcome: "Bem-vindo de volta a Forge Village!",
+    welcome: "Bem-vindo de volta a MYTHREON!",
     welcomeBack: "Bem-vindo de volta, ferreiro",
     approxTon: "Aprox. {amount}",
     productionPerHour: "Produção / hora",
@@ -101,7 +101,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   es: {
     loading: "Cargando datos del juego...",
-    welcome: "¡Bienvenido de nuevo a Forge Village!",
+    welcome: "¡Bienvenido de nuevo a MYTHREON!",
     welcomeBack: "Bienvenido de nuevo, herrero",
     approxTon: "Aprox. {amount}",
     productionPerHour: "Producción / hora",
@@ -150,7 +150,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   ru: {
     loading: "Загрузка данных игры...",
-    welcome: "С возвращением в Forge Village!",
+    welcome: "С возвращением в MYTHREON!",
     welcomeBack: "С возвращением, кузнец",
     approxTon: "Примерно {amount}",
     productionPerHour: "Производство / час",
@@ -219,7 +219,7 @@ export const getLocale = () => {
 export const formatCurrency = (value: number) => value.toLocaleString("en-US");
 
 export const buildDefaults = (): GameState => ({
-  // Forge Coins never start with a fictitious amount: the real balance always comes from the backend.
+  // FC never start with a fictitious amount: the real balance always comes from the backend.
   balance: 0,
   level: 7,
   loginStreak: 0,
@@ -293,7 +293,7 @@ export const buildDefaults = (): GameState => ({
     {
       id: "mission-2",
       title: "Collect production",
-      description: "Collect your accumulated Forge Coins twice today.",
+      description: "Collect your accumulated FC twice today.",
       reward: 9000,
       complete: false,
     },
