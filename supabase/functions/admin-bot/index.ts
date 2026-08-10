@@ -263,9 +263,10 @@ async function module(ctx: Ctx, name: string) {
     case 'channels': {
       const d = await rpc('admin_channels_overview', { p_admin_id: ctx.adminId });
       const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   chat: <code>${esc(c.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(c.rewardFc)} FC\n   resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
-      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n${list}`,
+      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n🔗 <b>Para capturar o chat id:</b> adicione o bot do jogo como administrador do canal/grupo e <b>encaminhe qualquer mensagem do canal para este chat</b> — eu mostro o id e os botões para salvar.\n\n${list}`,
         kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], nav()]));
     }
+
     case 'quests': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
       const b = d.bonus || {};
