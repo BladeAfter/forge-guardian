@@ -702,6 +702,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `🧩 <b>${fmt(Number(quantity || 1))}</b> fragmentos universais enviados.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav('m:pets')]));
     }
     case 'league': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_league', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Liga salva: ${esc(r.name)} (${r.min_trophies}–${r.max_trophies ?? '∞'})`, MAIN_MENU); }
+    case 'channel': {
+      const i = text.indexOf(' ');
+      if (i < 0) return send(ctx, '⚠️ Envie a chave do canal e o JSON.', kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+      const r = await rpc('admin_update_channel', { p_admin_id: ctx.adminId, p_channel_key: text.slice(0, i).trim(), p_patch: JSON.parse(text.slice(i + 1)) });
+      return send(ctx, `✅ <b>${esc(r.title)}</b> ${r.enabled ? '✅' : '⛔'}\nchat: <code>${esc(r.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(r.rewardFc)} FC`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+    }
     case 'quest': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_quest', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Quest salva: <b>${esc(r.title)}</b> — ${esc(r.event_key)} · meta ${r.target_amount} · ${fmt(r.reward_fc)} FC ${r.enabled ? '✅' : '⛔'}`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     case 'questtoggle': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
