@@ -3822,6 +3822,10 @@ export type Database = {
         Returns: string
       }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pass_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
       admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
       admin_player_detail: {
@@ -3830,6 +3834,10 @@ export type Database = {
       }
       admin_player_history: {
         Args: { p_admin_id: number; p_limit?: number; p_ref: string }
+        Returns: Json
+      }
+      admin_player_pass: {
+        Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
       admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
@@ -3892,10 +3900,20 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_search_players: {
-        Args: { p_admin_id: number; p_limit?: number; p_query: string }
-        Returns: Json
-      }
+      admin_search_players:
+        | {
+            Args: { p_admin_id: number; p_limit?: number; p_query: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id: number
+              p_limit?: number
+              p_offset?: number
+              p_query: string
+            }
+            Returns: Json
+          }
       admin_set_ban: {
         Args: {
           p_admin_id: number
@@ -3989,6 +4007,15 @@ export type Database = {
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
+      }
+      admin_set_player_pass: {
+        Args: {
+          p_admin_id: number
+          p_reason?: string
+          p_ref: string
+          p_tier: string
+        }
+        Returns: Json
       }
       admin_set_pool_contribution_percent: {
         Args: { p_admin_id: number; p_percent: number }
