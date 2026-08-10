@@ -48,8 +48,8 @@ export type TelegramAuthResult = { user: TelegramUser; authDate: number; ageSeco
  * The raw initData string is used exactly as Telegram provided it — never decoded or re-encoded.
  */
 export async function validateTelegramInitData(initData: string): Promise<TelegramAuthResult> {
-  const token = gameBotToken();
-  if (!token) throw new TelegramAuthError('bot_token_missing', 'A autenticação do Telegram não está configurada.');
+  const tokens = candidateBotTokens();
+  if (!tokens.length) throw new TelegramAuthError('bot_token_missing', 'A autenticação do Telegram não está configurada.');
   if (!initData) throw new TelegramAuthError('init_data_missing', 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.');
 
   const params = new URLSearchParams(initData);
@@ -60,14 +60,20 @@ export async function validateTelegramInitData(initData: string): Promise<Telegr
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 
-  const secret = await hmac(encoder.encode('WebAppData'), token);
-  const expected = toHex(await hmac(secret, check));
   const authDate = Number(params.get('auth_date'));
   const ageSeconds = Number.isFinite(authDate) ? Math.round(Date.now() / 1000 - authDate) : Number.NaN;
 
   if (!hash) throw new TelegramAuthError('hash_missing', 'Sessão do Telegram inválida (assinatura ausente).');
-  if (!safeEqual(expected, hash)) {
-    // Signature mismatch means the initData was signed by a DIFFERENT bot than the configured token.
+  let matched = false;
+  for (const token of tokens) {
+    const secret = await hmac(encoder.encode('WebAppData'), token);
+    if (safeEqual(toHex(await hmac(secret, check)), hash)) {
+      matched = true;
+      break;
+    }
+  }
+  if (!matched) {
+    // Signature mismatch means the initData was signed by a bot whose token is not configured here.
     throw new TelegramAuthError('signature_mismatch', 'Assinatura do Telegram não confere com o bot configurado. Verifique o token do bot do jogo.');
   }
   if (!Number.isFinite(authDate)) throw new TelegramAuthError('auth_date_missing', 'Sessão do Telegram inválida (auth_date ausente).');
