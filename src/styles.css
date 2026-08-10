@@ -455,3 +455,18 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   50% { transform: translateY(-6px) scale(1.03); }
 }
 .pet-companion-float { animation: pet-companion-float 2.6s ease-in-out infinite; }
+
+/* Premium golden feedback for the 8 main-screen shortcuts (hover on desktop, press on mobile). */
+.forge-golden-tile{transition:transform .18s ease,box-shadow .25s ease,border-color .25s ease}
+.forge-golden-tile::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s ease;background:radial-gradient(120% 80% at 50% 0%,rgba(253,224,71,.35),rgba(251,146,60,.12) 55%,transparent 75%)}
+@media (hover:hover){
+  .forge-golden-tile:hover{transform:translateY(-2px) scale(1.035);border-color:rgba(253,224,71,.85);box-shadow:0 0 0 1px rgba(253,224,71,.45),0 14px 34px rgba(0,0,0,.6),0 0 26px rgba(251,191,36,.4)}
+  .forge-golden-tile:hover::after{opacity:1}
+  .forge-golden-tile:hover .home-feature-image{filter:drop-shadow(0 0 10px rgba(251,191,36,.65))}
+  .forge-golden-tile:hover .home-feature-label{color:#fde68a;text-shadow:0 0 12px rgba(251,191,36,.7)}
+}
+.forge-golden-tile:active{transform:scale(.94);border-color:rgba(253,224,71,.95);box-shadow:0 0 0 1px rgba(253,224,71,.6),0 0 30px rgba(251,191,36,.55),inset 0 0 22px rgba(251,191,36,.28)}
+.forge-golden-tile:active::after{opacity:1}
+.forge-golden-tile:active .home-feature-image{filter:drop-shadow(0 0 14px rgba(251,191,36,.85))}
+.forge-golden-tile:active .home-feature-label{color:#fef3c7;text-shadow:0 0 14px rgba(251,191,36,.85)}
+.forge-golden-tile:focus-visible{outline:2px solid rgba(253,224,71,.8);outline-offset:2px}
