@@ -12,7 +12,7 @@ import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market'
 
 type Props = {
   telegramInitData: string | null;
-  fcBalance: number | null;
+  fcBalance: number;
   summonOdds: Array<{ rarity: HeroRarity; chance: number }>;
   recruitPrice: (count: number) => number;
   shopResults: ShopHero[];
@@ -122,7 +122,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
             <h2 className="text-lg font-black leading-tight text-white">{t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{fcBalance === null ? '---' : formatCurrency(fcBalance)} FC</span>
+            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
             <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
           </div>
         </div>
