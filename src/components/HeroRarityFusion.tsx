@@ -1,41 +1,78 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Lock, Plus, ShieldAlert, Sparkles, Swords, X } from 'lucide-react';
+import { Check, Lock, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { fuseHeroesByRarity } from '../services';
 import { RARITY_COLOR, RARITY_LABEL, type RarityFusionDashboard, type RarityFusionHero, type RarityFusionResult } from '../heroFusion';
 
 const fmt = (value: number) => new Intl.NumberFormat('pt-BR').format(Math.round(value || 0));
 const SLOTS = [0, 1, 2, 3, 4];
+const FILTERS = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
-/** Mythreon Core altar: 5 rune slots orbiting the arcane crystal. */
-function AltarSlot({ hero, onPick, onClear }: { hero: RarityFusionHero | null; onPick: () => void; onClear: () => void }) {
+/** Compact 48px slot used in the horizontal selection bar. */
+function SlotChip({ hero, index, onClear }: { hero: RarityFusionHero | null; index: number; onClear: () => void }) {
   if (!hero) {
     return (
-      <button
-        onClick={onPick}
-        className="grid aspect-square w-full place-items-center rounded-2xl border border-dashed border-amber-300/35 bg-[#070d18]/80 text-amber-300/70 shadow-[inset_0_0_18px_rgba(96,165,250,.16)]"
-        aria-label="Selecionar herói"
-      >
-        <Plus size={22} />
-      </button>
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-dashed border-amber-300/35 bg-[#070d18]/80 text-[10px] font-black text-amber-300/60">
+        {index + 1}
+      </div>
     );
   }
   return (
-    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-black/70" style={{ borderColor: RARITY_COLOR[hero.rarity] }}>
+    <button
+      onClick={onClear}
+      aria-label={`Remover ${hero.name}`}
+      className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border bg-black/70"
+      style={{ borderColor: RARITY_COLOR[hero.rarity] }}
+    >
       {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="h-full w-full object-cover" /> : null}
-      <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-1 py-0.5 text-[8px] font-black uppercase">{hero.name}</span>
-      <button onClick={onClear} aria-label="Remover herói" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-lg border border-white/20 bg-black/75 text-white">
-        <X size={11} />
-      </button>
-    </div>
+      <span className="absolute inset-x-0 bottom-0 h-1" style={{ background: RARITY_COLOR[hero.rarity] }} />
+      <span className="absolute right-0 top-0 grid h-4 w-4 place-items-center bg-black/75 text-white"><X size={9} /></span>
+    </button>
+  );
+}
+
+/** Compact selection card: image + name + rarity + level + copies. Nothing else. */
+function FusionHeroCard({
+  hero, copies, selectedCount, available, blocked, onToggle,
+}: {
+  hero: RarityFusionHero;
+  copies: number;
+  selectedCount: number;
+  available: number;
+  blocked: boolean;
+  onToggle: () => void;
+}) {
+  const active = selectedCount > 0;
+  return (
+    <button
+      disabled={blocked || (available === 0 && !active)}
+      onClick={onToggle}
+      className={`relative flex w-full flex-col overflow-hidden rounded-xl border bg-black/70 text-left transition-shadow disabled:opacity-40 ${active ? 'shadow-[0_0_0_2px_rgba(251,191,36,.85),0_0_14px_rgba(251,191,36,.45)]' : ''}`}
+      style={{ borderColor: active ? '#fbbf24' : RARITY_COLOR[hero.rarity], aspectRatio: '0.72 / 1' }}
+    >
+      <div className="relative w-full" style={{ aspectRatio: '1 / 1' }}>
+        {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="h-full w-full object-cover" /> : null}
+        {active ? (
+          <span className="absolute inset-0 grid place-items-center bg-amber-300/20">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-amber-300 text-black"><Check size={14} /></span>
+          </span>
+        ) : null}
+        {blocked ? <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded bg-black/75 text-amber-300"><Lock size={9} /></span> : null}
+        {copies > 1 ? <span className="absolute left-1 top-1 rounded bg-black/80 px-1 text-[8px] font-black text-amber-200">x{copies}</span> : null}
+      </div>
+      <div className="flex-1 px-1 py-1 leading-tight">
+        <b className="block truncate text-[8px]">{hero.name}</b>
+        <p className="text-[7px] font-black uppercase" style={{ color: RARITY_COLOR[hero.rarity] }}>{RARITY_LABEL[hero.rarity] ?? hero.rarity}</p>
+        <p className="text-[7px] text-slate-400">Lv.{hero.level}{copies > 1 ? ` · x${available} livre` : ''}</p>
+      </div>
+    </button>
   );
 }
 
 export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData: string; data: RarityFusionDashboard }) {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
-  const [picking, setPicking] = useState<number | null>(null);
-  const [filter, setFilter] = useState<string>('all');
+  const [filter, setFilter] = useState<string>('common');
   const [confirming, setConfirming] = useState(false);
   const [phase, setPhase] = useState<'idle' | 'fusing' | 'result'>('idle');
   const [result, setResult] = useState<RarityFusionResult | null>(null);
@@ -55,17 +92,37 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
   const notEnoughFc = complete && data.balance < cost;
   const fusionEnabled = config?.enabled !== false;
 
-  // Dropped heroes (consumed by a previous fusion) must never stay pinned to a slot.
   useEffect(() => {
     setSelected((prev) => prev.filter((id) => byId.has(id)));
   }, [byId]);
 
-  const pool = heroes.filter((hero) => {
-    if (selected.includes(hero.heroId)) return false;
-    if (sourceRarity && hero.rarity !== sourceRarity) return false;
-    if (!sourceRarity && filter !== 'all' && hero.rarity !== filter) return false;
-    return true;
-  });
+  const activeRarity = sourceRarity ?? filter;
+
+  // Group copies of the same hero into a single compact card.
+  const groups = useMemo(() => {
+    const map = new Map<string, RarityFusionHero[]>();
+    heroes
+      .filter((hero) => hero.rarity === activeRarity)
+      .forEach((hero) => {
+        const list = map.get(hero.heroKey) ?? [];
+        list.push(hero);
+        map.set(hero.heroKey, list);
+      });
+    return [...map.values()].map((list) => list.sort((a, b) => a.power - b.power));
+  }, [heroes, activeRarity]);
+
+  function toggleGroup(list: RarityFusionHero[]) {
+    const picked = list.filter((h) => selected.includes(h.heroId));
+    const free = list.filter((h) => !selected.includes(h.heroId) && !h.locked && !h.equipped);
+    setSelected((prev) => {
+      if (free.length === 0 || prev.length >= required) {
+        // nothing free -> remove the last selected copy
+        const last = picked[picked.length - 1];
+        return last ? prev.filter((id) => id !== last.heroId) : prev;
+      }
+      return [...prev, free[0].heroId].slice(0, required);
+    });
+  }
 
   async function runFusion() {
     if (busy.current || !complete || notEnoughFc) return;
@@ -77,7 +134,6 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
     const started = Date.now();
     try {
       const payload = await fuseHeroesByRarity(telegramInitData, selected, key);
-      // Keep the ritual on screen for at least 3s so the reveal never feels instant.
       const wait = Math.max(0, 3200 - (Date.now() - started));
       await new Promise((resolve) => setTimeout(resolve, wait));
       setResult(payload);
@@ -99,75 +155,104 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
   }
 
   return (
-    <section className="pb-4">
-      <div className="rounded-2xl border border-amber-300/20 bg-[radial-gradient(circle_at_top,#12224a_0%,#060b16_70%)] p-3 text-center">
-        <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
-        <h2 className="text-lg font-black">HERO FUSION</h2>
-        <p className="mt-1 text-[10px] leading-snug text-slate-300">
-          Combine {required} heróis da mesma raridade por uma chance de obter um herói da raridade seguinte.
-        </p>
-        {!fusionEnabled ? <p className="mt-2 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-1 text-[10px] font-black text-rose-200">FUSÃO TEMPORARIAMENTE DESATIVADA</p> : null}
+    <section className="pb-2">
+      <div className="rounded-xl border border-amber-300/20 bg-[radial-gradient(circle_at_top,#12224a_0%,#060b16_70%)] px-3 py-2">
+        <h2 className="text-[13px] font-black">FUSÃO DE RARIDADE</h2>
+        <p className="text-[9px] text-slate-300">Combine {required} heróis da mesma raridade.</p>
+        {!fusionEnabled ? <p className="mt-1 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-0.5 text-[9px] font-black text-rose-200">FUSÃO DESATIVADA</p> : null}
       </div>
 
-      {/* Altar */}
-      <div className="relative mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#04070d] p-3">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-300/15 bg-[radial-gradient(circle,rgba(96,165,250,.22),transparent_62%)]" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-300/20" />
-        <div className="relative">
-          <div className="mx-auto w-1/3">
-            <AltarSlot hero={chosen[0] ?? null} onPick={() => setPicking(0)} onClear={() => setSelected((p) => p.filter((_, i) => i !== 0))} />
-          </div>
-          <div className="mt-2 flex justify-center gap-8">
-            {[1, 2].map((index) => (
-              <div key={index} className="w-1/3">
-                <AltarSlot hero={chosen[index] ?? null} onPick={() => setPicking(index)} onClear={() => setSelected((p) => p.filter((_, i) => i !== index))} />
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 flex justify-center gap-8">
-            {[3, 4].map((index) => (
-              <div key={index} className="w-1/3">
-                <AltarSlot hero={chosen[index] ?? null} onPick={() => setPicking(index)} onClear={() => setSelected((p) => p.filter((_, i) => i !== index))} />
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 grid place-items-center">
-            <div className={`grid h-14 w-14 place-items-center rounded-xl border border-amber-300/50 bg-[conic-gradient(from_0deg,#1e3a8a,#0b1220,#1e3a8a)] text-amber-200 ${complete ? 'animate-pulse' : ''}`}>
-              <Sparkles size={22} />
-            </div>
-            <p className="mt-1 text-[9px] font-black uppercase tracking-[.24em] text-amber-300">MYTHREON CORE</p>
-          </div>
+      {/* Compact slot bar */}
+      <div className="sticky top-0 z-10 mt-2 rounded-xl border border-white/10 bg-[#04070d]/95 p-2 backdrop-blur">
+        <div className="flex items-center justify-center gap-1.5">
+          {SLOTS.slice(0, required).map((index) => (
+            <SlotChip
+              key={index}
+              index={index}
+              hero={chosen[index] ?? null}
+              onClear={() => setSelected((p) => p.filter((_, i) => i !== index))}
+            />
+          ))}
         </div>
+        <p className="mt-1 text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-200">{selected.length} / {required} selecionados</p>
       </div>
 
-      {/* Cost panel */}
-      <div className="mt-3 space-y-1.5 rounded-2xl border border-white/10 bg-black/50 p-3 text-[11px]">
-        <Row label="HERÓIS NECESSÁRIOS" value={`${selected.length} / ${required}`} />
-        <Row label="RARIDADE ATUAL" value={sourceRarity ? RARITY_LABEL[sourceRarity] ?? sourceRarity : '—'} color={sourceRarity ? RARITY_COLOR[sourceRarity] : undefined} />
-        <Row label="RESULTADO POSSÍVEL" value={tier ? RARITY_LABEL[tier.target] ?? tier.target : '—'} color={tier ? RARITY_COLOR[tier.target] : undefined} />
-        <Row label="CHANCE DE SUCESSO" value={tier ? `${tier.chance}%` : '—'} />
-        <Row label="CUSTO DA FUSÃO" value={tier ? `${fmt(cost)} FC` : '—'} />
-        <Row label="COMPENSAÇÃO NA FALHA" value={tier ? `${fmt(tier.fragments)} Fragmentos Universais` : '—'} />
-        <Row label="SEU SALDO" value={`${fmt(data.balance)} FC`} />
+      {/* Rarity filters */}
+      <div className="mt-2 grid grid-cols-5 gap-1">
+        {FILTERS.map((option) => {
+          const active = activeRarity === option;
+          const disabled = Boolean(sourceRarity) && sourceRarity !== option;
+          return (
+            <button
+              key={option}
+              disabled={disabled}
+              onClick={() => setFilter(option)}
+              className={`min-h-[28px] truncate rounded-lg border px-0.5 text-[8px] font-black uppercase tracking-[.04em] disabled:opacity-30 ${active ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
+            >
+              {RARITY_LABEL[option]}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Grid */}
+      <p className="mt-2 text-[9px] uppercase tracking-[.2em] text-slate-400">Selecionar heróis</p>
+      {groups.length === 0 ? (
+        <p className="py-10 text-center text-[11px] text-slate-400">Nenhum herói desta raridade.</p>
+      ) : (
+        <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          {groups.map((list) => {
+            const head = list[0];
+            const selectedCount = list.filter((h) => selected.includes(h.heroId)).length;
+            const available = list.filter((h) => !selected.includes(h.heroId) && !h.locked && !h.equipped).length;
+            const blocked = list.every((h) => h.locked || h.equipped) || !tiers[head.rarity];
+            return (
+              <FusionHeroCard
+                key={head.heroKey}
+                hero={head}
+                copies={list.length}
+                selectedCount={selectedCount}
+                available={available}
+                blocked={blocked}
+                onToggle={() => toggleGroup(list)}
+              />
+            );
+          })}
+        </div>
+      )}
 
       {error ? <p className="mt-2 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-1.5 text-[10px] text-rose-200">{error}</p> : null}
-      {notEnoughFc ? <p className="mt-2 text-center text-[10px] font-black text-rose-300">NOT ENOUGH FC</p> : null}
 
-      <button
-        disabled={!complete || notEnoughFc || !fusionEnabled || phase === 'fusing'}
-        onClick={() => setConfirming(true)}
-        className="mt-3 min-h-[46px] w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-300/25 to-amber-500/10 text-[12px] font-black uppercase tracking-[.16em] text-amber-100 disabled:opacity-40"
-      >
-        {phase === 'fusing' ? 'FUNDINDO...' : complete ? `FUNDIR • ${fmt(cost)} FC` : `SELECIONE ${required} HERÓIS`}
-      </button>
+      {/* Sticky fusion bar */}
+      <div className="sticky bottom-0 z-10 mt-3 rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
+        <div className="flex items-center justify-between gap-2 text-[9px]">
+          <span className="font-black uppercase tracking-[.12em] text-amber-200">{selected.length} / {required} selecionados</span>
+          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>Custo: {tier ? `${fmt(cost)} FC` : '—'}</span>
+        </div>
+        <p className="text-[9px] text-slate-400">
+          {tier && sourceRarity ? (
+            <>
+              <b style={{ color: RARITY_COLOR[sourceRarity] }}>{RARITY_LABEL[sourceRarity]}</b> → <b style={{ color: RARITY_COLOR[tier.target] }}>{RARITY_LABEL[tier.target] ?? tier.target}</b> · chance {tier.chance}% · falha +{fmt(tier.fragments)} frag.
+            </>
+          ) : (
+            <>Saldo: {fmt(data.balance)} FC</>
+          )}
+        </p>
+        <button
+          disabled={!complete || notEnoughFc || !fusionEnabled || phase === 'fusing'}
+          onClick={() => setConfirming(true)}
+          className="mt-1.5 min-h-[42px] w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-300/25 to-amber-500/10 text-[11px] font-black uppercase tracking-[.16em] text-amber-100 disabled:opacity-40"
+        >
+          {phase === 'fusing' ? 'FUNDINDO...' : notEnoughFc ? 'SALDO INSUFICIENTE' : complete ? 'FUSE HEROES' : `SELECIONE ${required} HERÓIS`}
+        </button>
+      </div>
 
       {data.history?.length ? (
-        <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3">
-          <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">Histórico recente</p>
-          <ul className="mt-1.5 space-y-1">
-            {data.history.map((entry) => (
-              <li key={entry.id} className="flex items-center justify-between gap-2 text-[10px]">
+        <div className="mt-3 rounded-xl border border-white/10 bg-black/40 p-2">
+          <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Histórico recente</p>
+          <ul className="mt-1 space-y-1">
+            {data.history.slice(0, 6).map((entry) => (
+              <li key={entry.id} className="flex items-center justify-between gap-2 text-[9px]">
                 <span className="truncate text-slate-300">
                   {RARITY_LABEL[entry.sourceRarity] ?? entry.sourceRarity} → {RARITY_LABEL[entry.targetRarity] ?? entry.targetRarity}
                 </span>
@@ -177,70 +262,6 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               </li>
             ))}
           </ul>
-        </div>
-      ) : null}
-
-      {/* Hero picker */}
-      {picking !== null ? (
-        <div className="fixed inset-0 z-[95] flex items-end bg-black/80" onClick={() => setPicking(null)}>
-          <div className="forge-safe-page max-h-[82vh] w-full overflow-y-auto rounded-t-3xl border-t border-amber-300/25 bg-[#050a12] p-3" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-black">SELECIONAR HERÓI</h3>
-              <button onClick={() => setPicking(null)} aria-label="Fechar" className="grid h-9 w-9 place-items-center rounded-xl border border-white/15 bg-black/60"><X size={16} /></button>
-            </div>
-            {!sourceRarity ? (
-              <div className="mb-2 flex flex-wrap gap-1.5">
-                {['all', 'common', 'uncommon', 'rare', 'epic'].map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setFilter(option)}
-                    className={`min-h-[30px] rounded-lg border px-2 text-[9px] font-black uppercase tracking-[.1em] ${filter === option ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
-                  >
-                    {option === 'all' ? 'ALL' : RARITY_LABEL[option]}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="mb-2 text-[10px] text-slate-400">
-                Raridade travada em <b style={{ color: RARITY_COLOR[sourceRarity] }}>{RARITY_LABEL[sourceRarity] ?? sourceRarity}</b> pelo primeiro herói selecionado.
-              </p>
-            )}
-            {pool.length === 0 ? (
-              <p className="py-10 text-center text-[11px] text-slate-400">Nenhum herói disponível para esta seleção.</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {pool.map((hero) => {
-                  const blocked = hero.locked || hero.equipped || !tiers[hero.rarity];
-                  return (
-                    <button
-                      key={hero.heroId}
-                      disabled={blocked}
-                      onClick={() => {
-                        setSelected((prev) => {
-                          const next = [...prev];
-                          if (picking < next.length) next[picking] = hero.heroId;
-                          else next.push(hero.heroId);
-                          return next.slice(0, required);
-                        });
-                        setPicking(null);
-                      }}
-                      className="overflow-hidden rounded-xl border bg-black/70 text-left disabled:opacity-45"
-                      style={{ borderColor: RARITY_COLOR[hero.rarity] }}
-                    >
-                      {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover" /> : null}
-                      <div className="p-1.5">
-                        <b className="block truncate text-[9px]">{hero.name}</b>
-                        <p className="text-[8px]" style={{ color: RARITY_COLOR[hero.rarity] }}>{RARITY_LABEL[hero.rarity] ?? hero.rarity} · Nv. {hero.level}</p>
-                        {hero.locked ? <p className="flex items-center gap-1 text-[8px] text-amber-300"><Lock size={9} /> BLOQUEADO</p> : null}
-                        {hero.equipped ? <p className="flex items-center gap-1 text-[8px] text-emerald-300"><Swords size={9} /> EM EQUIPE</p> : null}
-                        {!tiers[hero.rarity] && !hero.locked && !hero.equipped ? <p className="text-[8px] text-slate-400">FUSÃO MÁXIMA</p> : null}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       ) : null}
 
@@ -258,7 +279,7 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               ))}
             </div>
             <div className="mt-2 space-y-1 text-[11px]">
-              <Row label="RARIDADE ATUAL" value={RARITY_LABEL[tier ? sourceRarity ?? '' : ''] ?? sourceRarity ?? ''} />
+              <Row label="RARIDADE ATUAL" value={RARITY_LABEL[sourceRarity ?? ''] ?? sourceRarity ?? ''} />
               <Row label="RESULTADO POSSÍVEL" value={RARITY_LABEL[tier.target] ?? tier.target} color={RARITY_COLOR[tier.target]} />
               <Row label="CHANCE" value={`${tier.chance}%`} />
               <Row label="CUSTO" value={`${fmt(cost)} FC`} />
