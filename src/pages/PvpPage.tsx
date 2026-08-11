@@ -35,7 +35,7 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
     <p className="mt-2 text-[13px] font-bold uppercase tracking-[.22em] text-amber-300">PVP ENTRE HERÓIS</p>
     <p className="mt-2 text-[10px] font-semibold text-slate-400">{data.trophies.toLocaleString()} troféus</p>
    </div>
-   <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/35 py-4"><Stat icon={<Shield/>} label="Liga" value={data.league}/><Stat icon={<Swords/>} label="Poder" value={data.teamPower}/><Stat icon={<Ticket/>} label="Tickets" value={data.tickets}/></div>
+   <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/35 py-4"><Stat icon={<Shield/>} label="Liga" value={data.league}/><Stat icon={<Swords/>} label="Poder" value={data.teamPower}/><Stat icon={<Ticket/>} label="Tickets" value={data.tickets} onBuy={()=>setShop(true)}/></div>
    <div className="mt-6 grid grid-cols-3 gap-2"><Nav active={view==='teams'} onClick={()=>setView('teams')} icon={<Users/>} text="Equipes"/><Nav active={view==='history'} onClick={()=>setView('history')} icon={<History/>} text="Histórico"/><Nav active={view==='ranking'} onClick={()=>setView('ranking')} icon={<Trophy/>} text="Ranking"/></div>
   </section>
   {view==='teams'&&<>
