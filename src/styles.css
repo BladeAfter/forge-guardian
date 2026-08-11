@@ -463,9 +463,9 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .forge-golden-tile:focus-visible{outline:2px solid rgba(253,224,71,.8);outline-offset:2px}
 
 /* ============ CLAN HALL (village scenery building, not a card) ============ */
-.clan-hall{position:absolute;left:50%;top:50%;z-index:20;display:flex;width:min(62%,230px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
+.clan-hall{position:absolute;left:50%;top:50%;z-index:0;display:flex;width:clamp(140px,38vw,178px);max-width:calc(100vw - 220px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
 .clan-hall:active{transform:scale(.98)}
-.clan-hall-ground{position:absolute;bottom:20px;left:8%;width:84%;height:26px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
+.clan-hall-ground{position:absolute;bottom:8px;left:16%;width:68%;height:18px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
 .clan-hall-shape{position:relative;display:block;width:100%;line-height:0}
 .clan-hall-art{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 12px rgba(56,110,190,.22)) saturate(1.02) brightness(.97)}
 .clan-hall:hover .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(251,191,36,.28)) brightness(1.05)}
