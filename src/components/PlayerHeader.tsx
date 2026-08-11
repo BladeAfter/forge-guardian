@@ -60,9 +60,10 @@ export function PlayerIdentity({
   );
 }
 
-export function BalanceChip({ balance }: { balance: number }) {
+/** balance === null means the official FC balance is still unknown — never render a fake 0. */
+export function BalanceChip({ balance }: { balance: number | null }) {
   const t = useT();
-  const value = formatCurrency(balance);
+  const value = balance === null ? '---' : formatCurrency(balance);
   return (
     <div
       className="balance-chip flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-black/80 px-2 py-1.5 text-amber-200 shadow-[inset_0_0_18px_rgba(245,158,11,.08)]"
@@ -70,7 +71,7 @@ export function BalanceChip({ balance }: { balance: number }) {
     >
       <img src={coin} alt="" className="balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(251,191,36,.45)]" />
       <span className="min-w-0 flex-1 text-right">
-        <span className="balance-chip-value block font-black text-amber-100">{value}</span>
+        <span className={`balance-chip-value block font-black text-amber-100 ${balance === null ? 'animate-pulse' : ''}`}>{value}</span>
         <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">FC</span>
       </span>
     </div>
