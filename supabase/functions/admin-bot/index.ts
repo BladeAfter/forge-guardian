@@ -2434,7 +2434,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
 
+  if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
+
 
   switch (key) {
     case 'find': return playerSearch(ctx, text, 0);
