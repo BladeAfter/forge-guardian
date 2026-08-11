@@ -706,6 +706,58 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   calendar: handleCalendar,
   'season-pass': handleSeasonPass,
   referral: handleReferral,
+  /**
+   * Clans: membership, roles, chat, missions, clan boss and clan shop.
+   * The database owns every rule (XP, points, limits) — the client only asks.
+   */
+  clan: async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'dashboard') return rpc(db, 'get_clan_dashboard', { p_telegram_id: user.id });
+    if (action === 'search') return rpc(db, 'search_clans', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 40) });
+    if (action === 'create') {
+      return rpc(db, 'create_clan', {
+        p_telegram_id: user.id,
+        p_name: String(body.name || '').slice(0, 24),
+        p_tag: String(body.tag || '').slice(0, 5),
+        p_description: String(body.description || '').slice(0, 200),
+        p_join_type: ['open', 'approval', 'closed'].includes(String(body.joinType)) ? String(body.joinType) : 'open',
+        p_min_trophies: Math.max(0, Number(body.minimumTrophies) || 0),
+        p_emblem: body.emblem && typeof body.emblem === 'object' ? body.emblem : {},
+      });
+    }
+    if (action === 'join') {
+      if (!isUuid(body.clanId)) throw new Error('CLAN_NOT_FOUND');
+      return rpc(db, 'join_clan', { p_telegram_id: user.id, p_clan_id: body.clanId });
+    }
+    if (action === 'leave') return rpc(db, 'leave_clan', { p_telegram_id: user.id });
+    if (action === 'manage') {
+      const manageAction = String(body.manageAction || '');
+      if (!['edit', 'kick', 'promote', 'demote', 'transfer', 'accept', 'reject'].includes(manageAction)) throw new Error('INVALID_ACTION');
+      return rpc(db, 'clan_manage', {
+        p_telegram_id: user.id,
+        p_action: manageAction,
+        p_target: isUuid(body.targetId) ? body.targetId : null,
+        p_payload: body.payload && typeof body.payload === 'object' ? body.payload : {},
+      });
+    }
+    if (action === 'chat') {
+      const chatAction = ['list', 'send', 'delete'].includes(String(body.chatAction)) ? String(body.chatAction) : 'list';
+      return rpc(db, 'clan_chat', {
+        p_telegram_id: user.id,
+        p_action: chatAction,
+        p_body: typeof body.body === 'string' ? body.body.slice(0, 300) : null,
+        p_message_id: isUuid(body.messageId) ? body.messageId : null,
+      });
+    }
+    if (action === 'boss-attack') return rpc(db, 'clan_boss_attack', { p_telegram_id: user.id });
+    if (action === 'shop') {
+      const item = String(body.item || '');
+      if (!['pet_food', 'pvp_ticket', 'fragments', 'hero_chest'].includes(item)) throw new Error('INVALID_ITEM');
+      return rpc(db, 'clan_shop_buy', { p_telegram_id: user.id, p_item: item, p_quantity: Math.max(1, Math.min(20, Number(body.quantity) || 1)) });
+    }
+    throw new Error('Ação inválida.');
+  },
+
   /** Daily quests: progress is only written by server-side event hooks, never by the client. */
   quests: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
