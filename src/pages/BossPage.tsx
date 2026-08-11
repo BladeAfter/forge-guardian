@@ -9,7 +9,7 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
-import { useGlobalBossRanking } from '../hooks';
+import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import type { PvpHero } from '../pvp';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
@@ -24,6 +24,9 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const [isRankingOpen,setIsRankingOpen]=useState(false);
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
+  // Live cycle: reward pool, HP, ends_at, boss swap, status and ranking arrive via Realtime.
+  useGlobalBossRealtime(global?.cycleId??null,Boolean(telegramInitData));
+
   const previous=useRef(combat?.bossCurrentHp ?? game.boss.healthPercent);
   const equipInFlight=useRef(false);
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer)},[]);
