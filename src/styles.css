@@ -490,11 +490,11 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .clan-hall-motes i:nth-child(3){left:74%;bottom:32%;animation-delay:3.4s;background:rgba(147,197,253,.85);box-shadow:0 0 6px rgba(59,130,246,.7)}
 .clan-hall-motes i:nth-child(4){left:38%;bottom:38%;animation-delay:5.1s}
 @keyframes clan-hall-mote{0%{opacity:0;transform:translateY(0)}30%{opacity:.9}100%{opacity:0;transform:translateY(-34px)}}
-.clan-hall-flag{position:absolute;bottom:27%;width:8.5%;pointer-events:none;transform-origin:top center}
-.clan-hall-flag--left{left:23.5%}
-.clan-hall-flag--right{right:29%}
+.clan-hall-flag{position:absolute;bottom:28%;width:5.5%;pointer-events:none;transform-origin:top center}
+.clan-hall-flag--left{left:25%}
+.clan-hall-flag--right{right:30.5%}
 .clan-hall-flag::before{content:'';position:absolute;top:-52%;left:50%;width:2px;height:56%;translate:-50% 0;background:linear-gradient(#c8a35c,#5a4321)}
-.clan-hall-flag b{display:block;width:100%;padding-top:112%;background:linear-gradient(var(--flag-top,#1f3a63),var(--flag-bottom,#07101f));border:1px solid rgba(251,191,36,.55);border-top-width:2px;clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);box-shadow:0 4px 10px rgba(0,0,0,.6);animation:clan-hall-flag 3.4s ease-in-out infinite;transform-origin:top center}
+.clan-hall-flag b{display:block;width:100%;padding-top:165%;background:linear-gradient(var(--flag-top,#1f3a63),var(--flag-bottom,#07101f));border:1px solid rgba(251,191,36,.55);border-top-width:2px;clip-path:polygon(0 0,100% 0,100% 72%,50% 100%,0 72%);box-shadow:0 4px 10px rgba(0,0,0,.6);animation:clan-hall-flag 3.4s ease-in-out infinite;transform-origin:top center}
 .clan-hall-flag--right b{animation-delay:.9s}
 @keyframes clan-hall-flag{0%,100%{transform:rotate(-2.5deg) skewY(1deg)}50%{transform:rotate(2.5deg) skewY(-1.5deg)}}
 .clan-hall-invite{position:absolute;top:2%;left:50%;display:grid;translate:-50% 0;place-items:center;width:22px;height:22px;border-radius:8px;border:1px solid rgba(251,191,36,.6);background:rgba(4,8,14,.82);color:#fcd34d;animation:clan-hall-invite 2.6s ease-in-out infinite}
