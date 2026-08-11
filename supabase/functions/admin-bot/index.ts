@@ -2721,6 +2721,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
+  if (key === 'prsearch') return prSearch(ctx, text);
+  if (key === 'prreason') {
+    if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
+    return prConfirm(ctx, args[0] ?? '', args[1] ?? '', text.slice(0, 300));
+  }
+
 
 
   switch (key) {
