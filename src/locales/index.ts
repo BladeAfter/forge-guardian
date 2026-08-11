@@ -13,8 +13,10 @@ import { pass } from './pass';
 import { pool } from './pool';
 import { clans } from './clans';
 import { events } from './events';
+import { market } from './market';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market];
+
 
 function merge(language: LanguageCode): Dict {
   const dict: Dict = {};

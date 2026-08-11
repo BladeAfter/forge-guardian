@@ -856,6 +856,56 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     return rpc(db, 'get_special_events_dashboard', { p_telegram_id: user.id });
   },
 
+  /**
+   * Player market (FC only). Eligibility, marketplace fee, market locks and the
+   * atomic purchase all live inside the RPCs — the client can only ask.
+   * There is no TON path here on purpose.
+   */
+  market: async (db, user, body) => {
+    const action = String(body.action || 'browse');
+    if (action === 'browse') {
+      const itemType = ['all', 'hero', 'pet', 'item'].includes(String(body.itemType)) ? String(body.itemType) : 'all';
+      const rarity = /^[a-z]{3,20}$/.test(String(body.rarity || '')) ? String(body.rarity) : 'all';
+      const sort = ['newest', 'price_low', 'price_high'].includes(String(body.sort)) ? String(body.sort) : 'newest';
+      return rpc(db, 'market_browse', {
+        p_telegram_id: user.id,
+        p_item_type: itemType,
+        p_rarity: rarity,
+        p_sort: sort,
+        p_limit: Math.min(100, Math.max(1, Number(body.limit) || 60)),
+        p_offset: Math.max(0, Number(body.offset) || 0),
+      });
+    }
+    if (action === 'sellable') return rpc(db, 'market_get_sellable', { p_telegram_id: user.id });
+    if (action === 'mine') return rpc(db, 'market_my_listings', { p_telegram_id: user.id });
+    if (action === 'create') {
+      const itemType = String(body.itemType || '');
+      if (!['hero', 'pet', 'item'].includes(itemType)) throw new Error('INVALID_ITEM_TYPE');
+      const price = Number(body.priceFc);
+      if (!Number.isInteger(price) || price <= 0) throw new Error('INVALID_PRICE');
+      if (itemType === 'item') {
+        if (!/^[a-z0-9_]{2,60}$/.test(String(body.itemCode || ''))) throw new Error('INVALID_ITEM');
+      } else if (!isUuid(body.itemInstanceId)) throw new Error('INVALID_ITEM');
+      return rpc(db, 'market_create_listing', {
+        p_telegram_id: user.id,
+        p_item_type: itemType,
+        p_item_instance_id: itemType === 'item' ? null : body.itemInstanceId,
+        p_item_code: itemType === 'item' ? String(body.itemCode) : null,
+        p_price_fc: price,
+      });
+    }
+    if (action === 'cancel') {
+      if (!isUuid(body.listingId)) throw new Error('INVALID_LISTING');
+      return rpc(db, 'market_cancel_listing', { p_telegram_id: user.id, p_listing_id: body.listingId });
+    }
+    if (action === 'buy') {
+      if (!isUuid(body.listingId)) throw new Error('INVALID_LISTING');
+      return rpc(db, 'market_buy_listing', { p_telegram_id: user.id, p_listing_id: body.listingId });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
+
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },

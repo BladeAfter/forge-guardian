@@ -57,6 +57,8 @@ const MAIN_MENU = kb([
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
   [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
   [{ t: '💳 RECUPERAÇÃO DE PAGAMENTOS', d: 'm:precovery' }],
+  [{ t: '🛒 MARKETPLACE', d: 'm:market' }],
+
 
 
 
@@ -902,7 +904,49 @@ async function eventsAudit(ctx: Ctx) {
 const prRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
   rpc('admin_payment_recovery', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
 
+// ---------------------------------------------------------------- 🛒 marketplace (FC only)
+const MK_TYPE: Record<string, string> = { hero: '🦸', pet: '🐲', item: '🎒' };
+const mkLine = (l: any) =>
+  `${MK_TYPE[l.itemType] ?? '•'} <b>${esc(l.name)}</b> ${l.rarity ? `· ${esc(l.rarity)}` : ''}\n   ${fmt(l.priceFc)} FC · ${esc(l.status)} · vendedor ${esc(l.seller ?? '—')}\n   <code>${esc(l.id)}</code>`;
+
+async function marketHub(ctx: Ctx, status = 'active') {
+  const o = await rpc('admin_market_overview', { p_admin_id: ctx.adminId }) as any;
+  const listings = await rpc('admin_market_listings', { p_admin_id: ctx.adminId, p_status: status, p_limit: 10 }) as any[];
+  const s = o.settings || {};
+  const min = s.minPrice || {};
+  const body = (listings || []).map(mkLine).join('\n') || '—';
+  return edit(ctx, [
+    '🛒 <b>MARKETPLACE (FC)</b>',
+    `Taxa atual: <b>${Number(s.feePercent ?? 5)}%</b> (queimada, não vai para a pool TON)`,
+    `Limite por jogador: <b>${fmt(s.maxActiveListings ?? 20)}</b> anúncios ativos`,
+    `Preço mínimo: herói ${fmt(min.hero ?? 0)} FC · pet ${fmt(min.pet ?? 0)} FC · item ${fmt(min.item ?? 0)} FC`,
+    '',
+    `Ativos <b>${fmt(o.active)}</b> · vendidos ${fmt(o.sold)} · cancelados ${fmt(o.cancelled)}`,
+    `Volume total: <b>${fmt(o.volumeFc)} FC</b> · queimado ${fmt(o.burnedFc)} FC`,
+    '',
+    `<b>${status === 'all' ? 'ÚLTIMOS' : status.toUpperCase()}</b>`,
+    body.slice(0, 2800),
+  ].join('\n'), kb([
+    [{ t: '🟢 ATIVOS', d: 'mk:list|active' }, { t: '🔵 VENDIDOS', d: 'mk:list|sold' }, { t: '⚪️ TODOS', d: 'mk:list|all' }],
+    [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
+    [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
+    [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
+    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }],
+    nav(),
+  ]));
+}
+
+async function marketAudit(ctx: Ctx) {
+  const rows = await rpc('admin_market_audit', { p_admin_id: ctx.adminId, p_limit: 15 }) as any[];
+  const body = (rows || []).map((t: any) =>
+    `${MK_TYPE[t.itemType] ?? '•'} <b>${esc(t.name)}</b> — ${fmt(t.priceFc)} FC\n   ${esc(t.seller ?? '—')} → ${esc(t.buyer ?? '—')} · taxa ${fmt(t.feeFc)} FC · recebeu ${fmt(t.received)} FC\n   ${prWhen(t.createdAt)}`,
+  ).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DO MERCADO</b>\n${body.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'mk:audit' }], nav('m:market')]));
+}
+
 const PR_KIND: Record<string, string> = { deposit: '💰 DEPOSIT', premium_egg: '🥚 PREMIUM_EGG', battle_pass: '🎟 BATTLE_PASS' };
+
 const prWhen = (v: unknown) => (v ? esc(new Date(String(v)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })) : '—');
 const prWho = (r: any) => esc(r.username ? '@' + r.username : (r.name || r.telegramId || '—'));
 const prLine = (r: any) =>
@@ -1465,6 +1509,8 @@ async function module(ctx: Ctx, name: string) {
     case 'clans': return clansHub(ctx);
     case 'events': return eventsHub(ctx);
     case 'precovery': return prHub(ctx);
+    case 'market': return marketHub(ctx);
+
 
     case 'gifts': return giftHub(ctx);
 
@@ -1785,7 +1831,14 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  mksearch: '🔍 Envie o nome do item ou o <b>ID do anúncio</b>.',
+  mkuser: '👤 Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os anúncios do jogador.',
+  mkfee: '💸 Envie a nova taxa do mercado em % (0 a 50).\nEx.: <code>5</code> ou <code>3</code>',
+  mklimit: '🚧 Envie o novo limite de anúncios ativos por jogador (1 a 200).\nEx.: <code>20</code>',
+  mkmin: '🏷 Envie: <code>hero|pet|item valor_fc</code>\nEx.: <code>hero 10000</code>',
+  mkcancel: '🗑 Envie o <b>ID do anúncio</b> a cancelar. O item volta ao inventário do vendedor.',
   evcreate: '🎉 Novo evento especial.\nEnvie: <code>nome | prêmio TON | dias | (opcional) início YYYY-MM-DD HH:MM</code>\nEx.: <code>Referral Championship | 100 | 30</code>',
+
   evprize: '💎 Digite o novo prêmio total do evento em TON.\nEx.: <code>100</code>',
   evdates: '📅 Envie: <code>início YYYY-MM-DD HH:MM | fim YYYY-MM-DD HH:MM</code>\nou <code>início | dias</code>. Ex.: <code>2026-08-11 00:00 | 30</code>',
   evrules: '🛡 Envie: <code>mín_daily_quests | top_limit | fixed|proportional</code>\nEx.: <code>1 | 100 | fixed</code>',
@@ -2609,7 +2662,15 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `✅ <b>${RARITY_LABEL[rarity]}</b>: ${pct(cfg.config.odds[rarity])}% → <b>${pct(r.odds[rarity])}%</b>\n\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
       kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
   }
+  if (head === 'mk') {
+    const [sub, arg] = String(rest[0] || '').split('|');
+    if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'list') return marketHub(ctx, arg || 'active');
+    return marketHub(ctx);
+  }
+
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
+
   if (head === 'pool') return ask(ctx, `pool|${rest[0]}`, `Envie o valor em TON para ${rest[0] === 'add' ? 'adicionar' : 'remover'}.`);
   if (head === 'rank') {
     const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: Number(rest[0]) });
@@ -2732,6 +2793,51 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 
   switch (key) {
+    // ---- 🛒 marketplace prompts (every rule is enforced inside the RPCs)
+    case 'mksearch': {
+      const rows = await rpc('admin_market_search', { p_admin_id: ctx.adminId, p_query: text.slice(0, 60), p_limit: 15 }) as any[];
+      return send(ctx, `🔍 <b>BUSCA NO MERCADO</b>\n${(rows || []).map(mkLine).join('\n').slice(0, 3500) || 'Nenhum anúncio encontrado.'}`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkuser': {
+      const d = await rpc('admin_market_user_listings', { p_admin_id: ctx.adminId, p_ref: text, p_limit: 20 }) as any;
+      const who = d.player?.username ? '@' + d.player.username : (d.player?.name || d.player?.telegram_id || '—');
+      return send(ctx, `👤 <b>ANÚNCIOS DE ${esc(who)}</b>\n${(d.listings || []).map(mkLine).join('\n').slice(0, 3400) || 'Nenhum anúncio.'}`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkfee': {
+      const value = parseAmount(text.replace('%', ''));
+      if (!Number.isFinite(value) || value < 0 || value > 50) throw new Error('KEEP_SESSION::⚠️ Envie uma taxa entre 0 e 50 (ex.: <code>5</code>).');
+      const s = await rpc('admin_market_set_fee', { p_admin_id: ctx.adminId, p_percent: value }) as any;
+      return send(ctx, `✅ Taxa do mercado agora é <b>${Number(s.feePercent)}%</b>.\nA taxa é queimada da economia FC (não vai para a pool TON).`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mklimit': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 1 || value > 200) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre 1 e 200.');
+      const s = await rpc('admin_market_set_limit', { p_admin_id: ctx.adminId, p_max_active: value }) as any;
+      return send(ctx, `✅ Limite atualizado: <b>${fmt(s.maxActiveListings)}</b> anúncios ativos por jogador.`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkmin': {
+      const [kind, raw] = text.split(/\s+/);
+      const value = Math.round(parseAmount(raw ?? ''));
+      if (!['hero', 'pet', 'item'].includes(String(kind).toLowerCase()) || !Number.isFinite(value) || value < 0) {
+        throw new Error('KEEP_SESSION::⚠️ Envie: <code>hero|pet|item valor_fc</code> — ex.: <code>hero 10000</code>');
+      }
+      const s = await rpc('admin_market_set_min_price', { p_admin_id: ctx.adminId, p_item_type: String(kind).toLowerCase(), p_value: value }) as any;
+      const min = s.minPrice || {};
+      return send(ctx, `✅ Preço mínimo atualizado.\nHerói ${fmt(min.hero ?? 0)} FC · Pet ${fmt(min.pet ?? 0)} FC · Item ${fmt(min.item ?? 0)} FC`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkcancel': {
+      const id = text.trim();
+      if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error('KEEP_SESSION::⚠️ Envie o ID completo do anúncio (UUID).');
+      await rpc('admin_market_cancel_listing', { p_admin_id: ctx.adminId, p_listing_id: id, p_reason: 'cancelado pelo admin (bot)' });
+      return send(ctx, '✅ Anúncio cancelado. O item voltou ao inventário do vendedor e o bloqueio de mercado foi removido.',
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+
     case 'find': return playerSearch(ctx, text, 0);
     case 'passuser': return passCard(ctx, text);
     case 'tree': return handleCallback(ctx, `tree:${text}`);

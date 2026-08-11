@@ -17,6 +17,8 @@ import type{PassTier,PassXpGain,SeasonPassDashboard,SeasonPassOrder}from'./seaso
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
+import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketItemType,MarketMine,MarketSellable,MarketSort} from './market';
+
 
 const demoPlayerId = (telegramInitData: string) => {
   try {
@@ -312,3 +314,51 @@ async function rarityFusionRequest<T>(initData:string,input:PvpAction):Promise<T
 export const fetchRarityFusion=(initData:string)=>rarityFusionRequest<RarityFusionDashboard>(initData,{action:'rarity-fusion'});
 export const fuseHeroesByRarity=(initData:string,heroIds:string[],idempotencyKey:string)=>rarityFusionRequest<RarityFusionResult>(initData,{action:'rarity-fuse',heroIds,idempotencyKey});
 export const setHeroLock=(initData:string,heroId:string,locked:boolean)=>fusionRequest<{heroId:string;locked:boolean}>(initData,{action:'lock',heroId,locked});
+
+// ------------------------------------------------------------- player market (FC only)
+const MARKET_ERRORS:Record<string,string>={
+  PLAYER_NOT_FOUND:'Jogador não encontrado.',
+  INVALID_ITEM_TYPE:'Categoria inválida.',
+  INVALID_ITEM:'Item inválido.',
+  INVALID_PRICE:'Preço inválido.',
+  PRICE_BELOW_MINIMUM:'Preço abaixo do mínimo permitido.',
+  PRICE_ABOVE_MAXIMUM:'Preço acima do máximo permitido.',
+  TOO_MANY_ACTIVE_LISTINGS:'Você atingiu o limite de anúncios ativos.',
+  ITEM_NOT_OWNED:'Este item não pertence a você.',
+  ALREADY_LISTED:'Este item já está anunciado.',
+  HERO_LOCKED:'Remova o bloqueio do herói antes de vender.',
+  HERO_NOT_TRADABLE:'Este herói não pode ser vendido.',
+  HERO_IN_PVP_TEAM:'Retire o herói da equipe de PvP antes de vender.',
+  HERO_IN_BOSS_TEAM:'Retire o herói da equipe do Chefe antes de vender.',
+  HERO_LISTED_IN_MARKET:'Este herói está anunciado no mercado.',
+  PET_IS_ACTIVE:'Desative o pet antes de vender.',
+  PET_NOT_TRADABLE:'Este pet não pode ser vendido.',
+  PET_LISTED_IN_MARKET:'Este pet está anunciado no mercado.',
+  ITEM_NOT_TRADABLE:'Este item não pode ser vendido.',
+  LISTING_NOT_FOUND:'Anúncio não encontrado.',
+  LISTING_NOT_ACTIVE:'Este anúncio não está mais ativo.',
+  NOT_LISTING_OWNER:'Este anúncio não é seu.',
+  ITEM_NO_LONGER_AVAILABLE:'Item não está mais disponível.',
+  CANNOT_BUY_OWN_LISTING:'Você não pode comprar seu próprio anúncio.',
+  NOT_ENOUGH_FORGE_COINS:'FC insuficientes para esta compra.',
+};
+export type MarketAction=
+  |{action:'browse';itemType?:MarketItemType|'all';rarity?:string;sort?:MarketSort;limit?:number;offset?:number}
+  |{action:'sellable'}
+  |{action:'mine'}
+  |{action:'create';itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;priceFc:number}
+  |{action:'cancel';listingId:string}
+  |{action:'buy';listingId:string};
+export async function marketRequest<T>(initData:string,input:MarketAction):Promise<T>{
+  const response=await forgeFetch('market',{initData,...input});
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o mercado.');
+  const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+  if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(MARKET_ERRORS[raw]||raw||'Não foi possível processar o mercado.')}
+  return payload;
+}
+export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>marketRequest<MarketBrowse>(initData,{action:'browse',itemType,rarity,sort,limit:60});
+export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
+export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});
+export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;priceFc:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
+export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
+export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});

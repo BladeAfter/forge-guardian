@@ -2007,6 +2007,145 @@ export type Database = {
           },
         ]
       }
+      market_listings: {
+        Row: {
+          buyer_user_id: string | null
+          cancelled_at: string | null
+          created_at: string
+          fee_percent: number
+          id: string
+          item_code: string | null
+          item_instance_id: string | null
+          item_type: string
+          price_fc: number
+          quantity: number
+          seller_user_id: string
+          snapshot: Json
+          sold_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_user_id?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          fee_percent?: number
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type: string
+          price_fc: number
+          quantity?: number
+          seller_user_id: string
+          snapshot?: Json
+          sold_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_user_id?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          fee_percent?: number
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type?: string
+          price_fc?: number
+          quantity?: number
+          seller_user_id?: string
+          snapshot?: Json
+          sold_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_listings_buyer_user_id_fkey"
+            columns: ["buyer_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_transactions: {
+        Row: {
+          buyer_user_id: string
+          created_at: string
+          fee_fc: number
+          fee_percent: number
+          id: string
+          item_code: string | null
+          item_instance_id: string | null
+          item_type: string
+          listing_id: string
+          price_fc: number
+          seller_received_fc: number
+          seller_user_id: string
+          snapshot: Json
+        }
+        Insert: {
+          buyer_user_id: string
+          created_at?: string
+          fee_fc: number
+          fee_percent: number
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type: string
+          listing_id: string
+          price_fc: number
+          seller_received_fc: number
+          seller_user_id: string
+          snapshot?: Json
+        }
+        Update: {
+          buyer_user_id?: string
+          created_at?: string
+          fee_fc?: number
+          fee_percent?: number
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type?: string
+          listing_id?: string
+          price_fc?: number
+          seller_received_fc?: number
+          seller_user_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_transactions_buyer_user_id_fkey"
+            columns: ["buyer_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "market_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_transactions_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_recovery_audit: {
         Row: {
           action: string
@@ -2866,6 +3005,7 @@ export type Database = {
           is_season_exclusive: boolean
           level: number
           locked: boolean
+          market_locked: boolean
           name: string
           rarity: string
           stats_generated_at: string | null
@@ -2898,6 +3038,7 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           locked?: boolean
+          market_locked?: boolean
           name: string
           rarity: string
           stats_generated_at?: string | null
@@ -2930,6 +3071,7 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           locked?: boolean
+          market_locked?: boolean
           name?: string
           rarity?: string
           stats_generated_at?: string | null
@@ -3197,6 +3339,7 @@ export type Database = {
           is_active: boolean
           is_season_exclusive: boolean
           level: number
+          market_locked: boolean
           obtained_at: string
           pet_id: string
           rarity: string
@@ -3217,6 +3360,7 @@ export type Database = {
           is_active?: boolean
           is_season_exclusive?: boolean
           level?: number
+          market_locked?: boolean
           obtained_at?: string
           pet_id: string
           rarity: string
@@ -3237,6 +3381,7 @@ export type Database = {
           is_active?: boolean
           is_season_exclusive?: boolean
           level?: number
+          market_locked?: boolean
           obtained_at?: string
           pet_id?: string
           rarity?: string
@@ -5508,6 +5653,39 @@ export type Database = {
         }
         Returns: string
       }
+      admin_market_audit: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_market_cancel_listing: {
+        Args: { p_admin_id: number; p_listing_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_market_listings: {
+        Args: { p_admin_id: number; p_limit?: number; p_status?: string }
+        Returns: Json
+      }
+      admin_market_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_market_search: {
+        Args: { p_admin_id: number; p_limit?: number; p_query: string }
+        Returns: Json
+      }
+      admin_market_set_fee: {
+        Args: { p_admin_id: number; p_percent: number }
+        Returns: Json
+      }
+      admin_market_set_limit: {
+        Args: { p_admin_id: number; p_max_active: number }
+        Returns: Json
+      }
+      admin_market_set_min_price: {
+        Args: { p_admin_id: number; p_item_type: string; p_value: number }
+        Returns: Json
+      }
+      admin_market_user_listings: {
+        Args: { p_admin_id: number; p_limit?: number; p_ref: string }
+        Returns: Json
+      }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_next_hero_key: {
         Args: { p_admin_id: number; p_name: string }
@@ -6571,6 +6749,39 @@ export type Database = {
         Args: { p_ids?: string[]; p_telegram_id: number }
         Returns: Json
       }
+      market_browse: {
+        Args: {
+          p_item_type?: string
+          p_limit?: number
+          p_offset?: number
+          p_rarity?: string
+          p_sort?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      market_buy_listing: {
+        Args: { p_listing_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      market_cancel_listing: {
+        Args: { p_listing_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      market_create_listing: {
+        Args: {
+          p_item_code: string
+          p_item_instance_id: string
+          p_item_type: string
+          p_price_fc: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      market_get_sellable: { Args: { p_telegram_id: number }; Returns: Json }
+      market_my_listings: { Args: { p_telegram_id: number }; Returns: Json }
+      market_seller_label: { Args: { p_user: string }; Returns: string }
+      market_settings_json: { Args: never; Returns: Json }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
