@@ -28,7 +28,7 @@ export type ForgeAuthProbe = {
 export async function forgeAuthProbe(initData: string): Promise<ForgeAuthProbe> {
   if (!functionsBase || !supabaseAnonKey) return { ok: false, reason: 'backend_not_configured', error: 'Backend não configurado.' };
   if (!initData || !new URLSearchParams(initData).get('hash')) return { ok: false, reason: 'init_data_missing', error: 'Sessão do Telegram ausente. Abra o jogo pelo Telegram.' };
-  const response = await fetch(`${functionsBase}/auth`, {
+  const response = await fetchWithTimeout(`${functionsBase}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey, 'X-Telegram-Init-Data': initData },
     body: JSON.stringify({ initData }),
@@ -54,7 +54,7 @@ export type ForgeHealth = {
 export async function forgeHealth(): Promise<ForgeHealth> {
   if (!functionsBase) return { ok: false, backend: 'not_configured' };
   try {
-    const response = await fetch(`${functionsBase}/health`, {
+    const response = await fetchWithTimeout(`${functionsBase}/health`, {
       headers: supabaseAnonKey ? { apikey: supabaseAnonKey } : undefined,
     });
     const payload = (await response.json().catch(() => null)) as ForgeHealth | null;
@@ -74,6 +74,25 @@ const hasSignedInitData = (initData: string) => {
   }
 };
 
+/**
+ * Telegram webviews (Android especially) can leave a fetch hanging forever when the
+ * connection drops mid-request. Every backend call must fail loudly instead of
+ * keeping a React Query in `pending` state and freezing the boot screen.
+ */
+export async function fetchWithTimeout(input: string, init: RequestInit = {}, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(`Tempo excedido ao contatar o backend (${timeoutMs}ms).`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
   if (!functionsBase || !supabaseAnonKey || !hasSignedInitData(initData)) {
@@ -89,7 +108,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
 
   const endpoint = `${functionsBase}/${feature}`;
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetchWithTimeout(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
