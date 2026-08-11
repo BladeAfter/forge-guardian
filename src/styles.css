@@ -505,5 +505,5 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .clan-hall-sign-text{display:block;min-width:0;text-align:center}
 .clan-hall-sign-text b{display:block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
 .clan-hall-sign-text i{display:block;font-style:normal;font-size:6.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a58a5f}
-@media (max-width:370px){.clan-hall{width:66%}}
+@media (max-width:380px){.clan-hall{width:56%}}
 @media (prefers-reduced-motion:reduce){.clan-hall-torch i,.clan-hall-flag b,.clan-hall-smoke i,.clan-hall-motes i,.clan-hall-window-glow,.clan-hall-invite{animation:none}.clan-hall-smoke,.clan-hall-motes{display:none}}
