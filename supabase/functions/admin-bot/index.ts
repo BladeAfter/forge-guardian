@@ -55,7 +55,7 @@ const MAIN_MENU = kb([
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
-  [{ t: '🎁 PRESENTES', d: 'm:gifts' }],
+  [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
 
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
@@ -822,6 +822,76 @@ async function clansHub(ctx: Ctx) {
     ]));
 }
 
+// ---------------------------------------------------------------- 🎉 EVENTS (special events: independent from the weekly pool)
+const evRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc('admin_events', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+
+const EV_STATUS: Record<string, string> = { scheduled: '🕒 AGENDADO', active: '🟢 ATIVO', finished: '🏁 ENCERRADO', cancelled: '⛔ CANCELADO' };
+const evDate = (v: unknown) => String(v ?? '').slice(0, 16).replace('T', ' ');
+
+function eventsText(d: any) {
+  const e = d.event;
+  if (!e) return '🎉 <b>EVENTOS ESPECIAIS</b>\n\nNenhum evento cadastrado ainda.\nCrie o primeiro com “➕ CRIAR EVENTO”.';
+  const rules = e.rules || {};
+  const dist = Array.isArray(rules.distribution) ? rules.distribution : [];
+  const pay = d.payoutSummary || {};
+  return [
+    '🎉 <b>EVENTOS ESPECIAIS</b>',
+    '<i>Camada independente — não afeta a Pool Semanal.</i>',
+    '',
+    `🏆 <b>${esc(e.name)}</b> ${EV_STATUS[e.status] ?? esc(e.status)}`,
+    `<code>${esc(e.eventKey)}</code> · tipo <code>${esc(e.type)}</code>`,
+    `💎 Prêmio total: <b>${fmt(e.prizePoolTon)} TON</b>`,
+    `📅 ${evDate(e.startsAt)} → ${evDate(e.endsAt)}`,
+    '',
+    `👥 Participantes válidos: <b>${fmt(d.participantCount)}</b>`,
+    `🤝 Convites válidos no total: <b>${fmt(d.totalValidReferrals)}</b>`,
+    `🛡 Regras: mín. ${rules.minDailyQuests ?? 1} daily quest · TOP ${rules.topLimit ?? 100} · modo <b>${esc(rules.distributionMode ?? 'fixed')}</b>`,
+    dist.length ? `🏅 Faixas: ${dist.slice(0, 6).map((x: any) => `#${x.from}${x.to !== x.from ? '-' + x.to : ''}=${x.ton ?? x.totalTon}`).join(' · ')}${dist.length > 6 ? ' …' : ''}` : '',
+    '',
+    `💸 Pagamentos: ${fmt(pay.rows)} linhas · pendentes ${fmt(pay.pending)} · pagos ${fmt(pay.paid)} (${fmt(pay.paidTon)} TON) · falhas ${fmt(pay.failed)}`,
+    '',
+    '<b>TOP 10</b>',
+    (d.ranking || []).slice(0, 10).map((r: any) => `${r.position}. ${esc(r.username ? '@' + r.username : r.name)} — ${fmt(r.validReferrals)} convites · ${fmt(r.rewardTon)} TON`).join('\n') || '—',
+  ].filter(Boolean).join('\n');
+}
+
+async function eventsHub(ctx: Ctx, ref: string | null = null, editing = true) {
+  const d = await evRpc(ctx, 'view', ref, { limit: 10 });
+  const key = d.event?.eventKey ?? '';
+  const markup = kb([
+    [{ t: '➕ CRIAR EVENTO', d: 'ask:evcreate' }, { t: '📋 TODOS OS EVENTOS', d: 'ev:list' }],
+    [{ t: '💎 EDITAR PRÊMIO', d: `ask:evprize|${key}` }, { t: '📅 EDITAR DATAS', d: `ask:evdates|${key}` }],
+    [{ t: '🛡 EDITAR REGRAS', d: `ask:evrules|${key}` }, { t: '🏅 TABELA DE PRÊMIOS', d: `ask:evdist|${key}` }],
+    [{ t: '📈 RANKING TOP 100', d: `ev:rank|${key}` }, { t: '📜 AUDITORIA', d: 'ev:audit' }],
+    [{ t: '🏁 ENCERRAR + SNAPSHOT', d: `evconfirm:finish|${key}` }, { t: '💸 DISTRIBUIR', d: `evconfirm:distribute|${key}` }],
+    [{ t: '⛔ CANCELAR EVENTO', d: `evconfirm:cancel|${key}` }],
+    nav(),
+  ]);
+  const text = eventsText(d);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function eventsList(ctx: Ctx) {
+  const d = await evRpc(ctx, 'list');
+  const rows = (d.events || []) as any[];
+  const body = rows.map((e) => `• ${EV_STATUS[e.status] ?? e.status} <b>${esc(e.name)}</b>\n   <code>${esc(e.eventKey)}</code> · ${fmt(e.prizePoolTon)} TON · ${evDate(e.startsAt)} → ${evDate(e.endsAt)}`).join('\n') || '—';
+  return edit(ctx, `📋 <b>TODOS OS EVENTOS</b>\n${body}`,
+    kb([...rows.slice(0, 8).map((e) => [{ t: `${e.status === 'active' ? '🟢' : '•'} ${e.name}`.slice(0, 40), d: `ev:open|${e.eventKey}` }]), nav('m:events')]));
+}
+
+async function eventsRanking(ctx: Ctx, ref: string | null) {
+  const d = await evRpc(ctx, 'view', ref, { limit: 100 });
+  const body = (d.ranking || []).map((r: any) => `${r.position}. ${esc(r.username ? '@' + r.username : r.name)} — ${fmt(r.validReferrals)} · ${fmt(r.rewardTon)} TON`).join('\n') || '—';
+  return edit(ctx, `📈 <b>RANKING TOP 100</b>\n${esc(d.event?.name ?? '')}\n\n${body}`.slice(0, 3800), kb([nav('m:events')]));
+}
+
+async function eventsAudit(ctx: Ctx) {
+  const d = await evRpc(ctx, 'view', null, { limit: 1 });
+  const body = (d.audit || []).map((a: any) => `• ${evDate(a.at)} <code>${esc(a.action)}</code> ${esc(JSON.stringify(a.value)).slice(0, 90)}`).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DE EVENTOS</b>\n${body}`, kb([[{ t: '🔄 ATUALIZAR', d: 'ev:audit' }], nav('m:events')]));
+}
+
 /** Central clan configuration: creation cost + default member limit (never touches existing clans). */
 async function clanSettingsView(ctx: Ctx, editing = true) {
   const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
@@ -1224,6 +1294,7 @@ async function module(ctx: Ctx, name: string) {
 
     }
     case 'clans': return clansHub(ctx);
+    case 'events': return eventsHub(ctx);
     case 'gifts': return giftHub(ctx);
 
     case 'boss': return bossPanel(ctx);
@@ -1543,6 +1614,11 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  evcreate: '🎉 Novo evento especial.\nEnvie: <code>nome | prêmio TON | dias | (opcional) início YYYY-MM-DD HH:MM</code>\nEx.: <code>Referral Championship | 100 | 30</code>',
+  evprize: '💎 Digite o novo prêmio total do evento em TON.\nEx.: <code>100</code>',
+  evdates: '📅 Envie: <code>início YYYY-MM-DD HH:MM | fim YYYY-MM-DD HH:MM</code>\nou <code>início | dias</code>. Ex.: <code>2026-08-11 00:00 | 30</code>',
+  evrules: '🛡 Envie: <code>mín_daily_quests | top_limit | fixed|proportional</code>\nEx.: <code>1 | 100 | fixed</code>',
+  evdist: '🏅 Envie a tabela de prêmios (TON por posição):\n<code>1=25; 2=15; 3=10; 4-10=3; 11-50=0.5</code>',
   clcost: 'Digite o novo custo para criação de um clã em FC.\nEx.: <code>50000</code>',
   clsetlimit: 'Digite o novo limite de membros para clãs criados a partir de agora (2 a 500).\nEx.: <code>30</code>',
   giftuser: 'Para qual jogador deseja enviar?\nEnvie <b>Telegram ID</b>, <b>@username</b>, nome ou ID interno.',
@@ -2070,8 +2146,37 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
+  // 🎉 Special events module (independent from the weekly community pool).
+  if (head === 'ev') {
+    await clearSession(ctx);
+    const [sub, ref] = [rest[0], rest[1] || null];
+    if (sub === 'list') return eventsList(ctx);
+    if (sub === 'rank') return eventsRanking(ctx, ref);
+    if (sub === 'audit') return eventsAudit(ctx);
+    if (sub === 'open') return eventsHub(ctx, ref);
+    return eventsHub(ctx, ref);
+  }
+  if (head === 'evconfirm') {
+    await clearSession(ctx);
+    const [action, ref] = [rest[0], rest[1] || ''];
+    const label: Record<string, string> = {
+      finish: 'ENCERRAR o evento e congelar o ranking (snapshot dos vencedores)',
+      distribute: 'DISTRIBUIR os prêmios do evento em TON',
+      cancel: 'CANCELAR o evento (nenhum prêmio será pago)',
+    };
+    return send(ctx, `⚠️ Tem certeza que deseja <b>${label[action] ?? action}</b>?`,
+      kb([[{ t: '✅ CONFIRMAR', d: `evrun:${action}:${ref}` }, { t: '❌ Cancelar', d: 'm:events' }]]));
+  }
+  if (head === 'evrun') {
+    const [action, ref] = [rest[0], rest[1] || null];
+    const r = await evRpc(ctx, action, ref, {});
+    const res = r.result ?? {};
+    await send(ctx, `✅ Ação <b>${esc(action)}</b> concluída.\n<code>${esc(JSON.stringify(res)).slice(0, 700)}</code>`);
+    return eventsHub(ctx, ref, false);
+  }
 
-  if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  // The prompt key can carry arguments after "|" (e.g. ask:evprize|event_key); the help text uses the bare key.
+  if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
 
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
@@ -2520,6 +2625,56 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       }
       const r = await rpc('admin_set_hero_fusion_pool', { p_admin_id: ctx.adminId, p_hero_key: key, p_enabled: String(mode).toLowerCase() === 'on' }) as any;
       return send(ctx, `${r.enabled ? '✅' : '🚫'} <b>${esc(r.name)}</b> (${esc(r.rarity)}) ${r.enabled ? 'entra' : 'não entra'} no sorteio da Rarity Fusion.`, kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
+    }
+    // ---- 🎉 special events prompts
+    case 'evcreate': {
+      const parts = text.split('|').map((v) => v.trim());
+      if (parts.length < 3) return send(ctx, '⚠️ Envie: <code>nome | prêmio TON | dias | (opcional) YYYY-MM-DD HH:MM</code>', kb([nav('m:events')]));
+      const payload: Record<string, unknown> = { name: parts[0], prizeTon: Number(parts[1].replace(',', '.')), days: Number(parts[2].replace(',', '.')), type: 'referral_ranking' };
+      if (parts[3]) payload.startsAt = parts[3].replace(' ', 'T');
+      const r = await evRpc(ctx, 'create', null, payload);
+      await send(ctx, `✅ Evento criado: <b>${esc(r.event?.name ?? '')}</b> — ${fmt(r.event?.prizePoolTon)} TON.`);
+      return eventsHub(ctx, r.event?.eventKey ?? null, false);
+    }
+    case 'evprize': {
+      const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
+      if (!Number.isFinite(value) || value < 0) return send(ctx, '⚠️ Envie um valor em TON. Ex.: <code>100</code>', kb([nav('m:events')]));
+      await evRpc(ctx, 'set_prize', args[0] || null, { value });
+      await send(ctx, `✅ Prêmio total atualizado para <b>${fmt(value)} TON</b>.`);
+      return eventsHub(ctx, args[0] || null, false);
+    }
+    case 'evdates': {
+      const parts = text.split('|').map((v) => v.trim());
+      const payload: Record<string, unknown> = {};
+      if (parts[0]) payload.startsAt = parts[0].replace(' ', 'T');
+      if (parts[1] && /\d{4}-\d{2}-\d{2}/.test(parts[1])) payload.endsAt = parts[1].replace(' ', 'T');
+      else if (parts[1]) payload.days = Number(parts[1].replace(',', '.'));
+      await evRpc(ctx, 'set_dates', args[0] || null, payload);
+      await send(ctx, '✅ Datas atualizadas.');
+      return eventsHub(ctx, args[0] || null, false);
+    }
+    case 'evrules': {
+      const parts = text.split('|').map((v) => v.trim());
+      const rules: Record<string, unknown> = {};
+      if (parts[0]) rules.minDailyQuests = Math.max(0, Math.round(Number(parts[0])));
+      if (parts[1]) rules.topLimit = Math.max(1, Math.round(Number(parts[1])));
+      if (parts[2]) rules.distributionMode = parts[2].toLowerCase() === 'proportional' ? 'proportional' : 'fixed';
+      await evRpc(ctx, 'set_rules', args[0] || null, { rules });
+      await send(ctx, '✅ Regras anti-fraude e de distribuição atualizadas.');
+      return eventsHub(ctx, args[0] || null, false);
+    }
+    case 'evdist': {
+      const distribution = text.split(/[;\n]+/).map((row) => row.trim()).filter(Boolean).map((row) => {
+        const [range, ton] = row.split('=').map((v) => v.trim());
+        const [from, to] = range.replace(/#/g, '').split('-').map((v) => Math.round(Number(v)));
+        return { from, to: Number.isFinite(to) ? to : from, ton: Number(String(ton).replace(',', '.')) };
+      });
+      if (!distribution.length || distribution.some((x) => !Number.isFinite(x.from) || !Number.isFinite(x.ton))) {
+        return send(ctx, '⚠️ Envie faixas assim: <code>1=25; 2=15; 3=10; 4-10=3; 11-50=0.5</code>', kb([nav('m:events')]));
+      }
+      await evRpc(ctx, 'set_rules', args[0] || null, { rules: { distributionMode: 'fixed', distribution } });
+      await send(ctx, `✅ Tabela de prêmios salva (${distribution.length} faixas).`);
+      return eventsHub(ctx, args[0] || null, false);
     }
     case 'rfaudit': return rarityFusionAudit(ctx, text.trim());
     case 'removehero': { const r = await rpc('admin_remove_player_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }

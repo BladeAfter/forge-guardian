@@ -706,7 +706,7 @@ function App() {
   if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')}/></>;
 
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
