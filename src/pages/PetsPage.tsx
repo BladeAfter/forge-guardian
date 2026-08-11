@@ -349,7 +349,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
-                    {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
+                    {pet.species} · {pet.discovered ? t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 }) : t('pets.notDiscovered')}
                   </p>
                   {buff && (
                     <PetBuff
@@ -362,7 +362,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   )}
 
                   {pet.sources && pet.sources.length > 0 && (
-                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
+                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">{t('pets.obtainedFrom', { sources: pet.sources.join(', ') })}</p>
                   )}
                 </div>
               );
@@ -419,7 +419,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
             <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
             <h1 className="text-xl font-black">PETS</h1>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
         </header>
         {children}
       </div>
@@ -435,7 +435,7 @@ function LevelBar({ pet }: { pet: PlayerPet }) {
         <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-200 transition-[width] duration-500" style={{ width: `${percent}%` }} />
       </div>
       <p className="mt-1 text-right text-[9px] text-slate-400">
-        {pet.isMaxLevel ? 'Nível máximo alcançado' : `XP ${fmt(pet.xp)} / ${fmt(pet.xpRequired)}`}
+        {pet.isMaxLevel ? t('pets.maxLevelReached') : `XP ${fmt(pet.xp)} / ${fmt(pet.xpRequired)}`}
       </p>
     </>
   );
@@ -464,13 +464,14 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
 
 
 function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
+  const t = useT();
   const next = pet.nextEvolution;
-  if (!next) return <Action text="Evolução máxima" disabled onClick={() => undefined} />;
+  if (!next) return <Action text={t('pets.maxEvolution')} disabled onClick={() => undefined} />;
   const missingLevel = pet.level < next.requiredLevel;
   const missingFc = balance < next.fcCost;
   const missingFragments = pet.fragments < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
-  const label = missingLevel ? `Evoluir no nível ${next.requiredLevel}` : missingFc ? 'FC insuficientes' : missingFragments ? 'Fragmentos insuficientes' : `Evoluir · ${next.label}`;
+  const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
   return (
     <button
       type="button"
@@ -489,6 +490,7 @@ function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; bal
 }
 
 function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void; onFeed: () => void }) {
+  const t = useT();
   const next = pet.nextEvolution;
   return (
     <div className={`rounded-2xl border bg-black/55 p-3 ${pet.canEvolve ? 'border-violet-300/50 shadow-[0_0_18px_rgba(168,85,247,.2)]' : 'border-white/10'}`}>
@@ -497,20 +499,20 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
         <div className="min-w-0 flex-1">
           <b className="block truncate text-sm">{pet.name}</b>
           <p className="text-[9px] text-slate-400">
-            Nível {pet.level}/{pet.maxLevel} · {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
+            {t('pets.rarityLevel', { rarity: petStageLabel(pet.evolutionStage), level: pet.level, max: pet.maxLevel })} · {pet.evolutionLabel}
           </p>
           {next ? (
             <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
-              Requisitos: nível <b className={pet.level >= next.requiredLevel ? 'text-emerald-300' : 'text-rose-300'}>{next.requiredLevel}</b>
+              {t('pets.requirements')} <b className={pet.level >= next.requiredLevel ? 'text-emerald-300' : 'text-rose-300'}>{next.requiredLevel}</b>
               {' · '}
               <b className={balance >= next.fcCost ? 'text-emerald-300' : 'text-rose-300'}>{fmt(next.fcCost)} FC</b>
               {' · '}
-              <b className={pet.fragments >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} fragmentos</b>
+              <b className={pet.fragments >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
-              <span className="text-violet-300">{next.newBuffChance}% de novo bônus</span>
+              <span className="text-violet-300">{t('pets.newBuffChance', { percent: next.newBuffChance })}</span>
             </p>
           ) : (
-            <p className="mt-1 text-[9px] text-amber-200">Este companheiro alcançou a forma final.</p>
+            <p className="mt-1 text-[9px] text-amber-200">{t('pets.finalForm')}</p>
           )}
           {next && (
             <p className="mt-1 text-[9px] text-slate-400">
@@ -520,7 +522,7 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Action text="Alimentar" disabled={pending || pet.isMaxLevel} onClick={onFeed} />
+        <Action text={t('pets.feed')} disabled={pending || pet.isMaxLevel} onClick={onFeed} />
         <EvolveButton pet={pet} balance={balance} pending={pending} onEvolve={onEvolve} />
       </div>
     </div>
@@ -528,6 +530,7 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
 }
 
 function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; foods: PetFood[]; pending: boolean; onClose: () => void; onFeed: (foodCode: string, quantity: number) => void }) {
+  const t = useT();
   const available = foods.filter((food) => food.quantity > 0);
   const [selected, setSelected] = useState(available[0]?.code ?? '');
   const [quantity, setQuantity] = useState(1);
@@ -542,15 +545,15 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
       <div className="w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
         <header className="mb-3 flex items-center justify-between">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Alimentar</p>
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.feed')}</p>
             <h2 className="truncate text-lg font-black">{pet.name}</h2>
-            <p className="text-[10px] text-slate-400">Nível {pet.level} · faltam {fmt(missing)} XP para o próximo nível</p>
+            <p className="text-[10px] text-slate-400">{t('pets.missingXp', { level: pet.level, missing: fmt(missing) })}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
         {available.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-300">Você não possui comidas. Consiga comidas em recompensas e eventos.</p>
+          <p className="py-8 text-center text-sm text-slate-300">{t('pets.noFood')}</p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2">
@@ -571,7 +574,7 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
             </div>
 
             <div className="mt-4">
-              <label htmlFor="pet-food-quantity" className="text-[9px] uppercase tracking-[.2em] text-slate-400">Quantidade: {safeQuantity}</label>
+              <label htmlFor="pet-food-quantity" className="text-[9px] uppercase tracking-[.2em] text-slate-400">{t('pets.quantity')}: {safeQuantity}</label>
               <input
                 id="pet-food-quantity"
                 type="range"
@@ -581,10 +584,10 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
                 onChange={(event) => setQuantity(Number(event.target.value))}
                 className="mt-2 w-full accent-amber-400"
               />
-              <p className="mt-1 text-center text-[10px] text-emerald-300">Ganho estimado: +{fmt(preview)} XP</p>
+              <p className="mt-1 text-center text-[10px] text-emerald-300">{t('pets.estimatedGain', { xp: fmt(preview) })}</p>
             </div>
 
-            <Action text={pending ? 'Alimentando...' : `Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
+            <Action text={pending ? t('pets.feeding') : t('pets.feedWith', { quantity: safeQuantity })} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
           </>
         )}
       </div>
@@ -593,11 +596,12 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
 }
 
 function EvolutionOverlay({ result, onClose }: { result: PetEvolveResult; onClose: () => void }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-[99] grid place-items-center bg-black/85 p-4 pet-evolution-overlay">
       <div className="w-full max-w-sm rounded-3xl border border-violet-300/50 bg-[#0a0714] p-5 text-center shadow-[0_0_60px_rgba(168,85,247,.35)]">
         <Sparkles className="mx-auto h-10 w-10 animate-pulse text-violet-300" />
-        <p className="mt-2 text-[9px] uppercase tracking-[.3em] text-violet-300">Evolução concluída</p>
+        <p className="mt-2 text-[9px] uppercase tracking-[.3em] text-violet-300">{t('pets.evolutionCompleted')}</p>
         <h2 className="text-2xl font-black">{result.petName}</h2>
         <p className="text-xs font-bold uppercase text-fuchsia-300">{result.label}</p>
 
@@ -612,20 +616,20 @@ function EvolutionOverlay({ result, onClose }: { result: PetEvolveResult; onClos
 
         {result.newBuff ? (
           <div className="mt-3 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3">
-            <p className="text-[9px] uppercase tracking-[.2em] text-amber-300">Novo bônus desbloqueado</p>
+            <p className="text-[9px] uppercase tracking-[.2em] text-amber-300">{t('pets.newBonusUnlocked')}</p>
             <p className="mt-1 text-sm font-black text-amber-100">
               {petBuffLabel(result.newBuff.key)} +{result.newBuff.value}%
             </p>
-            <p className="text-[9px] text-slate-400">Qualidade {petRarityLabel(result.newBuff.rarity)}</p>
+            <p className="text-[9px] text-slate-400">{t('pets.quality', { rarity: petRarityLabel(result.newBuff.rarity) })}</p>
           </div>
         ) : (
-          <p className="mt-3 text-[10px] text-slate-400">Nenhum bônus extra desta vez. Tente na próxima evolução.</p>
+          <p className="mt-3 text-[10px] text-slate-400">{t('pets.noExtraBonus')}</p>
         )}
 
         <p className="mt-3 text-[9px] text-slate-500">
-          Custo: {fmt(result.fcSpent)} FC · {result.fragmentsSpent} fragmentos
+          {t('pets.cost', { fc: fmt(result.fcSpent), fragments: result.fragmentsSpent })}
         </p>
-        <Action text="Continuar" onClick={onClose} />
+        <Action text={t('pets.continue')} onClick={onClose} />
       </div>
     </div>
   );
