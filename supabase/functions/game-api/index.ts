@@ -369,86 +369,119 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
 
 const TONCENTER_BASE = (Deno.env.get('TONCENTER_BASE_URL') || 'https://toncenter.com').replace(/\/+$/, '');
 
-/** Reads the hot wallet transactions from TonCenter (v3) and returns the incoming ones. */
-async function fetchHotWalletIncoming(hotWallet: string): Promise<any[]> {
+/** Reads the hot wallet transactions from TonCenter (v3), paginating so older payments are still found. */
+async function fetchHotWalletIncoming(hotWallet: string, pages = 3): Promise<any[]> {
   const apiKey = String(Deno.env.get('TONCENTER_API_KEY') || '').trim();
-  if (!apiKey) throw new Error('A verificação on-chain não está configurada (TONCENTER_API_KEY).');
-  const url = `${TONCENTER_BASE}/api/v3/transactions?account=${encodeURIComponent(hotWallet)}&limit=100&offset=0&sort=desc`;
-  const response = await fetch(url, { headers: { 'X-API-Key': apiKey, Accept: 'application/json' } });
-  if (!response.ok) {
-    const details = await response.text();
-    console.error(`[FORGE ERROR] toncenter [${response.status}]: ${details}`);
-    throw new Error(`Não foi possível consultar a blockchain TON (${response.status}).`);
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (apiKey) headers['X-API-Key'] = apiKey;
+  const all: any[] = [];
+  for (let page = 0; page < pages; page++) {
+    const url = `${TONCENTER_BASE}/api/v3/transactions?account=${encodeURIComponent(hotWallet)}&limit=100&offset=${page * 100}&sort=desc`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      const details = await response.text();
+      console.error(`[FORGE ERROR] toncenter [${response.status}]: ${details}`);
+      if (all.length) break; // keep whatever we already have instead of failing the whole verification
+      throw new Error('A verificação do depósito está demorando mais que o esperado. Seu pagamento continuará sendo verificado.');
+    }
+    const payload = await response.json().catch(() => null);
+    const batch = Array.isArray(payload?.transactions) ? payload.transactions : [];
+    all.push(...batch);
+    if (batch.length < 100) break;
   }
-  const payload = await response.json().catch(() => null);
-  return Array.isArray(payload?.transactions) ? payload.transactions : [];
+  return all;
 }
 
 const msgComment = (message: any): string =>
   String(message?.message_content?.decoded?.comment ?? message?.decoded_body?.text ?? '').trim();
 
+/** Raw ("0:…") comparison of TON addresses, tolerant to friendly/raw formats. */
+const sameTonAddress = (a: unknown, b: unknown): boolean => {
+  const norm = (value: unknown) => {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+    const friendly = toFriendlyTonAddress(raw);
+    return (friendly || raw).toLowerCase();
+  };
+  const left = norm(a);
+  const right = norm(b);
+  return Boolean(left) && left === right;
+};
+
+const txHashOf = (tx: any): string => String(tx?.hash || tx?.in_msg?.hash || '');
+
 /**
- * Confirms pending deposits of this player by matching the payment comment and value
- * against real incoming transfers to the project hot wallet.
+ * Reconciles this player's TON deposits (own flow — never touches egg or pass purchases).
+ * A deposit is matched by its unique payment comment first; if the wallet stripped the comment,
+ * the sender address + real received value + timestamp are used as a fallback.
+ * Amounts are always compared in integer nanotons and the REAL received value is credited.
  */
 async function verifyPendingDeposits(db: Db, user: TelegramUser) {
-  const settings = await db.from('wallet_settings').select('value_text').eq('key', 'ton_hot_wallet').maybeSingle();
-  if (settings.error) throw new Error(settings.error.message);
-  const hotWallet = String(settings.data?.value_text || Deno.env.get('TON_HOT_WALLET') || '').trim();
-  if (!hotWallet) throw new Error('A carteira de recebimento não está configurada.');
-
-  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
-  if (player.error) throw new Error(player.error.message);
-  if (!player.data?.id) throw new Error('Jogador não encontrado.');
-
-  const pending = await db
-    .from('wallet_deposits')
-    .select('id, amount_ton, payment_comment, status')
-    .eq('user_id', player.data.id)
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
-    .limit(20);
-  if (pending.error) throw new Error(pending.error.message);
-  const deposits = pending.data ?? [];
-  if (!deposits.length) return { checked: 0, confirmed: [], pending: [] };
+  const hotWallet = await hotWalletAddress(db);
+  const state = await rpc(db, 'pending_wallet_deposits', { p_telegram_id: user.id }) as any;
+  const deposits: any[] = Array.isArray(state?.deposits) ? state.deposits : [];
+  if (!deposits.length) {
+    const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
+    return { checked: 0, confirmed: [], alreadyCredited: [], pending: [], summary };
+  }
 
   const transactions = await fetchHotWalletIncoming(hotWallet);
+  const used = new Set<string>();
   const confirmed: string[] = [];
   const stillPending: string[] = [];
   const alreadyCredited: string[] = [];
 
   for (const deposit of deposits) {
-    // Sub-minimum rows can only exist from legacy/manipulated calls: reject them instead of crediting.
-    if (Number(deposit.amount_ton) < 1) {
-      await db.from('wallet_deposits').update({ status: 'rejected' }).eq('id', deposit.id);
-      continue;
-    }
-    const comment = String(deposit.payment_comment || '').trim();
-    const expectedNano = BigInt(Math.round(Number(deposit.amount_ton) * 1e9));
-    // 1% tolerance covers wallet fee rounding on the sender side.
-    const minNano = (expectedNano * 99n) / 100n;
-    const match = transactions.find((tx: any) => {
+    const comment = String(deposit.paymentComment || '').trim();
+    const expectedNano = BigInt(String(deposit.amountNano || '0'));
+    const minNano = (expectedNano * 97n) / 100n; // wallet fee rounding tolerance
+    const createdAt = new Date(String(deposit.createdAt)).getTime();
+    console.log('[DEPOSIT VERIFY]', JSON.stringify({ orderId: deposit.id, userId: state?.userId, expectedNano: expectedNano.toString(), createdAt: deposit.createdAt }));
+
+    const candidate = (byComment: boolean) => transactions.find((tx: any) => {
       const inMsg = tx?.in_msg;
       if (!inMsg) return false;
+      const hash = txHashOf(tx);
+      if (!hash || used.has(hash)) return false;
       const value = BigInt(String(inMsg.value ?? '0'));
-      if (value < 1_000_000_000n) return false; // below the 1 TON floor
-      const sameComment = comment ? msgComment(inMsg) === comment : false;
-      return sameComment && value >= minNano;
+      if (value < minNano || value < 1_000_000_000n) return false;
+      const txComment = msgComment(inMsg);
+      if (byComment) return Boolean(comment) && txComment === comment;
+      // Fallback: no comment on chain -> same sender, right value, sent after the order was created.
+      if (txComment) return false;
+      const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
+      if (utime && utime < createdAt - 300_000) return false;
+      return sameTonAddress(inMsg.source, deposit.fromWallet);
     });
-    if (match) {
-      const txHash = String(match.hash || match.in_msg?.hash || '');
-      // The on-chain transfer is verified here; the database credits FC using the official rate.
-      const result = await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: expectedNano.toString() });
-      if ((result as any)?.status === 'already_processed') alreadyCredited.push(deposit.id);
-      else confirmed.push(deposit.id);
-    } else {
+
+    const match = candidate(true) ?? candidate(false);
+    if (!match) { stillPending.push(deposit.id); console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, matched: false, reason: 'no_onchain_transfer_yet' })); continue; }
+
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0'));
+    console.log('[TON TX]', JSON.stringify({ hash: txHash, amountNano: receivedNano.toString(), destination: hotWallet, timestamp: match?.now }));
+    console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, matched: true, reason: msgComment(match.in_msg) ? 'comment' : 'sender_amount' }));
+    try {
+      const result = await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: receivedNano.toString() }) as any;
+      used.add(txHash);
+      if (result?.status === 'already_processed') alreadyCredited.push(deposit.id);
+      else {
+        confirmed.push(deposit.id);
+        console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, fcAmount: result?.amountFc, poolContribution: result?.poolContribution?.poolAmountTon ?? null }));
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error('[FORGE ERROR] deposit-confirm', { depositId: deposit.id, reason });
+      // A transfer already tied to another operation can never pay this deposit: keep waiting, never fail it.
       stillPending.push(deposit.id);
+      if (reason.includes('TX_ALREADY_USED')) used.add(txHash);
     }
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
   return { checked: deposits.length, confirmed, alreadyCredited, pending: stillPending, summary };
 }
+
 
 
 /** Reads the configured hot wallet address (settings first, env as fallback). */

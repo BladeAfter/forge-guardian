@@ -75,6 +75,46 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     onError: error => toast.error(tError(error))
   });
 
+  /**
+   * Automatic reconciliation: after paying, the app itself keeps asking the backend to match the
+   * transfer on-chain (every 5s for up to 90s). The manual button is only a fallback, and a payment
+   * that shows up later is still reconciled on the next open — a deposit is never lost.
+   */
+  const autoVerifyTimer = useRef<number | null>(null);
+  const stopAutoVerify = () => { if (autoVerifyTimer.current !== null) { window.clearInterval(autoVerifyTimer.current); autoVerifyTimer.current = null; } };
+
+  const reconcileOnce = async (): Promise<boolean> => {
+    if (!telegramInitData) return false;
+    try {
+      const result = await verifyPendingDeposits(telegramInitData);
+      if (result.confirmed.length || result.alreadyCredited?.length) {
+        await invalidateWallet();
+        if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const startAutoVerify = () => {
+    stopAutoVerify();
+    const startedAt = Date.now();
+    autoVerifyTimer.current = window.setInterval(() => {
+      if (Date.now() - startedAt > 90_000) { stopAutoVerify(); return; }
+      void reconcileOnce().then(done => { if (done) stopAutoVerify(); });
+    }, 5_000);
+  };
+
+  // Reconcile silently whenever the wallet opens, so payments indexed later are credited on their own.
+  useEffect(() => {
+    if (!backendEnabled) return;
+    void reconcileOnce();
+    return stopAutoVerify;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backendEnabled, telegramInitData]);
+
   const deposit = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
@@ -90,11 +130,12 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     onSuccess: async () => {
       await invalidateWallet();
       toast.success(t('wallet.toast.paymentSentVerifying'));
-      // Give the network a few seconds to include the transfer before checking on-chain.
-      setTimeout(() => verify.mutate(), 8000);
+      // Give the network a few seconds to include the transfer, then keep checking automatically.
+      window.setTimeout(() => { void reconcileOnce().then(done => { if (!done) startAutoVerify(); }); }, 6_000);
     },
     onError: error => toast.error(tError(error))
   });
+
 
   const withdrawal = useMutation({
     mutationFn: async () => {

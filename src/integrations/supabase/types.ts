@@ -3624,6 +3624,41 @@ export type Database = {
           },
         ]
       }
+      processed_ton_transactions: {
+        Row: {
+          amount_nano: number
+          processed_at: string
+          reference_id: string
+          transaction_type: string
+          tx_hash: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_nano: number
+          processed_at?: string
+          reference_id: string
+          transaction_type: string
+          tx_hash: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_nano?: number
+          processed_at?: string
+          reference_id?: string
+          transaction_type?: string
+          tx_hash?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processed_ton_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_battles: {
         Row: {
           attacker_id: string
@@ -6161,6 +6196,10 @@ export type Database = {
       }
       pending_pet_egg_orders: { Args: { p_telegram_id: number }; Returns: Json }
       pending_season_pass_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      pending_wallet_deposits: {
         Args: { p_telegram_id: number }
         Returns: Json
       }
