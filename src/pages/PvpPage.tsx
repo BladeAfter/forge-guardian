@@ -48,6 +48,8 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
   {view==='history'&&<div className="mt-5 space-y-2">{data.history.length?data.history.map(h=><div key={h.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3"><div><b>{h.opponentName}</b><p className="text-[9px] text-slate-400">{new Date(h.createdAt).toLocaleString()} · {h.turns} turnos</p></div><div className="text-right"><b className={h.result==='win'?'text-emerald-300':'text-rose-300'}>{h.result==='win'?'VITÓRIA':'DERROTA'}</b><p className="text-[9px]">{h.trophyChange>0?'+':''}{h.trophyChange} 🏆</p></div></div>):<Center text="Nenhuma batalha realizada."/>}</div>}
   {view==='ranking'&&<div className="mt-5 space-y-2">{data.ranking.map(r=><div key={r.id} className="grid grid-cols-[35px_38px_1fr_auto] items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-2"><b className="text-center text-amber-300">#{r.position}</b><Avatar src={r.avatarUrl} name={r.name}/><div className="min-w-0"><b className="block truncate text-xs">{r.name}</b>{r.username?<p className="truncate text-[9px] text-amber-200/80">@{r.username}</p>:null}<p className="truncate text-[9px] text-slate-400">{r.league} · {r.wins} vitórias</p></div><b className="text-xs">{r.trophies} 🏆</b></div>)}</div>}
   {slot!==null&&<HeroSelector slot={slot} heroes={data.ownedHeroes} current={current} pending={equip.isPending} onClose={()=>setSlot(null)} onEquip={heroId=>equip.mutate({heroId,targetSlot:slot})}/>}
+  {shop&&<TicketSheet tickets={data.tickets} shop={data.ticketShop} pending={buy.isPending} onClose={()=>setShop(false)} onBuy={qty=>buy.mutate(qty)}/>}
+
   
  </Shell>
 }
