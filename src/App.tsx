@@ -808,52 +808,17 @@ function App() {
           </div>
 
           {shopOpen ? (
-            <div className="fullscreen-page flex items-center justify-center p-3">
-              <div className="max-h-[92dvh] w-full max-w-[450px] overflow-y-auto rounded-[2rem] border border-amber-300/25 bg-[#090d15] p-4 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-amber-300">{t('shop')}</p>
-                    <h2 className="text-xl font-black text-white">{t('recruitment')}</h2>
-                  </div>
-                  <button onClick={() => setShopOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
-                </div>
-                <div className="mt-3 flex items-center justify-between rounded-2xl border border-amber-300/15 bg-black/30 px-3 py-2">
-                  <span className="text-xs text-slate-400">FC</span>
-                  <span className="font-black text-amber-300">{formatCurrency(fcBalance)}</span>
-                </div>
-                <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-slate-400">{t('odds')}</p>
-                <div className="mt-2 grid grid-cols-5 gap-1">
-                  {summonOdds.slice().reverse().map((entry) => (
-                    <div key={entry.rarity} className="rounded-xl border border-white/5 bg-white/[.03] px-1 py-2 text-center">
-                      <p className="truncate text-[8px] font-bold" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
-                      <p className="mt-1 text-[10px] text-white">{entry.chance}%</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {[1, 5, 10].map((count) => (
-                    <button key={count} onClick={() => recruitHeroes(count)} className="rounded-2xl border border-amber-300/30 bg-gradient-to-b from-amber-400/20 to-orange-600/10 px-2 py-3 text-center">
-                      <span className="block text-lg font-black text-white">{count}×</span>
-                      <span className="block text-[9px] text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
-                    </button>
-                  ))}
-                </div>
-                {shopResults.length ? (
-                  <div className="mt-4">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">{t('latestHeroes')}</p>
-                    <div className="mt-2 grid grid-cols-5 gap-1.5">
-                      {shopResults.map((hero, index) => (
-                        <div key={`${hero.id}-${index}`} className="overflow-hidden rounded-xl border bg-black/50" style={{ borderColor: `${RARITY_COLORS[hero.rarity]}99` }}>
-                          <img src={hero.image} alt={hero.name} className="aspect-square w-full object-cover" />
-                          <p className="truncate px-1 py-1 text-center text-[7px] font-bold" style={{ color: RARITY_COLORS[hero.rarity] }}>{t(hero.rarity)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
+            <HeroShopPanel
+              telegramInitData={telegramInitData}
+              fcBalance={fcBalance}
+              summonOdds={summonOdds}
+              recruitPrice={recruitPrice}
+              shopResults={shopResults}
+              onRecruit={(count) => void recruitHeroes(count)}
+              onClose={() => setShopOpen(false)}
+            />
           ) : null}
+
 
           {calendarOpen ? (
             <div className="fullscreen-page flex items-center justify-center p-4">
