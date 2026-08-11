@@ -316,11 +316,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
 
                       <div className="mt-3 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1">
-                          <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => setPage(Math.max(1, currentPage - 1))} disabled={currentPage <= 1} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronLeft className="h-3.5 w-3.5" /></button>
                           {pageNumbers.map((value) => (
-                            <button key={value} onClick={() => setPage(value)} className={`h-7 min-w-7 rounded-lg border px-1.5 text-[9px] font-black ${value === page ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/12 text-slate-400'}`}>{value}</button>
+                            <button key={value} onClick={() => setPage(value)} className={`h-7 min-w-7 rounded-lg border px-1.5 text-[9px] font-black ${value === currentPage ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/12 text-slate-400'}`}>{value}</button>
                           ))}
-                          <button onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page >= totalPages} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronRight className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => setPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage >= totalPages} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronRight className="h-3.5 w-3.5" /></button>
+
                         </div>
                         <button onClick={() => void browse.refetch()} className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">
                           <RefreshCw className={`h-3.5 w-3.5 ${browse.isFetching ? 'animate-spin' : ''}`} />{t('market.refresh')}
