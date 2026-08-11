@@ -18,7 +18,16 @@ export const CHEST_REWARD_TABLE={
 } as const;
 export const CHEST_LABELS:Record<string,string>={common_chest:'Baú Comum',uncommon_chest:'Baú Incomum',rare_chest:'Baú Raro',epic_chest:'Baú Épico',legendary_chest:'Baú Lendário'};
 export const CALENDAR_EGG_ODDS={'common-egg':{common:75,uncommon:20,rare:5},'rare-egg':{common:35,uncommon:40,rare:20,epic:5}} as const;
-export type CalendarDashboard={cycle:string;currentDay:number;claimedDays:number[];canClaim:boolean;rewards:CalendarReward[];balance:number};
+/** The server owns the official game day (21:00 America/Sao_Paulo). Never compute it on the client. */
+export type CalendarDashboard={cycle:string;currentDay:number;claimedDays:number[];canClaim:boolean;claimedToday?:boolean;gameDay?:string;gameDayNumber?:number;nextResetAt?:string;serverTime?:string;rewards:CalendarReward[];balance:number};
+/** Countdown helper: uses the server-provided reset timestamp as the only authority. */
+export function nextResetCountdown(nextResetAt?:string|null,now:number=Date.now()):string{
+ const target=nextResetAt?Date.parse(nextResetAt):NaN;
+ if(!Number.isFinite(target))return '--h --m';
+ const ms=Math.max(0,target-now),h=Math.floor(ms/3_600_000),m=Math.floor((ms%3_600_000)/60_000);
+ return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+}
+
 export type InventoryChest={id:string;itemCode:string;name:string;subtitle:string;quantity:number;rarityRates:Record<string,number>};
 export type InventoryEgg={id:string;slug:string;name:string;image:string|null;quantity:number;rarityRates:Record<string,number>};
 export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[]};
