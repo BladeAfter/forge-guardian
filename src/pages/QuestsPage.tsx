@@ -30,6 +30,8 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['daily-quests'] });
     void queryClient.invalidateQueries({ queryKey: ['player-inventory'] });
+    void queryClient.invalidateQueries({ queryKey: ['reward-history'] });
+    void queryClient.invalidateQueries({ queryKey: ['game-state'] });
   };
 
   const claim = useMutation({
@@ -42,15 +44,23 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
     onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim this quest.'),
   });
 
+  const chestUnlocked = Boolean(dashboard?.bonus.unlocked) && (dashboard?.completed ?? 0) >= (dashboard?.total ?? 0) && (dashboard?.total ?? 0) > 0;
+  const chestClaimed = Boolean(dashboard?.bonus.claimed);
+
   const claimChest = useMutation({
-    mutationFn: () => claimDailyQuestChest(telegramInitData ?? ''),
+    // The server re-checks the 5/5 progress and the daily cycle; the client only guards the taps.
+    mutationFn: () => {
+      if (!chestUnlocked || chestClaimed) throw new Error('Complete all quests to unlock the chest.');
+      return claimDailyQuestChest(telegramInitData ?? '');
+    },
     onSuccess: (result) => {
       queryClient.setQueryData(['daily-quests', telegramInitData], result.quests);
       invalidate();
-      toast.success('Daily quest chest added to your inventory!');
+      toast.success('Common Hero Chest added to your inventory!');
     },
     onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim the chest.'),
   });
+
 
   // Temporary diagnostic: exposes the real definition/progress counts coming from the server.
   useEffect(() => {
