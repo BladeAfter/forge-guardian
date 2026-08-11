@@ -470,12 +470,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .clan-hall-art{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 12px rgba(56,110,190,.22)) saturate(1.02) brightness(.97)}
 .clan-hall:hover .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(251,191,36,.28)) brightness(1.05)}
 .clan-hall:active .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 20px rgba(251,191,36,.42)) brightness(1.08)}
-.clan-hall-window-glow{position:absolute;inset:34% 16% 22% 20%;border-radius:38% 38% 22% 22%;background:radial-gradient(ellipse at center,rgba(251,191,36,.2),transparent 70%);opacity:.65;animation:clan-hall-windows 5.5s ease-in-out infinite;pointer-events:none}
+.clan-hall-window-glow{position:absolute;inset:24% 26% 34% 26%;border-radius:34% 34% 20% 20%;background:radial-gradient(ellipse at center,rgba(251,191,36,.2),transparent 70%);opacity:.65;animation:clan-hall-windows 5.5s ease-in-out infinite;pointer-events:none}
 .clan-hall:hover .clan-hall-window-glow{opacity:1}
 @keyframes clan-hall-windows{0%,100%{opacity:.5}50%{opacity:.85}}
-.clan-hall-torch{position:absolute;bottom:26%;width:9%;aspect-ratio:1;pointer-events:none}
-.clan-hall-torch--left{left:30%}
-.clan-hall-torch--right{right:36%}
+.clan-hall-torch{position:absolute;bottom:41%;width:7%;aspect-ratio:1;pointer-events:none}
+.clan-hall-torch--left{left:38%}
+.clan-hall-torch--right{right:38%}
 .clan-hall-torch i{position:absolute;inset:22%;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 62%,#fff7d1,#fbbf24 42%,rgba(249,115,22,.25) 70%,transparent 78%);filter:blur(1px);animation:clan-hall-flame 1.5s ease-in-out infinite}
 .clan-hall-torch--right i{animation-delay:.45s}
 @keyframes clan-hall-flame{0%,100%{transform:scale(1) translateY(0);opacity:.85}50%{transform:scale(1.18) translateY(-8%);opacity:1}}
