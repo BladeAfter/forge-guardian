@@ -35,7 +35,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         </header>
 
         <nav className="mb-3 grid grid-cols-2 gap-2">
-          {([['collection', 'MEUS HERÓIS'], ['fusion', 'FUSÃO']] as const).map(([key, label]) => (
+          {([['collection', 'MEUS HERÓIS'], ['fusion', 'FUSÃO DE RARIDADE']] as const).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -52,7 +52,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">Coleção usada em PvP e Chefe</p>
           <p className="mt-1 text-sm font-black text-amber-200">{heroes.length} heróis conquistados</p>
-          <p className="text-[10px] text-slate-400">Duplicados podem ser fundidos para ganhar estrelas e bônus de ATK/HP.</p>
+          <p className="text-[10px] text-slate-400">Cópias do MESMO herói são fundidas no botão FUSE (mais estrelas, ATK, HP e Poder — a raridade não muda). Para subir de raridade, use a aba FUSÃO DE RARIDADE.</p>
         </section>
 
         {isLoading ? (
