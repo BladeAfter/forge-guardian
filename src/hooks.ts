@@ -13,6 +13,7 @@ import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
 import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
+import{fetchClanDashboard,type ClanDashboard}from'./clans';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -60,3 +61,6 @@ export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQu
 
 /** Rarity fusion state (config, odds, eligible heroes) — the server owns every rule. */
 export const useRarityFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<RarityFusionDashboard>({queryKey:['rarity-fusion',telegramInitData],queryFn:()=>fetchRarityFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
+
+/** Clan dashboard: membership, members, missions, clan boss and ranking (server-owned). */
+export const useClanDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanDashboard>({queryKey:['clan-dashboard',telegramInitData],queryFn:()=>fetchClanDashboard(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});

@@ -236,7 +236,7 @@ export const clans: LocaleBundle = {
     'clan.chip': 'КЛАН',
     'clan.chipJoin': 'Вступить или создать',
     'clan.title': 'КЛАНЫ',
-    'clan.tagline': 'Найдите союзников.创建 своё наследие.',
+    'clan.tagline': 'Найдите союзников. Создайте своё наследие.',
     'clan.find': 'НАЙТИ КЛАН',
     'clan.create': 'СОЗДАТЬ КЛАН',
     'clan.recommended': 'РЕКОМЕНДУЕМЫЕ КЛАНЫ',
