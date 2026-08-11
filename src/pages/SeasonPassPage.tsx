@@ -16,11 +16,7 @@ const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food
 
 export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramInitData:string;onClose:()=>void;onMissions:()=>void}){
  const t=useT(),{tError}=useLanguage();
- const[tonUI]=useTonConnectUI(),wallet=useTonWallet(),q=useQueryClient(),{data,isLoading,isFetching,error,refetch}=useSeasonPass(telegramInitData,true);
- const stalled=isLoading&&!isFetching;
- React.useEffect(()=>{console.log('[PASS] start')},[]);
- React.useEffect(()=>{if(data)console.log('[PASS] active season + player progress loaded',{level:data.player?.level,rewards:data.rewards?.length??0})},[data]);
- React.useEffect(()=>{if(error)console.error('[SCREEN ERROR]',{screen:'season-pass',step:'dashboard',message:error instanceof Error?error.message:String(error)})},[error]);
+ const[tonUI]=useTonConnectUI(),wallet=useTonWallet(),q=useQueryClient(),{data,isLoading,error,refetch}=useSeasonPass(telegramInitData,true);
  const invalidateAll=async()=>{await Promise.all([['season-pass'],['season-pass-rewards'],['season-pass-profile'],['wallet-summary'],['wallet-history'],['notifications'],['missions'],['community-pool'],['pet-dashboard'],['player-inventory'],['player-heroes'],['reward-history'],['game']].map(queryKey=>q.invalidateQueries({queryKey})))};
  // Ownership only ever comes from the backend: pay → server confirms on-chain → pass activated.
  const purchase=useMutation({mutationFn:async(tier:PassTier)=>{if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}await purchaseBattlePass({telegramInitData,tier,sendTransaction:tx=>tonUI.sendTransaction(tx)});toast.message(t('pass.paymentSent'));return await waitForPassActivation(telegramInitData)},onSuccess:async verification=>{await invalidateAll();const activated=activatedPass(verification);if(activated)toast.success(t('pass.activated',{tier:passTierLabel(activated.tier)}));else toast.message(t('pass.paymentPendingActivation'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyFailed'))});
@@ -31,8 +27,8 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  const[buyOpen,setBuyOpen]=React.useState(false);
  // Level purchase: the client only sends how many levels; price/limits/new level come back from the server.
  const buyLevels=useMutation({mutationFn:(levels:number)=>buySeasonPassLevels(telegramInitData,levels) as Promise<SeasonPassDashboard>,onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();const p=dashboard.purchase;setBuyOpen(false);if(p&&p.levelsBought>1)toast.success(t('pass.levelsBoughtToast',{levels:p.levelsBought}));else if(p)toast.success(t('pass.levelUpToast',{from:p.levelBefore,to:p.levelAfter}));},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyLevelFailed'))});
- if(isLoading&&!stalled)return<Shell onClose={onClose}><div className="space-y-3 pt-12">{[1,2,3].map(x=><div key={x} className="h-24 animate-pulse rounded-2xl bg-white/5"/>)}<p className="text-center text-sm text-amber-200">{t('pass.preparingSeason')}</p></div></Shell>;
- if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p>{t('pass.loadError')}</p><button onClick={()=>void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3">{t('pass.retryButton')}</button></div></Shell>;
+ if(isLoading)return<Shell onClose={onClose}><div className="space-y-3 pt-12">{[1,2,3].map(x=><div key={x} className="h-24 animate-pulse rounded-2xl bg-white/5"/>)}<p className="text-center text-sm text-amber-200">{t('pass.preparingSeason')}</p></div></Shell>;
+ if(error||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p>{t('pass.loadError')}</p><button onClick={()=>void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3">{t('pass.retryButton')}</button></div></Shell>;
 const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000),currentXp=data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel,maxed=data.player.maxed??false,barPercent=maxed?100:Math.round(currentXp/data.season.xpPerLevel*100);
  const levelCfg=data.levelPurchase;
  const multipliers=data.xpMultipliers??{},xpMultiplier=data.player.xpMultiplier??1,xpBonus=data.player.xpBonusPercent??Math.round((xpMultiplier-1)*100),adventurerBonus=Math.round(((multipliers.adventurer??1.2)-1)*100),legendaryBonus=Math.round(((multipliers.legendary??1.4)-1)*100);

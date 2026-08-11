@@ -13,9 +13,7 @@ import { useT, useLanguage } from '../LanguageContext';
 export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramInitData: string; onInvite: () => void }) {
   const t = useT();
   useLanguage();
-  const { data, isLoading, isFetching, error, refetch } = useSpecialEvents(telegramInitData, true);
-  // Skeletons must never outlive the request: a pending query with nothing in flight shows the retry state.
-  const stalled = isLoading && !isFetching;
+  const { data, isLoading, error, refetch } = useSpecialEvents(telegramInitData, true);
   const [tick, setTick] = useState(Date.now());
   const [showRules, setShowRules] = useState(false);
   const [showRanking, setShowRanking] = useState(true);
@@ -29,13 +27,11 @@ export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramIni
   const countdown = useMemo(() => eventCountdown(event?.endsAt, tick), [event?.endsAt, tick]);
   const prizeTable = useMemo(() => describeDistribution(event), [event]);
 
-  useEffect(() => { console.log('[EVENTS] start'); }, []);
-
-  if (isLoading && !stalled) {
+  if (isLoading) {
     return <div className="space-y-3">{[1, 2, 3].map((x) => <div key={x} className="h-28 animate-pulse rounded-3xl bg-white/5" />)}</div>;
   }
 
-  if (error || stalled) {
+  if (error) {
     return (
       <div className="rounded-3xl border border-rose-400/30 bg-rose-950/25 p-6 text-center">
         <p className="text-sm text-rose-200">{t('events.loadError')}</p>

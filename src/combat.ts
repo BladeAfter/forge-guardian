@@ -21,8 +21,6 @@ export type CombatHero = {
   slot: number; level: number; baseAtk: number; finalAtk: number; baseHp: number;
   maxHp: number; currentHp: number; isAlive: boolean; knockedOutAt: string | null;
   reviveAt: string | null;
-  /** Backend-authoritative revive state: one guaranteed attack per revive. */
-  reviveProtected?: boolean; reviveAttackAt?: string | null; reviveAttackUsed?: boolean;
 };
 
 export type GlobalBossState = {

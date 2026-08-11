@@ -92,25 +92,12 @@ export const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, s
   }
 }) : null;
 
-/** Local village progression used whenever the server state is unavailable. */
-export const buildLocalGameState = (telegramInitData: string): GameState => loadDemoState(telegramInitData);
-
 export const fetchGameState = async (telegramInitData: string): Promise<GameState> => {
   if (import.meta.env.DEV || !supabase) return loadDemoState(telegramInitData);
-  console.log('[GAME STATE] requesting server state');
 
-  // A hanging request must never freeze the loading screen: the local state wins after 8s.
-  const timeout = new Promise<{ data: null; error: null; timedOut: true }>((resolve) =>
-    setTimeout(() => resolve({ data: null, error: null, timedOut: true }), 8_000));
-  const result = await Promise.race([
-    supabase.rpc('get_game_state', { telegram_init_data: telegramInitData }).then((response) => ({ ...response, timedOut: false as const })),
-    timeout
-  ]) as { data: unknown; error: { code?: string; message?: string } | null; timedOut: boolean };
-  const { data, error } = result;
-  if (result.timedOut) {
-    console.error('[GAME STATE] server timeout, using local village state');
-    return loadDemoState(telegramInitData);
-  }
+  const { data, error } = await supabase.rpc('get_game_state', {
+    telegram_init_data: telegramInitData
+  });
 
   // The village economy (buildings/missions) has no server table yet: when the
   // RPC is absent we keep the local progression instead of breaking the screen.

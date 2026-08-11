@@ -1789,10 +1789,6 @@ export type Database = {
           max_hp: number
           rarity: string
           revive_at: string | null
-          revive_attack_at: string | null
-          revive_attack_used: boolean
-          revive_protected: boolean
-          revive_protected_until: string | null
           slot: number | null
           updated_at: string
         }
@@ -1811,10 +1807,6 @@ export type Database = {
           max_hp: number
           rarity: string
           revive_at?: string | null
-          revive_attack_at?: string | null
-          revive_attack_used?: boolean
-          revive_protected?: boolean
-          revive_protected_until?: string | null
           slot?: number | null
           updated_at?: string
         }
@@ -1833,10 +1825,6 @@ export type Database = {
           max_hp?: number
           rarity?: string
           revive_at?: string | null
-          revive_attack_at?: string | null
-          revive_attack_used?: boolean
-          revive_protected?: boolean
-          revive_protected_until?: string | null
           slot?: number | null
           updated_at?: string
         }
@@ -5834,7 +5822,7 @@ export type Database = {
       }
       admin_set_pool_contribution_percent: {
         Args: { p_admin_id: number; p_percent: number }
-        Returns: Json
+        Returns: number
       }
       admin_set_pvp_ticket_pack: {
         Args: { p_admin_id: number; p_price_fc: number; p_quantity: number }

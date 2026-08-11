@@ -28,7 +28,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -328,25 +328,21 @@ function App() {
   const playerProfileReady = Boolean(playerProfile);
   const heroesReady = !backendEnabled || Boolean(heroCollection.data) || Boolean(heroCollection.error);
   useEffect(() => {
-    if (telegramInitData) { console.info('[BOOT] Telegram initialized + auth validated'); setBootStage((current) => Math.max(current, 50)); }
-    if (playerProfileReady) { console.info('[BOOT] Player profile loaded'); setBootStage((current) => Math.max(current, 65)); }
-    if (game) { console.info('[BOOT] Game state ready'); setBootStage((current) => Math.max(current, 80)); }
-    if (heroesReady) { console.info('[BOOT] Hero collection settled'); setBootStage((current) => Math.max(current, 95)); }
+    if (telegramInitData) setBootStage((current) => Math.max(current, 50));
+    if (playerProfileReady) setBootStage((current) => Math.max(current, 65));
+    if (game) setBootStage((current) => Math.max(current, 80));
+    if (heroesReady) setBootStage((current) => Math.max(current, 90));
   }, [telegramInitData, playerProfileReady, game, heroesReady]);
 
-  // Only identity + game state are critical. Heroes, pets, pool, pass and events are
-  // secondary systems: each screen shows its own loading/error state instead of
-  // blocking the whole Mini App behind the splash.
-  const appReady = !telegramBooting && Boolean(telegramInitData) && isReady && Boolean(game);
+  // Gate the game on real readiness (never on the percentage), then fade the art out.
+  const appReady = !telegramBooting && Boolean(telegramInitData) && isReady && Boolean(game) && heroesReady;
   const bootProgress = appReady ? 100 : Math.min(bootStage, 95);
   useEffect(() => {
     if (!appReady || bootDone) return;
-    console.info('[BOOT] App ready');
     const fadeTimer = setTimeout(() => setBootFading(true), 350);
     const doneTimer = setTimeout(() => setBootDone(true), 900);
     return () => { clearTimeout(fadeTimer); clearTimeout(doneTimer); };
   }, [appReady, bootDone]);
-
 
 
 
@@ -405,20 +401,6 @@ function App() {
       setIsReady(true);
     }
   }, [data]);
-
-  // Boot watchdog: the loading screen never stays stuck — after 12s the local village state opens the game.
-  useEffect(() => {
-    if (!telegramInitData || game) return;
-    const timer = window.setTimeout(() => {
-      console.error('[BOOT] game state unavailable, opening with local village state', {
-        hasError: Boolean(error), isLoading
-      });
-      setGame(buildLocalGameState(telegramInitData));
-      setIsReady(true);
-    }, 12_000);
-    return () => window.clearTimeout(timer);
-  }, [telegramInitData, game, error, isLoading]);
-
 
   useEffect(() => {
     if (!game || !isDemoMode || !telegramInitData) return;
@@ -579,26 +561,8 @@ function App() {
   // One single boot screen: Telegram init, session validation and game data all live behind it.
   if (!bootDone || !game) {
     const failure = bootstrapError ?? (error ? (error instanceof Error ? error.message : 'Erro inesperado ao consultar o backend.') : null);
-    // Critical failure (session/identity): never leave the player on an endless bar.
-    if (bootstrapError && !game) {
-      console.error('[BOOT ERROR] critical_bootstrap', bootstrapError);
-      return (
-        <div className="relative flex min-h-screen flex-col items-center justify-center gap-4 bg-[#03060f] px-6 text-center text-white">
-          <h1 className="text-xl font-black tracking-wide">Unable to load Mythreon</h1>
-          <p className="max-w-xs text-sm text-slate-300">{bootstrapError}</p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="rounded-full border border-sky-300/50 bg-sky-500/20 px-6 py-3 text-sm font-black uppercase tracking-[.18em] text-sky-100"
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
     return <MythreonLoadingScreen progress={bootProgress} note={failure} fading={bootFading} />;
   }
-
 
 
 

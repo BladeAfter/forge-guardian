@@ -3087,17 +3087,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     }
 
     case 'poolset': { const [k, v] = text.split(/\s+/); await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pool_' + k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ Configuração da pool <code>${esc(k)}</code> = ${esc(v)}`, MAIN_MENU); }
-    case 'poolrate': {
-      // Aceita "0", "0%", "5", "5%", "10,5" e normaliza para número puro.
-      const raw = String(text || '').trim().replace('%', '').replace(',', '.').replace(/\s+/g, '');
-      const pct = /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : NaN;
-      if (!Number.isFinite(pct) || pct < 0 || pct > 100) return send(ctx, '⚠️ Informe um percentual entre 0 e 100 (ex: 0, 0%, 5, 15%).', MAIN_MENU);
-      const r = await rpc('admin_set_pool_contribution_percent', { p_admin_id: ctx.adminId, p_percent: pct });
-      const prev = r?.previous ?? null;
-      const curr = r?.current ?? pct;
-      const fmt = (n: unknown) => (n === null || n === undefined ? '—' : `${Number(n)}%`);
-      return send(ctx, `✅ <b>Taxa da Community Pool atualizada</b>\nAnterior: <b>${fmt(prev)}</b>\nNova: <b>${fmt(curr)}</b>\n\nAplicada sobre toda receita TON confirmada.`, MAIN_MENU);
-    }
+    case 'poolrate': { const pct = Number(text.replace(',', '.').replace(/[^\d.]/g, '')); if (!Number.isFinite(pct) || pct < 0 || pct > 100) return send(ctx, '⚠️ Informe um percentual entre 0 e 100.', MAIN_MENU); const r = await rpc('admin_set_pool_contribution_percent', { p_admin_id: ctx.adminId, p_percent: pct }); return send(ctx, `✅ Taxa da Community Pool agora é <b>${r}%</b> de toda receita TON confirmada.`, MAIN_MENU); }
 
     case 'passxpadj': {
       const [mode, user] = args;
