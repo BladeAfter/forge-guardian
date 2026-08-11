@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
-import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validWithdrawal, withdrawalQuote } from '../economy';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validDeposit, validWithdrawal, withdrawalQuote } from '../economy';
 import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
