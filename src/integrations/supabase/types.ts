@@ -4906,6 +4906,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      add_universal_fragments: {
+        Args: { p_quantity: number; p_user_id: string }
+        Returns: number
+      }
       admin_adjust_balance: {
         Args: {
           p_admin_id: number
@@ -6348,6 +6352,10 @@ export type Database = {
       unequip_combat_hero: {
         Args: { p_slot: number; p_telegram_id: number }
         Returns: Json
+      }
+      universal_fragment_balance: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       upgrade_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
