@@ -1789,6 +1789,10 @@ export type Database = {
           max_hp: number
           rarity: string
           revive_at: string | null
+          revive_attack_at: string | null
+          revive_attack_used: boolean
+          revive_protected: boolean
+          revive_protected_until: string | null
           slot: number | null
           updated_at: string
         }
@@ -1807,6 +1811,10 @@ export type Database = {
           max_hp: number
           rarity: string
           revive_at?: string | null
+          revive_attack_at?: string | null
+          revive_attack_used?: boolean
+          revive_protected?: boolean
+          revive_protected_until?: string | null
           slot?: number | null
           updated_at?: string
         }
@@ -1825,6 +1833,10 @@ export type Database = {
           max_hp?: number
           rarity?: string
           revive_at?: string | null
+          revive_attack_at?: string | null
+          revive_attack_used?: boolean
+          revive_protected?: boolean
+          revive_protected_until?: string | null
           slot?: number | null
           updated_at?: string
         }
