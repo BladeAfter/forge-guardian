@@ -813,7 +813,7 @@ async function module(ctx: Ctx, name: string) {
       const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
       const shop = d.heroes.filter((h: any) => h.in_shop);
       return edit(ctx, `📦 <b>ITENS DA LOJA</b>\n${shop.length ? shop.map((h: any) => `• ${esc(h.name)} — ${fmt(h.price_fc)} FC / ${h.price_ton ?? '—'} TON · ordem ${h.sort_order}${h.featured ? ' ⭐' : ''}`).join('\n') : 'Nenhum item avulso na loja.'}\n\nCampos: <code>in_shop</code>, <code>price_fc</code>, <code>price_ton</code>, <code>discount_percent</code>, <code>stock</code>, <code>sort_order</code>, <code>featured</code>, <code>available_until</code>.`,
-        kb([[{ t: '✏️ EDITAR ITEM (JSON)', d: 'ask:hero' }], nav('m:shop')]));
+        kb([[{ t: '✏️ EDITAR HERÓI', d: 'hw:edit' }], nav('m:shop')]));
     }
     case 'pets': {
       const list = await rpc('admin_list_pets', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
