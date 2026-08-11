@@ -27,7 +27,7 @@ const openTelegramLink = (url: string) => {
   else window.open(url, '_blank', 'noopener,noreferrer');
 };
 
-function relativeTime(iso: string, t: (key: string, params?: Record<string, unknown>) => string): string {
+function relativeTime(iso: string, t: (key: string, params?: Record<string, string | number>) => string): string {
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return '';
   const diff = Math.max(0, Date.now() - then);

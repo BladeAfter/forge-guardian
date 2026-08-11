@@ -95,7 +95,6 @@ export const profile: LocaleBundle = {
     'profile.loadingChannels': 'Carregando canais...',
     'profile.rewardClaimed': 'Recompensa coletada · +{amount} FC',
     'profile.openChannel': 'Abrir canal',
-    'profile.claimed': 'Reclamado',
     'profile.claimed': 'Coletado',
     'profile.join': 'Entrar',
     'profile.verify': 'Verificar',
