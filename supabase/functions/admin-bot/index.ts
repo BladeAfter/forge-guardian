@@ -55,7 +55,7 @@ const MAIN_MENU = kb([
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
-  [{ t: '🎁 PRESENTES', d: 'm:gifts' }],
+  [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
 
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
@@ -822,6 +822,76 @@ async function clansHub(ctx: Ctx) {
     ]));
 }
 
+// ---------------------------------------------------------------- 🎉 EVENTS (special events: independent from the weekly pool)
+const evRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc('admin_events', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+
+const EV_STATUS: Record<string, string> = { scheduled: '🕒 AGENDADO', active: '🟢 ATIVO', finished: '🏁 ENCERRADO', cancelled: '⛔ CANCELADO' };
+const evDate = (v: unknown) => String(v ?? '').slice(0, 16).replace('T', ' ');
+
+function eventsText(d: any) {
+  const e = d.event;
+  if (!e) return '🎉 <b>EVENTOS ESPECIAIS</b>\n\nNenhum evento cadastrado ainda.\nCrie o primeiro com “➕ CRIAR EVENTO”.';
+  const rules = e.rules || {};
+  const dist = Array.isArray(rules.distribution) ? rules.distribution : [];
+  const pay = d.payoutSummary || {};
+  return [
+    '🎉 <b>EVENTOS ESPECIAIS</b>',
+    '<i>Camada independente — não afeta a Pool Semanal.</i>',
+    '',
+    `🏆 <b>${esc(e.name)}</b> ${EV_STATUS[e.status] ?? esc(e.status)}`,
+    `<code>${esc(e.eventKey)}</code> · tipo <code>${esc(e.type)}</code>`,
+    `💎 Prêmio total: <b>${fmt(e.prizePoolTon)} TON</b>`,
+    `📅 ${evDate(e.startsAt)} → ${evDate(e.endsAt)}`,
+    '',
+    `👥 Participantes válidos: <b>${fmt(d.participantCount)}</b>`,
+    `🤝 Convites válidos no total: <b>${fmt(d.totalValidReferrals)}</b>`,
+    `🛡 Regras: mín. ${rules.minDailyQuests ?? 1} daily quest · TOP ${rules.topLimit ?? 100} · modo <b>${esc(rules.distributionMode ?? 'fixed')}</b>`,
+    dist.length ? `🏅 Faixas: ${dist.slice(0, 6).map((x: any) => `#${x.from}${x.to !== x.from ? '-' + x.to : ''}=${x.ton ?? x.totalTon}`).join(' · ')}${dist.length > 6 ? ' …' : ''}` : '',
+    '',
+    `💸 Pagamentos: ${fmt(pay.rows)} linhas · pendentes ${fmt(pay.pending)} · pagos ${fmt(pay.paid)} (${fmt(pay.paidTon)} TON) · falhas ${fmt(pay.failed)}`,
+    '',
+    '<b>TOP 10</b>',
+    (d.ranking || []).slice(0, 10).map((r: any) => `${r.position}. ${esc(r.username ? '@' + r.username : r.name)} — ${fmt(r.validReferrals)} convites · ${fmt(r.rewardTon)} TON`).join('\n') || '—',
+  ].filter(Boolean).join('\n');
+}
+
+async function eventsHub(ctx: Ctx, ref: string | null = null, editing = true) {
+  const d = await evRpc(ctx, 'view', ref, { limit: 10 });
+  const key = d.event?.eventKey ?? '';
+  const markup = kb([
+    [{ t: '➕ CRIAR EVENTO', d: 'ask:evcreate' }, { t: '📋 TODOS OS EVENTOS', d: 'ev:list' }],
+    [{ t: '💎 EDITAR PRÊMIO', d: `ask:evprize|${key}` }, { t: '📅 EDITAR DATAS', d: `ask:evdates|${key}` }],
+    [{ t: '🛡 EDITAR REGRAS', d: `ask:evrules|${key}` }, { t: '🏅 TABELA DE PRÊMIOS', d: `ask:evdist|${key}` }],
+    [{ t: '📈 RANKING TOP 100', d: `ev:rank|${key}` }, { t: '📜 AUDITORIA', d: 'ev:audit' }],
+    [{ t: '🏁 ENCERRAR + SNAPSHOT', d: `evconfirm:finish|${key}` }, { t: '💸 DISTRIBUIR', d: `evconfirm:distribute|${key}` }],
+    [{ t: '⛔ CANCELAR EVENTO', d: `evconfirm:cancel|${key}` }],
+    nav(),
+  ]);
+  const text = eventsText(d);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function eventsList(ctx: Ctx) {
+  const d = await evRpc(ctx, 'list');
+  const rows = (d.events || []) as any[];
+  const body = rows.map((e) => `• ${EV_STATUS[e.status] ?? e.status} <b>${esc(e.name)}</b>\n   <code>${esc(e.eventKey)}</code> · ${fmt(e.prizePoolTon)} TON · ${evDate(e.startsAt)} → ${evDate(e.endsAt)}`).join('\n') || '—';
+  return edit(ctx, `📋 <b>TODOS OS EVENTOS</b>\n${body}`,
+    kb([...rows.slice(0, 8).map((e) => [{ t: `${e.status === 'active' ? '🟢' : '•'} ${e.name}`.slice(0, 40), d: `ev:open|${e.eventKey}` }]), nav('m:events')]));
+}
+
+async function eventsRanking(ctx: Ctx, ref: string | null) {
+  const d = await evRpc(ctx, 'view', ref, { limit: 100 });
+  const body = (d.ranking || []).map((r: any) => `${r.position}. ${esc(r.username ? '@' + r.username : r.name)} — ${fmt(r.validReferrals)} · ${fmt(r.rewardTon)} TON`).join('\n') || '—';
+  return edit(ctx, `📈 <b>RANKING TOP 100</b>\n${esc(d.event?.name ?? '')}\n\n${body}`.slice(0, 3800), kb([nav('m:events')]));
+}
+
+async function eventsAudit(ctx: Ctx) {
+  const d = await evRpc(ctx, 'view', null, { limit: 1 });
+  const body = (d.audit || []).map((a: any) => `• ${evDate(a.at)} <code>${esc(a.action)}</code> ${esc(JSON.stringify(a.value)).slice(0, 90)}`).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DE EVENTOS</b>\n${body}`, kb([[{ t: '🔄 ATUALIZAR', d: 'ev:audit' }], nav('m:events')]));
+}
+
 /** Central clan configuration: creation cost + default member limit (never touches existing clans). */
 async function clanSettingsView(ctx: Ctx, editing = true) {
   const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
@@ -1224,6 +1294,7 @@ async function module(ctx: Ctx, name: string) {
 
     }
     case 'clans': return clansHub(ctx);
+    case 'events': return eventsHub(ctx);
     case 'gifts': return giftHub(ctx);
 
     case 'boss': return bossPanel(ctx);
