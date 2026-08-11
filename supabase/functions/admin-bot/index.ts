@@ -930,16 +930,8 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📦 DIAGNÓSTICO DOS BAÚS', d: 'view:chests' }], nav()]));
 
     }
-    case 'boss': {
-      const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
-      const b = d.boss;
-      const when = (v: any) => (v ? esc(new Date(v).toLocaleString('pt-BR')) : '—');
-      return edit(ctx, `👹 <b>BOSS ATUAL</b>\nStatus: ${d.active ? '🟢 ATIVO' : '🔴 INATIVO'}\nBoss: <b>${b ? esc(b.name) : '—'}</b>\nHP: ${b ? `${fmt(d.currentHp ?? b.maxHp)} / ${fmt(d.maxHp || b.maxHp)}` : '—'}\nInício: ${when(b?.startsAt)}\nFim: ${when(b?.endsAt)}\nDuração: ${b ? `${Math.round((b.durationSeconds ?? 0) / 3600)}h` : '—'}\n🎁 Recompensa: ${b ? `${fmt(b.reward)} FC` : '—'}\nParticipantes: ${fmt(d.participants ?? 0)}\nDano total: ${fmt(d.totalDamage ?? 0)}\n\n<b>Chefes</b>\n${d.templates.map((t: any) => `• <code>${esc(t.code)}</code> ${esc(t.name)} NV${t.level} — ${fmt(t.maxHp)} HP ${t.active ? '🟢' : '⚪'}`).join('\n') || '—'}\n\n<b>Top dano</b>\n${d.top_damage.map((t: any) => `• ${esc(t.name)} — ${fmt(t.damage)}`).join('\n') || '—'}`,
-        kb([[{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }, { t: '🔴 DESATIVAR', d: 'confirm:bossend' }],
-            [{ t: '🔄 RESETAR', d: 'confirm:bosshp' }, { t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
-            [{ t: '⏱ ALTERAR DURAÇÃO', d: 'ask:bossdur' }, { t: '🎁 RECOMPENSAS', d: 'ask:bossreward' }],
-            [{ t: '👹 TROCAR BOSS', d: 'ask:bossspawn' }, { t: '✏️ CRIAR/EDITAR', d: 'ask:boss' }], nav()]));
-    }
+    case 'boss': return bossPanel(ctx);
+
     case 'ads': {
       const d = await rpc('admin_ads_overview', { p_admin_id: ctx.adminId });
       return edit(ctx, `📢 <b>ANÚNCIOS</b>\n${d.providers.map((a: any) => `• <code>${esc(a.code)}</code> ${esc(a.name)} ${a.enabled ? '✅' : '⛔'} — limite ${a.daily_limit}/dia · ${fmt(a.reward_fc)} FC · cooldown ${a.cooldown_seconds}s`).join('\n')}`,
