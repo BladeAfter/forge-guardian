@@ -902,7 +902,49 @@ async function eventsAudit(ctx: Ctx) {
 const prRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
   rpc('admin_payment_recovery', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
 
+// ---------------------------------------------------------------- 🛒 marketplace (FC only)
+const MK_TYPE: Record<string, string> = { hero: '🦸', pet: '🐲', item: '🎒' };
+const mkLine = (l: any) =>
+  `${MK_TYPE[l.itemType] ?? '•'} <b>${esc(l.name)}</b> ${l.rarity ? `· ${esc(l.rarity)}` : ''}\n   ${fmt(l.priceFc)} FC · ${esc(l.status)} · vendedor ${esc(l.seller ?? '—')}\n   <code>${esc(l.id)}</code>`;
+
+async function marketHub(ctx: Ctx, status = 'active') {
+  const o = await rpc('admin_market_overview', { p_admin_id: ctx.adminId }) as any;
+  const listings = await rpc('admin_market_listings', { p_admin_id: ctx.adminId, p_status: status, p_limit: 10 }) as any[];
+  const s = o.settings || {};
+  const min = s.minPrice || {};
+  const body = (listings || []).map(mkLine).join('\n') || '—';
+  return edit(ctx, [
+    '🛒 <b>MARKETPLACE (FC)</b>',
+    `Taxa atual: <b>${Number(s.feePercent ?? 5)}%</b> (queimada, não vai para a pool TON)`,
+    `Limite por jogador: <b>${fmt(s.maxActiveListings ?? 20)}</b> anúncios ativos`,
+    `Preço mínimo: herói ${fmt(min.hero ?? 0)} FC · pet ${fmt(min.pet ?? 0)} FC · item ${fmt(min.item ?? 0)} FC`,
+    '',
+    `Ativos <b>${fmt(o.active)}</b> · vendidos ${fmt(o.sold)} · cancelados ${fmt(o.cancelled)}`,
+    `Volume total: <b>${fmt(o.volumeFc)} FC</b> · queimado ${fmt(o.burnedFc)} FC`,
+    '',
+    `<b>${status === 'all' ? 'ÚLTIMOS' : status.toUpperCase()}</b>`,
+    body.slice(0, 2800),
+  ].join('\n'), kb([
+    [{ t: '🟢 ATIVOS', d: 'mk:list|active' }, { t: '🔵 VENDIDOS', d: 'mk:list|sold' }, { t: '⚪️ TODOS', d: 'mk:list|all' }],
+    [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
+    [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
+    [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
+    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }],
+    nav(),
+  ]));
+}
+
+async function marketAudit(ctx: Ctx) {
+  const rows = await rpc('admin_market_audit', { p_admin_id: ctx.adminId, p_limit: 15 }) as any[];
+  const body = (rows || []).map((t: any) =>
+    `${MK_TYPE[t.itemType] ?? '•'} <b>${esc(t.name)}</b> — ${fmt(t.priceFc)} FC\n   ${esc(t.seller ?? '—')} → ${esc(t.buyer ?? '—')} · taxa ${fmt(t.feeFc)} FC · recebeu ${fmt(t.received)} FC\n   ${prWhen(t.createdAt)}`,
+  ).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DO MERCADO</b>\n${body.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'mk:audit' }], nav('m:market')]));
+}
+
 const PR_KIND: Record<string, string> = { deposit: '💰 DEPOSIT', premium_egg: '🥚 PREMIUM_EGG', battle_pass: '🎟 BATTLE_PASS' };
+
 const prWhen = (v: unknown) => (v ? esc(new Date(String(v)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })) : '—');
 const prWho = (r: any) => esc(r.username ? '@' + r.username : (r.name || r.telegramId || '—'));
 const prLine = (r: any) =>
