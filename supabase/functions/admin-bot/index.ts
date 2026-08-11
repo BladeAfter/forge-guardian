@@ -2656,10 +2656,12 @@ async function handleCallback(ctx: Ctx, data: string) {
       kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
   }
   if (head === 'mk') {
-    if (rest[0] === 'audit') return marketAudit(ctx);
-    if (rest[0] === 'list') return marketHub(ctx, rest[1] || 'active');
+    const [sub, arg] = String(rest[0] || '').split('|');
+    if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'list') return marketHub(ctx, arg || 'active');
     return marketHub(ctx);
   }
+
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
 
   if (head === 'pool') return ask(ctx, `pool|${rest[0]}`, `Envie o valor em TON para ${rest[0] === 'add' ? 'adicionar' : 'remover'}.`);
