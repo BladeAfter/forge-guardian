@@ -11,7 +11,8 @@ export const buildings: Record<string, string> = {
   'coal-mine': gameAsset('buildings/coal-mine.png'),
   forge: gameAsset('buildings/forge.png'),
   'royal-workshop': gameAsset('buildings/royal-workshop.png'),
-  'dragon-foundry': gameAsset('buildings/dragon-foundry.png')
+  'dragon-foundry': gameAsset('buildings/dragon-foundry.png'),
+  'clan-hall': gameAsset('buildings/mythreon-clan-hall.png')
 };
 
 export const characters = {

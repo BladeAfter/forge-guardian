@@ -752,11 +752,8 @@ function App() {
           </div>
 
 
-          <div className="relative z-30 w-full max-w-[168px]">
-            <ClanStatusChip clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
-          </div>
-
           <ClanHall clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
+
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
