@@ -1509,6 +1509,8 @@ async function module(ctx: Ctx, name: string) {
     case 'clans': return clansHub(ctx);
     case 'events': return eventsHub(ctx);
     case 'precovery': return prHub(ctx);
+    case 'market': return marketHub(ctx);
+
 
     case 'gifts': return giftHub(ctx);
 
