@@ -1460,6 +1460,23 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const r = await rpc('admin_set_pass_xp_settings', { p_admin_id: ctx.adminId, p_patch: { [k]: value }, p_reason: 'painel admin' });
       return send(ctx, `✅ <code>${esc(k)}</code> = <b>${fmt(value)} XP</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
     }
+    case 'passxpmult': {
+      const [tier, v] = text.split(/\s+/);
+      const key = String(tier || '').toLowerCase() === 'free' ? 'none' : String(tier || '').toLowerCase();
+      const value = Number(String(v ?? '').replace(',', '.'));
+      if (!['none', 'adventurer', 'legendary'].includes(key) || !Number.isFinite(value) || value < 0.1 || value > 10) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>free|adventurer|legendary valor</code> (ex.: <code>legendary 1.4</code>).');
+      }
+      const r = await rpc('admin_set_pass_xp_multipliers', { p_admin_id: ctx.adminId, p_patch: key === 'none' ? { none: value, free: value } : { [key]: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Multiplicador de XP <code>${esc(key)}</code> = <b>x${value}</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passxpcap': {
+      const [k, v] = text.split(/\s+/);
+      const value = Math.round(parseAmount(v ?? ''));
+      if (!k || !Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>chave limite</code> (ex.: <code>pet_feed 100</code>).');
+      const r = await rpc('admin_set_pass_xp_caps', { p_admin_id: ctx.adminId, p_patch: { [k]: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Limite diário de <code>${esc(k)}</code> = <b>${fmt(value)} XP base/dia</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
     case 'passxplevel': {
       const value = Math.round(parseAmount(text));
       if (!Number.isFinite(value) || value < 1) throw new Error('KEEP_SESSION::⚠️ Envie um número maior que 0 (ex.: <code>1000</code>).');
