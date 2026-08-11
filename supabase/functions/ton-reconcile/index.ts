@@ -148,7 +148,54 @@ Deno.serve(async req => {
       console.log('[PASS ACTIVATE]', JSON.stringify({ orderId: order.id, tier: order.tier, txHash }));
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending, passActivated });
+    // Premium egg purchases: identified ONLY by the order's own unique comment (never by amount),
+    // and kept verifiable for 30 days so a slow transfer is still delivered automatically.
+    const eggOrders = await db.rpc('ton_pending_purchase_orders', { p_max_age_days: 30 });
+    if (eggOrders.error) console.error('[EGG RECONCILE]', eggOrders.error.message);
+    const eggsDelivered: string[] = [];
+    for (const order of (eggOrders.data ?? []) as any[]) {
+      const comment = String(order.payment_comment || '').trim();
+      const expectedNano = BigInt(String(order.amount_nano || '0'));
+      const minNano = (expectedNano * 97n) / 100n;
+      const logRow: Record<string, unknown> = {
+        order_kind: order.order_kind,
+        order_id: order.order_id,
+        user_id: order.user_id,
+        telegram_id: order.telegram_id,
+        product_id: order.product_id,
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
+      if (!comment) continue;
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || msgComment(inMsg) !== comment) return false;
+        const hash = txHashOf(tx);
+        if (!hash || used.has(hash)) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= minNano;
+      });
+      if (!match) {
+        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
+        continue;
+      }
+      const txHash = txHashOf(match);
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      const { error } = await db.rpc('confirm_pet_egg_purchase', { p_order_id: order.order_id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      if (error) {
+        console.error('[EGG DELIVER]', JSON.stringify({ orderId: order.order_id, reason: error.message }));
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: error.message });
+        if (String(error.message).includes('TX_ALREADY_USED')) used.add(txHash);
+        continue;
+      }
+      used.add(txHash);
+      eggsDelivered.push(String(order.order_id));
+      await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'completed' });
+      console.log('[EGG DELIVER]', JSON.stringify({ orderId: order.order_id, product: order.product_id, txHash }));
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered });
+
   } catch (error) {
     console.error('[FORGE ERROR] ton-reconcile', error);
     return json({ error: 'Deposit reconciliation failed.' }, 500);
