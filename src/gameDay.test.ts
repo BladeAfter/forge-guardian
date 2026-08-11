@@ -31,3 +31,36 @@ describe('official game day (21:00 America/Sao_Paulo)',()=>{
   expect(nextResetCountdown(undefined,now)).toBe('--h --m');
  });
 });
+
+import{calendarDayStatus,type CalendarDashboard}from'./calendarRewards';
+const dash=(o:Partial<CalendarDashboard>):CalendarDashboard=>({cycle:'1',currentDay:1,claimedDays:[],canClaim:true,rewards:[],balance:0,...o});
+
+describe('calendar day status (one claim per official day)',()=>{
+ it('TEST 1 — before the claim only Day 1 is available',()=>{
+  const d=dash({currentDay:1,availableDay:1,canClaim:true});
+  expect(calendarDayStatus(d,1,1)).toBe('AVAILABLE');
+  expect(calendarDayStatus(d,2,1)).toBe('LOCKED');
+ });
+ it('TEST 1b — after claiming Day 1, Day 2 stays locked',()=>{
+  const d=dash({currentDay:1,availableDay:null,claimedDays:[1],canClaim:false,claimedToday:true});
+  expect(calendarDayStatus(d,1,1)).toBe('CLAIMED');
+  expect(calendarDayStatus(d,2,1)).toBe('LOCKED');
+  expect(calendarDayStatus(d,3,1)).toBe('LOCKED');
+ });
+ it('TEST 5 — after the 21:00 rollover Day 2 becomes available',()=>{
+  const d=dash({currentDay:2,availableDay:2,claimedDays:[1],canClaim:true,claimedToday:false});
+  expect(calendarDayStatus(d,1,2)).toBe('CLAIMED');
+  expect(calendarDayStatus(d,2,2)).toBe('AVAILABLE');
+  expect(calendarDayStatus(d,3,2)).toBe('LOCKED');
+ });
+ it('never exposes two available days nor two claimed days from one claim',()=>{
+  const d=dash({currentDay:1,availableDay:null,claimedDays:[1],canClaim:false,claimedToday:true});
+  const all=Array.from({length:30},(_,i)=>calendarDayStatus(d,i+1,1));
+  expect(all.filter(s=>s==='AVAILABLE')).toHaveLength(0);
+  expect(all.filter(s=>s==='CLAIMED')).toHaveLength(1);
+ });
+ it('server statuses win over any local guess',()=>{
+  const d=dash({currentDay:5,availableDay:5,claimedDays:[1,2,3,4],dayStatuses:{'5':'LOCKED'},canClaim:true});
+  expect(calendarDayStatus(d,5,5)).toBe('LOCKED');
+ });
+});

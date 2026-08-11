@@ -29,7 +29,7 @@ import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipC
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
-import {CALENDAR_REWARDS,CHEST_LABELS,nextResetCountdown,type CalendarClaimResult} from './calendarRewards';
+import {CALENDAR_REWARDS,CHEST_LABELS,calendarDayStatus,nextResetCountdown,type CalendarClaimResult} from './calendarRewards';
 
 import { toFriendlyTonAddress } from './tonAddress';
 
@@ -624,7 +624,9 @@ function App() {
   const t = (key: string) => translate(languageCode, key);
 
   const collectCalendarDay = (day: number) => {
-    if(day!==calendarDay)return;if(backendEnabled){calendarClaimMutation.mutate(day);return}
+    if(calendarClaimMutation.isPending)return;
+    if(calendarDashboard?(day!==(calendarDashboard.availableDay??-1)||!calendarDashboard.canClaim):day!==calendarDay)return;
+    if(backendEnabled){calendarClaimMutation.mutate(day);return}
     if (!dailyReward?.complete || dailyReward.claimed) return;claimMission(dailyReward.id);
   };
 
@@ -723,7 +725,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={dailyReward?.claimed?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
+            <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>openInternal('pool')}/>
           </div>
           <div className="flex w-full items-start justify-between">
@@ -807,20 +809,23 @@ function App() {
                 <div className="mt-4 grid grid-cols-5 gap-2">
                   {Array.from({ length: 30 }, (_, index) => {
                     const day = index + 1;
-                    const reward=calendarRewards.find(item=>item.day===day);const past = calendarDashboard?.claimedDays.includes(day)??day < calendarDay;
-                    const current = day === calendarDay;
-                    const collected = past||(current&&(calendarDashboard?!calendarDashboard.canClaim:Boolean(dailyReward?.claimed)));
+                    const reward=calendarRewards.find(item=>item.day===day);
+                    // CLAIMED / AVAILABLE / LOCKED come from the server: only one day is ever AVAILABLE.
+                    const status = calendarDayStatus(calendarDashboard, day, calendarDay, Boolean(dailyReward?.claimed));
+                    const collected = status === 'CLAIMED';
+                    const current = status === 'AVAILABLE';
+                    const claiming = current && calendarClaimMutation.isPending;
                     const chestIndex=reward?.itemCode==='epic_chest'||reward?.itemCode==='legendary_chest'?2:reward?.itemCode==='rare_chest'?1:0;
                     return (
                       <button
                         key={day}
                         onClick={() => collectCalendarDay(day)}
                         disabled={!current || Boolean(collected)||calendarClaimMutation.isPending}
-                        className={`aspect-square rounded-xl border p-1 text-center transition ${past || collected ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : current ? 'border-amber-300 bg-amber-400/15 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,.2)]' : 'border-white/5 bg-white/[.03] text-slate-600'}`}
+                        className={`aspect-square rounded-xl border p-1 text-center transition ${collected ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : current ? 'border-amber-300 bg-amber-400/15 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,.2)]' : 'border-white/5 bg-white/[.03] text-slate-600'}`}
                       >
                         <span className="block text-[8px] font-black">DIA {day}</span>
                         {reward?.type==='fc'?<img src={coin} alt="FC" className="mx-auto h-5 w-5 object-contain"/>:reward?.type==='hero_chest'?<img src={chests[chestIndex]} alt="Baú" className="mx-auto h-5 w-5 object-contain"/>:<img src={`/assets/game/pet-eggs/${reward?.itemCode}.webp`} alt="Ovo" className="mx-auto h-5 w-5 object-contain"/>}
-                        <span className="block truncate text-[6px]">{collected?'OK':!current?'🔒':reward?.type==='fc'?`${(reward.amountFc??0)/1000}K FC`:reward?.type==='hero_chest'?'BAÚ':'OVO'}</span>
+                        <span className="block truncate text-[6px]">{collected?'OK':claiming?'...':!current?'🔒':reward?.type==='fc'?`${(reward.amountFc??0)/1000}K FC`:reward?.type==='hero_chest'?'BAÚ':'OVO'}</span>
                       </button>
                     );
                   })}
