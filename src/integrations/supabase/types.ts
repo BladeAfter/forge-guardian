@@ -1283,6 +1283,7 @@ export type Database = {
       pet_egg_orders: {
         Row: {
           amount_nano: string
+          confirmed_at: string | null
           created_at: string
           delivered_at: string | null
           egg_id: string
@@ -1299,6 +1300,7 @@ export type Database = {
         }
         Insert: {
           amount_nano: string
+          confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null
           egg_id: string
@@ -1315,6 +1317,7 @@ export type Database = {
         }
         Update: {
           amount_nano?: string
+          confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null
           egg_id?: string
@@ -4858,6 +4861,7 @@ export type Database = {
         Returns: Json
       }
       current_ton_fc_rate: { Args: never; Returns: number }
+      deliver_pet_egg_order: { Args: { p_order_id: string }; Returns: Json }
       distribute_community_pool: {
         Args: { p_force?: boolean }
         Returns: string
@@ -4887,6 +4891,10 @@ export type Database = {
           p_telegram_id: number
         }
         Returns: Json
+      }
+      expire_stale_pet_egg_orders: {
+        Args: { p_user_id?: string }
+        Returns: number
       }
       feed_pet: {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
@@ -5110,6 +5118,10 @@ export type Database = {
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
       rates_allowed_rarities: { Args: { p_rates: Json }; Returns: string[] }
+      reconcile_pet_egg_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       record_daily_quest_progress: {
         Args: { p_amount?: number; p_event: string; p_user_id: string }
         Returns: undefined
