@@ -448,7 +448,17 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
             [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
             [{ t: '🎁 REWARDS (MAPA)', d: 'view:passrewards' }],
+            [{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
+    }
+    case 'passlevels': {
+      const { data: row } = await db.from('game_settings').select('value').eq('key', 'season_pass_level_purchase').maybeSingle();
+      const cfg = (row?.value ?? {}) as any; const prices = cfg.prices ?? {};
+      const { data: today } = await db.from('season_pass_level_purchases').select('levels_bought,fc_spent').gte('created_at', new Date(Date.now() - 86400000).toISOString());
+      const lv = (today ?? []).reduce((a: number, r: any) => a + Number(r.levels_bought || 0), 0);
+      const fc = (today ?? []).reduce((a: number, r: any) => a + Number(r.fc_spent || 0), 0);
+      return edit(ctx, `🪜 <b>LEVEL PURCHASE SETTINGS</b>\nStatus: <b>${cfg.enabled === false ? '❌ DESATIVADO' : '✅ ATIVO'}</b>\nLimite diário: <b>${fmt(Number(cfg.daily_limit ?? 5))} níveis</b>\n\n<b>PREÇOS</b>\n${[1,3,5].map(n=>`• +${n} nível(is): <b>${fmt(Number(prices[String(n)] ?? 0))} FC</b>`).join('\n')}\n\nÚltimas 24h: <b>${fmt(lv)}</b> níveis · <b>${fmt(fc)} FC</b> queimados.`,
+        kb([[{ t: '💰 EDITAR PREÇO', d: 'ask:passlevelprice' }], [{ t: '🚧 LIMITE DIÁRIO', d: 'ask:passlevellimit' }], [{ t: cfg.enabled === false ? '✅ ATIVAR' : '⛔ DESATIVAR', d: `passlvtoggle:${cfg.enabled === false ? 'on' : 'off'}` }], nav('m:pass')]));
     }
     case 'passrewards': {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
@@ -886,6 +896,8 @@ const PROMPTS: Record<string, string> = {
   passxp: 'Envie: <code>chave valor</code> (XP base da ação).\nEx.: <code>pvp_battle 40</code>\nChaves: daily_login, daily_quest, daily_quest_all, daily_chest, pvp_battle, pvp_victory, boss_attack, boss_damage_milestone, boss_reward, reward_open, pet_feed, pet_level_up, pet_evolution, hero_fuse, rarity_fusion, rarity_fusion_success, calendar_claim',
   passxpmult: 'Envie: <code>free|adventurer|legendary valor</code>\nEx.: <code>legendary 1.4</code> (= +40% de XP do Battle Pass).',
   passxpcap: 'Envie: <code>chave limite</code> — limite de XP base por game_day.\nEx.: <code>pet_feed 100</code> · <code>reward_open 150</code> · <code>pvp_battle 400</code>\nUse <code>0</code> para bloquear a fonte.',
+  passlevelprice: 'Envie: <code>1|3|5 preço</code> — preço em FC do pacote de níveis.\nEx.: <code>1 50000</code> · <code>3 135000</code> · <code>5 200000</code>',
+  passlevellimit: 'Envie o limite de níveis compráveis por game_day (0–30).\nEx.: <code>5</code>',
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":4000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
@@ -927,6 +939,12 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  if (head === 'passlvtoggle') {
+    await clearSession(ctx);
+    const enabled = rest[0] === 'on';
+    await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { enabled }, p_reason: 'painel admin' });
+    return module(ctx, 'passlevels');
+  }
   // withdrawals: every financial action is resolved by withdrawal_id, never by username.
   if (head === 'pa') { await clearSession(ctx); return handlePayoutAnnouncements(ctx, rest[0] || 'menu'); }
   if (head === 'pasend') {
@@ -1488,6 +1506,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       await rpc('admin_update_season_pass', { p_season_id: season.id, p_name: season.name, p_start_at: season.start_at, p_end_at: season.end_at, p_levels: season.levels, p_xp_per_level: value, p_adventurer_price: season.adventurer_price_ton, p_legendary_price: season.legendary_price_ton, p_active: season.active });
       await rpc('admin_bump_settings_version', {});
       return send(ctx, `✅ XP por nível agora é <b>${fmt(value)}</b>.`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passlevelprice': {
+      const [n, v] = text.split(/\s+/);
+      const levels = Number(n), value = Math.round(parseAmount(v ?? ''));
+      if (![1, 3, 5].includes(levels) || !Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>1|3|5 preço</code> (ex.: <code>3 135000</code>).');
+      const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { prices: { [String(levels)]: value } }, p_reason: 'painel admin' });
+      return send(ctx, `✅ +${levels} nível(is) = <b>${fmt(value)} FC</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }], nav('m:pass')]));
+    }
+    case 'passlevellimit': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 0 || value > 30) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre <code>0</code> e <code>30</code>.');
+      const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { daily_limit: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Limite diário = <b>${fmt(value)} níveis</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }], nav('m:pass')]));
     }
     case 'pass': {
       const patch = JSON.parse(text);
