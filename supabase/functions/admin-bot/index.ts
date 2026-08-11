@@ -350,9 +350,51 @@ async function fusionView(ctx: Ctx) {
     '', 'Os stats são recalculados a partir do multiplicador (nunca somam heróis).'].join('\n');
   return edit(ctx, text, kb([
     [{ t: '✏️ EDITAR CONFIG (JSON)', d: 'ask:fusion' }],
+    [{ t: '⚗️ RARITY FUSION (5 HERÓIS)', d: 'rf:home' }],
     [{ t: '🔄 RESET PADRÃO', d: 'fusr:1' }],
     nav('m:shop'),
   ]));
+}
+
+const RF_SOURCES = ['common', 'uncommon', 'rare', 'epic'] as const;
+const RF_LABEL: Record<string, string> = { common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY' };
+
+/** Rarity fusion (5 heroes -> next rarity): cost, odds, compensation and hero pool, all live. */
+async function rarityFusionView(ctx: Ctx) {
+  const d = await rpc('admin_rarity_fusion_overview', { p_admin_id: ctx.adminId }) as any;
+  const cfg = d.config || {};
+  const tiers = cfg.tiers || {};
+  const rows = RF_SOURCES.filter((k) => tiers[k]).map((k) => {
+    const t = tiers[k];
+    return `${RF_LABEL[k]} → ${RF_LABEL[t.target] || String(t.target).toUpperCase()}\n   Custo: <b>${fmt(Number(t.cost_fc || 0))} FC</b> · Chance: <b>${pct(t.chance)}%</b> · Falha: <b>${fmt(Number(t.fragments || 0))} frag.</b>`;
+  });
+  const off = (d.pool || []).filter((h: any) => !h.enabled);
+  const text = ['⚗️ <b>RARITY FUSION</b>', '',
+    `Status: <b>${cfg.enabled === false ? '⛔ DESATIVADA' : '✅ ATIVA'}</b> · Heróis por fusão: <b>${cfg.required_heroes ?? 5}</b>`, '',
+    ...rows, '',
+    `📊 Tentativas: <b>${fmt(d.attempts)}</b> · Sucessos: <b>${fmt(d.successes)}</b> · FC queimado: <b>${fmt(d.fcBurned)}</b>`,
+    `🚫 Fora do pool: <b>${off.length}</b>${off.length ? ' — ' + off.slice(0, 6).map((h: any) => esc(h.name)).join(', ') : ''}`,
+    '', 'Lendário nunca funde em Ancestral.'].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '✏️ COMMON → UNCOMMON', d: 'ask:rfcommon' }],
+    [{ t: '✏️ UNCOMMON → RARE', d: 'ask:rfuncommon' }],
+    [{ t: '✏️ RARE → EPIC', d: 'ask:rfrare' }],
+    [{ t: '✏️ EPIC → LEGENDARY', d: 'ask:rfepic' }],
+    [{ t: cfg.enabled === false ? '✅ ENABLE FUSION' : '⛔ DISABLE FUSION', d: cfg.enabled === false ? 'rf:on' : 'rf:off' }],
+    [{ t: '🦸 HERO POOL', d: 'ask:rfpool' }, { t: '🧾 AUDITORIA', d: 'rf:audit' }],
+    nav('hs:fusion'),
+  ]));
+}
+
+async function rarityFusionAudit(ctx: Ctx, ref?: string) {
+  const rows = await rpc('admin_rarity_fusion_audit', { p_admin_id: ctx.adminId, p_limit: 10, p_ref: ref || null }) as any[];
+  const text = ['🧾 <b>AUDITORIA — RARITY FUSION</b>', '', ...(rows.length ? rows.map((r) => [
+    `👤 ${r.player ? '@' + esc(r.player) : esc(r.name || '—')} · <code>${r.telegramId}</code>`,
+    `   ${RF_LABEL[r.sourceRarity] || r.sourceRarity} → ${RF_LABEL[r.targetRarity] || r.targetRarity} · ${r.heroes} heróis · ${fmt(Number(r.costFc || 0))} FC`,
+    `   Chance ${pct(r.chance)}% · Roll ${r.roll} · <b>${r.success ? '✅ SUCESSO' : '❌ FALHA'}</b>`,
+    `   ${r.success ? 'Herói: ' + esc(r.rewardHero || '—') : 'Fragmentos: ' + fmt(Number(r.fragments || 0))} · ${String(r.createdAt).slice(0, 16).replace('T', ' ')}`,
+  ].join('\n')) : ['Nenhuma fusão registrada.'])].join('\n\n');
+  return send(ctx, text, kb([[{ t: '🔎 FILTRAR JOGADOR', d: 'ask:rfaudit' }], [{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
 }
 
 async function module(ctx: Ctx, name: string) {
@@ -794,6 +836,12 @@ const PROMPTS: Record<string, string> = {
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
   fusion: 'Envie o JSON da fusão (merge parcial). Ex.:\n<code>{"max_stars":5,"bonus_percent":{"1":5,"2":5,"3":7,"4":8,"5":10},"cost_fc":{"1":5000,"2":15000,"3":35000,"4":75000,"5":150000},"duplicates":{"1":1,"2":1,"3":2,"4":2,"5":3},"level_cap":{"0":20,"1":20,"2":25,"3":25,"4":30,"5":35}}</code>',
+  rfcommon: 'COMMON → UNCOMMON — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>10000 80 10</code>',
+  rfuncommon: 'UNCOMMON → RARE — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>25000 60 20</code>',
+  rfrare: 'RARE → EPIC — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>60000 40 40</code>',
+  rfepic: 'EPIC → LEGENDARY — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>150000 20 80</code>',
+  rfpool: 'Envie: <code>hero_key on|off</code> para incluir/excluir o herói do sorteio da Rarity Fusion.',
+  rfaudit: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno para filtrar a auditoria de fusões.',
   rates: 'Envie as chances em JSON (total 100). Ex.: <code>{"comum":45,"incomum":25,"raro":15,"epico":8,"lendario":5,"mitico":1.5,"ancestral":0.5}</code>',
   granthero: 'Envie: <code>usuário hero_key [nível]</code>',
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
@@ -945,6 +993,16 @@ async function handleCallback(ctx: Ctx, data: string) {
         kb([[{ t: '✅ CONFIRMAR', d: `hsr:${scope}` }, { t: '❌ CANCELAR', d: 'm:shop' }]]));
     }
     return heroShopHub(ctx);
+  }
+  if (head === 'rf') {
+    const view = rest[0];
+    if (view === 'audit') return rarityFusionAudit(ctx);
+    if (view === 'on' || view === 'off') {
+      await rpc('admin_set_rarity_fusion_enabled', { p_admin_id: ctx.adminId, p_enabled: view === 'on' });
+      await send(ctx, view === 'on' ? '✅ Rarity Fusion ativada.' : '⛔ Rarity Fusion desativada.');
+      return rarityFusionView(ctx);
+    }
+    return rarityFusionView(ctx);
   }
   if (head === 'fusr') {
     const r = await rpc('admin_set_fusion_config', { p_admin_id: ctx.adminId, p_patch: { max_stars: 5, bonus_percent: { '1': 5, '2': 5, '3': 7, '4': 8, '5': 10 }, cost_fc: { '1': 5000, '2': 15000, '3': 35000, '4': 75000, '5': 150000 }, duplicates: { '1': 1, '2': 1, '3': 2, '4': 2, '5': 3 }, level_cap: { '0': 20, '1': 20, '2': 25, '3': 25, '4': 30, '5': 35 } }, p_reason: 'reset padrão (bot)' });
@@ -1100,6 +1158,25 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: parts[1] || 'raro', p_level: Number(parts[2] || 1), p_reason: 'concedido pelo painel' });
       return send(ctx, `✅ Pet <b>${esc(r.pet)}</b> (${esc(r.rarity)}) concedido.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
     }
+    case 'rfcommon': case 'rfuncommon': case 'rfrare': case 'rfepic': {
+      const source = cmd.slice(2);
+      const parts = text.replace(/,/g, '.').split(/[\s;]+/).map((v) => Number(v.replace(/[^\d.]/g, '')));
+      if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n)) || parts[1] < 0 || parts[1] > 100) {
+        return send(ctx, '⚠️ Envie 3 números: <code>custo_fc chance fragmentos</code>. Ex.: <code>10000 80 10</code>', kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
+      }
+      await rpc('admin_set_rarity_fusion_tier', { p_admin_id: ctx.adminId, p_source: source, p_cost: parts[0], p_chance: parts[1], p_fragments: Math.round(parts[2]) });
+      await send(ctx, `✅ ${RF_LABEL[source]} atualizado — ${fmt(parts[0])} FC · ${pct(parts[1])}% · ${fmt(Math.round(parts[2]))} frag.`);
+      return rarityFusionView(ctx);
+    }
+    case 'rfpool': {
+      const [key, mode] = text.trim().split(/[\s;]+/);
+      if (!key || !['on', 'off'].includes(String(mode || '').toLowerCase())) {
+        return send(ctx, '⚠️ Envie: <code>hero_key on|off</code>', kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
+      }
+      const r = await rpc('admin_set_hero_fusion_pool', { p_admin_id: ctx.adminId, p_hero_key: key, p_enabled: String(mode).toLowerCase() === 'on' }) as any;
+      return send(ctx, `${r.enabled ? '✅' : '🚫'} <b>${esc(r.name)}</b> (${esc(r.rarity)}) ${r.enabled ? 'entra' : 'não entra'} no sorteio da Rarity Fusion.`, kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
+    }
+    case 'rfaudit': return rarityFusionAudit(ctx, text.trim());
     case 'removehero': { const r = await rpc('admin_remove_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }
     case 'removepet': { const r = await rpc('admin_remove_pet', { p_admin_id: ctx.adminId, p_player_pet_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Pet removido (<code>${r.player_pet_id}</code>).`, MAIN_MENU); }
     case 'vip': { const [tier, user] = args; const r = await rpc('admin_set_membership', { p_admin_id: ctx.adminId, p_ref: user, p_tier: tier, p_days: Number(text), p_reason: 'painel admin' }); return send(ctx, `✅ ${tier.toUpperCase()} até ${r.until ? String(r.until).slice(0, 10) : 'removido'}.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()])); }
