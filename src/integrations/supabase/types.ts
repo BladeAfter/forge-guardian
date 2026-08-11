@@ -437,6 +437,42 @@ export type Database = {
           },
         ]
       }
+      calendar_repair_audit: {
+        Row: {
+          calendar_cycle: string
+          claim_id: string
+          claimed_at: string
+          created_at: string
+          day: number
+          game_day: string | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          calendar_cycle: string
+          claim_id: string
+          claimed_at: string
+          created_at?: string
+          day: number
+          game_day?: string | null
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          calendar_cycle?: string
+          claim_id?: string
+          claimed_at?: string
+          created_at?: string
+          day?: number
+          game_day?: string | null
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_reward_config: {
         Row: {
           amount_fc: number
@@ -593,6 +629,7 @@ export type Database = {
           claimed_at: string
           created_at: string
           day: number
+          game_day: string
           id: string
           idempotency_key: string
           reward_code: string | null
@@ -605,6 +642,7 @@ export type Database = {
           claimed_at?: string
           created_at?: string
           day: number
+          game_day?: string
           id?: string
           idempotency_key: string
           reward_code?: string | null
@@ -617,6 +655,7 @@ export type Database = {
           claimed_at?: string
           created_at?: string
           day?: number
+          game_day?: string
           id?: string
           idempotency_key?: string
           reward_code?: string | null
@@ -4005,6 +4044,7 @@ export type Database = {
         Args: { p_admin_id: number; p_label: string }
         Returns: Json
       }
+      admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
         Returns: Json
@@ -4803,6 +4843,14 @@ export type Database = {
         }
         Returns: Json
       }
+      game_day_key: { Args: { p_at?: string }; Returns: string }
+      game_day_number: { Args: { p_at?: string }; Returns: number }
+      game_day_reset_hour: { Args: never; Returns: number }
+      game_day_start: { Args: { p_day?: string }; Returns: string }
+      game_day_state: { Args: never; Returns: Json }
+      game_launch_day: { Args: never; Returns: string }
+      game_next_reset_at: { Args: { p_at?: string }; Returns: string }
+      game_timezone: { Args: never; Returns: string }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
