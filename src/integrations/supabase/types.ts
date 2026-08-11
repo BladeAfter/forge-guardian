@@ -1618,7 +1618,7 @@ export type Database = {
           new_stage: string | null
           old_level: number
           old_stage: string | null
-          player_pet_id: string
+          player_pet_id: string | null
           rarity: string
           user_id: string
           xp_after: number
@@ -1634,7 +1634,7 @@ export type Database = {
           new_stage?: string | null
           old_level: number
           old_stage?: string | null
-          player_pet_id: string
+          player_pet_id?: string | null
           rarity: string
           user_id: string
           xp_after: number
@@ -1650,7 +1650,7 @@ export type Database = {
           new_stage?: string | null
           old_level?: number
           old_stage?: string | null
-          player_pet_id?: string
+          player_pet_id?: string | null
           rarity?: string
           user_id?: string
           xp_after?: number
@@ -1996,7 +1996,7 @@ export type Database = {
           id: string
           new_level: number | null
           old_level: number | null
-          player_pet_id: string
+          player_pet_id: string | null
           user_id: string
           xp_added: number | null
           xp_after: number | null
@@ -2012,7 +2012,7 @@ export type Database = {
           id?: string
           new_level?: number | null
           old_level?: number | null
-          player_pet_id: string
+          player_pet_id?: string | null
           user_id: string
           xp_added?: number | null
           xp_after?: number | null
@@ -2028,7 +2028,7 @@ export type Database = {
           id?: string
           new_level?: number | null
           old_level?: number | null
-          player_pet_id?: string
+          player_pet_id?: string | null
           user_id?: string
           xp_added?: number | null
           xp_after?: number | null
@@ -4360,6 +4360,16 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_adjust_player_item: {
+        Args: {
+          p_admin_id: number
+          p_delta: number
+          p_item_key: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
       admin_adjust_pool_balance: {
         Args: { p_amount: number; p_reason: string }
         Returns: number
@@ -4543,11 +4553,29 @@ export type Database = {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
+      admin_player_heroes: {
+        Args: {
+          p_admin_id: number
+          p_limit?: number
+          p_offset?: number
+          p_rarity?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
       admin_player_history: {
         Args: { p_admin_id: number; p_limit?: number; p_ref: string }
         Returns: Json
       }
+      admin_player_items: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
       admin_player_pass: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
+      admin_player_pets: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
@@ -4575,6 +4603,10 @@ export type Database = {
       }
       admin_remove_pet: {
         Args: { p_admin_id: number; p_player_pet_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_remove_player_hero: {
+        Args: { p_admin_id: number; p_hero_id: string; p_reason?: string }
         Returns: Json
       }
       admin_repair_daily_quests: { Args: { p_admin_id: number }; Returns: Json }
@@ -4763,6 +4795,10 @@ export type Database = {
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
+      }
+      admin_set_player_active_pet: {
+        Args: { p_admin_id: number; p_player_pet_id: string; p_reason?: string }
+        Returns: Json
       }
       admin_set_player_pass: {
         Args: {

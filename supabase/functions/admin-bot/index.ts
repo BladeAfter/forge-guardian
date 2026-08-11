@@ -153,15 +153,14 @@ async function playerCard(ctx: Ctx, ref: string) {
   ];
   const u = p.telegram_id;
   const markup = kb([
-    [{ t: '+ FC', d: `fc:add:${u}` }, { t: '- FC', d: `fc:remove:${u}` }, { t: 'DEFINIR FC', d: `fc:set:${u}` }],
-    [{ t: '+ TON', d: `ton:add:${u}` }, { t: '- TON', d: `ton:remove:${u}` }, { t: 'DEFINIR TON', d: `ton:set:${u}` }],
-    [{ t: '🏆 TROFÉUS', d: `st:trophies:${u}` }, { t: '🎟 TICKETS', d: `st:tickets:${u}` }],
-    [{ t: '🦸 DAR HERÓI', d: `gh:${u}` }, { t: '🗑 REMOVER HERÓI', d: `rh:${u}` }],
-    [{ t: '🐲 DAR PET', d: `gp:${u}` }, { t: '🗑 REMOVER PET', d: `rp:${u}` }],
+    [{ t: '💰 FC', d: `uf:${u}` }, { t: '🦸 HERÓIS', d: `uh:${u}:0` }],
+    [{ t: '🎒 ITENS', d: `ui:${u}` }, { t: '🐲 PETS', d: `up:${u}` }],
+    [{ t: '🎟 PASSE', d: `bpview:${u}` }, { t: '⚔ PVP', d: `st:trophies:${u}` }],
     [{ t: '⭐ VIP', d: `vip:vip:${u}` }, { t: '💠 PREMIUM', d: `vip:premium:${u}` }],
     [{ t: p.banned ? '✅ DESBANIR' : '🚫 BANIR', d: `${p.banned ? 'unban' : 'ban'}:${u}` }, { t: '♻️ RESETAR', d: `reset:${u}` }],
     [{ t: '📜 HISTÓRICO', d: `hist:${u}` }, { t: '🤝 ÁRVORE', d: `tree:${u}` }],
-    [{ t: '🎟 BATTLE PASS', d: `bpview:${u}` }, { t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
+    [{ t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
+
     nav('m:users'),
   ]);
   if (p.avatar_url) await tg('sendPhoto', { chat_id: ctx.chatId, photo: p.avatar_url, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup });
@@ -930,16 +929,8 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📦 DIAGNÓSTICO DOS BAÚS', d: 'view:chests' }], nav()]));
 
     }
-    case 'boss': {
-      const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId });
-      const b = d.boss;
-      const when = (v: any) => (v ? esc(new Date(v).toLocaleString('pt-BR')) : '—');
-      return edit(ctx, `👹 <b>BOSS ATUAL</b>\nStatus: ${d.active ? '🟢 ATIVO' : '🔴 INATIVO'}\nBoss: <b>${b ? esc(b.name) : '—'}</b>\nHP: ${b ? `${fmt(d.currentHp ?? b.maxHp)} / ${fmt(d.maxHp || b.maxHp)}` : '—'}\nInício: ${when(b?.startsAt)}\nFim: ${when(b?.endsAt)}\nDuração: ${b ? `${Math.round((b.durationSeconds ?? 0) / 3600)}h` : '—'}\n🎁 Recompensa: ${b ? `${fmt(b.reward)} FC` : '—'}\nParticipantes: ${fmt(d.participants ?? 0)}\nDano total: ${fmt(d.totalDamage ?? 0)}\n\n<b>Chefes</b>\n${d.templates.map((t: any) => `• <code>${esc(t.code)}</code> ${esc(t.name)} NV${t.level} — ${fmt(t.maxHp)} HP ${t.active ? '🟢' : '⚪'}`).join('\n') || '—'}\n\n<b>Top dano</b>\n${d.top_damage.map((t: any) => `• ${esc(t.name)} — ${fmt(t.damage)}`).join('\n') || '—'}`,
-        kb([[{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }, { t: '🔴 DESATIVAR', d: 'confirm:bossend' }],
-            [{ t: '🔄 RESETAR', d: 'confirm:bosshp' }, { t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
-            [{ t: '⏱ ALTERAR DURAÇÃO', d: 'ask:bossdur' }, { t: '🎁 RECOMPENSAS', d: 'ask:bossreward' }],
-            [{ t: '👹 TROCAR BOSS', d: 'ask:bossspawn' }, { t: '✏️ CRIAR/EDITAR', d: 'ask:boss' }], nav()]));
-    }
+    case 'boss': return bossPanel(ctx);
+
     case 'ads': {
       const d = await rpc('admin_ads_overview', { p_admin_id: ctx.adminId });
       return edit(ctx, `📢 <b>ANÚNCIOS</b>\n${d.providers.map((a: any) => `• <code>${esc(a.code)}</code> ${esc(a.name)} ${a.enabled ? '✅' : '⛔'} — limite ${a.daily_limit}/dia · ${fmt(a.reward_fc)} FC · cooldown ${a.cooldown_seconds}s`).join('\n')}`,
@@ -1323,7 +1314,162 @@ const PROMPTS: Record<string, string> = {
   maintmsg: 'Envie a nova mensagem de manutenção.',
 };
 
+// ---------------------------------------------------------------- global boss panel
+/** Every list coming from the database is normalized before rendering — the panel must open even with no active cycle. */
+const arr = <T,>(value: unknown): T[] => (Array.isArray(value) ? value as T[] : []);
+
+async function bossPanel(ctx: Ctx, editing = true) {
+  const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
+  const cycle = d?.cycle ?? null;
+  const template = d?.template ?? null;
+  const templates = arr<any>(d?.templates);
+  const top = arr<any>(d?.top);
+  console.log('[ADMIN BOSS]', JSON.stringify({
+    hasCycle: Boolean(cycle), status: cycle?.status ?? null, templates: templates.length, ranking: top.length, templateActive: d?.templateActive ?? null,
+  }));
+
+  const when = (v: unknown) => (v ? esc(new Date(String(v)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })) : '—');
+  const list = templates.map((t) => `• <code>${esc(t.code)}</code> ${esc(t.name)} NV${t.level ?? 1} — ${fmt(t.maxHp)} HP ${t.active ? '🟢' : '⚪'}`).join('\n') || '—';
+  const rank = top.map((t) => `#${t.rank} ${esc(t.name)} — ${fmt(Math.round(Number(t.damage ?? 0)))} (${Number(t.sharePercent ?? 0).toFixed(2)}%)`).join('\n') || '—';
+
+  if (!cycle) {
+    return (editing ? edit : send)(ctx, [
+      '👹 <b>GLOBAL BOSS</b>',
+      'Status: 🔴 <b>NO ACTIVE BOSS</b>',
+      '',
+      `Modelo padrão: <b>${template ? esc(template.name) : '—'}</b>${template ? ` — ${fmt(template.maxHp)} HP · ${fmt(template.reward)} FC` : ''}`,
+      '',
+      `<b>Chefes cadastrados</b>\n${list}`,
+    ].join('\n'), kb([
+      [{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }],
+      [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }],
+      [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }, { t: '🎁 RECOMPENSA', d: 'ask:bossreward' }],
+      [{ t: '⏱ DURAÇÃO', d: 'ask:bossdur' }],
+      nav(),
+    ]));
+  }
+
+  const text = [
+    '👹 <b>GLOBAL BOSS</b>',
+    `Boss: <b>${esc(cycle.name)}</b> · ciclo #${cycle.cycleNumber ?? 1}`,
+    `Status: ${cycle.status === 'active' ? '🟢 ACTIVE' : `⚪ ${esc(String(cycle.status || '').toUpperCase())}`}`,
+    `HP: <b>${fmt(Math.round(Number(cycle.currentHp ?? 0)))}</b> / ${fmt(cycle.maxHp)}`,
+    `🎁 Prêmio: <b>${fmt(cycle.rewardPoolFc)} FC</b>${cycle.distributedAt ? ' (distribuído)' : ''}`,
+    `👥 Participantes: ${fmt(cycle.participants ?? 0)} · Dano total: ${fmt(Math.round(Number(cycle.totalDamage ?? 0)))}`,
+    `Dano mínimo: ${Number(cycle.minimumDamagePercent ?? 0)}% · bônus de pódio: ${cycle.rankBonusEnabled ? 'ON' : 'off'}`,
+    `Início: ${when(cycle.startsAt)}\nFim: ${when(cycle.endsAt)}`,
+    '',
+    `<b>Top dano</b>\n${rank}`,
+    '',
+    `<b>Chefes cadastrados</b>\n${list}`,
+  ].join('\n');
+
+  return (editing ? edit : send)(ctx, text, kb([
+    [{ t: '🏆 VER RANKING', d: 'boss:rank' }, { t: '🔴 ENCERRAR', d: 'confirm:bossend' }],
+    [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }, { t: '🎁 RECOMPENSA', d: 'ask:bossreward' }],
+    [{ t: '⏱ DURAÇÃO', d: 'ask:bossdur' }, { t: '👹 TROCAR BOSS', d: 'ask:bossspawn' }],
+    [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }, { t: '🔄 ATUALIZAR', d: 'm:boss' }],
+    nav(),
+  ]));
+}
+
+async function bossRanking(ctx: Ctx) {
+  const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
+  const top = arr<any>(d?.top);
+  const cycle = d?.cycle ?? null;
+  const body = top.map((t) => `#${t.rank} <b>${esc(t.name)}</b>\n   <code>${esc(t.telegramId)}</code> · ${fmt(Math.round(Number(t.damage ?? 0)))} dano · ${Number(t.sharePercent ?? 0).toFixed(2)}%`).join('\n') || 'Nenhum participante ainda.';
+  return edit(ctx, `🏆 <b>RANKING DO BOSS GLOBAL</b>\n${cycle ? `Ciclo #${cycle.cycleNumber} · prêmio ${fmt(cycle.rewardPoolFc)} FC` : 'Sem ciclo ativo'}\n\n${body}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'boss:rank' }], nav('m:boss')]));
+}
+
+// ---------------------------------------------------------------- user management hub
+const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'];
+
+async function userFcMenu(ctx: Ctx, tg: string) {
+  const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: tg }) as any;
+  return edit(ctx, `💰 <b>SALDO</b>\n👤 ${esc(p.name)} ${p.username ? '@' + esc(p.username) : ''}\n🆔 <code>${p.telegram_id}</code>\n\nSaldo atual: <b>${fmt(p.forge_coins)} FC</b>\nTON interno: ${fmt(p.ton_balance)} TON`,
+    kb([
+      [{ t: '➕ ADD FC', d: `fc:add:${tg}` }, { t: '➖ REMOVE FC', d: `fc:remove:${tg}` }],
+      [{ t: '✏️ SET BALANCE', d: `fc:set:${tg}` }, { t: '📜 HISTÓRICO', d: `hist:${tg}` }],
+      [{ t: '➕ TON', d: `ton:add:${tg}` }, { t: '➖ TON', d: `ton:remove:${tg}` }, { t: '✏️ SET TON', d: `ton:set:${tg}` }],
+      nav(`find:${tg}`),
+    ]));
+}
+
+async function userHeroesMenu(ctx: Ctx, tg: string, offset = 0) {
+  const d = await rpc('admin_player_heroes', { p_admin_id: ctx.adminId, p_ref: tg, p_rarity: null, p_limit: 10, p_offset: offset }) as any;
+  const heroes = arr<any>(d?.heroes);
+  const lines = heroes.map((h, i) => `<b>${offset + i + 1}.</b> ${esc(h.name)} · ${esc(h.rarity)} NV${h.level} ⭐${h.fusion_level}\n   ATK ${fmt(h.final_atk)} · HP ${fmt(h.final_hp)}${h.in_pvp ? ' · ⚔️ PvP' : ''}${h.in_boss ? ' · 👹 Boss' : ''}`).join('\n') || 'Nenhum herói.';
+  const rows: { t: string; d: string }[][] = [];
+  for (let i = 0; i < heroes.length; i += 5) {
+    rows.push(heroes.slice(i, i + 5).map((h, j) => ({ t: `🗑 ${offset + i + j + 1}`, d: `uhd:${tg}:${h.id}` })));
+  }
+  const page: { t: string; d: string }[] = [];
+  if (offset > 0) page.push({ t: '⬅️ ANTERIOR', d: `uh:${tg}:${Math.max(0, offset - 10)}` });
+  if (offset + heroes.length < Number(d?.total ?? 0)) page.push({ t: 'PRÓXIMA ➡️', d: `uh:${tg}:${offset + 10}` });
+  if (page.length) rows.push(page);
+  rows.push([{ t: '➕ ADD HERO', d: `uhadd:${tg}` }]);
+  rows.push(nav(`find:${tg}`));
+  return edit(ctx, `🦸 <b>HERÓIS DO JOGADOR</b>\nTotal: <b>${fmt(d?.total ?? 0)}</b>\n\n${lines}\n\nToque em 🗑 para remover uma instância.`, kb(rows));
+}
+
+async function heroCatalogPicker(ctx: Ctx, tg: string, rarity?: string) {
+  const d = await rpc('admin_search_heroes', { p_admin_id: ctx.adminId, p_query: null, p_limit: 40 }) as any;
+  const heroes = arr<any>(d?.heroes).filter((h) => !rarity || String(h.rarity).toLowerCase() === rarity);
+  const rows: { t: string; d: string }[][] = [];
+  for (let i = 0; i < heroes.slice(0, 24).length; i += 2) {
+    rows.push(heroes.slice(i, i + 2).map((h) => ({ t: `${h.name}`.slice(0, 24), d: `uhc:${tg}:${h.hero_key}` })));
+  }
+  rows.push(RARITIES.slice(0, 3).map((r) => ({ t: r.toUpperCase().slice(0, 9), d: `uhr:${tg}:${r}` })));
+  rows.push(RARITIES.slice(3).map((r) => ({ t: r.toUpperCase().slice(0, 9), d: `uhr:${tg}:${r}` })));
+  rows.push([{ t: '📋 TODOS', d: `uhadd:${tg}` }, { t: '🔎 BUSCAR (hero_key)', d: `gh:${tg}` }]);
+  rows.push(nav(`uh:${tg}:0`));
+  return edit(ctx, `➕ <b>ADD HERO</b>${rarity ? ` · ${esc(rarity.toUpperCase())}` : ''}\nCatálogo real (<code>hero_catalog</code>) — ${heroes.length} heróis.\nEscolha o herói para conceder.`, kb(rows));
+}
+
+async function userItemsMenu(ctx: Ctx, tg: string) {
+  const d = await rpc('admin_player_items', { p_admin_id: ctx.adminId, p_ref: tg }) as any;
+  const items = arr<any>(d?.items);
+  const lines = items.map((i) => `• ${esc(i.label)} — <b>${fmt(i.quantity)}</b>\n   <code>${esc(i.key)}</code>`).join('\n') || 'Inventário vazio.';
+  return edit(ctx, `🎒 <b>ITENS DO JOGADOR</b>\n\n${lines}`, kb([
+    [{ t: '➕ ADD ITEM', d: `uia:${tg}` }, { t: '➖ REMOVE ITEM', d: `uir:${tg}` }],
+    [{ t: '🔄 ATUALIZAR', d: `ui:${tg}` }],
+    nav(`find:${tg}`),
+  ]));
+}
+
+async function itemPicker(ctx: Ctx, tg: string, mode: 'a' | 'r') {
+  const d = await rpc('admin_player_items', { p_admin_id: ctx.adminId, p_ref: tg }) as any;
+  const source = mode === 'a' ? arr<any>(d?.catalog) : arr<any>(d?.items);
+  const owned = new Map(arr<any>(d?.items).map((i) => [i.key, i.quantity]));
+  const rows: { t: string; d: string }[][] = [];
+  for (let i = 0; i < source.slice(0, 20).length; i += 2) {
+    rows.push(source.slice(i, i + 2).map((it) => ({
+      t: `${it.label}${mode === 'r' ? ` (${it.quantity})` : owned.has(it.key) ? ` (${owned.get(it.key)})` : ''}`.slice(0, 28),
+      d: `uiq:${tg}:${mode}:${it.key}`.slice(0, 64),
+    })));
+  }
+  if (!rows.length) rows.push([{ t: 'Nada disponível', d: `ui:${tg}` }]);
+  rows.push(nav(`ui:${tg}`));
+  return edit(ctx, `${mode === 'a' ? '➕ <b>ADD ITEM</b>' : '➖ <b>REMOVE ITEM</b>'}\nEscolha o item (chaves internas reais do jogo).`, kb(rows));
+}
+
+async function userPetsMenu(ctx: Ctx, tg: string) {
+  const d = await rpc('admin_player_pets', { p_admin_id: ctx.adminId, p_ref: tg }) as any;
+  const pets = arr<any>(d?.pets);
+  const lines = pets.map((p, i) => `<b>${i + 1}.</b> ${p.is_active ? '⭐ ' : ''}${esc(p.name)} · ${esc(p.rarity)} NV${p.level} · tier ${p.evolution_tier} (${esc(p.evolution_stage)})`).join('\n') || 'Nenhum pet.';
+  const rows: { t: string; d: string }[][] = [];
+  pets.slice(0, 6).forEach((p, i) => rows.push([
+    { t: `⭐ ATIVAR ${i + 1}`, d: `upa:${tg}:${p.id}` },
+    { t: `🗑 REMOVER ${i + 1}`, d: `upd:${tg}:${p.id}` },
+  ]));
+  rows.push([{ t: '➕ ADD PET', d: `gp:${tg}` }]);
+  rows.push(nav(`find:${tg}`));
+  return edit(ctx, `🐲 <b>PETS DO JOGADOR</b>\n\n${lines}`, kb(rows));
+}
+
 // ---------------------------------------------------------------- actions
+
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
@@ -1334,6 +1480,78 @@ async function handleCallback(ctx: Ctx, data: string) {
   // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+
+  // ---- global boss + user management (button driven, no JSON typing)
+  if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
+  if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
+  if (head === 'balgo') {
+    await clearSession(ctx);
+    const [cur, mode, user, raw] = rest;
+    const amount = parseAmount(raw);
+    if (!Number.isFinite(amount) || amount < 0) return send(ctx, '⚠️ Valor inválido.', MAIN_MENU);
+    const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: amount, p_reason: 'ajuste pelo painel' }) as any;
+    const label = String(cur).toUpperCase();
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(user)}</code>\nAção: ${mode === 'add' ? 'adicionado' : mode === 'remove' ? 'removido' : 'definido'} ${fmt(amount)} ${label}\nAnterior: ${fmt(r.old_value)} ${label}\nNovo saldo: <b>${fmt(r.new_value)} ${label}</b>`);
+    return userFcMenu({ ...ctx, messageId: undefined }, user);
+  }
+
+  if (head === 'uh') { await clearSession(ctx); return userHeroesMenu(ctx, rest[0], Number(rest[1] || 0) || 0); }
+  if (head === 'uhadd') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0]); }
+  if (head === 'uhr') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0], rest[1]); }
+  if (head === 'uhc') {
+    const [tg, heroKey] = rest;
+    return edit(ctx, `➕ <b>ADD HERO</b>\nConceder <code>${esc(heroKey)}</code> ao jogador <code>${esc(tg)}</code>?`,
+      kb([[{ t: '✅ CONFIRMAR', d: `uhok:${tg}:${heroKey}` }, { t: '❌ CANCELAR', d: `uh:${tg}:0` }]]));
+  }
+  if (head === 'uhok') {
+    const [tg, heroKey] = rest;
+    const r = await rpc('admin_grant_hero', { p_admin_id: ctx.adminId, p_ref: tg, p_hero_key: heroKey, p_level: 1, p_reason: 'concedido pelo painel' }) as any;
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: herói <b>${esc(r.name)}</b> concedido\nInstância: <code>${esc(r.hero_id)}</code>`);
+    return userHeroesMenu({ ...ctx, messageId: undefined }, tg, 0);
+  }
+  if (head === 'uhd') {
+    const [tg, heroId] = rest;
+    const d = await rpc('admin_player_heroes', { p_admin_id: ctx.adminId, p_ref: tg, p_rarity: null, p_limit: 30, p_offset: 0 }) as any;
+    const hero = arr<any>(d?.heroes).find((h) => h.id === heroId);
+    if (!hero) return userHeroesMenu(ctx, tg, 0);
+    const warn = hero.in_pvp || hero.in_boss ? '\n\n⚠️ Este herói está equipado' + (hero.in_pvp ? ' no PvP' : '') + (hero.in_boss ? ' no Boss' : '') + '. Ele será desequipado automaticamente.' : '';
+    return edit(ctx, `🗑 <b>REMOVER HERÓI</b>\n\nHerói: <b>${esc(hero.name)}</b>\nRaridade: ${esc(hero.rarity)}\nNível: ${hero.level} · ⭐${hero.fusion_level}${warn}\n\nO histórico (baús/fusões) é preservado.`,
+      kb([[{ t: '✅ REMOVER', d: `uhdok:${tg}:${heroId}` }, { t: '❌ CANCELAR', d: `uh:${tg}:0` }]]));
+  }
+  if (head === 'uhdok') {
+    const [tg, heroId] = rest;
+    const r = await rpc('admin_remove_player_hero', { p_admin_id: ctx.adminId, p_hero_id: heroId, p_reason: 'removido pelo painel' }) as any;
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: herói <b>${esc(r.name)}</b> removido`);
+    return userHeroesMenu({ ...ctx, messageId: undefined }, tg, 0);
+  }
+  if (head === 'ui') { await clearSession(ctx); return userItemsMenu(ctx, rest[0]); }
+  if (head === 'uia') { await clearSession(ctx); return itemPicker(ctx, rest[0], 'a'); }
+  if (head === 'uir') { await clearSession(ctx); return itemPicker(ctx, rest[0], 'r'); }
+  if (head === 'uiq') {
+    const [tg, mode, ...keyParts] = rest;
+    const key = keyParts.join(':');
+    return ask(ctx, `itemqty|${tg}|${mode}|${key}`, `Envie a <b>quantidade</b> para ${mode === 'a' ? 'adicionar' : 'remover'} de <code>${esc(key)}</code>.`);
+  }
+  if (head === 'up') { await clearSession(ctx); return userPetsMenu(ctx, rest[0]); }
+  if (head === 'upa') {
+    const [tg, petId] = rest;
+    await rpc('admin_set_player_active_pet', { p_admin_id: ctx.adminId, p_player_pet_id: petId, p_reason: 'painel admin' });
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: pet definido como ativo`);
+    return userPetsMenu({ ...ctx, messageId: undefined }, tg);
+  }
+  if (head === 'upd') {
+    const [tg, petId] = rest;
+    return edit(ctx, `🗑 <b>REMOVER PET</b>\nJogador <code>${esc(tg)}</code>\nPet <code>${esc(petId)}</code>\n\nO histórico de evoluções é preservado.`,
+      kb([[{ t: '✅ REMOVER', d: `updok:${tg}:${petId}` }, { t: '❌ CANCELAR', d: `up:${tg}` }]]));
+  }
+  if (head === 'updok') {
+    const [tg, petId] = rest;
+    await rpc('admin_remove_pet', { p_admin_id: ctx.adminId, p_player_pet_id: petId, p_reason: 'removido pelo painel' });
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: pet removido`);
+    return userPetsMenu({ ...ctx, messageId: undefined }, tg);
+  }
+
+
 
   if (head === 'passlvtoggle') {
     await clearSession(ctx);
@@ -1607,9 +1825,38 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const [cur, mode, user] = args;
       const value = parseAmount(text);
       if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior ou igual a 0 (ex.: <code>1000</code> ou <code>20,5</code>).');
-      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: value, p_reason: 'ajuste pelo painel' });
-      return send(ctx, `✅ <b>${cur.toUpperCase()}</b>\nAnterior: ${fmt(r.old_value)}\nNovo: <b>${fmt(r.new_value)}</b>`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
+      const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: user }) as any;
+      const current = Number(cur === 'ton' ? p.ton_balance : p.forge_coins);
+      const next = mode === 'add' ? current + value : mode === 'remove' ? Math.max(0, current - value) : value;
+      const label = cur.toUpperCase();
+      return send(ctx, [
+        `💰 <b>${mode === 'add' ? 'ADD' : mode === 'remove' ? 'REMOVE' : 'SET'} ${label}</b>`,
+        `👤 ${esc(p.name)} ${p.username ? '@' + esc(p.username) : ''} · <code>${p.telegram_id}</code>`,
+        '',
+        `Atual: <b>${fmt(current)} ${label}</b>`,
+        `${mode === 'set' ? 'Definir' : mode === 'add' ? 'Adicionar' : 'Remover'}: <b>${fmt(value)} ${label}</b>`,
+        `Novo: <b>${fmt(next)} ${label}</b>`,
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `balgo:${cur}:${mode}:${user}:${value}` }, { t: '❌ CANCELAR', d: `uf:${user}` }]]));
     }
+
+    case 'itemqty': {
+      const [user, mode, ...keyParts] = args;
+      const key = keyParts.join('|');
+      const qty = Math.round(parseAmount(text));
+      if (!Number.isFinite(qty) || qty <= 0) throw new Error('KEEP_SESSION::⚠️ Quantidade inválida. Envie um número inteiro maior que 0 (ex.: <code>10</code>).');
+      const delta = mode === 'a' ? qty : -qty;
+      try {
+        const r = await rpc('admin_adjust_player_item', { p_admin_id: ctx.adminId, p_ref: user, p_item_key: key, p_delta: delta, p_reason: 'painel admin' }) as any;
+        await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(user)}</code>\nItem: <b>${esc(r.label)}</b>\n${mode === 'a' ? 'Adicionado' : 'Removido'}: ${fmt(qty)}\nAntes: ${fmt(r.before)} → Agora: <b>${fmt(r.after)}</b>`);
+        return userItemsMenu({ ...ctx, messageId: undefined }, user);
+      } catch (error) {
+        const raw = error instanceof Error ? error.message : String(error);
+        const max = raw.match(/insufficient_inventory:(\d+)/)?.[1];
+        if (max) throw new Error(`KEEP_SESSION::⚠️ Inventário insuficiente. Máximo removível: <b>${fmt(max)}</b>.`);
+        throw error;
+      }
+    }
+
 
     case 'stat': {
       const [stat, user] = args;
@@ -1648,7 +1895,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `${r.enabled ? '✅' : '🚫'} <b>${esc(r.name)}</b> (${esc(r.rarity)}) ${r.enabled ? 'entra' : 'não entra'} no sorteio da Rarity Fusion.`, kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
     }
     case 'rfaudit': return rarityFusionAudit(ctx, text.trim());
-    case 'removehero': { const r = await rpc('admin_remove_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }
+    case 'removehero': { const r = await rpc('admin_remove_player_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }
     case 'removepet': { const r = await rpc('admin_remove_pet', { p_admin_id: ctx.adminId, p_player_pet_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Pet removido (<code>${r.player_pet_id}</code>).`, MAIN_MENU); }
     case 'vip': { const [tier, user] = args; const r = await rpc('admin_set_membership', { p_admin_id: ctx.adminId, p_ref: user, p_tier: tier, p_days: Number(text), p_reason: 'painel admin' }); return send(ctx, `✅ ${tier.toUpperCase()} até ${r.until ? String(r.until).slice(0, 10) : 'removido'}.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()])); }
     case 'ban': { const r = await rpc('admin_set_ban', { p_admin_id: ctx.adminId, p_ref: args[0], p_banned: true, p_reason: text }); return send(ctx, `🚫 Jogador banido (<code>${r.user_id}</code>).`, MAIN_MENU); }
