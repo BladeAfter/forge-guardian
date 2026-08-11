@@ -16,4 +16,13 @@ export function withdrawalQuote(fc:number,feePercent:number=DEFAULT_WITHDRAW_FEE
   const fee=round6(gross*percent/100);
   return{fc,feePercent:percent,grossTon:gross,feeTon:fee,netTon:round6(gross-fee)};
 }
-export const formatTon=(value:number)=>(Number.isFinite(value)?value:0).toFixed(3);
+/**
+ * The ONE display formatter for TON amounts. Trims trailing zeros so a stored
+ * 2.000000000 reads as "2" and 2.125 stays "2.125". Never changes stored values.
+ */
+export function formatTon(value:number|string|null|undefined):string{
+  const parsed=Number(value);
+  const amount=Number.isFinite(parsed)?parsed:0;
+  const text=amount.toFixed(9).replace(/0+$/,'').replace(/\.$/,'');
+  return text==='-0'?'0':text;
+}
