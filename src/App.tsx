@@ -719,7 +719,7 @@ function App() {
           return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
         }).filter((hero): hero is ShopHero => Boolean(hero)));
 
-        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['wallet-summary'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }
@@ -758,7 +758,7 @@ function App() {
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
         <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' || tab === 'profile' ? 'hidden' : 'block'}`}>
-          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalance} />
+          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalanceKnown} />
         </header>
 
 
@@ -773,7 +773,7 @@ function App() {
                 profile={playerProfile}
                 loading={profileLoading}
                 onRetry={()=>void refetchProfile()}
-                balance={fcBalance}
+                balance={fcBalanceKnown}
                 actions={<>
                   <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
                     <Bell />
@@ -819,7 +819,7 @@ function App() {
           {shopOpen ? (
             <HeroShopPanel
               telegramInitData={telegramInitData}
-              fcBalance={fcBalance}
+              fcBalance={fcBalanceKnown}
               summonOdds={summonOdds}
               recruitPrice={recruitPrice}
               shopResults={shopResults}
