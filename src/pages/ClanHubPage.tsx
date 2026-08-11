@@ -49,6 +49,24 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
     }
   };
 
+  /** Client-side guard rails; the backend still validates and owns the atomic creation. */
+  const createClan = async () => {
+    const name = form.name.trim();
+    const tag = form.tag.trim().toUpperCase();
+    if (name.length < 3 || name.length > 24) return toast.error(t('clan.error.invalidName'));
+    if (!/^[A-Z0-9]{2,5}$/.test(tag)) return toast.error(t('clan.error.invalidTag'));
+    const created = await run(
+      { action: 'create', ...form, name, tag, emblem: { symbol: form.symbol, background: form.background, shield: 'classic', border: 'gold' } },
+      'clan.created',
+    );
+    if (created) {
+      setCreating(false);
+      setTab('members');
+    }
+  };
+
+
+
   const openChat = async () => {
     setTab('chat');
     const result = await clanRequest<{ messages: ClanMessage[] }>(telegramInitData, { action: 'chat', chatAction: 'list' }).catch(() => null);
