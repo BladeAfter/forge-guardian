@@ -1485,6 +1485,17 @@ async function handleCallback(ctx: Ctx, data: string) {
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
   if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
+  if (head === 'balgo') {
+    await clearSession(ctx);
+    const [cur, mode, user, raw] = rest;
+    const amount = parseAmount(raw);
+    if (!Number.isFinite(amount) || amount < 0) return send(ctx, '⚠️ Valor inválido.', MAIN_MENU);
+    const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: amount, p_reason: 'ajuste pelo painel' }) as any;
+    const label = String(cur).toUpperCase();
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(user)}</code>\nAção: ${mode === 'add' ? 'adicionado' : mode === 'remove' ? 'removido' : 'definido'} ${fmt(amount)} ${label}\nAnterior: ${fmt(r.old_value)} ${label}\nNovo saldo: <b>${fmt(r.new_value)} ${label}</b>`);
+    return userFcMenu({ ...ctx, messageId: undefined }, user);
+  }
+
   if (head === 'uh') { await clearSession(ctx); return userHeroesMenu(ctx, rest[0], Number(rest[1] || 0) || 0); }
   if (head === 'uhadd') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0]); }
   if (head === 'uhr') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0], rest[1]); }
