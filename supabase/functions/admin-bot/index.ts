@@ -55,6 +55,8 @@ const MAIN_MENU = kb([
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
+  [{ t: '🎁 PRESENTES', d: 'm:gifts' }],
+
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
   [{ t: '📣 BROADCAST', d: 'm:cast' }, { t: '💾 SNAPSHOT', d: 'do:snapshot' }],
@@ -814,10 +816,32 @@ async function clansHub(ctx: Ctx) {
     kb([
       [{ t: '📋 ALL CLANS', d: 'cl:all' }, { t: '🔎 SEARCH CLAN', d: 'ask:clsearch' }],
       [{ t: '📈 CLAN RANKING', d: 'cl:rank' }],
+      [{ t: '⚙️ CONFIGURAÇÃO DO CLÃ', d: 'cl:cfg' }],
       [{ t: '📜 AUDIT', d: 'cl:audit' }],
       nav(),
     ]));
 }
+
+/** Central clan configuration: creation cost + default member limit (never touches existing clans). */
+async function clanSettingsView(ctx: Ctx, editing = true) {
+  const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+  const text = [
+    '🏰 <b>CLAN SETTINGS</b>',
+    '',
+    '💰 Custo atual para criar clã:',
+    `<b>${fmt(s.createCostFc)} FC</b>`,
+    '',
+    `👥 Limite de membros de novos clãs: <b>${fmt(s.defaultMemberLimit)}</b>`,
+    `🏰 Clãs existentes: ${fmt(s.clans)} (não são afetados por estas alterações)`,
+  ].join('\n');
+  const markup = kb([
+    [{ t: '💰 ALTERAR PREÇO DE CRIAÇÃO', d: 'cl:ask:clcost' }],
+    [{ t: '👥 ALTERAR LIMITE DE MEMBROS', d: 'cl:ask:clsetlimit' }],
+    nav('m:clans'),
+  ]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
 
 async function clansList(ctx: Ctx, action: 'list' | 'ranking' | 'search', ref: string | null = null) {
   const d = await clanRpc(ctx, action, ref);
@@ -933,7 +957,19 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     case 'boss': return clanBossMenu(ctx, a);
     case 'edit': return clanEditMenu(ctx, a);
     case 'audit': return clanAudit(ctx, a);
+    case 'cfg': return clanSettingsView(ctx);
+    case 'costgo': {
+      const r = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'set_cost', p_value: Number(a) }) as any;
+      await send(ctx, `✅ <b>CUSTO ATUALIZADO</b>\n\nNovo custo para criar clã: <b>${fmt(r.createCostFc)} FC</b>\nClãs já criados permanecem intactos.`);
+      return clanSettingsView({ ...ctx, messageId: undefined }, false);
+    }
+    case 'limitgo': {
+      const r = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'set_limit', p_value: Number(a) }) as any;
+      await send(ctx, `✅ <b>LIMITE ATUALIZADO</b>\n\nNovos clãs passam a ser criados com <b>${fmt(r.defaultMemberLimit)}</b> membros.`);
+      return clanSettingsView({ ...ctx, messageId: undefined }, false);
+    }
     case 'ask': return ask(ctx, `${a}|${b}`, PROMPTS[a] || 'Envie o valor.');
+
     case 'xpgo': {
       const r = await clanRpc(ctx, 'xp', a, { xp: Number(b) });
       await send(ctx, `✅ XP ajustado: <b>${esc(r.clan.name)}</b> — NV${r.clan.level} · ${fmt(r.clan.xp)}/${fmt(r.clan.xpNeeded)}`);
@@ -978,6 +1014,31 @@ async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
   const int = () => Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
   switch (key) {
     case 'clsearch': return clansList(ctx, 'search', text);
+    case 'clcost': {
+      const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um valor em FC maior ou igual a 0 (ex.: <code>75000</code>).');
+      const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+      return send(ctx, [
+        '🏰 <b>ALTERAR CUSTO DO CLÃ</b>',
+        '',
+        `Atual: <b>${fmt(s.createCostFc)} FC</b>`,
+        `Novo: <b>${fmt(value)} FC</b>`,
+        '',
+        'Clãs já criados não são alterados.',
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `cl:costgo:${value}` }, { t: '❌ CANCELAR', d: 'cl:cfg' }]]));
+    }
+    case 'clsetlimit': {
+      const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(value) || value < 2 || value > 500) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre 2 e 500 (ex.: <code>30</code>).');
+      const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+      return send(ctx, [
+        '👥 <b>LIMITE DE MEMBROS (NOVOS CLÃS)</b>',
+        '',
+        `Atual: <b>${fmt(s.defaultMemberLimit)}</b>`,
+        `Novo: <b>${fmt(value)}</b>`,
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `cl:limitgo:${value}` }, { t: '❌ CANCELAR', d: 'cl:cfg' }]]));
+    }
+
     case 'clxp': {
       const value = int();
       if (!Number.isFinite(value) || value === 0) throw new Error('KEEP_SESSION::⚠️ Envie um número diferente de 0 (ex.: <code>25000</code> ou <code>-5000</code>).');
@@ -1163,6 +1224,8 @@ async function module(ctx: Ctx, name: string) {
 
     }
     case 'clans': return clansHub(ctx);
+    case 'gifts': return giftHub(ctx);
+
     case 'boss': return bossPanel(ctx);
 
     case 'ads': {
@@ -1480,7 +1543,13 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  clcost: 'Digite o novo custo para criação de um clã em FC.\nEx.: <code>50000</code>',
+  clsetlimit: 'Digite o novo limite de membros para clãs criados a partir de agora (2 a 500).\nEx.: <code>30</code>',
+  giftuser: 'Para qual jogador deseja enviar?\nEnvie <b>Telegram ID</b>, <b>@username</b>, nome ou ID interno.',
+  giftfc: 'Digite a quantidade de FC que deseja enviar.\nEx.: <code>50000</code>',
+  giftqty: 'Digite a quantidade que deseja enviar.\nEx.: <code>1</code>',
   clsearch: 'Envie o nome (ou parte) ou a <b>tag</b> do clã. Ex.: <code>dragões</code> ou <code>DRG</code>',
+
   clxp: 'Envie o XP a adicionar ou remover do clã. Ex.: <code>25000</code> ou <code>-5000</code>',
   cllvl: 'Envie o novo nível do clã (mínimo 1). Ex.: <code>10</code>',
   clbosshp: 'Envie o HP do novo ciclo do chefe do clã. Ex.: <code>2500000</code>',
@@ -1715,7 +1784,280 @@ async function userPetsMenu(ctx: Ctx, tg: string) {
   return edit(ctx, `🐲 <b>PETS DO JOGADOR</b>\n\n${lines}`, kb(rows));
 }
 
+// ---------------------------------------------------------------- 🎁 GIFT CENTER (fully isolated flow)
+// Every step has an explicit state persisted in its OWN row (chat_id = -chatId), so the generic
+// prompt cleanup can never wipe the gift flow half way through. Delivery is always server side
+// (admin_send_gift) and idempotent through a unique gift code.
+const GIFT_TYPES: Record<string, { icon: string; label: string }> = {
+  hero: { icon: '🦸', label: 'HERÓI' },
+  egg: { icon: '🥚', label: 'OVO' },
+  chest: { icon: '🎁', label: 'BAÚ' },
+  fc: { icon: '💰', label: 'FC' },
+  pet: { icon: '👾', label: 'PET' },
+  item: { icon: '🍖', label: 'ITEM' },
+};
+
+const GIFT_RARITIES: [string, string][] = [
+  ['comum', 'Comum'], ['incomum', 'Incomum'], ['raro', 'Raro'],
+  ['epico', 'Épico'], ['lendario', 'Lendário'], ['mitico', 'Mítico'], ['ancestral', 'Ancestral'],
+];
+
+type GiftItem = { key: string; label: string; sub?: string };
+type GiftDraft = {
+  type: string;
+  tg?: string;
+  playerName?: string;
+  playerUser?: string;
+  playerBalance?: number;
+  rarity?: string | null;
+  items?: GiftItem[];
+  page?: number;
+  pick?: GiftItem;
+  qty?: number;
+  fc?: number;
+  code?: string;
+};
+
+const GIFT_PAGE = 8;
+const giftKey = (ctx: Ctx) => -Math.abs(ctx.chatId);
+
+async function giftDraftSet(ctx: Ctx, draft: GiftDraft, step = 'gift_flow') {
+  const { error } = await db.from('admin_bot_sessions').upsert({
+    admin_telegram_id: ctx.adminId,
+    chat_id: giftKey(ctx),
+    action: 'giftdraft',
+    step,
+    context: draft as Record<string, unknown>,
+    updated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+  }, { onConflict: 'admin_telegram_id,chat_id' });
+  if (error) console.error('gift draft write failed:', error.message);
+}
+
+async function giftDraftGet(ctx: Ctx): Promise<GiftDraft | null> {
+  const { data, error } = await db.from('admin_bot_sessions')
+    .select('context, expires_at').eq('admin_telegram_id', ctx.adminId).eq('chat_id', giftKey(ctx)).maybeSingle();
+  if (error) { console.error('gift draft read failed:', error.message); return null; }
+  if (!data) return null;
+  if (new Date(data.expires_at).getTime() < Date.now()) { await giftDraftClear(ctx); return null; }
+  return (data.context || {}) as GiftDraft;
+}
+
+async function giftDraftClear(ctx: Ctx) {
+  await db.from('admin_bot_sessions').delete().eq('admin_telegram_id', ctx.adminId).eq('chat_id', giftKey(ctx));
+}
+
+const giftCode = () => `AG-${Math.random().toString(36).slice(2, 6).toUpperCase()}${Date.now().toString(36).slice(-4).toUpperCase()}`;
+
+async function giftHub(ctx: Ctx, editing = true) {
+  await giftDraftClear(ctx);
+  const text = '🎁 <b>CENTRAL DE PRESENTES</b>\n\nEnvie recompensas diretamente para jogadores.\nToda entrega é registrada com auditoria e código único.';
+  const markup = kb([
+    [{ t: '🦸 HERÓI', d: 'gf:t:hero' }, { t: '🥚 OVO', d: 'gf:t:egg' }],
+    [{ t: '🎁 BAÚ', d: 'gf:t:chest' }, { t: '💰 FC', d: 'gf:t:fc' }],
+    [{ t: '👾 PET', d: 'gf:t:pet' }, { t: '🍖 ITEM', d: 'gf:t:item' }],
+    [{ t: '📜 HISTÓRICO', d: 'gf:hist' }],
+    nav(),
+  ]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function giftHistory(ctx: Ctx) {
+  const d = await rpc('admin_gift_history', { p_admin_id: ctx.adminId, p_limit: 12 }) as any;
+  const items = arr<any>(d?.items);
+  const list = items.map((g) => [
+    '🎁 <b>ADMIN GIFT</b>',
+    `👤 ${g.player ? '@' + esc(g.player) : '—'}`,
+    `🆔 <code>${esc(String(g.telegramId ?? '—'))}</code>`,
+    g.type === 'fc' ? `💰 ${fmt(g.fc)} FC` : `${GIFT_TYPES[g.type]?.icon ?? '🎁'} ${esc(g.label)} ×${fmt(g.quantity)}`,
+    `👮 Admin: ${esc(String(g.adminId))}`,
+    `🕐 ${dt(g.createdAt)}`,
+    `🔑 Gift ID: <code>${esc(g.giftCode)}</code>`,
+    g.status === 'delivered' ? '✅ DELIVERED' : `• ${esc(String(g.status).toUpperCase())}`,
+  ].join('\n')).join('\n\n') || 'Nenhum presente enviado ainda.';
+  return edit(ctx, `📜 <b>HISTÓRICO DE PRESENTES</b> (${fmt(d?.total ?? 0)})\n\n${list.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'gf:hist' }], [{ t: '🎁 ENVIAR PRESENTE', d: 'gf:home' }], nav('gf:home')]));
+}
+
+/** Step 1 → type chosen, ask for the player (explicit state gift_select_user). */
+async function giftStartType(ctx: Ctx, type: string) {
+  if (!GIFT_TYPES[type]) return giftHub(ctx);
+  await giftDraftSet(ctx, { type }, 'gift_select_user');
+  await edit(ctx, `${GIFT_TYPES[type].icon} <b>PRESENTE: ${GIFT_TYPES[type].label}</b>\n\nPasso 1 de 3 — escolher o jogador.`,
+    kb([[{ t: '❌ CANCELAR', d: 'gf:home' }]]));
+  return ask(ctx, `giftuser|${type}`, PROMPTS.giftuser);
+}
+
+/** Step 2 → player resolved (Telegram ID, @username, name or internal id). */
+async function giftPlayerFound(ctx: Ctx, type: string, text: string) {
+  const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: text }) as any;
+  await giftDraftSet(ctx, {
+    type,
+    tg: String(p.telegram_id),
+    playerName: p.name,
+    playerUser: p.username,
+    playerBalance: Number(p.forge_coins || 0),
+  }, 'gift_select_item');
+  return send(ctx, [
+    `${GIFT_TYPES[type]?.icon ?? '🎁'} <b>PRESENTE: ${GIFT_TYPES[type]?.label ?? ''}</b>`,
+    '',
+    `👤 Jogador: <b>${esc(p.name)}</b>${p.username ? ` (@${esc(p.username)})` : ''}`,
+    `🆔 Telegram ID: <code>${esc(String(p.telegram_id))}</code>`,
+    `💰 Saldo: <b>${fmt(p.forge_coins)} FC</b>`,
+  ].join('\n'), kb([[{ t: '✅ SELECIONAR', d: 'gf:sel' }, { t: '❌ CANCELAR', d: 'gf:home' }]]));
+}
+
+/** Step 3 → after the player is confirmed, branch per gift type. */
+async function giftAfterPlayer(ctx: Ctx) {
+  const draft = await giftDraftGet(ctx);
+  if (!draft?.tg) return giftHub(ctx);
+  if (draft.type === 'fc') {
+    await edit(ctx, `💰 <b>PRESENTE FC</b>\n\n👤 ${esc(draft.playerName ?? '')}${draft.playerUser ? ` (@${esc(draft.playerUser)})` : ''}\n💰 Saldo atual: <b>${fmt(draft.playerBalance)} FC</b>`,
+      kb([[{ t: '❌ CANCELAR', d: 'gf:home' }]]));
+    return ask(ctx, 'giftfc', PROMPTS.giftfc);
+  }
+  if (draft.type === 'hero') return giftRarityMenu(ctx);
+  return giftCatalog(ctx, null, 0);
+}
+
+async function giftRarityMenu(ctx: Ctx) {
+  const rows = GIFT_RARITIES.map(([key, label]) => [{ t: label, d: `gf:r:${key}` }]);
+  rows.push([{ t: '📋 TODOS', d: 'gf:r:all' }]);
+  rows.push([{ t: '❌ CANCELAR', d: 'gf:home' }]);
+  return edit(ctx, '🦸 <b>ESCOLHA O HERÓI</b>\n\nSelecione a raridade (catálogo real do servidor):', kb(rows));
+}
+
+/** Loads the REAL catalog from the database and keeps it in the draft so buttons stay short. */
+async function giftCatalog(ctx: Ctx, rarity: string | null, page: number) {
+  const draft = await giftDraftGet(ctx);
+  if (!draft?.tg) return giftHub(ctx);
+  const kind = draft.type;
+  let items = draft.items;
+  if (!items || draft.rarity !== (rarity ?? null) || !items.length) {
+    const d = await rpc('admin_gift_catalog', { p_admin_id: ctx.adminId, p_kind: kind, p_rarity: rarity }) as any;
+    items = arr<GiftItem>(d?.items);
+  }
+  await giftDraftSet(ctx, { ...draft, rarity: rarity ?? null, items, page }, 'gift_select_item');
+  if (!items.length) {
+    return edit(ctx, `⚠️ Nenhum item cadastrado para <b>${GIFT_TYPES[kind]?.label ?? kind}</b>${rarity ? ` (${esc(rarity)})` : ''}.`,
+      kb([[{ t: '⬅️ VOLTAR', d: 'gf:sel' }], [{ t: '🎁 CENTRAL', d: 'gf:home' }]]));
+  }
+  const pages = Math.ceil(items.length / GIFT_PAGE);
+  const safePage = Math.min(Math.max(0, page), pages - 1);
+  const slice = items.slice(safePage * GIFT_PAGE, safePage * GIFT_PAGE + GIFT_PAGE);
+  const rows = slice.map((it, i) => [{ t: `${GIFT_TYPES[kind]?.icon ?? '🎁'} ${it.label}${it.sub ? ` · ${it.sub}` : ''}`.slice(0, 60), d: `gf:i:${safePage * GIFT_PAGE + i}` }]);
+  const pager: { t: string; d: string }[] = [];
+  if (safePage > 0) pager.push({ t: '◀️', d: `gf:pg:${safePage - 1}` });
+  if (safePage < pages - 1) pager.push({ t: '▶️', d: `gf:pg:${safePage + 1}` });
+  if (pager.length) rows.push(pager);
+  rows.push([{ t: '❌ CANCELAR', d: 'gf:home' }]);
+  return edit(ctx, `${GIFT_TYPES[kind]?.icon ?? '🎁'} <b>ESCOLHA O ${GIFT_TYPES[kind]?.label ?? 'ITEM'}</b>\nJogador: ${draft.playerUser ? '@' + esc(draft.playerUser) : esc(draft.playerName ?? '')}\nPágina ${safePage + 1}/${pages}`, kb(rows));
+}
+
+async function giftPickItem(ctx: Ctx, index: number) {
+  const draft = await giftDraftGet(ctx);
+  const item = arr<GiftItem>(draft?.items)[index];
+  if (!draft?.tg || !item) return giftHub(ctx);
+  await giftDraftSet(ctx, { ...draft, pick: item }, 'gift_select_quantity');
+  if (draft.type === 'hero') return giftConfirm(ctx, 1);
+  await edit(ctx, `${GIFT_TYPES[draft.type]?.icon ?? '🎁'} <b>${esc(item.label)}</b>\n\nQuantas unidades deseja enviar?`, kb([[{ t: '❌ CANCELAR', d: 'gf:home' }]]));
+  return ask(ctx, 'giftqty', PROMPTS.giftqty);
+}
+
+/** Final confirmation. The gift code is created here, so a double tap can never deliver twice. */
+async function giftConfirm(ctx: Ctx, qty: number, fc = 0) {
+  const draft = await giftDraftGet(ctx);
+  if (!draft?.tg) return giftHub(ctx);
+  const code = draft.code || giftCode();
+  await giftDraftSet(ctx, { ...draft, qty, fc, code }, 'gift_confirm');
+  const who = `${draft.playerUser ? '@' + esc(draft.playerUser) : esc(draft.playerName ?? '')} · <code>${esc(draft.tg)}</code>`;
+  const body = draft.type === 'fc'
+    ? [`💰 <b>PRESENTE FC</b>`, '', `👤 Jogador: ${who}`, `💰 Valor: <b>${fmt(fc)} FC</b>`, `📊 Saldo atual: ${fmt(draft.playerBalance)} FC → <b>${fmt(Number(draft.playerBalance || 0) + fc)} FC</b>`]
+    : ['🎁 <b>ENVIAR PRESENTE</b>', '', `👤 Jogador: ${who}`,
+       `Presente: ${GIFT_TYPES[draft.type]?.icon ?? '🎁'} ${esc(draft.pick?.label ?? '')}`,
+       draft.pick?.sub ? `Tipo: ${esc(draft.pick.sub)}` : '',
+       `Quantidade: <b>${fmt(qty)}</b>`,
+       draft.type === 'egg' ? '\n<i>O ovo entra no inventário — o jogador abre quando quiser.</i>' : ''];
+  return send(ctx, [...body.filter(Boolean), '', `🔑 Gift ID: <code>${code}</code>`].join('\n'),
+    kb([[{ t: '✅ ENVIAR', d: 'gf:ok' }, { t: '❌ CANCELAR', d: 'gf:home' }]]));
+}
+
+async function giftDeliver(ctx: Ctx) {
+  const draft = await giftDraftGet(ctx);
+  if (!draft?.tg || !draft.code) return giftHub(ctx);
+  const isFc = draft.type === 'fc';
+  const r = await rpc('admin_send_gift', {
+    p_admin_id: ctx.adminId,
+    p_ref: draft.tg,
+    p_type: draft.type,
+    p_item_key: isFc ? String(draft.fc ?? 0) : String(draft.pick?.key ?? ''),
+    p_quantity: isFc ? 1 : Math.max(1, Number(draft.qty || 1)),
+    p_gift_code: draft.code,
+  }) as any;
+  await giftDraftClear(ctx);
+  await clearSession(ctx);
+  const done = kb([[{ t: '🎁 ENVIAR OUTRO', d: 'gf:home' }, { t: '🏠 MENU', d: 'home' }]]);
+  if (r?.duplicate) {
+    return edit(ctx, `⚠️ <b>PRESENTE JÁ ENTREGUE</b>\n\nO código <code>${esc(draft.code)}</code> já foi processado — nada foi duplicado.`, done);
+  }
+  return edit(ctx, [
+    '✅ <b>PRESENTE ENVIADO</b>',
+    '',
+    `👤 ${draft.playerUser ? '@' + esc(draft.playerUser) : esc(draft.playerName ?? '')}`,
+    `🆔 <code>${esc(draft.tg)}</code>`,
+    isFc ? `💰 +${fmt(r?.fc ?? draft.fc)} FC` : `${GIFT_TYPES[draft.type]?.icon ?? '🎁'} ${esc(r?.label ?? draft.pick?.label ?? '')} ×${fmt(r?.quantity ?? draft.qty ?? 1)}`,
+    `👮 Admin: ${ctx.adminId}`,
+    `🔑 Gift ID: <code>${esc(draft.code)}</code>`,
+    '✅ DELIVERED',
+  ].join('\n'), done);
+}
+
+async function giftCallback(ctx: Ctx, rest: string[]) {
+  const [op, a] = rest;
+  switch (op) {
+    case 'home': { await clearSession(ctx); return giftHub(ctx); }
+    case 'hist': { await clearSession(ctx); return giftHistory(ctx); }
+    case 't': return giftStartType(ctx, a);
+    case 'sel': return giftAfterPlayer(ctx);
+    case 'r': return giftCatalog(ctx, a === 'all' ? null : a, 0);
+    case 'pg': {
+      const draft = await giftDraftGet(ctx);
+      return giftCatalog(ctx, draft?.rarity ?? null, Number(a) || 0);
+    }
+    case 'i': return giftPickItem(ctx, Number(a) || 0);
+    case 'ok': return giftDeliver(ctx);
+    default: return giftHub(ctx);
+  }
+}
+
+/** Gift prompts. Runs before any menu fallback, so a typed value is always executed. */
+async function giftPrompt(ctx: Ctx, key: string, arg: string, text: string) {
+  switch (key) {
+    case 'giftuser': {
+      try {
+        return await giftPlayerFound(ctx, arg || (await giftDraftGet(ctx))?.type || 'fc', text);
+      } catch (error) {
+        const raw = error instanceof Error ? error.message : String(error);
+        if (raw.includes('player_not_found')) throw new Error('KEEP_SESSION::⚠️ Jogador não encontrado. Envie Telegram ID, @username, nome ou ID interno.');
+        throw error;
+      }
+    }
+    case 'giftfc': {
+      const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC maior que 0 (ex.: <code>50000</code>).');
+      return giftConfirm(ctx, 1, value);
+    }
+    case 'giftqty': {
+      const qty = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(qty) || qty < 1 || qty > 100) throw new Error('KEEP_SESSION::⚠️ Envie uma quantidade entre 1 e 100.');
+      return giftConfirm(ctx, qty);
+    }
+    default: return giftHub(ctx, false);
+  }
+}
+
 // ---------------------------------------------------------------- actions
+
 
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
@@ -1727,6 +2069,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
+  if (head === 'gf') return giftCallback(ctx, rest);
+
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
 
   // ---- global boss + user management (button driven, no JSON typing)
@@ -2096,7 +2440,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
 
+  if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
+
 
   switch (key) {
     case 'find': return playerSearch(ctx, text, 0);
