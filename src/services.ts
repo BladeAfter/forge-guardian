@@ -92,8 +92,12 @@ export const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, s
   }
 }) : null;
 
+/** Local village progression used whenever the server state is unavailable. */
+export const buildLocalGameState = (telegramInitData: string): GameState => loadDemoState(telegramInitData);
+
 export const fetchGameState = async (telegramInitData: string): Promise<GameState> => {
   if (import.meta.env.DEV || !supabase) return loadDemoState(telegramInitData);
+  console.log('[GAME STATE] requesting server state');
 
   const { data, error } = await supabase.rpc('get_game_state', {
     telegram_init_data: telegramInitData
