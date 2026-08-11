@@ -16,6 +16,8 @@ export const boss: LocaleBundle = {
     'boss.all': 'ALL',
     'boss.inThisSlot': 'In this slot',
     'boss.remove': 'REMOVE',
+    'boss.petBonusLabel': 'Pet bonus',
+    'boss.power': 'Power',
   },
   pt: {
     'boss.noPetActive': 'Nenhum pet ativo',
@@ -31,6 +33,8 @@ export const boss: LocaleBundle = {
     'boss.all': 'TODOS',
     'boss.inThisSlot': 'Neste slot',
     'boss.remove': 'REMOVER',
+    'boss.petBonusLabel': 'Bônus do pet',
+    'boss.power': 'Poder',
   },
   es: {
     'boss.noPetActive': 'Ninguna mascota activa',
@@ -46,6 +50,8 @@ export const boss: LocaleBundle = {
     'boss.all': 'TODOS',
     'boss.inThisSlot': 'En este espacio',
     'boss.remove': 'QUITAR',
+    'boss.petBonusLabel': 'Bono de mascota',
+    'boss.power': 'Poder',
   },
   ru: {
     'boss.noPetActive': 'Нет активного питомца',
@@ -61,5 +67,7 @@ export const boss: LocaleBundle = {
     'boss.all': 'ВСЕ',
     'boss.inThisSlot': 'В этом слоте',
     'boss.remove': 'УБРАТЬ',
+    'boss.petBonusLabel': 'Бонус питомца',
+    'boss.power': 'Сила',
   },
 };
