@@ -123,7 +123,18 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       }
       toast.success('Companheiro atualizado!');
     },
-    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : 'EGG OPENING FAILED'),
+    onError: (mutationError) => {
+      const raw = mutationError instanceof Error ? mutationError.message : '';
+      const map: Record<string, string> = {
+        NOT_ENOUGH_PET_FOOD: 'Você não tem comida suficiente para essa quantidade.',
+        PET_NOT_OWNED: 'Este companheiro não pertence a você.',
+        PET_MAX_LEVEL: 'Este companheiro já está no nível máximo.',
+        FOOD_NOT_FOUND: 'Comida indisponível no momento.',
+        INVALID_FEED_REQUEST: 'Quantidade inválida.',
+      };
+      const key = Object.keys(map).find((code) => raw.includes(code));
+      toast.error(key ? map[key] : raw || 'Não foi possível concluir a ação.');
+    },
     onSettled:()=>{openingRef.current=false},
   });
 
