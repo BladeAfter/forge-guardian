@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _boss_smoke2: {
-        Row: {
-          at: string | null
-          payload: Json | null
-          step: string | null
-        }
-        Insert: {
-          at?: string | null
-          payload?: Json | null
-          step?: string | null
-        }
-        Update: {
-          at?: string | null
-          payload?: Json | null
-          step?: string | null
-        }
-        Relationships: []
-      }
       ad_providers: {
         Row: {
           code: string
@@ -4426,6 +4408,10 @@ export type Database = {
         Args: { p_admin_id: number; p_label: string }
         Returns: Json
       }
+      admin_delete_catalog_hero: {
+        Args: { p_admin_id: number; p_hero_key: string; p_reason?: string }
+        Returns: Json
+      }
       admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
@@ -4520,6 +4506,10 @@ export type Database = {
         Returns: string
       }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_next_hero_key: {
+        Args: { p_admin_id: number; p_name: string }
+        Returns: string
+      }
       admin_pass_history: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
@@ -4631,6 +4621,10 @@ export type Database = {
           p_tx_hash?: string
           p_withdrawal_id: string
         }
+        Returns: Json
+      }
+      admin_search_heroes: {
+        Args: { p_admin_id: number; p_limit?: number; p_query?: string }
         Returns: Json
       }
       admin_search_players:
