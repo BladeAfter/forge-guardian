@@ -1480,7 +1480,13 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  clcost: 'Digite o novo custo para criação de um clã em FC.\nEx.: <code>50000</code>',
+  clsetlimit: 'Digite o novo limite de membros para clãs criados a partir de agora (2 a 500).\nEx.: <code>30</code>',
+  giftuser: 'Para qual jogador deseja enviar?\nEnvie <b>Telegram ID</b>, <b>@username</b>, nome ou ID interno.',
+  giftfc: 'Digite a quantidade de FC que deseja enviar.\nEx.: <code>50000</code>',
+  giftqty: 'Digite a quantidade que deseja enviar.\nEx.: <code>1</code>',
   clsearch: 'Envie o nome (ou parte) ou a <b>tag</b> do clã. Ex.: <code>dragões</code> ou <code>DRG</code>',
+
   clxp: 'Envie o XP a adicionar ou remover do clã. Ex.: <code>25000</code> ou <code>-5000</code>',
   cllvl: 'Envie o novo nível do clã (mínimo 1). Ex.: <code>10</code>',
   clbosshp: 'Envie o HP do novo ciclo do chefe do clã. Ex.: <code>2500000</code>',
