@@ -122,7 +122,8 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
 
       </div>
 
-      {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">{error}</p> : null}
+      {/* Never surface raw backend/SQL errors to players — the details stay in the console log above. */}
+      {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">Unable to load Daily Quests. Please try again.</p> : null}
       {loading && !dashboard ? <p className="p-3 text-xs text-slate-400">Loading quests...</p> : null}
 
       <div className="space-y-2">
