@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Lock, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { fuseHeroesByRarity } from '../services';
@@ -72,7 +73,7 @@ function FusionHeroCard({
   );
 }
 
-export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData: string; data: RarityFusionDashboard }) {
+export function HeroRarityFusion({ telegramInitData, data, active = true }: { telegramInitData: string; data: RarityFusionDashboard; active?: boolean }) {
   const t = useT();
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
@@ -100,6 +101,15 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
   useEffect(() => {
     setSelected((prev) => prev.filter((id) => byId.has(id)));
   }, [byId]);
+
+  // Overlays are portaled to <body>, so the page scroll must be frozen while one is open.
+  const overlayOpen = confirming || phase === 'fusing' || phase === 'result';
+  useEffect(() => {
+    if (!overlayOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [overlayOpen]);
 
   const activeRarity = sourceRarity ?? filter;
 
@@ -228,8 +238,9 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
 
       {error ? <p className="mt-2 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-1.5 text-[10px] text-rose-200">{error}</p> : null}
 
-      {/* Sticky fusion bar */}
-      <div className="sticky bottom-0 z-10 mt-3 rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
+      {/* Fusion action bar — portaled so parent transforms cannot offset or clip it */}
+      {active && createPortal(
+        <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-[480px] rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
         <div className="flex items-center justify-between gap-2 text-[9px]">
           <span className="font-black uppercase tracking-[.12em] text-amber-200">{t('fusion.selectedCount', { selected: selected.length, required })}</span>
           <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} FC` : t('fusion.costNA') })}</span>
@@ -250,7 +261,11 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
         >
           {phase === 'fusing' ? t('fusion.fusing') : notEnoughFc ? t('fusion.insufficientBalance') : complete ? t('fusion.fuseHeroes') : t('fusion.selectN', { count: required })}
         </button>
-      </div>
+        </div>,
+        document.body,
+      )}
+      {/* Spacer so the last row is never hidden behind the fixed bar */}
+      <div aria-hidden className="h-[132px]" />
 
       {data.history?.length ? (
         <div className="mt-3 rounded-xl border border-white/10 bg-black/40 p-2">
@@ -271,9 +286,9 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
       ) : null}
 
       {/* Confirmation */}
-      {confirming && tier ? (
-        <div className="fixed inset-0 z-[96] grid place-items-center bg-black/85 p-3">
-          <div className="forge-safe-page w-full max-w-[420px] rounded-2xl border border-amber-300/30 bg-[#060b14] p-3">
+      {confirming && tier ? createPortal(
+        <div className="fixed inset-0 z-[96] grid place-items-center overflow-y-auto bg-black/85 p-3">
+          <div className="forge-safe-page my-auto max-h-[92vh] w-full max-w-[420px] overflow-y-auto rounded-2xl border border-amber-300/30 bg-[#060b14] p-3">
             <h3 className="text-sm font-black">{t('fusion.confirmTitle')}</h3>
             <p className="mt-1 text-[10px] text-slate-300">{t('fusion.confirmSubtitle', { count: required })}</p>
             <div className="mt-2 grid grid-cols-5 gap-1">
@@ -296,11 +311,12 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               <button onClick={runFusion} className="min-h-[42px] rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">{t('common.confirm')}</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
 
       {/* Ritual animation */}
-      {phase === 'fusing' ? (
+      {phase === 'fusing' ? createPortal(
         <div className="fixed inset-0 z-[97] grid place-items-center bg-black/92">
           <div className="relative grid h-52 w-52 place-items-center">
             <div className="absolute inset-0 animate-spin rounded-full border-2 border-dashed border-amber-300/40" style={{ animationDuration: '3.4s' }} />
@@ -319,13 +335,14 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
             <Sparkles size={40} className="animate-pulse text-amber-200" />
           </div>
           <p className="mt-4 text-[11px] font-black uppercase tracking-[.28em] text-amber-200">{t('fusion.fusing')}</p>
-        </div>
+        </div>,
+        document.body,
       ) : null}
 
       {/* Result */}
-      {phase === 'result' && result ? (
-        <div className="fixed inset-0 z-[98] grid place-items-center bg-black/92 p-4">
-          <div className="animate-scale-in w-full max-w-[380px] rounded-2xl border p-4 text-center" style={{ borderColor: result.success ? RARITY_COLOR[result.targetRarity] : '#f43f5e', background: '#050a12' }}>
+      {phase === 'result' && result ? createPortal(
+        <div className="fixed inset-0 z-[98] grid place-items-center overflow-y-auto bg-black/92 p-4">
+          <div className="animate-scale-in my-auto max-h-[92vh] w-full max-w-[380px] overflow-y-auto rounded-2xl border p-4 text-center" style={{ borderColor: result.success ? RARITY_COLOR[result.targetRarity] : '#f43f5e', background: '#050a12' }}>
             {result.success && result.hero ? (
               <>
                 <p className="text-[10px] uppercase tracking-[.3em] text-amber-300">{t('fusion.resultSuccessTitle')}</p>
@@ -354,7 +371,8 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               {t('common.continue')}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </section>
   );
