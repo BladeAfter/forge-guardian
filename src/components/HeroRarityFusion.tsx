@@ -156,6 +156,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
       setSelected([]);
       queryClient.setQueryData(['rarity-fusion', telegramInitData], payload.dashboard);
       queryClient.invalidateQueries({ queryKey: ['player-heroes'] });
+      queryClient.invalidateQueries({ queryKey: ['community-pool'] });
       queryClient.invalidateQueries({ queryKey: ['hero-fusion'] });
       queryClient.invalidateQueries({ queryKey: ['player-inventory'] });
       queryClient.invalidateQueries({ queryKey: ['reward-history'] });

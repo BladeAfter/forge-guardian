@@ -3509,6 +3509,7 @@ export type Database = {
           id: boolean
           lottery_share_percent: number
           lottery_winner_count: number
+          minimum_heroes: number
           minimum_points: number
           ranking_percentages: Json
           ranking_share_percent: number
@@ -3523,6 +3524,7 @@ export type Database = {
           id?: boolean
           lottery_share_percent?: number
           lottery_winner_count?: number
+          minimum_heroes?: number
           minimum_points?: number
           ranking_percentages?: Json
           ranking_share_percent?: number
@@ -3537,6 +3539,7 @@ export type Database = {
           id?: boolean
           lottery_share_percent?: number
           lottery_winner_count?: number
+          minimum_heroes?: number
           minimum_points?: number
           ranking_percentages?: Json
           ranking_share_percent?: number
@@ -6176,6 +6179,7 @@ export type Database = {
       pet_xp_required: { Args: { v: number }; Returns: number }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
+      pool_eligibility: { Args: { p_user_id: string }; Returns: Json }
       pool_record_revenue: {
         Args: {
           p_amount_ton: number

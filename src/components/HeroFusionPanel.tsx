@@ -45,6 +45,7 @@ export function HeroFusionPanel({
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['hero-fusion'] });
     queryClient.invalidateQueries({ queryKey: ['player-heroes'] });
+    queryClient.invalidateQueries({ queryKey: ['community-pool'] });
     queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['boss-combat'] });
     queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });

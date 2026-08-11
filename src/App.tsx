@@ -162,7 +162,7 @@ function App() {
   const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
   const [chestResult,setChestResult]=useState<ChestOpenResult|null>(null);
   const openingChestRef=useRef(false);
-  const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{setChestResult(result);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['game-state']}),queryClient.invalidateQueries({queryKey:['daily-quests']}),queryClient.invalidateQueries({queryKey:['season-pass']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú. Tente novamente.'),onSettled:()=>{openingChestRef.current=false}});
+  const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{setChestResult(result);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['community-pool']}),queryClient.invalidateQueries({queryKey:['game-state']}),queryClient.invalidateQueries({queryKey:['daily-quests']}),queryClient.invalidateQueries({queryKey:['season-pass']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú. Tente novamente.'),onSettled:()=>{openingChestRef.current=false}});
   /** One click = one chest: the ref blocks a second request before React re-renders. */
   const openChest=(id:string)=>{if(openingChestRef.current||calendarChestMutation.isPending)return;openingChestRef.current=true;calendarChestMutation.mutate(id)};
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
@@ -676,7 +676,7 @@ function App() {
           return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
         }).filter((hero): hero is ShopHero => Boolean(hero)));
 
-        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }

@@ -47,7 +47,7 @@ export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>
 export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:10_000});
 export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<CalendarDashboard>({queryKey:['calendar-dashboard',telegramInitData],queryFn:()=>calendarRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
-export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
+export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:0,refetchOnMount:'always',refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
 
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 
