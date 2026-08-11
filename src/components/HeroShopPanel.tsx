@@ -87,11 +87,13 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const chipClass = (active: boolean) =>
     `rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] transition ${active ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`;
 
-  const sellOptions = sellKind === 'hero'
+  type SellOption = { id?: string; code?: string; name: string; rarity: string; level: number; image: string | null; detail: string };
+  const sellOptions: SellOption[] = sellKind === 'hero'
     ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}` }))
     : sellKind === 'pet'
       ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase() }))
-      : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null as string | null, detail: `x${item.quantity}` }));
+      : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}` }));
+
 
   return (
     <div className="fullscreen-page flex items-center justify-center p-3">
