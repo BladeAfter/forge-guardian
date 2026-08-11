@@ -27,6 +27,21 @@ export function nextResetCountdown(nextResetAt?:string|null,now:number=Date.now(
  const ms=Math.max(0,target-now),h=Math.floor(ms/3_600_000),m=Math.floor((ms%3_600_000)/60_000);
  return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
 }
+export const GAME_TIMEZONE='America/Sao_Paulo';
+export const GAME_DAY_RESET_HOUR=21;
+/**
+ * Offline/demo mirror of the server rule: a new game day starts at 21:00 America/Sao_Paulo.
+ * The backend remains the only authority whenever it is reachable.
+ */
+export function officialGameDayKey(date:Date=new Date()):string{
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:GAME_TIMEZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).formatToParts(date);
+ const get=(type:string)=>parts.find(p=>p.type===type)?.value??'00';
+ const hour=Number(get('hour'))%24;
+ const local=new Date(Date.UTC(Number(get('year')),Number(get('month'))-1,Number(get('day'))));
+ if(hour<GAME_DAY_RESET_HOUR)local.setUTCDate(local.getUTCDate()-1);
+ return local.toISOString().slice(0,10);
+}
+
 
 export type InventoryChest={id:string;itemCode:string;name:string;subtitle:string;quantity:number;rarityRates:Record<string,number>};
 export type InventoryEgg={id:string;slug:string;name:string;image:string|null;quantity:number;rarityRates:Record<string,number>};
