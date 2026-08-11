@@ -57,6 +57,8 @@ const MAIN_MENU = kb([
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
   [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
   [{ t: '💳 RECUPERAÇÃO DE PAGAMENTOS', d: 'm:precovery' }],
+  [{ t: '🛒 MARKETPLACE', d: 'm:market' }],
+
 
 
 
