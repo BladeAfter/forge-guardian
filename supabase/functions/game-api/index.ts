@@ -838,6 +838,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
 
+  /** Special events (EVENTS tab). Ranking and prizes are computed server-side only. */
+  events: async (db, user) => {
+    return rpc(db, 'get_special_events_dashboard', { p_telegram_id: user.id });
+  },
+
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },

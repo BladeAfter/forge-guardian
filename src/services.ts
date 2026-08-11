@@ -1,3 +1,4 @@
+import type {SpecialEventsDashboard} from './specialEvents';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
@@ -217,6 +218,9 @@ export const fetchRecentPassXp=(initData:string,since:string|null)=>seasonPassRe
 /** Server-side reconciler for TON battle pass payments: only the backend can activate a pass. */
 export async function verifyPassPurchases(initData:string):Promise<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>;dashboard?:SeasonPassDashboard}>{const response=await forgeFetch('season-pass',({initData,action:'verify'}));const payload=await response.json().catch(()=>null)as(Record<string,unknown>&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível verificar o pagamento do Passe.');return payload as never}
 export async function communityPoolRequest(initData:string):Promise<CommunityPoolDashboard>{const response=await forgeFetch('pool',({initData,action:'dashboard'}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Pool Comunitária.');const payload=await response.json().catch(()=>null)as(CommunityPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar a Pool Comunitária.');return payload}
+
+/** Special events (EVENTS tab): backend-computed ranking, never a client-side count. */
+export async function specialEventsRequest(initData:string):Promise<SpecialEventsDashboard>{const response=await forgeFetch('events',({initData,action:'dashboard'}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar os eventos especiais.');const payload=await response.json().catch(()=>null)as(SpecialEventsDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar os eventos especiais.');return payload}
 
 // Hero collection is independent from PvP stats/matchmaking: a PvP failure must
 // never wipe the collection, and an empty collection is a valid empty state.

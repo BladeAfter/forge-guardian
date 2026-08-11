@@ -49,6 +49,9 @@ export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:0,refetchOnMount:'always',refetchInterval:30_000,refetchOnWindowFocus:true,retry:1});
 
+/** Special events tab: short refetch keeps the referral ranking live without a reload. */
+export const useSpecialEvents=(telegramInitData:string|null,enabled:boolean)=>useQuery<SpecialEventsDashboard>({queryKey:['special-events',telegramInitData],queryFn:()=>specialEventsRequest(telegramInitData??''),enabled,staleTime:0,refetchOnMount:'always',refetchInterval:15_000,refetchOnWindowFocus:true,retry:1});
+
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 
 export const useRewardHistory=(telegramInitData:string|null,enabled:boolean,limit=5)=>useQuery<RewardHistory>({queryKey:['reward-history',telegramInitData,limit],queryFn:()=>fetchRewardHistory(telegramInitData??'',limit),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
