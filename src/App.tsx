@@ -18,6 +18,9 @@ import { PetsPage } from './pages/PetsPage';
 import { PvpPage } from './pages/PvpPage';
 import {SeasonPassPage}from'./pages/SeasonPassPage';
 import {HeroesPage}from'./pages/HeroesPage';
+import {ClanHubPage}from'./pages/ClanHubPage';
+import {ClanHall,ClanStatusChip}from'./components/ClanHall';
+import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
@@ -37,8 +40,8 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes'|'clan';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
@@ -112,6 +115,7 @@ function App() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const queryClient = useQueryClient();
+  const clanDashboard=useClanDashboard(telegramInitData,Boolean(telegramInitData)).data;
   const referralBound=useRef(false);
   const lastCommissionNotification=useRef<string|null>(null);
 
@@ -701,6 +705,7 @@ function App() {
   if(activePage==='pvp'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
 
   return (
@@ -746,6 +751,12 @@ function App() {
             ) : null}
           </div>
 
+
+          <div className="relative z-30 w-full max-w-[168px]">
+            <ClanStatusChip clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
+          </div>
+
+          <ClanHall clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
