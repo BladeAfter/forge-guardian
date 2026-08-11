@@ -500,7 +500,7 @@ async function module(ctx: Ctx, name: string) {
       const b = d.bonus || {};
       const list = (d.quests || []).map((q: any) => `• <code>${esc(q.code)}</code> ${esc(q.title)}\n   evento <code>${esc(q.event_key)}</code> · meta ${q.target_amount} · ${fmt(q.reward_fc)} FC ${q.enabled ? '✅' : '⛔'}`).join('\n') || '—';
       const active = (d.quests || []).filter((q: any) => q.enabled).length;
-      return edit(ctx, `🎯 <b>DAILY QUESTS</b>\nFuso do reset: <b>${esc(d.timezone)}</b> · dia atual ${esc(d.questDate)}\nQuests ativas: <b>${active}</b> · Resgates hoje: ${fmt(d.claimedToday)}\n\n${list}\n\n🎁 Baú extra (5/5): <b>${esc(b.name || 'Rare Chest')}</b> — <code>${esc(b.item_code || 'rare_chest')}</code> x${b.quantity ?? 1}\n\nO progresso é gravado só pelo servidor (login, pet, boss, PvP, ovos/baús).`,
+      return edit(ctx, `🎯 <b>DAILY QUESTS</b>\nFuso do reset: <b>${esc(d.timezone)}</b> · dia atual ${esc(d.questDate)}\nQuests ativas: <b>${active}</b> · Resgates hoje: ${fmt(d.claimedToday)}\n\n${list}\n\n🎁 Daily Quest Chest: <b>${esc(b.name || 'Common Hero Chest')}</b> — <code>${esc(b.item_code || 'common_hero_chest')}</code> x${b.quantity ?? 1}\nRequired: <b>${active}/${active}</b> quests\n\nO progresso é gravado só pelo servidor (login, pet, boss, PvP, ovos/baús).`,
         kb([[{ t: '✏️ CRIAR/EDITAR QUEST', d: 'ask:quest' }],
             [{ t: '🔄 REPAIR DEFAULT DAILY QUESTS', d: 'view:questrepair' }],
             [{ t: '🎁 BAÚ EXTRA 5/5', d: 'ask:questbonus' }, { t: '🕒 FUSO DO RESET', d: 'ask:questtz' }],
