@@ -99,22 +99,26 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
           <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-amber-400 to-orange-500 transition-all" style={{ width: `${percent}%` }} />
         </div>
 
-        {/* 5/5 bonus: the chest itself and its rarity are resolved server-side. */}
-        <div className={`mt-3 flex items-center gap-3 rounded-2xl border p-3 ${dashboard?.bonus.unlocked && !dashboard?.bonus.claimed ? 'border-amber-300/60 bg-amber-400/10' : 'border-white/10 bg-white/[.03]'}`}>
-          <img src={chests[dashboard?.bonus.itemCode === 'epic_chest' || dashboard?.bonus.itemCode === 'legendary_chest' ? 2 : 1]} alt="Daily quest chest" className="h-11 w-11 object-contain" />
+        {/* 5/5 bonus: the chest and its odds are resolved server-side; CLAIM only unlocks at 5/5. */}
+        <div className={`mt-3 flex items-center gap-3 rounded-2xl border p-3 ${chestUnlocked && !chestClaimed ? 'border-amber-300/60 bg-amber-400/10' : 'border-white/10 bg-white/[.03]'}`}>
+          <img src={chests[0]} alt="Daily quest chest" className="h-11 w-11 object-contain" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-amber-200">Daily Quest Chest</p>
-            <p className="text-[10px] text-slate-400">{dashboard?.bonus.claimed ? 'Already claimed today' : dashboard?.bonus.unlocked ? `${dashboard.bonus.name} unlocked` : 'Complete all quests to unlock'}</p>
+            <p className="text-[10px] text-slate-400">
+              {chestClaimed ? 'Reward claimed' : chestUnlocked ? 'All quests completed!' : 'Complete all quests to unlock'}
+            </p>
+            <p className="text-[9px] uppercase tracking-[0.14em] text-slate-500">1x {dashboard?.bonus.name ?? 'Common Hero Chest'}</p>
           </div>
           <button
             type="button"
             onClick={() => claimChest.mutate()}
-            disabled={!dashboard?.bonus.unlocked || dashboard.bonus.claimed || claimChest.isPending}
-            className="h-10 rounded-xl bg-gradient-to-b from-amber-300 to-orange-600 px-4 text-[11px] font-black text-[#241307] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!chestUnlocked || chestClaimed || claimChest.isPending}
+            className="h-10 rounded-xl bg-gradient-to-b from-amber-300 to-orange-600 px-4 text-[10px] font-black text-[#241307] disabled:cursor-not-allowed disabled:bg-none disabled:bg-white/5 disabled:text-slate-500 disabled:opacity-70"
           >
-            {dashboard?.bonus.claimed ? 'CLAIMED' : claimChest.isPending ? '...' : 'CLAIM'}
+            {chestClaimed ? '✓ CLAIMED' : claimChest.isPending ? '...' : chestUnlocked ? 'CLAIM' : 'LOCKED'}
           </button>
         </div>
+
       </div>
 
       {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">{error}</p> : null}
