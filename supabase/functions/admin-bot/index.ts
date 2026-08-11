@@ -54,7 +54,7 @@ const MAIN_MENU = kb([
   [{ t: '🤝 CONVITES', d: 'm:invites' }, { t: '🏪 LOJA DE HERÓIS', d: 'm:shop' }],
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
-  [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }],
+  [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
   [{ t: '📣 BROADCAST', d: 'm:cast' }, { t: '💾 SNAPSHOT', d: 'do:snapshot' }],
@@ -1162,6 +1162,7 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📦 DIAGNÓSTICO DOS BAÚS', d: 'view:chests' }], nav()]));
 
     }
+    case 'clans': return clansHub(ctx);
     case 'boss': return bossPanel(ctx);
 
     case 'ads': {
@@ -1479,6 +1480,15 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  clsearch: 'Envie o nome (ou parte) ou a <b>tag</b> do clã. Ex.: <code>dragões</code> ou <code>DRG</code>',
+  clxp: 'Envie o XP a adicionar ou remover do clã. Ex.: <code>25000</code> ou <code>-5000</code>',
+  cllvl: 'Envie o novo nível do clã (mínimo 1). Ex.: <code>10</code>',
+  clbosshp: 'Envie o HP do novo ciclo do chefe do clã. Ex.: <code>2500000</code>',
+  clname: 'Envie o novo nome do clã (3 a 24 caracteres).',
+  cltag: 'Envie a nova tag do clã (2 a 5 letras/números).',
+  cldesc: 'Envie a nova descrição do clã (até 200 caracteres).',
+  cllimit: 'Envie o novo limite de membros (1 a 100). Ex.: <code>50</code>',
+  cltrophy: 'Envie o mínimo de troféus para entrar no clã. Ex.: <code>500</code>',
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
   pachat: 'Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.',
   passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
@@ -1712,6 +1722,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
   if (head === 'hw') return heroWizardCallback(ctx, rest);
+  if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
 
   // ---- global boss + user management (button driven, no JSON typing)
@@ -2049,6 +2060,8 @@ function parseValue(raw: string): unknown {
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
+
+  if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
 
   switch (key) {
     case 'find': return playerSearch(ctx, text, 0);
