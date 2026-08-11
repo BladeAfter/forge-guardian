@@ -115,7 +115,40 @@ Deno.serve(async req => {
       console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, fcAmount: (data as any)?.amountFc, poolContribution: (data as any)?.poolContribution?.poolAmountTon ?? null }));
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending });
+    // Battle pass orders: activated ONLY by a payment carrying the order's own comment,
+    // so a plain deposit can never activate a pass. The DB decides the tier from the order.
+    const passOrders = await db
+      .from('season_pass_orders')
+      .select('id, user_id, tier, amount_nano, payment_comment, status, created_at')
+      .is('tx_hash', null)
+      .in('status', ['pending', 'paid', 'expired'])
+      .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+      .order('created_at', { ascending: false })
+      .limit(200);
+    const passActivated: string[] = [];
+    for (const order of passOrders.data ?? []) {
+      const comment = String(order.payment_comment || '').trim();
+      if (!comment) continue;
+      const expectedNano = BigInt(String(order.amount_nano || '0'));
+      const minNano = (expectedNano * 97n) / 100n;
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || msgComment(inMsg) !== comment) return false;
+        const hash = txHashOf(tx);
+        if (!hash || used.has(hash)) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= minNano;
+      });
+      if (!match) continue;
+      const txHash = txHashOf(match);
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      const { error } = await db.rpc('confirm_season_pass_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      if (error) { console.error('[PASS ACTIVATE]', JSON.stringify({ orderId: order.id, reason: error.message })); continue; }
+      used.add(txHash);
+      passActivated.push(order.id);
+      console.log('[PASS ACTIVATE]', JSON.stringify({ orderId: order.id, tier: order.tier, txHash }));
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated });
   } catch (error) {
     console.error('[FORGE ERROR] ton-reconcile', error);
     return json({ error: 'Deposit reconciliation failed.' }, 500);
