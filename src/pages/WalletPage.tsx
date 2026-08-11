@@ -145,17 +145,19 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível comprar o ovo.')
   });
 
+  // "JÁ PAGUEI" é apenas recuperação: nunca cria outro pedido nem procura pagamento aleatório.
   const reconcile = useMutation({
     mutationFn: () => reconcilePendingEggPurchases(telegramInitData),
     onSuccess: async verification => {
       const delivered = await revealPurchase(verification);
+      const message = eggRecoveryMessage(verification);
       if (delivered) return;
-      if (verification.completed.length) toast.success('Compra concluída.');
-      else if (verification.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
-      else toast('Nenhuma compra de ovo pendente.');
+      if (message.tone === 'success') toast.success(message.text);
+      else toast(message.text);
     },
     onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar a compra.')
   });
+
 
   return (
     <section className="space-y-3 pb-5">
