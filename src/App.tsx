@@ -28,7 +28,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -401,6 +401,20 @@ function App() {
       setIsReady(true);
     }
   }, [data]);
+
+  // Boot watchdog: the loading screen never stays stuck — after 12s the local village state opens the game.
+  useEffect(() => {
+    if (!telegramInitData || game) return;
+    const timer = window.setTimeout(() => {
+      console.error('[BOOT] game state unavailable, opening with local village state', {
+        hasError: Boolean(error), isLoading
+      });
+      setGame(buildLocalGameState(telegramInitData));
+      setIsReady(true);
+    }, 12_000);
+    return () => window.clearTimeout(timer);
+  }, [telegramInitData, game, error, isLoading]);
+
 
   useEffect(() => {
     if (!game || !isDemoMode || !telegramInitData) return;
