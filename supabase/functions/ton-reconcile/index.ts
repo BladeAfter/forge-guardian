@@ -148,11 +148,32 @@ Deno.serve(async req => {
       console.log('[PASS ACTIVATE]', JSON.stringify({ orderId: order.id, tier: order.tier, txHash }));
     }
 
-    // Premium egg purchases: identified ONLY by the order's own unique comment (never by amount),
-    // and kept verifiable for 30 days so a slow transfer is still delivered automatically.
+    const eggsDelivered: string[] = [];
+
+    // Step 1 — orders already paid on-chain but whose product was never handed over: deliver now (idempotent).
+    const paidUndelivered = await db
+      .from('pet_egg_orders')
+      .select('id, user_id, price_ton, tx_hash, status')
+      .not('tx_hash', 'is', null)
+      .neq('status', 'delivered')
+      .gte('created_at', new Date(Date.now() - 90 * 86_400_000).toISOString())
+      .limit(200);
+    for (const order of paidUndelivered.data ?? []) {
+      const { error } = await db.rpc('deliver_pet_egg_order', { p_order_id: order.id });
+      if (error) {
+        console.error('[EGG DELIVER RETRY]', JSON.stringify({ orderId: order.id, reason: error.message }));
+        await db.from('ton_payment_logs').insert({ order_kind: 'egg', order_id: order.id, user_id: order.user_id, tx_hash: order.tx_hash, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: error.message });
+        continue;
+      }
+      eggsDelivered.push(String(order.id));
+      await db.from('ton_payment_logs').insert({ order_kind: 'egg', order_id: order.id, user_id: order.user_id, tx_hash: order.tx_hash, blockchain_status: 'found', fulfillment_status: 'completed' });
+    }
+
+    // Step 2 — premium egg purchases still awaiting payment: identified ONLY by the order's own
+    // unique comment (never by amount), and kept verifiable for 30 days.
     const eggOrders = await db.rpc('ton_pending_purchase_orders', { p_max_age_days: 30 });
     if (eggOrders.error) console.error('[EGG RECONCILE]', eggOrders.error.message);
-    const eggsDelivered: string[] = [];
+
     for (const order of (eggOrders.data ?? []) as any[]) {
       const comment = String(order.payment_comment || '').trim();
       const expectedNano = BigInt(String(order.amount_nano || '0'));
