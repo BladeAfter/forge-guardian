@@ -335,7 +335,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'evolution' && (
           <div className="space-y-2">
             {data.playerPets.map((pet) => (
-              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} />
+              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} />
             ))}
           </div>
         )}
