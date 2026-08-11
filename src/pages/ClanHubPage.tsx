@@ -129,7 +129,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
             </div>
             <button
               disabled={busy}
-              onClick={() => void run({ action: 'create', ...form, emblem: { symbol: form.symbol, background: form.background, shield: 'classic', border: 'gold' } }, 'clan.created')}
+              onClick={() => void createClan()}
               className="w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black disabled:opacity-50"
             >{t('clan.create')}</button>
           </section>
