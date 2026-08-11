@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Crown, Flame, Gift, Info, RefreshCw, Sparkles, Trophy, UserPlus, Users } from 'lucide-react';
+import { Flame, Gift, Info, RefreshCw, Sparkles, Trophy, UserPlus, Users } from 'lucide-react';
+import championshipTrophy from '../assets/referral-championship-trophy.png';
 import { useSpecialEvents } from '../hooks';
 import { describeDistribution, eventCountdown, formatEventTon } from '../specialEvents';
 import { useT, useLanguage } from '../LanguageContext';
@@ -12,7 +13,9 @@ import { useT, useLanguage } from '../LanguageContext';
 export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramInitData: string; onInvite: () => void }) {
   const t = useT();
   useLanguage();
-  const { data, isLoading, error, refetch } = useSpecialEvents(telegramInitData, true);
+  const { data, isLoading, isFetching, error, refetch } = useSpecialEvents(telegramInitData, true);
+  // Skeletons must never outlive the request: a pending query with nothing in flight shows the retry state.
+  const stalled = isLoading && !isFetching;
   const [tick, setTick] = useState(Date.now());
   const [showRules, setShowRules] = useState(false);
   const [showRanking, setShowRanking] = useState(true);
@@ -26,11 +29,13 @@ export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramIni
   const countdown = useMemo(() => eventCountdown(event?.endsAt, tick), [event?.endsAt, tick]);
   const prizeTable = useMemo(() => describeDistribution(event), [event]);
 
-  if (isLoading) {
+  useEffect(() => { console.log('[EVENTS] start'); }, []);
+
+  if (isLoading && !stalled) {
     return <div className="space-y-3">{[1, 2, 3].map((x) => <div key={x} className="h-28 animate-pulse rounded-3xl bg-white/5" />)}</div>;
   }
 
-  if (error) {
+  if (error || stalled) {
     return (
       <div className="rounded-3xl border border-rose-400/30 bg-rose-950/25 p-6 text-center">
         <p className="text-sm text-rose-200">{t('events.loadError')}</p>
@@ -73,7 +78,14 @@ export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramIni
           ))}
         </div>
         <p className="relative text-[9px] font-bold uppercase tracking-[.35em] text-violet-200">{t('events.activeEvent')}</p>
-        <Crown className="relative mx-auto mt-2 h-12 w-12 animate-pulse text-amber-300" />
+        <img
+          src={championshipTrophy}
+          alt={t('events.trophyAlt')}
+          width={1024}
+          height={1024}
+          loading="lazy"
+          className="relative mx-auto mt-2 h-[130px] w-[130px] max-w-full object-contain drop-shadow-[0_0_28px_rgba(251,191,36,.35)] sm:h-[160px] sm:w-[160px]"
+        />
         <h2 className="relative mt-1 text-2xl font-black uppercase tracking-wide text-amber-100">{event.name}</h2>
         <p className="relative mt-2 text-3xl font-black text-amber-300">{formatEventTon(event.prizePoolTon)}</p>
         <p className="relative text-[9px] font-bold uppercase tracking-[.3em] text-amber-200/80">{t('events.prizePool')}</p>

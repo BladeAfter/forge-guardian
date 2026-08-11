@@ -38,6 +38,8 @@ export const boss: LocaleBundle = {
     'boss.loadingRanking': 'Loading ranking...',
     'boss.history': 'Past cycles',
     'boss.power': 'Power',
+    'boss.revived': 'REVIVED',
+    'boss.readyToStrike': '⚡ Ready to Strike',
   },
   pt: {
     'boss.noPetActive': 'Nenhum pet ativo',
@@ -75,6 +77,8 @@ export const boss: LocaleBundle = {
     'boss.loadingRanking': 'Carregando ranking...',
     'boss.history': 'Ciclos anteriores',
     'boss.power': 'Poder',
+    'boss.revived': 'REVIVEU',
+    'boss.readyToStrike': '⚡ Pronto para atacar',
   },
   es: {
     'boss.noPetActive': 'Ninguna mascota activa',
@@ -112,6 +116,8 @@ export const boss: LocaleBundle = {
     'boss.loadingRanking': 'Cargando ranking...',
     'boss.history': 'Ciclos anteriores',
     'boss.power': 'Poder',
+    'boss.revived': 'REVIVIÓ',
+    'boss.readyToStrike': '⚡ Listo para atacar',
   },
   ru: {
     'boss.noPetActive': 'Нет активного питомца',
@@ -149,5 +155,7 @@ export const boss: LocaleBundle = {
     'boss.loadingRanking': 'Загрузка рейтинга...',
     'boss.history': 'Прошлые циклы',
     'boss.power': 'Сила',
+    'boss.revived': 'ВОЗРОЖДЁН',
+    'boss.readyToStrike': '⚡ Готов атаковать',
   },
 };

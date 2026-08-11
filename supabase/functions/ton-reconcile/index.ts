@@ -148,7 +148,75 @@ Deno.serve(async req => {
       console.log('[PASS ACTIVATE]', JSON.stringify({ orderId: order.id, tier: order.tier, txHash }));
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending, passActivated });
+    const eggsDelivered: string[] = [];
+
+    // Step 1 — orders already paid on-chain but whose product was never handed over: deliver now (idempotent).
+    const paidUndelivered = await db
+      .from('pet_egg_orders')
+      .select('id, user_id, price_ton, tx_hash, status')
+      .not('tx_hash', 'is', null)
+      .neq('status', 'delivered')
+      .gte('created_at', new Date(Date.now() - 90 * 86_400_000).toISOString())
+      .limit(200);
+    for (const order of paidUndelivered.data ?? []) {
+      const { error } = await db.rpc('deliver_pet_egg_order', { p_order_id: order.id });
+      if (error) {
+        console.error('[EGG DELIVER RETRY]', JSON.stringify({ orderId: order.id, reason: error.message }));
+        await db.from('ton_payment_logs').insert({ order_kind: 'egg', order_id: order.id, user_id: order.user_id, tx_hash: order.tx_hash, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: error.message });
+        continue;
+      }
+      eggsDelivered.push(String(order.id));
+      await db.from('ton_payment_logs').insert({ order_kind: 'egg', order_id: order.id, user_id: order.user_id, tx_hash: order.tx_hash, blockchain_status: 'found', fulfillment_status: 'completed' });
+    }
+
+    // Step 2 — premium egg purchases still awaiting payment: identified ONLY by the order's own
+    // unique comment (never by amount), and kept verifiable for 30 days.
+    const eggOrders = await db.rpc('ton_pending_purchase_orders', { p_max_age_days: 30 });
+    if (eggOrders.error) console.error('[EGG RECONCILE]', eggOrders.error.message);
+
+    for (const order of (eggOrders.data ?? []) as any[]) {
+      const comment = String(order.payment_comment || '').trim();
+      const expectedNano = BigInt(String(order.amount_nano || '0'));
+      const minNano = (expectedNano * 97n) / 100n;
+      const logRow: Record<string, unknown> = {
+        order_kind: order.order_kind,
+        order_id: order.order_id,
+        user_id: order.user_id,
+        telegram_id: order.telegram_id,
+        product_id: order.product_id,
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
+      if (!comment) continue;
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || msgComment(inMsg) !== comment) return false;
+        const hash = txHashOf(tx);
+        if (!hash || used.has(hash)) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= minNano;
+      });
+      if (!match) {
+        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
+        continue;
+      }
+      const txHash = txHashOf(match);
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      const { error } = await db.rpc('confirm_pet_egg_purchase', { p_order_id: order.order_id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      if (error) {
+        console.error('[EGG DELIVER]', JSON.stringify({ orderId: order.order_id, reason: error.message }));
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: error.message });
+        if (String(error.message).includes('TX_ALREADY_USED')) used.add(txHash);
+        continue;
+      }
+      used.add(txHash);
+      eggsDelivered.push(String(order.order_id));
+      await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'completed' });
+      console.log('[EGG DELIVER]', JSON.stringify({ orderId: order.order_id, product: order.product_id, txHash }));
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered });
+
   } catch (error) {
     console.error('[FORGE ERROR] ton-reconcile', error);
     return json({ error: 'Deposit reconciliation failed.' }, 500);
