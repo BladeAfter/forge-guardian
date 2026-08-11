@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _boss_smoke: {
+        Row: {
+          at: string | null
+          payload: Json | null
+          step: string | null
+        }
+        Insert: {
+          at?: string | null
+          payload?: Json | null
+          step?: string | null
+        }
+        Update: {
+          at?: string | null
+          payload?: Json | null
+          step?: string | null
+        }
+        Relationships: []
+      }
       ad_providers: {
         Row: {
           code: string
