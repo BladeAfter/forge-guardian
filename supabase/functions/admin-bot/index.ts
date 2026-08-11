@@ -433,9 +433,11 @@ async function module(ctx: Ctx, name: string) {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 10 });
       return edit(ctx, `⚔️ <b>PVP</b>\nVitória <b>+${d.settings.win}</b> · Derrota <b>${d.settings.loss}</b> · Ticket custo ${d.settings.ticket_cost} (máx ${d.settings.ticket_max})\nBatalhas 24h: ${fmt(d.battles_today)}\n\n<b>TOP 10</b>\n${d.ranking.map((r: any, i: number) => `${i + 1}. ${esc(r.name)} — ${fmt(r.trophies)}🏆 (${esc(r.league)})`).join('\n') || '—'}`,
         kb([[{ t: '🏅 LIGAS', d: 'view:leagues' }, { t: '⚙️ VALORES', d: 'ask:pvpset' }],
+            [{ t: '🎟 TICKET SETTINGS', d: 'view:pvptickets' }],
             [{ t: '📈 TOP 50', d: 'rank:50' }, { t: '📈 TOP 100', d: 'rank:100' }],
             [{ t: '♻️ RESETAR TEMPORADA', d: 'confirm:pvpreset' }], nav()]));
     }
+
     case 'pass': {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
       const s = d.season || {};
