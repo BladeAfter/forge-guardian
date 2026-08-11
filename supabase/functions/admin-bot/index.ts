@@ -153,15 +153,14 @@ async function playerCard(ctx: Ctx, ref: string) {
   ];
   const u = p.telegram_id;
   const markup = kb([
-    [{ t: '+ FC', d: `fc:add:${u}` }, { t: '- FC', d: `fc:remove:${u}` }, { t: 'DEFINIR FC', d: `fc:set:${u}` }],
-    [{ t: '+ TON', d: `ton:add:${u}` }, { t: '- TON', d: `ton:remove:${u}` }, { t: 'DEFINIR TON', d: `ton:set:${u}` }],
-    [{ t: '🏆 TROFÉUS', d: `st:trophies:${u}` }, { t: '🎟 TICKETS', d: `st:tickets:${u}` }],
-    [{ t: '🦸 DAR HERÓI', d: `gh:${u}` }, { t: '🗑 REMOVER HERÓI', d: `rh:${u}` }],
-    [{ t: '🐲 DAR PET', d: `gp:${u}` }, { t: '🗑 REMOVER PET', d: `rp:${u}` }],
+    [{ t: '💰 FC', d: `uf:${u}` }, { t: '🦸 HERÓIS', d: `uh:${u}:0` }],
+    [{ t: '🎒 ITENS', d: `ui:${u}` }, { t: '🐲 PETS', d: `up:${u}` }],
+    [{ t: '🎟 PASSE', d: `bpview:${u}` }, { t: '⚔ PVP', d: `st:trophies:${u}` }],
     [{ t: '⭐ VIP', d: `vip:vip:${u}` }, { t: '💠 PREMIUM', d: `vip:premium:${u}` }],
     [{ t: p.banned ? '✅ DESBANIR' : '🚫 BANIR', d: `${p.banned ? 'unban' : 'ban'}:${u}` }, { t: '♻️ RESETAR', d: `reset:${u}` }],
     [{ t: '📜 HISTÓRICO', d: `hist:${u}` }, { t: '🤝 ÁRVORE', d: `tree:${u}` }],
-    [{ t: '🎟 BATTLE PASS', d: `bpview:${u}` }, { t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
+    [{ t: '🔎 AUDIT DEPOSITS', d: `audit1:${u}` }],
+
     nav('m:users'),
   ]);
   if (p.avatar_url) await tg('sendPhoto', { chat_id: ctx.chatId, photo: p.avatar_url, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup });
