@@ -930,7 +930,7 @@ function App() {
               {lang.collect.toUpperCase()}
             </button>
             <div className="flex items-center justify-center gap-2 bg-black/45 px-2 py-1.5 text-xs text-slate-300">
-              <span>🔥 {game.loginStreak} {lang.loginStreak.toLowerCase()}</span>
+              <span>🔥 {loginStreak} {lang.loginStreak.toLowerCase()}</span>
               <span className="text-slate-600">•</span>
               <span>{formatCurrency(storageCapacity)} FC max.</span>
             </div>
@@ -942,10 +942,10 @@ function App() {
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-forge-black/85 p-4 shadow-card">
               <img src={mainScreenArt.dailyStreak} alt="" className="pointer-events-none absolute -right-3 -top-2 h-24 w-24 object-contain opacity-55" />
               <p className="relative text-[10px] uppercase tracking-[0.22em] text-slate-400">{lang.loginStreak}</p>
-              <p className="relative mt-2 text-3xl font-black text-amber-300">{game.loginStreak} dias</p>
+              <p className="relative mt-2 text-3xl font-black text-amber-300">{loginStreak} dias</p>
               <div className="mt-3 flex gap-1">
                 {Array.from({ length: 7 }, (_, index) => (
-                  <span key={index} className={`h-2 flex-1 rounded-full ${index < game.loginStreak ? 'bg-amber-400' : 'bg-white/10'}`} />
+                  <span key={index} className={`h-2 flex-1 rounded-full ${index < loginStreak ? 'bg-amber-400' : 'bg-white/10'}`} />
                 ))}
               </div>
               <p className="relative mt-2 text-[11px] text-slate-400">Continue entrando todos os dias</p>
