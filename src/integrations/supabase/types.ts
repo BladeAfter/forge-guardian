@@ -5012,6 +5012,10 @@ export type Database = {
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
       rates_allowed_rarities: { Args: { p_rates: Json }; Returns: string[] }
+      record_daily_quest_progress: {
+        Args: { p_amount?: number; p_event: string; p_user_id: string }
+        Returns: undefined
+      }
       record_eligible_purchase: {
         Args: {
           p_amount: number
