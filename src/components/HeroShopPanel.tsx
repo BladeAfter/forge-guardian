@@ -174,44 +174,68 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
 
           ) : (
             <div>
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
                   <p className="text-sm font-black text-white">{t('market.title')}</p>
                   <p className="text-[9px] text-slate-400">{t('market.subtitle')}</p>
                 </div>
-                <span className="rounded-full border border-amber-300/25 bg-black/40 px-2 py-1 text-[10px] font-black text-amber-300">{formatCurrency(browse.data?.balanceFc ?? fcBalance)} FC</span>
-              </div>
-
-              <div className="mt-3 grid grid-cols-3 gap-1.5">
-                {(['browse', 'mine', 'sell'] as const).map((value) => (
-                  <button key={value} onClick={() => setMarketTab(value)} className={`rounded-lg border px-1 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] ${marketTab === value ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-                    {value === 'browse' ? t('market.tabMarket') : value === 'mine' ? t('market.myListings') : t('market.sellItem')}
-                  </button>
-                ))}
+                <button
+                  onClick={() => setMarketTab(marketTab === 'mine' ? 'browse' : 'mine')}
+                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${marketTab === 'mine' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-300'}`}
+                >
+                  {t('market.myListings')} <ChevronRight className="-mt-0.5 inline h-3 w-3" />
+                </button>
               </div>
 
               {marketTab === 'browse' ? (
                 <div className="mt-3">
-                  <div className="flex flex-wrap gap-1">
+                  <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {(['all', 'hero', 'pet', 'item'] as const).map((value) => (
-                      <button key={value} onClick={() => setItemType(value)} className={chipClass(itemType === value)}>
+                      <button key={value} onClick={() => { setItemType(value); setPage(1); }} className={`${chipClass(itemType === value)} shrink-0`}>
                         {value === 'all' ? t('market.all') : value === 'hero' ? t('market.heroes') : value === 'pet' ? t('market.pets') : t('market.equipment')}
                       </button>
                     ))}
                   </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1">
+                  <div className="-mx-1 mt-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {RARITY_FILTERS.map((value) => (
-                      <button key={value} onClick={() => setRarity(value)} className={chipClass(rarity === value)} style={value === 'all' || rarity !== value ? undefined : { color: rarityColor(value), borderColor: `${rarityColor(value)}80` }}>
+                      <button
+                        key={value}
+                        onClick={() => { setRarity(value); setPage(1); }}
+                        className={`${chipClass(rarity === value)} shrink-0`}
+                        style={value === 'all' ? undefined : { color: rarityColor(value), borderColor: `${rarityColor(value)}${rarity === value ? 'cc' : '55'}` }}
+                      >
                         {value === 'all' ? t('market.all') : t(value)}
                       </button>
                     ))}
                   </div>
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {(['newest', 'price_low', 'price_high'] as const).map((value) => (
-                      <button key={value} onClick={() => setSort(value)} className={chipClass(sort === value)}>
-                        {value === 'newest' ? t('market.sortNewest') : value === 'price_low' ? t('market.sortPriceLow') : t('market.sortPriceHigh')}
-                      </button>
-                    ))}
+
+                  <div className="relative mt-2 flex items-center gap-2">
+                    <button
+                      onClick={() => setSortOpen((open) => !open)}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-1 rounded-xl border border-white/12 bg-white/[.03] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.1em] text-slate-200"
+                    >
+                      <span className="truncate">{sortLabel(sort)}</span>
+                      <ChevronDown className="h-3.5 w-3.5 shrink-0 text-amber-300" />
+                    </button>
+                    <button
+                      onClick={() => setMarketTab('sell')}
+                      className="flex shrink-0 items-center gap-1 rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 px-3 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-amber-100"
+                    >
+                      <ShoppingCart className="h-3.5 w-3.5" />{t('market.sellItem')}
+                    </button>
+                    {sortOpen ? (
+                      <div className="absolute left-0 top-full z-20 mt-1 w-[62%] overflow-hidden rounded-xl border border-amber-300/30 bg-[#0b1220] shadow-2xl">
+                        {(['newest', 'price_low', 'price_high'] as const).map((value) => (
+                          <button
+                            key={value}
+                            onClick={() => { setSort(value); setSortOpen(false); setPage(1); }}
+                            className={`block w-full px-3 py-2 text-left text-[9px] font-black uppercase tracking-[0.1em] ${sort === value ? 'bg-amber-400/15 text-amber-200' : 'text-slate-300'}`}
+                          >
+                            {sortLabel(value)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
 
                   {browse.isError ? (
@@ -220,44 +244,77 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       <button onClick={() => void browse.refetch()} className="mt-2 rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black text-amber-200">{t('market.retry')}</button>
                     </div>
                   ) : browse.isLoading ? (
-                    <p className="mt-6 text-center text-[11px] text-slate-400">{t('market.loading')}</p>
-                  ) : !(browse.data?.listings ?? []).length ? (
-                    <p className="mt-6 text-center text-[11px] text-slate-400">{t('market.empty')}</p>
-                  ) : (
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      {browse.data!.listings.map((listing) => (
-                        <div key={listing.id} className="flex flex-col overflow-hidden rounded-2xl border bg-black/40" style={{ borderColor: `${rarityColor(listing.rarity)}66` }}>
-                          {listing.image ? (
-                            <img src={listing.image} alt={listing.name} className="aspect-square w-full object-cover" />
-                          ) : (
-                            <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-6 w-6 text-slate-500" /></div>
-                          )}
-                          <div className="flex flex-1 flex-col gap-1 p-2">
-                            <p className="truncate text-[10px] font-black text-white">{listing.name}</p>
-                            <p className="text-[8px] font-bold uppercase tracking-[0.1em]" style={{ color: rarityColor(listing.rarity) }}>
-                              {t(listing.rarity)} · Lv. {listing.level}
-                            </p>
-                            {listing.itemType === 'hero' ? (
-                              <p className="text-[8px] text-slate-400">ATK {formatCurrency(listing.atk)} · HP {formatCurrency(listing.hp)}</p>
-                            ) : null}
-                            <p className="truncate text-[8px] text-slate-500">{t('market.seller')}: {listing.seller}</p>
-                            <p className="mt-auto text-[11px] font-black text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
-                            {listing.mine ? (
-                              <span className="rounded-lg border border-white/10 py-1 text-center text-[8px] font-black text-slate-400">{t('market.own')}</span>
-                            ) : (
-                              <button
-                                disabled={buyMutation.isPending}
-                                onClick={() => buyMutation.mutate(listing.id)}
-                                className="rounded-lg border border-amber-300/40 bg-amber-400/15 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-amber-200 disabled:opacity-50"
-                              >{t('market.buy')}</button>
-                            )}
+                    <div className="mt-3 space-y-2">
+                      {[0, 1, 2].map((key) => (
+                        <div key={key} className="flex animate-pulse items-center gap-2 rounded-2xl border border-white/10 bg-white/[.03] p-2">
+                          <div className="h-14 w-14 shrink-0 rounded-xl bg-white/10" />
+                          <div className="flex-1 space-y-1.5">
+                            <div className="h-2.5 w-2/3 rounded bg-white/10" />
+                            <div className="h-2 w-1/3 rounded bg-white/10" />
+                            <div className="h-2 w-1/2 rounded bg-white/10" />
                           </div>
+                          <div className="h-7 w-14 shrink-0 rounded-lg bg-white/10" />
                         </div>
                       ))}
                     </div>
+                  ) : !listings.length ? (
+                    <p className="mt-6 text-center text-[11px] text-slate-400">{t('market.empty')}</p>
+                  ) : (
+                    <>
+                      <div className="mt-3 space-y-2">
+                        {pageListings.map((listing) => (
+                          <div key={listing.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 p-2">
+                            {listing.image ? (
+                              <img src={listing.image} alt={listing.name} className="h-16 w-16 shrink-0 rounded-xl border-2 object-cover" style={{ borderColor: rarityColor(listing.rarity) }} />
+                            ) : (
+                              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl border-2 bg-white/[.03]" style={{ borderColor: rarityColor(listing.rarity) }}><Tag className="h-5 w-5 text-slate-500" /></div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[11px] font-black" style={{ color: rarityColor(listing.rarity) }}>{listing.name}</p>
+                              <p className="truncate text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                {t(listing.rarity)} · Lv. {listing.level}
+                              </p>
+                              {listing.itemType === 'hero' ? (
+                                <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} · HP {formatCurrency(listing.hp)}</p>
+                              ) : null}
+                              <p className="truncate text-[7px] uppercase tracking-[0.14em] text-slate-500">
+                                {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.equipment')}
+                              </p>
+                              <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
+                            </div>
+                            <div className="flex w-[86px] shrink-0 flex-col items-end gap-1">
+                              <p className="text-right text-[11px] font-black leading-tight text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
+                              {listing.mine ? (
+                                <span className="w-full rounded-lg border border-white/10 py-1 text-center text-[8px] font-black text-slate-400">{t('market.own')}</span>
+                              ) : (
+                                <button
+                                  disabled={buyMutation.isPending}
+                                  onClick={() => buyMutation.mutate(listing.id)}
+                                  className="w-full rounded-lg border border-amber-300/50 bg-amber-400/15 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-amber-200 disabled:opacity-50"
+                                >{t('market.buy')}</button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                          {pageNumbers.map((value) => (
+                            <button key={value} onClick={() => setPage(value)} className={`h-7 min-w-7 rounded-lg border px-1.5 text-[9px] font-black ${value === page ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/12 text-slate-400'}`}>{value}</button>
+                          ))}
+                          <button onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={page >= totalPages} className="grid h-7 w-7 place-items-center rounded-lg border border-white/12 text-slate-300 disabled:opacity-30"><ChevronRight className="h-3.5 w-3.5" /></button>
+                        </div>
+                        <button onClick={() => void browse.refetch()} className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">
+                          <RefreshCw className={`h-3.5 w-3.5 ${browse.isFetching ? 'animate-spin' : ''}`} />{t('market.refresh')}
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               ) : null}
+
 
               {marketTab === 'mine' ? (
                 <div className="mt-3 space-y-3">
