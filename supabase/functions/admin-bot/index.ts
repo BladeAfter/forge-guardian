@@ -873,7 +873,7 @@ const PROMPTS: Record<string, string> = {
 
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
-  quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":10000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
+  quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":4000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
   questtoggle: 'Envie o <code>code</code> da quest para ativar/desativar.',
   questbonus: 'Envie: <code>item_code quantidade [nome]</code> — ex.: <code>rare_chest 1 Rare Chest</code>',
   questtz: 'Envie o fuso do reset diário — ex.: <code>America/Sao_Paulo</code>',
