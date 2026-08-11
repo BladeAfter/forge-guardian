@@ -579,7 +579,7 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
               <p className="mt-1 text-center text-[10px] text-emerald-300">Ganho estimado: +{fmt(preview)} XP</p>
             </div>
 
-            <Action text={`Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
+            <Action text={pending ? 'Alimentando...' : `Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
           </>
         )}
       </div>
