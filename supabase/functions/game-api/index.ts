@@ -694,8 +694,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     return result;
   },
   /**
-   * Official channel rewards. FC is only credited after the Telegram Bot API confirms
-   * membership — a click on JOIN never pays by itself.
+   * Official channel rewards: one-time 5,000 FC per channel, keyed by the authenticated
+   * Telegram ID. JOIN only opens the link; VERIFY credits once and stays claimed forever.
    */
   channels: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
@@ -703,23 +703,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action !== 'verify') throw new Error('Ação inválida.');
     const key = String(body.channelKey || '');
     if (!['news', 'community', 'payments'].includes(key)) throw new Error('CHANNEL_NOT_AVAILABLE');
-    const { data: config, error } = await db
-      .from('channel_reward_config')
-      .select('chat_ref, enabled')
-      .eq('channel_key', key)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!config?.enabled) throw new Error('CHANNEL_NOT_AVAILABLE');
-    if (!config.chat_ref) {
-      console.error('[CHANNEL VERIFY] chat_ref missing — admin must capture the channel id', { channelKey: key });
-      throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
-    }
-    const check = await telegramMembership(String(config.chat_ref), user.id);
-    console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, telegramStatus: check.status, unavailable: check.unavailable });
-    if (check.unavailable) throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
-    if (!check.member) throw new Error('MEMBERSHIP_NOT_VERIFIED');
-    return rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true });
+    const result = await rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key }) as Record<string, unknown>;
+    console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, status: result?.status, creditedFc: result?.creditedFc });
+    return result;
   },
+
 
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
