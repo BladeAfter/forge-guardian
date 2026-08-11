@@ -609,6 +609,9 @@ function App() {
   const dailyReward = game.missions.find((mission) => mission.id === 'mission-1');
   const calendarDay = calendarDashboard?.currentDay??((Math.max(1, game.loginStreak) - 1) % 30) + 1;
   const calendarRewards=calendarDashboard?.rewards??CALENDAR_REWARDS;
+  // Streak counts one presence per official game day: the server claim history is the authority.
+  const loginStreak = calendarDashboard?calendarDashboard.claimedDays.length:game.loginStreak;
+
 
   const changeLanguage = (code: string) => {
     const language = locales[code];
