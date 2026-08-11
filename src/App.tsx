@@ -302,24 +302,22 @@ function App() {
         setTelegramBooting(false);
         return;
       }
-      setBootStage(35);
-      // Transient network failures should never flip the screen to an auth error: retry first.
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          await validateTelegramSession(initData);
-          if (cancelled) return;
-          setBootStage(50);
-          setTelegramInitData(initData);
-          setBootstrapError(null);
-          break;
-        } catch (validationError: unknown) {
-          if (cancelled) return;
-          const message = validationError instanceof Error ? validationError.message : 'Falha na autenticação do Telegram.';
-          if (attempt === 2) setBootstrapError(message);
-          else await new Promise((resolve) => setTimeout(resolve, 1200));
-        }
-      }
-      if (!cancelled) setTelegramBooting(false);
+      // Fast boot: the signed initData goes straight to the data layer. Every backend
+      // endpoint (RPC + edge function) validates it again server-side, so waiting for a
+      // dedicated /auth round-trip here only added a cold-start round-trip to the splash.
+      setBootStage((current) => Math.max(current, 50));
+      setTelegramInitData(initData);
+      setBootstrapError(null);
+      setTelegramBooting(false);
+      // Background sanity check: only a real signature/expiry rejection shows the auth error.
+      void validateTelegramSession(initData).catch((validationError: unknown) => {
+        if (cancelled) return;
+        const reason = (validationError as { reason?: string } | null)?.reason ?? '';
+        const message = validationError instanceof Error ? validationError.message : 'Falha na autenticação do Telegram.';
+        console.error('[TELEGRAM AUTH] background validation failed', { reason, message });
+        if (reason === 'invalid_hash' || reason === 'expired' || reason === 'init_data_missing') setBootstrapError(message);
+      });
+
     })();
     return () => { cancelled = true; };
   }, []);
