@@ -1109,12 +1109,14 @@ async function handleCallback(ctx: Ctx, data: string) {
     }
     if (rest[0] === 'passxp') {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
-      const { data: row } = await db.from('game_settings').select('value').eq('key', 'season_pass_xp').maybeSingle();
-      const cfg = (row?.value ?? {}) as Record<string, number>;
-      const labels: Record<string, string> = { daily_quest: 'Missão diária concluída', daily_quest_all: 'Bônus 5/5 missões', daily_chest: 'Baú diário das missões', pvp_battle: 'Batalha PvP', pvp_victory: 'Vitória PvP', boss_defeated: 'Chefe derrotado', boss_attack: 'Participação no chefe', reward_open: 'Abrir baú/ovo', pet_feed: 'Alimentar pet', calendar_claim: 'Resgate do calendário' };
-      const lines = Object.keys(labels).map((k) => `• ${labels[k]} (<code>${k}</code>): <b>${fmt(Number(cfg[k] ?? 0))} XP</b>`).join('\n');
-      return send(ctx, `⚡ <b>XP SETTINGS</b>\nXP por nível: <b>${fmt(d.season?.xp_per_level ?? 0)}</b> · Níveis: <b>${fmt(d.season?.levels ?? 0)}</b>\n\n${lines}\n\nTodos os jogadores ganham XP, com ou sem passe pago.`,
-        kb([[{ t: '✏️ EDITAR XP DE AÇÃO', d: 'ask:passxp' }], [{ t: '🎚 XP POR NÍVEL', d: 'ask:passxplevel' }], nav('m:pass')]));
+      const { data: rows } = await db.from('game_settings').select('key,value').in('key', ['season_pass_xp', 'season_pass_xp_multipliers', 'season_pass_xp_caps']);
+      const bag = Object.fromEntries((rows ?? []).map((r: any) => [r.key, r.value ?? {}])) as Record<string, Record<string, number>>;
+      const cfg = bag['season_pass_xp'] ?? {}, mult = bag['season_pass_xp_multipliers'] ?? {}, caps = bag['season_pass_xp_caps'] ?? {};
+      const labels: Record<string, string> = { daily_login: 'Login diário', daily_quest: 'Missão diária concluída', daily_quest_all: 'Bônus 5/5 missões', daily_chest: 'Baú diário das missões', pvp_battle: 'Batalha PvP', pvp_victory: 'Vitória PvP', boss_attack: 'Participação no chefe', boss_damage_milestone: 'Marco de dano no chefe', boss_reward: 'Recompensa do chefe', boss_defeated: 'Chefe derrotado', reward_open: 'Abrir baú/ovo', pet_feed: 'Alimentar pet', pet_level_up: 'Pet subiu de nível', pet_evolution: 'Evolução de pet', hero_fuse: 'Fusão de duplicados', rarity_fusion: 'Fusão de raridade (tentativa)', rarity_fusion_success: 'Fusão de raridade (sucesso)', calendar_claim: 'Resgate do calendário' };
+      const lines = Object.keys(labels).map((k) => `• ${labels[k]} (<code>${k}</code>): <b>${fmt(Number(cfg[k] ?? 0))} XP</b>${caps[k] != null ? ` · cap ${fmt(Number(caps[k]))}/dia` : ''}`).join('\n');
+      const multLine = `• FREE <b>x${Number(mult.none ?? 1)}</b> · ADVENTURER <b>x${Number(mult.adventurer ?? 1.2)}</b> · LEGENDARY <b>x${Number(mult.legendary ?? 1.4)}</b>`;
+      return send(ctx, `⚡ <b>XP SETTINGS</b>\nXP por nível: <b>${fmt(d.season?.xp_per_level ?? 0)}</b> · Níveis: <b>${fmt(d.season?.levels ?? 0)}</b>\n\n<b>MULTIPLICADORES</b>\n${multLine}\n\n<b>XP POR AÇÃO</b>\n${lines}\n\nTodos os jogadores ganham XP; o passe apenas acelera a progressão.`,
+        kb([[{ t: '✏️ EDITAR XP DE AÇÃO', d: 'ask:passxp' }], [{ t: '✖️ MULTIPLICADORES', d: 'ask:passxpmult' }], [{ t: '🚧 LIMITES DIÁRIOS', d: 'ask:passxpcap' }], [{ t: '🎚 XP POR NÍVEL', d: 'ask:passxplevel' }], nav('m:pass')]));
     }
     if (rest[0] === 'pvptickets') {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
