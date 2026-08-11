@@ -410,6 +410,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 }
 
 function Shell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
