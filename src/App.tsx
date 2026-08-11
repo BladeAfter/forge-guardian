@@ -627,14 +627,13 @@ function App() {
 
 
   const changeLanguage = (code: string) => {
-    const language = locales[code];
-    if (!language) return;
-    setLang(language);
-    setLanguageCode(code as LanguageCode);
-    localStorage.setItem('forge-village-language', code);
+    if (!(code in locales)) return;
     setSettingsOpen(false);
+    setLanguage(code as LanguageCode)
+      .then(() => toast.success(t('settings.languageSaved')))
+      .catch(() => toast.error(t('settings.languageError')));
   };
-  const t = (key: string) => t(key);
+
 
   const collectCalendarDay = (day: number) => {
     if(calendarClaimMutation.isPending)return;
