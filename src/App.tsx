@@ -663,7 +663,15 @@ function App() {
     if (backendEnabled && telegramInitData && (count === 1 || count === 5 || count === 10)) {
       try {
         const result = await recruitHeroesOnServer(telegramInitData, count);
-        setShopResults(result.heroes.map((item) => HERO_CATALOG.find((hero) => hero.id === item.heroKey)).filter((hero): hero is ShopHero => Boolean(hero)));
+        // Server catalog wins (heroes created in the admin bot exist only there); local art is a fallback.
+        setShopResults(result.heroes.map((item) => {
+          const local = HERO_CATALOG.find((hero) => hero.id === item.heroKey);
+          const raw = item as unknown as { name?: string; image?: string; rarity?: string };
+          const image = raw.image || local?.image;
+          if (!image) return null;
+          return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
+        }).filter((hero): hero is ShopHero => Boolean(hero)));
+
         await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
