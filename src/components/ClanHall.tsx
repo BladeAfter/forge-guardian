@@ -1,12 +1,21 @@
 import { Plus, Shield } from 'lucide-react';
 import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
+import { buildings } from '../gameAssets';
 
 const BACKGROUNDS: Record<string, string> = {
   navy: 'from-[#12224a] to-[#070c18]',
   purple: 'from-[#3a1d5e] to-[#120a20]',
   crimson: 'from-[#5c1420] to-[#1b0709]',
   emerald: 'from-[#0f4034] to-[#06140f]',
+};
+
+/** Banner colours mirror the clan emblem background so the flags read as clan colours. */
+const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
+  navy: { top: '#3b6ad4', bottom: '#0b1631' },
+  purple: { top: '#8b5cf6', bottom: '#25103f' },
+  crimson: { top: '#e0435a', bottom: '#360a11' },
+  emerald: { top: '#2fbd91', bottom: '#062018' },
 };
 
 const SYMBOLS: Record<string, string> = { dragon: '🐲', sword: '⚔️', wolf: '🐺', crown: '👑', flame: '🔥', skull: '💀' };
@@ -26,8 +35,8 @@ export function ClanCrest({ emblem, size = 44 }: { emblem?: ClanEmblem | null; s
 }
 
 /**
- * Compact clan status placed right under the player header. It opens exactly the
- * same ClanHub as the Clan Hall building — one system, two entry points.
+ * Legacy compact chip. No longer rendered in the village (the Clan Hall building is
+ * the single entry point), kept exported for other screens that may reuse it.
  */
 export function ClanStatusChip({ clan, onOpen }: { clan?: ClanSummary | null; onOpen: () => void }) {
   const t = useT();
@@ -57,44 +66,53 @@ export function ClanStatusChip({ clan, onOpen }: { clan?: ClanSummary | null; on
 }
 
 /**
- * Clan Hall: a building of the village scenery (not a side card). It is anchored
- * to the centre of the map container with relative units so it survives every
- * Telegram Mini App width (360 → 430px).
+ * Clan Hall: a real building of the village scenery — painted asset with a transparent
+ * silhouette, torch flames, clan banners and a tiny wooden sign. No card, no panel:
+ * the background behind it stays the city itself.
  */
 export function ClanHall({ clan, onOpen }: { clan?: ClanSummary | null; onOpen: () => void }) {
   const t = useT();
-  const bannerFrom = clan ? 'from-purple-500/80' : 'from-slate-400/50';
+  const banner = BANNER_COLORS[clan?.emblem?.background ?? ''] ?? { top: '#1f3a63', bottom: '#07101f' };
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}
       aria-label={t('clan.hall')}
-      className="clan-hall group absolute left-1/2 top-1/2 z-20 flex w-[43%] max-w-[190px] -translate-x-1/2 -translate-y-1/2 flex-col items-center outline-none"
+      className="clan-hall"
     >
-      <span className="pointer-events-none absolute inset-x-2 bottom-6 top-2 rounded-[30%_30%_18%_18%] bg-amber-300/0 blur-xl transition group-active:bg-amber-300/25 group-hover:bg-amber-300/20" />
-      <span className="relative block h-[86px] w-full">
-        {/* roof */}
-        <span className="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[46px] border-b-[26px] border-x-transparent border-b-[#1d2740]" />
-        {/* body */}
-        <span className="absolute bottom-0 left-1/2 h-[58px] w-[78%] -translate-x-1/2 rounded-b-lg rounded-t-sm border border-amber-300/40 bg-gradient-to-b from-[#26303f] via-[#161d2b] to-[#0b111c] shadow-[0_10px_26px_rgba(0,0,0,.75)] transition group-hover:border-amber-300/80 group-active:border-amber-300/90">
-          {/* warm windows */}
-          <span className="absolute left-[18%] top-3 h-4 w-3 rounded-sm bg-amber-300/70 shadow-[0_0_10px_rgba(251,191,36,.7)] transition group-hover:bg-amber-200 group-active:bg-amber-200" />
-          <span className="absolute right-[18%] top-3 h-4 w-3 rounded-sm bg-amber-300/70 shadow-[0_0_10px_rgba(251,191,36,.7)] transition group-hover:bg-amber-200 group-active:bg-amber-200" />
-          {/* gate */}
-          <span className="absolute bottom-0 left-1/2 h-6 w-7 -translate-x-1/2 rounded-t-full bg-gradient-to-b from-sky-400/70 to-sky-900/60 shadow-[0_0_14px_rgba(56,189,248,.55)]" />
-          {/* crest over the gate */}
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2">
-            <ClanCrest emblem={clan?.emblem} size={24} />
-          </span>
+      {/* ground contact: the building base melts into the street */}
+      <span className="clan-hall-ground" aria-hidden />
+      <span className="clan-hall-shape" aria-hidden>
+        <img src={buildings['clan-hall']} alt="" width={1024} height={1024} loading="lazy" className="clan-hall-art" />
+        <span className="clan-hall-window-glow" />
+        <span className="clan-hall-torch clan-hall-torch--left"><i /></span>
+        <span className="clan-hall-torch clan-hall-torch--right"><i /></span>
+        <span className="clan-hall-smoke"><i /><i /></span>
+        <span className="clan-hall-motes"><i /><i /><i /><i /></span>
+        <span className="clan-hall-flag clan-hall-flag--left" style={{ ['--flag-top' as string]: banner.top, ['--flag-bottom' as string]: banner.bottom }}>
+          <b />
         </span>
-        {/* banners: neutral without a clan, clan colours once joined */}
-        <span className={`clan-banner absolute bottom-2 left-[6%] h-9 w-3 rounded-b-sm bg-gradient-to-b ${bannerFrom} to-transparent`} />
-        <span className={`clan-banner absolute bottom-2 right-[6%] h-9 w-3 rounded-b-sm bg-gradient-to-b ${bannerFrom} to-transparent`} />
+        <span className="clan-hall-flag clan-hall-flag--right" style={{ ['--flag-top' as string]: banner.top, ['--flag-bottom' as string]: banner.bottom }}>
+          <b />
+        </span>
+        {!clan ? (
+          <span className="clan-hall-invite" aria-hidden>
+            <Shield />
+            <Plus />
+          </span>
+        ) : null}
       </span>
-      <span className="relative mt-1 rounded-lg border border-amber-300/30 bg-black/70 px-2 py-1 text-center backdrop-blur-sm">
-        <span className="block text-[9px] font-black uppercase tracking-[.14em] text-amber-200">{t('clan.hall')}</span>
-        <span className="block text-[7px] font-bold uppercase text-slate-400">{t('clan.hallTap')}</span>
+
+      {/* tiny medieval sign — part of the scenery, not a card */}
+      <span className="clan-hall-sign">
+        {clan ? <ClanCrest emblem={clan.emblem} size={16} /> : null}
+        <span className="clan-hall-sign-text">
+          <b>{clan ? clan.name : t('clan.hall')}</b>
+          <i>{clan ? `Lv. ${clan.level}` : t('clan.chipJoin')}</i>
+        </span>
       </span>
-    </button>
+    </div>
   );
 }
