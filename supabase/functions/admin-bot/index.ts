@@ -1085,6 +1085,14 @@ async function handleCallback(ctx: Ctx, data: string) {
       return send(ctx, `🏅 <b>LIGAS</b>\n${d.leagues.map((l: any) => `• <code>${esc(l.code)}</code> ${esc(l.icon)} ${esc(l.name)} — ${l.min_trophies}–${l.max_trophies ?? '∞'} ${l.enabled ? '✅' : '⛔'}`).join('\n')}`,
         kb([[{ t: '✏️ EDITAR LIGA', d: 'ask:league' }], nav('m:pvp')]));
     }
+    if (rest[0] === 'pvptickets') {
+      const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
+      const packs = Object.entries(d.settings.packs || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+      return send(ctx, `🎟 <b>TICKET SETTINGS</b>\nLimite diário FREE: <b>${fmt(d.settings.free_daily_limit)}</b>\nLimite diário PASSE: <b>${fmt(d.settings.pass_daily_limit)}</b>\n\n<b>PACOTES</b>\n${packs.map(([k, v]) => `• ${k} ticket(s) — ${fmt(Number(v))} FC`).join('\n') || '—'}\n\nVendidos hoje: ${fmt(d.tickets_sold_today)} tickets · ${fmt(d.fc_spent_today)} FC`,
+        kb([[{ t: '🔢 LIMITE FREE', d: 'ask:tkfree' }, { t: '🔢 LIMITE PASSE', d: 'ask:tkpass' }],
+            [{ t: '💰 PREÇO DO PACOTE', d: 'ask:tkpack' }], nav('m:pvp')]));
+    }
+
   }
   if (head === 'maint') {
     await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'maintenance_mode', p_value: rest[0] === 'on', p_reason: 'painel admin' });
