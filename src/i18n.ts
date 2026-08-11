@@ -483,7 +483,13 @@ export const translateError = (language: LanguageCode, error: unknown): string =
   );
   if (match) return dict[match] ?? UI_TRANSLATIONS.en[match];
   // Never surface SQL/technical text to players; log it instead.
-  if (raw && /[a-z]/.test(raw) && raw.length < 90 && !/[{}();]|does not exist|violates|constraint/i.test(raw)) return raw;
+  if (
+    raw &&
+    /[a-z]/.test(raw) &&
+    raw.length < 90 &&
+    !/[{}();]|does not exist|violates|constraint|ambiguous|column reference|relation |syntax error|permission denied|null value|duplicate key|invalid input|"/i.test(raw)
+  )
+    return raw;
   if (raw) console.error('[MYTHREON ERROR]', raw);
   return translate(language, 'errors.generic');
 };
