@@ -1,4 +1,4 @@
-import { petBuffLabel } from '../petLabels';
+import { petBuffShortLabel } from '../petLabels';
 
 type Companion = { name: string; image: string; level?: number; rarity?: string } | null | undefined;
 
@@ -41,7 +41,7 @@ export function PetCompanion({
         <b className="block truncate text-sm">{pet.name}</b>
         <p className="text-[9px] text-slate-400">
           {pet.level ? `Nível ${pet.level}` : ''}
-          {buffKey && buffValue ? `${pet.level ? ' · ' : ''}${petBuffLabel(buffKey)} +${buffValue}%` : ''}
+          {buffKey && buffValue ? `${pet.level ? ' · ' : ''}${petBuffShortLabel(buffKey)} +${buffValue}%` : ''}
         </p>
       </div>
     </div>

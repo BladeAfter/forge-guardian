@@ -27,6 +27,35 @@ export const PET_BUFF_LABELS: Record<string, string> = {
   revive_speed_percent: 'Velocidade de reanimação',
 };
 
+/** Compact labels for mobile cards (Boss/Pets) — internal keys never change. */
+export const PET_BUFF_SHORT_LABELS: Record<string, string> = {
+  boss_damage_percent: 'Dano no Chefe',
+  boss_damage_reduction_percent: 'Red. de dano',
+  team_hp_percent: 'HP da equipe',
+  team_attack_percent: 'Ataque',
+  defense_percent: 'Defesa',
+  pvp_attack_percent: 'Atk Arena',
+  pvp_defense_percent: 'Def Arena',
+  pvp_speed_percent: 'Vel. Arena',
+  critical_chance_percent: 'Crítico',
+  critical_damage_percent: 'Dano crít.',
+  farm_fc_percent: 'Ganho FC',
+  offline_production_percent: 'Prod. offline',
+  mission_reward_percent: 'Rec. missões',
+  mission_progress_percent: 'Prog. missões',
+  reward_percent: 'Recompensas',
+  random_reward_percent: 'Rec. surpresa',
+  drop_chance_percent: 'Itens raros',
+  egg_luck_percent: 'Sorte em ovos',
+  hero_xp_percent: 'XP heróis',
+  account_xp_percent: 'XP conta',
+  pet_xp_percent: 'XP pets',
+  revive_speed_percent: 'Vel. Revive',
+};
+
+export const petBuffShortLabel = (key?: string | null) =>
+  (key && PET_BUFF_SHORT_LABELS[key]) || petBuffLabel(key);
+
 export const petBuffLabel = (key?: string | null) =>
   (key && PET_BUFF_LABELS[key]) ||
   (key ? key.replace(/_percent$/, '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) : 'Bônus passivo');
