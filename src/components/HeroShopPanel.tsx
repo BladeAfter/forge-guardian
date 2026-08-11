@@ -38,7 +38,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [sortOpen, setSortOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const marketOpen = tab === 'market';
+  const marketUnderMaintenance = true;
+  const marketOpen = tab === 'market' && !marketUnderMaintenance;
   useMarketRealtime(marketOpen);
   const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort);
   const mine = useMarketMine(telegramInitData, marketOpen && marketTab === 'mine');
