@@ -64,3 +64,32 @@ export const useRarityFusion=(telegramInitData:string|null,enabled:boolean)=>use
 
 /** Clan dashboard: membership, members, missions, clan boss and ranking (server-owned). */
 export const useClanDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanDashboard>({queryKey:['clan-dashboard',telegramInitData],queryFn:()=>fetchClanDashboard(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
+
+/**
+ * Live global boss. Any change the admin makes to the ACTIVE cycle (reward pool, HP, ends_at,
+ * boss swap, status) and any damage from any player arrives through Supabase Realtime and
+ * refreshes the boss + ranking caches in place — no reload, no modal reopen.
+ * The cycle table is watched without a filter on purpose, so a brand new active cycle
+ * (#2 → #3) is detected while the player keeps the screen open.
+ */
+export const useGlobalBossRealtime=(cycleId:string|null|undefined,enabled:boolean)=>{
+  const queryClient=useQueryClient();
+  useEffect(()=>{
+    if(!enabled)return;
+    let timer:number|undefined;
+    const refresh=()=>{
+      window.clearTimeout(timer);
+      timer=window.setTimeout(()=>{
+        void queryClient.invalidateQueries({queryKey:['boss-combat']});
+        void queryClient.invalidateQueries({queryKey:['global-boss-ranking']});
+      },250);
+    };
+    const channel=supabase.channel(`global-boss-${cycleId??'pending'}`)
+      .on('postgres_changes',{event:'*',schema:'public',table:'global_boss_cycles'},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'global_boss_participants',
+        ...(cycleId?{filter:`boss_cycle_id=eq.${cycleId}`}:{})},refresh)
+      .subscribe();
+    return()=>{window.clearTimeout(timer);void supabase.removeChannel(channel)};
+  },[cycleId,enabled,queryClient]);
+};
+
