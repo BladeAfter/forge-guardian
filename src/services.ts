@@ -27,12 +27,9 @@ const demoPlayerId = (telegramInitData: string) => {
 
 const demoStorageKey = (telegramInitData: string) => `forge-village-demo-state-v2:${demoPlayerId(telegramInitData)}`;
 
-const localDateKey = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+// Offline/demo only: mirrors the official 21:00 America/Sao_Paulo rollover, never the device midnight.
+const localDateKey = (date = new Date()) => officialGameDayKey(date);
+
 
 const applyDailyCycle = (state: GameState): GameState => {
   const today = localDateKey();
