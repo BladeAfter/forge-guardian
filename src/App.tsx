@@ -26,7 +26,8 @@ import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationI
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
 import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
-import { translate, type LanguageCode } from './i18n';
+import { type LanguageCode } from './i18n';
+import { useLanguage } from './LanguageContext';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,CHEST_LABELS,calendarDayStatus,nextResetCountdown,type CalendarClaimResult,type ChestOpenResult} from './calendarRewards';
@@ -84,8 +85,9 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
 
 function App() {
   const [tab, setTab] = useState<TabKey>(tabFromPath);
-  const [lang, setLang] = useState<LanguageStrings>(LANGUAGES.en);
-  const [languageCode, setLanguageCode] = useState<LanguageCode>('en');
+  // Global language: single source of truth (backend-persisted per player).
+  const { language: languageCode, setLanguage, applyRemoteLanguage, t, tError } = useLanguage();
+  const [lang, setLang] = useState<LanguageStrings>(locales[languageCode] ?? LANGUAGES.en);
   const [loadingMessage, setLoadingMessage] = useState('Loading game data...');
   const [isReady, setIsReady] = useState(false);
   const [game, setGame] = useState<GameState | null>(null);
@@ -163,7 +165,7 @@ function App() {
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
   const equipHeroMutation=useMutation({
     mutationFn:async({heroId,slot}:{heroId:string;slot:1|2|3|4|5})=>{
-      if(!backendEnabled||!telegramInitData)throw new Error(translate(languageCode,'backendRequired'));
+      if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
       return equipCombatHeroOnServer(telegramInitData,heroId,slot);
     },
     onSuccess:async(result)=>{
@@ -172,14 +174,14 @@ function App() {
         queryClient.invalidateQueries({queryKey:['boss-combat',telegramInitData]}),
         queryClient.invalidateQueries({queryKey:['game-state',telegramInitData]})
       ]);
-      toast.success(translate(languageCode,'heroEquipped'));
+      toast.success(t('heroEquipped'));
     },
-    onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:translate(languageCode,'equipFailed'))
+    onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:t('equipFailed'))
   });
   // Removing a hero from a Boss slot is also independent from an active boss.
   const unequipHeroMutation=useMutation({
     mutationFn:async(slot:1|2|3|4|5)=>{
-      if(!backendEnabled||!telegramInitData)throw new Error(translate(languageCode,'backendRequired'));
+      if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
       return unequipCombatHeroOnServer(telegramInitData,slot);
     },
     onSuccess:async(result)=>{
@@ -192,7 +194,7 @@ function App() {
   // Only the attack action requires an active boss (backend raises BOSS_NOT_ACTIVE).
   const attackBossMutation=useMutation({
     mutationFn:async()=>{
-      if(!backendEnabled||!telegramInitData)throw new Error(translate(languageCode,'backendRequired'));
+      if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
       return attackBossOnServer(telegramInitData);
     },
     onSuccess:async(result)=>{
@@ -205,13 +207,11 @@ function App() {
     onError:(mutationError)=>toast.error(mutationError instanceof Error?mutationError.message:'Não foi possível atacar o chefe.')
   });
 
+  // Keeps the legacy `lang` strings in sync with the global language.
   useEffect(() => {
-    const locale = localStorage.getItem('forge-village-language') || getLocale();
-    const code = (locale in locales ? locale : 'en') as LanguageCode;
-    setLanguageCode(code);
-    setLang(locales[code] ?? LANGUAGES.en);
-    setLoadingMessage(locales[locale]?.loading ?? LANGUAGES.en.loading);
-  }, []);
+    setLang(locales[languageCode] ?? LANGUAGES.en);
+    setLoadingMessage(locales[languageCode]?.loading ?? LANGUAGES.en.loading);
+  }, [languageCode]);
 
   useEffect(() => {
     const onPopState = () => {setTab(tabFromPath());setActivePage(internalFromPath())};
@@ -438,10 +438,10 @@ function App() {
   const disconnectWallet = async () => {
     try {
       await tonConnectUI.disconnect();
-      toast.success(translate(languageCode, 'walletDisconnected'));
+      toast.success(t('walletDisconnected'));
     } catch (error) {
       console.error('TON disconnect error', error);
-      toast.error(translate(languageCode, 'walletError'));
+      toast.error(t('walletError'));
     }
   };
 
@@ -463,7 +463,7 @@ function App() {
       if (!prev) return prev;
       const selected = prev.buildings.find((b) => b.id === id);
       if (selected?.locked) {
-        toast.error(translate(languageCode, 'buildingLocked'));
+        toast.error(t('buildingLocked'));
         return prev;
       }
       if (!selected || prev.balance < selected.upgradeCost) {
@@ -578,7 +578,7 @@ function App() {
           next[slot-1]=heroId;
           return {...current,bossTeam:next};
         });
-        toast.success(translate(languageCode,'heroEquipped'));
+        toast.success(t('heroEquipped'));
       }}
       isEquipping={equipHeroMutation.isPending}
       onRemoveHero={async(slot)=>{
@@ -594,7 +594,7 @@ function App() {
       isAttacking={attackBossMutation.isPending}
       onClaimReward={async () => {
         if (!telegramInitData || !backendEnabled) return;
-        await bossRequest(telegramInitData,'claim'); await refetchBoss(); toast.success(translate(languageCode,'bossDefeated'));
+        await bossRequest(telegramInitData,'claim'); await refetchBoss(); toast.success(t('bossDefeated'));
       }}
     />,
     wallet: (
@@ -628,7 +628,7 @@ function App() {
     localStorage.setItem('forge-village-language', code);
     setSettingsOpen(false);
   };
-  const t = (key: string) => translate(languageCode, key);
+  const t = (key: string) => t(key);
 
   const collectCalendarDay = (day: number) => {
     if(calendarClaimMutation.isPending)return;
