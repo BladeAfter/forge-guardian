@@ -1895,7 +1895,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `${r.enabled ? '✅' : '🚫'} <b>${esc(r.name)}</b> (${esc(r.rarity)}) ${r.enabled ? 'entra' : 'não entra'} no sorteio da Rarity Fusion.`, kb([[{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
     }
     case 'rfaudit': return rarityFusionAudit(ctx, text.trim());
-    case 'removehero': { const r = await rpc('admin_remove_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }
+    case 'removehero': { const r = await rpc('admin_remove_player_hero', { p_admin_id: ctx.adminId, p_hero_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Herói ${esc(r.name)} removido.`, MAIN_MENU); }
     case 'removepet': { const r = await rpc('admin_remove_pet', { p_admin_id: ctx.adminId, p_player_pet_id: text, p_reason: 'removido pelo painel' }); return send(ctx, `🗑 Pet removido (<code>${r.player_pet_id}</code>).`, MAIN_MENU); }
     case 'vip': { const [tier, user] = args; const r = await rpc('admin_set_membership', { p_admin_id: ctx.adminId, p_ref: user, p_tier: tier, p_days: Number(text), p_reason: 'painel admin' }); return send(ctx, `✅ ${tier.toUpperCase()} até ${r.until ? String(r.until).slice(0, 10) : 'removido'}.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()])); }
     case 'ban': { const r = await rpc('admin_set_ban', { p_admin_id: ctx.adminId, p_ref: args[0], p_banned: true, p_reason: text }); return send(ctx, `🚫 Jogador banido (<code>${r.user_id}</code>).`, MAIN_MENU); }
