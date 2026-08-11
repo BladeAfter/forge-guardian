@@ -140,6 +140,8 @@ async function playerCard(ctx: Ctx, ref: string) {
     `🆔 <code>${p.telegram_id}</code> · interno <code>${p.id}</code>`,
     `🪙 <b>${fmt(p.forge_coins)} FC</b> · 💎 ${fmt(p.ton_balance)} TON`,
     `🏅 ${esc(p.league)} · 🏆 ${fmt(p.trophies)} · 🎟 ${fmt(p.tickets)}`,
+    `🛒 Comprados hoje: ${fmt(p.tickets_bought_today ?? 0)} / ${fmt(p.ticket_daily_limit ?? 10)} · Passe: ${p.pass_tier ? esc(String(p.pass_tier).toUpperCase()) : 'NO'}`,
+
     `⚔️ ${fmt(p.wins)}V / ${fmt(p.losses)}D · 👑 ${fmt(p.boss_defeats)} chefes`,
     `🦸 ${fmt(p.heroes_count)} heróis · 🐲 ${fmt(p.pets_count)} pets · 🤝 ${fmt(p.referrals)} convites`,
     `👛 TON Wallet: <code>${esc(walletOut(p.wallet) ?? (p.wallet ? String(p.wallet) : 'NO TON WALLET CONNECTED'))}</code>${p.wallet && !walletOut(p.wallet) ? ' ⚠️ INVÁLIDA' : ''}`,
