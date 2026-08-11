@@ -47,7 +47,10 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const petRewardBonus=petBonusValue(petBonuses,'reward_percent');
   const bossPetBonuses=activePetBonuses(petBonuses);
   const petBonusText=!activePet?t('boss.noPetActive'):bossPetBonuses.length?bossPetBonuses.map(formatPetBonus).join(' · '):t('boss.noPetEffect'); const slotted=mapCombatSlots(heroes).map(item=>item.hero??undefined); const baseDamage=calculateTeamDamagePerCycle(heroes); const damage=Number((baseDamage*(1+petDamageBonus/100)).toFixed(3)); const alive=heroes.filter(h=>h.isAlive);
-  const maxHp=combat?.bossMaxHp ?? game.boss.maxHealth ?? 67500; const hp=combat?.bossCurrentHp ?? Math.ceil(maxHp*game.boss.healthPercent/100); const progress=Math.min(100,Math.max(0,hp/maxHp*100));
+  // The boss HP bar is the SHARED global cycle HP — every player hits the same bar.
+  const maxHp=global?.maxHp ?? combat?.bossMaxHp ?? game.boss.maxHealth ?? 67500; const hp=global?.currentHp ?? combat?.bossCurrentHp ?? Math.ceil(maxHp*game.boss.healthPercent/100); const progress=Math.min(100,Math.max(0,hp/maxHp*100));
+  const endsIn=global?.endsAt?Math.max(0,Math.ceil((new Date(global.endsAt).getTime()-now)/1000)):null;
+
   const remaining=calculateEstimatedSecondsRemaining(hp,damage); const totalAtk=heroes.reduce((s,h)=>s+h.finalAtk,0); const totalHp=heroes.reduce((s,h)=>s+h.currentHp,0); const totalMaxHp=heroes.reduce((s,h)=>s+h.maxHp,0);
   const secondsUntil=(date?:string|null)=>date?Math.max(0,Math.ceil((new Date(date).getTime()-now)/1000)):0;
   // Single source of truth: the player's hero collection (player_heroes) — the same
