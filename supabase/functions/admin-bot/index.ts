@@ -1614,6 +1614,11 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  evcreate: '🎉 Novo evento especial.\nEnvie: <code>nome | prêmio TON | dias | (opcional) início YYYY-MM-DD HH:MM</code>\nEx.: <code>Referral Championship | 100 | 30</code>',
+  evprize: '💎 Digite o novo prêmio total do evento em TON.\nEx.: <code>100</code>',
+  evdates: '📅 Envie: <code>início YYYY-MM-DD HH:MM | fim YYYY-MM-DD HH:MM</code>\nou <code>início | dias</code>. Ex.: <code>2026-08-11 00:00 | 30</code>',
+  evrules: '🛡 Envie: <code>mín_daily_quests | top_limit | fixed|proportional</code>\nEx.: <code>1 | 100 | fixed</code>',
+  evdist: '🏅 Envie a tabela de prêmios (TON por posição):\n<code>1=25; 2=15; 3=10; 4-10=3; 11-50=0.5</code>',
   clcost: 'Digite o novo custo para criação de um clã em FC.\nEx.: <code>50000</code>',
   clsetlimit: 'Digite o novo limite de membros para clãs criados a partir de agora (2 a 500).\nEx.: <code>30</code>',
   giftuser: 'Para qual jogador deseja enviar?\nEnvie <b>Telegram ID</b>, <b>@username</b>, nome ou ID interno.',
@@ -2170,7 +2175,8 @@ async function handleCallback(ctx: Ctx, data: string) {
     return eventsHub(ctx, ref, false);
   }
 
-  if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  // The prompt key can carry arguments after "|" (e.g. ask:evprize|event_key); the help text uses the bare key.
+  if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
 
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
