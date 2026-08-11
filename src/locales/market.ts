@@ -4,6 +4,10 @@ import type { LocaleBundle } from './registry';
 export const market: LocaleBundle = {
   en: {
     'market.tabRecruit': 'RECRUIT',
+    'market.recruitTitle': 'HERO RECRUITMENT',
+    'market.recruitSubtitle': 'Summon heroes and grow your army',
+    'market.summonOdds': 'SUMMON ODDS',
+    'market.recruitHint': 'Higher rarity heroes have better stats and abilities. Use RARITY FUSION to upgrade your heroes.',
     'market.tabMarket': 'MARKET',
     'market.title': 'PLAYER MARKET',
     'market.subtitle': 'Buy and sell with other players using FC',
@@ -45,6 +49,10 @@ export const market: LocaleBundle = {
   },
   pt: {
     'market.tabRecruit': 'RECRUTAR',
+    'market.recruitTitle': 'RECRUTAMENTO DE HERÓIS',
+    'market.recruitSubtitle': 'Invoque heróis e amplie seu exército',
+    'market.summonOdds': 'CHANCES DE INVOCAÇÃO',
+    'market.recruitHint': 'Heróis de raridade maior têm atributos e habilidades melhores. Use a FUSÃO DE RARIDADE para evoluir seus heróis.',
     'market.tabMarket': 'MERCADO',
     'market.title': 'MERCADO DE JOGADORES',
     'market.subtitle': 'Compre e venda com outros jogadores usando FC',
@@ -86,6 +94,10 @@ export const market: LocaleBundle = {
   },
   es: {
     'market.tabRecruit': 'RECLUTAR',
+    'market.recruitTitle': 'RECLUTAMIENTO DE HÉROES',
+    'market.recruitSubtitle': 'Invoca héroes y amplía tu ejército',
+    'market.summonOdds': 'PROBABILIDADES DE INVOCACIÓN',
+    'market.recruitHint': 'Los héroes de mayor rareza tienen mejores estadísticas y habilidades. Usa la FUSIÓN DE RAREZA para mejorarlos.',
     'market.tabMarket': 'MERCADO',
     'market.title': 'MERCADO DE JUGADORES',
     'market.subtitle': 'Compra y vende con otros jugadores usando FC',
@@ -127,6 +139,10 @@ export const market: LocaleBundle = {
   },
   ru: {
     'market.tabRecruit': 'НАБОР',
+    'market.recruitTitle': 'НАБОР ГЕРОЕВ',
+    'market.recruitSubtitle': 'Призывайте героев и усиливайте армию',
+    'market.summonOdds': 'ШАНСЫ ПРИЗЫВА',
+    'market.recruitHint': 'Герои высокой редкости имеют лучшие характеристики. Используйте СЛИЯНИЕ РЕДКОСТИ для улучшения.',
     'market.tabMarket': 'РЫНОК',
     'market.title': 'РЫНОК ИГРОКОВ',
     'market.subtitle': 'Покупайте и продавайте за FC',

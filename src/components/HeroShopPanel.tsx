@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag } from 'lucide-react';
+import { X, Store, Swords, Tag, Info } from 'lucide-react';
+import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
@@ -103,7 +104,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">MYTHREON</p>
             <h2 className="text-lg font-black leading-tight text-white">{t('shop')}</h2>
           </div>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
+            <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          </div>
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2 px-4">
@@ -118,27 +122,41 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
           {tab === 'recruit' ? (
             <div>
-              <div className="flex items-center justify-between rounded-2xl border border-amber-300/15 bg-black/30 px-3 py-2">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">FC</span>
-                <span className="text-sm font-black text-amber-300">{formatCurrency(fcBalance)}</span>
-              </div>
-              <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('odds')}</p>
-              <div className="mt-1.5 grid grid-cols-5 gap-1">
-                {summonOdds.slice().reverse().map((entry) => (
-                  <div key={entry.rarity} className="rounded-lg border border-white/5 bg-white/[.03] px-1 py-1.5 text-center">
-                    <p className="truncate text-[7px] font-bold" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
-                    <p className="text-[10px] font-black text-white">{entry.chance}%</p>
+              <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
+                <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
+                <p className="mt-0.5 text-[8px] uppercase tracking-[0.2em] text-slate-400">{t('market.recruitSubtitle')}</p>
+                <div className="mt-3 rounded-xl border border-white/10 bg-white/[.02] p-2">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">{t('market.summonOdds')}</p>
+                  <div className="mt-1.5 grid grid-cols-5 gap-1">
+                    {summonOdds.slice().reverse().map((entry) => (
+                      <div key={entry.rarity} className="text-center">
+                        <p className="truncate text-[7px] font-bold uppercase" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
+                        <p className="text-[12px] font-black text-white">{entry.chance}%</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
+
+              <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/20">
+                <img src={altarImage} alt={t('market.recruitTitle')} width={1024} height={768} loading="lazy" className="h-[190px] w-full object-cover" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090d15] via-transparent to-transparent" />
+              </div>
+
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {([1, 5, 10] as const).map((count) => (
-                  <button key={count} onClick={() => onRecruit(count)} className="rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400/20 to-orange-600/10 px-1 py-2 text-center active:scale-95">
-                    <span className="block text-base font-black text-white">{count}×</span>
-                    <span className="block text-[8px] font-bold text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
+                  <button key={count} onClick={() => onRecruit(count)} className="rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/[.06] to-black/40 px-1 py-3 text-center active:scale-95">
+                    <span className="block text-xl font-black text-white">{count}×</span>
+                    <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
                   </button>
                 ))}
               </div>
+
+              <div className="mt-3 flex items-start gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/[.06] p-2.5">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-300" />
+                <p className="text-[9px] leading-relaxed text-slate-300">{t('market.recruitHint')}</p>
+              </div>
+
               {shopResults.length ? (
                 <div className="mt-3">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('latestHeroes')}</p>
@@ -153,6 +171,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                 </div>
               ) : null}
             </div>
+
           ) : (
             <div>
               <div className="flex items-center justify-between">
