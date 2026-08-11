@@ -792,6 +792,239 @@ async function heroWizardPhoto(ctx: Ctx, step: string, draft: HeroDraft, fileId:
   return hwAskRarity(ctx, draft);
 }
 
+// ---------------------------------------------------------------- clans module (RPC admin_clans)
+const clanRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc('admin_clans', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+
+const CLAN_JOIN_LABEL: Record<string, string> = { open: 'ABERTO', approval: 'APROVAÇÃO', closed: 'FECHADO' };
+
+const clanRow = (c: any) => `${c.suspended ? '⛔' : '🏰'} <b>${esc(c.name)}</b> [${esc(c.tag)}] · NV${c.level} · ${fmt(c.members)}/${fmt(c.memberLimit)} · ${fmt(c.clanPoints)} pts`;
+
+function clanListText(title: string, clans: any[]) {
+  if (!clans?.length) return `${title}\n\nNenhum clã encontrado.`;
+  return `${title}\n\n${clans.map((c, i) => `${i + 1}. ${clanRow(c)}`).join('\n').slice(0, 3400)}`;
+}
+
+const clanPickerRows = (clans: any[]) => clans.slice(0, 10).map((c: any) => [{ t: `${c.suspended ? '⛔' : '🏰'} ${c.name} [${c.tag}]`, d: `cl:d:${c.id}` }]);
+
+async function clansHub(ctx: Ctx) {
+  const d = await clanRpc(ctx, 'list');
+  const total = (d.clans || []).length;
+  return edit(ctx, `🏰 <b>CLÃS</b>\nGestão completa dos clãs do Mythreon.\nClãs listados: <b>${fmt(total)}</b>${total ? `\n\n🥇 ${clanRow(d.clans[0])}` : ''}`,
+    kb([
+      [{ t: '📋 ALL CLANS', d: 'cl:all' }, { t: '🔎 SEARCH CLAN', d: 'ask:clsearch' }],
+      [{ t: '📈 CLAN RANKING', d: 'cl:rank' }],
+      [{ t: '📜 AUDIT', d: 'cl:audit' }],
+      nav(),
+    ]));
+}
+
+async function clansList(ctx: Ctx, action: 'list' | 'ranking' | 'search', ref: string | null = null) {
+  const d = await clanRpc(ctx, action, ref);
+  const title = action === 'ranking' ? '📈 <b>CLAN RANKING</b> (nível · XP)'
+    : action === 'search' ? `🔎 <b>SEARCH CLAN</b> — <code>${esc(ref ?? '')}</code>`
+    : '📋 <b>ALL CLANS</b>';
+  return edit(ctx, clanListText(title, d.clans || []), kb([...clanPickerRows(d.clans || []), [{ t: '🔎 SEARCH CLAN', d: 'ask:clsearch' }], nav('m:clans')]));
+}
+
+async function clanCard(ctx: Ctx, ref: string, editing = true) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const c = d.clan;
+  const boss = d.boss;
+  const text = [
+    `${c.suspended ? '⛔ <b>SUSPENSO</b>\n' : ''}🏰 <b>${esc(c.name)}</b> [${esc(c.tag)}]`,
+    `<code>${esc(c.id)}</code>`,
+    '',
+    `⭐ Nível <b>${c.level}</b> · XP ${fmt(c.xp)}/${fmt(c.xpNeeded)}`,
+    `🏅 ${fmt(c.clanPoints)} clan points · 💪 ${fmt(c.power)} poder`,
+    `👥 ${fmt(c.members)}/${fmt(c.memberLimit)} membros · entrada ${CLAN_JOIN_LABEL[c.joinType] || esc(c.joinType)} · 🏆 mín. ${fmt(c.minimumTrophies)}`,
+    `👑 Chefe: ${boss ? `${esc(boss.name || 'Clan Boss')} — ${fmt(boss.currentHealth)}/${fmt(boss.maxHealth)} HP` : 'nenhum ciclo ativo'}`,
+    `🎯 Missões da semana: ${(d.missions || []).filter((m: any) => m.completed).length}/${(d.missions || []).length}`,
+  ].join('\n');
+  const rows = [
+    [{ t: '👥 MEMBERS', d: `cl:mem:${c.id}` }, { t: '✏️ EDIT CLAN', d: `cl:edit:${c.id}` }],
+    [{ t: '⭐ CLAN XP', d: `cl:xp:${c.id}` }, { t: '🎯 CLAN MISSIONS', d: `cl:miss:${c.id}` }],
+    [{ t: '👑 CLAN BOSS', d: `cl:boss:${c.id}` }, { t: '📜 AUDIT', d: `cl:audit:${c.id}` }],
+    [{ t: c.suspended ? '✅ REATIVAR' : '⛔ SUSPEND', d: `cl:susp:${c.id}` }, { t: '🗑 DELETE', d: `cl:del:${c.id}` }],
+    [{ t: '🔄 ATUALIZAR', d: `cl:d:${c.id}` }],
+    nav('cl:all'),
+  ];
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+const CLAN_ROLE_ICON: Record<string, string> = { leader: '👑', 'co-leader': '🛡', officer: '⚔️', member: '👤' };
+
+async function clanMembers(ctx: Ctx, ref: string) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const list = (d.members || []).map((m: any) =>
+    `${CLAN_ROLE_ICON[m.role] || '👤'} <b>${esc(m.name)}</b> · ${esc(m.role)}\n   🆔 <code>${esc(String(m.telegramId ?? '—'))}</code> · contribuição ${fmt(m.contribution)}`).join('\n') || '—';
+  return edit(ctx, `👥 <b>MEMBERS</b> — ${esc(d.clan.name)} [${esc(d.clan.tag)}]\n${fmt(d.clan.members)}/${fmt(d.clan.memberLimit)}\n\n${list.slice(0, 3400)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: `cl:mem:${d.clan.id}` }], nav(`cl:d:${d.clan.id}`)]));
+}
+
+async function clanMissions(ctx: Ctx, ref: string) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const list = (d.missions || []).map((m: any) => `${m.completed ? '✅' : '⏳'} <code>${esc(m.code)}</code> — progresso ${fmt(m.progress)}`).join('\n') || 'Nenhuma missão registrada nesta semana.';
+  return edit(ctx, `🎯 <b>CLAN MISSIONS</b> — ${esc(d.clan.name)}\nMissões semanais alimentadas por ações reais dos membros.\n\n${list.slice(0, 3400)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: `cl:miss:${d.clan.id}` }], nav(`cl:d:${d.clan.id}`)]));
+}
+
+async function clanXpMenu(ctx: Ctx, ref: string) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const c = d.clan;
+  return edit(ctx, `⭐ <b>CLAN XP</b> — ${esc(c.name)}\nNível <b>${c.level}</b> · XP ${fmt(c.xp)}/${fmt(c.xpNeeded)}\nAjustes ficam registrados na auditoria.`,
+    kb([
+      [{ t: '+1.000', d: `cl:xpgo:${c.id}:1000` }, { t: '+10.000', d: `cl:xpgo:${c.id}:10000` }, { t: '+50.000', d: `cl:xpgo:${c.id}:50000` }],
+      [{ t: '−1.000', d: `cl:xpgo:${c.id}:-1000` }, { t: '−10.000', d: `cl:xpgo:${c.id}:-10000` }],
+      [{ t: '✏️ XP MANUAL', d: `cl:ask:clxp:${c.id}` }, { t: '🎚 DEFINIR NÍVEL', d: `cl:ask:cllvl:${c.id}` }],
+      nav(`cl:d:${c.id}`),
+    ]));
+}
+
+async function clanBossMenu(ctx: Ctx, ref: string) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const c = d.clan;
+  const b = d.boss;
+  return edit(ctx, `👑 <b>CLAN BOSS</b> — ${esc(c.name)}\n${b ? `Ativo: ${esc(b.name || 'Clan Boss')} — ${fmt(b.currentHealth)}/${fmt(b.maxHealth)} HP` : 'Nenhum ciclo ativo.'}\n\nIniciar um novo ciclo encerra o atual.`,
+    kb([
+      [{ t: '▶️ 1M HP', d: `cl:bossgo:${c.id}:1000000` }, { t: '▶️ 5M HP', d: `cl:bossgo:${c.id}:5000000` }],
+      [{ t: '▶️ 10M HP', d: `cl:bossgo:${c.id}:10000000` }, { t: '✏️ HP MANUAL', d: `cl:ask:clbosshp:${c.id}` }],
+      nav(`cl:d:${c.id}`),
+    ]));
+}
+
+async function clanEditMenu(ctx: Ctx, ref: string) {
+  const d = await clanRpc(ctx, 'detail', ref);
+  const c = d.clan;
+  return edit(ctx, `✏️ <b>EDIT CLAN</b> — ${esc(c.name)} [${esc(c.tag)}]\nDescrição: ${esc(c.description || '—')}\nEntrada: ${CLAN_JOIN_LABEL[c.joinType] || esc(c.joinType)} · limite ${fmt(c.memberLimit)} · 🏆 mín. ${fmt(c.minimumTrophies)}`,
+    kb([
+      [{ t: '📝 NOME', d: `cl:ask:clname:${c.id}` }, { t: '🔖 TAG', d: `cl:ask:cltag:${c.id}` }],
+      [{ t: '💬 DESCRIÇÃO', d: `cl:ask:cldesc:${c.id}` }, { t: '👥 LIMITE', d: `cl:ask:cllimit:${c.id}` }],
+      [{ t: '🏆 TROFÉUS MÍN.', d: `cl:ask:cltrophy:${c.id}` }],
+      [{ t: 'ABERTO', d: `cl:join:${c.id}:open` }, { t: 'APROVAÇÃO', d: `cl:join:${c.id}:approval` }, { t: 'FECHADO', d: `cl:join:${c.id}:closed` }],
+      nav(`cl:d:${c.id}`),
+    ]));
+}
+
+async function clanAudit(ctx: Ctx, ref?: string) {
+  if (ref) {
+    const d = await clanRpc(ctx, 'detail', ref);
+    const list = (d.audit || []).map((a: any) => `• ${String(a.at).slice(5, 16).replace('T', ' ')} <b>${esc(a.source)}</b> +${fmt(a.xp)} XP`).join('\n') || '—';
+    return edit(ctx, `📜 <b>AUDIT</b> — ${esc(d.clan.name)}\nÚltimos ganhos de Clan XP:\n\n${list.slice(0, 3400)}`,
+      kb([[{ t: '🔄 ATUALIZAR', d: `cl:audit:${d.clan.id}` }], nav(`cl:d:${d.clan.id}`)]));
+  }
+  const a = await rpc('admin_list_audit', { p_admin_id: ctx.adminId, p_limit: 40, p_offset: 0 }) as any;
+  const events = (a.events || []).filter((e: any) => String(e.action || '').startsWith('clans')).slice(0, 12);
+  const list = events.map((e: any) => `• ${String(e.created_at).slice(5, 16).replace('T', ' ')} <b>${esc(e.action)}</b> <code>${esc(e.target_id || '')}</code>`).join('\n') || 'Nenhuma ação administrativa de clãs registrada.';
+  return edit(ctx, `📜 <b>CLAN AUDIT</b>\nAções administrativas sobre clãs:\n\n${list.slice(0, 3400)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'cl:audit' }], nav('m:clans')]));
+}
+
+/** Every clan callback. Mutations always re-render the affected menu with fresh server data. */
+async function clansCallback(ctx: Ctx, rest: string[]) {
+  const [op, a, b] = rest;
+  switch (op) {
+    case 'all': return clansList(ctx, 'list');
+    case 'rank': return clansList(ctx, 'ranking');
+    case 'd': return clanCard(ctx, a);
+    case 'mem': return clanMembers(ctx, a);
+    case 'miss': return clanMissions(ctx, a);
+    case 'xp': return clanXpMenu(ctx, a);
+    case 'boss': return clanBossMenu(ctx, a);
+    case 'edit': return clanEditMenu(ctx, a);
+    case 'audit': return clanAudit(ctx, a);
+    case 'ask': return ask(ctx, `${a}|${b}`, PROMPTS[a] || 'Envie o valor.');
+    case 'xpgo': {
+      const r = await clanRpc(ctx, 'xp', a, { xp: Number(b) });
+      await send(ctx, `✅ XP ajustado: <b>${esc(r.clan.name)}</b> — NV${r.clan.level} · ${fmt(r.clan.xp)}/${fmt(r.clan.xpNeeded)}`);
+      return clanXpMenu({ ...ctx, messageId: undefined }, a);
+    }
+    case 'bossgo': {
+      await clanRpc(ctx, 'boss', a, { hp: Number(b) });
+      await send(ctx, `👑 Novo ciclo do chefe do clã iniciado com <b>${fmt(Number(b))} HP</b>.`);
+      return clanBossMenu({ ...ctx, messageId: undefined }, a);
+    }
+    case 'join': {
+      const r = await clanRpc(ctx, 'edit', a, { joinType: b });
+      await send(ctx, `✅ Entrada definida como <b>${CLAN_JOIN_LABEL[b] || esc(b)}</b> em ${esc(r.clan.name)}.`);
+      return clanEditMenu({ ...ctx, messageId: undefined }, a);
+    }
+    case 'susp': {
+      const d = await clanRpc(ctx, 'detail', a);
+      return edit(ctx, `${d.clan.suspended ? '✅' : '⛔'} <b>${d.clan.suspended ? 'REATIVAR' : 'SUSPEND'} CLAN</b>\n${esc(d.clan.name)} [${esc(d.clan.tag)}] · ${fmt(d.clan.members)} membros\n\nConfirma a alteração?`,
+        kb([[{ t: '✅ CONFIRMAR', d: `cl:suspgo:${a}` }, { t: '❌ CANCELAR', d: `cl:d:${a}` }]]));
+    }
+    case 'suspgo': {
+      const r = await clanRpc(ctx, 'suspend', a);
+      await send(ctx, `${r.clan.suspended ? '⛔ Clã suspenso' : '✅ Clã reativado'}: <b>${esc(r.clan.name)}</b>.`);
+      return clanCard({ ...ctx, messageId: undefined }, a, false);
+    }
+    case 'del': {
+      const d = await clanRpc(ctx, 'detail', a);
+      return edit(ctx, `🗑 <b>DELETE CLAN</b>\n${esc(d.clan.name)} [${esc(d.clan.tag)}] · ${fmt(d.clan.members)} membros · ${fmt(d.clan.clanPoints)} pts\n\n⚠️ Ação irreversível: membros, chat, missões e histórico do clã são removidos.`,
+        kb([[{ t: '🗑 EXCLUIR DEFINITIVAMENTE', d: `cl:delgo:${a}` }], [{ t: '❌ CANCELAR', d: `cl:d:${a}` }]]));
+    }
+    case 'delgo': {
+      const r = await clanRpc(ctx, 'delete', a);
+      await clearSession(ctx);
+      return send(ctx, `🗑 Clã <b>${esc(r.clan?.name ?? '—')}</b> excluído.`, kb([[{ t: '📋 ALL CLANS', d: 'cl:all' }], nav('m:clans')]));
+    }
+    default: return clansHub(ctx);
+  }
+}
+
+/** Text replies for the clan prompts (session key format: "clxp|<clanId>"). */
+async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
+  const int = () => Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+  switch (key) {
+    case 'clsearch': return clansList(ctx, 'search', text);
+    case 'clxp': {
+      const value = int();
+      if (!Number.isFinite(value) || value === 0) throw new Error('KEEP_SESSION::⚠️ Envie um número diferente de 0 (ex.: <code>25000</code> ou <code>-5000</code>).');
+      const r = await clanRpc(ctx, 'xp', ref, { xp: value });
+      await send(ctx, `✅ XP ajustado em ${fmt(value)}: <b>${esc(r.clan.name)}</b> — NV${r.clan.level} · ${fmt(r.clan.xp)}/${fmt(r.clan.xpNeeded)}`);
+      return clanXpMenu({ ...ctx, messageId: undefined }, ref);
+    }
+    case 'cllvl': {
+      const value = int();
+      if (!Number.isFinite(value) || value < 1) throw new Error('KEEP_SESSION::⚠️ Envie um nível maior ou igual a 1.');
+      const r = await clanRpc(ctx, 'xp', ref, { level: value });
+      await send(ctx, `✅ Nível definido: <b>${esc(r.clan.name)}</b> — NV${r.clan.level}`);
+      return clanXpMenu({ ...ctx, messageId: undefined }, ref);
+    }
+    case 'clbosshp': {
+      const value = int();
+      if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um HP maior que 0 (ex.: <code>2500000</code>).');
+      await clanRpc(ctx, 'boss', ref, { hp: value });
+      await send(ctx, `👑 Novo ciclo iniciado com <b>${fmt(value)} HP</b>.`);
+      return clanBossMenu({ ...ctx, messageId: undefined }, ref);
+    }
+    case 'clname': case 'cltag': case 'cldesc': case 'cllimit': case 'cltrophy': {
+      const patch: Record<string, unknown> = {};
+      if (key === 'clname') {
+        if (text.length < 3 || text.length > 24) throw new Error('KEEP_SESSION::⚠️ O nome deve ter de 3 a 24 caracteres.');
+        patch.name = text;
+      } else if (key === 'cltag') {
+        if (!/^[A-Za-z0-9]{2,5}$/.test(text)) throw new Error('KEEP_SESSION::⚠️ A tag deve ter de 2 a 5 letras/números.');
+        patch.tag = text.toUpperCase();
+      } else if (key === 'cldesc') {
+        patch.description = text.slice(0, 200);
+      } else {
+        const value = int();
+        if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+        if (key === 'cllimit') {
+          if (value < 1 || value > 100) throw new Error('KEEP_SESSION::⚠️ O limite deve ficar entre 1 e 100.');
+          patch.memberLimit = value;
+        } else patch.minimumTrophies = value;
+      }
+      const r = await clanRpc(ctx, 'edit', ref, patch);
+      await send(ctx, `✅ Clã atualizado: <b>${esc(r.clan.name)}</b> [${esc(r.clan.tag)}]`);
+      return clanEditMenu({ ...ctx, messageId: undefined }, ref);
+    }
+    default: return clansHub(ctx);
+  }
+}
+
 async function module(ctx: Ctx, name: string) {
   switch (name) {
     case 'users':
