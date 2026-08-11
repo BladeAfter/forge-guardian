@@ -2655,7 +2655,13 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `✅ <b>${RARITY_LABEL[rarity]}</b>: ${pct(cfg.config.odds[rarity])}% → <b>${pct(r.odds[rarity])}%</b>\n\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
       kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
   }
+  if (head === 'mk') {
+    if (rest[0] === 'audit') return marketAudit(ctx);
+    if (rest[0] === 'list') return marketHub(ctx, rest[1] || 'active');
+    return marketHub(ctx);
+  }
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
+
   if (head === 'pool') return ask(ctx, `pool|${rest[0]}`, `Envie o valor em TON para ${rest[0] === 'add' ? 'adicionar' : 'remover'}.`);
   if (head === 'rank') {
     const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: Number(rest[0]) });
