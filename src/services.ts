@@ -9,7 +9,9 @@ import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
 import type { TonPaymentIntent, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
+import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,PlayerInventory} from './calendarRewards';
+
 import type{PassTier,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
