@@ -1995,6 +1995,63 @@ export type Database = {
           },
         ]
       }
+      payment_recovery_audit: {
+        Row: {
+          action: string
+          admin_id: number
+          amount_ton: number | null
+          approved_at: string
+          created_at: string
+          id: string
+          new_status: string | null
+          order_id: string
+          previous_status: string | null
+          reason: string | null
+          result: Json
+          reward_amount: number | null
+          reward_type: string | null
+          transaction_type: string
+          tx_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: number
+          amount_ton?: number | null
+          approved_at?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          order_id: string
+          previous_status?: string | null
+          reason?: string | null
+          result?: Json
+          reward_amount?: number | null
+          reward_type?: string | null
+          transaction_type: string
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: number
+          amount_ton?: number | null
+          approved_at?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          order_id?: string
+          previous_status?: string | null
+          reason?: string | null
+          result?: Json
+          reward_amount?: number | null
+          reward_type?: string | null
+          transaction_type?: string
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payout_announcements: {
         Row: {
           attempts: number
@@ -2108,6 +2165,9 @@ export type Database = {
       pet_egg_orders: {
         Row: {
           amount_nano: string
+          approval_reason: string | null
+          approved_at: string | null
+          approved_by_admin: number | null
           confirmed_at: string | null
           created_at: string
           delivered_at: string | null
@@ -2115,6 +2175,7 @@ export type Database = {
           expires_at: string
           id: string
           idempotency_key: string
+          manually_approved: boolean
           paid_at: string | null
           payment_address: string
           payment_comment: string
@@ -2122,9 +2183,13 @@ export type Database = {
           status: string
           tx_hash: string | null
           user_id: string
+          verification_method: string
         }
         Insert: {
           amount_nano: string
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null
@@ -2132,6 +2197,7 @@ export type Database = {
           expires_at?: string
           id?: string
           idempotency_key: string
+          manually_approved?: boolean
           paid_at?: string | null
           payment_address: string
           payment_comment: string
@@ -2139,9 +2205,13 @@ export type Database = {
           status?: string
           tx_hash?: string | null
           user_id: string
+          verification_method?: string
         }
         Update: {
           amount_nano?: string
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null
@@ -2149,6 +2219,7 @@ export type Database = {
           expires_at?: string
           id?: string
           idempotency_key?: string
+          manually_approved?: boolean
           paid_at?: string | null
           payment_address?: string
           payment_comment?: string
@@ -2156,6 +2227,7 @@ export type Database = {
           status?: string
           tx_hash?: string | null
           user_id?: string
+          verification_method?: string
         }
         Relationships: [
           {
@@ -4480,10 +4552,14 @@ export type Database = {
         Row: {
           activated_at: string | null
           amount_nano: string
+          approval_reason: string | null
+          approved_at: string | null
+          approved_by_admin: number | null
           created_at: string
           expires_at: string
           id: string
           idempotency_key: string
+          manually_approved: boolean
           paid_at: string | null
           payment_address: string
           payment_comment: string
@@ -4493,14 +4569,19 @@ export type Database = {
           tier: string
           tx_hash: string | null
           user_id: string
+          verification_method: string
         }
         Insert: {
           activated_at?: string | null
           amount_nano: string
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           created_at?: string
           expires_at?: string
           id?: string
           idempotency_key: string
+          manually_approved?: boolean
           paid_at?: string | null
           payment_address: string
           payment_comment: string
@@ -4510,14 +4591,19 @@ export type Database = {
           tier: string
           tx_hash?: string | null
           user_id: string
+          verification_method?: string
         }
         Update: {
           activated_at?: string | null
           amount_nano?: string
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           created_at?: string
           expires_at?: string
           id?: string
           idempotency_key?: string
+          manually_approved?: boolean
           paid_at?: string | null
           payment_address?: string
           payment_comment?: string
@@ -4527,6 +4613,7 @@ export type Database = {
           tier?: string
           tx_hash?: string | null
           user_id?: string
+          verification_method?: string
         }
         Relationships: [
           {
@@ -4806,6 +4893,9 @@ export type Database = {
         Row: {
           amount_fc: number
           amount_ton: number
+          approval_reason: string | null
+          approved_at: string | null
+          approved_by_admin: number | null
           confirmed_at: string | null
           conversion_rate: number
           created_at: string
@@ -4814,14 +4904,19 @@ export type Database = {
           from_wallet: string | null
           id: string
           idempotency_key: string
+          manually_approved: boolean
           payment_comment: string
           status: string
           tx_hash: string | null
           user_id: string
+          verification_method: string
         }
         Insert: {
           amount_fc: number
           amount_ton: number
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           confirmed_at?: string | null
           conversion_rate?: number
           created_at?: string
@@ -4830,14 +4925,19 @@ export type Database = {
           from_wallet?: string | null
           id?: string
           idempotency_key: string
+          manually_approved?: boolean
           payment_comment: string
           status?: string
           tx_hash?: string | null
           user_id: string
+          verification_method?: string
         }
         Update: {
           amount_fc?: number
           amount_ton?: number
+          approval_reason?: string | null
+          approved_at?: string | null
+          approved_by_admin?: number | null
           confirmed_at?: string | null
           conversion_rate?: number
           created_at?: string
@@ -4846,10 +4946,12 @@ export type Database = {
           from_wallet?: string | null
           id?: string
           idempotency_key?: string
+          manually_approved?: boolean
           payment_comment?: string
           status?: string
           tx_hash?: string | null
           user_id?: string
+          verification_method?: string
         }
         Relationships: [
           {
@@ -5011,7 +5113,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      payment_recovery_orders: {
+        Row: {
+          amount_ton: number | null
+          approval_reason: string | null
+          approved_at: string | null
+          approved_by_admin: number | null
+          created_at: string | null
+          delivered_at: string | null
+          finished: boolean | null
+          kind: string | null
+          manually_approved: boolean | null
+          order_id: string | null
+          paid_at: string | null
+          product_label: string | null
+          status: string | null
+          tx_hash: string | null
+          type_label: string | null
+          user_id: string | null
+          verification_method: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_pet: {
@@ -5268,6 +5391,15 @@ export type Database = {
         Returns: Json
       }
       admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_payment_recovery: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
+        Returns: Json
+      }
       admin_payout_announcement_claim: {
         Args: { p_admin_id: number; p_withdrawal_id: string }
         Returns: Json
@@ -6330,6 +6462,23 @@ export type Database = {
       open_season_mythic_egg: {
         Args: { p_item_id: string; p_telegram_id: number }
         Returns: Json
+      }
+      payment_recovery_deliver: {
+        Args: {
+          p_admin_id: number
+          p_force?: boolean
+          p_order_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      payment_recovery_order_json: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
+      payment_recovery_tx_conflict: {
+        Args: { p_order_id: string; p_tx_hash: string }
+        Returns: string
       }
       pending_pet_egg_orders: { Args: { p_telegram_id: number }; Returns: Json }
       pending_season_pass_orders: {

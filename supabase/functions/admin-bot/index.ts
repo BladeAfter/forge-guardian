@@ -56,6 +56,9 @@ const MAIN_MENU = kb([
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
   [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
+  [{ t: '💳 RECUPERAÇÃO DE PAGAMENTOS', d: 'm:precovery' }],
+
+
 
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
@@ -892,6 +895,172 @@ async function eventsAudit(ctx: Ctx) {
   return edit(ctx, `📜 <b>AUDITORIA DE EVENTOS</b>\n${body}`, kb([[{ t: '🔄 ATUALIZAR', d: 'ev:audit' }], nav('m:events')]));
 }
 
+// ---------------------------------------------------------------- 💳 PAYMENT RECOVERY
+// Manual fallback for payments the automatic blockchain reconciler did not resolve.
+// Every action is idempotent (a second approval only answers "already processed"),
+// requires a reason + explicit confirmation, and is written to payment_recovery_audit.
+const prRpc = (ctx: Ctx, action: string, ref: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc('admin_payment_recovery', { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+
+const PR_KIND: Record<string, string> = { deposit: '💰 DEPOSIT', premium_egg: '🥚 PREMIUM_EGG', battle_pass: '🎟 BATTLE_PASS' };
+const prWhen = (v: unknown) => (v ? esc(new Date(String(v)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })) : '—');
+const prWho = (r: any) => esc(r.username ? '@' + r.username : (r.name || r.telegramId || '—'));
+const prLine = (r: any) =>
+  `• ${PR_KIND[r.kind] ?? esc(r.kind)} <code>#${esc(r.shortId)}</code> — ${fmt(r.amountTon)} TON\n   ${prWho(r)} · ${esc(r.status)}${r.paymentConfirmed ? ' · 🔗 pago' : ' · ⏳ sem tx'} · ${prWhen(r.createdAt)}`;
+
+async function prHub(ctx: Ctx, kind: string | null = null, page = 1, editing = true) {
+  const d = await prRpc(ctx, 'list', null, { kind, page, size: 6 });
+  const rows = (d.rows || []) as any[];
+  const text = [
+    '💳 <b>RECUPERAÇÃO DE PAGAMENTOS</b>',
+    '<i>Somente pagamentos que não concluíram sozinhos. A verificação automática continua ativa.</i>',
+    '',
+    `🔎 Filtro: <b>${kind ? (PR_KIND[kind] ?? kind) : 'TODOS'}</b> · pendentes: <b>${fmt(d.total)}</b> · página ${d.page}/${d.pages}`,
+    '',
+    rows.map(prLine).join('\n') || 'Nenhum pagamento pendente. ✅',
+  ].join('\n');
+  const markup = kb([
+    ...rows.map((r) => [{ t: `${PR_KIND[r.kind]?.slice(0, 2) ?? '•'} #${r.shortId} · ${Number(r.amountTon)} TON · ${r.username ? '@' + r.username : r.telegramId}`.slice(0, 46), d: `pr:o|${r.orderId}` }]),
+    [
+      ...(d.page > 1 ? [{ t: '⬅️ ANTERIOR', d: `pr:pg|${kind ?? ''}|${d.page - 1}` }] : []),
+      ...(d.page < d.pages ? [{ t: 'PRÓXIMA ➡️', d: `pr:pg|${kind ?? ''}|${d.page + 1}` }] : []),
+    ],
+    [{ t: '💰 DEPÓSITOS', d: 'pr:f|deposit' }, { t: '🥚 OVOS', d: 'pr:f|premium_egg' }],
+    [{ t: '🎟 PASSES', d: 'pr:f|battle_pass' }, { t: '🌐 TODOS', d: 'pr:f|' }],
+    [{ t: '🔎 PESQUISAR', d: 'ask:prsearch' }, { t: '🔄 ATUALIZAR', d: `pr:pg|${kind ?? ''}|${d.page}` }],
+    [{ t: '✅ APROVADOS MANUALMENTE', d: 'pr:res|approved' }, { t: '⛔ RECUSADOS', d: 'pr:res|rejected' }],
+    [{ t: '📜 AUDITORIA', d: 'pr:audit' }, { t: '🛰 VERIFICAR BLOCKCHAIN', d: 'pr:verify' }],
+    nav(),
+  ].filter((row) => row.length));
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function prSearch(ctx: Ctx, query: string) {
+  const d = await prRpc(ctx, 'search', query, {});
+  const rows = (d.rows || []) as any[];
+  return send(ctx, `🔎 <b>RESULTADO</b> — <code>${esc(query)}</code>\n\n${rows.map(prLine).join('\n') || 'Nada encontrado.'}`,
+    kb([...rows.map((r) => [{ t: `#${r.shortId} · ${PR_KIND[r.kind] ?? r.kind}`.slice(0, 46), d: `pr:o|${r.orderId}` }]), nav('m:precovery')]));
+}
+
+async function prCard(ctx: Ctx, orderId: string, editing = true) {
+  const d = await prRpc(ctx, 'view', orderId, {});
+  const o = d.order;
+  const text = [
+    `💳 <b>${PR_KIND[o.kind] ?? esc(o.kind)}</b> <code>#${esc(o.shortId)}</code>`,
+    '',
+    `👤 ${prWho(o)} · ID <code>${esc(o.telegramId)}</code>${o.banned ? ' ⛔ BANIDO' : ''}`,
+    `💎 Valor: <b>${fmt(o.amountTon)} TON</b>${o.expectedFc ? ` → <b>${fmt(o.expectedFc)} FC</b>` : ''}`,
+    o.productLabel ? `📦 Produto: <b>${esc(o.productLabel)}</b>` : '',
+    `📌 Situação: <b>${esc(o.status)}</b> · ${o.paymentConfirmed ? '🔗 tx registrada' : '⏳ sem tx on-chain'}`,
+    o.txHash ? `🔗 <code>${esc(String(o.txHash).slice(0, 40))}</code>` : '',
+    `🕒 Criado: ${prWhen(o.createdAt)} · pago: ${prWhen(o.paidAt)} · entregue: ${prWhen(o.deliveredAt)}`,
+    o.manuallyApproved ? `✅ Aprovado manualmente por <code>${esc(o.approvedByAdmin)}</code> em ${prWhen(o.approvedAt)}\n   Motivo: ${esc(o.approvalReason ?? '—')}` : '',
+    o.txConflict ? `\n🚨 <b>CONFLITO</b>: esta transação já foi usada em <b>${esc(o.txConflict)}</b>. Aprovar entregaria o prêmio duas vezes.` : '',
+    o.finished ? '\n✅ Este pedido já foi concluído — nada a recuperar.' : '',
+    '',
+    '<b>HISTÓRICO</b>',
+    (d.audit || []).map((a: any) => `• ${prWhen(a.at)} <code>${esc(a.action)}</code> ${esc(a.previousStatus)} → ${esc(a.newStatus)}${a.reason ? ' · ' + esc(a.reason) : ''}`).join('\n') || '—',
+  ].filter(Boolean).join('\n');
+  const actions = o.finished
+    ? []
+    : [
+        [{ t: '✅ APROVAR MANUALMENTE', d: `pr:ask|approve|${orderId}` }],
+        ...(o.deliveryPending ? [[{ t: '♻️ REENVIAR ENTREGA', d: `pr:ask|retry|${orderId}` }]] : []),
+        [{ t: '⛔ RECUSAR', d: `pr:ask|reject|${orderId}` }],
+      ];
+  const markup = kb([...actions, [{ t: '🔄 ATUALIZAR', d: `pr:o|${orderId}` }], nav('m:precovery')]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+const PR_ACTION_LABEL: Record<string, string> = {
+  approve: 'APROVAR MANUALMENTE e entregar o prêmio deste pagamento',
+  retry: 'REENVIAR a entrega deste pagamento já pago',
+  reject: 'RECUSAR este pagamento (nada será entregue)',
+};
+
+/** Reason first, then an explicit confirmation — the reason is kept in the persisted session. */
+async function prAskReason(ctx: Ctx, action: string, orderId: string) {
+  return ask(ctx, `prreason|${action}|${orderId}`,
+    `📝 <b>${PR_ACTION_LABEL[action] ?? action}</b>\nEnvie o <b>motivo</b> desta ação (fica registrado na auditoria).\nEx.: <code>tx confirmada manualmente na tonviewer</code>`);
+}
+
+async function prConfirm(ctx: Ctx, action: string, orderId: string, reason: string) {
+  const d = await prRpc(ctx, 'view', orderId, {});
+  const o = d.order;
+  await setSession(ctx, 'prpending', 'confirm', { action, orderId, reason });
+  return send(ctx, [
+    `⚠️ Confirme: <b>${PR_ACTION_LABEL[action] ?? action}</b>`,
+    '',
+    `${PR_KIND[o.kind] ?? esc(o.kind)} <code>#${esc(o.shortId)}</code> · ${prWho(o)}`,
+    `💎 ${fmt(o.amountTon)} TON${o.expectedFc ? ` → ${fmt(o.expectedFc)} FC` : ''}`,
+    `📝 Motivo: <i>${esc(reason)}</i>`,
+    o.txConflict ? `\n🚨 CONFLITO detectado (${esc(o.txConflict)}) — a ação será bloqueada.` : '',
+  ].filter(Boolean).join('\n'),
+    kb([[{ t: '✅ CONFIRMAR', d: `pr:go|${action}|${orderId}` }, { t: '❌ Cancelar', d: 'm:precovery' }]]));
+}
+
+async function prRun(ctx: Ctx, action: string, orderId: string) {
+  const session = await getSession(ctx);
+  const reason = session?.action === 'prpending' ? String((session.context as any)?.reason || '') : '';
+  await clearSession(ctx);
+  const d = await prRpc(ctx, action, orderId, { reason: reason || null });
+  const status = d.result?.status;
+  const messages: Record<string, string> = {
+    delivered: '✅ Pagamento recuperado e prêmio entregue.',
+    already_processed: 'ℹ️ Nada feito: este pedido já havia sido processado (proteção contra duplicidade).',
+    payment_conflict: `🚨 Bloqueado: a transação já foi usada em <b>${esc(d.result?.conflictWith ?? '')}</b>.`,
+    rejected: '⛔ Pagamento recusado e registrado na auditoria.',
+  };
+  await send(ctx, messages[status] ?? `Resultado: <code>${esc(JSON.stringify(d.result)).slice(0, 500)}</code>`);
+  return prCard({ ...ctx, messageId: undefined }, orderId, false);
+}
+
+async function prResolved(ctx: Ctx, mode: string) {
+  const d = await prRpc(ctx, 'resolved', null, { mode });
+  const rows = (d.rows || []) as any[];
+  const body = rows.map((r) => `• ${PR_KIND[r.kind] ?? esc(r.kind)} <code>#${esc(r.shortId)}</code> ${fmt(r.amountTon)} TON · ${prWho(r)}\n   ${esc(r.status)} · ${prWhen(r.approvedAt)} · ${esc(r.reason ?? '—')}`).join('\n') || '—';
+  return edit(ctx, `${mode === 'rejected' ? '⛔ <b>RECUSADOS</b>' : '✅ <b>APROVADOS MANUALMENTE</b>'}\n\n${body}`.slice(0, 3800),
+    kb([...rows.slice(0, 8).map((r) => [{ t: `#${r.shortId} · ${r.status}`.slice(0, 46), d: `pr:o|${r.orderId}` }]), nav('m:precovery')]));
+}
+
+async function prAudit(ctx: Ctx) {
+  const d = await prRpc(ctx, 'audit', null, {});
+  const body = (d.rows || []).map((a: any) => `• ${prWhen(a.at)} <code>${esc(a.action)}</code> ${esc(a.type)} #${esc(a.orderId)} · ${fmt(a.amountTon)} TON\n   ${esc(a.previousStatus)} → ${esc(a.newStatus)}${a.reason ? ' · ' + esc(a.reason) : ''}`).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DE RECUPERAÇÃO</b>\n\n${body}`.slice(0, 3800), kb([[{ t: '🔄 ATUALIZAR', d: 'pr:audit' }], nav('m:precovery')]));
+}
+
+/** Runs the automatic on-chain reconciler on demand, before any manual decision. */
+async function prVerifyOnChain(ctx: Ctx) {
+  const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/ton-reconcile`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+    },
+    body: JSON.stringify({ source: 'admin_bot_payment_recovery' }),
+  });
+  const body = await res.text();
+  await send(ctx, `🛰 <b>VERIFICAÇÃO ON-CHAIN</b> (${res.status})\n<code>${esc(body).slice(0, 700)}</code>`);
+  return prHub(ctx, null, 1, false);
+}
+
+async function prCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a = '', b = ''] = (rest.join(':')).split('|');
+  switch (sub) {
+    case 'o': return prCard(ctx, a);
+    case 'f': return prHub(ctx, a || null, 1);
+    case 'pg': return prHub(ctx, a || null, Math.max(1, Number(b) || 1));
+    case 'res': return prResolved(ctx, a || 'approved');
+    case 'audit': return prAudit(ctx);
+    case 'verify': return prVerifyOnChain(ctx);
+    case 'ask': return prAskReason(ctx, a, b);
+    case 'go': return prRun(ctx, a, b);
+    default: return prHub(ctx);
+  }
+}
+
+
+
 /** Central clan configuration: creation cost + default member limit (never touches existing clans). */
 async function clanSettingsView(ctx: Ctx, editing = true) {
   const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
@@ -1295,6 +1464,8 @@ async function module(ctx: Ctx, name: string) {
     }
     case 'clans': return clansHub(ctx);
     case 'events': return eventsHub(ctx);
+    case 'precovery': return prHub(ctx);
+
     case 'gifts': return giftHub(ctx);
 
     case 'boss': return bossPanel(ctx);
@@ -1700,6 +1871,8 @@ const PROMPTS: Record<string, string> = {
   wdfee: 'Envie a nova <b>WITHDRAWAL FEE</b> em % (0 a 50). Ex.: <code>10</code>. Vale só para saques criados depois da alteração.',
   auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
+  prsearch: '🔎 Pesquise o pagamento por <b>Telegram ID</b>, <b>@usuário</b>, nome, <b>ID do pedido</b> (prefixo aceito) ou <b>hash da transação</b>.',
+
 };
 
 // ---------------------------------------------------------------- global boss panel
@@ -2146,6 +2319,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
+  // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
+  if (head === 'pr') return prCallback(ctx, rest);
+
   // 🎉 Special events module (independent from the weekly community pool).
   if (head === 'ev') {
     await clearSession(ctx);
@@ -2547,6 +2723,12 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
+  if (key === 'prsearch') return prSearch(ctx, text);
+  if (key === 'prreason') {
+    if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
+    return prConfirm(ctx, args[0] ?? '', args[1] ?? '', text.slice(0, 300));
+  }
+
 
 
   switch (key) {
