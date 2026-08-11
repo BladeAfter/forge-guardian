@@ -147,6 +147,10 @@ function App() {
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);
   const {data:calendarDashboard,refetch:refetchCalendar}=useCalendarDashboard(telegramInitData,backendEnabled);
+  // Ticks only to refresh the countdown label; the boundary itself is server-owned.
+  const [nowTick,setNowTick]=useState(()=>Date.now());
+  useEffect(()=>{const id=window.setInterval(()=>setNowTick(Date.now()),30_000);return()=>window.clearInterval(id)},[]);
+
   const dailyQuests=useDailyQuests(telegramInitData,backendEnabled);
   const calendarClaimMutation=useMutation({mutationFn:(day:number)=>claimCalendarDay(telegramInitData??'',day),onSuccess:async result=>{setCalendarResult(result);queryClient.setQueryData(['calendar-dashboard',telegramInitData],result.dashboard);await Promise.all([refetchGame(),refetchCalendar(),queryClient.invalidateQueries({queryKey:['pet-dashboard']}),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['boss-combat']})]);toast.success('Recompensa coletada!')},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível coletar a recompensa.')});
   const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{toast.success(`${result.hero.name} · ${result.hero.rarity}`);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['game-state']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú.')});
