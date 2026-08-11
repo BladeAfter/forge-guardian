@@ -1550,29 +1550,19 @@ Deno.serve(async (req) => {
         const rates = JSON.parse(decodeURIComponent(data.slice(5)));
         const r = await rpc('admin_set_hero_rarity_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_normalize: true, p_reason: 'normalizado pelo painel' });
         await send(ctx, `✅ Raridades normalizadas:\n<code>${esc(JSON.stringify(r.rates))}</code>`, MAIN_MENU);
-      } else if (data.startsWith('chset:')) {
-        // chset:<news|community|payments>:<chat_id>
-        const [, key, chatRef] = data.split(':');
-        const r = await rpc('admin_set_channel_chat_ref', { p_admin_id: ctx.adminId, p_channel_key: key, p_chat_ref: chatRef });
-        await send(ctx, `✅ <b>${esc(r.title)}</b>\nchat id salvo: <code>${esc(r.chatRef)}</code>\nOs jogadores já podem usar VERIFY para receber ${fmt(r.rewardFc)} FC.`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
       } else {
         await handleCallback(ctx, data);
       }
       return new Response(JSON.stringify({ ok: true }));
     }
 
-    // Forwarded message from a channel/group: capture its real chat id for membership checks.
+    // Forwarded message from a channel/group: only informational (channel rewards no longer use chat ids).
     const forwarded = update.message?.forward_from_chat ?? update.message?.forward_origin?.chat;
     if (forwarded?.id) {
       const id = String(forwarded.id);
       await send(ctx,
-        `🔗 <b>CHAT DETECTADO</b>\n${esc(forwarded.title || forwarded.username || '—')} (${esc(forwarded.type)})\nchat id: <code>${esc(id)}</code>\n\nEscolha em qual canal oficial salvar este id:`,
-        kb([
-          [{ t: '📰 NEWS', d: `chset:news:${id}` }],
-          [{ t: '💬 COMMUNITY', d: `chset:community:${id}` }],
-          [{ t: '💳 PAYMENTS', d: `chset:payments:${id}` }],
-          nav('m:channels'),
-        ]));
+        `🔗 <b>CHAT DETECTADO</b>\n${esc(forwarded.title || forwarded.username || '—')} (${esc(forwarded.type)})\nchat id: <code>${esc(id)}</code>\n\nAs recompensas dos canais oficiais são one-time por Telegram ID e não usam chat id.`,
+        kb([[{ t: '💳 CANAL DE PAGAMENTOS', d: 'ask:pachat' }], [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
       return new Response(JSON.stringify({ ok: true }));
     }
 
