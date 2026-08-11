@@ -883,6 +883,9 @@ const PROMPTS: Record<string, string> = {
   tkpass: 'Envie o novo limite diário de compra de tickets para jogadores COM Battle Pass — ex.: <code>20</code>',
   tkpack: 'Envie: <code>quantidade preço_fc</code> — ex.: <code>3 13500</code> (use preço 0 e remova manualmente para desativar).',
 
+  passxp: 'Envie: <code>chave valor</code> (XP base da ação).\nEx.: <code>pvp_battle 40</code>\nChaves: daily_login, daily_quest, daily_quest_all, daily_chest, pvp_battle, pvp_victory, boss_attack, boss_damage_milestone, boss_reward, reward_open, pet_feed, pet_level_up, pet_evolution, hero_fuse, rarity_fusion, rarity_fusion_success, calendar_claim',
+  passxpmult: 'Envie: <code>free|adventurer|legendary valor</code>\nEx.: <code>legendary 1.4</code> (= +40% de XP do Battle Pass).',
+  passxpcap: 'Envie: <code>chave limite</code> — limite de XP base por game_day.\nEx.: <code>pet_feed 100</code> · <code>reward_open 150</code> · <code>pvp_battle 400</code>\nUse <code>0</code> para bloquear a fonte.',
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":4000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
@@ -1109,12 +1112,14 @@ async function handleCallback(ctx: Ctx, data: string) {
     }
     if (rest[0] === 'passxp') {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
-      const { data: row } = await db.from('game_settings').select('value').eq('key', 'season_pass_xp').maybeSingle();
-      const cfg = (row?.value ?? {}) as Record<string, number>;
-      const labels: Record<string, string> = { daily_quest: 'Missão diária concluída', daily_quest_all: 'Bônus 5/5 missões', daily_chest: 'Baú diário das missões', pvp_battle: 'Batalha PvP', pvp_victory: 'Vitória PvP', boss_defeated: 'Chefe derrotado', boss_attack: 'Participação no chefe', reward_open: 'Abrir baú/ovo', pet_feed: 'Alimentar pet', calendar_claim: 'Resgate do calendário' };
-      const lines = Object.keys(labels).map((k) => `• ${labels[k]} (<code>${k}</code>): <b>${fmt(Number(cfg[k] ?? 0))} XP</b>`).join('\n');
-      return send(ctx, `⚡ <b>XP SETTINGS</b>\nXP por nível: <b>${fmt(d.season?.xp_per_level ?? 0)}</b> · Níveis: <b>${fmt(d.season?.levels ?? 0)}</b>\n\n${lines}\n\nTodos os jogadores ganham XP, com ou sem passe pago.`,
-        kb([[{ t: '✏️ EDITAR XP DE AÇÃO', d: 'ask:passxp' }], [{ t: '🎚 XP POR NÍVEL', d: 'ask:passxplevel' }], nav('m:pass')]));
+      const { data: rows } = await db.from('game_settings').select('key,value').in('key', ['season_pass_xp', 'season_pass_xp_multipliers', 'season_pass_xp_caps']);
+      const bag = Object.fromEntries((rows ?? []).map((r: any) => [r.key, r.value ?? {}])) as Record<string, Record<string, number>>;
+      const cfg = bag['season_pass_xp'] ?? {}, mult = bag['season_pass_xp_multipliers'] ?? {}, caps = bag['season_pass_xp_caps'] ?? {};
+      const labels: Record<string, string> = { daily_login: 'Login diário', daily_quest: 'Missão diária concluída', daily_quest_all: 'Bônus 5/5 missões', daily_chest: 'Baú diário das missões', pvp_battle: 'Batalha PvP', pvp_victory: 'Vitória PvP', boss_attack: 'Participação no chefe', boss_damage_milestone: 'Marco de dano no chefe', boss_reward: 'Recompensa do chefe', boss_defeated: 'Chefe derrotado', reward_open: 'Abrir baú/ovo', pet_feed: 'Alimentar pet', pet_level_up: 'Pet subiu de nível', pet_evolution: 'Evolução de pet', hero_fuse: 'Fusão de duplicados', rarity_fusion: 'Fusão de raridade (tentativa)', rarity_fusion_success: 'Fusão de raridade (sucesso)', calendar_claim: 'Resgate do calendário' };
+      const lines = Object.keys(labels).map((k) => `• ${labels[k]} (<code>${k}</code>): <b>${fmt(Number(cfg[k] ?? 0))} XP</b>${caps[k] != null ? ` · cap ${fmt(Number(caps[k]))}/dia` : ''}`).join('\n');
+      const multLine = `• FREE <b>x${Number(mult.none ?? 1)}</b> · ADVENTURER <b>x${Number(mult.adventurer ?? 1.2)}</b> · LEGENDARY <b>x${Number(mult.legendary ?? 1.4)}</b>`;
+      return send(ctx, `⚡ <b>XP SETTINGS</b>\nXP por nível: <b>${fmt(d.season?.xp_per_level ?? 0)}</b> · Níveis: <b>${fmt(d.season?.levels ?? 0)}</b>\n\n<b>MULTIPLICADORES</b>\n${multLine}\n\n<b>XP POR AÇÃO</b>\n${lines}\n\nTodos os jogadores ganham XP; o passe apenas acelera a progressão.`,
+        kb([[{ t: '✏️ EDITAR XP DE AÇÃO', d: 'ask:passxp' }], [{ t: '✖️ MULTIPLICADORES', d: 'ask:passxpmult' }], [{ t: '🚧 LIMITES DIÁRIOS', d: 'ask:passxpcap' }], [{ t: '🎚 XP POR NÍVEL', d: 'ask:passxplevel' }], nav('m:pass')]));
     }
     if (rest[0] === 'pvptickets') {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
@@ -1457,6 +1462,23 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       if (!k || !Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>chave valor</code> (ex.: <code>pvp_battle 50</code>).');
       const r = await rpc('admin_set_pass_xp_settings', { p_admin_id: ctx.adminId, p_patch: { [k]: value }, p_reason: 'painel admin' });
       return send(ctx, `✅ <code>${esc(k)}</code> = <b>${fmt(value)} XP</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passxpmult': {
+      const [tier, v] = text.split(/\s+/);
+      const key = String(tier || '').toLowerCase() === 'free' ? 'none' : String(tier || '').toLowerCase();
+      const value = Number(String(v ?? '').replace(',', '.'));
+      if (!['none', 'adventurer', 'legendary'].includes(key) || !Number.isFinite(value) || value < 0.1 || value > 10) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>free|adventurer|legendary valor</code> (ex.: <code>legendary 1.4</code>).');
+      }
+      const r = await rpc('admin_set_pass_xp_multipliers', { p_admin_id: ctx.adminId, p_patch: key === 'none' ? { none: value, free: value } : { [key]: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Multiplicador de XP <code>${esc(key)}</code> = <b>x${value}</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passxpcap': {
+      const [k, v] = text.split(/\s+/);
+      const value = Math.round(parseAmount(v ?? ''));
+      if (!k || !Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>chave limite</code> (ex.: <code>pet_feed 100</code>).');
+      const r = await rpc('admin_set_pass_xp_caps', { p_admin_id: ctx.adminId, p_patch: { [k]: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Limite diário de <code>${esc(k)}</code> = <b>${fmt(value)} XP base/dia</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
     }
     case 'passxplevel': {
       const value = Math.round(parseAmount(text));
