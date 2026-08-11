@@ -101,3 +101,49 @@ export const useGlobalBossRealtime=(cycleId:string|null|undefined,enabled:boolea
   },[cycleId,enabled,queryClient]);
 };
 
+
+/** Player market listings (FC only). Filters/sort are applied server-side. */
+export const useMarketBrowse=(telegramInitData:string|null,enabled:boolean,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>useQuery<MarketBrowse>({
+  queryKey:['market-browse',telegramInitData,itemType,rarity,sort],
+  queryFn:()=>fetchMarketBrowse(telegramInitData??'',itemType,rarity,sort),
+  enabled,staleTime:5_000,refetchOnWindowFocus:true,retry:1
+});
+
+/** Items the player may list right now — the server decides eligibility. */
+export const useMarketSellable=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketSellable>({
+  queryKey:['market-sellable',telegramInitData],queryFn:()=>fetchMarketSellable(telegramInitData??''),
+  enabled,staleTime:5_000,retry:1
+});
+
+export const useMarketMine=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketMine>({
+  queryKey:['market-mine',telegramInitData],queryFn:()=>fetchMarketMine(telegramInitData??''),
+  enabled,staleTime:5_000,refetchOnWindowFocus:true,retry:1
+});
+
+/**
+ * Live market. Any listing created, sold or cancelled by any player refreshes the
+ * browse/my-listings caches (and balances/inventories) in place — no reload needed.
+ */
+export const useMarketRealtime=(enabled:boolean)=>{
+  const queryClient=useQueryClient();
+  useEffect(()=>{
+    if(!enabled)return;
+    let timer:number|undefined;
+    const refresh=()=>{
+      window.clearTimeout(timer);
+      timer=window.setTimeout(()=>{
+        void queryClient.invalidateQueries({queryKey:['market-browse']});
+        void queryClient.invalidateQueries({queryKey:['market-mine']});
+        void queryClient.invalidateQueries({queryKey:['market-sellable']});
+        void queryClient.invalidateQueries({queryKey:['game-state']});
+        void queryClient.invalidateQueries({queryKey:['player-heroes']});
+        void queryClient.invalidateQueries({queryKey:['pet-dashboard']});
+        void queryClient.invalidateQueries({queryKey:['player-inventory']});
+      },250);
+    };
+    const channel=supabase.channel('market-listings')
+      .on('postgres_changes',{event:'*',schema:'public',table:'market_listings'},refresh)
+      .subscribe();
+    return()=>{window.clearTimeout(timer);void supabase.removeChannel(channel)};
+  },[enabled,queryClient]);
+};
