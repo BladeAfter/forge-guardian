@@ -337,7 +337,16 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
     fn = 'set_hero_lock';
     args = { ...args, p_hero_id: body.heroId, p_locked: Boolean(body.locked) };
+  } else if (action === 'buy-tickets') {
+    // Price, daily limit and Battle Pass check are all resolved server-side.
+    const quantity = Number(body.quantity);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 50) throw new Error('Pacote de tickets inválido.');
+    const key = String(body.idempotencyKey || crypto.randomUUID());
+    if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
+    fn = 'buy_pvp_tickets';
+    args = { ...args, p_quantity: quantity, p_idempotency_key: `pvp_ticket:${user.id}:${key}` };
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
+
 
 
   const data = await rpc(db, fn, args) as any;
