@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Crown, Flame, Gift, Info, RefreshCw, Sparkles, Trophy, UserPlus, Users } from 'lucide-react';
+import { Flame, Gift, Info, RefreshCw, Sparkles, Trophy, UserPlus, Users } from 'lucide-react';
+import championshipTrophy from '../assets/referral-championship-trophy.png';
 import { useSpecialEvents } from '../hooks';
 import { describeDistribution, eventCountdown, formatEventTon } from '../specialEvents';
 import { useT, useLanguage } from '../LanguageContext';
@@ -73,7 +74,14 @@ export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramIni
           ))}
         </div>
         <p className="relative text-[9px] font-bold uppercase tracking-[.35em] text-violet-200">{t('events.activeEvent')}</p>
-        <Crown className="relative mx-auto mt-2 h-12 w-12 animate-pulse text-amber-300" />
+        <img
+          src={championshipTrophy}
+          alt={t('events.trophyAlt')}
+          width={1024}
+          height={1024}
+          loading="lazy"
+          className="relative mx-auto mt-2 h-[130px] w-[130px] max-w-full object-contain drop-shadow-[0_0_28px_rgba(251,191,36,.35)] sm:h-[160px] sm:w-[160px]"
+        />
         <h2 className="relative mt-1 text-2xl font-black uppercase tracking-wide text-amber-100">{event.name}</h2>
         <p className="relative mt-2 text-3xl font-black text-amber-300">{formatEventTon(event.prizePoolTon)}</p>
         <p className="relative text-[9px] font-bold uppercase tracking-[.3em] text-amber-200/80">{t('events.prizePool')}</p>
