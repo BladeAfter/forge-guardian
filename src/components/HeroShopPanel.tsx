@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
