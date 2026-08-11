@@ -465,13 +465,13 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
 }
 
 
-function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
+function EvolveButton({ pet, balance, universal = 0, pending, onEvolve }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void }) {
   const t = useT();
   const next = pet.nextEvolution;
   if (!next) return <Action text={t('pets.maxEvolution')} disabled onClick={() => undefined} />;
   const missingLevel = pet.level < next.requiredLevel;
   const missingFc = balance < next.fcCost;
-  const missingFragments = pet.fragments < next.fragmentCost;
+  const missingFragments = pet.fragments + universal < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
   const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
   return (
