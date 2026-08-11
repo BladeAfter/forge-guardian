@@ -6,7 +6,7 @@ import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
-import { LANGUAGES, formatCurrency, getLocale, locales } from './utils';
+import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { QuestsPage } from './pages/QuestsPage';
@@ -163,6 +163,12 @@ function App() {
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
+  // The backend profile is the persistent source for the player's language.
+  useEffect(()=>{
+    const remote=officialProfile as unknown as {language?:string|null;languageLocked?:boolean;language_locked?:boolean}|null|undefined;
+    if(!remote?.language)return;
+    applyRemoteLanguage(remote.language,Boolean(remote.languageLocked??remote.language_locked));
+  },[officialProfile,applyRemoteLanguage]);
   const equipHeroMutation=useMutation({
     mutationFn:async({heroId,slot}:{heroId:string;slot:1|2|3|4|5})=>{
       if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
