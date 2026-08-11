@@ -513,32 +513,45 @@ async function verifyEggPurchases(db: Db, user: TelegramUser) {
     for (const order of orders) {
       const comment = String(order.paymentComment || '').trim();
       const expectedNano = BigInt(String(order.amountNano || '0'));
-      const createdAt = new Date(String(order.createdAt)).getTime();
+      const logRow: Record<string, unknown> = {
+        order_kind: 'egg',
+        order_id: order.id,
+        telegram_id: user.id,
+        product_id: String(order.eggName ?? ''),
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
       const match = transactions.find((tx: any) => {
         const inMsg = tx?.in_msg;
+        // The unique order comment is the ONLY way a transfer is bound to this purchase.
         if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
-        const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
-        // Comment identifies the order; the transfer must also be newer than the order itself.
-        if (utime && utime < createdAt - 300_000) return false;
-        // 1% tolerance covers sender-side fee rounding.
-        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 99n) / 100n;
+        // 3% tolerance covers sender-side fee rounding.
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
       });
-      if (!match) { stillPending.push(order.id); continue; }
+      if (!match) {
+        stillPending.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
+        continue;
+      }
       const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
       try {
         // The database is the only place that can turn a paid order into a pet (idempotent).
-        const outcome = await rpc(db, 'confirm_pet_egg_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: order.amountNano }) as any;
+        const outcome = await rpc(db, 'confirm_pet_egg_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano }) as any;
         results.push({ ...outcome, eggName: order.eggName, priceTon: order.priceTon });
         if (outcome?.status === 'already_delivered') alreadyDelivered.push(order.id);
         else completed.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: String(outcome?.status ?? 'completed') });
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
-        console.error('[FORGE ERROR] egg-purchase-confirm', { orderId: order.id, reason });
-        // A tx already tied to another purchase/deposit can never pay this order.
-        if (reason.includes('TX_ALREADY_USED') || reason.includes('PAYMENT_AMOUNT_MISMATCH')) stillPending.push(order.id);
-        else throw error;
+        console.error('[FORGE ERROR] egg-purchase-confirm', { orderId: order.id, txHash, receivedNano, reason });
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: reason });
+        // Never fail an order because of a transient/mismatch problem: keep it pending and retry later.
+        stillPending.push(order.id);
       }
     }
+
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });

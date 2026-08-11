@@ -4893,6 +4893,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ton_payment_logs: {
+        Row: {
+          blockchain_status: string | null
+          created_at: string
+          destination_wallet: string | null
+          error_detail: string | null
+          expected_amount_nano: string | null
+          fulfillment_status: string | null
+          id: string
+          order_id: string | null
+          order_kind: string
+          payment_reference: string | null
+          product_id: string | null
+          received_amount_nano: string | null
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blockchain_status?: string | null
+          created_at?: string
+          destination_wallet?: string | null
+          error_detail?: string | null
+          expected_amount_nano?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          order_id?: string | null
+          order_kind: string
+          payment_reference?: string | null
+          product_id?: string | null
+          received_amount_nano?: string | null
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blockchain_status?: string | null
+          created_at?: string
+          destination_wallet?: string | null
+          error_detail?: string | null
+          expected_amount_nano?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          order_id?: string | null
+          order_kind?: string
+          payment_reference?: string | null
+          product_id?: string | null
+          received_amount_nano?: string | null
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_channel_rewards: {
         Row: {
           channel_key: string
@@ -6736,6 +6790,20 @@ export type Database = {
         Returns: Json
       }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
+      ton_pending_purchase_orders: {
+        Args: { p_max_age_days?: number }
+        Returns: {
+          amount_nano: string
+          created_at: string
+          order_id: string
+          order_kind: string
+          payment_address: string
+          payment_comment: string
+          product_id: string
+          telegram_id: number
+          user_id: string
+        }[]
+      }
       touch_referral_player: {
         Args: {
           p_avatar: string
