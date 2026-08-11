@@ -11,11 +11,12 @@ import type { PetRarity } from '../petRules';
 import { petBuffLabel, petBuffShortLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
+import { useT, useLanguage } from '../LanguageContext';
 
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-const TAB_LABELS: Record<Tab, string> = { pets: 'Meus Pets', eggs: 'Ovos', food: 'Comidas', evolution: 'Evolução', catalog: 'Catálogo' };
+const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'];
 /** Rates always render in ascending rarity order, once per rarity. */
 const sortedRates = (rates: Record<string, number>) =>
@@ -38,6 +39,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
 export function PetsPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const t = useT();
+  const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
   const [tab, setTab] = useState<Tab>('pets');
@@ -56,7 +59,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     mutationFn: async (egg: PetEgg) => {
       if (!tonWallet) {
         await tonUI.openModal();
-        throw new Error('Conecte sua carteira TON e tente novamente.');
+        throw new Error('CONNECT_TON_WALLET');
       }
       const order = await purchasePremiumEgg({ telegramInitData, eggId: egg.id, source: 'pet_shop', sendTransaction: (tx) => tonUI.sendTransaction(tx) });
       const verification = await waitForEggPurchase(telegramInitData);
@@ -65,7 +68,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     onSuccess: async ({ verification, egg }) => {
       setEggTarget(null);
       const hatched = hatchedPurchase(verification);
-      if (!hatched?.result) { toast('Pagamento enviado. Estamos confirmando na blockchain — o ovo abre automaticamente.'); return; }
+      if (!hatched?.result) { toast(t('pets.tonPaymentSent')); return; }
       const dashboard = (hatched.dashboard ?? data) as PetDashboard | undefined;
       if (dashboard) await sync(dashboard);
       setReveal({
@@ -74,7 +77,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         pet: dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId || pet.name === hatched.result?.name),
       });
     },
-    onError: (tonError) => toast.error(tonError instanceof Error ? tonError.message : 'Falha ao pagar com TON.'),
+    onError: (tonError) => toast.error(tonError instanceof Error && tonError.message === 'CONNECT_TON_WALLET' ? t('pets.connectTonWallet') : t('pets.tonPaymentFailed')),
   });
 
   const sync = async (fresh?: PetDashboard) => {
@@ -111,8 +114,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         const { xpGained, levelsGained, foodName, quantity } = payload.feedResult;
         toast.success(
           levelsGained > 0
-            ? `${quantity}x ${foodName}: +${fmt(xpGained)} XP e ${levelsGained} nível(is) ganho(s)!`
-            : `${quantity}x ${foodName}: +${fmt(xpGained)} XP`,
+            ? t('pets.feedSuccessLevels', { quantity, foodName, xp: fmt(xpGained), levels: levelsGained })
+            : t('pets.feedSuccessXp', { quantity, foodName, xp: fmt(xpGained) }),
         );
         setFeedTarget(null);
         return;
@@ -121,31 +124,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         setEvolution(payload.evolveResult);
         return;
       }
-      toast.success('Companheiro atualizado!');
+      toast.success(t('pets.companionUpdated'));
     },
     onError: (mutationError) => {
-      const raw = mutationError instanceof Error ? mutationError.message : '';
-      const map: Record<string, string> = {
-        NOT_ENOUGH_PET_FOOD: 'Você não tem comida suficiente para essa quantidade.',
-        PET_NOT_OWNED: 'Este companheiro não pertence a você.',
-        PET_MAX_LEVEL: 'Este companheiro já está no nível máximo.',
-        FOOD_NOT_FOUND: 'Comida indisponível no momento.',
-        INVALID_FEED_REQUEST: 'Quantidade inválida.',
-      };
-      const key = Object.keys(map).find((code) => raw.includes(code));
-      toast.error(key ? map[key] : raw || 'Não foi possível concluir a ação.');
+      toast.error(tError(mutationError));
     },
     onSettled:()=>{openingRef.current=false},
   });
 
   const pending = mutation.isPending;
 
-  if (isLoading) return <Shell onClose={onClose}><p className="py-24 text-center text-sm text-amber-200">Carregando companheiros...</p></Shell>;
+  if (isLoading) return <Shell onClose={onClose}><p className="py-24 text-center text-sm text-amber-200">{t('pets.loading')}</p></Shell>;
   if (error || !data) {
     return (
       <Shell onClose={onClose}>
         <p className="py-24 text-center text-sm text-rose-300">
-          {error instanceof Error ? error.message : 'Não foi possível carregar os pets.'}
+          {error instanceof Error ? tError(error) : t('pets.loadError')}
         </p>
       </Shell>
     );
