@@ -5222,6 +5222,16 @@ export type Database = {
         Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
       }
+      admin_set_global_boss_reward: {
+        Args: {
+          p_admin_id: number
+          p_code?: string
+          p_reason?: string
+          p_scope: string
+          p_value: number
+        }
+        Returns: Json
+      }
       admin_set_hero_fusion_pool: {
         Args: { p_admin_id: number; p_enabled: boolean; p_hero_key: string }
         Returns: Json
