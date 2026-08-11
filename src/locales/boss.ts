@@ -77,8 +77,6 @@ export const boss: LocaleBundle = {
     'boss.loadingRanking': 'Carregando ranking...',
     'boss.history': 'Ciclos anteriores',
     'boss.power': 'Poder',
-    'boss.revived': 'REVIVIÓ',
-    'boss.readyToStrike': '⚡ Listo para atacar',
     'boss.revived': 'REVIVEU',
     'boss.readyToStrike': '⚡ Pronto para atacar',
   },
