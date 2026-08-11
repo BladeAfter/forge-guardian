@@ -1,5 +1,7 @@
+import { DICTIONARIES } from './locales';
+
 export type LanguageCode = "pt" | "en" | "es" | "ru";
-export type Translator = (key: string) => string;
+export type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
 const en: Record<string, string> = {
   blacksmith: "Village blacksmith",
