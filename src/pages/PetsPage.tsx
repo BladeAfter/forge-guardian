@@ -8,7 +8,7 @@ import { petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
-import { petBuffLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
+import { petBuffLabel, petBuffShortLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 
@@ -349,7 +349,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   {buff && (
                     <PetBuff
                       buffKey={buff[0]}
-                      label={petBuffLabel(buff[0])}
+                      label={petBuffShortLabel(buff[0])}
                       value={`+${buff[1]}%`}
                       size="sm"
                       className="mt-1 rounded-xl bg-black/40 text-left"
@@ -446,7 +446,7 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
         <PetBuff
           key={key}
           buffKey={key}
-          label={petBuffLabel(key)}
+          label={petBuffShortLabel(key)}
           value={`+${value}%`}
           size="sm"
           className="rounded-xl bg-black/45"
@@ -674,7 +674,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
       <div className="relative z-10 mt-2 rounded-xl border border-white/10 bg-black/45">
         <PetBuff
           buffKey={pet.primaryBuffKey}
-          label={petBuffLabel(pet.primaryBuffKey)}
+          label={petBuffShortLabel(pet.primaryBuffKey)}
           value={`+${pet.primaryBuffValue}%`}
           size="sm"
           color={rarityColor[pet.rarity]}

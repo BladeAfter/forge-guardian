@@ -1,4 +1,4 @@
-import { petBuffLabel } from '../petLabels';
+import { petBuffShortLabel } from '../petLabels';
 
 type Companion = { name: string; image: string; level?: number; rarity?: string } | null | undefined;
 
@@ -18,12 +18,14 @@ export function PetCompanion({
   pet,
   buffKey,
   buffValue,
+  buffs,
   size = 'md',
   label = 'Companheiro em combate',
 }: {
   pet: Companion;
   buffKey?: string | null;
   buffValue?: number;
+  buffs?: { key: string; value: number }[];
   size?: 'sm' | 'md';
   label?: string;
 }) {
@@ -39,10 +41,14 @@ export function PetCompanion({
       <div className="min-w-0">
         <p className="text-[8px] uppercase tracking-[.25em] text-amber-300">{label}</p>
         <b className="block truncate text-sm">{pet.name}</b>
-        <p className="text-[9px] text-slate-400">
-          {pet.level ? `Nível ${pet.level}` : ''}
-          {buffKey && buffValue ? `${pet.level ? ' · ' : ''}${petBuffLabel(buffKey)} +${buffValue}%` : ''}
-        </p>
+        <p className="text-[9px] text-slate-400">{pet.level ? `Nível ${pet.level}` : ''}</p>
+        {buffs?.length ? (
+          <p className="text-[9px] font-semibold leading-tight text-emerald-300">
+            {buffs.map((b) => `${petBuffShortLabel(b.key)} +${b.value}%`).join(' · ')}
+          </p>
+        ) : buffKey && buffValue ? (
+          <p className="text-[9px] font-semibold text-emerald-300">{`${petBuffShortLabel(buffKey)} +${buffValue}%`}</p>
+        ) : null}
       </div>
     </div>
   );
