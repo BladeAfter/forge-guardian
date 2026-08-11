@@ -34,6 +34,7 @@ export default async function handler(req, res) {
     if (action === 'deposit') {
       const amount = Number(req.body?.amountTon), address = String(req.body?.walletAddress || '');
       if (!Number.isFinite(amount) || amount <= 0 || !address) throw new Error('Valor de depósito inválido.');
+      if (amount < 1) throw new Error('Minimum deposit is 1 TON');
       fn = 'create_wallet_deposit';
       args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(req.body?.idempotencyKey || randomUUID())}` };
     } else if (action === 'withdraw') {
