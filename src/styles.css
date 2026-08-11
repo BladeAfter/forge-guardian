@@ -461,3 +461,49 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .forge-golden-tile:active .home-feature-image{filter:drop-shadow(0 0 14px rgba(251,191,36,.85))}
 .forge-golden-tile:active .home-feature-label{color:#fef3c7;text-shadow:0 0 14px rgba(251,191,36,.85)}
 .forge-golden-tile:focus-visible{outline:2px solid rgba(253,224,71,.8);outline-offset:2px}
+
+/* ============ CLAN HALL (village scenery building, not a card) ============ */
+.clan-hall{position:absolute;left:50%;top:50%;z-index:20;display:flex;width:min(62%,230px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
+.clan-hall:active{transform:scale(.98)}
+.clan-hall-ground{position:absolute;bottom:20px;left:8%;width:84%;height:26px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
+.clan-hall-shape{position:relative;display:block;width:100%;line-height:0}
+.clan-hall-art{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 12px rgba(56,110,190,.22)) saturate(1.02) brightness(.97)}
+.clan-hall:hover .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(251,191,36,.28)) brightness(1.05)}
+.clan-hall:active .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 20px rgba(251,191,36,.42)) brightness(1.08)}
+.clan-hall-window-glow{position:absolute;inset:34% 16% 22% 20%;border-radius:38% 38% 22% 22%;background:radial-gradient(ellipse at center,rgba(251,191,36,.2),transparent 70%);opacity:.65;animation:clan-hall-windows 5.5s ease-in-out infinite;pointer-events:none}
+.clan-hall:hover .clan-hall-window-glow{opacity:1}
+@keyframes clan-hall-windows{0%,100%{opacity:.5}50%{opacity:.85}}
+.clan-hall-torch{position:absolute;bottom:26%;width:9%;aspect-ratio:1;pointer-events:none}
+.clan-hall-torch--left{left:30%}
+.clan-hall-torch--right{right:36%}
+.clan-hall-torch i{position:absolute;inset:22%;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 62%,#fff7d1,#fbbf24 42%,rgba(249,115,22,.25) 70%,transparent 78%);filter:blur(1px);animation:clan-hall-flame 1.5s ease-in-out infinite}
+.clan-hall-torch--right i{animation-delay:.45s}
+@keyframes clan-hall-flame{0%,100%{transform:scale(1) translateY(0);opacity:.85}50%{transform:scale(1.18) translateY(-8%);opacity:1}}
+.clan-hall-smoke{position:absolute;left:44%;top:-4%;width:22%;height:30%;pointer-events:none;overflow:visible}
+.clan-hall-smoke i{position:absolute;bottom:0;left:40%;width:8px;height:8px;border-radius:50%;background:rgba(190,205,225,.16);filter:blur(3px);animation:clan-hall-smoke 6s linear infinite}
+.clan-hall-smoke i:nth-child(2){left:58%;animation-delay:2.6s}
+@keyframes clan-hall-smoke{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.5}100%{opacity:0;transform:translateY(-46px) scale(1.7)}}
+.clan-hall-motes{position:absolute;inset:0;pointer-events:none}
+.clan-hall-motes i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(251,214,143,.85);box-shadow:0 0 6px rgba(251,191,36,.7);opacity:0;animation:clan-hall-mote 7s ease-in-out infinite}
+.clan-hall-motes i:nth-child(1){left:22%;bottom:26%}
+.clan-hall-motes i:nth-child(2){left:52%;bottom:18%;animation-delay:1.8s}
+.clan-hall-motes i:nth-child(3){left:74%;bottom:32%;animation-delay:3.4s;background:rgba(147,197,253,.85);box-shadow:0 0 6px rgba(59,130,246,.7)}
+.clan-hall-motes i:nth-child(4){left:38%;bottom:38%;animation-delay:5.1s}
+@keyframes clan-hall-mote{0%{opacity:0;transform:translateY(0)}30%{opacity:.9}100%{opacity:0;transform:translateY(-34px)}}
+.clan-hall-flag{position:absolute;bottom:20%;width:13%;pointer-events:none;transform-origin:top center}
+.clan-hall-flag--left{left:6%}
+.clan-hall-flag--right{right:4%}
+.clan-hall-flag::before{content:'';position:absolute;top:-52%;left:50%;width:2px;height:56%;translate:-50% 0;background:linear-gradient(#c8a35c,#5a4321)}
+.clan-hall-flag b{display:block;width:100%;padding-top:112%;background:linear-gradient(var(--flag-top,#1f3a63),var(--flag-bottom,#07101f));border:1px solid rgba(251,191,36,.55);border-top-width:2px;clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);box-shadow:0 4px 10px rgba(0,0,0,.6);animation:clan-hall-flag 3.4s ease-in-out infinite;transform-origin:top center}
+.clan-hall-flag--right b{animation-delay:.9s}
+@keyframes clan-hall-flag{0%,100%{transform:rotate(-2.5deg) skewY(1deg)}50%{transform:rotate(2.5deg) skewY(-1.5deg)}}
+.clan-hall-invite{position:absolute;top:2%;left:50%;display:grid;translate:-50% 0;place-items:center;width:22px;height:22px;border-radius:8px;border:1px solid rgba(251,191,36,.6);background:rgba(4,8,14,.82);color:#fcd34d;animation:clan-hall-invite 2.6s ease-in-out infinite}
+.clan-hall-invite svg{width:12px;height:12px}
+.clan-hall-invite svg:last-child{position:absolute;right:-4px;bottom:-4px;width:11px;height:11px;border-radius:50%;background:#fbbf24;color:#07090d}
+@keyframes clan-hall-invite{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 4px rgba(251,191,36,.4))}50%{transform:translateY(-3px);filter:drop-shadow(0 0 10px rgba(251,191,36,.8))}}
+.clan-hall-sign{position:relative;z-index:2;display:inline-flex;align-items:center;gap:5px;margin-top:-6px;max-width:100%;padding:2px 8px;border:1px solid rgba(198,157,74,.75);border-radius:4px;background:linear-gradient(#2a1a0e,#160d06);box-shadow:0 4px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,214,140,.18)}
+.clan-hall-sign-text{display:block;min-width:0;text-align:center}
+.clan-hall-sign-text b{display:block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
+.clan-hall-sign-text i{display:block;font-style:normal;font-size:6.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a58a5f}
+@media (max-width:370px){.clan-hall{width:66%}}
+@media (prefers-reduced-motion:reduce){.clan-hall-torch i,.clan-hall-flag b,.clan-hall-smoke i,.clan-hall-motes i,.clan-hall-window-glow,.clan-hall-invite{animation:none}.clan-hall-smoke,.clan-hall-motes{display:none}}
