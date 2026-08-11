@@ -791,6 +791,12 @@ function App() {
                   </div>
                   <button onClick={() => setCalendarOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
                 </div>
+                {/* Official server day and next 21:00 rollover come from the backend only. */}
+                <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.03] px-3 py-2">
+                  <p className="text-[10px] font-black text-amber-200">DIA OFICIAL {calendarDashboard?.gameDayNumber??calendarDay}</p>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-400">PRÓXIMO DIA EM <b className="text-white">{nextResetCountdown(calendarDashboard?.nextResetAt,nowTick)}</b></p>
+                </div>
+
                 <div className="mt-4 grid grid-cols-5 gap-2">
                   {Array.from({ length: 30 }, (_, index) => {
                     const day = index + 1;
