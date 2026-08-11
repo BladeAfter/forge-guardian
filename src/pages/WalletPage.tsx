@@ -8,7 +8,7 @@ import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validWithdrawal, withdrawalQuote } from '../economy';
 import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
-import { eggPurchaseStatusLabel, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
+import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
