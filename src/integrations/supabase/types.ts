@@ -2974,6 +2974,53 @@ export type Database = {
           },
         ]
       }
+      pvp_ticket_purchases: {
+        Row: {
+          amount_fc: number
+          created_at: string
+          daily_count_after: number
+          daily_count_before: number
+          id: string
+          idempotency_key: string
+          purchase_date: string
+          tickets: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_fc: number
+          created_at?: string
+          daily_count_after?: number
+          daily_count_before?: number
+          id?: string
+          idempotency_key: string
+          purchase_date: string
+          tickets: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_fc?: number
+          created_at?: string
+          daily_count_after?: number
+          daily_count_before?: number
+          id?: string
+          idempotency_key?: string
+          purchase_date?: string
+          tickets?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_ticket_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_definitions: {
         Row: {
           code: string
@@ -4278,6 +4325,10 @@ export type Database = {
         Args: { p_admin_id: number; p_percent: number }
         Returns: number
       }
+      admin_set_pvp_ticket_pack: {
+        Args: { p_admin_id: number; p_price_fc: number; p_quantity: number }
+        Returns: Json
+      }
       admin_set_quest_bonus: {
         Args: {
           p_admin_id: number
@@ -4594,6 +4645,14 @@ export type Database = {
         }
         Returns: Json
       }
+      buy_pvp_tickets: {
+        Args: {
+          p_idempotency_key: string
+          p_quantity: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       calculate_pet_reward: {
         Args: {
           p_base: number
@@ -4800,6 +4859,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      has_active_season_pass: { Args: { p_user_id: string }; Returns: string }
       hatch_pet_egg: {
         Args: {
           p_egg_id: string
@@ -4896,6 +4956,8 @@ export type Database = {
         Args: { p_type: string; p_user: string }
         Returns: number
       }
+      pvp_ticket_packs: { Args: never; Returns: Json }
+      pvp_ticket_shop_state: { Args: { p_user_id: string }; Returns: Json }
       quest_timezone: { Args: never; Returns: string }
       quest_today: { Args: never; Returns: string }
       rarity_base_atk: { Args: { r: string }; Returns: number }

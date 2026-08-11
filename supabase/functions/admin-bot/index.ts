@@ -140,6 +140,8 @@ async function playerCard(ctx: Ctx, ref: string) {
     `🆔 <code>${p.telegram_id}</code> · interno <code>${p.id}</code>`,
     `🪙 <b>${fmt(p.forge_coins)} FC</b> · 💎 ${fmt(p.ton_balance)} TON`,
     `🏅 ${esc(p.league)} · 🏆 ${fmt(p.trophies)} · 🎟 ${fmt(p.tickets)}`,
+    `🛒 Comprados hoje: ${fmt(p.tickets_bought_today ?? 0)} / ${fmt(p.ticket_daily_limit ?? 10)} · Passe: ${p.pass_tier ? esc(String(p.pass_tier).toUpperCase()) : 'NO'}`,
+
     `⚔️ ${fmt(p.wins)}V / ${fmt(p.losses)}D · 👑 ${fmt(p.boss_defeats)} chefes`,
     `🦸 ${fmt(p.heroes_count)} heróis · 🐲 ${fmt(p.pets_count)} pets · 🤝 ${fmt(p.referrals)} convites`,
     `👛 TON Wallet: <code>${esc(walletOut(p.wallet) ?? (p.wallet ? String(p.wallet) : 'NO TON WALLET CONNECTED'))}</code>${p.wallet && !walletOut(p.wallet) ? ' ⚠️ INVÁLIDA' : ''}`,
@@ -431,9 +433,11 @@ async function module(ctx: Ctx, name: string) {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 10 });
       return edit(ctx, `⚔️ <b>PVP</b>\nVitória <b>+${d.settings.win}</b> · Derrota <b>${d.settings.loss}</b> · Ticket custo ${d.settings.ticket_cost} (máx ${d.settings.ticket_max})\nBatalhas 24h: ${fmt(d.battles_today)}\n\n<b>TOP 10</b>\n${d.ranking.map((r: any, i: number) => `${i + 1}. ${esc(r.name)} — ${fmt(r.trophies)}🏆 (${esc(r.league)})`).join('\n') || '—'}`,
         kb([[{ t: '🏅 LIGAS', d: 'view:leagues' }, { t: '⚙️ VALORES', d: 'ask:pvpset' }],
+            [{ t: '🎟 TICKET SETTINGS', d: 'view:pvptickets' }],
             [{ t: '📈 TOP 50', d: 'rank:50' }, { t: '📈 TOP 100', d: 'rank:100' }],
             [{ t: '♻️ RESETAR TEMPORADA', d: 'confirm:pvpreset' }], nav()]));
     }
+
     case 'pass': {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
       const s = d.season || {};
@@ -857,6 +861,10 @@ const PROMPTS: Record<string, string> = {
   giveitem: 'Envie: <code>usuário tipo item quantidade</code>\nTipos: <code>ovo</code> (slug do ovo), <code>comida</code> (code), <code>fragmento</code>.\nEx.: <code>8118569391 ovo epic-egg 3</code>',
   givefrag: 'Envie: <code>usuário quantidade</code> para conceder fragmentos universais.',
   pvpset: 'Envie: <code>chave valor</code>\nChaves: pvp_trophy_win, pvp_trophy_loss, pvp_ticket_cost, pvp_ticket_start, pvp_ticket_max, pvp_ticket_regen_minutes, pvp_ticket_price_fc, pvp_win_reward_fc',
+  tkfree: 'Envie o novo limite diário de compra de tickets para jogadores SEM Battle Pass — ex.: <code>10</code>',
+  tkpass: 'Envie o novo limite diário de compra de tickets para jogadores COM Battle Pass — ex.: <code>20</code>',
+  tkpack: 'Envie: <code>quantidade preço_fc</code> — ex.: <code>3 13500</code> (use preço 0 e remova manualmente para desativar).',
+
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":10000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
@@ -1081,6 +1089,14 @@ async function handleCallback(ctx: Ctx, data: string) {
       return send(ctx, `🏅 <b>LIGAS</b>\n${d.leagues.map((l: any) => `• <code>${esc(l.code)}</code> ${esc(l.icon)} ${esc(l.name)} — ${l.min_trophies}–${l.max_trophies ?? '∞'} ${l.enabled ? '✅' : '⛔'}`).join('\n')}`,
         kb([[{ t: '✏️ EDITAR LIGA', d: 'ask:league' }], nav('m:pvp')]));
     }
+    if (rest[0] === 'pvptickets') {
+      const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
+      const packs = Object.entries(d.settings.packs || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+      return send(ctx, `🎟 <b>TICKET SETTINGS</b>\nLimite diário FREE: <b>${fmt(d.settings.free_daily_limit)}</b>\nLimite diário PASSE: <b>${fmt(d.settings.pass_daily_limit)}</b>\n\n<b>PACOTES</b>\n${packs.map(([k, v]) => `• ${k} ticket(s) — ${fmt(Number(v))} FC`).join('\n') || '—'}\n\nVendidos hoje: ${fmt(d.tickets_sold_today)} tickets · ${fmt(d.fc_spent_today)} FC`,
+        kb([[{ t: '🔢 LIMITE FREE', d: 'ask:tkfree' }, { t: '🔢 LIMITE PASSE', d: 'ask:tkpass' }],
+            [{ t: '💰 PREÇO DO PACOTE', d: 'ask:tkpack' }], nav('m:pvp')]));
+    }
+
   }
   if (head === 'maint') {
     await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'maintenance_mode', p_value: rest[0] === 'on', p_reason: 'painel admin' });
@@ -1370,6 +1386,10 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'ads': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_ad_provider', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Provedor ${esc(r.name)} ${r.enabled ? 'ativo' : 'inativo'} — ${fmt(r.reward_fc)} FC`, MAIN_MENU); }
     case 'setting': { const i = text.indexOf(' '); const k = i < 0 ? text : text.slice(0, i); const v = i < 0 ? '' : text.slice(i + 1); const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ <code>${esc(k)}</code>\n${esc(JSON.stringify(r.old_value))} → <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
     case 'pvpset': { const [k, v] = text.split(/\s+/); const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ ${esc(k)}: ${esc(JSON.stringify(r.old_value))} → <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
+    case 'tkfree': { const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pvp_ticket_free_daily_limit', p_value: Number(text.replace(/[^\d]/g, '')), p_reason: 'painel admin' }); return send(ctx, `✅ Limite diário FREE: <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
+    case 'tkpass': { const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pvp_ticket_pass_daily_limit', p_value: Number(text.replace(/[^\d]/g, '')), p_reason: 'painel admin' }); return send(ctx, `✅ Limite diário PASSE: <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
+    case 'tkpack': { const [q, p] = text.split(/\s+/); const r = await rpc('admin_set_pvp_ticket_pack', { p_admin_id: ctx.adminId, p_quantity: Number(q), p_price_fc: Number(String(p).replace(/[^\d.]/g, '')) }); return send(ctx, `✅ Pacotes: <code>${esc(JSON.stringify(r.packs))}</code>`, MAIN_MENU); }
+
     case 'maintmsg': { await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'maintenance_message', p_value: text, p_reason: 'painel admin' }); return send(ctx, '✅ Mensagem atualizada.', MAIN_MENU); }
     case 'ref': { const r = await rpc('admin_set_referral_percent', { p_admin_id: ctx.adminId, p_level: Number(args[0]), p_percent: Number(text.replace(/[^\d.]/g, '')), p_reason: 'painel admin' }); return send(ctx, `✅ Nível ${r.level}: ${r.old_value}% → <b>${r.new_value}%</b>`, MAIN_MENU); }
     case 'unlink': { const i = text.indexOf(' '); const r = await rpc('admin_unlink_referral', { p_admin_id: ctx.adminId, p_ref: text.slice(0, i), p_reason: text.slice(i + 1) }); return send(ctx, `✂️ ${r.removed} vínculo(s) removido(s).`, MAIN_MENU); }
