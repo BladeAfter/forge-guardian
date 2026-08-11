@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Lock, Sparkles, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
 import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
@@ -12,7 +12,8 @@ const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
   const { tError } = useLanguage();
-  const { data, isLoading, error } = usePlayerHeroes(telegramInitData, true);
+  // Only the collection blocks this screen. PvP team and fusion state are decoration.
+  const { data, isLoading, isFetching, error, refetch } = usePlayerHeroes(telegramInitData, true);
   // PvP team info is optional decoration: its failure never blocks the collection.
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
@@ -21,10 +22,15 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
+  useEffect(() => { console.log('[HEROES] start'); }, []);
+  useEffect(() => { if (data) console.log('[HEROES] player heroes loaded', data.heroes.length); }, [data]);
+  useEffect(() => { if (error) console.error('[SCREEN ERROR]', { screen: 'heroes', step: 'player-heroes', message: error instanceof Error ? error.message : String(error) }); }, [error]);
   const heroes: PvpHero[] = data?.heroes ?? [];
   const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
   const maxStars = fusion?.config?.max_stars ?? 5;
   const fusionHero = fusion?.heroes.find((h) => h.heroId === fusingId) ?? null;
+  // A pending query with no in-flight request (offline flag / paused) must not spin forever.
+  const stalled = isLoading && !isFetching;
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
