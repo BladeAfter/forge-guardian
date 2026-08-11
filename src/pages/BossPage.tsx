@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Trophy } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
@@ -9,20 +9,26 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
+import { useGlobalBossRanking } from '../hooks';
 import type { PvpHero } from '../pvp';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
-type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onClaimReward:()=>Promise<void>|void};
+type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onClaimReward:()=>Promise<void>|void};
 const RARITY_KEYS:HeroRarity[]=['common','uncommon','rare','epic','legendary'];
 const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroRarity>={common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',epic:'epic',epico:'epic','épico':'epic',legendary:'legendary',lendario:'legendary','lendário':'legendary'};return map[String(value??'').trim().toLowerCase()]??'common'};
+const compact=(value:number)=>Math.floor(value).toLocaleString();
 
-export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,onEquipHero,onRemoveHero,onAttack,isAttacking,onClaimReward}:Props){
+export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onClaimReward}:Props){
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
+  const [isRankingOpen,setIsRankingOpen]=useState(false);
+  const global=combat?.globalBoss??null;
+  const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
   const previous=useRef(combat?.bossCurrentHp ?? game.boss.healthPercent);
   const equipInFlight=useRef(false);
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer)},[]);
   useEffect(()=>{const hp=combat?.bossCurrentHp ?? game.boss.healthPercent;if(hp<previous.current){setHit(true);const timer=window.setTimeout(()=>setHit(false),500);previous.current=hp;return()=>clearTimeout(timer)}previous.current=hp},[combat?.bossCurrentHp,game.boss.healthPercent]);
+
   const heroes=useMemo<CombatHero[]>(()=>{
     if(combat?.heroes)return combat.heroes as CombatHero[];
     const localHeroes:CombatHero[]=[];
