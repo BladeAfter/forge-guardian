@@ -955,7 +955,19 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     case 'boss': return clanBossMenu(ctx, a);
     case 'edit': return clanEditMenu(ctx, a);
     case 'audit': return clanAudit(ctx, a);
+    case 'cfg': return clanSettingsView(ctx);
+    case 'costgo': {
+      const r = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'set_cost', p_value: Number(a) }) as any;
+      await send(ctx, `✅ <b>CUSTO ATUALIZADO</b>\n\nNovo custo para criar clã: <b>${fmt(r.createCostFc)} FC</b>\nClãs já criados permanecem intactos.`);
+      return clanSettingsView({ ...ctx, messageId: undefined }, false);
+    }
+    case 'limitgo': {
+      const r = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'set_limit', p_value: Number(a) }) as any;
+      await send(ctx, `✅ <b>LIMITE ATUALIZADO</b>\n\nNovos clãs passam a ser criados com <b>${fmt(r.defaultMemberLimit)}</b> membros.`);
+      return clanSettingsView({ ...ctx, messageId: undefined }, false);
+    }
     case 'ask': return ask(ctx, `${a}|${b}`, PROMPTS[a] || 'Envie o valor.');
+
     case 'xpgo': {
       const r = await clanRpc(ctx, 'xp', a, { xp: Number(b) });
       await send(ctx, `✅ XP ajustado: <b>${esc(r.clan.name)}</b> — NV${r.clan.level} · ${fmt(r.clan.xp)}/${fmt(r.clan.xpNeeded)}`);
