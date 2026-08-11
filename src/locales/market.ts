@@ -47,8 +47,6 @@ export const market: LocaleBundle = {
     'market.back': 'BACK',
     'market.mine': 'MINE',
     'market.refresh': 'REFRESH',
-    'market.maintenance': 'UNDER MAINTENANCE',
-    'market.maintenanceMessage': 'The player market is temporarily closed for improvements.',
   },
   pt: {
     'market.tabRecruit': 'RECRUTAR',
@@ -95,8 +93,6 @@ export const market: LocaleBundle = {
     'market.back': 'VOLTAR',
     'market.mine': 'MEU',
     'market.refresh': 'ATUALIZAR',
-    'market.maintenance': 'EM MANUTENÇÃO',
-    'market.maintenanceMessage': 'O mercado de jogadores está temporariamente fechado para melhorias.',
   },
   es: {
     'market.tabRecruit': 'RECLUTAR',
@@ -143,8 +139,6 @@ export const market: LocaleBundle = {
     'market.back': 'VOLVER',
     'market.mine': 'MÍO',
     'market.refresh': 'ACTUALIZAR',
-    'market.maintenance': 'EN MANTENIMIENTO',
-    'market.maintenanceMessage': 'El mercado de jugadores está temporalmente cerrado por mejoras.',
   },
   ru: {
     'market.tabRecruit': 'НАБОР',
@@ -191,7 +185,5 @@ export const market: LocaleBundle = {
     'market.back': 'НАЗАД',
     'market.mine': 'МОЙ',
     'market.refresh': 'ОБНОВИТЬ',
-    'market.maintenance': 'НА ТЕХОБСЛУЖИВАНИИ',
-    'market.maintenanceMessage': 'Рынок игроков временно закрыт для улучшений.',
   },
 };
