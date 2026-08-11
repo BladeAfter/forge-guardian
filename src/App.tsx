@@ -374,10 +374,17 @@ function App() {
   },[backendEnabled,telegramInitData,telegramStartParam,queryClient]);
 
   // FC have a single source of truth: the server balance (game_players.forge_coins).
+  // wallet summary and get_game_state both read that column, so either one is authoritative.
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
+  const gameBalance=typeof game?.balance==='number'&&Number.isFinite(game.balance)?game.balance:null;
+  /**
+   * null means "still unknown" (loading/failed request) — never a real zero. Every screen that
+   * displays FC renders a placeholder for null instead of a misleading 0 FC.
+   */
+  const fcBalanceKnown=backendEnabled?(serverBalance??gameBalance):gameBalance;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
-  const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
+  const fcBalance=fcBalanceKnown??0;
   useEffect(()=>{
     if(serverBalance===null)return;
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
