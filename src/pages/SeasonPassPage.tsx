@@ -6,6 +6,7 @@ import{toast}from'sonner';
 import{seasonPassRequest,buySeasonPassLevels}from'../services';
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
 import{useT,useLanguage}from'../LanguageContext';
+import{formatTon}from'../economy';
 import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
 import{type PassReward,type PassTier,type PassLevelPurchaseConfig,type SeasonPassDashboard}from'../seasonPass';
