@@ -428,6 +428,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
 }
 
 function LevelBar({ pet }: { pet: PlayerPet }) {
+  const t = useT();
   const percent = pet.isMaxLevel ? 100 : Math.min(100, (pet.xp / Math.max(1, pet.xpRequired)) * 100);
   return (
     <>
