@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag } from 'lucide-react';
+import { X, Store, Swords, Tag, Info } from 'lucide-react';
+import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
@@ -103,7 +104,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">MYTHREON</p>
             <h2 className="text-lg font-black leading-tight text-white">{t('shop')}</h2>
           </div>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
+            <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          </div>
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2 px-4">
