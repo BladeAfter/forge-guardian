@@ -651,6 +651,7 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
 }
 
 function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
+  const t = useT();
   const style = PET_RARITY_STYLE[pet.rarity] ?? PET_RARITY_STYLE.common;
   return (
     <div
@@ -663,7 +664,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
         {pet.isActive && (
           <span className="flex items-center gap-1 rounded-full border border-emerald-300/45 bg-emerald-950/80 px-2 py-1 text-[7px] font-black text-emerald-200">
-            <Check className="h-2.5 w-2.5" />ATIVO
+            <Check className="h-2.5 w-2.5" />{t('pets.active')}
           </span>
         )}
       </div>
@@ -674,7 +675,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
 
       <div className="relative z-10">
         <h3 className="truncate text-base font-black uppercase tracking-wide">{pet.name}</h3>
-        <p className="mt-1 text-[9px] font-bold text-slate-300">Nível {pet.level}/{pet.maxLevel} · Poder {fmt(pet.power)}</p>
+        <p className="mt-1 text-[9px] font-bold text-slate-300">{t('pets.cardLevelPower', { level: pet.level, max: pet.maxLevel, power: fmt(pet.power) })}</p>
         <p className="text-[8px] text-slate-500">{petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}</p>
       </div>
 
@@ -692,7 +693,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         />
         {pet.secondaryBuffs.length > 0 && (
           <p className="px-2 pb-2 text-[8px] text-violet-300">
-            +{pet.secondaryBuffs.length} bônus secundário{pet.secondaryBuffs.length > 1 ? 's' : ''}
+            {t('pets.secondaryBonus', { count: pet.secondaryBuffs.length, plural: pet.secondaryBuffs.length > 1 ? 's' : '' })}
           </p>
         )}
 
@@ -705,11 +706,11 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
           disabled={pending || pet.isMaxLevel}
           className="flex h-10 items-center justify-center gap-1 rounded-lg border border-amber-300/35 bg-black/40 px-1 text-[9px] font-black text-amber-100 disabled:opacity-40"
         >
-          <Info className="h-3 w-3" />ALIMENTAR
+          <Info className="h-3 w-3" />{t('pets.feedButton')}
         </button>
         {pet.isActive ? (
           <button type="button" disabled className="flex h-10 items-center justify-center gap-1 rounded-lg border border-emerald-300/30 bg-emerald-950/45 px-1 text-[9px] font-black text-emerald-300">
-            <Check className="h-3 w-3" />EQUIPADO
+            <Check className="h-3 w-3" />{t('pets.equipped')}
           </button>
         ) : (
           <button
@@ -718,7 +719,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
             disabled={pending}
             className="flex h-10 items-center justify-center rounded-lg border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 px-1 text-[9px] font-black text-black disabled:grayscale disabled:opacity-40"
           >
-            ATIVAR
+            {t('pets.activate')}
           </button>
         )}
       </div>
