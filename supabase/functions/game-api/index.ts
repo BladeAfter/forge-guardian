@@ -629,32 +629,34 @@ async function verifyPassPurchases(db: Db, user: TelegramUser) {
   const stillPending: string[] = [];
   const results: any[] = [];
 
+  const usedHashes = new Set<string>();
   for (const order of orders) {
+    // A pass is only ever activated by a payment carrying THIS order's comment.
+    // Plain deposits (or any other purchase) can never activate a pass.
     const comment = String(order.paymentComment || '').trim();
     const expectedNano = BigInt(String(order.amountNano || '0'));
-    const createdAt = new Date(String(order.createdAt)).getTime();
-    const match = transactions.find((tx: any) => {
+    const minNano = (expectedNano * 97n) / 100n; // 3% tolerance for wallet/network fees
+    const match = !comment ? undefined : transactions.find((tx: any) => {
       const inMsg = tx?.in_msg;
-      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
-      return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 99n) / 100n;
-    }) ?? transactions.find((tx: any) => {
-      // Legacy/commentless payments: exact value inside this order's time window only.
-      const inMsg = tx?.in_msg;
-      if (!inMsg || msgComment(inMsg)) return false;
-      const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
-      return BigInt(String(inMsg.value ?? '0')) === expectedNano && utime >= createdAt - 300_000 && utime <= createdAt + 7_200_000;
+      if (!inMsg || msgComment(inMsg) !== comment) return false;
+      const hash = String(tx.hash || inMsg.hash || '');
+      if (!hash || usedHashes.has(hash)) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
     });
     if (!match) { stillPending.push(order.id); continue; }
     const txHash = String(match.hash || match.in_msg?.hash || '');
+    const receivedNano = String(match.in_msg?.value ?? '0');
     try {
       // Only the database turns a confirmed payment into pass ownership (atomic + idempotent).
-      const outcome = await rpc(db, 'confirm_season_pass_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: order.amountNano }) as any;
+      const outcome = await rpc(db, 'confirm_season_pass_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano }) as any;
+      usedHashes.add(txHash);
       results.push({ ...outcome, tier: outcome?.tier ?? order.tier, priceTon: order.priceTon });
       completed.push(order.id);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       console.error('[FORGE ERROR] pass-purchase-confirm', { orderId: order.id, reason });
-      if (reason.includes('TX_ALREADY_USED')) stillPending.push(order.id);
+      if (reason.includes('TX_ALREADY_USED')) { usedHashes.add(txHash); stillPending.push(order.id); }
+      else if (reason.includes('INVALID_PAYMENT_AMOUNT')) stillPending.push(order.id);
       else throw error;
     }
   }
