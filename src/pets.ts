@@ -60,7 +60,7 @@ export type PetEvolveResult = {
   fcSpent: number; fragmentsSpent: number;
   petFragmentsSpent?: number; universalFragmentsSpent?: number; universalFragmentsLeft?: number;
 };
-export type PetHatchResult = { openingId?: string; historyId?: string; status?: 'processing' | 'completed' | 'failed' | 'not_found'; name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
+export type PetHatchResult = { openingId?: string; historyId?: string; resultType?: 'new_pet' | 'duplicate'; isNew?: boolean; playerPetId?: string; fragmentsReceived?: number; status?: 'processing' | 'completed' | 'failed' | 'not_found'; name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
 
 /** Envelope returned by every pet action. Mutating actions wrap the fresh dashboard. */
 export type PetActionResponse = Partial<PetDashboard> & {

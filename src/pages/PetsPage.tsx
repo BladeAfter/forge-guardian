@@ -72,9 +72,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       const dashboard = (hatched.dashboard ?? data) as PetDashboard | undefined;
       if (dashboard) await sync(dashboard);
       setReveal({
-        result: { ...hatched.result, rarity: hatched.result.rarity as PetRarity },
+        result: { ...hatched.result, rarity: String(hatched.result.rarity).toLowerCase() as PetRarity },
         eggImage: egg.image,
-        pet: dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId || pet.name === hatched.result?.name),
+        pet: dashboard?.playerPets.find((pet) => pet.id === hatched.result?.playerPetId)
+          ?? dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId),
       });
     },
     onError: (tonError) => toast.error(tonError instanceof Error && tonError.message === 'CONNECT_TON_WALLET' ? t('pets.connectTonWallet') : t('pets.tonPaymentFailed')),
@@ -104,10 +105,11 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       const dashboard = (payload.dashboard ?? (payload as PetDashboard)) as PetDashboard;
       await sync(dashboard);
       if (payload.result) {
-        const hatched = dashboard.playerPets.find((pet) => pet.petId === payload.result?.petId || pet.name === payload.result?.name);
+        const hatched = dashboard.playerPets.find((pet) => pet.id === payload.result?.playerPetId)
+          ?? dashboard.playerPets.find((pet) => pet.petId === payload.result?.petId);
         const eggImage = (variables?.action === 'hatch' ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
           || '/assets/game/pet-eggs/common-egg.webp';
-        setReveal({ result: { ...payload.result, rarity: payload.result.rarity as PetRarity }, eggImage, pet: hatched });
+        setReveal({ result: { ...payload.result, rarity: String(payload.result.rarity).toLowerCase() as PetRarity }, eggImage, pet: hatched });
         return;
       }
       if (payload.feedResult) {

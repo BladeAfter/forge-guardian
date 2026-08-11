@@ -104,7 +104,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
               ) : rarityError ? (
                 <p className="py-20 text-center text-sm text-slate-300">{tError(rarityError) || t('heroes.fusionLoadError')}</p>
               ) : rarityFusion ? (
-                <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} />
+                <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} active={tab === 'fusion'} />
               ) : null}
             </div>
           </div>

@@ -2390,8 +2390,10 @@ export type Database = {
           failure_reason: string | null
           id: string
           idempotency_key: string
+          is_new: boolean
           opening_id: string
           result_pet_id: string | null
+          result_player_pet_id: string | null
           result_rarity: string | null
           seed_hash: string
           status: string
@@ -2405,8 +2407,10 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           idempotency_key: string
+          is_new?: boolean
           opening_id: string
           result_pet_id?: string | null
+          result_player_pet_id?: string | null
           result_rarity?: string | null
           seed_hash: string
           status?: string
@@ -2420,8 +2424,10 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           idempotency_key?: string
+          is_new?: boolean
           opening_id?: string
           result_pet_id?: string | null
+          result_player_pet_id?: string | null
           result_rarity?: string | null
           seed_hash?: string
           status?: string
