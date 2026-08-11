@@ -35,6 +35,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [sellKind, setSellKind] = useState<MarketItemType>('hero');
   const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
   const [price, setPrice] = useState('');
+  const [sortOpen, setSortOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   const marketOpen = tab === 'market';
   useMarketRealtime(marketOpen);
@@ -46,6 +48,20 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const feePercent = Number(settings?.feePercent ?? 5);
   const minPrice = Number(settings?.minPrice?.[sellKind] ?? 5000);
   const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
+
+  const sortLabel = (value: MarketSort) =>
+    value === 'newest' ? t('market.sortNewest') : value === 'price_low' ? t('market.sortPriceLow') : t('market.sortPriceHigh');
+
+  const PAGE_SIZE = 8;
+  const listings = browse.data?.listings ?? [];
+  const totalPages = Math.max(1, Math.ceil(listings.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageListings = listings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageNumbers = Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+    const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    return start + index;
+  }).filter((value) => value >= 1 && value <= totalPages);
+
 
   const refreshAll = async () => {
     await Promise.all([
