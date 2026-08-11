@@ -266,4 +266,4 @@ function Line({ label, value, tone }: { label: string; value: string; tone?: 'fe
 }
 function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
 function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed','paid'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
-function statusLabel(status:string){return({pending:'Pendente',confirmed:'Confirmado',credited:'Creditado',processing:'Processando',completed:'Concluído',paid:'Pago',delivered:'Entregue',expired:'Expirado',rejected:'Rejeitado',cancelled:'Cancelado'}as Record<string,string>)[status]??status;}
+function statusLabel(status: string, t: (key: string) => string) { return t(`wallet.status.${status}`) ?? status; }
