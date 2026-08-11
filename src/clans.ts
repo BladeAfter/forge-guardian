@@ -76,18 +76,57 @@ const CLAN_ERRORS: Record<string, string> = {
   CHAT_RATE_LIMIT: 'clan.error.rateLimit',
   CLAN_BOSS_COOLDOWN: 'clan.error.bossCooldown',
   CLAN_BOSS_DEFEATED: 'clan.error.bossDefeated',
+  INVALID_JOIN_TYPE: 'clan.error.invalidJoinType',
+  PLAYER_NOT_FOUND: 'clan.error.playerNotFound',
+  BACKEND_BUSY: 'clan.error.busy',
+  CLAN_BACKEND_OFFLINE: 'clan.error.offline',
 };
+
 
 /** Maps a backend error code onto a translation key, so every message follows the player's language. */
 export const clanErrorKey = (message: string) => CLAN_ERRORS[message] ?? '';
 
+export type ClanRequestError = Error & { code?: string | null; details?: string | null; hint?: string | null; status?: number };
+
 export async function clanRequest<T = ClanDashboard>(initData: string, input: Record<string, unknown> = { action: 'dashboard' }): Promise<T> {
-  const response = await forgeFetch('clan', { initData, ...input });
-  if (response.status === 404) throw new Error('CLAN_BACKEND_OFFLINE');
-  const payload = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
-  if (!response.ok || !payload) throw new Error(payload?.error || 'CLAN_UNKNOWN');
+  const action = String(input.action ?? 'dashboard');
+  let response: Awaited<ReturnType<typeof forgeFetch>>;
+  try {
+    response = await forgeFetch('clan', { initData, ...input });
+  } catch (error) {
+    console.error('[CLAN REQUEST FAILED]', { action, message: error instanceof Error ? error.message : String(error), code: 'NETWORK', details: null, hint: null });
+    const failure = new Error('CLAN_BACKEND_OFFLINE') as ClanRequestError;
+    failure.code = 'NETWORK';
+    throw failure;
+  }
+  if (response.status === 404) {
+    console.error('[CLAN REQUEST FAILED]', { action, status: 404, message: 'clan route unavailable / no Telegram session', code: 'CLAN_BACKEND_OFFLINE' });
+    const failure = new Error('CLAN_BACKEND_OFFLINE') as ClanRequestError;
+    failure.code = 'CLAN_BACKEND_OFFLINE';
+    failure.status = 404;
+    throw failure;
+  }
+  const payload = (await response.json().catch(() => null)) as (T & { error?: string; code?: string | null; details?: string | null; hint?: string | null }) | null;
+  if (!response.ok || !payload || payload.error) {
+    // Full Supabase diagnostics stay in the console; the player only sees a friendly toast.
+    console.error('[CLAN REQUEST FAILED]', {
+      action,
+      status: response.status,
+      message: payload?.error ?? 'resposta inválida do backend',
+      code: payload?.code ?? null,
+      details: payload?.details ?? null,
+      hint: payload?.hint ?? null,
+    });
+    const failure = new Error(payload?.error || 'CLAN_UNKNOWN') as ClanRequestError;
+    failure.code = payload?.code ?? null;
+    failure.details = payload?.details ?? null;
+    failure.hint = payload?.hint ?? null;
+    failure.status = response.status;
+    throw failure;
+  }
   return payload;
 }
+
 
 export const fetchClanDashboard = (initData: string) => clanRequest<ClanDashboard>(initData, { action: 'dashboard' });
 export const fetchClanMessages = (initData: string) => clanRequest<{ messages: ClanMessage[] }>(initData, { action: 'chat', chatAction: 'list' });
