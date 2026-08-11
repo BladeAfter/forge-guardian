@@ -128,7 +128,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
 
   const endpoint = `${functionsBase}/${feature}`;
   try {
-    const response = await fetchWithTimeout(endpoint, {
+    const { ok, status, text } = await requestWithDeadline(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,23 +138,22 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
       },
       body: JSON.stringify(body),
     });
-    const text = await response.text();
     let payload: unknown = null;
     try {
       payload = text ? JSON.parse(text) : null;
     } catch {
       payload = null;
     }
-    if (!response.ok) {
+    if (!ok) {
       console.error('[FORGE API ERROR]', {
         feature,
         endpoint,
-        status: response.status,
+        status,
         error: (payload as { error?: string } | null)?.error ?? null,
         response: text.slice(0, 500),
       });
     }
-    return { ok: response.ok, status: response.status, json: async () => payload };
+    return { ok, status, json: async () => payload };
   } catch (error) {
     console.error('[FORGE API ERROR]', { feature, endpoint, status: 0, error, response: null });
     throw error instanceof Error ? error : new Error('Falha de rede ao contatar o backend.');
