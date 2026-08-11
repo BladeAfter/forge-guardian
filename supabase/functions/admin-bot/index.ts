@@ -2065,6 +2065,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
+  if (head === 'gf') return giftCallback(ctx, rest);
+
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
 
   // ---- global boss + user management (button driven, no JSON typing)
