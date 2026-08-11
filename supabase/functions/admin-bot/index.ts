@@ -896,6 +896,8 @@ const PROMPTS: Record<string, string> = {
   passxp: 'Envie: <code>chave valor</code> (XP base da ação).\nEx.: <code>pvp_battle 40</code>\nChaves: daily_login, daily_quest, daily_quest_all, daily_chest, pvp_battle, pvp_victory, boss_attack, boss_damage_milestone, boss_reward, reward_open, pet_feed, pet_level_up, pet_evolution, hero_fuse, rarity_fusion, rarity_fusion_success, calendar_claim',
   passxpmult: 'Envie: <code>free|adventurer|legendary valor</code>\nEx.: <code>legendary 1.4</code> (= +40% de XP do Battle Pass).',
   passxpcap: 'Envie: <code>chave limite</code> — limite de XP base por game_day.\nEx.: <code>pet_feed 100</code> · <code>reward_open 150</code> · <code>pvp_battle 400</code>\nUse <code>0</code> para bloquear a fonte.',
+  passlevelprice: 'Envie: <code>1|3|5 preço</code> — preço em FC do pacote de níveis.\nEx.: <code>1 50000</code> · <code>3 135000</code> · <code>5 200000</code>',
+  passlevellimit: 'Envie o limite de níveis compráveis por game_day (0–30).\nEx.: <code>5</code>',
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":4000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
@@ -937,6 +939,12 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+  if (head === 'passlvtoggle') {
+    await clearSession(ctx);
+    const enabled = rest[0] === 'on';
+    await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { enabled }, p_reason: 'painel admin' });
+    return module(ctx, 'passlevels');
+  }
   // withdrawals: every financial action is resolved by withdrawal_id, never by username.
   if (head === 'pa') { await clearSession(ctx); return handlePayoutAnnouncements(ctx, rest[0] || 'menu'); }
   if (head === 'pasend') {
