@@ -1831,7 +1831,14 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  mksearch: '🔍 Envie o nome do item ou o <b>ID do anúncio</b>.',
+  mkuser: '👤 Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os anúncios do jogador.',
+  mkfee: '💸 Envie a nova taxa do mercado em % (0 a 50).\nEx.: <code>5</code> ou <code>3</code>',
+  mklimit: '🚧 Envie o novo limite de anúncios ativos por jogador (1 a 200).\nEx.: <code>20</code>',
+  mkmin: '🏷 Envie: <code>hero|pet|item valor_fc</code>\nEx.: <code>hero 10000</code>',
+  mkcancel: '🗑 Envie o <b>ID do anúncio</b> a cancelar. O item volta ao inventário do vendedor.',
   evcreate: '🎉 Novo evento especial.\nEnvie: <code>nome | prêmio TON | dias | (opcional) início YYYY-MM-DD HH:MM</code>\nEx.: <code>Referral Championship | 100 | 30</code>',
+
   evprize: '💎 Digite o novo prêmio total do evento em TON.\nEx.: <code>100</code>',
   evdates: '📅 Envie: <code>início YYYY-MM-DD HH:MM | fim YYYY-MM-DD HH:MM</code>\nou <code>início | dias</code>. Ex.: <code>2026-08-11 00:00 | 30</code>',
   evrules: '🛡 Envie: <code>mín_daily_quests | top_limit | fixed|proportional</code>\nEx.: <code>1 | 100 | fixed</code>',
