@@ -23,6 +23,8 @@ import {ClanHall}from'./components/ClanHall';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
+import {HeroShopPanel}from'./components/HeroShopPanel';
+
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
