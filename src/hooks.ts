@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ChannelRewards, RewardHistory } from './services';
-import { fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchGlobalBossRanking, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
-import type { BossCombat } from './combat';
+import type { BossCombat, GlobalBossRanking } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
 import type { PvpDashboard, PvpHero } from './pvp';
@@ -26,7 +26,13 @@ export const useGameState = (telegramInitData: string | null, enabled: boolean) 
 
 export const useBossCombat = (telegramInitData: string | null, enabled: boolean) => useQuery<BossCombat>({
   queryKey:['boss-combat',telegramInitData],queryFn:()=>bossRequest(telegramInitData ?? '','process'),enabled,
-  refetchInterval:15_000,refetchOnWindowFocus:true,staleTime:9_000,retry:1
+  refetchInterval:4_000,refetchOnWindowFocus:true,staleTime:2_000,retry:1
+});
+
+/** Global boss ranking; only polled while the ranking sheet is open. */
+export const useGlobalBossRanking=(telegramInitData:string|null,enabled:boolean,limit=50)=>useQuery<GlobalBossRanking>({
+  queryKey:['global-boss-ranking',telegramInitData,limit],queryFn:()=>fetchGlobalBossRanking(telegramInitData??'',limit),
+  enabled,refetchInterval:enabled?5_000:false,staleTime:3_000,retry:1
 });
 export const useReferralDashboard=(telegramInitData:string|null,enabled:boolean,level?:1|2|3,offset=0)=>useQuery<ReferralDashboard>({queryKey:['referral-dashboard',telegramInitData,level??'all',offset],queryFn:()=>fetchReferralDashboard(telegramInitData??'',level,offset),enabled,staleTime:30_000,refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
 export const usePetDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<PetDashboard>({queryKey:['pet-dashboard',telegramInitData],queryFn:async()=>petRequest(telegramInitData??'',{action:'dashboard'}) as Promise<PetDashboard>,enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});

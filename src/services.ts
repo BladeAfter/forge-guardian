@@ -3,7 +3,7 @@ import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
-import type { BossCombat } from './combat';
+import type { BossCombat, GlobalBossRanking } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
