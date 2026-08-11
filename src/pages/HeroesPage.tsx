@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Lock, Sparkles, X } from 'lucide-react';
-import { useHeroFusion, usePlayerHeroes, usePvpDashboard } from '../hooks';
+import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
+import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import type { PvpHero } from '../pvp';
 
 const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
@@ -13,6 +14,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
   const { data: fusion } = useHeroFusion(telegramInitData, true);
+  const [tab, setTab] = useState<'collection' | 'fusion'>('collection');
+  // Rarity fusion is only fetched once the player opens the tab.
+  const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
   const heroes: PvpHero[] = data?.heroes ?? [];
   const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
@@ -21,15 +25,30 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
-      <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10">
-        <header className="mb-4 flex items-center justify-between gap-2">
+      <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] overflow-x-hidden p-3 pb-10">
+        <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p>
-            <h1 className="truncate text-xl font-black">MEUS HERÓIS</h1>
+            <h1 className="truncate text-xl font-black">HERÓIS</h1>
           </div>
           <button onClick={onClose} aria-label="Fechar" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X /></button>
         </header>
 
+        <nav className="mb-3 grid grid-cols-2 gap-2">
+          {([['collection', 'MEUS HERÓIS'], ['fusion', 'FUSÃO']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`min-h-[38px] rounded-xl border text-[11px] font-black uppercase tracking-[.12em] transition-colors ${tab === key ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="relative overflow-x-hidden">
+          <div className="flex w-[200%] transition-transform duration-300 ease-out" style={{ transform: tab === 'fusion' ? 'translateX(-50%)' : 'translateX(0)' }}>
+            <div className={`w-1/2 shrink-0 pr-1 ${tab === 'fusion' ? 'pointer-events-none' : ''}`}>
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">Coleção usada em PvP e Chefe</p>
           <p className="mt-1 text-sm font-black text-amber-200">{heroes.length} heróis conquistados</p>
@@ -43,6 +62,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         ) : heroes.length === 0 ? (
           <p className="py-20 text-center text-sm text-slate-300">Você ainda não possui heróis. Recrute heróis na Vila para começar.</p>
         ) : (
+
           <div className="mt-3 grid grid-cols-3 gap-2">
             {heroes.map((hero) => {
               const state = fusion?.heroes.find((h) => h.heroId === hero.heroId);
@@ -74,7 +94,20 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             })}
           </div>
         )}
+            </div>
+            <div className={`w-1/2 shrink-0 pl-1 ${tab === 'collection' ? 'pointer-events-none' : ''}`}>
+              {loadingRarity && !rarityFusion ? (
+                <p className="py-20 text-center text-sm text-slate-300">Carregando altar de fusão...</p>
+              ) : rarityError ? (
+                <p className="py-20 text-center text-sm text-slate-300">{rarityError instanceof Error ? rarityError.message : 'Não foi possível carregar a fusão.'}</p>
+              ) : rarityFusion ? (
+                <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} />
+              ) : null}
+            </div>
+          </div>
+        </div>
       </div>
+
 
       {fusion && fusionHero ? (
         <HeroFusionPanel telegramInitData={telegramInitData} dashboard={fusion} hero={fusionHero} onClose={() => setFusingId(null)} />

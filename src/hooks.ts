@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ChannelRewards, RewardHistory } from './services';
-import { fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
+import { fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest } from './services';
 import type { GameState } from './types';
 import type { BossCombat } from './combat';
 import type { ReferralDashboard } from './referrals';
@@ -12,7 +12,7 @@ import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
-import type{FusionDashboard}from'./heroFusion';
+import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -51,3 +51,6 @@ export const useDailyQuests=(telegramInitData:string|null,enabled:boolean)=>useQ
 
 /** Hero ascension state (stars, duplicates, costs) — server is the only source of truth. */
 export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<FusionDashboard>({queryKey:['hero-fusion',telegramInitData],queryFn:()=>fetchHeroFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
+
+/** Rarity fusion state (config, odds, eligible heroes) — the server owns every rule. */
+export const useRarityFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<RarityFusionDashboard>({queryKey:['rarity-fusion',telegramInitData],queryFn:()=>fetchRarityFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});

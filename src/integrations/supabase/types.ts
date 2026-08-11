@@ -820,6 +820,7 @@ export type Database = {
           drop_weight: number
           enabled: boolean
           featured: boolean
+          fusion_pool_enabled: boolean
           hero_class: string
           hero_key: string
           image: string
@@ -849,6 +850,7 @@ export type Database = {
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
+          fusion_pool_enabled?: boolean
           hero_class?: string
           hero_key: string
           image: string
@@ -878,6 +880,7 @@ export type Database = {
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
+          fusion_pool_enabled?: boolean
           hero_class?: string
           hero_key?: string
           image?: string
@@ -1021,6 +1024,97 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hero_fusion_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hero_rarity_fusion_history: {
+        Row: {
+          created_at: string
+          fragment_reward: number
+          fusion_cost_fc: number
+          id: string
+          reward_hero_id: string | null
+          reward_hero_key: string | null
+          reward_hero_name: string | null
+          rng_roll: number
+          selected_hero_ids: string[]
+          selected_hero_keys: string[]
+          source_rarity: string
+          success: boolean
+          success_chance: number
+          target_rarity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fragment_reward?: number
+          fusion_cost_fc?: number
+          id?: string
+          reward_hero_id?: string | null
+          reward_hero_key?: string | null
+          reward_hero_name?: string | null
+          rng_roll?: number
+          selected_hero_ids?: string[]
+          selected_hero_keys?: string[]
+          source_rarity: string
+          success?: boolean
+          success_chance?: number
+          target_rarity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fragment_reward?: number
+          fusion_cost_fc?: number
+          id?: string
+          reward_hero_id?: string | null
+          reward_hero_key?: string | null
+          reward_hero_name?: string | null
+          rng_roll?: number
+          selected_hero_ids?: string[]
+          selected_hero_keys?: string[]
+          source_rarity?: string
+          success?: boolean
+          success_chance?: number
+          target_rarity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_rarity_fusion_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hero_rarity_fusion_idempotency: {
+        Row: {
+          created_at: string
+          key: string
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          result?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          result?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_rarity_fusion_idempotency_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -3986,6 +4080,14 @@ export type Database = {
         Returns: Json
       }
       admin_quests_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_rarity_fusion_audit: {
+        Args: { p_admin_id: number; p_limit?: number; p_ref?: string }
+        Returns: Json
+      }
+      admin_rarity_fusion_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
       admin_referral_tree: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
@@ -4084,6 +4186,10 @@ export type Database = {
         Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
       }
+      admin_set_hero_fusion_pool: {
+        Args: { p_admin_id: number; p_enabled: boolean; p_hero_key: string }
+        Returns: Json
+      }
       admin_set_hero_rarity_rates: {
         Args: {
           p_admin_id: number
@@ -4173,6 +4279,20 @@ export type Database = {
       }
       admin_set_quest_timezone: {
         Args: { p_admin_id: number; p_timezone: string }
+        Returns: Json
+      }
+      admin_set_rarity_fusion_enabled: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
+      admin_set_rarity_fusion_tier: {
+        Args: {
+          p_admin_id: number
+          p_chance?: number
+          p_cost?: number
+          p_fragments?: number
+          p_source: string
+        }
         Returns: Json
       }
       admin_set_referral_percent: {
@@ -4605,6 +4725,14 @@ export type Database = {
         }
         Returns: Json
       }
+      fuse_heroes_by_rarity: {
+        Args: {
+          p_hero_ids: string[]
+          p_idempotency_key?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       generate_missing_hero_stats: { Args: never; Returns: number }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -4632,6 +4760,10 @@ export type Database = {
       get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_ranking: { Args: never; Returns: Json }
+      get_rarity_fusion_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_referral_dashboard_v2: {
@@ -4668,6 +4800,7 @@ export type Database = {
       hero_fusion_config: { Args: never; Returns: Json }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
+      hero_rarity_fusion_config: { Args: never; Returns: Json }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_summon_rates: { Args: never; Returns: Json }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }

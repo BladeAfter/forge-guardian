@@ -346,6 +346,20 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     }
     fn = 'fuse_heroes';
     args = { ...args, p_main_hero_id: body.mainHeroId, p_material_ids: materials };
+  } else if (action === 'rarity-fusion') {
+    // Rarity fusion (5 heroes of the same rarity -> next rarity). Config/odds live in game_settings.
+    fn = 'get_rarity_fusion_dashboard';
+  } else if (action === 'rarity-fuse') {
+    // The client only sends hero ids: rarity, cost, chance, RNG and rewards are all resolved server-side.
+    const heroIds = Array.isArray(body.heroIds) ? body.heroIds : [];
+    const unique = [...new Set(heroIds.map((id: unknown) => String(id)))];
+    if (unique.length !== heroIds.length || !heroIds.length || heroIds.length > 10 || !heroIds.every((id: unknown) => isUuid(id))) {
+      throw new Error('Seleção de fusão inválida.');
+    }
+    const key = String(body.idempotencyKey || crypto.randomUUID());
+    if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
+    fn = 'fuse_heroes_by_rarity';
+    args = { ...args, p_hero_ids: heroIds, p_idempotency_key: `rarity_fusion:${user.id}:${key}` };
   } else if (action === 'lock') {
     if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
     fn = 'set_hero_lock';

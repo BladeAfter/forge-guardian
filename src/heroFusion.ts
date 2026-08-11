@@ -69,3 +69,49 @@ export const pickMaterials = (hero: FusionHero, pool: FusionHero[]): string[] =>
 
 export const canFuse = (hero: FusionHero, balance: number) =>
   Boolean(hero.next) && hero.duplicates >= (hero.next?.duplicatesRequired ?? 0) && balance >= (hero.next?.costFc ?? 0);
+
+// ------------------------------------------------------------------ rarity fusion (5 heroes -> next rarity)
+export const FUSION_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'] as const;
+export type FusionRarity = (typeof FUSION_RARITIES)[number];
+
+export const RARITY_COLOR: Record<string, string> = {
+  common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6',
+};
+export const RARITY_LABEL: Record<string, string> = {
+  common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY', ancestral: 'ANCESTRAL',
+};
+
+export type RarityFusionTier = { target: string; cost_fc: number; chance: number; fragments: number };
+export type RarityFusionConfig = { enabled: boolean; required_heroes: number; tiers: Record<string, RarityFusionTier> };
+
+export type RarityFusionHero = {
+  heroId: string; heroKey: string; name: string; rarity: string; level: number;
+  imageUrl: string | null; stars: number; finalAtk: number; finalHp: number; power: number;
+  locked: boolean; equipped: boolean; exclusive: boolean;
+};
+
+export type RarityFusionHistoryEntry = {
+  id: string; sourceRarity: string; targetRarity: string; success: boolean;
+  costFc: number; chance: number; rewardHero: string | null; fragments: number; createdAt: string;
+};
+
+export type RarityFusionDashboard = {
+  config: RarityFusionConfig;
+  balance: number;
+  fragments: number;
+  heroes: RarityFusionHero[];
+  counts: Record<string, number>;
+  history: RarityFusionHistoryEntry[];
+};
+
+export type RarityFusionResult = {
+  success: boolean; sourceRarity: string; targetRarity: string;
+  costFc: number; chance: number; balance: number; consumed: number;
+  fragments: number; fragmentsTotal: number;
+  hero: { heroId: string; heroKey: string; name: string; rarity: string; level: number; imageUrl: string | null; finalAtk: number; finalHp: number; power: number } | null;
+  dashboard: RarityFusionDashboard;
+};
+
+/** A hero can be sacrificed only when it is free: unlocked and not deployed in PvP/Boss teams. */
+export const isFusionEligible = (hero: RarityFusionHero, tiers: Record<string, RarityFusionTier>) =>
+  !hero.locked && !hero.equipped && Boolean(tiers?.[hero.rarity]);
