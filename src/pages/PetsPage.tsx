@@ -123,7 +123,18 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       }
       toast.success('Companheiro atualizado!');
     },
-    onError: (mutationError) => toast.error(mutationError instanceof Error ? mutationError.message : 'EGG OPENING FAILED'),
+    onError: (mutationError) => {
+      const raw = mutationError instanceof Error ? mutationError.message : '';
+      const map: Record<string, string> = {
+        NOT_ENOUGH_PET_FOOD: 'Você não tem comida suficiente para essa quantidade.',
+        PET_NOT_OWNED: 'Este companheiro não pertence a você.',
+        PET_MAX_LEVEL: 'Este companheiro já está no nível máximo.',
+        FOOD_NOT_FOUND: 'Comida indisponível no momento.',
+        INVALID_FEED_REQUEST: 'Quantidade inválida.',
+      };
+      const key = Object.keys(map).find((code) => raw.includes(code));
+      toast.error(key ? map[key] : raw || 'Não foi possível concluir a ação.');
+    },
     onSettled:()=>{openingRef.current=false},
   });
 
@@ -579,7 +590,7 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
               <p className="mt-1 text-center text-[10px] text-emerald-300">Ganho estimado: +{fmt(preview)} XP</p>
             </div>
 
-            <Action text={`Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
+            <Action text={pending ? 'Alimentando...' : `Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
           </>
         )}
       </div>

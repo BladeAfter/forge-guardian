@@ -1785,8 +1785,10 @@ export type Database = {
       }
       pet_upgrade_history: {
         Row: {
+          action: string
           created_at: string
           fc_spent: number
+          food_code: string | null
           food_spent: number
           fragments_spent: number
           id: string
@@ -1794,10 +1796,15 @@ export type Database = {
           old_level: number | null
           player_pet_id: string
           user_id: string
+          xp_added: number | null
+          xp_after: number | null
+          xp_before: number | null
         }
         Insert: {
+          action?: string
           created_at?: string
           fc_spent?: number
+          food_code?: string | null
           food_spent?: number
           fragments_spent?: number
           id?: string
@@ -1805,10 +1812,15 @@ export type Database = {
           old_level?: number | null
           player_pet_id: string
           user_id: string
+          xp_added?: number | null
+          xp_after?: number | null
+          xp_before?: number | null
         }
         Update: {
+          action?: string
           created_at?: string
           fc_spent?: number
+          food_code?: string | null
           food_spent?: number
           fragments_spent?: number
           id?: string
@@ -1816,6 +1828,9 @@ export type Database = {
           old_level?: number | null
           player_pet_id?: string
           user_id?: string
+          xp_added?: number | null
+          xp_after?: number | null
+          xp_before?: number | null
         }
         Relationships: [
           {
