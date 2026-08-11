@@ -447,8 +447,20 @@ async function module(ctx: Ctx, name: string) {
         kb([[{ t: '🔎 SELECIONAR USUÁRIO', d: 'ask:passuser' }],
             [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
             [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
+            [{ t: '🎁 REWARDS (MAPA)', d: 'view:passrewards' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
     }
+    case 'passrewards': {
+      const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
+      const rows = (d.rewards || []).slice().sort((a: any, b: any) => a.level - b.level || String(a.tier).localeCompare(String(b.tier)));
+      const trackLabel: Record<string, string> = { free: 'Free', adventurer: 'Adventurer', legendary: 'Legendary' };
+      // Shows the stable reward key each level delivers, so misconfigured item keys are visible.
+      const lines = rows.map((r: any) => `Lv.${r.level} · ${trackLabel[r.tier] || r.tier} · <code>${esc(r.reward_type)}</code> · key <code>${esc(r.reward_code || r.reward_type)}</code> · x${fmt(r.amount)}${r.enabled ? '' : ' · ❌ off'}\n<code>${esc(r.id)}</code>`);
+      const chunk = lines.slice(0, 40).join('\n\n') || 'sem recompensas cadastradas';
+      return edit(ctx, `🎁 <b>MAPA DE RECOMPENSAS</b>\nPet Food entrega no inventário real de comida (chave <code>pet_food</code>).\n\n${chunk}${lines.length > 40 ? `\n\n… +${lines.length - 40} níveis` : ''}`,
+        kb([[{ t: '🎁 EDITAR RECOMPENSA', d: 'ask:passreward' }], [{ t: '⬅️ PASSE', d: 'view:pass' }], nav()]));
+    }
+
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
       const p = d.pool || {};
