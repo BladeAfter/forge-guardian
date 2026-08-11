@@ -172,7 +172,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
-              <EvolveButton pet={active} balance={data.balance} pending={pending} onEvolve={() => evolve(active)} />
+              <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
               {t('pets.feedHintPre')} <b className="text-amber-200">{t('pets.levelWord')}</b>{t('pets.feedHintMid')} <b className="text-violet-200">{t('pets.evolutionWord')}</b>{t('pets.feedHintPost')}
@@ -335,7 +335,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'evolution' && (
           <div className="space-y-2">
             {data.playerPets.map((pet) => (
-              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} />
+              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} />
             ))}
           </div>
         )}
@@ -465,13 +465,13 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
 }
 
 
-function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
+function EvolveButton({ pet, balance, universal = 0, pending, onEvolve }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void }) {
   const t = useT();
   const next = pet.nextEvolution;
   if (!next) return <Action text={t('pets.maxEvolution')} disabled onClick={() => undefined} />;
   const missingLevel = pet.level < next.requiredLevel;
   const missingFc = balance < next.fcCost;
-  const missingFragments = pet.fragments < next.fragmentCost;
+  const missingFragments = pet.fragments + universal < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
   const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
   return (
@@ -491,9 +491,11 @@ function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; bal
   );
 }
 
-function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void; onFeed: () => void }) {
+function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void; onFeed: () => void }) {
   const t = useT();
   const next = pet.nextEvolution;
+  const specificSpend = next ? Math.min(pet.fragments, next.fragmentCost) : 0;
+  const universalSpend = next ? Math.max(0, next.fragmentCost - specificSpend) : 0;
   return (
     <div className={`rounded-2xl border bg-black/55 p-3 ${pet.canEvolve ? 'border-violet-300/50 shadow-[0_0_18px_rgba(168,85,247,.2)]' : 'border-white/10'}`}>
       <div className="flex items-center gap-3">
@@ -509,12 +511,17 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
               {' · '}
               <b className={balance >= next.fcCost ? 'text-emerald-300' : 'text-rose-300'}>{fmt(next.fcCost)} FC</b>
               {' · '}
-              <b className={pet.fragments >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
+              <b className={pet.fragments + universal >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
               <span className="text-violet-300">{t('pets.newBuffChance', { percent: next.newBuffChance })}</span>
             </p>
           ) : (
             <p className="mt-1 text-[9px] text-amber-200">{t('pets.finalForm')}</p>
+          )}
+          {next && universalSpend > 0 && (
+            <p className="mt-1 text-[9px] text-amber-200">
+              {specificSpend} {t('pets.fragments')} + {universalSpend} {t('pets.universalFragments')} ({universal})
+            </p>
           )}
           {next && (
             <p className="mt-1 text-[9px] text-slate-400">
@@ -525,7 +532,7 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Action text={t('pets.feed')} disabled={pending || pet.isMaxLevel} onClick={onFeed} />
-        <EvolveButton pet={pet} balance={balance} pending={pending} onEvolve={onEvolve} />
+        <EvolveButton pet={pet} balance={balance} universal={universal} pending={pending} onEvolve={onEvolve} />
       </div>
     </div>
   );
