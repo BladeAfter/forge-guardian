@@ -92,6 +92,26 @@ export async function fetchWithTimeout(input: string, init: RequestInit = {}, ti
   }
 }
 
+/**
+ * Same as `fetchWithTimeout`, but the deadline also covers reading the response
+ * body. A Telegram webview can hand over the response headers and then stall
+ * forever while streaming the body, which left React Query pending with no error.
+ */
+async function requestWithDeadline(input: string, init: RequestInit = {}, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    const text = await response.text();
+    return { ok: response.ok, status: response.status, text };
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(`Tempo excedido ao contatar o backend (${timeoutMs}ms).`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
