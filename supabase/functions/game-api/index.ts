@@ -113,37 +113,10 @@ async function botUsername(token: string): Promise<string | null> {
 }
 
 /**
- * Server-side membership check against the Telegram Bot API.
- * Only member/administrator/creator/restricted-with-membership count as joined.
- * Every configured bot token is tried: only one of them may actually be inside the channel.
+ * Official channel rewards are keyed by Telegram ID only — no getChatMember,
+ * no chat_id and no membership validation is performed anywhere.
  */
-async function telegramMembership(chatRef: string, telegramId: number): Promise<{ member: boolean; status: string | null; unavailable: boolean }> {
-  const tokens = candidateBotTokens();
-  if (!tokens.length || !chatRef) return { member: false, status: null, unavailable: true };
-  let unavailable = true;
-  for (const token of tokens) {
-    try {
-      const url = `https://api.telegram.org/bot${token}/getChatMember?chat_id=${encodeURIComponent(chatRef)}&user_id=${telegramId}`;
-      const response = await fetch(url);
-      const payload = await response.json().catch(() => null);
-      if (!payload?.ok) {
-        const description = String(payload?.description ?? 'unknown');
-        console.error('[CHANNEL VERIFY] bot api error', { chatRef, telegramId, description });
-        // "user not found" means the bot CAN read the chat: the player simply is not there.
-        if (/user not found|USER_NOT_PARTICIPANT|PARTICIPANT_ID_INVALID/i.test(description)) unavailable = false;
-        continue;
-      }
-      unavailable = false;
-      const status = String(payload.result?.status || '');
-      if (['member', 'administrator', 'creator'].includes(status)) return { member: true, status, unavailable: false };
-      if (status === 'restricted' && payload.result?.is_member === true) return { member: true, status, unavailable: false };
-      return { member: false, status, unavailable: false };
-    } catch (error) {
-      console.error('[CHANNEL VERIFY] request failed', { chatRef, message: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  return { member: false, status: null, unavailable };
-}
+
 
 
 const isUuid = (value: unknown): value is string =>
