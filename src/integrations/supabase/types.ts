@@ -3716,10 +3716,13 @@ export type Database = {
       }
       season_pass_xp_ledger: {
         Row: {
+          base_xp: number | null
           created_at: string
+          game_day: string | null
           id: string
           level_after: number
           level_before: number
+          multiplier: number
           reference_id: string | null
           season_id: string
           source: string
@@ -3729,10 +3732,13 @@ export type Database = {
           xp_before: number
         }
         Insert: {
+          base_xp?: number | null
           created_at?: string
+          game_day?: string | null
           id?: string
           level_after: number
           level_before: number
+          multiplier?: number
           reference_id?: string | null
           season_id: string
           source: string
@@ -3742,10 +3748,13 @@ export type Database = {
           xp_before: number
         }
         Update: {
+          base_xp?: number | null
           created_at?: string
+          game_day?: string | null
           id?: string
           level_after?: number
           level_before?: number
+          multiplier?: number
           reference_id?: string | null
           season_id?: string
           source?: string
@@ -4432,6 +4441,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_pass_xp_caps: {
+        Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
+        Returns: Json
+      }
+      admin_set_pass_xp_multipliers: {
+        Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
+        Returns: Json
+      }
       admin_set_pass_xp_settings: {
         Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
@@ -5000,6 +5017,10 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_recent_pass_xp: {
+        Args: { p_since?: string; p_telegram_id: number }
+        Returns: Json
+      }
       get_referral_admin_stats: { Args: never; Returns: Json }
       get_referral_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_referral_dashboard_v2: {
@@ -5227,7 +5248,10 @@ export type Database = {
         Returns: Json
       }
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
+      season_pass_tier_multiplier: { Args: { p_tier: string }; Returns: number }
+      season_pass_xp_caps: { Args: never; Returns: Json }
       season_pass_xp_config: { Args: never; Returns: Json }
+      season_pass_xp_multipliers: { Args: never; Returns: Json }
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
         Returns: Json
