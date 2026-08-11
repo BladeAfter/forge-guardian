@@ -158,6 +158,7 @@ export type Database = {
           boss_name: string
           boss_next_attack_at: string
           created_at: string
+          cycle_id: string | null
           defeated_at: string | null
           id: string
           last_processed_at: string
@@ -183,6 +184,7 @@ export type Database = {
           boss_name?: string
           boss_next_attack_at?: string
           created_at?: string
+          cycle_id?: string | null
           defeated_at?: string | null
           id?: string
           last_processed_at?: string
@@ -208,6 +210,7 @@ export type Database = {
           boss_name?: string
           boss_next_attack_at?: string
           created_at?: string
+          cycle_id?: string | null
           defeated_at?: string | null
           id?: string
           last_processed_at?: string
@@ -223,6 +226,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "boss_combats_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_boss_cycles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "boss_combats_user_id_fkey"
             columns: ["user_id"]
@@ -860,6 +870,192 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      global_boss_cycles: {
+        Row: {
+          boss_image: string | null
+          boss_key: string
+          boss_level: number
+          boss_name: string
+          created_at: string
+          current_hp: number
+          cycle_number: number
+          defeated_at: string | null
+          distributed_at: string | null
+          ends_at: string | null
+          id: string
+          max_hp: number
+          minimum_damage_fixed: number
+          minimum_damage_percent: number
+          minimum_reward_fc: number
+          participants: number
+          rank_bonus: Json
+          rank_bonus_enabled: boolean
+          reward_pool_fc: number
+          starts_at: string
+          status: string
+          total_damage: number
+          updated_at: string
+        }
+        Insert: {
+          boss_image?: string | null
+          boss_key: string
+          boss_level?: number
+          boss_name: string
+          created_at?: string
+          current_hp: number
+          cycle_number: number
+          defeated_at?: string | null
+          distributed_at?: string | null
+          ends_at?: string | null
+          id?: string
+          max_hp: number
+          minimum_damage_fixed?: number
+          minimum_damage_percent?: number
+          minimum_reward_fc?: number
+          participants?: number
+          rank_bonus?: Json
+          rank_bonus_enabled?: boolean
+          reward_pool_fc?: number
+          starts_at?: string
+          status?: string
+          total_damage?: number
+          updated_at?: string
+        }
+        Update: {
+          boss_image?: string | null
+          boss_key?: string
+          boss_level?: number
+          boss_name?: string
+          created_at?: string
+          current_hp?: number
+          cycle_number?: number
+          defeated_at?: string | null
+          distributed_at?: string | null
+          ends_at?: string | null
+          id?: string
+          max_hp?: number
+          minimum_damage_fixed?: number
+          minimum_damage_percent?: number
+          minimum_reward_fc?: number
+          participants?: number
+          rank_bonus?: Json
+          rank_bonus_enabled?: boolean
+          reward_pool_fc?: number
+          starts_at?: string
+          status?: string
+          total_damage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      global_boss_participants: {
+        Row: {
+          attacks: number
+          boss_cycle_id: string
+          created_at: string
+          damage_total: number
+          final_rank: number | null
+          id: string
+          last_attack_at: string | null
+          reward_amount: number
+          reward_claimed: boolean
+          telegram_id: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attacks?: number
+          boss_cycle_id: string
+          created_at?: string
+          damage_total?: number
+          final_rank?: number | null
+          id?: string
+          last_attack_at?: string | null
+          reward_amount?: number
+          reward_claimed?: boolean
+          telegram_id?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attacks?: number
+          boss_cycle_id?: string
+          created_at?: string
+          damage_total?: number
+          final_rank?: number | null
+          id?: string
+          last_attack_at?: string | null
+          reward_amount?: number
+          reward_claimed?: boolean
+          telegram_id?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_boss_participants_boss_cycle_id_fkey"
+            columns: ["boss_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_boss_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_boss_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_boss_reward_ledger: {
+        Row: {
+          boss_cycle_id: string
+          damage_total: number
+          distributed_at: string
+          id: string
+          rank: number | null
+          reward_fc: number
+          share_percent: number
+          user_id: string
+        }
+        Insert: {
+          boss_cycle_id: string
+          damage_total?: number
+          distributed_at?: string
+          id?: string
+          rank?: number | null
+          reward_fc?: number
+          share_percent?: number
+          user_id: string
+        }
+        Update: {
+          boss_cycle_id?: string
+          damage_total?: number
+          distributed_at?: string
+          id?: string
+          rank?: number | null
+          reward_fc?: number
+          share_percent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_boss_reward_ledger_boss_cycle_id_fkey"
+            columns: ["boss_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_boss_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_boss_reward_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hero_catalog: {
         Row: {
@@ -4976,6 +5172,10 @@ export type Database = {
         Args: { p_force?: boolean }
         Returns: string
       }
+      distribute_global_boss_rewards: {
+        Args: { p_cycle_id: string }
+        Returns: Json
+      }
       distribute_referral_commission: {
         Args: {
           p_amount_fc: number
@@ -4990,6 +5190,40 @@ export type Database = {
       }
       ensure_active_pool: { Args: never; Returns: string }
       ensure_boss_combat: { Args: { p_telegram_id: number }; Returns: string }
+      ensure_global_boss_cycle: {
+        Args: never
+        Returns: {
+          boss_image: string | null
+          boss_key: string
+          boss_level: number
+          boss_name: string
+          created_at: string
+          current_hp: number
+          cycle_number: number
+          defeated_at: string | null
+          distributed_at: string | null
+          ends_at: string | null
+          id: string
+          max_hp: number
+          minimum_damage_fixed: number
+          minimum_damage_percent: number
+          minimum_reward_fc: number
+          participants: number
+          rank_bonus: Json
+          rank_bonus_enabled: boolean
+          reward_pool_fc: number
+          starts_at: string
+          status: string
+          total_damage: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_boss_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       equip_combat_hero: {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
@@ -5067,6 +5301,14 @@ export type Database = {
         Returns: Json
       }
       get_daily_quests: { Args: { p_telegram_id: number }; Returns: Json }
+      get_global_boss_history: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
+      }
+      get_global_boss_ranking: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
+      }
       get_hero_fusion_dashboard: {
         Args: { p_telegram_id: number }
         Returns: Json
@@ -5114,6 +5356,7 @@ export type Database = {
         Returns: Json
       }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
+      global_boss_overlay: { Args: { p_user: string }; Returns: Json }
       grant_referral_milestones: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -5251,6 +5494,10 @@ export type Database = {
           p_purchase_id: string
         }
         Returns: Json
+      }
+      record_global_boss_damage: {
+        Args: { p_cycle_id: string; p_damage: number; p_user: string }
+        Returns: undefined
       }
       record_quest_event: {
         Args: { p_amount?: number; p_event: string; p_user_id: string }
