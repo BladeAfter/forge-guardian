@@ -28,9 +28,6 @@ type Props = {
   isConnecting: boolean;
 };
 
-/** History labels arrive from the backend with raw 9-decimal amounts; trim them for display only. */
-const cleanTonLabel = (label: string) => String(label ?? '').replace(/\d+\.\d+/g, match => formatTon(match));
-
 export function WalletPage({ game, telegramInitData, connected, address, onConnect, onDisconnect, isConnecting }: Props) {
   const t = useT();
   const { tError } = useLanguage();
@@ -286,7 +283,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </button></Panel> : null}
 
       <Panel title={t('wallet.history')} icon={<Clock3 />}>
-        <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${cleanTonLabel(item.label).toUpperCase()} · ${formatTon(Number(item.amountTon ?? 0))} TON` : cleanTonLabel(item.label)}</p>
+        <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${item.label.toUpperCase()} · ${item.amountTon} TON` : item.label}</p>
           {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">{t('wallet.historyGross')}: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} TON · {t('wallet.historyFee', { percent: Number(item.feePercent ?? 0) })}: {formatTon(Number(item.feeTon ?? 0))} TON · {t('wallet.historyReceived')}: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
           <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status, t)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">{t('wallet.noMovement')}</p>}</div>
       </Panel>

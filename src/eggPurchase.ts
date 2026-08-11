@@ -1,4 +1,3 @@
-import { formatTon } from './economy';
 import type { PetDashboard, PetHatchResult } from './pets';
 import { createEggTonOrder, verifyEggPurchases } from './services';
 import { encodeCommentPayload } from './tonComment';
@@ -34,7 +33,7 @@ export type EggPurchaseVerification = {
  */
 export function formatEggPrice(egg: { priceFc?: number | null; priceTon?: number | null; availabilityLabel?: string | null }): string {
   if (egg.priceFc) return `${new Intl.NumberFormat('pt-BR').format(egg.priceFc)} FC`;
-  if (egg.priceTon) return `${formatTon(egg.priceTon)} TON`;
+  if (egg.priceTon) return `${egg.priceTon} TON`;
   return egg.availabilityLabel || 'Evento exclusivo';
 }
 

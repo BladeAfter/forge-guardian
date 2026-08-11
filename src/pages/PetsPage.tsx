@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { formatTon } from '../economy';
 import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
@@ -779,7 +778,7 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
         {isTon ? (
           <div className="mt-4 rounded-2xl border border-sky-300/30 bg-sky-500/10 p-3 text-center">
             <p className="text-[9px] uppercase tracking-[.2em] text-sky-200">{t('pets.price')}</p>
-            <b className="text-2xl">{formatTon(egg.priceTon)} TON</b>
+            <b className="text-2xl">{egg.priceTon} TON</b>
             <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
               {t('pets.premiumNote')}
             </p>

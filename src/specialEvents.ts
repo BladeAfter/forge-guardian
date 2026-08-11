@@ -1,4 +1,3 @@
-import { formatTon } from './economy';
 /**
  * MYTHREON :: Special Events (independent layer, never mixed with the weekly Community Pool).
  *
@@ -58,7 +57,8 @@ export function eventCountdown(endsAt: string | null | undefined, now = Date.now
   };
 }
 
-export const formatEventTon = (value: number) => `${formatTon(value)} TON`;
+export const formatEventTon = (value: number) =>
+  `${Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 4 })} TON`;
 
 /** Human readable prize table used by the "how it works" sheet. */
 export function describeDistribution(event: SpecialEventSummary | null): { label: string; value: string }[] {

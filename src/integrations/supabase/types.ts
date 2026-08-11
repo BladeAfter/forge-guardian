@@ -4209,61 +4209,6 @@ export type Database = {
           },
         ]
       }
-      referral_event_entries: {
-        Row: {
-          created_at: string
-          event_id: string
-          id: string
-          invalid_reason: string | null
-          is_valid: boolean
-          referred_at: string
-          referred_user_id: string
-          referrer_user_id: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          id?: string
-          invalid_reason?: string | null
-          is_valid?: boolean
-          referred_at?: string
-          referred_user_id: string
-          referrer_user_id: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          id?: string
-          invalid_reason?: string | null
-          is_valid?: boolean
-          referred_at?: string
-          referred_user_id?: string
-          referrer_user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_event_entries_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "special_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referral_event_entries_referred_user_id_fkey"
-            columns: ["referred_user_id"]
-            isOneToOne: false
-            referencedRelation: "game_players"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referral_event_entries_referrer_user_id_fkey"
-            columns: ["referrer_user_id"]
-            isOneToOne: false
-            referencedRelation: "game_players"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       referral_purchase_events: {
         Row: {
           amount_fc: number
@@ -4849,9 +4794,7 @@ export type Database = {
         Row: {
           created_at: string
           ends_at: string
-          event_end_at: string | null
           event_key: string
-          event_start_at: string | null
           id: string
           name: string
           prize_pool_ton: number
@@ -4864,9 +4807,7 @@ export type Database = {
         Insert: {
           created_at?: string
           ends_at: string
-          event_end_at?: string | null
           event_key: string
-          event_start_at?: string | null
           id?: string
           name: string
           prize_pool_ton?: number
@@ -4879,9 +4820,7 @@ export type Database = {
         Update: {
           created_at?: string
           ends_at?: string
-          event_end_at?: string | null
           event_key?: string
-          event_start_at?: string | null
           id?: string
           name?: string
           prize_pool_ton?: number
@@ -4890,60 +4829,6 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      ton_payment_logs: {
-        Row: {
-          blockchain_status: string | null
-          created_at: string
-          destination_wallet: string | null
-          error_detail: string | null
-          expected_amount_nano: string | null
-          fulfillment_status: string | null
-          id: string
-          order_id: string | null
-          order_kind: string
-          payment_reference: string | null
-          product_id: string | null
-          received_amount_nano: string | null
-          telegram_id: number | null
-          tx_hash: string | null
-          user_id: string | null
-        }
-        Insert: {
-          blockchain_status?: string | null
-          created_at?: string
-          destination_wallet?: string | null
-          error_detail?: string | null
-          expected_amount_nano?: string | null
-          fulfillment_status?: string | null
-          id?: string
-          order_id?: string | null
-          order_kind: string
-          payment_reference?: string | null
-          product_id?: string | null
-          received_amount_nano?: string | null
-          telegram_id?: number | null
-          tx_hash?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          blockchain_status?: string | null
-          created_at?: string
-          destination_wallet?: string | null
-          error_detail?: string | null
-          expected_amount_nano?: string | null
-          fulfillment_status?: string | null
-          id?: string
-          order_id?: string | null
-          order_kind?: string
-          payment_reference?: string | null
-          product_id?: string | null
-          received_amount_nano?: string | null
-          telegram_id?: number | null
-          tx_hash?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -6790,20 +6675,6 @@ export type Database = {
         Returns: Json
       }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
-      ton_pending_purchase_orders: {
-        Args: { p_max_age_days?: number }
-        Returns: {
-          amount_nano: string
-          created_at: string
-          order_id: string
-          order_kind: string
-          payment_address: string
-          payment_comment: string
-          product_id: string
-          telegram_id: number
-          user_id: string
-        }[]
-      }
       touch_referral_player: {
         Args: {
           p_avatar: string
