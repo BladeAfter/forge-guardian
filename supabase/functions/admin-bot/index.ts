@@ -1012,6 +1012,31 @@ async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
   const int = () => Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
   switch (key) {
     case 'clsearch': return clansList(ctx, 'search', text);
+    case 'clcost': {
+      const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um valor em FC maior ou igual a 0 (ex.: <code>75000</code>).');
+      const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+      return send(ctx, [
+        '🏰 <b>ALTERAR CUSTO DO CLÃ</b>',
+        '',
+        `Atual: <b>${fmt(s.createCostFc)} FC</b>`,
+        `Novo: <b>${fmt(value)} FC</b>`,
+        '',
+        'Clãs já criados não são alterados.',
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `cl:costgo:${value}` }, { t: '❌ CANCELAR', d: 'cl:cfg' }]]));
+    }
+    case 'clsetlimit': {
+      const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, '')));
+      if (!Number.isFinite(value) || value < 2 || value > 500) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre 2 e 500 (ex.: <code>30</code>).');
+      const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+      return send(ctx, [
+        '👥 <b>LIMITE DE MEMBROS (NOVOS CLÃS)</b>',
+        '',
+        `Atual: <b>${fmt(s.defaultMemberLimit)}</b>`,
+        `Novo: <b>${fmt(value)}</b>`,
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `cl:limitgo:${value}` }, { t: '❌ CANCELAR', d: 'cl:cfg' }]]));
+    }
+
     case 'clxp': {
       const value = int();
       if (!Number.isFinite(value) || value === 0) throw new Error('KEEP_SESSION::⚠️ Envie um número diferente de 0 (ex.: <code>25000</code> ou <code>-5000</code>).');
