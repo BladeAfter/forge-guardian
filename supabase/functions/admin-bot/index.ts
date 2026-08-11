@@ -814,10 +814,32 @@ async function clansHub(ctx: Ctx) {
     kb([
       [{ t: '📋 ALL CLANS', d: 'cl:all' }, { t: '🔎 SEARCH CLAN', d: 'ask:clsearch' }],
       [{ t: '📈 CLAN RANKING', d: 'cl:rank' }],
+      [{ t: '⚙️ CONFIGURAÇÃO DO CLÃ', d: 'cl:cfg' }],
       [{ t: '📜 AUDIT', d: 'cl:audit' }],
       nav(),
     ]));
 }
+
+/** Central clan configuration: creation cost + default member limit (never touches existing clans). */
+async function clanSettingsView(ctx: Ctx, editing = true) {
+  const s = await rpc('admin_clan_settings', { p_admin_id: ctx.adminId, p_action: 'get', p_value: null }) as any;
+  const text = [
+    '🏰 <b>CLAN SETTINGS</b>',
+    '',
+    '💰 Custo atual para criar clã:',
+    `<b>${fmt(s.createCostFc)} FC</b>`,
+    '',
+    `👥 Limite de membros de novos clãs: <b>${fmt(s.defaultMemberLimit)}</b>`,
+    `🏰 Clãs existentes: ${fmt(s.clans)} (não são afetados por estas alterações)`,
+  ].join('\n');
+  const markup = kb([
+    [{ t: '💰 ALTERAR PREÇO DE CRIAÇÃO', d: 'cl:ask:clcost' }],
+    [{ t: '👥 ALTERAR LIMITE DE MEMBROS', d: 'cl:ask:clsetlimit' }],
+    nav('m:clans'),
+  ]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
 
 async function clansList(ctx: Ctx, action: 'list' | 'ranking' | 'search', ref: string | null = null) {
   const d = await clanRpc(ctx, action, ref);
