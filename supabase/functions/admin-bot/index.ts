@@ -799,14 +799,16 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, '👥 <b>USUÁRIOS</b>\nBusque por Telegram ID, @usuário, nome, carteira ou ID interno.',
         kb([[{ t: '🔎 PROCURAR', d: 'ask:find' }], [{ t: '🆕 LATEST USERS', d: 'pg:0:all' }], [{ t: '📋 ALL USERS', d: 'pg:0:all' }], nav()]));
     case 'heroes':
+      return heroManagementHub(ctx);
     case 'shop':
       return heroShopHub(ctx);
     case 'herolist': {
       const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 20, p_offset: 0 });
       const list = d.heroes.map((h: any) => `• <code>${esc(h.hero_key)}</code> ${esc(h.name)} — ${esc(h.rarity)} ${h.enabled ? '✅' : '⛔'}${h.in_shop ? ' 🏪' : ''} ${h.price_fc ? fmt(h.price_fc) + ' FC' : ''}`).join('\n');
       return edit(ctx, `🦸 <b>HERÓIS</b> (${d.total})\n${list}\n\nO <code>price_fc</code> do herói é o preço avulso na loja, diferente do preço de recrutamento 1x/5x/10x.`,
-        kb([[{ t: '✏️ CRIAR/EDITAR (JSON)', d: 'ask:hero' }], [{ t: '🚫 ATIVAR/DESATIVAR', d: 'ask:herotoggle' }], [{ t: '🦸 DAR A USUÁRIO', d: 'ask:granthero' }], nav('m:shop')]));
+        kb([[{ t: '➕ CREATE HERO', d: 'hw:new' }, { t: '✏️ EDIT HERO', d: 'hw:edit' }], [{ t: '🦸 DAR A USUÁRIO', d: 'ask:granthero' }], nav('m:heroes')]));
     }
+
     case 'store': {
       const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 30, p_offset: 0 });
       const shop = d.heroes.filter((h: any) => h.in_shop);
