@@ -816,7 +816,7 @@ function App() {
               summonOdds={summonOdds}
               recruitPrice={recruitPrice}
               shopResults={shopResults}
-              onRecruit={(count) => void recruitHeroes(count)}
+              onRecruit={(count: 1 | 5 | 10) => void recruitHeroes(count)}
               onClose={() => setShopOpen(false)}
             />
           ) : null}
