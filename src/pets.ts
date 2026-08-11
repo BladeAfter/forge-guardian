@@ -58,6 +58,7 @@ export type PetEvolveResult = {
   primaryBefore: number; primaryAfter: number;
   newBuff: { key: string; value: number; rarity: string } | null;
   fcSpent: number; fragmentsSpent: number;
+  petFragmentsSpent?: number; universalFragmentsSpent?: number; universalFragmentsLeft?: number;
 };
 export type PetHatchResult = { openingId?: string; historyId?: string; status?: 'processing' | 'completed' | 'failed' | 'not_found'; name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
 
