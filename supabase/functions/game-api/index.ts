@@ -629,6 +629,12 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     if (!isUuid(body.itemId)) throw new Error('Item inválido.');
     fn = 'open_season_mythic_egg';
     args = { ...args, p_item_id: body.itemId };
+  } else if (action === 'buy-level') {
+    // Only the backend decides price, daily limit and the resulting level.
+    const levels = Number(body.levels);
+    if (![1, 3, 5].includes(levels)) throw new Error('Pacote de níveis inválido.');
+    fn = 'buy_season_pass_levels';
+    args = { ...args, p_levels: levels, p_idempotency_key: `passlevel:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'recent-xp') {
     // Battle Pass XP feed for client toasts: the server owns multipliers, caps and final XP.
     fn = 'get_recent_pass_xp';
