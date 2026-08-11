@@ -11,11 +11,12 @@ import type { PetRarity } from '../petRules';
 import { petBuffLabel, petBuffShortLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
+import { useT, useLanguage } from '../LanguageContext';
 
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-const TAB_LABELS: Record<Tab, string> = { pets: 'Meus Pets', eggs: 'Ovos', food: 'Comidas', evolution: 'Evolução', catalog: 'Catálogo' };
+const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'];
 /** Rates always render in ascending rarity order, once per rarity. */
 const sortedRates = (rates: Record<string, number>) =>
@@ -38,6 +39,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
 export function PetsPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const t = useT();
+  const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
   const [tab, setTab] = useState<Tab>('pets');
@@ -56,7 +59,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     mutationFn: async (egg: PetEgg) => {
       if (!tonWallet) {
         await tonUI.openModal();
-        throw new Error('Conecte sua carteira TON e tente novamente.');
+        throw new Error('CONNECT_TON_WALLET');
       }
       const order = await purchasePremiumEgg({ telegramInitData, eggId: egg.id, source: 'pet_shop', sendTransaction: (tx) => tonUI.sendTransaction(tx) });
       const verification = await waitForEggPurchase(telegramInitData);
@@ -65,7 +68,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     onSuccess: async ({ verification, egg }) => {
       setEggTarget(null);
       const hatched = hatchedPurchase(verification);
-      if (!hatched?.result) { toast('Pagamento enviado. Estamos confirmando na blockchain — o ovo abre automaticamente.'); return; }
+      if (!hatched?.result) { toast(t('pets.tonPaymentSent')); return; }
       const dashboard = (hatched.dashboard ?? data) as PetDashboard | undefined;
       if (dashboard) await sync(dashboard);
       setReveal({
@@ -74,7 +77,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         pet: dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId || pet.name === hatched.result?.name),
       });
     },
-    onError: (tonError) => toast.error(tonError instanceof Error ? tonError.message : 'Falha ao pagar com TON.'),
+    onError: (tonError) => toast.error(tonError instanceof Error && tonError.message === 'CONNECT_TON_WALLET' ? t('pets.connectTonWallet') : t('pets.tonPaymentFailed')),
   });
 
   const sync = async (fresh?: PetDashboard) => {
@@ -111,8 +114,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         const { xpGained, levelsGained, foodName, quantity } = payload.feedResult;
         toast.success(
           levelsGained > 0
-            ? `${quantity}x ${foodName}: +${fmt(xpGained)} XP e ${levelsGained} nível(is) ganho(s)!`
-            : `${quantity}x ${foodName}: +${fmt(xpGained)} XP`,
+            ? t('pets.feedSuccessLevels', { quantity, foodName, xp: fmt(xpGained), levels: levelsGained })
+            : t('pets.feedSuccessXp', { quantity, foodName, xp: fmt(xpGained) }),
         );
         setFeedTarget(null);
         return;
@@ -121,31 +124,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         setEvolution(payload.evolveResult);
         return;
       }
-      toast.success('Companheiro atualizado!');
+      toast.success(t('pets.companionUpdated'));
     },
     onError: (mutationError) => {
-      const raw = mutationError instanceof Error ? mutationError.message : '';
-      const map: Record<string, string> = {
-        NOT_ENOUGH_PET_FOOD: 'Você não tem comida suficiente para essa quantidade.',
-        PET_NOT_OWNED: 'Este companheiro não pertence a você.',
-        PET_MAX_LEVEL: 'Este companheiro já está no nível máximo.',
-        FOOD_NOT_FOUND: 'Comida indisponível no momento.',
-        INVALID_FEED_REQUEST: 'Quantidade inválida.',
-      };
-      const key = Object.keys(map).find((code) => raw.includes(code));
-      toast.error(key ? map[key] : raw || 'Não foi possível concluir a ação.');
+      toast.error(tError(mutationError));
     },
     onSettled:()=>{openingRef.current=false},
   });
 
   const pending = mutation.isPending;
 
-  if (isLoading) return <Shell onClose={onClose}><p className="py-24 text-center text-sm text-amber-200">Carregando companheiros...</p></Shell>;
+  if (isLoading) return <Shell onClose={onClose}><p className="py-24 text-center text-sm text-amber-200">{t('pets.loading')}</p></Shell>;
   if (error || !data) {
     return (
       <Shell onClose={onClose}>
         <p className="py-24 text-center text-sm text-rose-300">
-          {error instanceof Error ? error.message : 'Não foi possível carregar os pets.'}
+          {error instanceof Error ? tError(error) : t('pets.loadError')}
         </p>
       </Shell>
     );
@@ -162,13 +156,13 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             <div className="flex items-center gap-4">
               <img src={active.image} alt={active.name} className="h-32 w-32 shrink-0 object-contain drop-shadow-[0_0_22px_rgba(251,191,36,.4)]" />
               <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Companheiro ativo</p>
+                <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
                 <h2 className="truncate text-2xl font-black">{active.name}</h2>
                 <p style={{ color: rarityColor[active.rarity] }} className="text-xs font-bold uppercase">
-                  {petRarityLabel(active.rarity)} · Nível {active.level}/{active.maxLevel}
+                  {t('pets.rarityLevel', { rarity: petRarityLabel(active.rarity), level: active.level, max: active.maxLevel })}
                 </p>
                 <p className="text-[10px] text-slate-400">
-                  {petStageLabel(active.evolutionStage)} · {active.evolutionLabel} · Poder {fmt(active.power)}
+                  {t('pets.levelProgress', { stage: petStageLabel(active.evolutionStage), label: active.evolutionLabel, power: fmt(active.power) })}
                 </p>
               </div>
             </div>
@@ -177,33 +171,33 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             <BuffGrid pet={active} />
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Action text="Alimentar" disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
+              <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
               <EvolveButton pet={active} balance={data.balance} pending={pending} onEvolve={() => evolve(active)} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
-              Comida sobe o <b className="text-amber-200">nível</b>. Fragmentos e FC liberam a <b className="text-violet-200">evolução</b>.
+              {t('pets.feedHintPre')} <b className="text-amber-200">{t('pets.levelWord')}</b>{t('pets.feedHintMid')} <b className="text-violet-200">{t('pets.evolutionWord')}</b>{t('pets.feedHintPost')}
             </p>
           </>
         ) : (
           <div className="grid min-h-48 place-items-center text-center">
             <div>
               <Egg className="mx-auto h-14 w-14 text-slate-600" />
-              <h2 className="mt-2 text-xl font-black">Nenhum pet ativo</h2>
-              <p className="text-xs text-slate-400">Escolha um companheiro em Meus Pets.</p>
+              <h2 className="mt-2 text-xl font-black">{t('pets.noActivePet')}</h2>
+              <p className="text-xs text-slate-400">{t('pets.chooseCompanion')}</p>
             </div>
           </div>
         )}
       </section>
 
       <nav className="mt-3 grid grid-cols-5 gap-1">
-        {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
+        {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => setTab(key)}
             className={`rounded-xl px-1 py-2 text-[8px] font-black uppercase ${tab === key ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
           >
-            {TAB_LABELS[key]}
+            {t(TAB_KEYS[key])}
           </button>
         ))}
       </nav>
@@ -220,14 +214,14 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 pending={pending}
               />
             ))}
-            {data.playerPets.length === 0 && <p className="col-span-2 py-16 text-center text-sm text-slate-400">Você ainda não tem pets. Abra um ovo para começar.</p>}
+            {data.playerPets.length === 0 && <p className="col-span-2 py-16 text-center text-sm text-slate-400">{t('pets.noPetsYet')}</p>}
           </div>
         )}
 
         {tab === 'eggs' && (
           <>
             <p className="mb-2 rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
-              Saldo disponível: <b className="text-amber-200">{fmt(data.balance)} FC</b>. Compre ovos e abra para receber companheiros.
+              {t('pets.availableBalance', { balance: fmt(data.balance) })}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {data.eggs.map((egg) => {
@@ -249,19 +243,19 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                         </span>
                       ))}
                     </div>
-                    <p className="mt-1 text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
+                    <p className="mt-1 text-[9px] text-slate-400">{t('pets.youOwn', { quantity: egg.quantity })}</p>
                     <div className="mt-auto">
                       {owned ? (
                         <Action
-                          text="Abrir ovo"
+                          text={t('pets.openEgg')}
                           disabled={pending||openingRef.current}
                           onClick={() => {if(openingRef.current)return;openingRef.current=true;mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}}
                         />
                       ) : locked ? (
-                        <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
+                        <Action text={egg.availabilityLabel || t('pets.exclusiveEvent')} disabled onClick={() => undefined} />
                       ) : (
                         <Action
-                          text={`Comprar · ${formatEggPrice(egg)}`}
+                          text={t('pets.buy', { price: formatEggPrice(egg) })}
                           disabled={pending || tonPurchase.isPending}
                           onClick={() => setEggTarget(egg)}
                         />
@@ -287,7 +281,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'food' && (
           <div className="space-y-3">
             <p className="rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
-              Comida sobe o <b className="text-amber-200">nível</b> do pet. Saldo: <b className="text-amber-200">{fmt(data.balance)} FC</b>.
+              {t('pets.foodRaisesLevel', { balance: fmt(data.balance) })}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {data.foods.map((food) => (
@@ -296,17 +290,17 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                     <span className="text-2xl leading-none">{PET_FOOD_ICONS[food.icon] ?? '🍖'}</span>
                     <div className="min-w-0">
                       <p className="truncate text-[11px] font-black">{food.name}</p>
-                      <p className="text-[9px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
+                      <p className="text-[9px] text-emerald-300">{t('pets.xpPerUnit', { xp: fmt(food.xpValue) })}</p>
                     </div>
                   </div>
-                  <p className="mt-2 text-[9px] text-slate-400">Você possui</p>
+                  <p className="mt-2 text-[9px] text-slate-400">{t('pets.youOwnLabel')}</p>
                   <b className="text-lg leading-none">{fmt(food.quantity)}</b>
                   <p className="mt-1 text-[9px] font-bold text-amber-200">
-                    {food.priceFc ? `${fmt(food.priceFc)} FC` : 'Indisponível'}
+                    {food.priceFc ? `${fmt(food.priceFc)} FC` : t('pets.unavailable')}
                   </p>
                   <div className="mt-auto">
                     <Action
-                      text="Comprar"
+                      text={t('pets.buyLabel')}
                       disabled={pending || !food.priceFc}
                       onClick={() => setFoodTarget(food)}
                     />
@@ -314,14 +308,14 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 </div>
               ))}
             </div>
-            <h3 className="pt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300">Fragmentos por pet</h3>
+            <h3 className="pt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300">{t('pets.fragmentsPerPet')}</h3>
             <div className="grid grid-cols-2 gap-2">
-              <Stat icon={<Star />} label="Fragmentos universais" value={data.inventory.universalFragments} />
+              <Stat icon={<Star />} label={t('pets.universalFragments')} value={data.inventory.universalFragments} />
               {data.fragments.map((entry) => (
                 <Stat
                   key={entry.playerPetId}
                   icon={<img src={entry.image} alt={entry.petName} className="h-8 w-8 object-contain" />}
-                  label={`Fragmentos de ${entry.petName}`}
+                  label={t('pets.fragmentsOf', { name: entry.petName })}
                   value={entry.quantity}
                 />
               ))}
@@ -355,7 +349,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
-                    {pet.species} · {pet.discovered ? `${petRarityLabel(pet.bestRarity)} · Nível ${pet.bestLevel ?? 1}` : 'Não descoberto'}
+                    {pet.species} · {pet.discovered ? t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 }) : t('pets.notDiscovered')}
                   </p>
                   {buff && (
                     <PetBuff
@@ -368,7 +362,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   )}
 
                   {pet.sources && pet.sources.length > 0 && (
-                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">Obtido em: {pet.sources.join(', ')}</p>
+                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">{t('pets.obtainedFrom', { sources: pet.sources.join(', ') })}</p>
                   )}
                 </div>
               );
@@ -416,6 +410,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 }
 
 function Shell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
@@ -425,7 +420,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
             <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
             <h1 className="text-xl font-black">PETS</h1>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
         </header>
         {children}
       </div>
@@ -434,6 +429,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
 }
 
 function LevelBar({ pet }: { pet: PlayerPet }) {
+  const t = useT();
   const percent = pet.isMaxLevel ? 100 : Math.min(100, (pet.xp / Math.max(1, pet.xpRequired)) * 100);
   return (
     <>
@@ -441,7 +437,7 @@ function LevelBar({ pet }: { pet: PlayerPet }) {
         <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-200 transition-[width] duration-500" style={{ width: `${percent}%` }} />
       </div>
       <p className="mt-1 text-right text-[9px] text-slate-400">
-        {pet.isMaxLevel ? 'Nível máximo alcançado' : `XP ${fmt(pet.xp)} / ${fmt(pet.xpRequired)}`}
+        {pet.isMaxLevel ? t('pets.maxLevelReached') : `XP ${fmt(pet.xp)} / ${fmt(pet.xpRequired)}`}
       </p>
     </>
   );
@@ -470,13 +466,14 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
 
 
 function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void }) {
+  const t = useT();
   const next = pet.nextEvolution;
-  if (!next) return <Action text="Evolução máxima" disabled onClick={() => undefined} />;
+  if (!next) return <Action text={t('pets.maxEvolution')} disabled onClick={() => undefined} />;
   const missingLevel = pet.level < next.requiredLevel;
   const missingFc = balance < next.fcCost;
   const missingFragments = pet.fragments < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
-  const label = missingLevel ? `Evoluir no nível ${next.requiredLevel}` : missingFc ? 'FC insuficientes' : missingFragments ? 'Fragmentos insuficientes' : `Evoluir · ${next.label}`;
+  const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
   return (
     <button
       type="button"
@@ -495,6 +492,7 @@ function EvolveButton({ pet, balance, pending, onEvolve }: { pet: PlayerPet; bal
 }
 
 function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: PlayerPet; balance: number; pending: boolean; onEvolve: () => void; onFeed: () => void }) {
+  const t = useT();
   const next = pet.nextEvolution;
   return (
     <div className={`rounded-2xl border bg-black/55 p-3 ${pet.canEvolve ? 'border-violet-300/50 shadow-[0_0_18px_rgba(168,85,247,.2)]' : 'border-white/10'}`}>
@@ -503,20 +501,20 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
         <div className="min-w-0 flex-1">
           <b className="block truncate text-sm">{pet.name}</b>
           <p className="text-[9px] text-slate-400">
-            Nível {pet.level}/{pet.maxLevel} · {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
+            {t('pets.rarityLevel', { rarity: petStageLabel(pet.evolutionStage), level: pet.level, max: pet.maxLevel })} · {pet.evolutionLabel}
           </p>
           {next ? (
             <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
-              Requisitos: nível <b className={pet.level >= next.requiredLevel ? 'text-emerald-300' : 'text-rose-300'}>{next.requiredLevel}</b>
+              {t('pets.requirements')} <b className={pet.level >= next.requiredLevel ? 'text-emerald-300' : 'text-rose-300'}>{next.requiredLevel}</b>
               {' · '}
               <b className={balance >= next.fcCost ? 'text-emerald-300' : 'text-rose-300'}>{fmt(next.fcCost)} FC</b>
               {' · '}
-              <b className={pet.fragments >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} fragmentos</b>
+              <b className={pet.fragments >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
-              <span className="text-violet-300">{next.newBuffChance}% de novo bônus</span>
+              <span className="text-violet-300">{t('pets.newBuffChance', { percent: next.newBuffChance })}</span>
             </p>
           ) : (
-            <p className="mt-1 text-[9px] text-amber-200">Este companheiro alcançou a forma final.</p>
+            <p className="mt-1 text-[9px] text-amber-200">{t('pets.finalForm')}</p>
           )}
           {next && (
             <p className="mt-1 text-[9px] text-slate-400">
@@ -526,7 +524,7 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Action text="Alimentar" disabled={pending || pet.isMaxLevel} onClick={onFeed} />
+        <Action text={t('pets.feed')} disabled={pending || pet.isMaxLevel} onClick={onFeed} />
         <EvolveButton pet={pet} balance={balance} pending={pending} onEvolve={onEvolve} />
       </div>
     </div>
@@ -534,6 +532,7 @@ function EvolutionRow({ pet, balance, pending, onEvolve, onFeed }: { pet: Player
 }
 
 function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; foods: PetFood[]; pending: boolean; onClose: () => void; onFeed: (foodCode: string, quantity: number) => void }) {
+  const t = useT();
   const available = foods.filter((food) => food.quantity > 0);
   const [selected, setSelected] = useState(available[0]?.code ?? '');
   const [quantity, setQuantity] = useState(1);
@@ -548,15 +547,15 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
       <div className="w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
         <header className="mb-3 flex items-center justify-between">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Alimentar</p>
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.feed')}</p>
             <h2 className="truncate text-lg font-black">{pet.name}</h2>
-            <p className="text-[10px] text-slate-400">Nível {pet.level} · faltam {fmt(missing)} XP para o próximo nível</p>
+            <p className="text-[10px] text-slate-400">{t('pets.missingXp', { level: pet.level, missing: fmt(missing) })}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
         {available.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-300">Você não possui comidas. Consiga comidas em recompensas e eventos.</p>
+          <p className="py-8 text-center text-sm text-slate-300">{t('pets.noFood')}</p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2">
@@ -577,7 +576,7 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
             </div>
 
             <div className="mt-4">
-              <label htmlFor="pet-food-quantity" className="text-[9px] uppercase tracking-[.2em] text-slate-400">Quantidade: {safeQuantity}</label>
+              <label htmlFor="pet-food-quantity" className="text-[9px] uppercase tracking-[.2em] text-slate-400">{t('pets.quantity')}: {safeQuantity}</label>
               <input
                 id="pet-food-quantity"
                 type="range"
@@ -587,10 +586,10 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
                 onChange={(event) => setQuantity(Number(event.target.value))}
                 className="mt-2 w-full accent-amber-400"
               />
-              <p className="mt-1 text-center text-[10px] text-emerald-300">Ganho estimado: +{fmt(preview)} XP</p>
+              <p className="mt-1 text-center text-[10px] text-emerald-300">{t('pets.estimatedGain', { xp: fmt(preview) })}</p>
             </div>
 
-            <Action text={pending ? 'Alimentando...' : `Alimentar com ${safeQuantity}x`} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
+            <Action text={pending ? t('pets.feeding') : t('pets.feedWith', { quantity: safeQuantity })} disabled={pending || !food} onClick={() => food && onFeed(food.code, safeQuantity)} />
           </>
         )}
       </div>
@@ -599,11 +598,12 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
 }
 
 function EvolutionOverlay({ result, onClose }: { result: PetEvolveResult; onClose: () => void }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-[99] grid place-items-center bg-black/85 p-4 pet-evolution-overlay">
       <div className="w-full max-w-sm rounded-3xl border border-violet-300/50 bg-[#0a0714] p-5 text-center shadow-[0_0_60px_rgba(168,85,247,.35)]">
         <Sparkles className="mx-auto h-10 w-10 animate-pulse text-violet-300" />
-        <p className="mt-2 text-[9px] uppercase tracking-[.3em] text-violet-300">Evolução concluída</p>
+        <p className="mt-2 text-[9px] uppercase tracking-[.3em] text-violet-300">{t('pets.evolutionCompleted')}</p>
         <h2 className="text-2xl font-black">{result.petName}</h2>
         <p className="text-xs font-bold uppercase text-fuchsia-300">{result.label}</p>
 
@@ -618,20 +618,20 @@ function EvolutionOverlay({ result, onClose }: { result: PetEvolveResult; onClos
 
         {result.newBuff ? (
           <div className="mt-3 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3">
-            <p className="text-[9px] uppercase tracking-[.2em] text-amber-300">Novo bônus desbloqueado</p>
+            <p className="text-[9px] uppercase tracking-[.2em] text-amber-300">{t('pets.newBonusUnlocked')}</p>
             <p className="mt-1 text-sm font-black text-amber-100">
               {petBuffLabel(result.newBuff.key)} +{result.newBuff.value}%
             </p>
-            <p className="text-[9px] text-slate-400">Qualidade {petRarityLabel(result.newBuff.rarity)}</p>
+            <p className="text-[9px] text-slate-400">{t('pets.quality', { rarity: petRarityLabel(result.newBuff.rarity) })}</p>
           </div>
         ) : (
-          <p className="mt-3 text-[10px] text-slate-400">Nenhum bônus extra desta vez. Tente na próxima evolução.</p>
+          <p className="mt-3 text-[10px] text-slate-400">{t('pets.noExtraBonus')}</p>
         )}
 
         <p className="mt-3 text-[9px] text-slate-500">
-          Custo: {fmt(result.fcSpent)} FC · {result.fragmentsSpent} fragmentos
+          {t('pets.cost', { fc: fmt(result.fcSpent), fragments: result.fragmentsSpent })}
         </p>
-        <Action text="Continuar" onClick={onClose} />
+        <Action text={t('pets.continue')} onClick={onClose} />
       </div>
     </div>
   );
@@ -651,6 +651,7 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
 }
 
 function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
+  const t = useT();
   const style = PET_RARITY_STYLE[pet.rarity] ?? PET_RARITY_STYLE.common;
   return (
     <div
@@ -663,7 +664,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
         {pet.isActive && (
           <span className="flex items-center gap-1 rounded-full border border-emerald-300/45 bg-emerald-950/80 px-2 py-1 text-[7px] font-black text-emerald-200">
-            <Check className="h-2.5 w-2.5" />ATIVO
+            <Check className="h-2.5 w-2.5" />{t('pets.active')}
           </span>
         )}
       </div>
@@ -674,7 +675,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
 
       <div className="relative z-10">
         <h3 className="truncate text-base font-black uppercase tracking-wide">{pet.name}</h3>
-        <p className="mt-1 text-[9px] font-bold text-slate-300">Nível {pet.level}/{pet.maxLevel} · Poder {fmt(pet.power)}</p>
+        <p className="mt-1 text-[9px] font-bold text-slate-300">{t('pets.cardLevelPower', { level: pet.level, max: pet.maxLevel, power: fmt(pet.power) })}</p>
         <p className="text-[8px] text-slate-500">{petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}</p>
       </div>
 
@@ -692,7 +693,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         />
         {pet.secondaryBuffs.length > 0 && (
           <p className="px-2 pb-2 text-[8px] text-violet-300">
-            +{pet.secondaryBuffs.length} bônus secundário{pet.secondaryBuffs.length > 1 ? 's' : ''}
+            {t('pets.secondaryBonus', { count: pet.secondaryBuffs.length, plural: pet.secondaryBuffs.length > 1 ? 's' : '' })}
           </p>
         )}
 
@@ -705,11 +706,11 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
           disabled={pending || pet.isMaxLevel}
           className="flex h-10 items-center justify-center gap-1 rounded-lg border border-amber-300/35 bg-black/40 px-1 text-[9px] font-black text-amber-100 disabled:opacity-40"
         >
-          <Info className="h-3 w-3" />ALIMENTAR
+          <Info className="h-3 w-3" />{t('pets.feedButton')}
         </button>
         {pet.isActive ? (
           <button type="button" disabled className="flex h-10 items-center justify-center gap-1 rounded-lg border border-emerald-300/30 bg-emerald-950/45 px-1 text-[9px] font-black text-emerald-300">
-            <Check className="h-3 w-3" />EQUIPADO
+            <Check className="h-3 w-3" />{t('pets.equipped')}
           </button>
         ) : (
           <button
@@ -718,7 +719,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
             disabled={pending}
             className="flex h-10 items-center justify-center rounded-lg border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 px-1 text-[9px] font-black text-black disabled:grayscale disabled:opacity-40"
           >
-            ATIVAR
+            {t('pets.activate')}
           </button>
         )}
       </div>
@@ -740,6 +741,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 /** Purchase confirmation: prices come from the server payload, never from the client. */
 function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { egg: PetEgg; balance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void }) {
+  const t = useT();
   const [quantity, setQuantity] = useState(1);
   const isTon = !egg.priceFc && !!egg.priceTon;
   const unit = egg.priceFc ?? 0;
@@ -750,10 +752,10 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
       <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar ovo</p>
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.buyEggTitle')}</p>
             <h2 className="truncate text-lg font-black">🥚 {egg.name}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
         <img src={egg.image} alt={egg.name} className="mx-auto h-28 w-28 object-contain" />
@@ -766,27 +768,27 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
 
         {isTon ? (
           <div className="mt-4 rounded-2xl border border-sky-300/30 bg-sky-500/10 p-3 text-center">
-            <p className="text-[9px] uppercase tracking-[.2em] text-sky-200">Preço</p>
+            <p className="text-[9px] uppercase tracking-[.2em] text-sky-200">{t('pets.price')}</p>
             <b className="text-2xl">{egg.priceTon} TON</b>
             <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
-              Compra premium: o valor não é creditado como saldo sacável. O ovo é entregue após a confirmação na blockchain.
+              {t('pets.premiumNote')}
             </p>
           </div>
         ) : (
           <>
             <QuantityPicker quantity={quantity} onChange={setQuantity} max={20} />
             <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
-              <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
-              <Row label="Quantidade" value={`${quantity}x`} />
-              <Row label="Total" value={`${fmt(total)} FC`} strong />
-              <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
-              <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+              <Row label={t('pets.unitPrice')} value={`${fmt(unit)} FC`} />
+              <Row label={t('pets.quantity')} value={`${quantity}x`} />
+              <Row label={t('pets.total')} value={`${fmt(total)} FC`} strong />
+              <Row label={t('pets.currentBalance')} value={`${fmt(balance)} FC`} />
+              <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
             </div>
           </>
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">{t('pets.cancel')}</button>
           <button
             type="button"
             disabled={pending || (!isTon && (missing || unit <= 0))}
@@ -794,7 +796,7 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
             className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
           >
             <ShoppingCart className="h-3 w-3" />
-            {isTon ? 'Pagar com TON' : missing ? 'Saldo insuficiente' : 'Comprar'}
+            {isTon ? t('pets.payWithTon') : missing ? t('pets.insufficientBalance') : t('common.buy')}
           </button>
         </div>
       </div>
@@ -803,6 +805,7 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
 }
 
 function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFood; balance: number; pending: boolean; onClose: () => void; onBuy: (quantity: number) => void }) {
+  const t = useT();
   const [quantity, setQuantity] = useState(1);
   const unit = food.priceFc ?? 0;
   const total = unit * quantity;
@@ -812,25 +815,25 @@ function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFoo
       <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Comprar comida</p>
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.buyFoodTitle')}</p>
             <h2 className="truncate text-lg font-black">{PET_FOOD_ICONS[food.icon] ?? '🍖'} {food.name}</h2>
-            <p className="text-[10px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
+            <p className="text-[10px] text-emerald-300">{t('pets.xpPerUnitShort', { xp: fmt(food.xpValue) })}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
         <QuantityPicker quantity={quantity} onChange={setQuantity} max={200} shortcuts={[1, 5, 10, 25, 50]} />
 
         <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
-          <Row label="Preço unitário" value={`${fmt(unit)} FC`} />
-          <Row label="XP total" value={`+${fmt(food.xpValue * quantity)} XP`} />
-          <Row label="Total" value={`${fmt(total)} FC`} strong />
-          <Row label="Saldo atual" value={`${fmt(balance)} FC`} />
-          <Row label="Após a compra" value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+          <Row label={t('pets.unitPrice')} value={`${fmt(unit)} FC`} />
+          <Row label={t('pets.xpTotal')} value={`+${fmt(food.xpValue * quantity)} XP`} />
+          <Row label={t('pets.total')} value={`${fmt(total)} FC`} strong />
+          <Row label={t('pets.currentBalance')} value={`${fmt(balance)} FC`} />
+          <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">Cancelar</button>
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">{t('pets.cancel')}</button>
           <button
             type="button"
             disabled={pending || missing || unit <= 0}
@@ -838,7 +841,7 @@ function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFoo
             className="flex items-center justify-center gap-1 rounded-xl border border-amber-300/30 bg-gradient-to-b from-amber-400 to-orange-600 py-2 text-[9px] font-black uppercase text-black disabled:grayscale disabled:opacity-40"
           >
             <ShoppingCart className="h-3 w-3" />
-            {missing ? 'Saldo insuficiente' : `Comprar ${quantity}x`}
+            {missing ? t('pets.insufficientBalance') : t('pets.buyQuantity', { quantity })}
           </button>
         </div>
       </div>
@@ -847,14 +850,15 @@ function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFoo
 }
 
 function QuantityPicker({ quantity, onChange, max, shortcuts = [1, 5, 10] }: { quantity: number; onChange: (value: number) => void; max: number; shortcuts?: number[] }) {
+  const t = useT();
   const clamp = (value: number) => Math.max(1, Math.min(max, value));
   return (
     <div className="mt-4">
-      <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Quantidade</p>
+      <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">{t('pets.quantity')}</p>
       <div className="mt-2 flex items-center gap-2">
-        <button type="button" aria-label="Diminuir" onClick={() => onChange(clamp(quantity - 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Minus className="h-4 w-4" /></button>
+        <button type="button" aria-label={t('pets.decreaseAria')} onClick={() => onChange(clamp(quantity - 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Minus className="h-4 w-4" /></button>
         <b className="flex-1 rounded-xl border border-amber-300/25 bg-black/50 py-2 text-center text-lg">{quantity}</b>
-        <button type="button" aria-label="Aumentar" onClick={() => onChange(clamp(quantity + 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Plus className="h-4 w-4" /></button>
+        <button type="button" aria-label={t('pets.increaseAria')} onClick={() => onChange(clamp(quantity + 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/5"><Plus className="h-4 w-4" /></button>
       </div>
       <div className="mt-2 flex gap-1">
         {shortcuts.filter((value) => value <= max).map((value) => (

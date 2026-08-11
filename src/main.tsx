@@ -6,15 +6,18 @@ import App from './App';
 import './styles.css';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { TONCONNECT_MANIFEST_URL } from './config';
+import { LanguageProvider } from './LanguageContext';
 
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <TonConnectUIProvider manifestUrl={TONCONNECT_MANIFEST_URL}>
-        <App />
-      </TonConnectUIProvider>
+      <LanguageProvider>
+        <TonConnectUIProvider manifestUrl={TONCONNECT_MANIFEST_URL}>
+          <App />
+        </TonConnectUIProvider>
+      </LanguageProvider>
       <Toaster position="top-right" />
     </QueryClientProvider>
   </React.StrictMode>

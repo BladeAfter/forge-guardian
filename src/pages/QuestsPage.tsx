@@ -5,6 +5,7 @@ import { characters, chests, mainScreenArt, missionIcons } from '../gameAssets';
 import { formatCurrency } from '../utils';
 import { claimDailyQuest, claimDailyQuestChest } from '../services';
 import type { DailyQuest, DailyQuestsDashboard } from '../quests';
+import { useT, useLanguage } from '../LanguageContext';
 
 
 type QuestsPageProps = {
@@ -26,6 +27,8 @@ const QUEST_ART: Record<string, string> = {
 const questArt = (quest: DailyQuest) => QUEST_ART[quest.icon ?? ''] ?? missionIcons[0];
 
 export function QuestsPage({ telegramInitData, dashboard, loading, error }: QuestsPageProps) {
+  const t = useT();
+  const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['daily-quests'] });
@@ -40,9 +43,9 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
     onSuccess: (result) => {
       queryClient.setQueryData(['daily-quests', telegramInitData], result.quests);
       invalidate();
-      toast.success(`+${formatCurrency(result.rewardFc ?? 0)} FC`);
+      toast.success(t('quests.rewardValue', { amount: formatCurrency(result.rewardFc ?? 0) }));
     },
-    onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim this quest.'),
+    onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? tError(mutationError) : t('quests.claimQuestError')),
   });
 
   const chestUnlocked = Boolean(dashboard?.bonus.unlocked) && (dashboard?.completed ?? 0) >= (dashboard?.total ?? 0) && (dashboard?.total ?? 0) > 0;
@@ -51,15 +54,15 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
   const claimChest = useMutation({
     // The server re-checks the 5/5 progress and the daily cycle; the client only guards the taps.
     mutationFn: () => {
-      if (!chestUnlocked || chestClaimed) throw new Error('Complete all quests to unlock the chest.');
+      if (!chestUnlocked || chestClaimed) throw new Error(t('quests.claimChestError'));
       return claimDailyQuestChest(telegramInitData ?? '');
     },
     onSuccess: (result) => {
       queryClient.setQueryData(['daily-quests', telegramInitData], result.quests);
       invalidate();
-      toast.success('Common Hero Chest added to your inventory!');
+      toast.success(t('quests.chestAddedToast'));
     },
-    onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? mutationError.message : 'Unable to claim the chest.'),
+    onError: (mutationError: unknown) => toast.error(mutationError instanceof Error ? tError(mutationError) : t('quests.claimChestApiError')),
   });
 
 
@@ -86,14 +89,14 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
       <div className="rounded-3xl border border-amber-300/25 bg-forge-black/85 p-4 shadow-card">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-amber-300">Daily</p>
-            <h1 className="text-2xl font-black uppercase tracking-wide text-white">Quests</h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-amber-300">{t('quests.dailyLabel')}</p>
+            <h1 className="text-2xl font-black uppercase tracking-wide text-white">{t('quests.title')}</h1>
           </div>
           <div className="text-right">
             {/* Never fake a total: while the server answer is in flight we show a placeholder instead of 0/0. */}
-            <p className="text-lg font-black text-amber-200">{dashboard ? `${dashboard.completed}/${dashboard.total}` : '—/—'}</p>
+            <p className="text-lg font-black text-amber-200">{dashboard ? t('quests.progressFraction', { completed: dashboard.completed, total: dashboard.total }) : t('quests.progressPlaceholder')}</p>
 
-            <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">Resets daily{dashboard?.timezone ? ` · ${dashboard.timezone}` : ''}</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('quests.resetsDaily')}{dashboard?.timezone ? ` · ${dashboard.timezone}` : ''}</p>
           </div>
         </div>
         <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
@@ -104,11 +107,11 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
         <div className={`mt-3 flex items-center gap-3 rounded-2xl border p-3 ${chestUnlocked && !chestClaimed ? 'border-amber-300/60 bg-amber-400/10' : 'border-white/10 bg-white/[.03]'}`}>
           <img src={chests[0]} alt="Daily quest chest" className="h-11 w-11 object-contain" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-amber-200">Daily Quest Chest</p>
+            <p className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-amber-200">{t('quests.chestTitle')}</p>
             <p className="text-[10px] text-slate-400">
-              {chestClaimed ? 'Reward claimed' : chestUnlocked ? 'All quests completed!' : 'Complete all quests to unlock'}
+              {chestClaimed ? t('quests.chestClaimed') : chestUnlocked ? t('quests.chestUnlocked') : t('quests.chestLocked')}
             </p>
-            <p className="text-[9px] uppercase tracking-[0.14em] text-slate-500">1x {dashboard?.bonus.name ?? 'Common Hero Chest'}</p>
+            <p className="text-[9px] uppercase tracking-[0.14em] text-slate-500">{t('quests.chestQuantity', { name: dashboard?.bonus.name ?? t('quests.chestDefaultName') })}</p>
           </div>
           <button
             type="button"
@@ -116,15 +119,15 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
             disabled={!chestUnlocked || chestClaimed || claimChest.isPending}
             className="h-10 rounded-xl bg-gradient-to-b from-amber-300 to-orange-600 px-4 text-[10px] font-black text-[#241307] disabled:cursor-not-allowed disabled:bg-none disabled:bg-white/5 disabled:text-slate-500 disabled:opacity-70"
           >
-            {chestClaimed ? '✓ CLAIMED' : claimChest.isPending ? '...' : chestUnlocked ? 'CLAIM' : 'LOCKED'}
+            {chestClaimed ? t('quests.chestClaimedLabel') : claimChest.isPending ? t('quests.claimPending') : chestUnlocked ? t('quests.claimLabel') : t('quests.lockedLabel')}
           </button>
         </div>
 
       </div>
 
       {/* Never surface raw backend/SQL errors to players — the details stay in the console log above. */}
-      {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">Unable to load Daily Quests. Please try again.</p> : null}
-      {loading && !dashboard ? <p className="p-3 text-xs text-slate-400">Loading quests...</p> : null}
+      {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">{t('quests.errorLoad')}</p> : null}
+      {loading && !dashboard ? <p className="p-3 text-xs text-slate-400">{t('quests.loading')}</p> : null}
 
       <div className="space-y-2">
         {(dashboard?.quests ?? []).map((quest) => (
@@ -139,7 +142,7 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
                 </div>
                 <span className="text-[9px] font-bold text-slate-400">{Math.min(quest.progress, quest.target)}/{quest.target}</span>
               </div>
-              <p className="mt-1 text-[10px] font-bold text-emerald-300">+{formatCurrency(quest.rewardFc)} FC</p>
+              <p className="mt-1 text-[10px] font-bold text-emerald-300">{t('quests.rewardValue', { amount: formatCurrency(quest.rewardFc) })}</p>
             </div>
             <button
               type="button"
@@ -147,7 +150,7 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
               disabled={!quest.completed || quest.claimed || claim.isPending}
               className={`h-10 shrink-0 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${quest.claimed ? 'bg-white/5 text-slate-500' : quest.completed ? 'bg-gradient-to-b from-amber-300 to-orange-600 text-[#241307]' : 'bg-white/5 text-slate-500'} disabled:cursor-not-allowed`}
             >
-              {quest.claimed ? 'CLAIMED' : quest.completed ? 'CLAIM' : 'IN PROGRESS'}
+              {quest.claimed ? t('quests.claimedLabel') : quest.completed ? t('quests.claimLabel') : t('quests.inProgress')}
             </button>
           </div>
         ))}

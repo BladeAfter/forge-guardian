@@ -1,5 +1,7 @@
+import { DICTIONARIES } from './locales';
+
 export type LanguageCode = "pt" | "en" | "es" | "ru";
-export type Translator = (key: string) => string;
+export type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
 const en: Record<string, string> = {
   blacksmith: "Village blacksmith",
@@ -447,5 +449,41 @@ const ru: Record<string, string> = {
   referralLoadError: "Не удалось загрузить приглашения.",
 };
 
-export const UI_TRANSLATIONS: Record<LanguageCode, Record<string, string>> = { pt, en, es, ru };
-export const translate = (language: LanguageCode, key: string) => UI_TRANSLATIONS[language][key] ?? en[key] ?? key;
+/**
+ * Legacy flat keys (kept for backwards compatibility) merged with the
+ * namespaced dictionaries in `src/locales`. English is always the fallback.
+ */
+export const UI_TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
+  pt: { ...pt, ...DICTIONARIES.pt },
+  en: { ...en, ...DICTIONARIES.en },
+  es: { ...es, ...DICTIONARIES.es },
+  ru: { ...ru, ...DICTIONARIES.ru },
+};
+
+/**
+ * Translates `key` for `language`, falling back to English and finally to the
+ * key itself so a missing translation can never blank out the UI.
+ * Supports `{name}` placeholders through `vars`.
+ */
+export const translate = (language: LanguageCode, key: string, vars?: Record<string, string | number>) => {
+  const raw = UI_TRANSLATIONS[language]?.[key] ?? UI_TRANSLATIONS.en[key] ?? key;
+  if (!vars) return raw;
+  return raw.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match));
+};
+
+/** Translates a backend error code (or Error) into friendly, localized copy. */
+export const translateError = (language: LanguageCode, error: unknown): string => {
+  const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  const code = raw.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+  const dict = UI_TRANSLATIONS[language] ?? UI_TRANSLATIONS.en;
+  const direct = dict[`errors.${code}`] ?? UI_TRANSLATIONS.en[`errors.${code}`];
+  if (direct) return direct;
+  const match = Object.keys(UI_TRANSLATIONS.en).find(
+    (candidate) => candidate.startsWith('errors.') && candidate !== 'errors.generic' && code.includes(candidate.slice(7)),
+  );
+  if (match) return dict[match] ?? UI_TRANSLATIONS.en[match];
+  // Never surface SQL/technical text to players; log it instead.
+  if (raw && /[a-z]/.test(raw) && raw.length < 90 && !/[{}();]|does not exist|violates|constraint/i.test(raw)) return raw;
+  if (raw) console.error('[MYTHREON ERROR]', raw);
+  return translate(language, 'errors.generic');
+};

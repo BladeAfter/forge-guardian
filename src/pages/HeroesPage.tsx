@@ -5,10 +5,13 @@ import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import type { PvpHero } from '../pvp';
+import { useT, useLanguage } from '../LanguageContext';
 
 const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const t = useT();
+  const { tError } = useLanguage();
   const { data, isLoading, error } = usePlayerHeroes(telegramInitData, true);
   // PvP team info is optional decoration: its failure never blocks the collection.
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
@@ -29,13 +32,13 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p>
-            <h1 className="truncate text-xl font-black">HERÓIS</h1>
+            <h1 className="truncate text-xl font-black">{t('heroes.title')}</h1>
           </div>
-          <button onClick={onClose} aria-label="Fechar" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X /></button>
+          <button onClick={onClose} aria-label={t('heroes.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X /></button>
         </header>
 
         <nav className="mb-3 grid grid-cols-2 gap-2">
-          {([['collection', 'MEUS HERÓIS'], ['fusion', 'FUSÃO DE RARIDADE']] as const).map(([key, label]) => (
+          {([['collection', t('heroes.tabCollection')], ['fusion', t('heroes.tabFusion')]] as const).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -50,17 +53,17 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           <div className="flex w-[200%] transition-transform duration-300 ease-out" style={{ transform: tab === 'fusion' ? 'translateX(-50%)' : 'translateX(0)' }}>
             <div className={`w-1/2 shrink-0 pr-1 ${tab === 'fusion' ? 'pointer-events-none' : ''}`}>
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
-          <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">Coleção usada em PvP e Chefe</p>
-          <p className="mt-1 text-sm font-black text-amber-200">{heroes.length} heróis conquistados</p>
-          <p className="text-[10px] text-slate-400">Cópias do MESMO herói são fundidas no botão FUSE (mais estrelas, ATK, HP e Poder — a raridade não muda). Para subir de raridade, use a aba FUSÃO DE RARIDADE.</p>
+          <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
+          <p className="mt-1 text-sm font-black text-amber-200">{t('heroes.collectionCount', { count: heroes.length })}</p>
+          <p className="text-[10px] text-slate-400">{t('heroes.collectionHint')}</p>
         </section>
 
         {isLoading ? (
-          <p className="py-20 text-center text-sm text-slate-300">Carregando heróis...</p>
+          <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loading')}</p>
         ) : error ? (
-          <p className="py-20 text-center text-sm text-slate-300">{error instanceof Error ? error.message : 'Não foi possível carregar os heróis.'}</p>
+          <p className="py-20 text-center text-sm text-slate-300">{tError(error) || t('heroes.loadError')}</p>
         ) : heroes.length === 0 ? (
-          <p className="py-20 text-center text-sm text-slate-300">Você ainda não possui heróis. Recrute heróis na Vila para começar.</p>
+          <p className="py-20 text-center text-sm text-slate-300">{t('heroes.empty')}</p>
         ) : (
 
           <div className="mt-3 grid grid-cols-3 gap-2">
@@ -76,16 +79,16 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                   <div className="p-2 text-left">
                     <b className="block truncate text-[9px]">{hero.name}</b>
                     <p className="text-[9px] tracking-[.08em] text-amber-300">{starRow(stars, maxStars)}</p>
-                    <p className="text-[8px]" style={{ color: color[hero.rarity] }}>{hero.rarity} · Nv. {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
+                    <p className="text-[8px]" style={{ color: color[hero.rarity] }}>{t(`rarity.${hero.rarity}`)} · {t('common.levelShort')} {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
                     <p className="text-[8px] text-slate-300">ATK {hero.finalAtk} · HP {hero.finalHp}</p>
-                    <p className="text-[8px] text-amber-200">Poder {hero.power}</p>
-                    {equipped.has(hero.heroId) ? <p className="text-[8px] font-black text-emerald-300">EM EQUIPE</p> : null}
+                    <p className="text-[8px] text-amber-200">{t('common.power')} {hero.power}</p>
+                    {equipped.has(hero.heroId) ? <p className="text-[8px] font-black text-emerald-300">{t('heroes.inTeam')}</p> : null}
                     {state ? (
                       <button
                         onClick={() => setFusingId(hero.heroId)}
                         className="mt-1.5 flex min-h-[30px] w-full items-center justify-center gap-1 rounded-lg border border-amber-300/40 bg-amber-300/10 text-[8px] font-black uppercase tracking-[.12em] text-amber-200"
                       >
-                        <Sparkles size={11} /> FUSE{state.duplicates > 0 ? ` (${state.duplicates})` : ''}
+                        <Sparkles size={11} /> {t('heroes.fuse')}{state.duplicates > 0 ? ` (${state.duplicates})` : ''}
                       </button>
                     ) : null}
                   </div>
@@ -97,9 +100,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             </div>
             <div className={`w-1/2 shrink-0 pl-1 ${tab === 'collection' ? 'pointer-events-none' : ''}`}>
               {loadingRarity && !rarityFusion ? (
-                <p className="py-20 text-center text-sm text-slate-300">Carregando altar de fusão...</p>
+                <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loadingFusion')}</p>
               ) : rarityError ? (
-                <p className="py-20 text-center text-sm text-slate-300">{rarityError instanceof Error ? rarityError.message : 'Não foi possível carregar a fusão.'}</p>
+                <p className="py-20 text-center text-sm text-slate-300">{tError(rarityError) || t('heroes.fusionLoadError')}</p>
               ) : rarityFusion ? (
                 <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} />
               ) : null}

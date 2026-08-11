@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Lock, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { fuseHeroesByRarity } from '../services';
-import { RARITY_COLOR, RARITY_LABEL, type RarityFusionDashboard, type RarityFusionHero, type RarityFusionResult } from '../heroFusion';
+import { RARITY_COLOR, type RarityFusionDashboard, type RarityFusionHero, type RarityFusionResult } from '../heroFusion';
+import { useT, useLanguage } from '../LanguageContext';
 
 const fmt = (value: number) => new Intl.NumberFormat('pt-BR').format(Math.round(value || 0));
 const SLOTS = [0, 1, 2, 3, 4];
@@ -10,6 +11,7 @@ const FILTERS = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 /** Compact 48px slot used in the horizontal selection bar. */
 function SlotChip({ hero, index, onClear }: { hero: RarityFusionHero | null; index: number; onClear: () => void }) {
+  const t = useT();
   if (!hero) {
     return (
       <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-dashed border-amber-300/35 bg-[#070d18]/80 text-[10px] font-black text-amber-300/60">
@@ -20,7 +22,7 @@ function SlotChip({ hero, index, onClear }: { hero: RarityFusionHero | null; ind
   return (
     <button
       onClick={onClear}
-      aria-label={`Remover ${hero.name}`}
+      aria-label={t('fusion.remove', { name: hero.name })}
       className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border bg-black/70"
       style={{ borderColor: RARITY_COLOR[hero.rarity] }}
     >
@@ -42,6 +44,7 @@ function FusionHeroCard({
   blocked: boolean;
   onToggle: () => void;
 }) {
+  const t = useT();
   const active = selectedCount > 0;
   return (
     <button
@@ -62,14 +65,16 @@ function FusionHeroCard({
       </div>
       <div className="flex-1 px-1 py-1 leading-tight">
         <b className="block truncate text-[8px]">{hero.name}</b>
-        <p className="text-[7px] font-black uppercase" style={{ color: RARITY_COLOR[hero.rarity] }}>{RARITY_LABEL[hero.rarity] ?? hero.rarity}</p>
-        <p className="text-[7px] text-slate-400">Lv.{hero.level}{copies > 1 ? ` · x${available} livre` : ''}</p>
+        <p className="text-[7px] font-black uppercase" style={{ color: RARITY_COLOR[hero.rarity] }}>{t(`rarity.${hero.rarity}`)}</p>
+        <p className="text-[7px] text-slate-400">{t('common.levelShort')}{hero.level}{copies > 1 ? t('fusion.freeCopies', { count: available }) : ''}</p>
       </div>
     </button>
   );
 }
 
 export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData: string; data: RarityFusionDashboard }) {
+  const t = useT();
+  const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [filter, setFilter] = useState<string>('common');
@@ -148,7 +153,7 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
       queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });
     } catch (err) {
       setPhase('idle');
-      setError(err instanceof Error ? err.message : 'Não foi possível concluir a fusão.');
+      setError(tError(err) || t('fusion.defaultError'));
     } finally {
       busy.current = false;
     }
@@ -157,9 +162,9 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
   return (
     <section className="pb-2">
       <div className="rounded-xl border border-amber-300/20 bg-[radial-gradient(circle_at_top,#12224a_0%,#060b16_70%)] px-3 py-2">
-        <h2 className="text-[13px] font-black">FUSÃO DE RARIDADE</h2>
-        <p className="text-[9px] text-slate-300">Combine {required} heróis da mesma raridade.</p>
-        {!fusionEnabled ? <p className="mt-1 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-0.5 text-[9px] font-black text-rose-200">FUSÃO DESATIVADA</p> : null}
+        <h2 className="text-[13px] font-black">{t('fusion.rarityTitle')}</h2>
+        <p className="text-[9px] text-slate-300">{t('fusion.combineHeroes', { count: required })}</p>
+        {!fusionEnabled ? <p className="mt-1 rounded-lg border border-rose-400/40 bg-rose-500/10 px-2 py-0.5 text-[9px] font-black text-rose-200">{t('fusion.disabled')}</p> : null}
       </div>
 
       {/* Compact slot bar */}
@@ -174,7 +179,7 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
             />
           ))}
         </div>
-        <p className="mt-1 text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-200">{selected.length} / {required} selecionados</p>
+        <p className="mt-1 text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-200">{t('fusion.selectedCount', { selected: selected.length, required })}</p>
       </div>
 
       {/* Rarity filters */}
@@ -189,16 +194,16 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               onClick={() => setFilter(option)}
               className={`min-h-[28px] truncate rounded-lg border px-0.5 text-[8px] font-black uppercase tracking-[.04em] disabled:opacity-30 ${active ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
             >
-              {RARITY_LABEL[option]}
+              {t(`rarity.${option}`)}
             </button>
           );
         })}
       </div>
 
       {/* Grid */}
-      <p className="mt-2 text-[9px] uppercase tracking-[.2em] text-slate-400">Selecionar heróis</p>
+      <p className="mt-2 text-[9px] uppercase tracking-[.2em] text-slate-400">{t('fusion.selectHeroes')}</p>
       {groups.length === 0 ? (
-        <p className="py-10 text-center text-[11px] text-slate-400">Nenhum herói desta raridade.</p>
+        <p className="py-10 text-center text-[11px] text-slate-400">{t('fusion.noHeroesRarity')}</p>
       ) : (
         <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {groups.map((list) => {
@@ -226,16 +231,16 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
       {/* Sticky fusion bar */}
       <div className="sticky bottom-0 z-10 mt-3 rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
         <div className="flex items-center justify-between gap-2 text-[9px]">
-          <span className="font-black uppercase tracking-[.12em] text-amber-200">{selected.length} / {required} selecionados</span>
-          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>Custo: {tier ? `${fmt(cost)} FC` : '—'}</span>
+          <span className="font-black uppercase tracking-[.12em] text-amber-200">{t('fusion.selectedCount', { selected: selected.length, required })}</span>
+          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} FC` : t('fusion.costNA') })}</span>
         </div>
         <p className="text-[9px] text-slate-400">
           {tier && sourceRarity ? (
             <>
-              <b style={{ color: RARITY_COLOR[sourceRarity] }}>{RARITY_LABEL[sourceRarity]}</b> → <b style={{ color: RARITY_COLOR[tier.target] }}>{RARITY_LABEL[tier.target] ?? tier.target}</b> · chance {tier.chance}% · falha +{fmt(tier.fragments)} frag.
+              <b style={{ color: RARITY_COLOR[sourceRarity] }}>{t(`rarity.${sourceRarity}`)}</b> → <b style={{ color: RARITY_COLOR[tier.target] }}>{t(`rarity.${tier.target}`)}</b> · {t('fusion.chanceFail', { chance: tier.chance, fragments: fmt(tier.fragments) })}
             </>
           ) : (
-            <>Saldo: {fmt(data.balance)} FC</>
+            <>{t('fusion.balance', { balance: fmt(data.balance) })}</>
           )}
         </p>
         <button
@@ -243,21 +248,21 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
           onClick={() => setConfirming(true)}
           className="mt-1.5 min-h-[42px] w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-300/25 to-amber-500/10 text-[11px] font-black uppercase tracking-[.16em] text-amber-100 disabled:opacity-40"
         >
-          {phase === 'fusing' ? 'FUNDINDO...' : notEnoughFc ? 'SALDO INSUFICIENTE' : complete ? 'FUSE HEROES' : `SELECIONE ${required} HERÓIS`}
+          {phase === 'fusing' ? t('fusion.fusing') : notEnoughFc ? t('fusion.insufficientBalance') : complete ? t('fusion.fuseHeroes') : t('fusion.selectN', { count: required })}
         </button>
       </div>
 
       {data.history?.length ? (
         <div className="mt-3 rounded-xl border border-white/10 bg-black/40 p-2">
-          <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Histórico recente</p>
+          <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">{t('fusion.historyTitle')}</p>
           <ul className="mt-1 space-y-1">
             {data.history.slice(0, 6).map((entry) => (
               <li key={entry.id} className="flex items-center justify-between gap-2 text-[9px]">
                 <span className="truncate text-slate-300">
-                  {RARITY_LABEL[entry.sourceRarity] ?? entry.sourceRarity} → {RARITY_LABEL[entry.targetRarity] ?? entry.targetRarity}
+                  {t(`rarity.${entry.sourceRarity}`)} → {t(`rarity.${entry.targetRarity}`)}
                 </span>
                 <b className={entry.success ? 'text-emerald-300' : 'text-rose-300'}>
-                  {entry.success ? entry.rewardHero ?? 'SUCESSO' : `+${entry.fragments} frag.`}
+                  {entry.success ? entry.rewardHero ?? t('fusion.success') : t('fusion.fragmentsShort', { count: entry.fragments })}
                 </b>
               </li>
             ))}
@@ -269,8 +274,8 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
       {confirming && tier ? (
         <div className="fixed inset-0 z-[96] grid place-items-center bg-black/85 p-3">
           <div className="forge-safe-page w-full max-w-[420px] rounded-2xl border border-amber-300/30 bg-[#060b14] p-3">
-            <h3 className="text-sm font-black">CONFIRMAR FUSÃO</h3>
-            <p className="mt-1 text-[10px] text-slate-300">Você vai consumir estes {required} heróis:</p>
+            <h3 className="text-sm font-black">{t('fusion.confirmTitle')}</h3>
+            <p className="mt-1 text-[10px] text-slate-300">{t('fusion.confirmSubtitle', { count: required })}</p>
             <div className="mt-2 grid grid-cols-5 gap-1">
               {chosen.map((hero) => (
                 <div key={hero.heroId} className="overflow-hidden rounded-lg border" style={{ borderColor: RARITY_COLOR[hero.rarity] }}>
@@ -279,16 +284,16 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
               ))}
             </div>
             <div className="mt-2 space-y-1 text-[11px]">
-              <Row label="RARIDADE ATUAL" value={RARITY_LABEL[sourceRarity ?? ''] ?? sourceRarity ?? ''} />
-              <Row label="RESULTADO POSSÍVEL" value={RARITY_LABEL[tier.target] ?? tier.target} color={RARITY_COLOR[tier.target]} />
-              <Row label="CHANCE" value={`${tier.chance}%`} />
-              <Row label="CUSTO" value={`${fmt(cost)} FC`} />
-              <Row label="COMPENSAÇÃO" value={`${fmt(tier.fragments)} Fragmentos`} />
+              <Row label={t('fusion.currentRarity')} value={sourceRarity ? t(`rarity.${sourceRarity}`) : ''} />
+              <Row label={t('fusion.possibleResult')} value={t(`rarity.${tier.target}`)} color={RARITY_COLOR[tier.target]} />
+              <Row label={t('fusion.chance')} value={`${tier.chance}%`} />
+              <Row label={t('fusion.costLabel')} value={`${fmt(cost)} FC`} />
+              <Row label={t('fusion.compensation')} value={t('fusion.universalFragments', { count: fmt(tier.fragments) })} />
             </div>
-            <p className="mt-2 flex items-center gap-1 text-[10px] font-black text-rose-300"><ShieldAlert size={12} /> ESTA AÇÃO NÃO PODE SER DESFEITA.</p>
+            <p className="mt-2 flex items-center gap-1 text-[10px] font-black text-rose-300"><ShieldAlert size={12} /> {t('fusion.undoWarning')}</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button onClick={() => setConfirming(false)} className="min-h-[42px] rounded-xl border border-white/15 bg-black/60 text-[11px] font-black uppercase">CANCELAR</button>
-              <button onClick={runFusion} className="min-h-[42px] rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">CONFIRMAR</button>
+              <button onClick={() => setConfirming(false)} className="min-h-[42px] rounded-xl border border-white/15 bg-black/60 text-[11px] font-black uppercase">{t('common.cancel')}</button>
+              <button onClick={runFusion} className="min-h-[42px] rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">{t('common.confirm')}</button>
             </div>
           </div>
         </div>
@@ -313,7 +318,7 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
             ))}
             <Sparkles size={40} className="animate-pulse text-amber-200" />
           </div>
-          <p className="mt-4 text-[11px] font-black uppercase tracking-[.28em] text-amber-200">FUNDINDO...</p>
+          <p className="mt-4 text-[11px] font-black uppercase tracking-[.28em] text-amber-200">{t('fusion.fusing')}</p>
         </div>
       ) : null}
 
@@ -323,30 +328,30 @@ export function HeroRarityFusion({ telegramInitData, data }: { telegramInitData:
           <div className="animate-scale-in w-full max-w-[380px] rounded-2xl border p-4 text-center" style={{ borderColor: result.success ? RARITY_COLOR[result.targetRarity] : '#f43f5e', background: '#050a12' }}>
             {result.success && result.hero ? (
               <>
-                <p className="text-[10px] uppercase tracking-[.3em] text-amber-300">FUSION SUCCESS</p>
+                <p className="text-[10px] uppercase tracking-[.3em] text-amber-300">{t('fusion.resultSuccessTitle')}</p>
                 {result.hero.imageUrl ? (
                   <img src={result.hero.imageUrl} alt={result.hero.name} className="mx-auto mt-2 aspect-square w-40 rounded-xl border object-cover" style={{ borderColor: RARITY_COLOR[result.hero.rarity] }} />
                 ) : null}
                 <h3 className="mt-2 text-lg font-black">{result.hero.name}</h3>
-                <p className="text-[11px] font-black" style={{ color: RARITY_COLOR[result.hero.rarity] }}>{RARITY_LABEL[result.hero.rarity] ?? result.hero.rarity}</p>
-                <p className="text-[9px] uppercase tracking-[.2em] text-emerald-300">NOVO HERÓI</p>
+                <p className="text-[11px] font-black" style={{ color: RARITY_COLOR[result.hero.rarity] }}>{t(`rarity.${result.hero.rarity}`)}</p>
+                <p className="text-[9px] uppercase tracking-[.2em] text-emerald-300">{t('fusion.newHero')}</p>
                 <div className="mt-2 grid grid-cols-3 gap-1 text-[10px]">
-                  <Stat label="ATK" value={fmt(result.hero.finalAtk)} />
-                  <Stat label="HP" value={fmt(result.hero.finalHp)} />
-                  <Stat label="PODER" value={fmt(result.hero.power)} />
+                  <Stat label={t('fusion.statAtk')} value={fmt(result.hero.finalAtk)} />
+                  <Stat label={t('fusion.statHp')} value={fmt(result.hero.finalHp)} />
+                  <Stat label={t('fusion.statPowerCaps')} value={fmt(result.hero.power)} />
                 </div>
               </>
             ) : (
               <>
-                <p className="text-[10px] uppercase tracking-[.3em] text-rose-300">FUSION FAILED</p>
-                <h3 className="mt-2 text-base font-black">A fusão foi instável.</h3>
-                <p className="mt-2 text-[10px] uppercase tracking-[.2em] text-slate-400">COMPENSAÇÃO</p>
-                <p className="text-lg font-black text-amber-200">Fragmentos Universais x{fmt(result.fragments)}</p>
+                <p className="text-[10px] uppercase tracking-[.3em] text-rose-300">{t('fusion.resultFailedTitle')}</p>
+                <h3 className="mt-2 text-base font-black">{t('fusion.unstable')}</h3>
+                <p className="mt-2 text-[10px] uppercase tracking-[.2em] text-slate-400">{t('fusion.compensation')}</p>
+                <p className="text-lg font-black text-amber-200">{t('fusion.universalFragments', { count: fmt(result.fragments) })}</p>
               </>
             )}
-            <p className="mt-2 text-[10px] text-slate-400">Saldo: {fmt(result.balance)} FC</p>
+            <p className="mt-2 text-[10px] text-slate-400">{t('fusion.balance', { balance: fmt(result.balance) })}</p>
             <button onClick={() => { setPhase('idle'); setResult(null); }} className="mt-3 min-h-[44px] w-full rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">
-              CONTINUAR
+              {t('common.continue')}
             </button>
           </div>
         </div>

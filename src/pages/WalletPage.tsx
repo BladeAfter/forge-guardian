@@ -14,6 +14,7 @@ import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
 import { usePetDashboard, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
+import { useLanguage, useT } from '../LanguageContext';
 
 type Props = {
   game: GameState;
@@ -28,6 +29,8 @@ type Props = {
 };
 
 export function WalletPage({ game, telegramInitData, connected, address, onConnect, onDisconnect, isConnecting }: Props) {
+  const t = useT();
+  const { tError } = useLanguage();
   const [tonConnectUI] = useTonConnectUI();
   const queryClient = useQueryClient();
   const backendEnabled = Boolean(telegramInitData);
@@ -59,23 +62,23 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
   const verify = useMutation({
     mutationFn: async () => {
-      if (!telegramInitData) throw new Error('Abra o jogo pelo Telegram.');
+      if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
       return verifyPendingDeposits(telegramInitData);
     },
     onSuccess: async result => {
       await invalidateWallet();
-      if (result.confirmed.length) toast.success(`${result.confirmed.length} depósito(s) creditado(s): saldo atualizado.`);
-      else if (result.alreadyCredited?.length) toast('Deposit already credited.');
-      else if (result.checked) toast('Pagamento ainda não localizado na blockchain. Tente novamente em instantes.');
-      else toast('Nenhum depósito pendente para verificar.');
+      if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+      else if (result.alreadyCredited?.length) toast(t('wallet.toast.alreadyCredited'));
+      else if (result.checked) toast(t('wallet.toast.notFoundYet'));
+      else toast(t('wallet.toast.noPending'));
     },
-    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar o depósito.')
+    onError: error => toast.error(tError(error))
   });
 
   const deposit = useMutation({
     mutationFn: async () => {
-      if (!telegramInitData || !connected || !address) throw new Error('Conecte sua carteira TON.');
-      if (!Number.isFinite(depositTon) || depositTon <= 0) throw new Error('Informe um valor de depósito válido.');
+      if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (!Number.isFinite(depositTon) || depositTon <= 0) throw new Error(t('wallet.errors.invalidDeposit'));
       const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
@@ -86,23 +89,23 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     },
     onSuccess: async () => {
       await invalidateWallet();
-      toast.success('Pagamento enviado. Verificando na blockchain...');
+      toast.success(t('wallet.toast.paymentSentVerifying'));
       // Give the network a few seconds to include the transfer before checking on-chain.
       setTimeout(() => verify.mutate(), 8000);
     },
-    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível depositar.')
+    onError: error => toast.error(tError(error))
   });
 
   const withdrawal = useMutation({
     mutationFn: async () => {
-      if (!telegramInitData || !connected || !address) throw new Error('Conecte sua carteira TON.');
-      if (withdrawFc < MIN_WITHDRAWAL_FC) throw new Error('O saque mínimo é 100.000 FC.');
-      if (withdrawFc % MIN_WITHDRAWAL_FC !== 0) throw new Error('O valor deve ser múltiplo de 100.000 FC.');
-      if (!validWithdrawal(withdrawFc, balance)) throw new Error('Saldo FC insuficiente.');
+      if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (withdrawFc < MIN_WITHDRAWAL_FC) throw new Error(t('wallet.errors.minWithdraw'));
+      if (withdrawFc % MIN_WITHDRAWAL_FC !== 0) throw new Error(t('wallet.errors.multipleWithdraw'));
+      if (!validWithdrawal(withdrawFc, balance)) throw new Error(t('wallet.errors.insufficientBalance'));
       return requestWithdrawal(telegramInitData, withdrawFc, address, crypto.randomUUID());
     },
-    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success('Saque solicitado e saldo reservado.'); },
-    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível solicitar o saque.')
+    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
+    onError: error => toast.error(tError(error))
   });
 
   const invalidateEggs = async () => {
@@ -133,16 +136,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   // Premium eggs use the exact same purchase pipeline as the pet shop (purchase, never a deposit).
   const buyEgg = useMutation({
     mutationFn: async (egg: { id: string; image: string }) => {
-      if (!connected) throw new Error('Conecte sua carteira TON.');
+      if (!connected) throw new Error(t('wallet.errors.connectWallet'));
       await purchasePremiumEgg({ telegramInitData, eggId: egg.id, source: 'wallet', sendTransaction: tx => tonConnectUI.sendTransaction(tx) });
-      toast.success('Pagamento enviado. Confirmando na blockchain...');
+      toast.success(t('wallet.toast.paymentSentConfirming'));
       return { egg, verification: await waitForEggPurchase(telegramInitData) };
     },
     onSuccess: async ({ egg, verification }) => {
       const delivered = await revealPurchase(verification, egg.image);
-      if (!delivered) toast('Pagamento em processamento. O ovo abre automaticamente quando a rede confirmar.');
+      if (!delivered) toast(t('wallet.toast.processingEgg'));
     },
-    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível comprar o ovo.')
+    onError: error => toast.error(tError(error))
   });
 
   // "JÁ PAGUEI" é apenas recuperação: nunca cria outro pedido nem procura pagamento aleatório.
@@ -155,7 +158,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (message.tone === 'success') toast.success(message.text);
       else toast(message.text);
     },
-    onError: error => toast.error(error instanceof Error ? error.message : 'Não foi possível verificar a compra.')
+    onError: error => toast.error(tError(error))
   });
 
 
@@ -164,82 +167,82 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       <div className="rounded-2xl border border-amber-300/25 bg-[#080d16]/90 p-4 shadow-card">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[9px] uppercase tracking-[.26em] text-amber-300">CARTEIRA TON</p>
+            <p className="text-[9px] uppercase tracking-[.26em] text-amber-300">{t('wallet.title')}</p>
             <div className="mt-1 flex items-center gap-2 text-sm font-bold">
               <span className={`h-2.5 w-2.5 rounded-full ${connected ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'border border-slate-500'}`} />
-              {connected ? 'Conectada' : 'Desconectada'}
+              {connected ? t('wallet.connected') : t('wallet.disconnected')}
             </div>
           </div>
           <button onClick={connected ? onDisconnect : onConnect} disabled={isConnecting} className="rounded-xl border border-amber-300/20 bg-black/40 px-3 py-2 text-[9px] font-bold text-amber-100 disabled:opacity-40">
-            {isConnecting ? 'Processando...' : connected ? 'Desconectar' : 'CONECTAR CARTEIRA'}
+            {isConnecting ? t('wallet.requesting') : connected ? t('wallet.disconnect') : t('wallet.connectButton')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <Panel title="SALDO" icon={<Coins />}>
+        <Panel title={t('wallet.balance')} icon={<Coins />}>
           <div className="flex items-center gap-2"><img src={coin} className="h-8 w-8 object-contain" alt="FC"/><strong className="text-lg text-amber-200">{Math.floor(balance).toLocaleString('pt-BR')} FC</strong></div>
-          <p className="mt-1 text-[9px] text-slate-400">Equivalente a {fcToTon(balance).toLocaleString('pt-BR', { maximumFractionDigits: 4 })} TON</p>
+          <p className="mt-1 text-[9px] text-slate-400">{t('wallet.balanceEquivalent', { ton: fcToTon(balance).toLocaleString('pt-BR', { maximumFractionDigits: 4 }) })}</p>
         </Panel>
-        <Panel title="CONVERSÃO" icon={<Wallet />}>
+        <Panel title={t('wallet.conversion')} icon={<Wallet />}>
           <strong className="text-sm text-sky-300">1 TON</strong><p className="text-[10px] text-slate-300">= {FC_PER_TON.toLocaleString('pt-BR')} FC</p>
         </Panel>
       </div>
 
-      <Panel title="DEPOSITAR TON" icon={<ArrowDownToLine />}>
+      <Panel title={t('wallet.deposit')} icon={<ArrowDownToLine />}>
         <div className="grid grid-cols-4 gap-1">{[1,3,5,10].map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{value} TON</Quick>)}</div>
-        <input type="number" min="0.01" step="0.01" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label="Quantidade de TON" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
-        <Result label="Você receberá" value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
-        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending}>{deposit.isPending ? 'ABRINDO CARTEIRA...' : 'DEPOSITAR TON'}</Primary>
+        <input type="number" min="0.01" step="0.01" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+        <Result label={t('wallet.youWillReceive')} value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
+        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending}>{deposit.isPending ? t('wallet.openingWallet') : t('wallet.depositButton')}</Primary>
         <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
-          {verify.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — VERIFICAR DEPÓSITO'}
+          {verify.isPending ? t('wallet.verifying') : t('wallet.alreadyPaid')}
         </button>
       </Panel>
 
-      <Panel title="SACAR FC" icon={<ArrowUpFromLine />}>
-        <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} mil</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>Máximo</Quick></div>
-        <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label="Quantidade de FC" className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+      <Panel title={t('wallet.withdraw')} icon={<ArrowUpFromLine />}>
+        <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} {t('wallet.thousandShort')}</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>{t('wallet.max')}</Quick></div>
+        <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label={t('wallet.fcAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
-          <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
-          <Line label={`TAXA DE SAQUE (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+          <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+          <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
+          <Line label={t('wallet.withdrawFee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
           <div className="h-px w-full bg-white/10" />
-          <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+          <Line label={t('wallet.youWillReceiveTon')} value={`${formatTon(quote.netTon)} TON`} tone="net" />
         </div>
-        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">Debitamos exatamente {withdrawFc.toLocaleString('pt-BR')} FC do seu saldo. A taxa de {quote.feePercent}% é aplicada apenas sobre o valor convertido em TON.</p>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">{t('wallet.debitNote', { amount: withdrawFc.toLocaleString('pt-BR'), percent: quote.feePercent })}</p>
         <div className="mt-3">
-          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? 'SOLICITANDO...' : 'SOLICITAR SAQUE'}</Primary>
+          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? t('wallet.requesting') : t('wallet.requestWithdraw')}</Primary>
         </div>
       </Panel>
 
       {confirmWithdraw ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <div className="w-full max-w-xs rounded-2xl border border-amber-300/30 bg-[#0a0f19] p-4">
-            <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">CONFIRMAÇÃO DE SAQUE</h4>
+            <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">{t('wallet.confirmTitle')}</h4>
             <div className="mt-3 space-y-2">
-              <Line label="VALOR" value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
-              <Line label="VALOR BRUTO" value={`${formatTon(quote.grossTon)} TON`} />
-              <Line label={`TAXA (${quote.feePercent}%)`} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
+              <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+              <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
+              <Line label={t('wallet.fee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
               <div className="h-px w-full bg-white/10" />
-              <Line label="VOCÊ RECEBERÁ" value={`${formatTon(quote.netTon)} TON`} tone="net" />
+              <Line label={t('wallet.youWillReceiveTon')} value={`${formatTon(quote.netTon)} TON`} tone="net" />
             </div>
             <div className="mt-4 space-y-2">
-              <Primary onClick={() => withdrawal.mutate()} disabled={withdrawal.isPending}>{withdrawal.isPending ? 'ENVIANDO...' : 'CONFIRMAR'}</Primary>
-              <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={withdrawal.isPending} className="w-full rounded-xl border border-white/15 bg-black/40 py-2.5 text-[10px] font-black text-slate-300 disabled:opacity-40">CANCELAR</button>
+              <Primary onClick={() => withdrawal.mutate()} disabled={withdrawal.isPending}>{withdrawal.isPending ? t('wallet.sending') : t('wallet.confirm')}</Primary>
+              <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={withdrawal.isPending} className="w-full rounded-xl border border-white/15 bg-black/40 py-2.5 text-[10px] font-black text-slate-300 disabled:opacity-40">{t('wallet.cancel')}</button>
             </div>
           </div>
         </div>
       ) : null}
 
-      {premiumEggs.length ? <Panel title="OVOS PREMIUM" icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">COMPRAR · {formatEggPrice(egg)}</button></div>)}</div>
+      {premiumEggs.length ? <Panel title={t('wallet.premiumEggs')} icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">{t('wallet.buyButton', { price: formatEggPrice(egg) })}</button></div>)}</div>
         <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
-          {reconcile.isPending ? 'VERIFICANDO NA BLOCKCHAIN...' : 'JÁ PAGUEI — RECEBER MEU OVO'}
+          {reconcile.isPending ? t('wallet.verifying') : t('wallet.receiveEgg')}
         </button></Panel> : null}
 
-      <Panel title="HISTÓRICO" icon={<Clock3 />}>
+      <Panel title={t('wallet.history')} icon={<Clock3 />}>
         <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${item.label.toUpperCase()} · ${item.amountTon} TON` : item.label}</p>
-          {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">Bruto: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} TON · Taxa ({Number(item.feePercent ?? 0)}%): {formatTon(Number(item.feeTon ?? 0))} TON · Recebido: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
-          <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">Nenhuma movimentação.</p>}</div>
+          {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">{t('wallet.historyGross')}: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} TON · {t('wallet.historyFee', { percent: Number(item.feePercent ?? 0) })}: {formatTon(Number(item.feeTon ?? 0))} TON · {t('wallet.historyReceived')}: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
+          <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status, t)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">{t('wallet.noMovement')}</p>}</div>
       </Panel>
 
       {reveal ? <PetEggOpeningOverlay result={reveal.result} eggImage={reveal.eggImage} onContinue={() => setReveal(null)} /> : null}
@@ -263,4 +266,4 @@ function Line({ label, value, tone }: { label: string; value: string; tone?: 'fe
 }
 function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
 function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed','paid'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
-function statusLabel(status:string){return({pending:'Pendente',confirmed:'Confirmado',credited:'Creditado',processing:'Processando',completed:'Concluído',paid:'Pago',delivered:'Entregue',expired:'Expirado',rejected:'Rejeitado',cancelled:'Cancelado'}as Record<string,string>)[status]??status;}
+function statusLabel(status: string, t: (key: string) => string) { return t(`wallet.status.${status}`) ?? status; }

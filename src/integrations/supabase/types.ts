@@ -762,6 +762,8 @@ export type Database = {
           first_name: string | null
           forge_coins: number
           id: string
+          language: string
+          language_locked: boolean
           last_name: string | null
           last_seen_at: string
           premium_until: string | null
@@ -787,6 +789,8 @@ export type Database = {
           first_name?: string | null
           forge_coins?: number
           id?: string
+          language?: string
+          language_locked?: boolean
           last_name?: string | null
           last_seen_at?: string
           premium_until?: string | null
@@ -812,6 +816,8 @@ export type Database = {
           first_name?: string | null
           forge_coins?: number
           id?: string
+          language?: string
+          language_locked?: boolean
           last_name?: string | null
           last_seen_at?: string
           premium_until?: string | null
@@ -5064,6 +5070,7 @@ export type Database = {
         Returns: Json
       }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
+      normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       open_calendar_hero_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
@@ -5229,6 +5236,10 @@ export type Database = {
         Args: { p_hero_id: string; p_locked: boolean; p_telegram_id: number }
         Returns: Json
       }
+      set_player_language: {
+        Args: { p_language: string; p_telegram_id: number }
+        Returns: Json
+      }
       setting_bool: {
         Args: { p_default: boolean; p_key: string }
         Returns: boolean
@@ -5276,16 +5287,28 @@ export type Database = {
         }
         Returns: Json
       }
-      upsert_telegram_player_profile: {
-        Args: {
-          p_first_name: string
-          p_last_name?: string
-          p_photo_url?: string
-          p_telegram_id: number
-          p_username?: string
-        }
-        Returns: Json
-      }
+      upsert_telegram_player_profile:
+        | {
+            Args: {
+              p_first_name: string
+              p_last_name?: string
+              p_photo_url?: string
+              p_telegram_id: number
+              p_username?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_first_name: string
+              p_language_code?: string
+              p_last_name?: string
+              p_photo_url?: string
+              p_telegram_id: number
+              p_username?: string
+            }
+            Returns: Json
+          }
       wallet_hot_address: { Args: never; Returns: string }
       withdraw_fee_percent: { Args: never; Returns: number }
     }

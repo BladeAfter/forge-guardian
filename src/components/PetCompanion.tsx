@@ -1,3 +1,4 @@
+import { useT } from '../LanguageContext';
 import { petBuffShortLabel } from '../petLabels';
 
 type Companion = { name: string; image: string; level?: number; rarity?: string } | null | undefined;
@@ -20,7 +21,7 @@ export function PetCompanion({
   buffValue,
   buffs,
   size = 'md',
-  label = 'Companheiro em combate',
+  label,
 }: {
   pet: Companion;
   buffKey?: string | null;
@@ -29,6 +30,7 @@ export function PetCompanion({
   size?: 'sm' | 'md';
   label?: string;
 }) {
+  const t = useT();
   if (!pet) return null;
   const glow = RARITY_GLOW[pet.rarity ?? 'common'] ?? RARITY_GLOW.common;
   const box = size === 'sm' ? 'h-14 w-14' : 'h-20 w-20';
@@ -39,9 +41,9 @@ export function PetCompanion({
         <img src={pet.image} alt={pet.name} className={`relative ${box} object-contain pet-companion-float`} />
       </div>
       <div className="min-w-0">
-        <p className="text-[8px] uppercase tracking-[.25em] text-amber-300">{label}</p>
+        <p className="text-[8px] uppercase tracking-[.25em] text-amber-300">{label ?? t('pets.combatCompanion')}</p>
         <b className="block truncate text-sm">{pet.name}</b>
-        <p className="text-[9px] text-slate-400">{pet.level ? `Nível ${pet.level}` : ''}</p>
+        <p className="text-[9px] text-slate-400">{pet.level ? t('pets.levelShort', { level: pet.level }) : ''}</p>
         {buffs?.length ? (
           <p className="text-[9px] font-semibold leading-tight text-emerald-300">
             {buffs.map((b) => `${petBuffShortLabel(b.key)} +${b.value}%`).join(' · ')}
