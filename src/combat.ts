@@ -23,6 +23,27 @@ export type CombatHero = {
   reviveAt: string | null;
 };
 
+export type GlobalBossState = {
+  cycleId: string; cycleNumber: number; name: string; image?: string | null;
+  status: 'active' | 'defeated' | 'distributing' | 'completed';
+  maxHp: number; currentHp: number; rewardPoolFc: number; totalDamage: number;
+  participants: number; startsAt?: string | null; endsAt?: string | null; defeatedAt?: string | null;
+  yourDamage: number; yourRank: number | null; yourSharePercent: number; estimatedReward: number;
+  minimumDamage: number; minimumRewardFc: number; rankBonusEnabled: boolean;
+  lastReward?: { cycleNumber?: number; rewardFc: number; rank: number; damage: number } | null;
+};
+
+export type GlobalBossRankingEntry = {
+  rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null;
+  damage: number; sharePercent: number; estimatedReward: number; isYou: boolean;
+};
+export type GlobalBossRanking = {
+  cycle: { cycleId: string; cycleNumber: number; name: string; status: string; maxHp: number; currentHp: number;
+    rewardPoolFc: number; totalDamage: number; participants: number; minimumDamage: number } | null;
+  top: GlobalBossRankingEntry[];
+  you: { rank: number; damage: number; sharePercent: number; estimatedReward: number } | null;
+};
+
 export type BossCombat = {
   id: string | null; bossId: string | null; bossName: string; bossLevel: number;
   bossMaxHp: number; bossCurrentHp: number; bossAttack: number;
@@ -36,6 +57,8 @@ export type BossCombat = {
   defeatedAt: string | null; rewardClaimedAt: string | null;
   teamChangeAvailableAt: string | null; serverNow: string; heroes: CombatHero[];
   ownedHeroes?: Array<{ id: string; heroKey: string; name: string; image?: string; rarity: HeroRarity; level: number }>;
+  /** Server-authoritative shared boss state (one boss for the whole server). */
+  globalBoss?: GlobalBossState | null;
   petSummary?: { activePet: { name: string; image: string; level: number; rarity: string } | null; bonuses: Record<string, number> };
 };
 
