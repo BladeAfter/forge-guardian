@@ -151,6 +151,15 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
   const action = String(body.action || 'process');
   // Hero shop pricing/odds are admin-controlled settings, read live on every open.
   if (action === 'shop') return await rpc(db, 'get_hero_shop_config', {});
+  // Global boss ranking/history are read-only views over the shared server cycle.
+  if (action === 'ranking') {
+    const limit = Math.min(100, Math.max(3, Number(body.limit) || 50));
+    return await rpc(db, 'get_global_boss_ranking', { p_telegram_id: user.id, p_limit: limit });
+  }
+  if (action === 'history') {
+    const limit = Math.min(30, Math.max(1, Number(body.limit) || 10));
+    return await rpc(db, 'get_global_boss_history', { p_telegram_id: user.id, p_limit: limit });
+  }
   // Team management (equip/unequip/team) never requires an active boss; only `attack` does.
   const fn = action === 'equip' ? 'equip_combat_hero'
     : action === 'unequip' ? 'unequip_combat_hero'
@@ -160,6 +169,7 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
     : action === 'attack' ? 'attack_boss'
     : action === 'get' ? 'get_boss_combat'
     : 'process_boss_combat';
+
   const args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'equip' || action === 'unequip') {
     const slot = Number(body.slot);
