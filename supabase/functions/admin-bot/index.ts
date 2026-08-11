@@ -540,9 +540,12 @@ async function module(ctx: Ctx, name: string) {
     }
     case 'status': {
       const s = await rpc('admin_status_overview', { p_admin_id: ctx.adminId });
-      return edit(ctx, `📊 <b>STATUS</b>\n👥 ${fmt(s.players_total)} jogadores · ativos 24h ${fmt(s.players_active_24h)} · novos ${fmt(s.players_new_24h)} · banidos ${fmt(s.players_banned)}\n🪙 ${fmt(s.fc_circulating)} FC circulando\n💎 ${fmt(s.ton_deposited)} TON depositado · ${fmt(s.ton_withdrawn)} sacado\n💰 Pool ${fmt(s.pool_balance)} TON\n⚔️ ${fmt(s.pvp_battles_24h)} batalhas 24h · 👑 ${fmt(s.boss_active)} chefes ativos\n🦸 ${fmt(s.heroes_total)} heróis · 🐲 ${fmt(s.pets_total)} pets · 🤝 ${fmt(s.referrals_total)} convites\n🔧 Manutenção: ${s.maintenance ? 'ATIVA' : 'off'} · settings v${s.settings_version}`,
+      const g = await rpc('admin_game_day_state', { p_admin_id: ctx.adminId });
+      const mins = Math.max(0, Math.round((Date.parse(g.nextResetAt) - Date.now()) / 60000));
+      return edit(ctx, `📊 <b>STATUS</b>\n👥 ${fmt(s.players_total)} jogadores · ativos 24h ${fmt(s.players_active_24h)} · novos ${fmt(s.players_new_24h)} · banidos ${fmt(s.players_banned)}\n🪙 ${fmt(s.fc_circulating)} FC circulando\n💎 ${fmt(s.ton_deposited)} TON depositado · ${fmt(s.ton_withdrawn)} sacado\n💰 Pool ${fmt(s.pool_balance)} TON\n⚔️ ${fmt(s.pvp_battles_24h)} batalhas 24h · 👑 ${fmt(s.boss_active)} chefes ativos\n🦸 ${fmt(s.heroes_total)} heróis · 🐲 ${fmt(s.pets_total)} pets · 🤝 ${fmt(s.referrals_total)} convites\n🔧 Manutenção: ${s.maintenance ? 'ATIVA' : 'off'} · settings v${s.settings_version}\n\n📅 <b>CALENDÁRIO</b>\nCURRENT GAME DAY: <b>Day ${g.gameDayNumber}</b> (<code>${g.gameDay}</code>)\nSERVER TIME: <code>${esc(g.serverLocalTime)}</code> ${esc(g.timezone)}\nNEXT GAME DAY: <b>${String(g.resetHour).padStart(2, '0')}:00</b> · em ${Math.floor(mins / 60)}h ${mins % 60}m\nGAME LAUNCH: <code>${String(g.launchAt).slice(0, 16).replace('T', ' ')}</code>\nClaims hoje: ${fmt(g.claimsToday)} · corrigidos pelo bug: ${fmt(g.repairedClaims)}`,
         kb([[{ t: '🔄 ATUALIZAR', d: 'm:status' }], nav()]));
     }
+
     case 'maint': {
       const on = (await rpc('admin_get_settings', { p_admin_id: ctx.adminId, p_category: 'system' })).settings
         .find((s: any) => s.key === 'maintenance_mode')?.value === true;
