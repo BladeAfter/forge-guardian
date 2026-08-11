@@ -629,6 +629,10 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     if (!isUuid(body.itemId)) throw new Error('Item inválido.');
     fn = 'open_season_mythic_egg';
     args = { ...args, p_item_id: body.itemId };
+  } else if (action === 'recent-xp') {
+    // Battle Pass XP feed for client toasts: the server owns multipliers, caps and final XP.
+    fn = 'get_recent_pass_xp';
+    args = { ...args, p_since: typeof body.since === 'string' && body.since ? body.since : null };
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
   return rpc(db, fn, args);
 }
