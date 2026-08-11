@@ -340,8 +340,8 @@ function App() {
   useEffect(() => {
     if (!appReady || bootDone) return;
     console.info('[BOOT] App ready');
-    const fadeTimer = setTimeout(() => setBootFading(true), 350);
-    const doneTimer = setTimeout(() => setBootDone(true), 900);
+    const fadeTimer = setTimeout(() => setBootFading(true), 120);
+    const doneTimer = setTimeout(() => setBootDone(true), 480);
     return () => { clearTimeout(fadeTimer); clearTimeout(doneTimer); };
   }, [appReady, bootDone]);
 
@@ -413,7 +413,7 @@ function App() {
       });
       setGame(buildLocalGameState(telegramInitData));
       setIsReady(true);
-    }, 12_000);
+    }, 7_000);
     return () => window.clearTimeout(timer);
   }, [telegramInitData, game, error, isLoading]);
 
