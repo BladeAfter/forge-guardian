@@ -852,7 +852,7 @@ function App() {
                             <p className="truncate text-[11px] font-bold text-white">{chest.name||CHEST_LABELS[chest.itemCode]||'Baú de Herói'}</p>
                             <p className="text-[9px] text-slate-400">x{chest.quantity} · {chest.subtitle}</p>
                           </div>
-                          <button type="button" disabled={calendarChestMutation.isPending} onClick={()=>calendarChestMutation.mutate(chest.id)} className="rounded-lg bg-amber-400 px-3 py-2 text-[10px] font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'...':'ABRIR'}</button>
+                          <button type="button" disabled={calendarChestMutation.isPending} onClick={()=>openChest(chest.id)} className="rounded-lg bg-amber-400 px-3 py-2 text-[10px] font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'ABRINDO...':'ABRIR'}</button>
                         </li>
                       ))}
                       {playerInventory?.eggs.map(egg=>(
