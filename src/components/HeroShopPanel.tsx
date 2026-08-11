@@ -333,8 +333,15 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
               ) : null}
 
 
+              {marketTab !== 'browse' ? (
+                <button onClick={() => setMarketTab('browse')} className="mt-3 rounded-lg border border-white/12 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] text-slate-300">
+                  <ChevronLeft className="-mt-0.5 inline h-3 w-3" />{t('market.back')}
+                </button>
+              ) : null}
+
               {marketTab === 'mine' ? (
                 <div className="mt-3 space-y-3">
+
                   {mine.isLoading ? <p className="text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
                   {mine.isError ? (
                     <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-center">
