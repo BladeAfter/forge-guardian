@@ -1,12 +1,13 @@
 import{useState}from'react';
 import{useMutation,useQuery,useQueryClient}from'@tanstack/react-query';
-import{History,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
+import{History,Plus,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
 import{toast}from'sonner';
 import{usePetDashboard,usePvpDashboard}from'../hooks';
 import{PetCompanion}from'../components/PetCompanion';
 import{PvpBattleArena}from'../components/PvpBattleArena';
-import{pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
-import type{PvpBattleResult,PvpHero,PvpOpponent}from'../pvp';
+import{buyPvpTickets,pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
+import type{PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'../pvp';
+
 
 
 type Team='attack'|'defense';type View='teams'|'history'|'ranking';
