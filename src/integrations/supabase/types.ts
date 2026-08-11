@@ -3553,6 +3553,66 @@ export type Database = {
           },
         ]
       }
+      season_pass_level_purchases: {
+        Row: {
+          created_at: string
+          fc_spent: number
+          id: string
+          idempotency_key: string
+          level_after: number
+          level_before: number
+          levels_bought: number
+          purchase_date: string
+          season_id: string | null
+          user_id: string
+          xp_after: number
+          xp_before: number
+        }
+        Insert: {
+          created_at?: string
+          fc_spent: number
+          id?: string
+          idempotency_key: string
+          level_after: number
+          level_before: number
+          levels_bought: number
+          purchase_date: string
+          season_id?: string | null
+          user_id: string
+          xp_after: number
+          xp_before: number
+        }
+        Update: {
+          created_at?: string
+          fc_spent?: number
+          id?: string
+          idempotency_key?: string
+          level_after?: number
+          level_before?: number
+          levels_bought?: number
+          purchase_date?: string
+          season_id?: string | null
+          user_id?: string
+          xp_after?: number
+          xp_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_level_purchases_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_level_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_pass_orders: {
         Row: {
           activated_at: string | null
@@ -4441,6 +4501,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_set_pass_level_purchase: {
+        Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
+        Returns: Json
+      }
       admin_set_pass_xp_caps: {
         Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
@@ -4818,6 +4882,14 @@ export type Database = {
         Args: {
           p_idempotency_key: string
           p_quantity: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      buy_season_pass_levels: {
+        Args: {
+          p_idempotency_key: string
+          p_levels: number
           p_telegram_id: number
         }
         Returns: Json
@@ -5248,6 +5320,7 @@ export type Database = {
         Returns: Json
       }
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
+      season_pass_level_purchase_config: { Args: never; Returns: Json }
       season_pass_tier_multiplier: { Args: { p_tier: string }; Returns: number }
       season_pass_xp_caps: { Args: never; Returns: Json }
       season_pass_xp_config: { Args: never; Returns: Json }
