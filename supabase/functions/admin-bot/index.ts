@@ -448,7 +448,17 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
             [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
             [{ t: '🎁 REWARDS (MAPA)', d: 'view:passrewards' }],
+            [{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
+    }
+    case 'passlevels': {
+      const { data: row } = await db.from('game_settings').select('value').eq('key', 'season_pass_level_purchase').maybeSingle();
+      const cfg = (row?.value ?? {}) as any; const prices = cfg.prices ?? {};
+      const { data: today } = await db.from('season_pass_level_purchases').select('levels_bought,fc_spent').gte('created_at', new Date(Date.now() - 86400000).toISOString());
+      const lv = (today ?? []).reduce((a: number, r: any) => a + Number(r.levels_bought || 0), 0);
+      const fc = (today ?? []).reduce((a: number, r: any) => a + Number(r.fc_spent || 0), 0);
+      return edit(ctx, `🪜 <b>LEVEL PURCHASE SETTINGS</b>\nStatus: <b>${cfg.enabled === false ? '❌ DESATIVADO' : '✅ ATIVO'}</b>\nLimite diário: <b>${fmt(Number(cfg.daily_limit ?? 5))} níveis</b>\n\n<b>PREÇOS</b>\n${[1,3,5].map(n=>`• +${n} nível(is): <b>${fmt(Number(prices[String(n)] ?? 0))} FC</b>`).join('\n')}\n\nÚltimas 24h: <b>${fmt(lv)}</b> níveis · <b>${fmt(fc)} FC</b> queimados.`,
+        kb([[{ t: '💰 EDITAR PREÇO', d: 'ask:passlevelprice' }], [{ t: '🚧 LIMITE DIÁRIO', d: 'ask:passlevellimit' }], [{ t: cfg.enabled === false ? '✅ ATIVAR' : '⛔ DESATIVAR', d: `passlvtoggle:${cfg.enabled === false ? 'on' : 'off'}` }], nav('m:pass')]));
     }
     case 'passrewards': {
       const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
@@ -1488,6 +1498,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       await rpc('admin_update_season_pass', { p_season_id: season.id, p_name: season.name, p_start_at: season.start_at, p_end_at: season.end_at, p_levels: season.levels, p_xp_per_level: value, p_adventurer_price: season.adventurer_price_ton, p_legendary_price: season.legendary_price_ton, p_active: season.active });
       await rpc('admin_bump_settings_version', {});
       return send(ctx, `✅ XP por nível agora é <b>${fmt(value)}</b>.`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passlevelprice': {
+      const [n, v] = text.split(/\s+/);
+      const levels = Number(n), value = Math.round(parseAmount(v ?? ''));
+      if (![1, 3, 5].includes(levels) || !Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>1|3|5 preço</code> (ex.: <code>3 135000</code>).');
+      const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { prices: { [String(levels)]: value } }, p_reason: 'painel admin' });
+      return send(ctx, `✅ +${levels} nível(is) = <b>${fmt(value)} FC</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }], nav('m:pass')]));
+    }
+    case 'passlevellimit': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 0 || value > 30) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre <code>0</code> e <code>30</code>.');
+      const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { daily_limit: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ Limite diário = <b>${fmt(value)} níveis</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }], nav('m:pass')]));
     }
     case 'pass': {
       const patch = JSON.parse(text);
