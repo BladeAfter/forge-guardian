@@ -391,7 +391,10 @@ export type Database = {
           id: string
           idempotency_key: string
           inventory_item_id: string
-          result_hero_id: string
+          result_hero_id: string | null
+          result_hero_image: string | null
+          result_hero_key: string | null
+          result_hero_name: string | null
           result_rarity: string
           user_id: string
         }
@@ -400,7 +403,10 @@ export type Database = {
           id?: string
           idempotency_key: string
           inventory_item_id: string
-          result_hero_id: string
+          result_hero_id?: string | null
+          result_hero_image?: string | null
+          result_hero_key?: string | null
+          result_hero_name?: string | null
           result_rarity: string
           user_id: string
         }
@@ -409,7 +415,10 @@ export type Database = {
           id?: string
           idempotency_key?: string
           inventory_item_id?: string
-          result_hero_id?: string
+          result_hero_id?: string | null
+          result_hero_image?: string | null
+          result_hero_key?: string | null
+          result_hero_name?: string | null
           result_rarity?: string
           user_id?: string
         }
