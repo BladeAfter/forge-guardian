@@ -60,16 +60,22 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             <div className={`w-1/2 shrink-0 pr-1 ${tab === 'fusion' ? 'pointer-events-none' : ''}`}>
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
-          <p className="mt-1 text-sm font-black text-amber-200">{t('heroes.collectionCount', { count: heroes.length })}</p>
+          <p className="mt-1 text-sm font-black text-amber-200">{data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}</p>
           <p className="text-[10px] text-slate-400">{t('heroes.collectionHint')}</p>
         </section>
 
-        {isLoading ? (
+        {error || stalled ? (
+          <div className="py-20 text-center">
+            <p className="text-sm text-slate-300">{error ? tError(error) || t('heroes.loadError') : t('heroes.loadError')}</p>
+            <button onClick={() => void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-4 py-2 text-xs font-black uppercase tracking-[.12em] text-amber-200">
+              <RefreshCw size={13} /> {t('heroes.retry')}
+            </button>
+          </div>
+        ) : isLoading ? (
           <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loading')}</p>
-        ) : error ? (
-          <p className="py-20 text-center text-sm text-slate-300">{tError(error) || t('heroes.loadError')}</p>
         ) : heroes.length === 0 ? (
           <p className="py-20 text-center text-sm text-slate-300">{t('heroes.empty')}</p>
+
         ) : (
 
           <div className="mt-3 grid grid-cols-3 gap-2">
