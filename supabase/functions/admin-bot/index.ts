@@ -55,6 +55,8 @@ const MAIN_MENU = kb([
   [{ t: '💳 CARTEIRA / FC', d: 'm:wallet' }, { t: '🎯 DAILY QUESTS', d: 'm:quests' }],
   [{ t: '👑 BOSS', d: 'm:boss' }, { t: '📢 ANÚNCIOS', d: 'm:ads' }],
   [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }, { t: '🏰 CLÃS', d: 'm:clans' }],
+  [{ t: '🎁 PRESENTES', d: 'm:gifts' }],
+
   [{ t: '⚙️ CONFIGURAÇÕES', d: 'm:settings' }, { t: '📜 AUDITORIA', d: 'm:audit' }],
   [{ t: '📊 STATUS', d: 'm:status' }, { t: '🔧 MANUTENÇÃO', d: 'm:maint' }],
   [{ t: '📣 BROADCAST', d: 'm:cast' }, { t: '💾 SNAPSHOT', d: 'do:snapshot' }],
