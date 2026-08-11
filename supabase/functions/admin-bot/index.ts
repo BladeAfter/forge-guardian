@@ -303,7 +303,7 @@ async function heroShopHub(ctx: Ctx) {
     [{ t: '🦸 EDITAR HERÓIS', d: 'hs:list' }],
     [{ t: '🧬 DUPLICATE FUSE SETTINGS', d: 'hs:fusion' }],
     [{ t: '⚗️ RARITY FUSION SETTINGS', d: 'rf:home' }],
-    [{ t: '➕ CRIAR HERÓI', d: 'ask:hero' }, { t: '🚫 ATIVAR/DESATIVAR', d: 'ask:herotoggle' }],
+    [{ t: '➕ CRIAR HERÓI', d: 'hw:new' }, { t: '✏️ EDITAR HERÓI', d: 'hw:edit' }],
     [{ t: '📦 ITENS DA LOJA', d: 'hs:store' }],
     nav(),
   ]));
