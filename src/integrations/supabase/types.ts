@@ -4790,6 +4790,7 @@ export type Database = {
         }
         Returns: Json
       }
+      chest_rates_sum_ok: { Args: { p_rates: Json }; Returns: boolean }
       claim_boss_reward: { Args: { p_telegram_id: number }; Returns: Json }
       claim_calendar_day: {
         Args: { p_day: number; p_telegram_id: number }
@@ -5158,6 +5159,20 @@ export type Database = {
           p_wallet_address: string
         }
         Returns: Json
+      }
+      roll_chest_rarity: {
+        Args: {
+          p_ancestral?: number
+          p_common?: number
+          p_epic?: number
+          p_legendary?: number
+          p_rare?: number
+          p_uncommon?: number
+        }
+        Returns: {
+          allowed: string[]
+          rarity: string
+        }[]
       }
       roll_hero_for_rarity: {
         Args: { p_allowed: string[]; p_rarity: string }
