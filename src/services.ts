@@ -3,7 +3,7 @@ import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
-import type { BossCombat } from './combat';
+import type { BossCombat, GlobalBossRanking } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
@@ -118,6 +118,14 @@ export async function bossRequest(telegramInitData: string, action: 'get'|'proce
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string} | null;
   if(!response.ok || !payload) throw new Error(bossErrorMessage(payload?.error||'','Unable to synchronize boss combat.'));
   return payload;
+}
+
+/** Global boss ranking (shared server cycle) — read-only. */
+export async function fetchGlobalBossRanking(telegramInitData:string,limit=50):Promise<GlobalBossRanking>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'ranking',limit}));
+  const payload=await response.json().catch(()=>null) as GlobalBossRanking&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível carregar o ranking do chefe.'));
+  return {...payload,top:Array.isArray(payload.top)?payload.top:[]};
 }
 
 /** Attacking is the ONLY boss operation that requires an active boss. */
