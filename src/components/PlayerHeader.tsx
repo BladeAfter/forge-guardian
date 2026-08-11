@@ -89,7 +89,7 @@ export function PlayerHeader({
   profile: TelegramPlayerProfile | null;
   loading?: boolean;
   onRetry?: () => void;
-  balance: number;
+  balance: number | null;
   actions?: React.ReactNode;
   className?: string;
 }) {
