@@ -17,7 +17,7 @@ type Tab = 'members' | 'chat' | 'missions' | 'ranking' | 'boss';
 export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
   const queryClient = useQueryClient();
-  const { data, isLoading, refetch } = useClanDashboard(telegramInitData, true);
+  const { data, isLoading, isError, error: loadError, refetch } = useClanDashboard(telegramInitData, true);
   const [tab, setTab] = useState<Tab>('members');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: '', tag: '', description: '', joinType: 'open', minimumTrophies: 0, symbol: 'dragon', background: 'navy' });
@@ -41,12 +41,31 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
     } catch (error) {
       const raw = error instanceof Error ? error.message : '';
       const key = clanErrorKey(raw);
-      toast.error(key ? t(key) : t('clan.loadError'));
+      // Detailed diagnostics already went to the console inside clanRequest.
+      toast.error(key ? t(key) : `${t('clan.actionError')}${raw ? ` (${raw})` : ''}`);
       return null;
     } finally {
       setBusy(false);
     }
   };
+
+  /** Client-side guard rails; the backend still validates and owns the atomic creation. */
+  const createClan = async () => {
+    const name = form.name.trim();
+    const tag = form.tag.trim().toUpperCase();
+    if (name.length < 3 || name.length > 24) return toast.error(t('clan.error.invalidName'));
+    if (!/^[A-Z0-9]{2,5}$/.test(tag)) return toast.error(t('clan.error.invalidTag'));
+    const created = await run(
+      { action: 'create', ...form, name, tag, emblem: { symbol: form.symbol, background: form.background, shield: 'classic', border: 'gold' } },
+      'clan.created',
+    );
+    if (created) {
+      setCreating(false);
+      setTab('members');
+    }
+  };
+
+
 
   const openChat = async () => {
     setTab('chat');
@@ -62,9 +81,24 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
     if (result) setMessages(result.messages);
   };
 
+  if (isError && !data) {
+    const raw = loadError instanceof Error ? loadError.message : '';
+    const key = clanErrorKey(raw);
+    return (
+      <Shell onClose={onClose}>
+        <section className="mt-6 rounded-3xl border border-rose-400/30 bg-black/60 p-6 text-center">
+          <Shield className="mx-auto h-10 w-10 text-rose-300" />
+          <p className="mt-3 text-xs text-slate-300">{key ? t(key) : t('clan.loadError')}</p>
+          <button onClick={() => void refetch()} className="mt-4 w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black">{t('clan.retry')}</button>
+        </section>
+      </Shell>
+    );
+  }
+
   if (isLoading || !data) {
     return <Shell onClose={onClose}><div className="space-y-3 pt-6">{[1, 2, 3].map((n) => <div key={n} className="h-24 animate-pulse rounded-3xl bg-white/5" />)}</div></Shell>;
   }
+
 
   if (!data.inClan) {
     return (
@@ -113,7 +147,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
             </div>
             <button
               disabled={busy}
-              onClick={() => void run({ action: 'create', ...form, emblem: { symbol: form.symbol, background: form.background, shield: 'classic', border: 'gold' } }, 'clan.created')}
+              onClick={() => void createClan()}
               className="w-full rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black disabled:opacity-50"
             >{t('clan.create')}</button>
           </section>

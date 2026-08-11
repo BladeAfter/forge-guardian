@@ -141,11 +141,35 @@ function serviceClient() {
 
 type Db = ReturnType<typeof serviceClient>;
 
-async function rpc(db: Db, fn: string, args: Record<string, unknown>) {
-  const { data, error } = await db.rpc(fn, args);
-  if (error) throw new Error(error.message);
-  return data;
+/** Postgres/PostgREST failure carrying the full diagnostic payload to the client logs. */
+class ForgeDbError extends Error {
+  constructor(message: string, readonly code: string | null, readonly details: string | null, readonly hint: string | null, readonly httpStatus = 400) {
+    super(message);
+    this.name = 'ForgeDbError';
+  }
 }
+
+/** Cloudflare/PostgREST gateway timeouts arrive as HTML, never as a usable message. */
+const isGatewayHtml = (message: string) => /<!DOCTYPE html|Connection timed out|<html/i.test(message);
+
+async function rpc(db: Db, fn: string, args: Record<string, unknown>) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { data, error } = await db.rpc(fn, args);
+    if (!error) return data;
+    const raw = String(error.message ?? 'Falha no banco de dados.');
+    if (isGatewayHtml(raw) || error.code === '57014' || /timeout/i.test(raw)) {
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        continue;
+      }
+      console.error('[FORGE DB BUSY]', { fn, code: error.code ?? null });
+      throw new ForgeDbError('BACKEND_BUSY', error.code ?? null, `rpc:${fn}`, null, 503);
+    }
+    throw new ForgeDbError(raw, error.code ?? null, error.details ?? null, error.hint ?? null);
+  }
+  throw new ForgeDbError('BACKEND_BUSY', null, `rpc:${fn}`, null, 503);
+}
+
 
 async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'process');
@@ -1016,8 +1040,20 @@ Deno.serve(async (req) => {
     const data = await handler(db, user, body);
     return json(data ?? null);
   } catch (error) {
+    const dbError = error instanceof ForgeDbError ? error : null;
     const message = error instanceof Error ? error.message : 'Falha na requisição.';
-    console.error('[FORGE API ERROR]', { feature, action: body.action ?? null, telegramId: user.id, message });
-    return json({ error: message }, 400);
+    const safeMessage = isGatewayHtml(message) ? 'BACKEND_BUSY' : message.slice(0, 400);
+    const status = dbError?.httpStatus ?? (safeMessage === 'BACKEND_BUSY' ? 503 : 400);
+    console.error('[FORGE API ERROR]', {
+      feature,
+      action: body.action ?? null,
+      telegramId: user.id,
+      message: safeMessage,
+      code: dbError?.code ?? null,
+      details: dbError?.details ?? null,
+      hint: dbError?.hint ?? null,
+    });
+    return json({ error: safeMessage, code: dbError?.code ?? null, details: dbError?.details ?? null, hint: dbError?.hint ?? null }, status);
   }
 });
+
