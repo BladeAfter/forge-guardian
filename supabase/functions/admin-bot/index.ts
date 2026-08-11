@@ -448,7 +448,7 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
             [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
             [{ t: '🎁 REWARDS (MAPA)', d: 'view:passrewards' }],
-            [{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }],
+            [{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
     }
     case 'passlevels': {
@@ -1512,13 +1512,13 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const levels = Number(n), value = Math.round(parseAmount(v ?? ''));
       if (![1, 3, 5].includes(levels) || !Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>1|3|5 preço</code> (ex.: <code>3 135000</code>).');
       const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { prices: { [String(levels)]: value } }, p_reason: 'painel admin' });
-      return send(ctx, `✅ +${levels} nível(is) = <b>${fmt(value)} FC</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }], nav('m:pass')]));
+      return send(ctx, `✅ +${levels} nível(is) = <b>${fmt(value)} FC</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }], nav('m:pass')]));
     }
     case 'passlevellimit': {
       const value = Math.round(parseAmount(text));
       if (!Number.isFinite(value) || value < 0 || value > 30) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre <code>0</code> e <code>30</code>.');
       const r = await rpc('admin_set_pass_level_purchase', { p_admin_id: ctx.adminId, p_patch: { daily_limit: value }, p_reason: 'painel admin' });
-      return send(ctx, `✅ Limite diário = <b>${fmt(value)} níveis</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'view:passlevels' }], nav('m:pass')]));
+      return send(ctx, `✅ Limite diário = <b>${fmt(value)} níveis</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }], nav('m:pass')]));
     }
     case 'pass': {
       const patch = JSON.parse(text);
