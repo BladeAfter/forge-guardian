@@ -328,21 +328,25 @@ function App() {
   const playerProfileReady = Boolean(playerProfile);
   const heroesReady = !backendEnabled || Boolean(heroCollection.data) || Boolean(heroCollection.error);
   useEffect(() => {
-    if (telegramInitData) setBootStage((current) => Math.max(current, 50));
-    if (playerProfileReady) setBootStage((current) => Math.max(current, 65));
-    if (game) setBootStage((current) => Math.max(current, 80));
-    if (heroesReady) setBootStage((current) => Math.max(current, 90));
+    if (telegramInitData) { console.info('[BOOT] Telegram initialized + auth validated'); setBootStage((current) => Math.max(current, 50)); }
+    if (playerProfileReady) { console.info('[BOOT] Player profile loaded'); setBootStage((current) => Math.max(current, 65)); }
+    if (game) { console.info('[BOOT] Game state ready'); setBootStage((current) => Math.max(current, 80)); }
+    if (heroesReady) { console.info('[BOOT] Hero collection settled'); setBootStage((current) => Math.max(current, 95)); }
   }, [telegramInitData, playerProfileReady, game, heroesReady]);
 
-  // Gate the game on real readiness (never on the percentage), then fade the art out.
-  const appReady = !telegramBooting && Boolean(telegramInitData) && isReady && Boolean(game) && heroesReady;
+  // Only identity + game state are critical. Heroes, pets, pool, pass and events are
+  // secondary systems: each screen shows its own loading/error state instead of
+  // blocking the whole Mini App behind the splash.
+  const appReady = !telegramBooting && Boolean(telegramInitData) && isReady && Boolean(game);
   const bootProgress = appReady ? 100 : Math.min(bootStage, 95);
   useEffect(() => {
     if (!appReady || bootDone) return;
+    console.info('[BOOT] App ready');
     const fadeTimer = setTimeout(() => setBootFading(true), 350);
     const doneTimer = setTimeout(() => setBootDone(true), 900);
     return () => { clearTimeout(fadeTimer); clearTimeout(doneTimer); };
   }, [appReady, bootDone]);
+
 
 
 
