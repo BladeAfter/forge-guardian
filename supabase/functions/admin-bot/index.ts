@@ -402,6 +402,397 @@ async function rarityFusionAudit(ctx: Ctx, ref?: string) {
   return send(ctx, text, kb([[{ t: '🔎 FILTRAR JOGADOR', d: 'ask:rfaudit' }], [{ t: '⚗️ RARITY FUSION', d: 'rf:home' }], nav()]));
 }
 
+// ---------------------------------------------------------------- hero wizard (no JSON, no manual urls)
+// Every hero lives in the single central catalog (public.hero_catalog); the game reads only from it,
+// so an image uploaded here shows up in shop, collection, PvP, boss, fusion and chests with no deploy.
+const HW_RARITIES: [string, string][] = [
+  ['common', '⚪ COMMON'], ['uncommon', '🟢 UNCOMMON'], ['rare', '🔵 RARE'], ['epic', '🟣 EPIC'], ['legendary', '🟡 LEGENDARY'],
+];
+const HW_CLASSES: [string, string][] = [
+  ['warrior', '⚔️ Warrior'], ['archer', '🏹 Archer'], ['tank', '🛡 Tank'], ['mage', '✨ Mage'], ['support', '💚 Support'],
+];
+const HW_DEFAULT_STATS: Record<string, [number, number]> = {
+  common: [100, 1000], uncommon: [125, 1250], rare: [160, 1600], epic: [210, 2100], legendary: [300, 3000],
+};
+const HW_RARITY_LABEL = Object.fromEntries(HW_RARITIES) as Record<string, string>;
+const HW_CLASS_LABEL = Object.fromEntries(HW_CLASSES) as Record<string, string>;
+const HW_CANCEL = [{ t: '❌ CANCELAR', d: 'cancel' }];
+
+type HeroDraft = {
+  mode: 'create' | 'quick' | 'duplicate' | 'edit';
+  hero_key?: string;
+  name?: string;
+  image?: string;
+  image_path?: string;
+  rarity?: string;
+  hero_class?: string;
+  base_atk?: number;
+  base_hp?: number;
+  in_shop?: boolean;
+  price_fc?: number | null;
+  enabled?: boolean;
+  field?: string;
+};
+
+/** Persists the wizard step before answering, so the next message is always interpreted correctly. */
+async function hwStep(ctx: Ctx, step: string, draft: HeroDraft, text: string, rows: { t: string; d: string }[][] = []) {
+  await setSession(ctx, 'herowiz', step, draft as Record<string, unknown>);
+  await send(ctx, text, kb([...rows, HW_CANCEL]));
+}
+
+async function heroManagementHub(ctx: Ctx) {
+  const d = await rpc('admin_list_heroes', { p_admin_id: ctx.adminId, p_limit: 1, p_offset: 0 });
+  await clearSession(ctx);
+  return edit(ctx,
+    ['🦸 <b>HERO MANAGEMENT</b>', `Catálogo central: <b>${fmt(d.total)}</b> heróis.`, '',
+      'Tudo por botões: nome, foto enviada aqui no Telegram, raridade, classe, stats e loja.',
+      'A imagem enviada aparece automaticamente em toda a Mythreon (loja, coleção, PvP, chefe, fusão, baús).'].join('\n'),
+    kb([
+      [{ t: '➕ CREATE HERO', d: 'hw:new' }],
+      [{ t: '⚡ QUICK CREATE', d: 'hw:quick' }],
+      [{ t: '✏️ EDIT HERO', d: 'hw:edit' }],
+      [{ t: '📋 DUPLICATE HERO', d: 'hw:dup' }],
+      [{ t: '🛒 HERO SHOP', d: 'm:shop' }],
+      [{ t: '📚 ALL HEROES', d: 'm:herolist' }],
+      nav(),
+    ]));
+}
+
+async function hwAskName(ctx: Ctx, draft: HeroDraft) {
+  const title = draft.mode === 'quick' ? '⚡ <b>QUICK CREATE</b>' : draft.mode === 'duplicate' ? '📋 <b>DUPLICAR HERÓI</b>' : '🦸 <b>CRIAR NOVO HERÓI</b>';
+  return hwStep(ctx, 'waiting_name', draft, `${title}\n\nDigite o <b>nome do herói</b>:`);
+}
+
+async function hwAskImage(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_image', draft,
+    `🖼 <b>ENVIE A IMAGEM DO HERÓI</b>\n\nEnvie a foto diretamente nesta conversa.\nHerói: <b>${esc(draft.name)}</b>`,
+    [[{ t: '⏭ PULAR', d: 'hw:skipimg' }]]);
+}
+
+async function hwAskRarity(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_rarity', draft, `⭐ <b>RARIDADE</b> de <b>${esc(draft.name)}</b>:`,
+    HW_RARITIES.map(([k, label]) => [{ t: label, d: `hw:rar:${k}` }]));
+}
+
+async function hwAskClass(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_class', draft, `🎭 <b>CLASSE</b> de <b>${esc(draft.name)}</b>:`,
+    HW_CLASSES.map(([k, label]) => [{ t: label, d: `hw:cls:${k}` }]));
+}
+
+async function hwAskAtk(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_atk', draft, `⚔️ <b>ATK</b>\n\nEnvie o ataque base (ex.: <code>120</code>):`);
+}
+
+async function hwAskHp(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_hp', draft, `❤️ <b>HP</b>\n\nEnvie a vida base (ex.: <code>1200</code>):`);
+}
+
+async function hwAskShop(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_shop', draft, '🛒 <b>Disponível na Loja de Heróis?</b>',
+    [[{ t: '✅ SIM', d: 'hw:shop:1' }, { t: '❌ NÃO', d: 'hw:shop:0' }]]);
+}
+
+async function hwAskPrice(ctx: Ctx, draft: HeroDraft) {
+  return hwStep(ctx, 'waiting_price', draft, '💰 <b>Preço em FC</b>\n\nEnvie apenas o número (ex.: <code>50000</code>):');
+}
+
+function hwPreviewText(draft: HeroDraft) {
+  const stats = HW_DEFAULT_STATS[draft.rarity || 'common'] || HW_DEFAULT_STATS.common;
+  const atk = Number(draft.base_atk ?? stats[0]);
+  const hp = Number(draft.base_hp ?? stats[1]);
+  return [
+    draft.mode === 'edit' ? '✏️ <b>HERO</b>' : '🦸 <b>NEW HERO</b>', '',
+    `<b>${esc(draft.name)}</b>`,
+    `Rarity: <b>${esc((HW_RARITY_LABEL[draft.rarity || 'common'] || draft.rarity || '').replace(/^\S+\s/, ''))}</b>`,
+    `Class: <b>${esc((HW_CLASS_LABEL[draft.hero_class || 'warrior'] || draft.hero_class || '').replace(/^\S+\s/, ''))}</b>`,
+    `⚔️ ATK: <b>${fmt(atk)}</b>`,
+    `❤️ HP: <b>${fmt(hp)}</b>`,
+    `🛒 Shop: <b>${draft.in_shop ? 'YES' : 'NO'}</b>`,
+    draft.in_shop ? `💰 Price: <b>${fmt(draft.price_fc || 0)} FC</b>` : '💰 Price: —',
+    draft.image ? '' : '\n⚠️ Sem imagem — o herói usará a arte padrão.',
+  ].filter(Boolean).join('\n');
+}
+
+async function hwPreview(ctx: Ctx, draft: HeroDraft) {
+  await setSession(ctx, 'herowiz', 'preview', draft as Record<string, unknown>);
+  const markup = kb([
+    [{ t: '✅ CREATE HERO', d: 'hw:save' }],
+    [{ t: '✏️ EDIT', d: 'hw:restart' }, { t: '🖼 TROCAR IMAGEM', d: 'hw:reimg' }],
+    HW_CANCEL,
+  ]);
+  const caption = hwPreviewText(draft);
+  if (draft.image) {
+    const r = await tg('sendPhoto', { chat_id: ctx.chatId, photo: draft.image, caption, parse_mode: 'HTML', reply_markup: markup });
+    if (r?.ok) return;
+  }
+  return send(ctx, caption, markup);
+}
+
+/** Downloads the Telegram photo and stores it in the hero-images bucket. Never keeps base64 in the database. */
+async function hwUploadPhoto(fileId: string, baseName: string): Promise<{ url: string; path: string }> {
+  const info = await tg('getFile', { file_id: fileId });
+  const filePath = info?.result?.file_path;
+  if (!filePath) throw new Error('image_download_failed');
+  const res = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+  if (!res.ok) throw new Error('image_download_failed');
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const slug = (baseName || 'hero').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'hero';
+  const path = `heroes/${slug}-${Date.now()}.${ext}`;
+  const up = await db.storage.from('hero-images').upload(path, bytes, { contentType, upsert: true });
+  if (up.error) throw new Error(`image_upload_failed: ${up.error.message}`);
+  // Bucket is private: a long-lived signed url keeps the art readable by every player without extra config.
+  const signed = await db.storage.from('hero-images').createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (signed.error || !signed.data?.signedUrl) throw new Error('image_url_failed');
+  return { url: signed.data.signedUrl, path };
+}
+
+async function hwSave(ctx: Ctx, draft: HeroDraft) {
+  const stats = HW_DEFAULT_STATS[draft.rarity || 'common'] || HW_DEFAULT_STATS.common;
+  const atk = Number(draft.base_atk ?? stats[0]);
+  const hp = Number(draft.base_hp ?? stats[1]);
+  const key = draft.hero_key || await rpc('admin_next_hero_key', { p_admin_id: ctx.adminId, p_name: draft.name });
+  const patch: Record<string, unknown> = {
+    name: draft.name,
+    rarity: draft.rarity || 'common',
+    hero_class: draft.hero_class || 'warrior',
+    base_atk: atk,
+    base_hp: hp,
+    power: Math.round(atk * 10 + hp),
+    in_shop: !!draft.in_shop,
+    price_fc: draft.in_shop ? Number(draft.price_fc || 0) : 0,
+    enabled: draft.enabled ?? true,
+  };
+  if (draft.image) patch.image = draft.image;
+  const r = await rpc('admin_upsert_hero', { p_admin_id: ctx.adminId, p_hero_key: key, p_patch: patch, p_reason: 'wizard do bot admin' });
+  await clearSession(ctx);
+  return send(ctx,
+    `✅ Herói salvo: <b>${esc(r.name)}</b>\n<code>${esc(r.hero_key)}</code> · ${esc(r.rarity)} · ⚔️ ${fmt(r.base_atk)} · ❤️ ${fmt(r.base_hp)}${r.in_shop ? ` · 🛒 ${fmt(r.price_fc)} FC` : ''}\n\nJá disponível na Mythreon (sem deploy).`,
+    kb([[{ t: '✏️ EDITAR ESTE HERÓI', d: `hw:e:${r.hero_key}` }], [{ t: '🦸 HERO MANAGEMENT', d: 'm:heroes' }], nav()]));
+}
+
+async function hwHeroList(ctx: Ctx, query: string, next: 'edit' | 'dup') {
+  const d = await rpc('admin_search_heroes', { p_admin_id: ctx.adminId, p_query: query || null, p_limit: 12 });
+  const heroes = d.heroes as any[];
+  if (!heroes.length) {
+    return hwStep(ctx, next === 'edit' ? 'edit_search' : 'dup_search', { mode: next === 'edit' ? 'edit' : 'duplicate' },
+      '🔎 Nenhum herói encontrado. Envie outro nome:');
+  }
+  await clearSession(ctx);
+  const rows = heroes.map((h) => [{ t: `${h.enabled ? '' : '⛔ '}${h.name} · ${String(h.rarity).toUpperCase()}`, d: `hw:${next === 'edit' ? 'e' : 'd'}:${h.hero_key}` }]);
+  return send(ctx, `🦸 <b>SELECIONE O HERÓI</b> (${heroes.length})`, kb([...rows, [{ t: '🔎 PESQUISAR', d: next === 'edit' ? 'hw:edit' : 'hw:dup' }], nav('m:heroes')]));
+}
+
+async function hwEditMenu(ctx: Ctx, heroKey: string) {
+  const h = await rpc('admin_hero_detail', { p_admin_id: ctx.adminId, p_hero_key: heroKey });
+  await setSession(ctx, 'herowiz', 'edit_menu', { mode: 'edit', hero_key: heroKey } as Record<string, unknown>);
+  const text = ['✏️ <b>EDITAR HERÓI</b>', '',
+    `<b>${esc(h.name)}</b> · <code>${esc(h.hero_key)}</code>`,
+    `⭐ ${esc(String(h.rarity).toUpperCase())} · 🎭 ${esc(h.hero_class)}`,
+    `⚔️ ATK ${fmt(h.base_atk)} · ❤️ HP ${fmt(h.base_hp)}`,
+    `🛒 Loja: ${h.in_shop ? `✅ ${fmt(h.price_fc)} FC` : '❌'} · 👁 Ativo: ${h.enabled ? '✅' : '⛔'}`,
+  ].join('\n');
+  const markup = kb([
+    [{ t: '🖼 Trocar imagem', d: 'hw:f:image' }],
+    [{ t: '✏️ Nome', d: 'hw:f:name' }, { t: '⭐ Raridade', d: 'hw:f:rarity' }],
+    [{ t: '⚔️ ATK', d: 'hw:f:atk' }, { t: '❤️ HP', d: 'hw:f:hp' }],
+    [{ t: '🎭 Classe', d: 'hw:f:class' }, { t: '💰 Preço', d: 'hw:f:price' }],
+    [{ t: `🛒 Loja ${h.in_shop ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:shop' }, { t: `👁 Ativo ${h.enabled ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:enabled' }],
+    [{ t: '🗑 Remover', d: 'hw:del' }],
+    [{ t: '📋 DUPLICAR', d: `hw:d:${h.hero_key}` }],
+    nav('m:heroes'),
+  ]);
+  if (h.image && /^https?:\/\//.test(String(h.image))) {
+    const r = await tg('sendPhoto', { chat_id: ctx.chatId, photo: h.image, caption: text, parse_mode: 'HTML', reply_markup: markup });
+    if (r?.ok) return;
+  }
+  return send(ctx, text, markup);
+}
+
+/** Applies a single field change on an existing hero and returns to its menu. */
+async function hwEditApply(ctx: Ctx, heroKey: string, patch: Record<string, unknown>) {
+  await rpc('admin_upsert_hero', { p_admin_id: ctx.adminId, p_hero_key: heroKey, p_patch: patch, p_reason: 'edição pelo bot admin' });
+  return hwEditMenu(ctx, heroKey);
+}
+
+async function heroWizardCallback(ctx: Ctx, rest: string[]) {
+  const action = rest[0];
+  const arg = rest.slice(1).join(':');
+  const session = await getSession(ctx);
+  const draft: HeroDraft = (session?.action === 'herowiz' ? session.context : {}) as HeroDraft;
+
+  if (action === 'new') return hwAskName(ctx, { mode: 'create' });
+  if (action === 'quick') return hwAskName(ctx, { mode: 'quick' });
+  if (action === 'edit') return hwStep(ctx, 'edit_search', { mode: 'edit' }, '🔎 Envie o <b>nome</b> (ou parte) do herói.\nEnvie <code>*</code> para listar todos.');
+  if (action === 'dup') return hwStep(ctx, 'dup_search', { mode: 'duplicate' }, '🔎 Envie o <b>nome</b> do herói que será duplicado.\nEnvie <code>*</code> para listar todos.');
+  if (action === 'e') return hwEditMenu(ctx, arg);
+
+  if (action === 'd') {
+    const h = await rpc('admin_hero_detail', { p_admin_id: ctx.adminId, p_hero_key: arg });
+    const stats = HW_DEFAULT_STATS[h.rarity] || HW_DEFAULT_STATS.common;
+    return hwAskName(ctx, {
+      mode: 'duplicate', rarity: h.rarity, hero_class: h.hero_class || 'warrior',
+      base_atk: Number(h.base_atk ?? stats[0]), base_hp: Number(h.base_hp ?? stats[1]),
+      in_shop: !!h.in_shop, price_fc: Number(h.price_fc || 0), enabled: true,
+    });
+  }
+
+  if (action === 'skipimg') {
+    if (draft.mode === 'edit') return hwEditMenu(ctx, draft.hero_key!);
+    return draft.mode === 'create' ? hwAskRarity(ctx, draft) : hwAskRarity(ctx, draft);
+  }
+
+  if (action === 'rar') {
+    draft.rarity = arg;
+    if (draft.mode === 'edit') return hwEditApply(ctx, draft.hero_key!, { rarity: arg });
+    if (draft.mode === 'create') return hwAskClass(ctx, draft);
+    const stats = HW_DEFAULT_STATS[arg] || HW_DEFAULT_STATS.common;
+    if (draft.base_atk == null) draft.base_atk = stats[0];
+    if (draft.base_hp == null) draft.base_hp = stats[1];
+    if (!draft.hero_class) draft.hero_class = 'warrior';
+    return hwPreview(ctx, draft);
+  }
+
+  if (action === 'cls') {
+    draft.hero_class = arg;
+    if (draft.mode === 'edit') return hwEditApply(ctx, draft.hero_key!, { hero_class: arg });
+    return hwAskAtk(ctx, draft);
+  }
+
+  if (action === 'shop') {
+    draft.in_shop = arg === '1';
+    if (!draft.in_shop) { draft.price_fc = 0; return hwPreview(ctx, draft); }
+    return hwAskPrice(ctx, draft);
+  }
+
+  if (action === 'restart') return hwAskName(ctx, { ...draft, name: undefined });
+  if (action === 'reimg') return hwAskImage(ctx, draft);
+  if (action === 'save') {
+    if (!draft.name) return send(ctx, '⚠️ Fluxo expirado. Comece novamente.', kb([[{ t: '🦸 HERO MANAGEMENT', d: 'm:heroes' }], nav()]));
+    return hwSave(ctx, draft);
+  }
+
+  if (action === 'f') {
+    const key = draft.hero_key;
+    if (!key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
+    const d2: HeroDraft = { mode: 'edit', hero_key: key, field: arg };
+    if (arg === 'image') return hwStep(ctx, 'edit_image', d2, '🖼 <b>TROCAR IMAGEM</b>\n\nEnvie a nova imagem nesta conversa.');
+    if (arg === 'rarity') return hwStep(ctx, 'edit_rarity', d2, '⭐ Nova raridade:', HW_RARITIES.map(([k, l]) => [{ t: l, d: `hw:rar:${k}` }]));
+    if (arg === 'class') return hwStep(ctx, 'edit_class', d2, '🎭 Nova classe:', HW_CLASSES.map(([k, l]) => [{ t: l, d: `hw:cls:${k}` }]));
+    const labels: Record<string, string> = { name: '✏️ Envie o novo <b>nome</b>:', atk: '⚔️ Envie o novo <b>ATK</b>:', hp: '❤️ Envie o novo <b>HP</b>:', price: '💰 Envie o novo <b>preço em FC</b>:' };
+    return hwStep(ctx, `edit_${arg}`, d2, labels[arg] || 'Envie o novo valor:');
+  }
+
+  if (action === 't') {
+    const key = draft.hero_key;
+    if (!key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
+    const h = await rpc('admin_hero_detail', { p_admin_id: ctx.adminId, p_hero_key: key });
+    const patch = arg === 'shop' ? { in_shop: !h.in_shop } : { enabled: !h.enabled };
+    return hwEditApply(ctx, key, patch);
+  }
+
+  if (action === 'del') {
+    if (!draft.hero_key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
+    await setSession(ctx, 'herowiz', 'edit_menu', draft as Record<string, unknown>);
+    return send(ctx, `🗑 Remover <b>${esc(draft.hero_key)}</b> do catálogo?\nSe algum jogador já possui o herói, ele será apenas desativado.`,
+      kb([[{ t: '🗑 CONFIRMAR', d: 'hw:delyes' }, { t: '⬅️ Voltar', d: `hw:e:${draft.hero_key}` }]]));
+  }
+  if (action === 'delyes') {
+    if (!draft.hero_key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
+    const r = await rpc('admin_delete_catalog_hero', { p_admin_id: ctx.adminId, p_hero_key: draft.hero_key, p_reason: 'removido pelo bot admin' });
+    await clearSession(ctx);
+    return send(ctx, r.mode === 'deleted' ? `🗑 <b>${esc(r.name)}</b> removido do catálogo.` : `⛔ <b>${esc(r.name)}</b> desativado (${fmt(r.owned)} jogadores possuem este herói).`,
+      kb([[{ t: '🦸 HERO MANAGEMENT', d: 'm:heroes' }], nav()]));
+  }
+
+  return heroManagementHub(ctx);
+}
+
+/** Text replies inside the wizard: the persisted step decides the meaning, never the menu. */
+async function heroWizardText(ctx: Ctx, step: string, draft: HeroDraft, text: string) {
+  const num = () => {
+    const v = parseAmount(text);
+    if (!Number.isFinite(v) || v < 0) return null;
+    return Math.round(v);
+  };
+  switch (step) {
+    case 'waiting_name': {
+      if (text.length < 2) return hwStep(ctx, 'waiting_name', draft, '⚠️ Nome muito curto. Digite o nome do herói:');
+      draft.name = text.slice(0, 60);
+      return hwAskImage(ctx, draft);
+    }
+    case 'waiting_rarity':
+      return hwAskRarity(ctx, draft);
+    case 'waiting_class':
+      return hwAskClass(ctx, draft);
+    case 'waiting_atk': {
+      const v = num();
+      if (!v) return hwStep(ctx, 'waiting_atk', draft, '⚠️ Envie um número válido para o ATK:');
+      draft.base_atk = v;
+      return hwAskHp(ctx, draft);
+    }
+    case 'waiting_hp': {
+      const v = num();
+      if (!v) return hwStep(ctx, 'waiting_hp', draft, '⚠️ Envie um número válido para o HP:');
+      draft.base_hp = v;
+      return hwAskShop(ctx, draft);
+    }
+    case 'waiting_price': {
+      const v = num();
+      if (v == null) return hwStep(ctx, 'waiting_price', draft, '⚠️ Envie um número válido de FC:');
+      draft.price_fc = v;
+      return hwPreview(ctx, draft);
+    }
+    case 'waiting_shop':
+      return hwAskShop(ctx, draft);
+    case 'waiting_image':
+      return hwAskImage(ctx, draft);
+    case 'edit_search':
+      return hwHeroList(ctx, text === '*' ? '' : text, 'edit');
+    case 'dup_search':
+      return hwHeroList(ctx, text === '*' ? '' : text, 'dup');
+    case 'edit_name':
+      return hwEditApply(ctx, draft.hero_key!, { name: text.slice(0, 60) });
+    case 'edit_atk': {
+      const v = num();
+      if (!v) return hwStep(ctx, 'edit_atk', draft, '⚠️ Envie um número válido para o ATK:');
+      return hwEditApply(ctx, draft.hero_key!, { base_atk: v, power: Math.round(v * 10) });
+    }
+    case 'edit_hp': {
+      const v = num();
+      if (!v) return hwStep(ctx, 'edit_hp', draft, '⚠️ Envie um número válido para o HP:');
+      return hwEditApply(ctx, draft.hero_key!, { base_hp: v });
+    }
+    case 'edit_price': {
+      const v = num();
+      if (v == null) return hwStep(ctx, 'edit_price', draft, '⚠️ Envie um número válido de FC:');
+      return hwEditApply(ctx, draft.hero_key!, { price_fc: v, in_shop: v > 0 });
+    }
+    case 'edit_image':
+      return hwStep(ctx, 'edit_image', draft, '🖼 Envie a nova imagem como <b>foto</b> nesta conversa.');
+    default:
+      return heroManagementHub(ctx);
+  }
+}
+
+/** Photos are only meaningful while the wizard is waiting for one. */
+async function heroWizardPhoto(ctx: Ctx, step: string, draft: HeroDraft, fileId: string) {
+  const uploaded = await hwUploadPhoto(fileId, draft.name || draft.hero_key || 'hero');
+  draft.image = uploaded.url;
+  draft.image_path = uploaded.path;
+  if (step === 'edit_image' && draft.hero_key) {
+    await send(ctx, '✅ Imagem atualizada — já aparece no jogo.');
+    return hwEditApply(ctx, draft.hero_key, { image: uploaded.url });
+  }
+  if (draft.mode === 'edit' && draft.hero_key) return hwEditApply(ctx, draft.hero_key, { image: uploaded.url });
+  await send(ctx, '✅ Imagem recebida e armazenada.');
+  if (draft.mode === 'create') return hwAskRarity(ctx, draft);
+  if (draft.mode === 'duplicate' && draft.rarity) return hwPreview(ctx, draft);
+  return hwAskRarity(ctx, draft);
+}
+
 async function module(ctx: Ctx, name: string) {
   switch (name) {
     case 'users':
