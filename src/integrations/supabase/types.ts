@@ -3690,6 +3690,63 @@ export type Database = {
         }
         Relationships: []
       }
+      season_pass_xp_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          level_after: number
+          level_before: number
+          reference_id: string | null
+          season_id: string
+          source: string
+          user_id: string
+          xp_after: number
+          xp_amount: number
+          xp_before: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level_after: number
+          level_before: number
+          reference_id?: string | null
+          season_id: string
+          source: string
+          user_id: string
+          xp_after: number
+          xp_amount: number
+          xp_before: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level_after?: number
+          level_before?: number
+          reference_id?: string | null
+          season_id?: string
+          source?: string
+          user_id?: string
+          xp_after?: number
+          xp_amount?: number
+          xp_before?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_xp_ledger_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pass_xp_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_channel_rewards: {
         Row: {
           channel_key: string
@@ -4000,6 +4057,15 @@ export type Database = {
           p_amount: number
           p_currency: string
           p_mode: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_adjust_pass_xp: {
+        Args: {
+          p_admin_id: number
+          p_delta: number
           p_reason?: string
           p_ref: string
         }
@@ -4331,6 +4397,19 @@ export type Database = {
       }
       admin_set_pass_fc_multiplier: {
         Args: { p_admin_id: number; p_multiplier: number }
+        Returns: Json
+      }
+      admin_set_pass_level: {
+        Args: {
+          p_admin_id: number
+          p_level: number
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_set_pass_xp_settings: {
+        Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
       }
       admin_set_pet_enabled: {
@@ -4916,6 +4995,15 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      grant_season_pass_xp: {
+        Args: {
+          p_amount?: number
+          p_reference_id?: string
+          p_source: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       has_active_season_pass: { Args: { p_user_id: string }; Returns: string }
       hatch_pet_egg: {
         Args: {
@@ -5090,6 +5178,7 @@ export type Database = {
         Returns: Json
       }
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
+      season_pass_xp_config: { Args: never; Returns: Json }
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
         Returns: Json

@@ -29,6 +29,7 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
   const queryClient = useQueryClient();
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ['daily-quests'] });
+    void queryClient.invalidateQueries({ queryKey: ['season-pass'] });
     void queryClient.invalidateQueries({ queryKey: ['player-inventory'] });
     void queryClient.invalidateQueries({ queryKey: ['reward-history'] });
     void queryClient.invalidateQueries({ queryKey: ['game-state'] });
