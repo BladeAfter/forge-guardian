@@ -113,37 +113,10 @@ async function botUsername(token: string): Promise<string | null> {
 }
 
 /**
- * Server-side membership check against the Telegram Bot API.
- * Only member/administrator/creator/restricted-with-membership count as joined.
- * Every configured bot token is tried: only one of them may actually be inside the channel.
+ * Official channel rewards are keyed by Telegram ID only — no getChatMember,
+ * no chat_id and no membership validation is performed anywhere.
  */
-async function telegramMembership(chatRef: string, telegramId: number): Promise<{ member: boolean; status: string | null; unavailable: boolean }> {
-  const tokens = candidateBotTokens();
-  if (!tokens.length || !chatRef) return { member: false, status: null, unavailable: true };
-  let unavailable = true;
-  for (const token of tokens) {
-    try {
-      const url = `https://api.telegram.org/bot${token}/getChatMember?chat_id=${encodeURIComponent(chatRef)}&user_id=${telegramId}`;
-      const response = await fetch(url);
-      const payload = await response.json().catch(() => null);
-      if (!payload?.ok) {
-        const description = String(payload?.description ?? 'unknown');
-        console.error('[CHANNEL VERIFY] bot api error', { chatRef, telegramId, description });
-        // "user not found" means the bot CAN read the chat: the player simply is not there.
-        if (/user not found|USER_NOT_PARTICIPANT|PARTICIPANT_ID_INVALID/i.test(description)) unavailable = false;
-        continue;
-      }
-      unavailable = false;
-      const status = String(payload.result?.status || '');
-      if (['member', 'administrator', 'creator'].includes(status)) return { member: true, status, unavailable: false };
-      if (status === 'restricted' && payload.result?.is_member === true) return { member: true, status, unavailable: false };
-      return { member: false, status, unavailable: false };
-    } catch (error) {
-      console.error('[CHANNEL VERIFY] request failed', { chatRef, message: error instanceof Error ? error.message : String(error) });
-    }
-  }
-  return { member: false, status: null, unavailable };
-}
+
 
 
 const isUuid = (value: unknown): value is string =>
@@ -721,8 +694,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     return result;
   },
   /**
-   * Official channel rewards. FC is only credited after the Telegram Bot API confirms
-   * membership — a click on JOIN never pays by itself.
+   * Official channel rewards: one-time 5,000 FC per channel, keyed by the authenticated
+   * Telegram ID. JOIN only opens the link; VERIFY credits once and stays claimed forever.
    */
   channels: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
@@ -730,23 +703,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action !== 'verify') throw new Error('Ação inválida.');
     const key = String(body.channelKey || '');
     if (!['news', 'community', 'payments'].includes(key)) throw new Error('CHANNEL_NOT_AVAILABLE');
-    const { data: config, error } = await db
-      .from('channel_reward_config')
-      .select('chat_ref, enabled')
-      .eq('channel_key', key)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!config?.enabled) throw new Error('CHANNEL_NOT_AVAILABLE');
-    if (!config.chat_ref) {
-      console.error('[CHANNEL VERIFY] chat_ref missing — admin must capture the channel id', { channelKey: key });
-      throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
-    }
-    const check = await telegramMembership(String(config.chat_ref), user.id);
-    console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, telegramStatus: check.status, unavailable: check.unavailable });
-    if (check.unavailable) throw new Error('MEMBERSHIP_CHECK_UNAVAILABLE');
-    if (!check.member) throw new Error('MEMBERSHIP_NOT_VERIFIED');
-    return rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true });
+    const result = await rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key }) as Record<string, unknown>;
+    console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, status: result?.status, creditedFc: result?.creditedFc });
+    return result;
   },
+
 
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });

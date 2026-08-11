@@ -3604,6 +3604,7 @@ export type Database = {
           joined_verified: boolean
           reward_amount: number
           reward_claimed: boolean
+          telegram_id: number
           updated_at: string
           user_id: string
           verified_at: string | null
@@ -3616,6 +3617,7 @@ export type Database = {
           joined_verified?: boolean
           reward_amount?: number
           reward_claimed?: boolean
+          telegram_id: number
           updated_at?: string
           user_id: string
           verified_at?: string | null
@@ -3628,6 +3630,7 @@ export type Database = {
           joined_verified?: boolean
           reward_amount?: number
           reward_claimed?: boolean
+          telegram_id?: number
           updated_at?: string
           user_id?: string
           verified_at?: string | null
@@ -4062,6 +4065,10 @@ export type Database = {
         Returns: Json
       }
       admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
+      admin_player_channel_claims: {
+        Args: { p_admin_id: number; p_player: string }
+        Returns: Json
+      }
       admin_player_detail: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
@@ -4103,6 +4110,10 @@ export type Database = {
       admin_repair_daily_quests: { Args: { p_admin_id: number }; Returns: Json }
       admin_reset_account: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
+        Returns: Json
+      }
+      admin_reset_channel_claim: {
+        Args: { p_admin_id: number; p_channel_key: string; p_player: string }
         Returns: Json
       }
       admin_reset_hero_shop: {
@@ -4600,7 +4611,7 @@ export type Database = {
       claim_channel_reward: {
         Args: {
           p_channel_key: string
-          p_membership_ok: boolean
+          p_membership_ok?: boolean
           p_telegram_id: number
         }
         Returns: Json

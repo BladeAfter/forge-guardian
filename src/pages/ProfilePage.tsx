@@ -212,7 +212,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                     </div>
                     {channel.claimed ? (
                       <span className="flex shrink-0 items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
-                        <Check className="h-3 w-3" /> Joined
+                        <Check className="h-3 w-3" /> Claimed
                       </span>
                     ) : (
                       <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} FC</span>
@@ -221,7 +221,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                   {channel.claimed ? (
                     <div className="mt-2 flex items-center gap-1.5">
                       <p className="min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-wide text-emerald-300">
-                        +{formatFc(channel.rewardReceived || channel.rewardFc)} FC received
+                        Reward claimed · +{formatFc(channel.rewardReceived || channel.rewardFc)} FC
                       </p>
                       <button
                         type="button"
@@ -247,7 +247,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                         className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border text-[10px] font-black uppercase tracking-wide active:scale-[0.98] ${joined[channel.key] ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/25 bg-amber-500/10 text-amber-200'} disabled:opacity-50`}
                       >
                         {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                        {pending ? 'Checking' : 'Verify'}
+                        {pending ? 'Verifying' : 'Verify'}
                       </button>
                     </div>
                   )}

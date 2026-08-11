@@ -489,10 +489,11 @@ async function module(ctx: Ctx, name: string) {
     }
     case 'channels': {
       const d = await rpc('admin_channels_overview', { p_admin_id: ctx.adminId });
-      const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   chat: <code>${esc(c.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(c.rewardFc)} FC\n   resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
-      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nCada canal paga a recompensa <b>uma única vez por jogador</b>, apenas depois de o servidor confirmar a participação via Telegram.\n\n🔗 <b>Para capturar o chat id:</b> adicione o bot do jogo como administrador do canal/grupo e <b>encaminhe qualquer mensagem do canal para este chat</b> — eu mostro o id e os botões para salvar.\n\n${list}`,
-        kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], nav()]));
+      const list = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> ${c.enabled ? '✅' : '⛔'}\n   ${esc(c.url)}\n   ${fmt(c.rewardFc)} FC · resgates: ${fmt(c.claims)} · pago: ${fmt(c.paidFc)} FC`).join('\n') || '—';
+      return edit(ctx, `📡 <b>CANAIS OFICIAIS</b>\nA recompensa é <b>única por Telegram ID + canal</b> (one-time). Não há verificação de participação: o jogador toca JOIN, volta e toca VERIFY.\n\n${list}`,
+        kb([[{ t: '✏️ EDITAR CANAL', d: 'ask:channel' }], [{ t: '👤 CLAIMS DO JOGADOR', d: 'ask:chclaims' }], nav()]));
     }
+
 
     case 'quests': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
@@ -832,7 +833,9 @@ const PROMPTS: Record<string, string> = {
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
   pachat: 'Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.',
   passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
-  channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"chat_ref":"-1001234567890","reward_fc":5000,"enabled":true}</code>\n\nO <b>chat_ref</b> é o ID numérico (ou @publico) do canal; sem ele o jogo não consegue verificar a participação.',
+  channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"url":"https://t.me/+abc","reward_fc":5000,"enabled":true}</code>\n\nA recompensa é one-time por Telegram ID; não é necessário chat id.',
+  chclaims: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os claims dos canais oficiais.',
+  chreset: '⚠️ Reset manual de claim. Envie: <code>usuário channel_key CONFIRMAR</code>\nEx.: <code>8082515829 news CONFIRMAR</code>\nIsso libera o VERIFY novamente e fica registrado na auditoria.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
@@ -1309,6 +1312,24 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const r = await rpc('admin_update_channel', { p_admin_id: ctx.adminId, p_channel_key: text.slice(0, i).trim(), p_patch: JSON.parse(text.slice(i + 1)) });
       return send(ctx, `✅ <b>${esc(r.title)}</b> ${r.enabled ? '✅' : '⛔'}\nchat: <code>${esc(r.chatRef || 'NÃO CONFIGURADO')}</code> · ${fmt(r.rewardFc)} FC`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
     }
+    case 'chclaims': {
+      const d = await rpc('admin_player_channel_claims', { p_admin_id: ctx.adminId, p_player: text.trim() });
+      const rows = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> — ${c.claimed ? `✅ CLAIMED (+${fmt(c.rewardReceived || c.rewardFc)} FC)` : '⛔ NOT CLAIMED'}`).join('\n') || '—';
+      return send(ctx, `📡 <b>CLAIMS DOS CANAIS</b>\n${esc(d.name || d.username || '')} · <code>${d.telegramId}</code>\n\n${rows}`,
+        kb([[{ t: '♻️ RESET MANUAL', d: 'ask:chreset' }], [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+    }
+    case 'chreset': {
+      const [ref, key, confirmWord] = text.trim().split(/\s+/);
+      if (!ref || !key) return send(ctx, '⚠️ Envie: <code>usuário channel_key CONFIRMAR</code>', kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+      if (String(confirmWord || '').toUpperCase() !== 'CONFIRMAR') {
+        return send(ctx, `⚠️ <b>Confirmação obrigatória.</b>\nEsse reset permite que o jogador receba a recompensa de <code>${esc(key)}</code> novamente.\nReenvie: <code>${esc(ref)} ${esc(key)} CONFIRMAR</code>`,
+          kb([[{ t: '♻️ TENTAR NOVAMENTE', d: 'ask:chreset' }], [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+      }
+      const d = await rpc('admin_reset_channel_claim', { p_admin_id: ctx.adminId, p_player: ref, p_channel_key: key });
+      const rows = (d.channels || []).map((c: any) => `• <b>${esc(c.title)}</b> — ${c.claimed ? '✅ CLAIMED' : '⛔ NOT CLAIMED'}`).join('\n') || '—';
+      return send(ctx, `♻️ Claim de <code>${esc(key)}</code> resetado (${fmt(d.removed || 0)} registro).\nAuditoria registrada.\n\n${rows}`,
+        kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
+    }
     case 'quest': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_quest', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Quest salva: <b>${esc(r.title)}</b> — ${esc(r.event_key)} · meta ${r.target_amount} · ${fmt(r.reward_fc)} FC ${r.enabled ? '✅' : '⛔'}`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     case 'questtoggle': {
       const d = await rpc('admin_quests_overview', { p_admin_id: ctx.adminId });
@@ -1529,29 +1550,19 @@ Deno.serve(async (req) => {
         const rates = JSON.parse(decodeURIComponent(data.slice(5)));
         const r = await rpc('admin_set_hero_rarity_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_normalize: true, p_reason: 'normalizado pelo painel' });
         await send(ctx, `✅ Raridades normalizadas:\n<code>${esc(JSON.stringify(r.rates))}</code>`, MAIN_MENU);
-      } else if (data.startsWith('chset:')) {
-        // chset:<news|community|payments>:<chat_id>
-        const [, key, chatRef] = data.split(':');
-        const r = await rpc('admin_set_channel_chat_ref', { p_admin_id: ctx.adminId, p_channel_key: key, p_chat_ref: chatRef });
-        await send(ctx, `✅ <b>${esc(r.title)}</b>\nchat id salvo: <code>${esc(r.chatRef)}</code>\nOs jogadores já podem usar VERIFY para receber ${fmt(r.rewardFc)} FC.`, kb([[{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
       } else {
         await handleCallback(ctx, data);
       }
       return new Response(JSON.stringify({ ok: true }));
     }
 
-    // Forwarded message from a channel/group: capture its real chat id for membership checks.
+    // Forwarded message from a channel/group: only informational (channel rewards no longer use chat ids).
     const forwarded = update.message?.forward_from_chat ?? update.message?.forward_origin?.chat;
     if (forwarded?.id) {
       const id = String(forwarded.id);
       await send(ctx,
-        `🔗 <b>CHAT DETECTADO</b>\n${esc(forwarded.title || forwarded.username || '—')} (${esc(forwarded.type)})\nchat id: <code>${esc(id)}</code>\n\nEscolha em qual canal oficial salvar este id:`,
-        kb([
-          [{ t: '📰 NEWS', d: `chset:news:${id}` }],
-          [{ t: '💬 COMMUNITY', d: `chset:community:${id}` }],
-          [{ t: '💳 PAYMENTS', d: `chset:payments:${id}` }],
-          nav('m:channels'),
-        ]));
+        `🔗 <b>CHAT DETECTADO</b>\n${esc(forwarded.title || forwarded.username || '—')} (${esc(forwarded.type)})\nchat id: <code>${esc(id)}</code>\n\nAs recompensas dos canais oficiais são one-time por Telegram ID e não usam chat id.`,
+        kb([[{ t: '💳 CANAL DE PAGAMENTOS', d: 'ask:pachat' }], [{ t: '📡 CANAIS OFICIAIS', d: 'm:channels' }], nav()]));
       return new Response(JSON.stringify({ ok: true }));
     }
 

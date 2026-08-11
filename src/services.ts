@@ -226,12 +226,10 @@ export async function fetchRewardHistory(telegramInitData:string,limit=5,offset=
 export type ChannelReward={key:'news'|'community'|'payments';title:string;subtitle:string;url:string;rewardFc:number;enabled:boolean;verifiable:boolean;joined:boolean;claimed:boolean;rewardReceived:number;claimedAt:string|null};
 export type ChannelRewards={channels:ChannelReward[];status?:'claimed'|'already_claimed';creditedFc?:number};
 const CHANNEL_ERRORS:Record<string,string>={
-  MEMBERSHIP_NOT_VERIFIED:'NOT A MEMBER YET — join the channel and tap VERIFY again.',
-  MEMBERSHIP_CHECK_UNAVAILABLE:'Membership check unavailable: the admin must add the game bot to this channel.',
   CHANNEL_NOT_AVAILABLE:'This channel reward is not available right now.',
   PLAYER_NOT_FOUND:'Player not found.',
 };
-/** Rewards are always granted by the backend after a real Telegram membership check. */
+/** One-time reward per Telegram ID + channel: granted by the backend, no membership check. */
 export async function channelsRequest(telegramInitData:string,input:{action:'dashboard'}|{action:'verify';channelKey:string}={action:'dashboard'}):Promise<ChannelRewards>{
   const response=await forgeFetch('channels',({initData:telegramInitData,...input}));
   const payload=await response.json().catch(()=>null) as (ChannelRewards&{error?:string})|null;
