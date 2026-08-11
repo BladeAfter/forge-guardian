@@ -35,7 +35,7 @@ export function PassXpToasts({ telegramInitData }: { telegramInitData: string | 
         /* silent: XP feedback must never interrupt gameplay */
       }
     };
-    const id = window.setInterval(tick, 9000);
+    const id = window.setInterval(tick, 45_000);
     return () => { alive = false; window.clearInterval(id); };
   }, [telegramInitData, t]);
 
