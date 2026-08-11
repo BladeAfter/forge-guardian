@@ -29,7 +29,7 @@ import { attackBossOnServer, bindReferral, bossRequest, claimCalendarDay, equipC
 import { translate, type LanguageCode } from './i18n';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
-import {CALENDAR_REWARDS,CHEST_LABELS,calendarDayStatus,nextResetCountdown,type CalendarClaimResult} from './calendarRewards';
+import {CALENDAR_REWARDS,CHEST_LABELS,calendarDayStatus,nextResetCountdown,type CalendarClaimResult,type ChestOpenResult} from './calendarRewards';
 
 import { toFriendlyTonAddress } from './tonAddress';
 
