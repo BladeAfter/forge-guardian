@@ -1275,6 +1275,63 @@ export type Database = {
         }
         Relationships: []
       }
+      event_results: {
+        Row: {
+          created_at: string
+          event_id: string
+          final_rank: number
+          id: string
+          note: string | null
+          paid_at: string | null
+          reward_ton: number
+          status: string
+          updated_at: string
+          user_id: string
+          valid_referrals: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          final_rank: number
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          reward_ton?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+          valid_referrals?: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          final_rank?: number
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          reward_ton?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valid_referrals?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_results_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "special_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_missions: {
         Row: {
           code: string
@@ -4646,6 +4703,48 @@ export type Database = {
           },
         ]
       }
+      special_events: {
+        Row: {
+          created_at: string
+          ends_at: string
+          event_key: string
+          id: string
+          name: string
+          prize_pool_ton: number
+          rules_json: Json
+          starts_at: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          event_key: string
+          id?: string
+          name: string
+          prize_pool_ton?: number
+          rules_json?: Json
+          starts_at?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          event_key?: string
+          id?: string
+          name?: string
+          prize_pool_ton?: number
+          rules_json?: Json
+          starts_at?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_channel_rewards: {
         Row: {
           channel_key: string
@@ -5047,6 +5146,15 @@ export type Database = {
       }
       admin_delete_catalog_hero: {
         Args: { p_admin_id: number; p_hero_key: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_events: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
         Returns: Json
       }
       admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
@@ -5988,6 +6096,31 @@ export type Database = {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
       }
+      event_default_rules: { Args: never; Returns: Json }
+      event_distribute: { Args: { p_event_id: string }; Returns: Json }
+      event_finalize: { Args: { p_event_id: string }; Returns: Json }
+      event_referral_ranking: {
+        Args: { p_event_id: string; p_limit?: number }
+        Returns: {
+          avatar_url: string
+          name: string
+          rank_no: number
+          user_id: string
+          username: string
+          valid_referrals: number
+        }[]
+      }
+      event_reward_for_rank: {
+        Args: {
+          p_prize: number
+          p_rank: number
+          p_rules: Json
+          p_total_valid: number
+          p_valid: number
+        }
+        Returns: number
+      }
+      event_sync_statuses: { Args: never; Returns: undefined }
       evolve_pet: {
         Args: {
           p_idempotency_key: string
@@ -6113,6 +6246,10 @@ export type Database = {
       }
       get_runtime_config: { Args: { p_telegram_id?: number }; Returns: Json }
       get_season_pass_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      get_special_events_dashboard: {
         Args: { p_telegram_id: number }
         Returns: Json
       }
