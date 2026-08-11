@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _boss_smoke: {
-        Row: {
-          at: string | null
-          payload: Json | null
-          step: string | null
-        }
-        Insert: {
-          at?: string | null
-          payload?: Json | null
-          step?: string | null
-        }
-        Update: {
-          at?: string | null
-          payload?: Json | null
-          step?: string | null
-        }
-        Relationships: []
-      }
       ad_providers: {
         Row: {
           code: string
@@ -4429,6 +4411,17 @@ export type Database = {
       admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
+        Returns: Json
+      }
+      admin_global_boss: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_code?: string
+          p_reason?: string
+          p_text?: string
+          p_value?: number
+        }
         Returns: Json
       }
       admin_grant_hero: {
