@@ -19,7 +19,8 @@ export const CHEST_REWARD_TABLE={
 export const CHEST_LABELS:Record<string,string>={common_chest:'Baú Comum',uncommon_chest:'Baú Incomum',rare_chest:'Baú Raro',epic_chest:'Baú Épico',legendary_chest:'Baú Lendário'};
 export const CALENDAR_EGG_ODDS={'common-egg':{common:75,uncommon:20,rare:5},'rare-egg':{common:35,uncommon:40,rare:20,epic:5}} as const;
 /** The server owns the official game day (21:00 America/Sao_Paulo). Never compute it on the client. */
-export type CalendarDashboard={cycle:string;currentDay:number;claimedDays:number[];canClaim:boolean;claimedToday?:boolean;gameDay?:string;gameDayNumber?:number;nextResetAt?:string;serverTime?:string;rewards:CalendarReward[];balance:number};
+export type CalendarDayStatus='CLAIMED'|'AVAILABLE'|'LOCKED';
+export type CalendarDashboard={cycle:string;currentDay:number;availableDay?:number|null;dayStatuses?:Record<string,CalendarDayStatus>;claimedDays:number[];canClaim:boolean;claimedToday?:boolean;gameDay?:string;gameDayNumber?:number;nextResetAt?:string;serverTime?:string;rewards:CalendarReward[];balance:number};
 /** Countdown helper: uses the server-provided reset timestamp as the only authority. */
 export function nextResetCountdown(nextResetAt?:string|null,now:number=Date.now()):string{
  const target=nextResetAt?Date.parse(nextResetAt):NaN;
@@ -48,3 +49,19 @@ export type InventoryEgg={id:string;slug:string;name:string;image:string|null;qu
 export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[]};
 export type ChestOpenResult={hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};chest?:{code:string;name:string;subtitle:string};inventory?:PlayerInventory};
 export type CalendarClaimResult={reward:CalendarReward;balance:number;inventoryItemId:string|null;inventory?:PlayerInventory;dashboard:CalendarDashboard};
+/**
+ * Backend is the only authority: a day is AVAILABLE only while the server says so.
+ * Claiming marks the current day and never unlocks the next one.
+ */
+export function calendarDayStatus(dashboard:CalendarDashboard|null|undefined,day:number,fallbackCurrentDay:number,fallbackClaimed=false):CalendarDayStatus{
+ if(dashboard){
+  const fromServer=dashboard.dayStatuses?.[String(day)];
+  if(fromServer)return fromServer;
+  if(dashboard.claimedDays.includes(day))return 'CLAIMED';
+  const available=dashboard.availableDay??(dashboard.canClaim?dashboard.currentDay:null);
+  return day===available?'AVAILABLE':'LOCKED';
+ }
+ if(day<fallbackCurrentDay)return 'CLAIMED';
+ if(day===fallbackCurrentDay)return fallbackClaimed?'CLAIMED':'AVAILABLE';
+ return 'LOCKED';
+}
