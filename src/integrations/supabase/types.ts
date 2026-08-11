@@ -4209,6 +4209,61 @@ export type Database = {
           },
         ]
       }
+      referral_event_entries: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          invalid_reason: string | null
+          is_valid: boolean
+          referred_at: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          invalid_reason?: string | null
+          is_valid?: boolean
+          referred_at?: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          invalid_reason?: string | null
+          is_valid?: boolean
+          referred_at?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_event_entries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "special_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_event_entries_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_event_entries_referrer_user_id_fkey"
+            columns: ["referrer_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_purchase_events: {
         Row: {
           amount_fc: number
@@ -4794,7 +4849,9 @@ export type Database = {
         Row: {
           created_at: string
           ends_at: string
+          event_end_at: string | null
           event_key: string
+          event_start_at: string | null
           id: string
           name: string
           prize_pool_ton: number
@@ -4807,7 +4864,9 @@ export type Database = {
         Insert: {
           created_at?: string
           ends_at: string
+          event_end_at?: string | null
           event_key: string
+          event_start_at?: string | null
           id?: string
           name: string
           prize_pool_ton?: number
@@ -4820,7 +4879,9 @@ export type Database = {
         Update: {
           created_at?: string
           ends_at?: string
+          event_end_at?: string | null
           event_key?: string
+          event_start_at?: string | null
           id?: string
           name?: string
           prize_pool_ton?: number
