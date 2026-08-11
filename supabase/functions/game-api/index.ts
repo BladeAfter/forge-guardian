@@ -418,6 +418,11 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const alreadyCredited: string[] = [];
 
   for (const deposit of deposits) {
+    // Sub-minimum rows can only exist from legacy/manipulated calls: reject them instead of crediting.
+    if (Number(deposit.amount_ton) < 1) {
+      await db.from('wallet_deposits').update({ status: 'rejected' }).eq('id', deposit.id);
+      continue;
+    }
     const comment = String(deposit.payment_comment || '').trim();
     const expectedNano = BigInt(Math.round(Number(deposit.amount_ton) * 1e9));
     // 1% tolerance covers wallet fee rounding on the sender side.
@@ -426,6 +431,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       const inMsg = tx?.in_msg;
       if (!inMsg) return false;
       const value = BigInt(String(inMsg.value ?? '0'));
+      if (value < 1_000_000_000n) return false; // below the 1 TON floor
       const sameComment = comment ? msgComment(inMsg) === comment : false;
       return sameComment && value >= minNano;
     });
@@ -522,6 +528,8 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     const amount = Number(body.amountTon);
     const address = String(body.walletAddress || '');
     if (!Number.isFinite(amount) || amount <= 0 || !address) throw new Error('Valor de depósito inválido.');
+    // Minimum deposit is 1 TON (= 100,000 FC); never trust the client.
+    if (amount < 1) throw new Error('Minimum deposit is 1 TON');
     fn = 'create_wallet_deposit';
     args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'withdraw') {
