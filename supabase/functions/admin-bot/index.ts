@@ -1331,7 +1331,10 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (data === 'home') { await clearSession(ctx); return home(ctx, true); }
   if (data === 'cancel') { await clearSession(ctx); return send(ctx, '❌ Ação cancelada.', MAIN_MENU); }
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
+  // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
+  if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
+
   if (head === 'passlvtoggle') {
     await clearSession(ctx);
     const enabled = rest[0] === 'on';
