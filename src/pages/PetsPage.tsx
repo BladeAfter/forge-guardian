@@ -156,13 +156,13 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             <div className="flex items-center gap-4">
               <img src={active.image} alt={active.name} className="h-32 w-32 shrink-0 object-contain drop-shadow-[0_0_22px_rgba(251,191,36,.4)]" />
               <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">Companheiro ativo</p>
+                <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
                 <h2 className="truncate text-2xl font-black">{active.name}</h2>
                 <p style={{ color: rarityColor[active.rarity] }} className="text-xs font-bold uppercase">
-                  {petRarityLabel(active.rarity)} · Nível {active.level}/{active.maxLevel}
+                  {t('pets.rarityLevel', { rarity: petRarityLabel(active.rarity), level: active.level, max: active.maxLevel })}
                 </p>
                 <p className="text-[10px] text-slate-400">
-                  {petStageLabel(active.evolutionStage)} · {active.evolutionLabel} · Poder {fmt(active.power)}
+                  {t('pets.levelProgress', { stage: petStageLabel(active.evolutionStage), label: active.evolutionLabel, power: fmt(active.power) })}
                 </p>
               </div>
             </div>
@@ -171,33 +171,33 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             <BuffGrid pet={active} />
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Action text="Alimentar" disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
+              <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
               <EvolveButton pet={active} balance={data.balance} pending={pending} onEvolve={() => evolve(active)} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
-              Comida sobe o <b className="text-amber-200">nível</b>. Fragmentos e FC liberam a <b className="text-violet-200">evolução</b>.
+              {t('pets.feedHintPre')} <b className="text-amber-200">{t('pets.levelWord')}</b>{t('pets.feedHintMid')} <b className="text-violet-200">{t('pets.evolutionWord')}</b>{t('pets.feedHintPost')}
             </p>
           </>
         ) : (
           <div className="grid min-h-48 place-items-center text-center">
             <div>
               <Egg className="mx-auto h-14 w-14 text-slate-600" />
-              <h2 className="mt-2 text-xl font-black">Nenhum pet ativo</h2>
-              <p className="text-xs text-slate-400">Escolha um companheiro em Meus Pets.</p>
+              <h2 className="mt-2 text-xl font-black">{t('pets.noActivePet')}</h2>
+              <p className="text-xs text-slate-400">{t('pets.chooseCompanion')}</p>
             </div>
           </div>
         )}
       </section>
 
       <nav className="mt-3 grid grid-cols-5 gap-1">
-        {(Object.keys(TAB_LABELS) as Tab[]).map((key) => (
+        {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => setTab(key)}
             className={`rounded-xl px-1 py-2 text-[8px] font-black uppercase ${tab === key ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
           >
-            {TAB_LABELS[key]}
+            {t(TAB_KEYS[key])}
           </button>
         ))}
       </nav>
@@ -214,14 +214,14 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 pending={pending}
               />
             ))}
-            {data.playerPets.length === 0 && <p className="col-span-2 py-16 text-center text-sm text-slate-400">Você ainda não tem pets. Abra um ovo para começar.</p>}
+            {data.playerPets.length === 0 && <p className="col-span-2 py-16 text-center text-sm text-slate-400">{t('pets.noPetsYet')}</p>}
           </div>
         )}
 
         {tab === 'eggs' && (
           <>
             <p className="mb-2 rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
-              Saldo disponível: <b className="text-amber-200">{fmt(data.balance)} FC</b>. Compre ovos e abra para receber companheiros.
+              {t('pets.availableBalance', { balance: fmt(data.balance) })}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {data.eggs.map((egg) => {
@@ -243,19 +243,19 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                         </span>
                       ))}
                     </div>
-                    <p className="mt-1 text-[9px] text-slate-400">Você possui: {egg.quantity}</p>
+                    <p className="mt-1 text-[9px] text-slate-400">{t('pets.youOwn', { quantity: egg.quantity })}</p>
                     <div className="mt-auto">
                       {owned ? (
                         <Action
-                          text="Abrir ovo"
+                          text={t('pets.openEgg')}
                           disabled={pending||openingRef.current}
                           onClick={() => {if(openingRef.current)return;openingRef.current=true;mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}}
                         />
                       ) : locked ? (
-                        <Action text={egg.availabilityLabel || 'Evento exclusivo'} disabled onClick={() => undefined} />
+                        <Action text={egg.availabilityLabel || t('pets.exclusiveEvent')} disabled onClick={() => undefined} />
                       ) : (
                         <Action
-                          text={`Comprar · ${formatEggPrice(egg)}`}
+                          text={t('pets.buy', { price: formatEggPrice(egg) })}
                           disabled={pending || tonPurchase.isPending}
                           onClick={() => setEggTarget(egg)}
                         />
@@ -281,7 +281,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'food' && (
           <div className="space-y-3">
             <p className="rounded-xl border border-amber-300/20 bg-black/45 px-3 py-2 text-[9px] leading-relaxed text-slate-300">
-              Comida sobe o <b className="text-amber-200">nível</b> do pet. Saldo: <b className="text-amber-200">{fmt(data.balance)} FC</b>.
+              {t('pets.foodRaisesLevel', { balance: fmt(data.balance) })}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {data.foods.map((food) => (
@@ -290,17 +290,17 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                     <span className="text-2xl leading-none">{PET_FOOD_ICONS[food.icon] ?? '🍖'}</span>
                     <div className="min-w-0">
                       <p className="truncate text-[11px] font-black">{food.name}</p>
-                      <p className="text-[9px] text-emerald-300">+{fmt(food.xpValue)} XP por unidade</p>
+                      <p className="text-[9px] text-emerald-300">{t('pets.xpPerUnit', { xp: fmt(food.xpValue) })}</p>
                     </div>
                   </div>
-                  <p className="mt-2 text-[9px] text-slate-400">Você possui</p>
+                  <p className="mt-2 text-[9px] text-slate-400">{t('pets.youOwnLabel')}</p>
                   <b className="text-lg leading-none">{fmt(food.quantity)}</b>
                   <p className="mt-1 text-[9px] font-bold text-amber-200">
-                    {food.priceFc ? `${fmt(food.priceFc)} FC` : 'Indisponível'}
+                    {food.priceFc ? `${fmt(food.priceFc)} FC` : t('pets.unavailable')}
                   </p>
                   <div className="mt-auto">
                     <Action
-                      text="Comprar"
+                      text={t('pets.buyLabel')}
                       disabled={pending || !food.priceFc}
                       onClick={() => setFoodTarget(food)}
                     />
@@ -308,14 +308,14 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 </div>
               ))}
             </div>
-            <h3 className="pt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300">Fragmentos por pet</h3>
+            <h3 className="pt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300">{t('pets.fragmentsPerPet')}</h3>
             <div className="grid grid-cols-2 gap-2">
-              <Stat icon={<Star />} label="Fragmentos universais" value={data.inventory.universalFragments} />
+              <Stat icon={<Star />} label={t('pets.universalFragments')} value={data.inventory.universalFragments} />
               {data.fragments.map((entry) => (
                 <Stat
                   key={entry.playerPetId}
                   icon={<img src={entry.image} alt={entry.petName} className="h-8 w-8 object-contain" />}
-                  label={`Fragmentos de ${entry.petName}`}
+                  label={t('pets.fragmentsOf', { name: entry.petName })}
                   value={entry.quantity}
                 />
               ))}
