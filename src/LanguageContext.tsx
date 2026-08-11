@@ -95,9 +95,10 @@ export function LanguageProvider({ children, initData }: { children: ReactNode; 
       setLocked(true);
       setReady(true);
       persistLocal(normalized, true);
-      if (!initData) return;
+      const session = initData || (window as unknown as { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp?.initData || '';
+      if (!session) return;
       try {
-        const response = await forgeFetch('language', { initData, language: normalized });
+        const response = await forgeFetch('language', { initData: session, language: normalized });
         if (!response.ok) throw new Error('LANGUAGE_SAVE_FAILED');
       } catch (error) {
         console.error('[LANGUAGE SAVE FAILED]', error);
