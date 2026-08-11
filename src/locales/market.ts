@@ -46,6 +46,7 @@ export const market: LocaleBundle = {
     'market.noListings': 'You have no listings yet.',
     'market.back': 'BACK',
     'market.mine': 'MINE',
+    'market.refresh': 'REFRESH',
   },
   pt: {
     'market.tabRecruit': 'RECRUTAR',
@@ -91,6 +92,7 @@ export const market: LocaleBundle = {
     'market.noListings': 'Você ainda não tem anúncios.',
     'market.back': 'VOLTAR',
     'market.mine': 'MEU',
+    'market.refresh': 'ATUALIZAR',
   },
   es: {
     'market.tabRecruit': 'RECLUTAR',
@@ -136,6 +138,7 @@ export const market: LocaleBundle = {
     'market.noListings': 'Todavía no tienes anuncios.',
     'market.back': 'VOLVER',
     'market.mine': 'MÍO',
+    'market.refresh': 'ACTUALIZAR',
   },
   ru: {
     'market.tabRecruit': 'НАБОР',
@@ -181,5 +184,6 @@ export const market: LocaleBundle = {
     'market.noListings': 'У вас пока нет лотов.',
     'market.back': 'НАЗАД',
     'market.mine': 'МОЙ',
+    'market.refresh': 'ОБНОВИТЬ',
   },
 };
