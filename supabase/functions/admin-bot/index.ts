@@ -2317,6 +2317,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
+  // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
+  if (head === 'pr') return prCallback(ctx, rest);
+
   // 🎉 Special events module (independent from the weekly community pool).
   if (head === 'ev') {
     await clearSession(ctx);
