@@ -402,6 +402,20 @@ function App() {
     }
   }, [data]);
 
+  // Boot watchdog: the loading screen never stays stuck — after 12s the local village state opens the game.
+  useEffect(() => {
+    if (!telegramInitData || game) return;
+    const timer = window.setTimeout(() => {
+      console.error('[BOOT] game state unavailable, opening with local village state', {
+        hasError: Boolean(error), isLoading
+      });
+      setGame(buildLocalGameState(telegramInitData));
+      setIsReady(true);
+    }, 12_000);
+    return () => window.clearTimeout(timer);
+  }, [telegramInitData, game, error, isLoading]);
+
+
   useEffect(() => {
     if (!game || !isDemoMode || !telegramInitData) return;
     saveDemoState(game, telegramInitData);
