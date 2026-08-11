@@ -861,6 +861,10 @@ const PROMPTS: Record<string, string> = {
   giveitem: 'Envie: <code>usuário tipo item quantidade</code>\nTipos: <code>ovo</code> (slug do ovo), <code>comida</code> (code), <code>fragmento</code>.\nEx.: <code>8118569391 ovo epic-egg 3</code>',
   givefrag: 'Envie: <code>usuário quantidade</code> para conceder fragmentos universais.',
   pvpset: 'Envie: <code>chave valor</code>\nChaves: pvp_trophy_win, pvp_trophy_loss, pvp_ticket_cost, pvp_ticket_start, pvp_ticket_max, pvp_ticket_regen_minutes, pvp_ticket_price_fc, pvp_win_reward_fc',
+  tkfree: 'Envie o novo limite diário de compra de tickets para jogadores SEM Battle Pass — ex.: <code>10</code>',
+  tkpass: 'Envie o novo limite diário de compra de tickets para jogadores COM Battle Pass — ex.: <code>20</code>',
+  tkpack: 'Envie: <code>quantidade preço_fc</code> — ex.: <code>3 13500</code> (use preço 0 e remova manualmente para desativar).',
+
   league: 'Envie: <code>code {json}</code> — ex.: <code>bronze_5 {"name":"Bronze V","min_trophies":0,"max_trophies":19}</code>',
   setting: 'Envie: <code>chave valor</code> (valor JSON ou texto simples).',
   quest: 'Envie: <code>code {json}</code> — ex.: <code>enter_arena {"title":"ENTER THE ARENA","description":"Complete one PvP battle.","event_key":"pvp_battle","target_amount":1,"reward_fc":10000,"icon":"pvp","sort_order":4,"enabled":true}</code>\nEventos válidos: <code>daily_login, pet_fed, boss_attack, pvp_battle, reward_opened, hero_obtained</code>.',
