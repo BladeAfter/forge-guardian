@@ -17,6 +17,8 @@ import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
 import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
 import{fetchClanDashboard,type ClanDashboard}from'./clans';
+import type{SpecialEventsDashboard}from'./specialEvents';
+import{specialEventsRequest}from'./services';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
