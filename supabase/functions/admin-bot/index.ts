@@ -1224,6 +1224,8 @@ async function module(ctx: Ctx, name: string) {
 
     }
     case 'clans': return clansHub(ctx);
+    case 'gifts': return giftHub(ctx);
+
     case 'boss': return bossPanel(ctx);
 
     case 'ads': {
