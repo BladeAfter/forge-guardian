@@ -122,6 +122,62 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_gifts: {
+        Row: {
+          admin_id: number
+          created_at: string
+          fc_amount: number
+          gift_code: string
+          gift_type: string
+          id: string
+          item_key: string | null
+          item_label: string | null
+          quantity: number
+          result: Json
+          status: string
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          admin_id: number
+          created_at?: string
+          fc_amount?: number
+          gift_code: string
+          gift_type: string
+          id?: string
+          item_key?: string | null
+          item_label?: string | null
+          quantity?: number
+          result?: Json
+          status?: string
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          admin_id?: number
+          created_at?: string
+          fc_amount?: number
+          gift_code?: string
+          gift_type?: string
+          id?: string
+          item_key?: string | null
+          item_label?: string | null
+          quantity?: number
+          result?: Json
+          status?: string
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_gifts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_snapshots: {
         Row: {
           admin_id: number
@@ -4920,6 +4976,10 @@ export type Database = {
       }
       admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
+      admin_clan_settings: {
+        Args: { p_action?: string; p_admin_id: number; p_value?: number }
+        Returns: Json
+      }
       admin_clans: {
         Args: {
           p_action?: string
@@ -4944,6 +5004,14 @@ export type Database = {
       admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
+        Returns: Json
+      }
+      admin_gift_catalog: {
+        Args: { p_admin_id: number; p_kind: string; p_rarity?: string }
+        Returns: Json
+      }
+      admin_gift_history: {
+        Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
       admin_global_boss: {
@@ -5192,6 +5260,17 @@ export type Database = {
             }
             Returns: Json
           }
+      admin_send_gift: {
+        Args: {
+          p_admin_id: number
+          p_gift_code: string
+          p_item_key: string
+          p_quantity: number
+          p_ref: string
+          p_type: string
+        }
+        Returns: Json
+      }
       admin_set_ban: {
         Args: {
           p_admin_id: number
