@@ -31,6 +31,8 @@ import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHer
 import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,CHEST_LABELS,type CalendarClaimResult} from './calendarRewards';
 
+import { toFriendlyTonAddress } from './tonAddress';
+
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
 type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes';
@@ -590,7 +592,7 @@ function App() {
         lang={lang}
         telegramInitData={telegramInitData}
         connected={Boolean(wallet)}
-        address={wallet?.account.address ?? null}
+        address={toFriendlyTonAddress(wallet?.account.address) ?? null}
         onConnect={connectWallet}
         onDisconnect={disconnectWallet}
         isConnecting={tonConnectUI.modalState.status === 'opened'}

@@ -1,6 +1,7 @@
 // MYTHREON :: Master Admin Bot (Telegram)
 // Every operation re-validates the super admin Telegram ID server-side (bot + database).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
 
 const SUPER_ADMIN_ID = Number(Deno.env.get('TELEGRAM_SUPER_ADMIN_ID') || '8118569391');
 // Admin bot token: dedicated variables first (current name: TELEGRAM_BOT_TOKEN_Admin), then legacy names.
@@ -141,7 +142,8 @@ async function playerCard(ctx: Ctx, ref: string) {
     `🏅 ${esc(p.league)} · 🏆 ${fmt(p.trophies)} · 🎟 ${fmt(p.tickets)}`,
     `⚔️ ${fmt(p.wins)}V / ${fmt(p.losses)}D · 👑 ${fmt(p.boss_defeats)} chefes`,
     `🦸 ${fmt(p.heroes_count)} heróis · 🐲 ${fmt(p.pets_count)} pets · 🤝 ${fmt(p.referrals)} convites`,
-    `💼 Carteira: <code>${esc(p.wallet || '—')}</code>`,
+    `👛 TON Wallet: <code>${esc(walletOut(p.wallet) ?? (p.wallet ? String(p.wallet) : 'NO TON WALLET CONNECTED'))}</code>${p.wallet && !walletOut(p.wallet) ? ' ⚠️ INVÁLIDA' : ''}`,
+    `🔗 Wallet Connected: ${walletOut(p.wallet) ? 'YES' : 'NO'}${p.wallet_updated_at ? ' · atualizada ' + dt(p.wallet_updated_at) : ''}`,
     `📥 ${fmt(p.deposited_ton)} TON depositado · 📤 ${fmt(p.withdrawn_ton)} TON sacado`,
     `⭐ VIP: ${p.vip_until ? esc(String(p.vip_until).slice(0, 10)) : '—'} · 💠 Premium: ${p.premium_until ? esc(String(p.premium_until).slice(0, 10)) : '—'}`,
     `🚫 Banido: ${p.banned ? 'SIM — ' + esc(p.ban_reason) : 'não'}`,
@@ -512,6 +514,9 @@ const WD_STATUS_ICON: Record<string, string> = {
   pending: '🟡', processing: '🔵', approved: '🔵', paid: '✅', completed: '✅', rejected: '❌', cancelled: '❌',
 };
 
+/** Wallets only accept the user-friendly mainnet form; raw "0:…" values are converted before display. */
+const walletOut = (value: unknown) => toFriendlyTonAddress(value);
+
 const dt = (value: unknown) => value ? new Date(String(value)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
 
 /** Summary list: never hides the amount, flags withdrawals whose destination wallet is unknown. */
@@ -521,7 +526,7 @@ function withdrawalLines(items: any[]) {
   for (const w of items) (groups[w.status] ??= []).push(w);
   return Object.entries(groups).map(([status, rows]) => {
     const head = `${WD_STATUS_ICON[status] || '•'} <b>${esc(status.toUpperCase())}</b>`;
-    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_fc)} FC → <b>${Number(w.net_ton ?? w.amount_ton ?? 0).toFixed(3)} TON</b> (fee ${Number(w.fee_percent ?? 0)}%)${w.wallet_address ? '' : ' ⚠️ SEM CARTEIRA'}`).join('\n');
+    const body = rows.map((w) => `• <code>${esc(w.short_id)}</code> | ${w.username || w.player ? '@' + esc(w.username || w.player) : esc(String(w.telegram_id))} | ${fmt(w.amount_fc)} FC → <b>${Number(w.net_ton ?? w.amount_ton ?? 0).toFixed(3)} TON</b> (fee ${Number(w.fee_percent ?? 0)}%)${walletOut(w.wallet_address) ? '' : (w.wallet_address ? ' ⚠️ CARTEIRA INVÁLIDA' : ' ⚠️ SEM CARTEIRA')}`).join('\n');
     return `${head}\n${body}`;
   }).join('\n\n');
 }
@@ -530,7 +535,7 @@ function connectedWalletsText(items: any[]) {
   const list = (items || []).map((w) => [
     `👤 ${w.player ? '@' + esc(w.player) : '—'}`,
     `🆔 <code>${esc(String(w.telegram_id))}</code> · interno <code>${esc(String(w.user_id))}</code>`,
-    `👛 <code>${esc(w.wallet_address)}</code>`,
+    `👛 <code>${esc(walletOut(w.wallet_address) ?? w.wallet_address ?? '—')}</code>${walletOut(w.wallet_address) ? '' : ' ⚠️ INVÁLIDA'}`,
     `📅 ${dt(w.connected_at)}`,
   ].join('\n')).join('\n\n') || '—';
   return `💳 <b>CONNECTED WALLETS</b>\nCarteiras TON vinculadas aos jogadores.\n\n${list}`;
@@ -682,6 +687,8 @@ async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
   const status = String(w.status);
   const done = ['paid', 'completed'].includes(status);
   const closed = done || ['rejected', 'cancelled'].includes(status);
+  // Snapshot taken when the player requested the withdrawal — never re-read from the profile.
+  const friendly = walletOut(w.walletAddress);
   const lines = [
     '💸 <b>WITHDRAWAL DETAILS</b>',
     '',
@@ -695,19 +702,24 @@ async function withdrawalCard(ctx: Ctx, id: string, editing = true) {
     `✅ Net to pay: <b>${Number(w.netTon ?? w.amountTon ?? 0).toFixed(3)} TON</b>`,
     '',
     '👛 <b>TON WALLET:</b>',
-    w.walletAddress ? `<code>${esc(w.walletAddress)}</code>` : '⚠️ <b>WALLET NOT FOUND — MANUAL REVIEW REQUIRED</b>',
+    friendly
+      ? `<code>${esc(friendly)}</code>`
+      : (w.walletAddress
+        ? `⚠️ <b>INVALID TON WALLET</b>\nSaved value:\n<code>${esc(String(w.walletAddress))}</code>`
+        : '⚠️ <b>WALLET NOT FOUND — MANUAL REVIEW REQUIRED</b>'),
     '',
     `📅 Requested:\n${dt(w.createdAt)}`,
     '',
     `${WD_STATUS_ICON[status] || '•'} Status:\n<b>${esc(status.toUpperCase())}</b>`,
   ];
   if (w.txHash) lines.push('', `🧾 TX:\n<code>${esc(w.txHash)}</code>`, `📅 Paid: ${dt(w.paidAt)}`);
-  if (!w.walletAddress && w.currentWallet) lines.push('', `ℹ️ Carteira atual do jogador (não vinculada a este saque):\n<code>${esc(w.currentWallet)}</code>`);
+  if (!friendly && w.currentWallet) lines.push('', `ℹ️ Carteira atual do jogador (não vinculada a este saque):\n<code>${esc(walletOut(w.currentWallet) ?? String(w.currentWallet))}</code>`);
   if (w.refundedAt) lines.push('', `↩️ FC devolvido em ${dt(w.refundedAt)}`);
 
   const rows: { t: string; d: string }[][] = [];
-  if (w.walletAddress) rows.push([{ t: '📋 COPY WALLET', d: `wdcp:${w.id}` }]);
-  if (!closed && w.walletAddress) rows.push([{ t: '💎 PAY WITHDRAWAL', d: `wdpay:${w.id}` }]);
+  if (friendly) rows.push([{ t: '📋 COPY WALLET', d: `wdcp:${w.id}` }]);
+  if (w.telegramId) rows.push([{ t: '🔎 VIEW USER', d: `find:${w.telegramId}` }]);
+  if (!closed && friendly) rows.push([{ t: '💎 PAY WITHDRAWAL', d: `wdpay:${w.id}` }]);
   if (!closed) rows.push([{ t: '✅ MARK AS PAID', d: `wdmk:${w.id}` }, { t: '❌ REJECT', d: `wdrj:${w.id}` }]);
   if (status === 'processing' || status === 'approved') rows.push([{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${w.id}` }]);
   if (done && w.txHash) rows.push([{ t: '📢 PUBLICAR COMPROVANTE', d: `pasend:${w.id}` }]);
@@ -722,20 +734,22 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
       return withdrawalCard(ctx, id);
     case 'wdcp': {
       const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
-      if (!w.walletAddress) return send(ctx, '⚠️ WALLET NOT FOUND — MANUAL REVIEW REQUIRED', kb([[{ t: '⬅️ BACK', d: `wd:${id}` }]]));
-      // Separate message with a plain code block: tap to copy inside Telegram.
-      return send(ctx, `<code>${esc(w.walletAddress)}</code>`, kb([[{ t: '⬅️ BACK', d: `wd:${id}` }]]));
+      const friendly = walletOut(w.walletAddress);
+      if (!friendly) return send(ctx, w.walletAddress ? '⚠️ INVALID TON WALLET' : '⚠️ WALLET NOT FOUND — MANUAL REVIEW REQUIRED', kb([[{ t: '⬅️ BACK', d: `wd:${id}` }]]));
+      // Separate message containing ONLY the user-friendly address: tap to copy inside Telegram.
+      await tg('sendMessage', { chat_id: ctx.chatId, text: friendly });
+      return;
     }
     case 'wdpay': {
       const w = await rpc('admin_withdrawal_detail', { p_admin_id: ctx.adminId, p_withdrawal_id: id });
       if (['paid', 'completed'].includes(String(w.status))) throw new Error('already_processed');
-      if (!w.walletAddress) throw new Error('wallet_missing');
+      if (!walletOut(w.walletAddress)) throw new Error('wallet_missing');
       if (Number(w.amountTon) <= 0) throw new Error('invalid_amount');
       return edit(ctx, [
         '⚠️ <b>CONFIRM WITHDRAWAL</b>', '',
         `Player: ${w.username ? '@' + esc(w.username) : esc(String(w.telegramId))}`,
         `Amount: <b>${fmt(w.amountTon)} TON</b>`, '',
-        'Destination:', `<code>${esc(w.walletAddress)}</code>`, '',
+        'Destination:', `<code>${esc(walletOut(w.walletAddress)!)}</code>`, '',
         'O saque será bloqueado como <b>PROCESSING</b> para evitar pagamento duplicado. Ele só ficará <b>PAID</b> depois que você informar o hash da transação.',
       ].join('\n'), kb([[{ t: '✅ CONFIRM PAYMENT', d: `wdgo:${id}` }], [{ t: '❌ CANCEL', d: `wd:${id}` }]]));
     }
@@ -745,7 +759,7 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
       await send(ctx, [
         '🔵 <b>WITHDRAWAL PROCESSING</b>', '',
         `Envie <b>${fmt(w.amountTon)} TON</b> para:`,
-        `<code>${esc(w.walletAddress)}</code>`, '',
+        `<code>${esc(walletOut(w.walletAddress) ?? String(w.walletAddress ?? '—'))}</code>`, '',
         'Depois toque em <b>MARK AS PAID</b> e informe o hash da transação.\nSe o pagamento falhar, use <b>PAGAMENTO FALHOU</b> — o saque volta para PENDING.',
       ].join('\n'), kb([[{ t: '✅ MARK AS PAID', d: `wdmk:${id}` }], [{ t: '↩️ PAGAMENTO FALHOU', d: `wdfail:${id}` }], [{ t: '⬅️ BACK', d: `wd:${id}` }]]));
       return;
