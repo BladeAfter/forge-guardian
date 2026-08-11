@@ -5822,7 +5822,7 @@ export type Database = {
       }
       admin_set_pool_contribution_percent: {
         Args: { p_admin_id: number; p_percent: number }
-        Returns: number
+        Returns: Json
       }
       admin_set_pvp_ticket_pack: {
         Args: { p_admin_id: number; p_price_fc: number; p_quantity: number }
