@@ -1815,9 +1815,38 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const [cur, mode, user] = args;
       const value = parseAmount(text);
       if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior ou igual a 0 (ex.: <code>1000</code> ou <code>20,5</code>).');
-      const r = await rpc('admin_adjust_balance', { p_admin_id: ctx.adminId, p_ref: user, p_currency: cur, p_mode: mode, p_amount: value, p_reason: 'ajuste pelo painel' });
-      return send(ctx, `✅ <b>${cur.toUpperCase()}</b>\nAnterior: ${fmt(r.old_value)}\nNovo: <b>${fmt(r.new_value)}</b>`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
+      const p = await rpc('admin_player_detail', { p_admin_id: ctx.adminId, p_ref: user }) as any;
+      const current = Number(cur === 'ton' ? p.ton_balance : p.forge_coins);
+      const next = mode === 'add' ? current + value : mode === 'remove' ? Math.max(0, current - value) : value;
+      const label = cur.toUpperCase();
+      return send(ctx, [
+        `💰 <b>${mode === 'add' ? 'ADD' : mode === 'remove' ? 'REMOVE' : 'SET'} ${label}</b>`,
+        `👤 ${esc(p.name)} ${p.username ? '@' + esc(p.username) : ''} · <code>${p.telegram_id}</code>`,
+        '',
+        `Atual: <b>${fmt(current)} ${label}</b>`,
+        `${mode === 'set' ? 'Definir' : mode === 'add' ? 'Adicionar' : 'Remover'}: <b>${fmt(value)} ${label}</b>`,
+        `Novo: <b>${fmt(next)} ${label}</b>`,
+      ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `balgo:${cur}:${mode}:${user}:${value}` }, { t: '❌ CANCELAR', d: `uf:${user}` }]]));
     }
+
+    case 'itemqty': {
+      const [user, mode, ...keyParts] = args;
+      const key = keyParts.join('|');
+      const qty = Math.round(parseAmount(text));
+      if (!Number.isFinite(qty) || qty <= 0) throw new Error('KEEP_SESSION::⚠️ Quantidade inválida. Envie um número inteiro maior que 0 (ex.: <code>10</code>).');
+      const delta = mode === 'a' ? qty : -qty;
+      try {
+        const r = await rpc('admin_adjust_player_item', { p_admin_id: ctx.adminId, p_ref: user, p_item_key: key, p_delta: delta, p_reason: 'painel admin' }) as any;
+        await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(user)}</code>\nItem: <b>${esc(r.label)}</b>\n${mode === 'a' ? 'Adicionado' : 'Removido'}: ${fmt(qty)}\nAntes: ${fmt(r.before)} → Agora: <b>${fmt(r.after)}</b>`);
+        return userItemsMenu({ ...ctx, messageId: undefined }, user);
+      } catch (error) {
+        const raw = error instanceof Error ? error.message : String(error);
+        const max = raw.match(/insufficient_inventory:(\d+)/)?.[1];
+        if (max) throw new Error(`KEEP_SESSION::⚠️ Inventário insuficiente. Máximo removível: <b>${fmt(max)}</b>.`);
+        throw error;
+      }
+    }
+
 
     case 'stat': {
       const [stat, user] = args;
