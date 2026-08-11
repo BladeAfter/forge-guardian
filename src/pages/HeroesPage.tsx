@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Lock, Sparkles, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
 import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
@@ -12,7 +12,8 @@ const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
   const { tError } = useLanguage();
-  const { data, isLoading, error } = usePlayerHeroes(telegramInitData, true);
+  // Only the collection blocks this screen. PvP team and fusion state are decoration.
+  const { data, isLoading, isFetching, error, refetch } = usePlayerHeroes(telegramInitData, true);
   // PvP team info is optional decoration: its failure never blocks the collection.
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
@@ -21,10 +22,15 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
+  useEffect(() => { console.log('[HEROES] start'); }, []);
+  useEffect(() => { if (data) console.log('[HEROES] player heroes loaded', data.heroes.length); }, [data]);
+  useEffect(() => { if (error) console.error('[SCREEN ERROR]', { screen: 'heroes', step: 'player-heroes', message: error instanceof Error ? error.message : String(error) }); }, [error]);
   const heroes: PvpHero[] = data?.heroes ?? [];
   const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
   const maxStars = fusion?.config?.max_stars ?? 5;
   const fusionHero = fusion?.heroes.find((h) => h.heroId === fusingId) ?? null;
+  // A pending query with no in-flight request (offline flag / paused) must not spin forever.
+  const stalled = isLoading && !isFetching;
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
@@ -54,16 +60,22 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             <div className={`w-1/2 shrink-0 pr-1 ${tab === 'fusion' ? 'pointer-events-none' : ''}`}>
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
-          <p className="mt-1 text-sm font-black text-amber-200">{t('heroes.collectionCount', { count: heroes.length })}</p>
+          <p className="mt-1 text-sm font-black text-amber-200">{data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}</p>
           <p className="text-[10px] text-slate-400">{t('heroes.collectionHint')}</p>
         </section>
 
-        {isLoading ? (
+        {error || stalled ? (
+          <div className="py-20 text-center">
+            <p className="text-sm text-slate-300">{error ? tError(error) || t('heroes.loadError') : t('heroes.loadError')}</p>
+            <button onClick={() => void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-4 py-2 text-xs font-black uppercase tracking-[.12em] text-amber-200">
+              <RefreshCw size={13} /> {t('heroes.retry')}
+            </button>
+          </div>
+        ) : isLoading ? (
           <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loading')}</p>
-        ) : error ? (
-          <p className="py-20 text-center text-sm text-slate-300">{tError(error) || t('heroes.loadError')}</p>
         ) : heroes.length === 0 ? (
           <p className="py-20 text-center text-sm text-slate-300">{t('heroes.empty')}</p>
+
         ) : (
 
           <div className="mt-3 grid grid-cols-3 gap-2">

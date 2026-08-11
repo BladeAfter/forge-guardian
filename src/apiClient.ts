@@ -92,6 +92,26 @@ export async function fetchWithTimeout(input: string, init: RequestInit = {}, ti
   }
 }
 
+/**
+ * Same as `fetchWithTimeout`, but the deadline also covers reading the response
+ * body. A Telegram webview can hand over the response headers and then stall
+ * forever while streaming the body, which left React Query pending with no error.
+ */
+async function requestWithDeadline(input: string, init: RequestInit = {}, timeoutMs = 12_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(input, { ...init, signal: controller.signal });
+    const text = await response.text();
+    return { ok: response.ok, status: response.status, text };
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(`Tempo excedido ao contatar o backend (${timeoutMs}ms).`);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 
 export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
@@ -108,7 +128,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
 
   const endpoint = `${functionsBase}/${feature}`;
   try {
-    const response = await fetchWithTimeout(endpoint, {
+    const { ok, status, text } = await requestWithDeadline(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -118,23 +138,22 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
       },
       body: JSON.stringify(body),
     });
-    const text = await response.text();
     let payload: unknown = null;
     try {
       payload = text ? JSON.parse(text) : null;
     } catch {
       payload = null;
     }
-    if (!response.ok) {
+    if (!ok) {
       console.error('[FORGE API ERROR]', {
         feature,
         endpoint,
-        status: response.status,
+        status,
         error: (payload as { error?: string } | null)?.error ?? null,
         response: text.slice(0, 500),
       });
     }
-    return { ok: response.ok, status: response.status, json: async () => payload };
+    return { ok, status, json: async () => payload };
   } catch (error) {
     console.error('[FORGE API ERROR]', { feature, endpoint, status: 0, error, response: null });
     throw error instanceof Error ? error : new Error('Falha de rede ao contatar o backend.');
