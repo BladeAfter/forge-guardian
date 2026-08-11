@@ -15,7 +15,12 @@ type Team='attack'|'defense';type View='teams'|'history'|'ranking';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24'};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
- const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false);
+ const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false);
+ useEffect(()=>{console.log('[PVP] start')},[]);
+ useEffect(()=>{if(data)console.log('[PVP] profile + teams loaded',{attack:data.attackTeam.length,defense:data.defenseTeam.length,tickets:data.tickets})},[data]);
+ useEffect(()=>{if(error)console.error('[SCREEN ERROR]',{screen:'pvp',step:'dashboard',message:error instanceof Error?error.message:String(error)})},[error]);
+ // A pending query with nothing in flight (offline flag / paused) must offer a retry, never spin.
+ const stalled=isLoading&&!isFetching;
  const opponents=useQuery({queryKey:['pvp-opponents',telegramInitData],queryFn:async()=>[]as PvpOpponent[],enabled:false,initialData:[]});
  const refresh=()=>Promise.all([q.invalidateQueries({queryKey:['pvp-dashboard',telegramInitData]}),q.invalidateQueries({queryKey:['player-heroes']}),q.invalidateQueries({queryKey:['community-pool']}),q.invalidateQueries({queryKey:['wallet-balance']}),q.invalidateQueries({queryKey:['game-state',telegramInitData]}),q.invalidateQueries({queryKey:['daily-quests']}),q.invalidateQueries({queryKey:['season-pass']})]);
  const search=useMutation({mutationFn:()=>searchPvpOpponents(telegramInitData),onSuccess:r=>{q.setQueryData(['pvp-opponents',telegramInitData],r.opponents);setChosen(null);if(!r.opponents.length)toast.error(t('pvp.noOpponentsFound'))},onError:e=>toast.error(tError(e))});
