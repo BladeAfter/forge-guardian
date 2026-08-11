@@ -1536,7 +1536,7 @@ const PROMPTS: Record<string, string> = {
   bossspawn: 'Envie o <code>code</code> do chefe para ativar (ex.: <code>golem_ancestral</code>).',
   bosshpval: 'Envie: <code>code hp</code> — ex.: <code>golem_ancestral 50000</code>',
   bossdur: 'Envie: <code>code horas</code> — ex.: <code>golem_ancestral 24</code>',
-  bossreward: 'Envie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>',
+  bossreward: '⚙️ <b>CHANGE DEFAULT REWARD</b> (próximos ciclos)\nEnvie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>\n\nIsto <b>não</b> altera o ciclo ativo. Para o ciclo atual use <b>✏️ CHANGE CURRENT REWARD</b>.',
   ads: 'Envie: <code>code {json}</code> — ex.: <code>adsgram {"enabled":true,"daily_limit":15,"reward_fc":800}</code>',
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward: 'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
@@ -1586,7 +1586,8 @@ async function bossPanel(ctx: Ctx, editing = true) {
     ].join('\n'), kb([
       [{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }],
       [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }],
-      [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }, { t: '🎁 RECOMPENSA', d: 'ask:bossreward' }],
+      [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }],
+      [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
       [{ t: '⏱ DURAÇÃO', d: 'ask:bossdur' }],
       nav(),
     ]));
@@ -1597,7 +1598,8 @@ async function bossPanel(ctx: Ctx, editing = true) {
     `Boss: <b>${esc(cycle.name)}</b> · ciclo #${cycle.cycleNumber ?? 1}`,
     `Status: ${cycle.status === 'active' ? '🟢 ACTIVE' : `⚪ ${esc(String(cycle.status || '').toUpperCase())}`}`,
     `HP: <b>${fmt(Math.round(Number(cycle.currentHp ?? 0)))}</b> / ${fmt(cycle.maxHp)}`,
-    `🎁 Prêmio: <b>${fmt(cycle.rewardPoolFc)} FC</b>${cycle.distributedAt ? ' (distribuído)' : ''}`,
+    `🎁 <b>CURRENT REWARD:</b> <b>${fmt(cycle.rewardPoolFc)} FC</b>${cycle.distributedAt ? ' (distribuído)' : ''}`,
+    `⚙️ Prêmio padrão do boss: ${template ? `${fmt(template.reward)} FC` : '—'}`,
     `👥 Participantes: ${fmt(cycle.participants ?? 0)} · Dano total: ${fmt(Math.round(Number(cycle.totalDamage ?? 0)))}`,
     `Dano mínimo: ${Number(cycle.minimumDamagePercent ?? 0)}% · bônus de pódio: ${cycle.rankBonusEnabled ? 'ON' : 'off'}`,
     `Início: ${when(cycle.startsAt)}\nFim: ${when(cycle.endsAt)}`,
@@ -1609,7 +1611,9 @@ async function bossPanel(ctx: Ctx, editing = true) {
 
   return (editing ? edit : send)(ctx, text, kb([
     [{ t: '🏆 VER RANKING', d: 'boss:rank' }, { t: '🔴 ENCERRAR', d: 'confirm:bossend' }],
-    [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }, { t: '🎁 RECOMPENSA', d: 'ask:bossreward' }],
+    [{ t: '✏️ CHANGE CURRENT REWARD', d: 'boss:curreward' }],
+    [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
+    [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
     [{ t: '⏱ DURAÇÃO', d: 'ask:bossdur' }, { t: '👹 TROCAR BOSS', d: 'ask:bossspawn' }],
     [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }, { t: '🔄 ATUALIZAR', d: 'm:boss' }],
     nav(),
@@ -1727,6 +1731,37 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
+  // Explicit flow: the prize of the ACTIVE cycle only (never the template, never a new cycle).
+  if (head === 'boss' && rest[0] === 'curreward') {
+    const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
+    const cyc = d?.cycle ?? null;
+    if (!cyc || cyc.status !== 'active') return send(ctx, '⚠️ Nenhum ciclo ativo do Global Boss.', kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    return ask(ctx, 'bosscurreward', [
+      '✏️ <b>CHANGE CURRENT REWARD</b>',
+      `Current cycle: <b>#${cyc.cycleNumber}</b> · ${esc(cyc.name)}`,
+      `Current reward: <b>${fmt(cyc.rewardPoolFc)} FC</b>`,
+      '',
+      'Enter new reward in FC:',
+    ].join('\n'));
+  }
+  if (head === 'gbrw') {
+    await clearSession(ctx);
+    const amount = parseAmount(rest[0] || '');
+    if (!Number.isFinite(amount) || amount < 0) return send(ctx, '⚠️ Valor inválido.', MAIN_MENU);
+    const r = await rpc('admin_set_global_boss_reward', {
+      p_admin_id: ctx.adminId, p_scope: 'cycle', p_value: amount, p_code: null,
+      p_reason: 'current cycle reward change (admin bot)',
+    }) as any;
+    return send(ctx, [
+      '✅ <b>SUCCESS</b>',
+      'Global Boss reward updated.',
+      `Cycle: <b>#${r.cycleNumber}</b> · ${esc(r.bossName)}`,
+      `Before: ${fmt(r.oldReward)} FC`,
+      `New reward: <b>${fmt(r.newReward)} FC</b>`,
+      '',
+      `HP, dano, participantes e ranking preservados (${fmt(Math.round(Number(r.currentHp || 0)))}/${fmt(r.maxHp)} HP · ${fmt(r.participants)} jogadores).`,
+    ].join('\n'), kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+  }
   if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
   if (head === 'balgo') {
     await clearSession(ctx);
@@ -2324,8 +2359,30 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     }
     case 'bossreward': {
       const [code, reward] = text.trim().split(/\s+/);
-      await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'set_reward', p_code: code, p_reason: `recompensa ${reward} FC`, p_value: Number(reward) });
-      return send(ctx, `🎁 Recompensa de <b>${esc(code)}</b> definida para ${fmt(Number(reward))} FC.`, kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+      const amount = parseAmount(reward || '');
+      if (!Number.isFinite(amount) || amount < 0) return send(ctx, '⚠️ Valor inválido. Ex.: <code>golem_ancestral 9000</code>', kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+      const r = await rpc('admin_set_global_boss_reward', { p_admin_id: ctx.adminId, p_scope: 'default', p_value: amount, p_code: code, p_reason: `default reward ${amount} FC` }) as any;
+      return send(ctx, [
+        '⚙️ <b>DEFAULT REWARD ATUALIZADO</b> (próximos ciclos)',
+        `Boss: <b>${esc(r.bossName)}</b> (<code>${esc(r.bossKey)}</code>)`,
+        `Antes: ${fmt(r.oldReward)} FC → Agora: <b>${fmt(r.newReward)} FC</b>`,
+        r.activeCycleNumber ? `\n⚠️ O ciclo ativo <b>#${r.activeCycleNumber}</b> continua com <b>${fmt(r.activeCycleReward)} FC</b>. Use ✏️ CHANGE CURRENT REWARD para alterá-lo.` : '',
+      ].join('\n'), kb([[{ t: '✏️ CHANGE CURRENT REWARD', d: 'boss:curreward' }], [{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+    }
+    case 'bosscurreward': {
+      const amount = parseAmount(text);
+      if (!Number.isFinite(amount) || amount < 0) return send(ctx, '⚠️ Valor inválido. Envie apenas números, ex.: <code>100000</code>', kb([[{ t: '✏️ TENTAR NOVAMENTE', d: 'boss:curreward' }], nav('m:boss')]));
+      const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
+      const cyc = d?.cycle ?? null;
+      if (!cyc || cyc.status !== 'active') return send(ctx, '⚠️ Nenhum ciclo ativo do Global Boss.', kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+      return send(ctx, [
+        '⚠️ <b>Change Global Boss reward?</b>',
+        `Cycle: <b>#${cyc.cycleNumber}</b> · ${esc(cyc.name)}`,
+        `Before: <b>${fmt(cyc.rewardPoolFc)} FC</b>`,
+        `After: <b>${fmt(amount)} FC</b>`,
+        '',
+        'Somente o prêmio do ciclo será alterado (HP, ranking, participantes e tempo permanecem).',
+      ].join('\n'), kb([[{ t: '✅ CONFIRM', d: `gbrw:${amount}` }, { t: '❌ CANCEL', d: 'm:boss' }]]));
     }
     case 'ads': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_ad_provider', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Provedor ${esc(r.name)} ${r.enabled ? 'ativo' : 'inativo'} — ${fmt(r.reward_fc)} FC`, MAIN_MENU); }
     case 'setting': { const i = text.indexOf(' '); const k = i < 0 ? text : text.slice(0, i); const v = i < 0 ? '' : text.slice(i + 1); const r = await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ <code>${esc(k)}</code>\n${esc(JSON.stringify(r.old_value))} → <b>${esc(JSON.stringify(r.new_value))}</b>`, MAIN_MENU); }
