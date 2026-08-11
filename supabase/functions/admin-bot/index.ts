@@ -216,7 +216,7 @@ async function passCard(ctx: Ctx, ref: string) {
     '',
     `Current Pass: <b>${esc(PASS_LABEL[p.tier] ?? p.tier)}</b>`,
     `Season: <b>${esc(p.season_name)}</b>`,
-    `Nível: <b>${p.level}</b>/${p.levels} · XP ${fmt(p.xp)}`,
+    `Nível: <b>${p.level}</b>/${p.levels} · XP <b>${fmt(p.xp_into_level ?? 0)}</b>/${fmt(p.xp_per_level)} (total ${fmt(p.xp)})`,
     `Recompensas coletadas: ${fmt(p.claimed)} · compras TON: ${fmt(p.paid_orders)}`,
   ].join('\n');
   const u = p.telegram_id;
@@ -224,6 +224,8 @@ async function passCard(ctx: Ctx, ref: string) {
     [{ t: '🎟 ACTIVATE ADVENTURER', d: `bp:adventurer:${u}` }],
     [{ t: '👑 ACTIVATE LEGENDARY', d: `bp:legendary:${u}` }],
     [{ t: '❌ REMOVE PASS', d: `bp:none:${u}` }],
+    [{ t: '➕ ADD XP', d: `passxp:add:${u}` }, { t: '➖ REMOVE XP', d: `passxp:remove:${u}` }],
+    [{ t: '🎚 SET LEVEL', d: `passxp:level:${u}` }],
     [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
     [{ t: '👤 VER JOGADOR', d: `find:${u}` }],
     nav('m:pass'),
@@ -444,6 +446,7 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, `🎟 <b>PASSE</b>\n${esc(s.name)} · ${String(s.start_at).slice(0, 10)} → ${String(s.end_at).slice(0, 10)}\nNíveis ${s.levels} · XP/nível ${s.xp_per_level}\nAventureiro ${s.adventurer_price_ton} TON (${fmt(d.owners.adventurer)} donos) · Lendário ${s.legendary_price_ton} TON (${fmt(d.owners.legendary)} donos)\nRecompensas cadastradas: ${d.rewards.length}`,
         kb([[{ t: '🔎 SELECIONAR USUÁRIO', d: 'ask:passuser' }],
             [{ t: '📜 PASS HISTORY', d: 'bphist:1' }],
+            [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
     }
     case 'pool': {
@@ -1092,6 +1095,15 @@ async function handleCallback(ctx: Ctx, data: string) {
       return send(ctx, `🏅 <b>LIGAS</b>\n${d.leagues.map((l: any) => `• <code>${esc(l.code)}</code> ${esc(l.icon)} ${esc(l.name)} — ${l.min_trophies}–${l.max_trophies ?? '∞'} ${l.enabled ? '✅' : '⛔'}`).join('\n')}`,
         kb([[{ t: '✏️ EDITAR LIGA', d: 'ask:league' }], nav('m:pvp')]));
     }
+    if (rest[0] === 'passxp') {
+      const d = await rpc('admin_pass_overview', { p_admin_id: ctx.adminId });
+      const { data: row } = await db.from('game_settings').select('value').eq('key', 'season_pass_xp').maybeSingle();
+      const cfg = (row?.value ?? {}) as Record<string, number>;
+      const labels: Record<string, string> = { daily_quest: 'Missão diária concluída', daily_quest_all: 'Bônus 5/5 missões', daily_chest: 'Baú diário das missões', pvp_battle: 'Batalha PvP', pvp_victory: 'Vitória PvP', boss_defeated: 'Chefe derrotado', boss_attack: 'Participação no chefe', reward_open: 'Abrir baú/ovo', pet_feed: 'Alimentar pet', calendar_claim: 'Resgate do calendário' };
+      const lines = Object.keys(labels).map((k) => `• ${labels[k]} (<code>${k}</code>): <b>${fmt(Number(cfg[k] ?? 0))} XP</b>`).join('\n');
+      return send(ctx, `⚡ <b>XP SETTINGS</b>\nXP por nível: <b>${fmt(d.season?.xp_per_level ?? 0)}</b> · Níveis: <b>${fmt(d.season?.levels ?? 0)}</b>\n\n${lines}\n\nTodos os jogadores ganham XP, com ou sem passe pago.`,
+        kb([[{ t: '✏️ EDITAR XP DE AÇÃO', d: 'ask:passxp' }], [{ t: '🎚 XP POR NÍVEL', d: 'ask:passxplevel' }], nav('m:pass')]));
+    }
     if (rest[0] === 'pvptickets') {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 1 });
       const packs = Object.entries(d.settings.packs || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
@@ -1100,6 +1112,11 @@ async function handleCallback(ctx: Ctx, data: string) {
             [{ t: '💰 PREÇO DO PACOTE', d: 'ask:tkpack' }], nav('m:pvp')]));
     }
 
+  }
+  if (head === 'passxp') {
+    const [mode, user] = rest;
+    if (mode === 'level') return ask(ctx, `passlevel|${user}`, 'Envie o <b>nível</b> desejado do Battle Pass (ex.: <code>8</code>).');
+    return ask(ctx, `passxpadj|${mode}|${user}`, `Envie a quantidade de <b>XP</b> para ${mode === 'remove' ? 'remover' : 'adicionar'} (ex.: <code>500</code>).`);
   }
   if (head === 'maint') {
     await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'maintenance_mode', p_value: rest[0] === 'on', p_reason: 'painel admin' });
@@ -1408,6 +1425,36 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'poolset': { const [k, v] = text.split(/\s+/); await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pool_' + k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ Configuração da pool <code>${esc(k)}</code> = ${esc(v)}`, MAIN_MENU); }
     case 'poolrate': { const pct = Number(text.replace(',', '.').replace(/[^\d.]/g, '')); if (!Number.isFinite(pct) || pct < 0 || pct > 100) return send(ctx, '⚠️ Informe um percentual entre 0 e 100.', MAIN_MENU); const r = await rpc('admin_set_pool_contribution_percent', { p_admin_id: ctx.adminId, p_percent: pct }); return send(ctx, `✅ Taxa da Community Pool agora é <b>${r}%</b> de toda receita TON confirmada.`, MAIN_MENU); }
 
+    case 'passxpadj': {
+      const [mode, user] = args;
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número maior que 0 (ex.: <code>500</code>).');
+      const r = await rpc('admin_adjust_pass_xp', { p_admin_id: ctx.adminId, p_ref: user, p_delta: mode === 'remove' ? -Math.round(value) : Math.round(value), p_reason: 'ajuste manual de XP do passe' });
+      return send(ctx, `✅ XP do passe atualizado.\nTotal: <b>${fmt(r.xp)}</b> · Nível <b>${r.level}</b>/${r.levels}`, kb([[{ t: '🎟 VER PASSE', d: `bpview:${user}` }], nav('m:pass')]));
+    }
+    case 'passlevel': {
+      const [user] = args;
+      const lvl = Math.round(parseAmount(text));
+      if (!Number.isFinite(lvl) || lvl < 1) throw new Error('KEEP_SESSION::⚠️ Envie um nível válido (ex.: <code>8</code>).');
+      const r = await rpc('admin_set_pass_level', { p_admin_id: ctx.adminId, p_ref: user, p_level: lvl, p_reason: 'nível do passe definido pelo painel' });
+      return send(ctx, `✅ Nível definido.\nNível <b>${r.level}</b>/${r.levels} · XP total ${fmt(r.xp)}`, kb([[{ t: '🎟 VER PASSE', d: `bpview:${user}` }], nav('m:pass')]));
+    }
+    case 'passxp': {
+      const [k, v] = text.split(/\s+/);
+      const value = Math.round(parseAmount(v ?? ''));
+      if (!k || !Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>chave valor</code> (ex.: <code>pvp_battle 50</code>).');
+      const r = await rpc('admin_set_pass_xp_settings', { p_admin_id: ctx.adminId, p_patch: { [k]: value }, p_reason: 'painel admin' });
+      return send(ctx, `✅ <code>${esc(k)}</code> = <b>${fmt(value)} XP</b>\n<code>${esc(JSON.stringify(r))}</code>`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
+    case 'passxplevel': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 1) throw new Error('KEEP_SESSION::⚠️ Envie um número maior que 0 (ex.: <code>1000</code>).');
+      const { data: season } = await db.from('season_pass_seasons').select('*').eq('active', true).order('start_at', { ascending: false }).limit(1).maybeSingle();
+      if (!season) return send(ctx, '⚠️ Nenhuma temporada ativa.', MAIN_MENU);
+      await rpc('admin_update_season_pass', { p_season_id: season.id, p_name: season.name, p_start_at: season.start_at, p_end_at: season.end_at, p_levels: season.levels, p_xp_per_level: value, p_adventurer_price: season.adventurer_price_ton, p_legendary_price: season.legendary_price_ton, p_active: season.active });
+      await rpc('admin_bump_settings_version', {});
+      return send(ctx, `✅ XP por nível agora é <b>${fmt(value)}</b>.`, kb([[{ t: '⚡ XP SETTINGS', d: 'view:passxp' }], nav('m:pass')]));
+    }
     case 'pass': {
       const patch = JSON.parse(text);
       const { data: season } = await db.from('season_pass_seasons').select('*').eq('active', true).order('start_at', { ascending: false }).limit(1).maybeSingle();
