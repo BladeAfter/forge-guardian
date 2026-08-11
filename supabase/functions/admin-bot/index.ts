@@ -2087,6 +2087,38 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: true }));
     }
 
+    // Hero wizard: the persisted step decides how the next message (text OR photo) is interpreted.
+    // Menu commands are never triggered while a wizard step is waiting for an answer.
+    const wiz = await getSession(ctx);
+    if (wiz?.action === 'herowiz') {
+      const wizText = String(update.message?.text || '').trim();
+      const wizCmd = wizText.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+      if (!['/start', '/menu', '/admin', '/cancel'].includes(wizCmd)) {
+        const photos = update.message?.photo as { file_id: string }[] | undefined;
+        const doc = update.message?.document as { file_id: string; mime_type?: string } | undefined;
+        const draft = wiz.context as Record<string, unknown>;
+        try {
+          if (photos?.length) {
+            await heroWizardPhoto(ctx, wiz.step, draft as never, String(photos[photos.length - 1].file_id));
+          } else if (doc?.mime_type?.startsWith('image/')) {
+            await heroWizardPhoto(ctx, wiz.step, draft as never, String(doc.file_id));
+          } else if (wizText) {
+            await heroWizardText(ctx, wiz.step, draft as never, wizText);
+          } else {
+            await send(ctx, '⚠️ Envie um texto ou uma foto para continuar.', kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+          }
+        } catch (err) {
+          const raw = err instanceof Error ? err.message : String(err);
+          console.error('hero wizard error:', raw);
+          await send(ctx, `⚠️ Falha no assistente: <code>${esc(raw).slice(0, 300)}</code>`,
+            kb([[{ t: '🦸 HERO MANAGEMENT', d: 'm:heroes' }], nav()]));
+        }
+        return new Response(JSON.stringify({ ok: true }));
+      }
+      await clearSession(ctx);
+    }
+
+
     // Forwarded message from a channel/group: only informational (channel rewards no longer use chat ids).
     const forwarded = update.message?.forward_from_chat ?? update.message?.forward_origin?.chat;
     if (forwarded?.id) {
