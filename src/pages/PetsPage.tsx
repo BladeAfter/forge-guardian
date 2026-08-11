@@ -172,7 +172,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
-              <EvolveButton pet={active} balance={data.balance} pending={pending} onEvolve={() => evolve(active)} />
+              <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
               {t('pets.feedHintPre')} <b className="text-amber-200">{t('pets.levelWord')}</b>{t('pets.feedHintMid')} <b className="text-violet-200">{t('pets.evolutionWord')}</b>{t('pets.feedHintPost')}
