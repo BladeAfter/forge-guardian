@@ -1482,6 +1482,67 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hw') return heroWizardCallback(ctx, rest);
   if (head === 'ask') { const k = rest[0]; return ask(ctx, k, PROMPTS[k] || 'Envie o valor.'); }
 
+  // ---- global boss + user management (button driven, no JSON typing)
+  if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
+  if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
+  if (head === 'uh') { await clearSession(ctx); return userHeroesMenu(ctx, rest[0], Number(rest[1] || 0) || 0); }
+  if (head === 'uhadd') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0]); }
+  if (head === 'uhr') { await clearSession(ctx); return heroCatalogPicker(ctx, rest[0], rest[1]); }
+  if (head === 'uhc') {
+    const [tg, heroKey] = rest;
+    return edit(ctx, `➕ <b>ADD HERO</b>\nConceder <code>${esc(heroKey)}</code> ao jogador <code>${esc(tg)}</code>?`,
+      kb([[{ t: '✅ CONFIRMAR', d: `uhok:${tg}:${heroKey}` }, { t: '❌ CANCELAR', d: `uh:${tg}:0` }]]));
+  }
+  if (head === 'uhok') {
+    const [tg, heroKey] = rest;
+    const r = await rpc('admin_grant_hero', { p_admin_id: ctx.adminId, p_ref: tg, p_hero_key: heroKey, p_level: 1, p_reason: 'concedido pelo painel' }) as any;
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: herói <b>${esc(r.name)}</b> concedido\nInstância: <code>${esc(r.hero_id)}</code>`);
+    return userHeroesMenu({ ...ctx, messageId: undefined }, tg, 0);
+  }
+  if (head === 'uhd') {
+    const [tg, heroId] = rest;
+    const d = await rpc('admin_player_heroes', { p_admin_id: ctx.adminId, p_ref: tg, p_rarity: null, p_limit: 30, p_offset: 0 }) as any;
+    const hero = arr<any>(d?.heroes).find((h) => h.id === heroId);
+    if (!hero) return userHeroesMenu(ctx, tg, 0);
+    const warn = hero.in_pvp || hero.in_boss ? '\n\n⚠️ Este herói está equipado' + (hero.in_pvp ? ' no PvP' : '') + (hero.in_boss ? ' no Boss' : '') + '. Ele será desequipado automaticamente.' : '';
+    return edit(ctx, `🗑 <b>REMOVER HERÓI</b>\n\nHerói: <b>${esc(hero.name)}</b>\nRaridade: ${esc(hero.rarity)}\nNível: ${hero.level} · ⭐${hero.fusion_level}${warn}\n\nO histórico (baús/fusões) é preservado.`,
+      kb([[{ t: '✅ REMOVER', d: `uhdok:${tg}:${heroId}` }, { t: '❌ CANCELAR', d: `uh:${tg}:0` }]]));
+  }
+  if (head === 'uhdok') {
+    const [tg, heroId] = rest;
+    const r = await rpc('admin_remove_player_hero', { p_admin_id: ctx.adminId, p_hero_id: heroId, p_reason: 'removido pelo painel' }) as any;
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: herói <b>${esc(r.name)}</b> removido`);
+    return userHeroesMenu({ ...ctx, messageId: undefined }, tg, 0);
+  }
+  if (head === 'ui') { await clearSession(ctx); return userItemsMenu(ctx, rest[0]); }
+  if (head === 'uia') { await clearSession(ctx); return itemPicker(ctx, rest[0], 'a'); }
+  if (head === 'uir') { await clearSession(ctx); return itemPicker(ctx, rest[0], 'r'); }
+  if (head === 'uiq') {
+    const [tg, mode, ...keyParts] = rest;
+    const key = keyParts.join(':');
+    return ask(ctx, `itemqty|${tg}|${mode}|${key}`, `Envie a <b>quantidade</b> para ${mode === 'a' ? 'adicionar' : 'remover'} de <code>${esc(key)}</code>.`);
+  }
+  if (head === 'up') { await clearSession(ctx); return userPetsMenu(ctx, rest[0]); }
+  if (head === 'upa') {
+    const [tg, petId] = rest;
+    await rpc('admin_set_player_active_pet', { p_admin_id: ctx.adminId, p_player_pet_id: petId, p_reason: 'painel admin' });
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: pet definido como ativo`);
+    return userPetsMenu({ ...ctx, messageId: undefined }, tg);
+  }
+  if (head === 'upd') {
+    const [tg, petId] = rest;
+    return edit(ctx, `🗑 <b>REMOVER PET</b>\nJogador <code>${esc(tg)}</code>\nPet <code>${esc(petId)}</code>\n\nO histórico de evoluções é preservado.`,
+      kb([[{ t: '✅ REMOVER', d: `updok:${tg}:${petId}` }, { t: '❌ CANCELAR', d: `up:${tg}` }]]));
+  }
+  if (head === 'updok') {
+    const [tg, petId] = rest;
+    await rpc('admin_remove_pet', { p_admin_id: ctx.adminId, p_player_pet_id: petId, p_reason: 'removido pelo painel' });
+    await send(ctx, `✅ <b>SUCESSO</b>\n\nJogador: <code>${esc(tg)}</code>\nAção: pet removido`);
+    return userPetsMenu({ ...ctx, messageId: undefined }, tg);
+  }
+
+
+
   if (head === 'passlvtoggle') {
     await clearSession(ctx);
     const enabled = rest[0] === 'on';
