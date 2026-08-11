@@ -2793,6 +2793,51 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 
   switch (key) {
+    // ---- 🛒 marketplace prompts (every rule is enforced inside the RPCs)
+    case 'mksearch': {
+      const rows = await rpc('admin_market_search', { p_admin_id: ctx.adminId, p_query: text.slice(0, 60), p_limit: 15 }) as any[];
+      return send(ctx, `🔍 <b>BUSCA NO MERCADO</b>\n${(rows || []).map(mkLine).join('\n').slice(0, 3500) || 'Nenhum anúncio encontrado.'}`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkuser': {
+      const d = await rpc('admin_market_user_listings', { p_admin_id: ctx.adminId, p_ref: text, p_limit: 20 }) as any;
+      const who = d.player?.username ? '@' + d.player.username : (d.player?.name || d.player?.telegram_id || '—');
+      return send(ctx, `👤 <b>ANÚNCIOS DE ${esc(who)}</b>\n${(d.listings || []).map(mkLine).join('\n').slice(0, 3400) || 'Nenhum anúncio.'}`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkfee': {
+      const value = parseAmount(text.replace('%', ''));
+      if (!Number.isFinite(value) || value < 0 || value > 50) throw new Error('KEEP_SESSION::⚠️ Envie uma taxa entre 0 e 50 (ex.: <code>5</code>).');
+      const s = await rpc('admin_market_set_fee', { p_admin_id: ctx.adminId, p_percent: value }) as any;
+      return send(ctx, `✅ Taxa do mercado agora é <b>${Number(s.feePercent)}%</b>.\nA taxa é queimada da economia FC (não vai para a pool TON).`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mklimit': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 1 || value > 200) throw new Error('KEEP_SESSION::⚠️ Envie um limite entre 1 e 200.');
+      const s = await rpc('admin_market_set_limit', { p_admin_id: ctx.adminId, p_max_active: value }) as any;
+      return send(ctx, `✅ Limite atualizado: <b>${fmt(s.maxActiveListings)}</b> anúncios ativos por jogador.`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkmin': {
+      const [kind, raw] = text.split(/\s+/);
+      const value = Math.round(parseAmount(raw ?? ''));
+      if (!['hero', 'pet', 'item'].includes(String(kind).toLowerCase()) || !Number.isFinite(value) || value < 0) {
+        throw new Error('KEEP_SESSION::⚠️ Envie: <code>hero|pet|item valor_fc</code> — ex.: <code>hero 10000</code>');
+      }
+      const s = await rpc('admin_market_set_min_price', { p_admin_id: ctx.adminId, p_item_type: String(kind).toLowerCase(), p_value: value }) as any;
+      const min = s.minPrice || {};
+      return send(ctx, `✅ Preço mínimo atualizado.\nHerói ${fmt(min.hero ?? 0)} FC · Pet ${fmt(min.pet ?? 0)} FC · Item ${fmt(min.item ?? 0)} FC`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+    case 'mkcancel': {
+      const id = text.trim();
+      if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error('KEEP_SESSION::⚠️ Envie o ID completo do anúncio (UUID).');
+      await rpc('admin_market_cancel_listing', { p_admin_id: ctx.adminId, p_listing_id: id, p_reason: 'cancelado pelo admin (bot)' });
+      return send(ctx, '✅ Anúncio cancelado. O item voltou ao inventário do vendedor e o bloqueio de mercado foi removido.',
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
+
     case 'find': return playerSearch(ctx, text, 0);
     case 'passuser': return passCard(ctx, text);
     case 'tree': return handleCallback(ctx, `tree:${text}`);
