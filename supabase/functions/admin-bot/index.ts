@@ -1871,6 +1871,8 @@ const PROMPTS: Record<string, string> = {
   wdfee: 'Envie a nova <b>WITHDRAWAL FEE</b> em % (0 a 50). Ex.: <code>10</code>. Vale só para saques criados depois da alteração.',
   auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
+  prsearch: '🔎 Pesquise o pagamento por <b>Telegram ID</b>, <b>@usuário</b>, nome, <b>ID do pedido</b> (prefixo aceito) ou <b>hash da transação</b>.',
+
 };
 
 // ---------------------------------------------------------------- global boss panel
