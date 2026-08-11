@@ -68,7 +68,7 @@ Deno.serve(async req => {
       .limit(200);
     if (pending.error) throw new Error(pending.error.message);
     const deposits = pending.data ?? [];
-    if (!deposits.length) return json({ checked: 0, credited: [], pending: [] });
+    
 
     const transactions = await fetchIncoming(hotWallet);
     const used = new Set<string>();
