@@ -495,7 +495,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                   {mine.isLoading ? <p className="text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
                   {mine.isError ? (
                     <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-center">
-                      <p className="text-[11px] text-rose-200">{mine.error instanceof Error ? mine.error.message : t('market.loadError')}</p>
+                      <p className="text-[11px] text-rose-200">{t('market.loadError')}</p>
                       <button onClick={() => void mine.refetch()} className="mt-2 rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black text-amber-200">{t('market.retry')}</button>
                     </div>
                   ) : null}
