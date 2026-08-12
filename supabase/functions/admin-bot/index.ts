@@ -2705,6 +2705,24 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'mk') {
     const [sub, arg] = String(rest[0] || '').split('|');
     if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'toggle') {
+      const on = arg === 'on';
+      return edit(ctx, on
+        ? '⚠️ <b>ATIVAR MARKETPLACE?</b>\n\nTodos os jogadores voltarão a acessar o mercado imediatamente.'
+        : '⚠️ <b>DESATIVAR MARKETPLACE?</b>\n\nJogadores comuns não poderão acessar o mercado.\nO Admin de testes continuará com acesso.',
+        kb([
+          [{ t: '✅ CONFIRMAR', d: `mk:doToggle|${on ? 'on' : 'off'}` }],
+          [{ t: '❌ CANCELAR', d: 'm:market' }],
+        ]));
+    }
+    if (sub === 'doToggle') {
+      const on = arg === 'on';
+      const st = await rpc('admin_market_set_enabled', { p_admin_id: ctx.adminId, p_enabled: on }) as any;
+      return edit(ctx, on
+        ? '✅ <b>Marketplace ativado para todos os jogadores.</b>'
+        : `✅ <b>Marketplace desativado.</b>\n\nModo manutenção ativo para jogadores.\nAdmin bypass: <b>${fmt(st?.bypassCount ?? 1)}</b> user(s)`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
     if (sub === 'list') return marketHub(ctx, arg || 'active');
     return marketHub(ctx);
   }
