@@ -9,7 +9,7 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
-import { useGlobalBossHistory, useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
+import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
 
