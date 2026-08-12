@@ -215,7 +215,44 @@ Deno.serve(async req => {
       console.log('[EGG DELIVER]', JSON.stringify({ orderId: order.order_id, product: order.product_id, txHash }));
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered });
+    // Player Market: external TON purchases. Each intent has its own unique comment and a
+    // reserved listing; a tx hash can only ever pay for one intent (enforced in the database).
+    const marketPaid: string[] = [];
+    await db.rpc('market_expire_payment_intents');
+    const intents = await db.rpc('market_pending_payment_intents', { p_max_age_minutes: 120 });
+    if (intents.error) console.error('[MARKET RECONCILE]', intents.error.message);
+    for (const intent of (intents.data ?? []) as any[]) {
+      const comment = String(intent.payment_comment || '').trim();
+      if (!comment) continue;
+      const expectedNano = BigInt(String(Math.round(Number(intent.amount_nano))));
+      const minNano = (expectedNano * 97n) / 100n;
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || msgComment(inMsg) !== comment) return false;
+        const hash = txHashOf(tx);
+        if (!hash || used.has(hash)) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= minNano;
+      });
+      if (!match) continue;
+      const txHash = txHashOf(match);
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      const { error } = await db.rpc('market_confirm_payment_intent', {
+        p_payment_id: intent.payment_id,
+        p_tx_hash: txHash,
+        p_amount_nano: receivedNano,
+      });
+      if (error) {
+        console.error('[MARKET PAYMENT]', JSON.stringify({ paymentId: intent.payment_id, reason: error.message }));
+        if (String(error.message).includes('TX_ALREADY_USED')) used.add(txHash);
+        continue;
+      }
+      used.add(txHash);
+      marketPaid.push(String(intent.payment_id));
+      console.log('[MARKET PAYMENT]', JSON.stringify({ paymentId: intent.payment_id, listingId: intent.listing_id, txHash }));
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered, marketPaid });
+
 
   } catch (error) {
     console.error('[FORGE ERROR] ton-reconcile', error);

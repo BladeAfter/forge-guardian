@@ -916,9 +916,10 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
-   * Player market (FC only). Eligibility, marketplace fee, market locks and the
+   * Player market (FC or TON). Eligibility, fees, market locks, reservations and the
    * atomic purchase all live inside the RPCs — the client can only ask.
-   * There is no TON path here on purpose.
+   * TON purchases first use the internal available TON balance; an external wallet
+   * payment always goes through a payment intent that reserves the listing.
    */
   market: async (db, user, body) => {
     const action = String(body.action || 'browse');
@@ -937,6 +938,9 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       const itemType = ['all', 'hero', 'pet', 'item'].includes(String(body.itemType)) ? String(body.itemType) : 'all';
       const rarity = /^[a-z]{3,20}$/.test(String(body.rarity || '')) ? String(body.rarity) : 'all';
       const sort = ['newest', 'price_low', 'price_high'].includes(String(body.sort)) ? String(body.sort) : 'newest';
+      const currency = ['FC', 'TON'].includes(String(body.currency || '').toUpperCase())
+        ? String(body.currency).toUpperCase()
+        : 'all';
       return rpc(db, 'market_browse', {
         p_telegram_id: user.id,
         p_item_type: itemType,
@@ -944,6 +948,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
         p_sort: sort,
         p_limit: Math.min(100, Math.max(1, Number(body.limit) || 60)),
         p_offset: Math.max(0, Number(body.offset) || 0),
+        p_currency: currency,
       });
     }
     if (action === 'sellable') return rpc(db, 'market_get_sellable', { p_telegram_id: user.id });
@@ -951,8 +956,16 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'create') {
       const itemType = String(body.itemType || '');
       if (!['hero', 'pet', 'item'].includes(itemType)) throw new Error('INVALID_ITEM_TYPE');
-      const price = Number(body.priceFc);
-      if (!Number.isInteger(price) || price <= 0) throw new Error('INVALID_PRICE');
+      const currency = String(body.currency || 'FC').toUpperCase() === 'TON' ? 'TON' : 'FC';
+      let priceFc: number | null = null;
+      let priceTon: number | null = null;
+      if (currency === 'TON') {
+        priceTon = Math.round(Number(body.priceTon) * 1000) / 1000;
+        if (!Number.isFinite(priceTon) || priceTon <= 0) throw new Error('INVALID_PRICE');
+      } else {
+        priceFc = Number(body.priceFc);
+        if (!Number.isInteger(priceFc) || priceFc <= 0) throw new Error('INVALID_PRICE');
+      }
       if (itemType === 'item') {
         if (!/^[a-z0-9_]{2,60}$/.test(String(body.itemCode || ''))) throw new Error('INVALID_ITEM');
       } else if (!isUuid(body.itemInstanceId)) throw new Error('INVALID_ITEM');
@@ -961,7 +974,9 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
         p_item_type: itemType,
         p_item_instance_id: itemType === 'item' ? null : body.itemInstanceId,
         p_item_code: itemType === 'item' ? String(body.itemCode) : null,
-        p_price_fc: price,
+        p_price_fc: priceFc,
+        p_currency: currency,
+        p_price_ton: priceTon,
       });
     }
     if (action === 'cancel') {
@@ -972,8 +987,28 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!isUuid(body.listingId)) throw new Error('INVALID_LISTING');
       return rpc(db, 'market_buy_listing', { p_telegram_id: user.id, p_listing_id: body.listingId });
     }
+    // External TON payment: reserves the listing for this buyer and returns the exact payment data.
+    if (action === 'payment-intent') {
+      if (!isUuid(body.listingId)) throw new Error('INVALID_LISTING');
+      const wallet = String(body.walletAddress || '').trim();
+      if (wallet.length < 10) throw new Error('WALLET_REQUIRED');
+      return rpc(db, 'market_create_payment_intent', {
+        p_telegram_id: user.id,
+        p_listing_id: body.listingId,
+        p_wallet_address: wallet,
+      });
+    }
+    if (action === 'payment-status') {
+      if (!isUuid(body.paymentId)) throw new Error('INVALID_PAYMENT');
+      return rpc(db, 'market_payment_status', { p_telegram_id: user.id, p_payment_id: body.paymentId });
+    }
+    if (action === 'payment-cancel') {
+      if (!isUuid(body.paymentId)) throw new Error('INVALID_PAYMENT');
+      return rpc(db, 'market_cancel_payment_intent', { p_telegram_id: user.id, p_payment_id: body.paymentId });
+    }
     throw new Error('INVALID_ACTION');
   },
+
 
   /**
    * Partner channels. The Mini App only ever receives NAME + REWARD + claimed flag;

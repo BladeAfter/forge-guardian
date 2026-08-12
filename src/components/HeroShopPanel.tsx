@@ -1,14 +1,22 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
 import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
-import { buyMarketListing, cancelMarketListing, createMarketListing } from '../services';
-import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market';
+import {
+  buyMarketListing,
+  cancelMarketListing,
+  createMarketListing,
+  createMarketPaymentIntent,
+  waitForMarketPayment,
+} from '../services';
+import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketSort } from '../market';
+import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
   telegramInitData: string | null;
@@ -22,36 +30,52 @@ type Props = {
 
 const RARITY_FILTERS = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 const rarityColor = (rarity: string) => RARITY_COLORS[(rarity as HeroRarity)] ?? '#94a3b8';
+const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 });
 
-/** Marketplace is FC-only by design: there is no TON/crypto path in this screen. */
+/**
+ * Marketplace with two currencies: FC (game coin) and TON. TON purchases spend the
+ * internal withdrawable TON balance first; when it is not enough the backend reserves
+ * the listing and the buyer pays from the connected wallet.
+ */
 export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
+  const [tonUI] = useTonConnectUI();
+  const wallet = useTonWallet();
   const [tab, setTab] = useState<'recruit' | 'market'>('recruit');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
   const [sort, setSort] = useState<MarketSort>('newest');
+  const [currencyFilter, setCurrencyFilter] = useState<MarketCurrency | 'all'>('all');
   const [sellKind, setSellKind] = useState<MarketItemType>('hero');
+  const [sellCurrency, setSellCurrency] = useState<MarketCurrency>('FC');
   const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
   const [price, setPrice] = useState('');
   const [sortOpen, setSortOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [page, setPage] = useState(1);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   // Maintenance switch and the admin bypass are decided by the backend only.
   const status = useMarketStatus(telegramInitData, tab === 'market');
   const marketAccess = status.data?.canAccess ?? false;
   const marketOpen = tab === 'market' && marketAccess;
   useMarketRealtime(marketOpen);
-  const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort);
+  const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort, currencyFilter);
   const mine = useMarketMine(telegramInitData, marketOpen && marketTab === 'mine');
   const sellable = useMarketSellable(telegramInitData, marketOpen && marketTab === 'sell');
 
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
-  const feePercent = Number(settings?.feePercent ?? 5);
-  const minPrice = Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const isTonSale = sellCurrency === 'TON';
+  const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
+  const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
   const settlementHours = Number(settings?.settlementHours ?? 72);
+  const availableTon = Number(browse.data?.availableTon ?? 0);
+
+  // Selling is the only action locked for young accounts: browsing and buying stay open.
+  const eligibility = sellable.data?.eligibility;
+  const canSell = eligibility ? eligibility.canSell !== false : true;
 
   // Live price band for the selected item — the backend is the single source of truth.
   const quote = useMarketQuote(telegramInitData, marketOpen && marketTab === 'sell' && !!selected, {
@@ -60,11 +84,17 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     itemCode: sellKind === 'item' ? selected?.code : undefined,
   });
   const band = quote.data?.range ?? null;
-  const bandMin = Math.max(Number(band?.min ?? minPrice), minPrice);
-  const bandMax = Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000);
-  const bandRecommended = Number(band?.recommended ?? bandMin);
-  const outOfBand = Number(price) > 0 && (Number(price) < bandMin || Number(price) > bandMax);
-  const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
+  const bandActive = !isTonSale && band?.currency !== 'TON';
+  const bandMin = bandActive ? Math.max(Number(band?.min ?? minPrice), minPrice) : minPrice;
+  const bandMax = bandActive
+    ? Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000)
+    : Number(settings?.maxPriceTon ?? 100_000);
+  const bandRecommended = bandActive ? Number(band?.recommended ?? bandMin) : bandMin;
+  const priceValue = Number(price) || 0;
+  const outOfBand = priceValue > 0 && (priceValue < bandMin || priceValue > bandMax);
+  const split = useMemo(() => marketFeeSplit(priceValue, feePercent, sellCurrency), [priceValue, feePercent, sellCurrency]);
+  const priceUnit = isTonSale ? 'TON' : 'FC';
+  const amountLabel = (value: number) => (isTonSale ? tonAmount(value) : formatCurrency(value));
 
   const sortLabel = (value: MarketSort) =>
     value === 'newest' ? t('market.sortNewest') : value === 'price_low' ? t('market.sortPriceLow') : t('market.sortPriceHigh');
@@ -90,13 +120,49 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
       queryClient.invalidateQueries({ queryKey: ['pet-dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['player-inventory'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-summary'] }),
+      queryClient.invalidateQueries({ queryKey: ['ton-wallet'] }),
     ]);
   };
 
+  /**
+   * External wallet payment. The backend reserves the listing (payment intent) and only
+   * delivers the item after it sees the exact transfer on-chain.
+   */
+  const payWithWallet = async (listingId: string) => {
+    if (!wallet) { await tonUI.openModal(); throw new Error(t('market.connectWallet')); }
+    const address = String(wallet.account?.address ?? '');
+    const intent = await createMarketPaymentIntent(telegramInitData ?? '', listingId, address);
+    await tonUI.sendTransaction({
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      // The comment is what links this transfer to the reservation.
+      messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }],
+    });
+
+    toast.message(t('market.paymentSent', { minutes: 10 }));
+    const result = await waitForMarketPayment(telegramInitData ?? '', intent.paymentId);
+    if (result?.status === 'confirmed') toast.success(t('market.paymentConfirmed'));
+    else toast.message(t('market.paymentPending'));
+  };
+
   const buyMutation = useMutation({
-    mutationFn: (listingId: string) => buyMarketListing(telegramInitData ?? '', listingId),
-    onSuccess: async (result) => { toast.success(`${result.name} · -${formatCurrency(result.pricePaid)} FC`); await refreshAll(); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : t('market.loadError')),
+    mutationFn: async (listingId: string) => {
+      const listing = listings.find((item) => item.id === listingId);
+      if (listing?.currency === 'TON' && Number(listing.priceTon) > availableTon) {
+        setPayingId(listingId);
+        await payWithWallet(listingId);
+        return null;
+      }
+      return await buyMarketListing(telegramInitData ?? '', listingId);
+    },
+    onSuccess: async (result) => {
+      if (result) {
+        const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
+        toast.success(`${result.name} · -${paid}`);
+      }
+      setPayingId(null);
+      await refreshAll();
+    },
+    onError: (error) => { setPayingId(null); toast.error(error instanceof Error ? error.message : t('market.loadError')); },
   });
   const cancelMutation = useMutation({
     mutationFn: (listingId: string) => cancelMarketListing(telegramInitData ?? '', listingId),
@@ -108,10 +174,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
       itemType: sellKind,
       itemInstanceId: sellKind === 'item' ? undefined : selected?.id,
       itemCode: sellKind === 'item' ? selected?.code : undefined,
-      priceFc: Math.trunc(Number(price) || 0),
+      currency: sellCurrency,
+      priceFc: isTonSale ? undefined : Math.trunc(priceValue),
+      priceTon: isTonSale ? Math.round(priceValue * 1000) / 1000 : undefined,
     }),
     onSuccess: async (result) => {
-      toast.success(`${t('market.youReceive')}: ${formatCurrency(result.sellerReceives)} FC`);
+      toast.success(`${t('market.youReceive')}: ${amountLabel(result.sellerReceives)} ${priceUnit}`);
       setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
@@ -127,6 +195,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     : sellKind === 'pet'
       ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase() }))
       : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}` }));
+
+
 
 
   return (
@@ -268,6 +338,17 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                     ))}
                   </div>
 
+                  <div className="-mx-1 mt-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {(['all', 'FC', 'TON'] as const).map((value) => (
+                      <button key={value} onClick={() => { setCurrencyFilter(value); setPage(1); }} className={`${chipClass(currencyFilter === value)} shrink-0`}>
+                        {value === 'all' ? t('market.all') : value}
+                      </button>
+                    ))}
+                    {availableTon > 0 ? (
+                      <span className="shrink-0 rounded-full border border-sky-300/40 bg-sky-400/10 px-2.5 py-1 text-[9px] font-black text-sky-200">{tonAmount(availableTon)} TON</span>
+                    ) : null}
+                  </div>
+
                   <div className="relative mt-2 flex items-center gap-2">
                     <button
                       onClick={() => setSortOpen((open) => !open)}
@@ -342,15 +423,23 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
                             </div>
                             <div className="flex w-[86px] shrink-0 flex-col items-end gap-1">
-                              <p className="text-right text-[11px] font-black leading-tight text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
+                              <p className={`text-right text-[11px] font-black leading-tight ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                               {listing.mine ? (
                                 <span className="w-full rounded-lg border border-white/10 py-1 text-center text-[8px] font-black text-slate-400">{t('market.own')}</span>
                               ) : (
                                 <button
-                                  disabled={buyMutation.isPending}
+                                  disabled={buyMutation.isPending || (listing.status === 'reserved' && !listing.reservedForMe)}
                                   onClick={() => buyMutation.mutate(listing.id)}
-                                  className="w-full rounded-lg border border-amber-300/50 bg-amber-400/15 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-amber-200 disabled:opacity-50"
-                                >{t('market.buy')}</button>
+                                  className={`w-full rounded-lg border py-1.5 text-[9px] font-black uppercase tracking-[0.12em] disabled:opacity-50 ${listing.currency === 'TON' ? 'border-sky-300/50 bg-sky-400/15 text-sky-200' : 'border-amber-300/50 bg-amber-400/15 text-amber-200'}`}
+                                >
+                                  {listing.status === 'reserved' && !listing.reservedForMe
+                                    ? t('market.reserved')
+                                    : payingId === listing.id
+                                      ? t('market.paying')
+                                      : listing.currency === 'TON' && Number(listing.priceTon) > availableTon
+                                        ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                        : t('market.buy')}
+                                </button>
                               )}
                             </div>
                           </div>
@@ -397,7 +486,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       {listing.image ? <img src={listing.image} alt={listing.name} className="h-10 w-10 rounded-lg object-cover" /> : <div className="grid h-10 w-10 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-black text-white">{listing.name}</p>
-                        <p className="text-[9px] font-black text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
+                        <p className={`text-[9px] font-black ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${listing.status === 'active' ? 'bg-emerald-400/15 text-emerald-300' : listing.status === 'sold' ? 'bg-sky-400/15 text-sky-300' : 'bg-white/10 text-slate-400'}`}>
                         {listing.status === 'active' ? t('market.statusActive') : listing.status === 'sold' ? t('market.statusSold') : t('market.statusCancelled')}
@@ -416,7 +505,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                         <p className="truncate text-[10px] font-black text-white">{purchase.name}</p>
                         <p className="truncate text-[8px] text-slate-500">{t('market.seller')}: {purchase.seller}</p>
                       </div>
-                      <p className="text-[10px] font-black text-amber-300">{formatCurrency(purchase.priceFc)} FC</p>
+                      <p className={`text-[10px] font-black ${purchase.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(purchase)}</p>
                     </div>
                   )) : <p className="text-center text-[10px] text-slate-500">{t('market.noPurchases')}</p>}
                 </div>
@@ -432,6 +521,27 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       </button>
                     ))}
                   </div>
+
+                  <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseCurrency')}</p>
+                  <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                    {(['FC', 'TON'] as const).map((value) => (
+                      <button
+                        key={value}
+                        onClick={() => { setSellCurrency(value); setPrice(''); setConfirming(false); }}
+                        className={`rounded-lg border px-1 py-1.5 text-[9px] font-black uppercase ${sellCurrency === value ? (value === 'TON' ? 'border-sky-300/60 bg-sky-400/15 text-sky-200' : 'border-amber-300/60 bg-amber-400/15 text-amber-200') : 'border-white/10 bg-white/[.03] text-slate-400'}`}
+                      >{value}</button>
+                    ))}
+                  </div>
+                  {sellCurrency === 'TON' ? (
+                    <p className="mt-1.5 text-[8px] leading-relaxed text-sky-200/80">{t('market.tonSaleHint')}</p>
+                  ) : null}
+
+                  {!canSell ? (
+                    <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300/30 bg-amber-400/10 p-2.5">
+                      <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
+                      <p className="text-[9px] leading-relaxed text-amber-100">{t('market.sellLocked')}</p>
+                    </div>
+                  ) : null}
 
                   <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseItem')}</p>
                   {sellable.isLoading ? <p className="mt-3 text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
@@ -467,12 +577,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                           <>
                             <div className="flex items-center justify-between text-[9px]">
                               <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.priceBand')}</span>
-                              <span className="font-black text-sky-200">{formatCurrency(bandMin)} – {formatCurrency(bandMax)} FC</span>
+                              <span className="font-black text-sky-200">{amountLabel(bandMin)} – {amountLabel(bandMax)} {priceUnit}</span>
                             </div>
                             <div className="mt-1 flex items-center justify-between text-[9px]">
                               <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.recommended')}</span>
                               <button onClick={() => setPrice(String(bandRecommended))} className="rounded-md border border-emerald-400/40 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-black text-emerald-200">
-                                {formatCurrency(bandRecommended)} FC · {t('market.useRecommended')}
+                                {amountLabel(bandRecommended)} {priceUnit} · {t('market.useRecommended')}
                               </button>
                             </div>
                             <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
@@ -487,24 +597,24 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.enterPrice')}</p>
                       <input
                         value={price}
-                        onChange={(event) => { setPrice(event.target.value.replace(/[^0-9]/g, '').slice(0, 12)); setConfirming(false); }}
-                        inputMode="numeric"
+                        onChange={(event) => { setPrice(event.target.value.replace(isTonSale ? /[^0-9.]/g : /[^0-9]/g, '').slice(0, 12)); setConfirming(false); }}
+                        inputMode="decimal"
                         placeholder={String(bandRecommended || minPrice)}
                         className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-sm font-black text-amber-200 outline-none"
                       />
-                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: formatCurrency(bandMin) })}</p>
+                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: `${amountLabel(bandMin)} ${priceUnit}` })}</p>
                       {outOfBand ? (
                         <p className="mt-1 text-[8px] font-bold text-rose-300">
-                          {t('market.outOfBand', { min: formatCurrency(bandMin), max: formatCurrency(bandMax) })}
+                          {t('market.outOfBand', { min: `${amountLabel(bandMin)} ${priceUnit}`, max: `${amountLabel(bandMax)} ${priceUnit}` })}
                         </p>
                       ) : null}
                       <div className="mt-2 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.fee')}</span>
-                        <span className="font-black text-rose-300">{feePercent}% · {formatCurrency(split.fee)} FC</span>
+                        <span className="font-black text-rose-300">{feePercent}% · {amountLabel(split.fee)} {priceUnit}</span>
                       </div>
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.youReceive')}</span>
-                        <span className="font-black text-emerald-300">{formatCurrency(split.receives)} FC</span>
+                        <span className="font-black text-emerald-300">{amountLabel(split.receives)} {priceUnit}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.holdTitle')}</span>
@@ -517,8 +627,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
                             {t('market.confirmSaleBody', {
                               name: selected.name,
-                              price: formatCurrency(split.price),
-                              receives: formatCurrency(split.receives),
+                              price: `${amountLabel(split.price)} ${priceUnit}`,
+                              receives: `${amountLabel(split.receives)} ${priceUnit}`,
                               hours: settlementHours,
                             })}
                           </p>
@@ -536,7 +646,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                         </div>
                       ) : (
                         <button
-                          disabled={listMutation.isPending || split.price < bandMin || split.price > bandMax}
+                          disabled={listMutation.isPending || !canSell || split.price < bandMin || split.price > bandMax}
                           onClick={() => setConfirming(true)}
                           className="mt-3 w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 disabled:opacity-40"
                         >{t('market.list')}</button>
