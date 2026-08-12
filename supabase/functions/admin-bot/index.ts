@@ -3719,8 +3719,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'grantpet': {
       const parts = text.split(/\s+/);
       const user = args[0] ?? parts.shift()!;
-      const r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: parts[1] || 'raro', p_level: Number(parts[2] || 1), p_reason: 'concedido pelo painel' });
-      return send(ctx, `✅ Pet <b>${esc(r.pet)}</b> (${esc(r.rarity)}) concedido.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
+      // The pet template owns its rarity, so only slug + level are accepted here.
+      const r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: null, p_level: Number(parts[1] || 1), p_reason: 'concedido pelo painel' });
+      return send(ctx, `✅ Pet <b>${esc(r.pet)}</b> (${esc(String(r.rarity).toUpperCase())}) concedido.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
     }
     case 'rfcommon': case 'rfuncommon': case 'rfrare': case 'rfepic': {
       const source = cmd.slice(2);

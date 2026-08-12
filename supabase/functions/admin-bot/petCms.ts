@@ -327,12 +327,14 @@ export function createPetCms(d: PetCmsDeps) {
     ]);
     const pool = (egg.pool || []) as any[];
     const inPool = new Set(pool.filter((p) => p.rarity === draft.poolRarity).map((p) => p.petId));
-    const pets = ((cat.pets || []) as any[]).filter((p) => p.is_enabled);
+    // A pet's rarity is fixed on its template: only pets of this exact rarity may join the pool.
+    const pets = ((cat.pets || []) as any[])
+      .filter((p) => p.is_enabled && String(p.rarity || 'common') === String(draft.poolRarity));
     draft.ids = pets.map((p) => p.id);
     await setSession(ctx, 'petcms', 'egg_pool_pets', draft as Record<string, unknown>);
     const rows = pets.slice(0, 24).map((p, i) => [{ t: `${inPool.has(p.id) ? '✅' : '☐'} ${p.name} (${String(p.rarity).toUpperCase()})`, d: `pw:pp:${i}` }]);
     return send(ctx,
-      `🐲 <b>${esc(String(draft.poolRarity).toUpperCase())}</b> em <b>${esc(egg.name)}</b>\n\nToque para incluir/remover. Um pet pode sair em qualquer raridade que você marcar.`,
+      `🐲 <b>${esc(String(draft.poolRarity).toUpperCase())}</b> em <b>${esc(egg.name)}</b>\n\nToque para incluir/remover.\nSão listados apenas pets cuja raridade oficial é <b>${esc(String(draft.poolRarity).toUpperCase())}</b> — a raridade do pet é fixa e nunca muda.${pets.length ? '' : '\n\n⚠️ Nenhum pet cadastrado nesta raridade.'}`,
       kb([...rows, [{ t: '⬅️ Raridades', d: 'pw:pool' }], [{ t: '🥚 OVO', d: 'pw:eback' }]]));
   }
 
@@ -503,9 +505,17 @@ export function createPetCms(d: PetCmsDeps) {
     if (action === 'pp') {
       const petId = (draft.ids || [])[Number(arg)];
       if (!petId || !draft.eggId || !draft.poolRarity) return askPoolRarity(ctx, draft);
-      await rpc('admin_toggle_egg_pet', {
-        p_admin_id: ctx.adminId, p_egg_id: draft.eggId, p_pet_id: petId, p_rarity: draft.poolRarity, p_weight: 100,
-      });
+      try {
+        await rpc('admin_toggle_egg_pet', {
+          p_admin_id: ctx.adminId, p_egg_id: draft.eggId, p_pet_id: petId, p_rarity: draft.poolRarity, p_weight: 100,
+        });
+      } catch (e) {
+        const msg = String((e as Error)?.message || e);
+        const m = msg.match(/PET_RARITY_MISMATCH: (.+)$/);
+        if (m) return send(ctx, `⛔ <b>Pet rarity mismatch.</b>\n${esc(m[1])}`,
+          kb([[{ t: '⬅️ Raridades', d: 'pw:pool' }], [{ t: '🥚 OVO', d: 'pw:eback' }]]));
+        throw e;
+      }
       return poolPets(ctx, draft);
     }
 
