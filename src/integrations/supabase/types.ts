@@ -1025,6 +1025,63 @@ export type Database = {
           },
         ]
       }
+      clan_boss_templates: {
+        Row: {
+          background_url: string | null
+          base_damage: number
+          boss_key: string
+          created_at: string
+          cycle_number: number
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_hp: number
+          name: string
+          reward_clan_xp: number
+          reward_fc: number
+          sort_order: number
+          subtitle: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          background_url?: string | null
+          base_damage?: number
+          boss_key: string
+          created_at?: string
+          cycle_number: number
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_hp: number
+          name: string
+          reward_clan_xp?: number
+          reward_fc?: number
+          sort_order?: number
+          subtitle?: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          background_url?: string | null
+          base_damage?: number
+          boss_key?: string
+          created_at?: string
+          cycle_number?: number
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_hp?: number
+          name?: string
+          reward_clan_xp?: number
+          reward_fc?: number
+          sort_order?: number
+          subtitle?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clan_join_requests: {
         Row: {
           clan_id: string
@@ -8074,6 +8131,33 @@ export type Database = {
       clan_boss_strike: {
         Args: { p_instance_id?: string; p_telegram_id: number }
         Returns: Json
+      }
+      clan_boss_template_for_cycle: {
+        Args: { p_cycle: number }
+        Returns: {
+          background_url: string | null
+          base_damage: number
+          boss_key: string
+          created_at: string
+          cycle_number: number
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_hp: number
+          name: string
+          reward_clan_xp: number
+          reward_fc: number
+          sort_order: number
+          subtitle: string
+          theme: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       clan_chat: {
         Args: {
