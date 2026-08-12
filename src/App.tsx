@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { showEntryAd } from './adsgram';
-import { fetchPvpAdsState } from './services';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
