@@ -6631,6 +6631,19 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_community_pool_ranking_with_estimates: {
+        Args: { p_pool_id?: string }
+        Returns: {
+          avatar_url: string
+          eligible: boolean
+          estimated_ranking_reward_ton: number
+          points: number
+          raffle_weight: number
+          rank_position: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_daily_quests: { Args: { p_telegram_id: number }; Returns: Json }
       get_global_boss_history: {
         Args: { p_limit?: number; p_telegram_id: number }
@@ -6843,6 +6856,7 @@ export type Database = {
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
       pool_eligibility: { Args: { p_user_id: string }; Returns: Json }
+      pool_ranking_share: { Args: { p_pos: number }; Returns: number }
       pool_record_revenue: {
         Args: {
           p_amount_ton: number
