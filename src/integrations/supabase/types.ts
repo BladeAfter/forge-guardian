@@ -7686,6 +7686,50 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_nft_hero_available: {
+        Args: { p_admin_id: number; p_hero_key?: string; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_hero_create: {
+        Args: { p_admin_id: number; p_hero_key: string; p_quantity?: number }
+        Returns: Json
+      }
+      admin_nft_hero_give: {
+        Args: {
+          p_admin_id: number
+          p_nft_id: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_nft_hero_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_hero_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_hero_registry: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_nft_hero_revoke: {
+        Args: { p_admin_id: number; p_nft_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_nft_hero_search: {
+        Args: { p_admin_id: number; p_query: string }
+        Returns: Json
+      }
+      admin_nft_hero_set_stats: {
+        Args: {
+          p_admin_id: number
+          p_hero_key: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_nft_hero_stats: { Args: { p_admin_id: number }; Returns: Json }
       admin_nft_history: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
