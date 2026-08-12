@@ -688,6 +688,8 @@ function App() {
   };
   const featuredMission = game.missions.find((mission) => !mission.claimed) ?? game.missions[0];
   const dailyReward = game.missions.find((mission) => mission.id === 'mission-1');
+  /** Presentation-only counter: reuses the existing notification sources (no new system). */
+  const unreadNotifications = (referralDashboard?.notifications?.length ?? 0) + (dailyReward?.claimed ? 0 : 1);
   const calendarDay = calendarDashboard?.currentDay??((Math.max(1, game.loginStreak) - 1) % 30) + 1;
   const calendarRewards=calendarDashboard?.rewards??CALENDAR_REWARDS;
   // Streak counts one presence per official game day: the server claim history is the authority.
