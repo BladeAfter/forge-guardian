@@ -168,6 +168,26 @@ function App() {
   const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{setChestResult(result);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['community-pool']}),queryClient.invalidateQueries({queryKey:['game-state']}),queryClient.invalidateQueries({queryKey:['daily-quests']}),queryClient.invalidateQueries({queryKey:['season-pass']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú. Tente novamente.'),onSettled:()=>{openingChestRef.current=false}});
   /** One click = one chest: the ref blocks a second request before React re-renders. */
   const openChest=(id:string)=>{if(openingChestRef.current||calendarChestMutation.isPending)return;openingChestRef.current=true;calendarChestMutation.mutate(id)};
+
+  /**
+   * SPENDING EVENT entry highlight.
+   * Fetched only AFTER the boot finished and only while the Village is quiet (no
+   * internal page, no reward/chest/shop/settings modal open). The request is
+   * failure-tolerant by design: any error resolves as "don't show" and the game
+   * keeps running exactly as before. It never gates rendering.
+   */
+  const [spendingPopupDismissed,setSpendingPopupDismissed]=useState(false);
+  const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
+  const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
+  const {data:spendingPopupData}=useQuery({
+    queryKey:['spending-event-popup',telegramInitData],
+    enabled:backendEnabled&&homeQuiet&&!spendingPopupDismissed,
+    queryFn:()=>spendingEventPopupRequest(telegramInitData??''),
+    staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
+  });
+  const spendingPopup=homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
+  /** Closing (X or VIEW EVENT) records the view server-side, per user and per event. */
+  const dismissSpendingPopup=()=>{setSpendingPopupDismissed(true);if(telegramInitData)void markSpendingEventPopupSeen(telegramInitData)};
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
