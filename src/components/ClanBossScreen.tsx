@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Flame, History, Skull, Sword, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT } from '../LanguageContext';
 import { useClanBoss, useClanBossRealtime } from '../hooks';
 import { abbreviateDamage, countdownLabel, strikeClanBoss, type ClanBossState } from '../clanBoss';
 import { ClanCrest } from './ClanHall';
+import { FloatingDamage, NextAttackBar, TurnIndicator, useCombatFx, useEasedPercent, type CombatEvent } from './ClanBossCombatFx';
 import warlordArt from '../assets/clan-boss/abyssal-warlord.webp';
+
 
 const STRIKE_ERRORS: Record<string, string> = {
   CLAN_BOSS_COOLDOWN: 'clanBoss.error.cooldown',
@@ -25,9 +27,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   const { data, isLoading, isError, refetch } = useClanBoss(telegramInitData, true);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [hit, setHit] = useState<{ damage: number; critical: boolean } | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [impact, setImpact] = useState<{ id: string; kind: 'player' | 'crit' | 'boss' } | null>(null);
+  const { events, phase, push } = useCombatFx();
+  const seen = useRef<Set<string>>(new Set());
 
   useClanBossRealtime(data?.boss?.id, data?.clan?.id, Boolean(data?.inClan));
 
@@ -42,22 +45,46 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     if (!boss || boss.maxHp <= 0) return 0;
     return Math.max(0, Math.min(100, (boss.currentHp / boss.maxHp) * 100));
   }, [boss]);
+  // Bar eases old -> new; the numeric readout below always shows the real value.
+  const easedHp = useEasedPercent(hpPercent);
 
   const cooldownLeft = me?.nextAttackAt ? new Date(me.nextAttackAt).getTime() - now : 0;
   const onCooldown = cooldownLeft > 0;
   const defeated = Boolean(boss && (boss.status !== 'active' || boss.currentHp <= 0));
+
 
   const attack = async () => {
     if (busy || !boss) return;
     setBusy(true);
     try {
       const result = await strikeClanBoss(telegramInitData, boss.id);
-      setHit({ damage: result.damage, critical: result.critical });
-      setShake(true);
-      window.setTimeout(() => setShake(false), 420);
-      window.setTimeout(() => setHit(null), 1600);
+      // One animation per confirmed backend combat event (never on refetch).
+      const eventId = result.eventId ?? `${boss.id}:${result.nextAttackAt}:${result.currentHp}`;
+      if (!seen.current.has(eventId)) {
+        seen.current.add(eventId);
+        push({ id: `${eventId}:player`, kind: result.critical ? 'CRITICAL' : 'PLAYER_ATTACK', damage: result.damage, critical: result.critical });
+        setImpact({ id: eventId, kind: result.critical ? 'crit' : 'player' });
+        window.setTimeout(() => setImpact((current) => (current?.id === eventId ? null : current)), 620);
+
+        // Boss retaliation / hero status only animate when the backend reports them.
+        const bossDamage = Number(result.bossAttack?.teamDamage ?? result.bossAttack?.damage ?? result.teamDamage ?? 0);
+        const extras: CombatEvent[] = [];
+        if (bossDamage > 0) extras.push({ id: `${eventId}:boss`, kind: 'BOSS_ATTACK', damage: bossDamage });
+        (result.heroesDefeated ?? []).forEach((name, index) => extras.push({ id: `${eventId}:down:${index}`, kind: 'HERO_DEFEATED', label: `${name} DEFEATED` }));
+        (result.heroesRevived ?? []).forEach((name, index) => extras.push({ id: `${eventId}:up:${index}`, kind: 'HERO_REVIVED', label: `${name} REVIVED` }));
+        if (extras.length) {
+          window.setTimeout(() => {
+            extras.forEach(push);
+            if (bossDamage > 0) {
+              setImpact({ id: `${eventId}:boss`, kind: 'boss' });
+              window.setTimeout(() => setImpact((current) => (current?.id === `${eventId}:boss` ? null : current)), 720);
+            }
+          }, 700);
+        }
+      }
       if (result.defeated) toast.success(t('clanBoss.defeated'));
       await refetch();
+
     } catch (error) {
       const raw = error instanceof Error ? error.message : '';
       console.error('[CLAN BOSS STRIKE FAILED]', raw);
@@ -109,40 +136,50 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
 
   return (
     <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle}>
-      {/* Boss stage */}
-      <div className="relative overflow-hidden rounded-3xl border border-violet-400/25 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,.35),rgba(0,0,0,.9)_70%)] p-3">
+      {/* Boss stage — container size never changes, only the art transforms */}
+      <div className="cb-stage relative overflow-hidden rounded-3xl border border-violet-400/25 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,.35),rgba(0,0,0,.9)_70%)] p-3">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-rose-900/50 to-transparent" />
-        <img
-          src={warlordArt}
-          alt={boss?.name ?? 'Abyssal Warlord'}
-          width={1024}
-          height={1280}
-          className={`relative mx-auto h-56 w-auto object-contain drop-shadow-[0_0_28px_rgba(168,85,247,.55)] transition-transform ${shake ? 'translate-x-1 scale-[1.03]' : ''}`}
-        />
-        {hit ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center">
-            <div className="animate-bounce text-center">
-              {hit.critical ? <p className="text-[9px] font-black tracking-[.2em] text-amber-300">{t('clanBoss.critical')}</p> : null}
-              <b className="text-2xl font-black text-rose-300 drop-shadow-[0_0_12px_rgba(244,63,94,.9)]">-{abbreviateDamage(hit.damage)}</b>
-            </div>
-          </div>
-        ) : null}
+        {impact ? <div className={`cb-flash ${impact.kind === 'boss' ? 'cb-flash-boss' : impact.kind === 'crit' ? 'cb-flash-crit' : 'cb-flash-player'}`} /> : null}
+        {impact && impact.kind !== 'boss' ? <div className="cb-slash"><i /><i /></div> : null}
+        <div className="relative h-56">
+          <img
+            src={warlordArt}
+            alt={boss?.name ?? 'Abyssal Warlord'}
+            width={1024}
+            height={1280}
+            className={`cb-boss-art mx-auto h-56 w-auto object-contain drop-shadow-[0_0_28px_rgba(168,85,247,.55)] ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
+          />
+          <FloatingDamage events={events} />
+        </div>
         <div className="relative mt-2 text-center">
           <b className="text-base font-black tracking-[.14em] text-violet-100">{boss?.name}</b>
           <p className="text-[8px] tracking-[.28em] text-amber-300/80">{t('clanBoss.level')} {boss?.level ?? 1}</p>
+          <div className="mt-2"><TurnIndicator phase={phase} idleLabel={t('clanBoss.waiting')} /></div>
         </div>
 
-        {/* HP */}
+        {/* HP — bar eases, number stays exact */}
         <div className="relative mt-3">
           <div className="flex items-end justify-between text-[9px] tracking-[.2em] text-violet-200/80">
             <span>{t('clanBoss.hp')}</span>
             <span className="font-black text-white">{Math.round(boss?.currentHp ?? 0).toLocaleString()} / {Math.round(boss?.maxHp ?? 0).toLocaleString()}</span>
           </div>
           <div className="mt-1 h-4 overflow-hidden rounded-full border border-violet-300/30 bg-black/70">
-            <div className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-violet-400 transition-all duration-500" style={{ width: `${hpPercent}%` }} />
+            <div className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-violet-400" style={{ width: `${easedHp}%` }} />
           </div>
         </div>
+
+        {/* NEXT ATTACK — driven by the real cooldown, no extra timers */}
+        <div className="relative mt-3 space-y-1 rounded-2xl border border-white/10 bg-black/45 p-2">
+          <p className="text-[8px] font-black tracking-[.22em] text-slate-400">{t('clanBoss.nextAttack')}</p>
+          <NextAttackBar
+            label={t('clanBoss.playerSlot')}
+            remainingMs={cooldownLeft}
+            totalSeconds={boss?.cooldownSeconds ?? 1}
+            readyLabel={t('clanBoss.ready')}
+          />
+        </div>
       </div>
+
 
       {defeated ? (
         <div className="mt-3 rounded-3xl border border-amber-300/40 bg-amber-400/10 p-4 text-center">

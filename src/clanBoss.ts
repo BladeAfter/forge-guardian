@@ -70,7 +70,18 @@ export type ClanBossStrike = {
   maxHp: number;
   defeated: boolean;
   nextAttackAt: string;
+  /**
+   * Optional presentation-only fields. The battle backend currently returns the
+   * player strike; when it also reports the boss retaliation these are used to
+   * animate it. Never synthesized on the client.
+   */
+  eventId?: string;
+  bossAttack?: { damage?: number; teamDamage?: number } | null;
+  teamDamage?: number | null;
+  heroesDefeated?: string[] | null;
+  heroesRevived?: string[] | null;
 };
+
 
 export const fetchClanBoss = (initData: string) => clanRequest<ClanBossState>(initData, { action: 'boss-state' });
 

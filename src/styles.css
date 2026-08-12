@@ -514,3 +514,47 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   to   { opacity: 1; transform: scale(1); }
 }
 .spending-popup-in { animation: spendingPopupIn 250ms ease-out both; }
+
+/* ---------- Clan Boss combat FX (visual only) ---------- */
+.cb-stage { position: relative; }
+.cb-boss-art { will-change: transform; }
+.cb-boss-art.cb-hit { animation: cb-boss-recoil .55s cubic-bezier(.22,.9,.2,1) both; }
+.cb-boss-art.cb-charge { animation: cb-boss-charge .7s cubic-bezier(.3,.8,.25,1) both; }
+@keyframes cb-boss-recoil {
+  0% { transform: translateX(0) scale(1); }
+  18% { transform: translateX(10px) translateY(-4px) scale(1.05); }
+  45% { transform: translateX(-6px) scale(.99); }
+  75% { transform: translateX(3px) scale(1.01); }
+  100% { transform: none; }
+}
+@keyframes cb-boss-charge {
+  0% { transform: none; }
+  35% { transform: scale(1.09) translateY(6px); }
+  60% { transform: scale(1.04) translateY(2px); }
+  100% { transform: none; }
+}
+.cb-flash { position: absolute; inset: 0; z-index: 15; pointer-events: none; border-radius: 24px; opacity: 0; }
+.cb-flash.cb-flash-player { animation: cb-flash-fade .45s ease-out both; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.5), rgba(56,189,248,.25) 45%, transparent 70%); }
+.cb-flash.cb-flash-crit { animation: cb-flash-fade .55s ease-out both; background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.65), rgba(252,211,77,.45) 45%, transparent 72%); }
+.cb-flash.cb-flash-boss { animation: cb-flash-fade .55s ease-out both; background: radial-gradient(circle at 50% 55%, rgba(244,63,94,.45), rgba(139,92,246,.3) 50%, transparent 75%); }
+@keyframes cb-flash-fade { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+.cb-slash { position: absolute; inset: 0; z-index: 16; pointer-events: none; overflow: hidden; border-radius: 24px; }
+.cb-slash i { position: absolute; left: 8%; top: 50%; width: 84%; height: 5px; border-radius: 99px; background: linear-gradient(90deg, transparent, #fde68a, #fff, #93c5fd, transparent); box-shadow: 0 0 14px rgba(253,230,138,.9); transform: rotate(-24deg) scaleX(0); animation: cb-slash-sweep .42s ease-out both; }
+.cb-slash i:nth-child(2) { top: 62%; animation-delay: .09s; transform: rotate(18deg) scaleX(0); }
+@keyframes cb-slash-sweep { 0% { opacity: 0; transform: rotate(-24deg) scaleX(0); } 35% { opacity: 1; } 100% { opacity: 0; transform: rotate(-24deg) scaleX(1.05); } }
+.cb-float { position: absolute; animation: cb-float-rise 1.4s cubic-bezier(.2,.7,.2,1) both; translate: 0 calc(var(--cb-float-offset, 0px) * -1); }
+@keyframes cb-float-rise { 0% { opacity: 0; transform: translateY(14px) scale(.8); } 18% { opacity: 1; transform: translateY(0) scale(1.08); } 100% { opacity: 0; transform: translateY(-52px) scale(1); } }
+.cb-float-player { font-size: 26px; font-weight: 950; color: #93c5fd; text-shadow: 0 0 12px rgba(59,130,246,.9), 0 2px 4px #000; }
+.cb-float-crit-value { font-size: 30px; font-weight: 950; color: #fcd34d; text-shadow: 0 0 16px rgba(252,211,77,.95), 0 2px 4px #000; }
+.cb-float-boss { font-size: 24px; font-weight: 950; color: #fda4af; text-shadow: 0 0 12px rgba(244,63,94,.9), 0 2px 4px #000; }
+.cb-float-crit { font-size: 9px; font-weight: 950; letter-spacing: .22em; color: #fcd34d; }
+.cb-float-tag { font-size: 8px; font-weight: 900; letter-spacing: .22em; }
+.cb-float-text { font-size: 13px; font-weight: 950; letter-spacing: .18em; text-shadow: 0 2px 6px #000; }
+.cb-turn-pop { animation: cb-turn-pop .4s ease-out both; }
+@keyframes cb-turn-pop { 0% { opacity: .4; transform: scale(.9); } 60% { transform: scale(1.06); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cb-boss-art.cb-hit, .cb-boss-art.cb-charge, .cb-turn-pop { animation: none; }
+  .cb-slash { display: none; }
+  .cb-flash { animation-duration: .2s !important; }
+  .cb-float { animation: cb-float-rise .5s linear both; }
+}
