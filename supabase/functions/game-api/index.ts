@@ -915,6 +915,17 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
    */
   market: async (db, user, body) => {
     const action = String(body.action || 'browse');
+    // Single source of truth for the maintenance switch (server-validated identity).
+    if (action === 'status') return rpc(db, 'market_status', { p_telegram_id: user.id });
+    if (action === 'quote') {
+      const itemType = String(body.itemType || 'item');
+      return rpc(db, 'market_price_quote', {
+        p_telegram_id: user.id,
+        p_item_type: ['hero', 'pet', 'item'].includes(itemType) ? itemType : 'item',
+        p_item_instance_id: isUuid(body.itemInstanceId) ? body.itemInstanceId : null,
+        p_item_code: body.itemCode ? String(body.itemCode) : null,
+      });
+    }
     if (action === 'browse') {
       const itemType = ['all', 'hero', 'pet', 'item'].includes(String(body.itemType)) ? String(body.itemType) : 'all';
       const rarity = /^[a-z]{3,20}$/.test(String(body.rarity || '')) ? String(body.rarity) : 'all';
