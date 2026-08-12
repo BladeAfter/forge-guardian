@@ -290,8 +290,9 @@ async function passHistory(ctx: Ctx) {
 // ---------------------------------------------------------------- hero shop (menu driven)
 const RARITY_LABEL: Record<string, string> = {
   common: 'COMUM', uncommon: 'INCOMUM', rare: 'RARO', epic: 'ÉPICO', legendary: 'LENDÁRIO',
+  mythic: 'MÍTICO', ancestral: 'ANCESTRAL',
 };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
 const pct = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
 type HeroShopOverview = {
@@ -354,7 +355,8 @@ async function heroOddsView(ctx: Ctx) {
   return edit(ctx, text, kb([
     [{ t: 'COMUM', d: 'ho:common' }, { t: 'INCOMUM', d: 'ho:uncommon' }],
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
-    [{ t: 'LENDÁRIO', d: 'ho:legendary' }],
+    [{ t: 'LENDÁRIO', d: 'ho:legendary' }, { t: 'MÍTICO', d: 'ho:mythic' }],
+    [{ t: 'ANCESTRAL', d: 'ho:ancestral' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
     nav('m:shop'),
   ]));
