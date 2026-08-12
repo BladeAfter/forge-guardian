@@ -641,14 +641,27 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   100% { opacity: 1; transform: translateY(0) scale(calc(var(--gb-scale, 1) * 1)); filter: brightness(1); }
 }
 .gb-boss {
-  --gb-scale: 0.92;
+  --gb-scale: 0.72;
   animation: gb-float 6.5s ease-in-out infinite;
-  transform-origin: 50% 78%;
+  transform-origin: center center;
   will-change: transform;
+  object-position: center center;
 }
 /* Balanced arena stage: boss centered, imposing but never overflowing. */
-.gb-stage { margin-inline: 0; }
-@media (min-width: 640px) { .gb-boss { --gb-scale: 0.98; } }
+.gb-stage {
+  margin-inline: 0;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.gb-stage > .gb-boss {
+  max-height: 100%;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  margin: auto;
+}
+@media (min-width: 640px) { .gb-boss { --gb-scale: 0.82; } }
 /* Upper epic section: arena/lair backdrop centered with the boss. */
 .gb-hero { background-color: #05070c; }
 .gb-hero::after {
