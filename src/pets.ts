@@ -30,6 +30,9 @@ export type PlayerPet = {
   buffs: PetBuffs; primaryBuffKey: string | null; primaryBuffValue: number;
   secondaryBuffs: PetSecondaryBuff[]; power: number; activeSkill: Record<string, unknown> | null;
   nextEvolution: PetNextEvolution | null; canEvolve: boolean;
+  /** NFT EXCLUSIVE companions: admin-only delivery, never drawable, never sellable. */
+  isNft?: boolean;
+  nft?: { serial: number; instanceId: string; status: string; minted: boolean } | null;
 };
 
 export type PetEgg = { id: string; name: string; slug: string; image: string; priceFc: number | null; priceTon: number | null; quantity: number; rarityRates: Record<string, number>; isPurchasable?: boolean; premiumOnly?: boolean; dailyQuantity?: number | null; perPlayerLimit?: number | null; availabilityLabel?: string | null };
