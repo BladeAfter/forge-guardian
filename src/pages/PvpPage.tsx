@@ -1,4 +1,4 @@
-import{useEffect,useState}from'react';
+import{useEffect,useRef,useState}from'react';
 import{useMutation,useQuery,useQueryClient}from'@tanstack/react-query';
 import{History,Plus,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
 import{toast}from'sonner';
@@ -6,8 +6,9 @@ import{usePetDashboard,usePvpDashboard}from'../hooks';
 import{useT,useLanguage}from'../LanguageContext';
 import{PetCompanion}from'../components/PetCompanion';
 import{PvpBattleArena}from'../components/PvpBattleArena';
-import{buyPvpTickets,pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
-import type{PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'../pvp';
+import{beginPvpAdView,buyPvpTickets,claimPvpAdReward,pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
+import{showAd}from'../adsgram';
+import type{PvpAdsState,PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'../pvp';
 
 
 
@@ -124,6 +125,7 @@ function TicketSheet({tickets,shop,ads,initData,onRewarded,pending,onClose,onBuy
    {shop?.hasPass
     ?<p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-center text-[10px] font-bold text-amber-200">{t('tickets.battlePassBonus',{count:Math.max(0,(shop.passLimit??20)-(shop.freeLimit??10))})}</p>
     :<p className="mt-3 text-center text-[9px] text-slate-400">{t('tickets.passUpsell',{count:shop?.passLimit??20})}</p>}
+   <AdRewardBlock ads={ads} initData={initData} onRewarded={onRewarded} t={t}/>
    <button type="button" onClick={onClose} className="mt-3 w-full rounded-xl border border-white/10 bg-black/60 py-3 text-[11px] font-black text-slate-200">{t('tickets.close')}</button>
   </div>
  </div>
