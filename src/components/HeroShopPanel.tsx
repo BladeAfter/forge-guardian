@@ -16,6 +16,7 @@ import {
   waitForMarketPayment,
 } from '../services';
 import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketSort } from '../market';
+import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
   telegramInitData: string | null;
