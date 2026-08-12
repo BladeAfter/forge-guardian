@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { coin } from '../gameAssets';
+import tonIcon from '../assets/ton-coin.png';
+import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
+
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import { useT } from '../LanguageContext';
 
