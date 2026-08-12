@@ -38,8 +38,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [sortOpen, setSortOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const marketUnderMaintenance = true;
-  const marketOpen = tab === 'market' && !marketUnderMaintenance;
+  // Maintenance switch and the admin bypass are decided by the backend only.
+  const status = useMarketStatus(telegramInitData, tab === 'market');
+  const marketAccess = status.data?.canAccess ?? false;
+  const marketOpen = tab === 'market' && marketAccess;
   useMarketRealtime(marketOpen);
   const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort);
   const mine = useMarketMine(telegramInitData, marketOpen && marketTab === 'mine');
