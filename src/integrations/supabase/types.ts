@@ -5076,10 +5076,12 @@ export type Database = {
           battle_log: Json
           completed_at: string
           created_at: string
-          defender_id: string
+          defender_bot_id: string | null
+          defender_id: string | null
           defender_power: number
           defender_team_snapshot: Json
           id: string
+          is_bot_battle: boolean
           result: string
           reward_fc: number
           total_turns: number
@@ -5093,10 +5095,12 @@ export type Database = {
           battle_log?: Json
           completed_at?: string
           created_at?: string
-          defender_id: string
+          defender_bot_id?: string | null
+          defender_id?: string | null
           defender_power: number
           defender_team_snapshot: Json
           id?: string
+          is_bot_battle?: boolean
           result: string
           reward_fc?: number
           total_turns: number
@@ -5110,10 +5114,12 @@ export type Database = {
           battle_log?: Json
           completed_at?: string
           created_at?: string
-          defender_id?: string
+          defender_bot_id?: string | null
+          defender_id?: string | null
           defender_power?: number
           defender_team_snapshot?: Json
           id?: string
+          is_bot_battle?: boolean
           result?: string
           reward_fc?: number
           total_turns?: number
@@ -5129,6 +5135,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pvp_battles_defender_bot_id_fkey"
+            columns: ["defender_bot_id"]
+            isOneToOne: false
+            referencedRelation: "pvp_bots"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pvp_battles_defender_id_fkey"
             columns: ["defender_id"]
             isOneToOne: false
@@ -5138,6 +5151,59 @@ export type Database = {
           {
             foreignKeyName: "pvp_battles_winner_id_fkey"
             columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_bots: {
+        Row: {
+          avatar_color: string
+          avatar_letter: string
+          created_at: string
+          id: string
+          league: string
+          name: string
+          power: number
+          strategy: string
+          target_user_id: string | null
+          team: Json
+          trophies: number
+          used_at: string | null
+        }
+        Insert: {
+          avatar_color: string
+          avatar_letter: string
+          created_at?: string
+          id?: string
+          league?: string
+          name: string
+          power?: number
+          strategy?: string
+          target_user_id?: string | null
+          team?: Json
+          trophies?: number
+          used_at?: string | null
+        }
+        Update: {
+          avatar_color?: string
+          avatar_letter?: string
+          created_at?: string
+          id?: string
+          league?: string
+          name?: string
+          power?: number
+          strategy?: string
+          target_user_id?: string | null
+          team?: Json
+          trophies?: number
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_bots_target_user_id_fkey"
+            columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
@@ -8951,6 +9017,11 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      pvp_bot_band: {
+        Args: { p_league: string; p_streak: number }
+        Returns: Json
+      }
+      pvp_generate_bot: { Args: { p_user: string }; Returns: Json }
       pvp_hero_json: {
         Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
         Returns: Json
