@@ -4,7 +4,7 @@ import { realtimeSupabase as supabase } from './realtimeClient';
 
 import type { ChannelRewards, RewardHistory } from './services';
 import { fetchGlobalBossRanking, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketSellable } from './services';
-import type { MarketBrowse, MarketItemType, MarketMine, MarketSellable, MarketSort } from './market';
+import type { MarketBrowse, MarketItemType, MarketMine, MarketSellable, MarketSort, MarketStatus } from './market';
 
 import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking } from './combat';
@@ -154,6 +154,15 @@ export const useGlobalBossRealtime=(cycleId:string|null|undefined,enabled:boolea
   },[cycleId,enabled,queryClient]);
 };
 
+
+/**
+ * Marketplace maintenance status. Short polling keeps players in sync when an admin
+ * flips the switch while the Mini App is open (no reload required).
+ */
+export const useMarketStatus=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketStatus>({
+  queryKey:['market-status',telegramInitData],queryFn:()=>fetchMarketStatus(telegramInitData??''),
+  enabled,staleTime:5_000,refetchInterval:enabled?15_000:false,refetchOnWindowFocus:true,retry:1
+});
 
 /** Player market listings (FC only). Filters/sort are applied server-side. */
 export const useMarketBrowse=(telegramInitData:string|null,enabled:boolean,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>useQuery<MarketBrowse>({
