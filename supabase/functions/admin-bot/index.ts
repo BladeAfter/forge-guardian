@@ -946,7 +946,7 @@ async function marketHub(ctx: Ctx, status = 'active') {
     [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
     [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
     [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
-    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }],
+    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }, { t: '🛡 MARKET SECURITY', d: 'mk:sec' }],
     nav(),
   ]));
 }
@@ -971,6 +971,10 @@ const mkRisk = (score: unknown) => {
   const value = Number(score ?? 0);
   return `${value >= 80 ? '🔴' : value >= 50 ? '🟠' : '🟡'} <b>${value}</b>`;
 };
+
+/** Writes one whitelisted security setting (the RPC validates the key and audits it). */
+const mkSecSet = (ctx: Ctx, key: string, value: unknown) =>
+  rpc('admin_market_set_security', { p_admin_id: ctx.adminId, p_key: key, p_value: value }) as Promise<any>;
 
 async function mkSecurityHub(ctx: Ctx) {
   const o = await rpc('admin_market_overview', { p_admin_id: ctx.adminId }) as any;
@@ -3368,6 +3372,87 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 
   switch (key) {
+    // ---- 🛡 market security prompts
+    case 'mktrade': {
+      return mkTradeCard(ctx, text.slice(0, 40), false);
+    }
+    case 'mkhist': return mkUserHistory(ctx, text.slice(0, 60));
+    case 'mkrestrict': {
+      const [ref, rawHours] = text.split(/\s+/);
+      const hours = rawHours === undefined ? 24 : Math.round(parseAmount(rawHours));
+      if (!ref || !Number.isFinite(hours) || hours < 0 || hours > 8760) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>ID_ou_@usuario horas</code> (ex.: <code>8118569391 24</code>). Use <code>0</code> horas para liberar.');
+      }
+      const r = await rpc('admin_market_restrict_user', { p_admin_id: ctx.adminId, p_query: ref, p_hours: hours }) as any;
+      if (!r?.found) throw new Error('KEEP_SESSION::⚠️ Jogador não encontrado. Envie o ID do Telegram ou @usuario.');
+      return send(ctx, hours <= 0
+        ? `✅ <b>${esc(r.player)}</b> liberado no mercado.`
+        : `⛔️ <b>${esc(r.player)}</b> restrito por <b>${fmt(hours)}h</b> (não pode anunciar nem comprar).`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkrange': {
+      const parts = text.split(/\s+/).filter(Boolean);
+      const [kind, rarity] = parts;
+      const min = Math.round(parseAmount(parts[2] ?? ''));
+      const max = Math.round(parseAmount(parts[3] ?? ''));
+      const rec = parts[4] === undefined ? null : Math.round(parseAmount(parts[4]));
+      if (!['hero', 'pet', 'item'].includes(String(kind).toLowerCase()) || !rarity || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>tipo raridade min max [recomendado]</code>\nEx.: <code>hero epic 50000 400000 120000</code>\nTipos: hero, pet, item. Use <code>default</code> como raridade curinga.');
+      }
+      const r = await rpc('admin_market_set_price_range', {
+        p_admin_id: ctx.adminId,
+        p_item_type: String(kind).toLowerCase(),
+        p_rarity: String(rarity).toLowerCase(),
+        p_min: min,
+        p_max: max,
+        p_recommended: rec,
+      }) as any;
+      const range = r?.range || {};
+      return send(ctx, `✅ <b>FAIXA ATUALIZADA</b>\n${esc(String(kind).toLowerCase())} · ${esc(String(rarity).toLowerCase())}\n${fmt(range.min ?? min)} a ${fmt(range.max ?? max)} FC · recomendado ${fmt(range.recommended ?? rec ?? 0)} FC`,
+        kb([[{ t: '🏷 FAIXAS DE PREÇO', d: 'mk:ranges' }], nav('mk:sec')]));
+    }
+    case 'mksettle': {
+      const hours = Math.round(parseAmount(text));
+      if (!Number.isFinite(hours) || hours < 0 || hours > 720) throw new Error('KEEP_SESSION::⚠️ Envie as horas de retenção (0 a 720). Ex.: <code>72</code>.');
+      await mkSecSet(ctx, 'market_settlement_hours', hours);
+      return send(ctx, `✅ Retenção de pagamento agora é <b>${fmt(hours)}h</b>.`, kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkreq': {
+      const [d1, d2, d3] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![d1, d2, d3].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>diasConta diasAtivo heróis</code> (ex.: <code>7 3 5</code>).');
+      }
+      await mkSecSet(ctx, 'market_sell_requirements', { accountDays: d1, activeDays: d2, heroes: d3 });
+      return send(ctx, `✅ Requisitos para vender: conta <b>${fmt(d1)}d</b> · ativo <b>${fmt(d2)}d</b> · heróis <b>${fmt(d3)}</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkpair': {
+      const [trades, fcPerDay] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![trades, fcPerDay].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>tradesPorDia fcPorDia</code> (ex.: <code>3 2000000</code>).');
+      }
+      await mkSecSet(ctx, 'market_pair_limits', { tradesPerDay: trades, fcPerDay });
+      return send(ctx, `✅ Limite por par/24h: <b>${fmt(trades)}</b> trades · <b>${fmt(fcPerDay)} FC</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkvel': {
+      const [p5, p1h, p24, cd] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![p5, p1h, p24, cd].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>por5min por1h por24h cooldownMin</code> (ex.: <code>5 15 40 360</code>).');
+      }
+      await mkSecSet(ctx, 'market_velocity', { per5m: p5, per1h: p1h, per24h: p24, cooldownMinutes: cd });
+      return send(ctx, `✅ Velocidade: 5m <b>${fmt(p5)}</b> · 1h <b>${fmt(p1h)}</b> · 24h <b>${fmt(p24)}</b> · cooldown <b>${fmt(cd)}min</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkdyn': {
+      const [minPercent, maxPercent, minSamples, days] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![minPercent, maxPercent, minSamples, days].every((v) => Number.isFinite(v) && v >= 0) || maxPercent <= minPercent) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>min% max% minAmostras dias</code> (ex.: <code>50 200 5 30</code>).');
+      }
+      await mkSecSet(ctx, 'market_dynamic_range', { minPercent, maxPercent, minSamples, days });
+      return send(ctx, `✅ Faixa dinâmica: <b>${fmt(minPercent)}%</b>–<b>${fmt(maxPercent)}%</b> da mediana · min amostras <b>${fmt(minSamples)}</b> · janela <b>${fmt(days)}d</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
     // ---- 🛒 marketplace prompts (every rule is enforced inside the RPCs)
     case 'mksearch': {
       const rows = await rpc('admin_market_search', { p_admin_id: ctx.adminId, p_query: text.slice(0, 60), p_limit: 15 }) as any[];
