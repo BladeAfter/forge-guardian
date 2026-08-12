@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Wallet } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Gift, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
-import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validDeposit, validWithdrawal, withdrawalQuote } from '../economy';
-import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
+import tonIcon from '../assets/ton-coin.png';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote, validDeposit } from '../economy';
+import { createDepositIntent, requestTonWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
-import { usePetDashboard, useWalletSummary } from '../hooks';
+import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
+
 
 type Props = {
   game: GameState;
