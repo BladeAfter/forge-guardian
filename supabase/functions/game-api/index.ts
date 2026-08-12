@@ -331,7 +331,7 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!player.data?.id) return { heroes: [] };
     const heroes = await db
       .from('player_heroes')
-      .select('id,hero_key,name,rarity,level,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge')
+      .select('id,hero_key,name,rarity,level,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id')
       .eq('user_id', player.data.id)
       .order('created_at', { ascending: false });
     if (heroes.error) throw new Error(heroes.error.message);
