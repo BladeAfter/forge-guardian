@@ -1679,10 +1679,12 @@ async function module(ctx: Ctx, name: string) {
             ...viewButtons,
             [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
             [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
+            [{ t: '🔥 HOT WALLET', d: 'm:hotwallet' }],
             [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }, { t: `💸 WITHDRAWAL FEE (${feePercent}%)`, d: 'ask:wdfee' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
+    case 'hotwallet': return hotWalletHub(ctx);
     case 'wallets': {
       const d = await rpc('admin_connected_wallets', { p_admin_id: ctx.adminId, p_query: null, p_limit: 12 });
       return edit(ctx, connectedWalletsText(d.items), kb([[{ t: '🔎 PESQUISAR', d: 'ask:findwallet' }], nav('m:wallet')]));
