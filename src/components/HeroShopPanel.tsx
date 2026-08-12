@@ -125,8 +125,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   };
 
   /**
-   * External wallet payment. The backend reserves the listing (payment intent) and only
-   * delivers the item after it sees the exact transfer on-chain.
+   * External wallet payment. Always charges the FULL listing price: the internal TON
+   * balance is never debited nor combined with the wallet payment. The backend reserves
+   * the listing (payment intent) and only delivers after confirming the transfer on-chain.
    */
   const payWithWallet = async (listingId: string) => {
     if (!wallet) { await tonUI.openModal(); throw new Error(t('market.connectWallet')); }
@@ -144,6 +145,20 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     else toast.message(t('market.paymentPending'));
   };
 
+  /**
+   * One purchase = exactly one payment method.
+   * internal TON balance >= price  -> INTERNAL_TON
+   * otherwise                      -> EXTERNAL_TON_WALLET (full price, internal untouched)
+   */
+  const startPurchase = (listingId: string) => {
+    const listing = listings.find((item) => item.id === listingId);
+    if (listing?.currency === 'TON' && Number(listing.priceTon) > availableTon) {
+      setTonPrompt({ id: listingId, price: Number(listing.priceTon), name: listing.name });
+      return;
+    }
+    buyMutation.mutate(listingId);
+  };
+
   const buyMutation = useMutation({
     mutationFn: async (listingId: string) => {
       const listing = listings.find((item) => item.id === listingId);
@@ -154,6 +169,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
       }
       return await buyMarketListing(telegramInitData ?? '', listingId);
     },
+
     onSuccess: async (result) => {
       if (result) {
         const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
