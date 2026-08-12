@@ -4,6 +4,8 @@ import type { LocaleBundle } from './registry';
 export const clanBoss: LocaleBundle = {
   en: {
     'clanBoss.title': 'CLAN BOSS',
+    'clanBoss.loading': 'Loading Clan Boss...',
+    'clanBoss.noActive': 'NO ACTIVE CLAN BOSS',
     'clanBoss.cycle': 'Cycle',
     'clanBoss.level': 'CLAN BOSS • LEVEL',
     'clanBoss.hp': 'HP',
@@ -42,6 +44,8 @@ export const clanBoss: LocaleBundle = {
   },
   pt: {
     'clanBoss.title': 'CHEFE DO CLÃ',
+    'clanBoss.loading': 'Carregando Chefe do Clã...',
+    'clanBoss.noActive': 'NENHUM CHEFE DE CLÃ ATIVO',
     'clanBoss.cycle': 'Ciclo',
     'clanBoss.level': 'CHEFE DO CLÃ • NÍVEL',
     'clanBoss.hp': 'VIDA',
@@ -80,6 +84,8 @@ export const clanBoss: LocaleBundle = {
   },
   es: {
     'clanBoss.title': 'JEFE DEL CLAN',
+    'clanBoss.loading': 'Cargando Jefe del Clan...',
+    'clanBoss.noActive': 'NINGÚN JEFE DEL CLAN ACTIVO',
     'clanBoss.cycle': 'Ciclo',
     'clanBoss.level': 'JEFE DEL CLAN • NIVEL',
     'clanBoss.hp': 'VIDA',
@@ -118,6 +124,8 @@ export const clanBoss: LocaleBundle = {
   },
   ru: {
     'clanBoss.title': 'БОСС КЛАНА',
+    'clanBoss.loading': 'Загрузка босса клана...',
+    'clanBoss.noActive': 'НЕТ АКТИВНОГО БОССА КЛАНА',
     'clanBoss.cycle': 'Цикл',
     'clanBoss.level': 'БОСС КЛАНА • УРОВЕНЬ',
     'clanBoss.hp': 'ЗДОРОВЬЕ',
