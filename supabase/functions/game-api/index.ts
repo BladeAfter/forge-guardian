@@ -625,7 +625,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action !== 'summary') throw new Error('Ação inválida.');
 
   const data = await rpc(db, fn, args);
-  if (action === 'deposit' || action === 'withdraw') {
+  if (action === 'deposit' || action === 'withdraw-ton') {
     const walletAddress = toFriendlyTonAddress(body.walletAddress) ?? '';
     const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
     if (player.error) throw new Error(player.error.message);
