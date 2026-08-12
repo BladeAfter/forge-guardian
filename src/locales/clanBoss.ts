@@ -46,6 +46,10 @@ export const clanBoss: LocaleBundle = {
     'clanBoss.waiting': 'AWAITING ORDERS',
     'clanBoss.playerSlot': 'PLAYER',
     'clanBoss.bossSlot': 'BOSS',
+    'clanBoss.cycleCompleted': 'CYCLE COMPLETED',
+    'clanBoss.comingSoon': 'More Clan Bosses coming soon',
+    'clanBoss.rewardFc': 'CYCLE FC',
+    'clanBoss.baseDamage': 'BOSS POWER',
   },
   pt: {
     'clanBoss.title': 'CHEFE DO CLÃ',
@@ -91,6 +95,10 @@ export const clanBoss: LocaleBundle = {
     'clanBoss.waiting': 'AGUARDANDO ORDENS',
     'clanBoss.playerSlot': 'JOGADOR',
     'clanBoss.bossSlot': 'CHEFE',
+    'clanBoss.cycleCompleted': 'CICLO CONCLUÍDO',
+    'clanBoss.comingSoon': 'Mais Chefes de Clã em breve',
+    'clanBoss.rewardFc': 'FC DO CICLO',
+    'clanBoss.baseDamage': 'PODER DO CHEFE',
   },
   es: {
     'clanBoss.title': 'JEFE DEL CLAN',
@@ -136,6 +144,10 @@ export const clanBoss: LocaleBundle = {
     'clanBoss.waiting': 'ESPERANDO ÓRDENES',
     'clanBoss.playerSlot': 'JUGADOR',
     'clanBoss.bossSlot': 'JEFE',
+    'clanBoss.cycleCompleted': 'CICLO COMPLETADO',
+    'clanBoss.comingSoon': 'Más Jefes de Clan muy pronto',
+    'clanBoss.rewardFc': 'FC DEL CICLO',
+    'clanBoss.baseDamage': 'PODER DEL JEFE',
   },
   ru: {
     'clanBoss.title': 'БОСС КЛАНА',
@@ -181,5 +193,9 @@ export const clanBoss: LocaleBundle = {
     'clanBoss.waiting': 'ОЖИДАНИЕ ПРИКАЗА',
     'clanBoss.playerSlot': 'ИГРОК',
     'clanBoss.bossSlot': 'БОСС',
+    'clanBoss.cycleCompleted': 'ЦИКЛ ЗАВЕРШЁН',
+    'clanBoss.comingSoon': 'Новые боссы клана скоро',
+    'clanBoss.rewardFc': 'FC ЗА ЦИКЛ',
+    'clanBoss.baseDamage': 'СИЛА БОССА',
   },
 };

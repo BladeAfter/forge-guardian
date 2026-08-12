@@ -23,16 +23,30 @@ export type ClanBossHistoryRow = {
   clanXp: number;
   finishedAt: string | null;
   topName: string | null;
+  topDamage?: number | null;
+  bossName?: string | null;
+  bossKey?: string | null;
 };
+
 
 export type ClanBossState = {
   inClan: boolean;
   bossName?: string;
+  /** How many bosses exist in the cycle progression (currently 10). */
+  totalBosses?: number;
   clan?: { id: string; name: string; tag: string; level: number; emblem: Record<string, string> };
   boss?: {
     id: string;
     key: string;
     name: string;
+    subtitle?: string;
+    theme?: string;
+    imageUrl?: string | null;
+    backgroundUrl?: string | null;
+    bossNumber?: number;
+    isFinal?: boolean;
+    baseDamage?: number;
+    rewardFc?: number;
     cycle: number;
     level: number;
     maxHp: number;
@@ -61,6 +75,7 @@ export type ClanBossState = {
   history?: ClanBossHistoryRow[];
   serverTime: string;
 };
+
 
 export type ClanBossStrike = {
   status: string;
