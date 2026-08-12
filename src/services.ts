@@ -149,7 +149,7 @@ export async function fetchGlobalBossRanking(telegramInitData:string,limit=50):P
 export const attackBossOnServer=(initData:string)=>bossRequest(initData,'attack');
 
 
-export type HeroShopConfig={prices:Record<string,number>;odds:Record<string,number>;version?:number};
+export type HeroShopConfig={prices:Record<string,number>;odds:Record<string,number>;baseOdds?:Record<string,number>;rarityEnabled?:Record<string,boolean>;version?:number};
 
 /** Recruitment prices and summon odds come from admin settings, never hardcoded. */
 export async function fetchHeroShopConfig(telegramInitData:string):Promise<HeroShopConfig>{
