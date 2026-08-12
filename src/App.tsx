@@ -26,11 +26,12 @@ import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
+import {SpendingEventPopup}from'./components/SpendingEventPopup';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, markSpendingEventPopupSeen, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
