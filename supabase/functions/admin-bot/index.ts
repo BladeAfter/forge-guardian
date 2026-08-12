@@ -111,7 +111,9 @@ async function setSession(ctx: Ctx, action: string, step = 'awaiting_input', con
     expires_at: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
   }, { onConflict: 'admin_telegram_id,chat_id' });
   if (error) console.error('session write failed:', error.message);
+  return !error;
 }
+
 
 async function clearSession(ctx: Ctx) {
   const { error } = await db.from('admin_bot_sessions').delete()
