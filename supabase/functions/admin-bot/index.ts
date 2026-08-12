@@ -346,11 +346,12 @@ async function heroPricesView(ctx: Ctx) {
 async function heroOddsView(ctx: Ctx) {
   const d = await heroShopConfig(ctx);
   const o = d.config.odds;
-  const total = RARITY_ORDER.reduce((sum, r) => sum + Number(o[r] ?? 0), 0);
+  const total = RARITY_ORDER.filter((r) => r !== 'ancestral').reduce((sum, r) => sum + Number(o[r] ?? 0), 0);
   const text = [
     '🎲 <b>CHANCES DE INVOCAÇÃO</b>', '',
-    ...RARITY_ORDER.map((r) => `${RARITY_LABEL[r]} — <b>${pct(o[r])}%</b> (${fmt(d.by_rarity[r] ?? 0)} heróis)`),
+    ...RARITY_ORDER.filter((r) => r !== 'ancestral').map((r) => `${RARITY_LABEL[r]} — <b>${pct(o[r])}%</b> (${fmt(d.by_rarity[r] ?? 0)} heróis)`),
     '', `Total: <b>${pct(total)}%</b> — precisa ser exatamente 100%.`,
+    'ANCESTRAL — <b>0%</b> · exclusivo de eventos e presentes do admin.',
   ].join('\n');
   return edit(ctx, text, kb([
     [{ t: 'COMUM', d: 'ho:common' }, { t: 'INCOMUM', d: 'ho:uncommon' }],
