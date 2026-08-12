@@ -2,7 +2,7 @@ import { ShieldCheck, Trophy } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
-import { backgrounds, dragon } from '../gameAssets';
+import { dragon } from '../gameAssets';
 import { translate, type LanguageCode } from '../i18n';
 import { HERO_CATALOG, RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero } from '../combat';
