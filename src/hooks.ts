@@ -164,12 +164,13 @@ export const useMarketStatus=(telegramInitData:string|null,enabled:boolean)=>use
   enabled,staleTime:5_000,refetchInterval:enabled?15_000:false,refetchOnWindowFocus:true,retry:1
 });
 
-/** Player market listings (FC only). Filters/sort are applied server-side. */
-export const useMarketBrowse=(telegramInitData:string|null,enabled:boolean,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>useQuery<MarketBrowse>({
-  queryKey:['market-browse',telegramInitData,itemType,rarity,sort],
-  queryFn:()=>fetchMarketBrowse(telegramInitData??'',itemType,rarity,sort),
+/** Player market listings (FC or TON). Filters/sort/currency are applied server-side. */
+export const useMarketBrowse=(telegramInitData:string|null,enabled:boolean,itemType:MarketItemType|'all',rarity:string,sort:MarketSort,currency:MarketCurrency|'all'='all')=>useQuery<MarketBrowse>({
+  queryKey:['market-browse',telegramInitData,itemType,rarity,sort,currency],
+  queryFn:()=>fetchMarketBrowse(telegramInitData??'',itemType,rarity,sort,currency),
   enabled,staleTime:5_000,refetchOnWindowFocus:true,retry:1
 });
+
 
 /** Items the player may list right now — the server decides eligibility. */
 export const useMarketSellable=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketSellable>({
