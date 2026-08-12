@@ -2077,7 +2077,7 @@ const PROMPTS: Record<string, string> = {
   granthero: 'Envie: <code>usuário hero_key [nível]</code>',
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
   food: 'Envie: <code>code {json}</code> — ex.: <code>racao {"name":"Ração","xp_value":50,"rarity":"comum","enabled":true}</code>',
-  grantpet: 'Envie: <code>usuário slug [raridade] [nível]</code>',
+  grantpet: 'Envie: <code>usuário slug [nível]</code> — a raridade vem sempre do catálogo do pet.',
   foodprice: 'Envie: <code>code preço_fc</code> — ex.: <code>pet_ration 1000</code>',
   eggprice: 'Envie: <code>slug preço_fc [preço_ton]</code> — ex.: <code>common-egg 25000</code> ou <code>epic-egg 0 3</code>',
   egg: 'Envie: <code>slug {json}</code> — ex.: <code>common-egg {"price_fc":25000,"is_purchasable":true,"rarity_rates":{"common":75,"uncommon":20,"rare":5}}</code>',
