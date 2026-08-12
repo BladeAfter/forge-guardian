@@ -621,3 +621,35 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @media (prefers-reduced-motion: reduce) {
   .cb-enter, .cb-cycle-overlay { animation: none; }
 }
+
+
+/* Global Boss: living creature idle — gentle float, breath and lateral sway. */
+@keyframes gb-float {
+  0%   { transform: translate3d(-4px, 0, 0) scale(1); }
+  25%  { transform: translate3d(0, -10px, 0) scale(1.012); }
+  50%  { transform: translate3d(4px, -14px, 0) scale(1.02); }
+  75%  { transform: translate3d(0, -6px, 0) scale(1.01); }
+  100% { transform: translate3d(-4px, 0, 0) scale(1); }
+}
+@keyframes gb-aura {
+  0%, 100% { opacity: .5; transform: scale(.94); }
+  50%      { opacity: .85; transform: scale(1.06); }
+}
+@keyframes gb-swap {
+  0%   { opacity: 0; transform: translateY(26px) scale(.9); filter: brightness(2.2); }
+  60%  { opacity: 1; transform: translateY(0) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+}
+.gb-boss { animation: gb-float 6.5s ease-in-out infinite; will-change: transform; }
+.gb-aura { animation: gb-aura 5s ease-in-out infinite; will-change: opacity, transform; }
+.gb-enter { animation: gb-swap .9s cubic-bezier(.2,.8,.2,1) both; }
+.gb-swap-overlay {
+  position: absolute; inset: 0; z-index: 20; display: grid; place-content: center; gap: .35rem;
+  text-align: center; background: radial-gradient(circle at 50% 40%, rgba(0,0,0,.35), rgba(0,0,0,.85));
+  animation: fade-in .35s ease-out both;
+}
+.gb-swap-overlay b { font-size: 15px; font-weight: 900; letter-spacing: .18em; color: #fde68a; }
+.gb-swap-overlay span { font-size: 10px; letter-spacing: .16em; color: #cbd5e1; }
+@media (prefers-reduced-motion: reduce) {
+  .gb-boss, .gb-aura, .gb-enter { animation: none; }
+}

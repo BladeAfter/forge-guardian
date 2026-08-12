@@ -1816,15 +1816,20 @@ export type Database = {
       }
       global_boss_cycles: {
         Row: {
+          boss_background: string | null
           boss_image: string | null
           boss_key: string
           boss_level: number
           boss_name: string
+          boss_number: number | null
+          boss_subtitle: string | null
+          boss_theme: string | null
           created_at: string
           current_hp: number
           cycle_number: number
           defeated_at: string | null
           distributed_at: string | null
+          ended_reason: string | null
           ends_at: string | null
           id: string
           max_hp: number
@@ -1837,19 +1842,25 @@ export type Database = {
           reward_pool_fc: number
           starts_at: string
           status: string
+          template_id: string | null
           total_damage: number
           updated_at: string
         }
         Insert: {
+          boss_background?: string | null
           boss_image?: string | null
           boss_key: string
           boss_level?: number
           boss_name: string
+          boss_number?: number | null
+          boss_subtitle?: string | null
+          boss_theme?: string | null
           created_at?: string
           current_hp: number
           cycle_number: number
           defeated_at?: string | null
           distributed_at?: string | null
+          ended_reason?: string | null
           ends_at?: string | null
           id?: string
           max_hp: number
@@ -1862,19 +1873,25 @@ export type Database = {
           reward_pool_fc?: number
           starts_at?: string
           status?: string
+          template_id?: string | null
           total_damage?: number
           updated_at?: string
         }
         Update: {
+          boss_background?: string | null
           boss_image?: string | null
           boss_key?: string
           boss_level?: number
           boss_name?: string
+          boss_number?: number | null
+          boss_subtitle?: string | null
+          boss_theme?: string | null
           created_at?: string
           current_hp?: number
           cycle_number?: number
           defeated_at?: string | null
           distributed_at?: string | null
+          ended_reason?: string | null
           ends_at?: string | null
           id?: string
           max_hp?: number
@@ -1887,10 +1904,19 @@ export type Database = {
           reward_pool_fc?: number
           starts_at?: string
           status?: string
+          template_id?: string | null
           total_damage?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_boss_cycles_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "global_boss_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       global_boss_participants: {
         Row: {
@@ -1999,6 +2025,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      global_boss_templates: {
+        Row: {
+          background_url: string | null
+          boss_level: number
+          boss_number: number
+          code: string
+          created_at: string
+          duration_seconds: number
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_hp: number
+          name: string
+          reward_fc: number
+          sort_order: number
+          subtitle: string | null
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          background_url?: string | null
+          boss_level?: number
+          boss_number: number
+          code: string
+          created_at?: string
+          duration_seconds?: number
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_hp: number
+          name: string
+          reward_fc: number
+          sort_order?: number
+          subtitle?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          background_url?: string | null
+          boss_level?: number
+          boss_number?: number
+          code?: string
+          created_at?: string
+          duration_seconds?: number
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_hp?: number
+          name?: string
+          reward_fc?: number
+          sort_order?: number
+          subtitle?: string | null
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       hero_catalog: {
         Row: {
@@ -8291,15 +8374,20 @@ export type Database = {
       ensure_global_boss_cycle: {
         Args: never
         Returns: {
+          boss_background: string | null
           boss_image: string | null
           boss_key: string
           boss_level: number
           boss_name: string
+          boss_number: number | null
+          boss_subtitle: string | null
+          boss_theme: string | null
           created_at: string
           current_hp: number
           cycle_number: number
           defeated_at: string | null
           distributed_at: string | null
+          ended_reason: string | null
           ends_at: string | null
           id: string
           max_hp: number
@@ -8312,6 +8400,7 @@ export type Database = {
           reward_pool_fc: number
           starts_at: string
           status: string
+          template_id: string | null
           total_damage: number
           updated_at: string
         }
@@ -8513,6 +8602,33 @@ export type Database = {
       get_ton_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
+      global_boss_template_for_number: {
+        Args: { p_number: number }
+        Returns: {
+          background_url: string | null
+          boss_level: number
+          boss_number: number
+          code: string
+          created_at: string
+          duration_seconds: number
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_hp: number
+          name: string
+          reward_fc: number
+          sort_order: number
+          subtitle: string | null
+          theme: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_boss_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       grant_clan_xp: {
         Args: { p_amount?: number; p_source: string; p_user_id: string }
         Returns: undefined

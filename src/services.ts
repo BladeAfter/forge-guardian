@@ -5,7 +5,7 @@ import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
-import type { BossCombat, GlobalBossRanking } from './combat';
+import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
@@ -143,6 +143,13 @@ export async function fetchGlobalBossRanking(telegramInitData:string,limit=50):P
   const payload=await response.json().catch(()=>null) as GlobalBossRanking&{error?:string}|null;
   if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível carregar o ranking do chefe.'));
   return {...payload,top:Array.isArray(payload.top)?payload.top:[]};
+}
+
+export async function fetchGlobalBossHistory(telegramInitData:string,limit=10):Promise<GlobalBossHistoryRow[]>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'history',limit}));
+  const payload=await response.json().catch(()=>null) as GlobalBossHistoryRow[]|{error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload))throw new Error(bossErrorMessage((payload as{error?:string}|null)?.error||'','Não foi possível carregar o histórico do chefe.'));
+  return payload;
 }
 
 /** Attacking is the ONLY boss operation that requires an active boss. */
