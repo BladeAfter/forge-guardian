@@ -377,9 +377,10 @@ export function ClanBossTeaser({ onOpen, bossKey, bossName }: { onOpen: () => vo
   const t = useT();
   const theme = clanBossTheme(bossKey);
   return (
-    <button type="button" onClick={onOpen} className={`relative z-10 w-full cursor-pointer overflow-hidden rounded-3xl border ${theme.border} p-3 text-left`} style={{ backgroundImage: theme.stage }}>
-      <div className="flex items-center gap-3">
+    <button type="button" onClick={onOpen} className={`relative z-10 w-full cursor-pointer overflow-hidden rounded-3xl border ${theme.border} p-3 text-left`} style={{ backgroundImage: `${theme.stage}, url(${theme.arena})`, backgroundSize: 'cover, cover', backgroundPosition: 'center, center' }}>
+      <div className="relative flex items-center gap-3">
         <img src={theme.art} alt={bossName ?? 'Clan Boss'} loading="lazy" width={1024} height={1280} style={{ filter: theme.glow }} className="h-24 w-auto object-contain" />
+
         <div className="min-w-0 flex-1">
           <b className="block text-[12px] font-black tracking-[.12em] text-white">{(bossName ?? 'ABYSSAL WARLORD').toUpperCase()}</b>
           <p className="mt-1 flex items-center gap-1 text-[9px] text-amber-300/90"><Flame className="h-3 w-3" />{t('clanBoss.title')}</p>
