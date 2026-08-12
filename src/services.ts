@@ -319,12 +319,13 @@ export const fetchRarityFusion=(initData:string)=>rarityFusionRequest<RarityFusi
 export const fuseHeroesByRarity=(initData:string,heroIds:string[],idempotencyKey:string)=>rarityFusionRequest<RarityFusionResult>(initData,{action:'rarity-fuse',heroIds,idempotencyKey});
 export const setHeroLock=(initData:string,heroId:string,locked:boolean)=>fusionRequest<{heroId:string;locked:boolean}>(initData,{action:'lock',heroId,locked});
 
-// ------------------------------------------------------------- player market (FC only)
+// ------------------------------------------------------------- player market (FC + TON)
 const MARKET_ERRORS:Record<string,string>={
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
   INVALID_ITEM_TYPE:'Categoria inválida.',
   INVALID_ITEM:'Item inválido.',
   INVALID_PRICE:'Preço inválido.',
+  INVALID_CURRENCY:'Moeda inválida.',
   PRICE_BELOW_MINIMUM:'Preço abaixo do mínimo permitido.',
   PRICE_ABOVE_MAXIMUM:'Preço acima do máximo permitido.',
   TOO_MANY_ACTIVE_LISTINGS:'Você atingiu o limite de anúncios ativos.',
@@ -341,21 +342,31 @@ const MARKET_ERRORS:Record<string,string>={
   ITEM_NOT_TRADABLE:'Este item não pode ser vendido.',
   LISTING_NOT_FOUND:'Anúncio não encontrado.',
   LISTING_NOT_ACTIVE:'Este anúncio não está mais ativo.',
+  LISTING_RESERVED:'Este anúncio está reservado para outro comprador. Tente novamente em alguns minutos.',
   NOT_LISTING_OWNER:'Este anúncio não é seu.',
   ITEM_NO_LONGER_AVAILABLE:'Item não está mais disponível.',
   CANNOT_BUY_OWN_LISTING:'Você não pode comprar seu próprio anúncio.',
   NOT_ENOUGH_FORGE_COINS:'FC insuficientes para esta compra.',
+  NOT_ENOUGH_TON_BALANCE:'Saldo TON interno insuficiente. Pague com a carteira.',
+  ACCOUNT_TOO_NEW:'Sua conta ainda não pode vender no mercado.',
+  WALLET_REQUIRED:'Conecte sua carteira TON para continuar.',
+  PAYMENT_NOT_FOUND:'Pagamento não encontrado.',
+  PAYMENT_EXPIRED:'A reserva expirou. Tente comprar novamente.',
+  TX_ALREADY_USED:'Esta transação já foi utilizada.',
   MARKET_UNDER_MAINTENANCE:'O mercado está em manutenção.',
 };
 export type MarketAction=
   |{action:'status'}
-  |{action:'browse';itemType?:MarketItemType|'all';rarity?:string;sort?:MarketSort;limit?:number;offset?:number}
+  |{action:'browse';itemType?:MarketItemType|'all';rarity?:string;sort?:MarketSort;currency?:MarketCurrency|'all';limit?:number;offset?:number}
   |{action:'sellable'}
   |{action:'quote';itemType:MarketItemType;itemInstanceId?:string;itemCode?:string}
   |{action:'mine'}
-  |{action:'create';itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;priceFc:number}
+  |{action:'create';itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number}
   |{action:'cancel';listingId:string}
-  |{action:'buy';listingId:string};
+  |{action:'buy';listingId:string}
+  |{action:'payment-intent';listingId:string;walletAddress:string}
+  |{action:'payment-status';paymentId:string}
+  |{action:'payment-cancel';paymentId:string};
 export async function marketRequest<T>(initData:string,input:MarketAction):Promise<T>{
   const response=await forgeFetch('market',{initData,...input});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o mercado.');
@@ -364,13 +375,27 @@ export async function marketRequest<T>(initData:string,input:MarketAction):Promi
   return payload;
 }
 export const fetchMarketStatus=(initData:string)=>marketRequest<MarketStatus>(initData,{action:'status'});
-export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>marketRequest<MarketBrowse>(initData,{action:'browse',itemType,rarity,sort,limit:60});
+export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',rarity:string,sort:MarketSort,currency:MarketCurrency|'all'='all')=>marketRequest<MarketBrowse>(initData,{action:'browse',itemType,rarity,sort,currency,limit:60});
 export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
 export const fetchMarketQuote=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string})=>marketRequest<MarketQuote>(initData,{action:'quote',...input});
 export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});
-export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;priceFc:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
+export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
 export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
 export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});
+/** External wallet payment: reserves the listing and returns the exact transfer data. */
+export const createMarketPaymentIntent=(initData:string,listingId:string,walletAddress:string)=>marketRequest<MarketPaymentIntent>(initData,{action:'payment-intent',listingId,walletAddress});
+export const fetchMarketPaymentStatus=(initData:string,paymentId:string)=>marketRequest<MarketPaymentStatus>(initData,{action:'payment-status',paymentId});
+export const cancelMarketPaymentIntent=(initData:string,paymentId:string)=>marketRequest<{ok:boolean}>(initData,{action:'payment-cancel',paymentId});
+/** Polls the reservation until the backend confirms the on-chain transfer. */
+export async function waitForMarketPayment(initData:string,paymentId:string,attempts=20,delayMs=6000):Promise<MarketPaymentStatus|null>{
+  for(let index=0;index<attempts;index+=1){
+    await new Promise(resolve=>setTimeout(resolve,delayMs));
+    const status=await fetchMarketPaymentStatus(initData,paymentId).catch(()=>null);
+    if(status&&status.status!=='pending')return status;
+  }
+  return null;
+}
+
 
 /** Spending Event (SPENDING EVENT tab): the backend counts every confirmed spend. */
 export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');const payload=await response.json().catch(()=>null)as(SpendingEventDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');return payload}
