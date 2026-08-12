@@ -155,41 +155,59 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
 
 
   return (
-    <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle}>
+    <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle} bossKey={boss?.key}>
       {/* Boss stage — container size never changes, only the art transforms */}
-      <div className="cb-stage relative overflow-hidden rounded-3xl border border-violet-400/25 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,.35),rgba(0,0,0,.9)_70%)] p-3">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-rose-900/50 to-transparent" />
+      <div
+        className={`cb-stage relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-[0_24px_70px_rgba(0,0,0,.6)]`}
+        style={{ backgroundImage: boss?.backgroundUrl ? `url(${boss.backgroundUrl})` : theme.stage, backgroundSize: 'cover', backgroundPosition: 'center' }}
+      >
+        {/* depth: floor haze + vignette + subtle gold frame */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 rounded-3xl shadow-[inset_0_0_60px_rgba(0,0,0,.75)]" />
+        <div className="pointer-events-none absolute inset-[3px] rounded-[22px] border border-amber-200/15" />
         {impact ? <div className={`cb-flash ${impact.kind === 'boss' ? 'cb-flash-boss' : impact.kind === 'crit' ? 'cb-flash-crit' : 'cb-flash-player'}`} /> : null}
         {impact && impact.kind !== 'boss' ? <div className="cb-slash"><i /><i /></div> : null}
-        <div className="relative h-56">
+        {cycleSwap ? (
+          <div className="cb-cycle-overlay">
+            <b>{t('clanBoss.defeated')}</b>
+            <span>{t('clanBoss.cycleCompleted')}</span>
+          </div>
+        ) : null}
+        <div className="relative h-64">
           <img
-            src={warlordArt}
-            alt={boss?.name ?? 'Abyssal Warlord'}
+            key={`${boss?.key}:${cycleSwap}`}
+            src={art}
+            alt={boss?.name ?? 'Clan Boss'}
             width={1024}
             height={1280}
-            className={`cb-boss-art mx-auto h-56 w-auto object-contain drop-shadow-[0_0_28px_rgba(168,85,247,.55)] ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
+            style={{ filter: theme.glow }}
+            className={`cb-boss-art cb-enter mx-auto h-64 w-auto object-contain ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
           />
           <FloatingDamage events={events} />
         </div>
-        <div className="relative mt-2 text-center">
-          <b className="text-base font-black tracking-[.14em] text-violet-100">{boss?.name}</b>
-          <p className="text-[8px] tracking-[.28em] text-amber-300/80">{t('clanBoss.level')} {boss?.level ?? 1}</p>
+        <div className="relative mt-1 text-center">
+          <b className="text-lg font-black tracking-[.14em] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,.9)]">{boss?.name}</b>
+          {boss?.subtitle ? <p className={`text-[9px] italic tracking-[.12em] ${theme.accent}`}>{boss.subtitle}</p> : null}
+          <p className="mt-1 text-[8px] font-black tracking-[.28em] text-amber-300/90">
+            {t('clanBoss.title')} • {t('clanBoss.cycle')} #{boss?.cycle ?? 1}
+            {boss?.bossNumber ? ` • ${boss.bossNumber}/${data.totalBosses ?? 10}` : ''}
+          </p>
           <div className="mt-2"><TurnIndicator phase={phase} idleLabel={t('clanBoss.waiting')} /></div>
         </div>
 
         {/* HP — bar eases, number stays exact */}
         <div className="relative mt-3">
-          <div className="flex items-end justify-between text-[9px] tracking-[.2em] text-violet-200/80">
+          <div className="flex items-end justify-between text-[9px] tracking-[.2em] text-slate-200/80">
             <span>{t('clanBoss.hp')}</span>
             <span className="font-black text-white">{Math.round(boss?.currentHp ?? 0).toLocaleString()} / {Math.round(boss?.maxHp ?? 0).toLocaleString()}</span>
           </div>
-          <div className="mt-1 h-4 overflow-hidden rounded-full border border-violet-300/30 bg-black/70">
-            <div className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-violet-400" style={{ width: `${easedHp}%` }} />
+          <div className="mt-1 h-5 overflow-hidden rounded-full border border-amber-200/30 bg-black/80 shadow-[inset_0_2px_8px_rgba(0,0,0,.9)]">
+            <div className="cb-hpbar h-full transition-[width] duration-300" style={{ width: `${easedHp}%`, backgroundImage: theme.bar }} />
           </div>
         </div>
 
         {/* NEXT ATTACK — driven by the real cooldown, no extra timers */}
-        <div className="relative mt-3 space-y-1 rounded-2xl border border-white/10 bg-black/45 p-2">
+        <div className="relative mt-3 space-y-1 rounded-2xl border border-white/10 bg-black/55 p-2">
           <p className="text-[8px] font-black tracking-[.22em] text-slate-400">{t('clanBoss.nextAttack')}</p>
           <NextAttackBar
             label={t('clanBoss.playerSlot')}
@@ -200,6 +218,12 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
         </div>
       </div>
 
+      {/* Cycle reward preview — values come from the active boss template */}
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        <Stat label={t('clanBoss.rewardFc')} value={abbreviateDamage(boss?.rewardFc)} tone="amber" />
+        <Stat label={t('clanBoss.clanXp')} value={String(boss?.clanXpReward ?? 0)} tone="violet" />
+        <Stat label={t('clanBoss.baseDamage')} value={abbreviateDamage(boss?.baseDamage)} tone="rose" />
+      </div>
 
       {defeated ? (
         <div className="mt-3 rounded-3xl border border-amber-300/40 bg-amber-400/10 p-4 text-center">
@@ -208,9 +232,11 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
           <p className="text-[10px] text-slate-200">{t('clanBoss.topDamage')}: <b>{data.ranking?.[0]?.name ?? '—'}</b></p>
           <p className="text-[10px] text-emerald-300">{t('clanBoss.clanXp')}: +{boss?.clanXpReward ?? 0}</p>
           <p className="text-[10px] text-amber-200">{t('clanBoss.rewardsReady')}</p>
+          {boss?.isFinal ? <p className="mt-2 text-[10px] font-black tracking-[.14em] text-amber-100">{t('clanBoss.comingSoon')}</p> : null}
           <button onClick={() => setShowHistory(true)} className="mt-3 w-full rounded-xl border border-amber-300/40 bg-black/50 py-3 text-[10px] font-black tracking-[.18em] text-amber-200">{t('clanBoss.viewResults')}</button>
         </div>
       ) : null}
+
 
       {/* Stats */}
       <div className="mt-3 grid grid-cols-2 gap-2">
