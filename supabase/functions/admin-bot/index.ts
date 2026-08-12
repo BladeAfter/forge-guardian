@@ -3745,7 +3745,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key === 'wlmin') {
     const min = parseAmount(text);
     if (!Number.isFinite(min) || min <= 0 || min > 100_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON entre 0 e 100000 (ex.: <code>1</code>).');
-    await wlRpc(ctx, 'set_min_withdraw', { minWithdrawTon: min });
+    await wlRpc(ctx, 'set_min_withdraw', { value: min });
     await clearSession(ctx);
     await send(ctx, `⬇️ <b>SAQUE MÍNIMO</b> atualizado para <b>${fmt(min)} TON</b>.`);
     return hotWalletHub({ ...ctx, messageId: undefined }, false);
