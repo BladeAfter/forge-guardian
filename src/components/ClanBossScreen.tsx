@@ -274,7 +274,7 @@ function Frame({ children, onClose, clan, cycle }: { children: React.ReactNode; 
 export function ClanBossTeaser({ onOpen }: { onOpen: () => void }) {
   const t = useT();
   return (
-    <button onClick={onOpen} className="w-full overflow-hidden rounded-3xl border border-violet-400/30 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.4),rgba(0,0,0,.85)_70%)] p-3 text-left">
+    <button type="button" onClick={onOpen} className="relative z-10 w-full cursor-pointer overflow-hidden rounded-3xl border border-violet-400/30 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.4),rgba(0,0,0,.85)_70%)] p-3 text-left">
       <div className="flex items-center gap-3">
         <img src={warlordArt} alt="Abyssal Warlord" loading="lazy" width={1024} height={1280} className="h-24 w-auto object-contain drop-shadow-[0_0_18px_rgba(168,85,247,.5)]" />
         <div className="min-w-0 flex-1">
