@@ -800,24 +800,14 @@ function App() {
                 balance={fcBalance}
                 tonBalance={tonBalance}
                 onBalanceClick={()=>setTab('wallet')}
-                actions={<>
-                  <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
-                    <Bell />
-                    {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
-                  </button>
-                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
+                actions={
+                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
                     <Settings />
+                    {unreadNotifications > 0 ? <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
                   </button>
-                </>}
+                }
               />
             </section>
-            {notificationsOpen ? (
-              <div className="absolute right-0 top-full z-40 mt-1 w-56 max-w-full rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
-                <p className="font-bold text-white">{t('notifications')}</p>
-                <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
-                {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
-              </div>
-            ) : null}
           </div>
 
 
