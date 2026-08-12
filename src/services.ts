@@ -9,7 +9,7 @@ import type { BossCombat, GlobalBossRanking } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
-import type { TonPaymentIntent, WalletSummary } from './wallet';
+import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,PlayerInventory} from './calendarRewards';
