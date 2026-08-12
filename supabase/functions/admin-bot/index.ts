@@ -1994,7 +1994,7 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 const PROMPTS: Record<string, string> = {
   ptname: '🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>',
   ptreward: '🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>',
-  pturl: '🔗 Envie o <b>link do canal</b> (fica oculto no backend, só o botão GO usa).\nEx.: <code>https://t.me/seucanal</code>',
+  pturl: '🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>',
   ptrename: '🏷 Envie o <b>novo nome</b> do parceiro.',
   ptsetreward: '🪙 Envie a <b>nova recompensa em FC</b>.',
   ptsetlink: '🔗 Envie o <b>novo link</b> (https://...).',
@@ -2598,9 +2598,25 @@ async function partnerCard(ctx: Ctx, id: string, editing = true) {
 async function partnersCallback(ctx: Ctx, rest: string[]) {
   const [sub, arg] = [rest[0], rest.slice(1).join(':')];
   if (sub === 'ask') { const k = arg; return ask(ctx, k, PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
+  if (sub === 'save') {
+    const session = await getSession(ctx);
+    const c = session?.context ?? {};
+    const name = String(c.name || '').trim();
+    const url = String(c.url || '').trim();
+    const reward = Math.round(Number(c.rewardFc ?? 0)) || 0;
+    if (!name || !/^https:\/\/\S+$/i.test(url)) {
+      await clearSession(ctx);
+      return edit(ctx, '⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.', kb([[{ t: '⬅️ PARCEIROS', d: 'm:partners' }], nav()]));
+    }
+    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\n🔗 Link salvo e oculto: no jogo aparece só o nome e o botão GO.`);
+    return partnersHub({ ...ctx, messageId: undefined }, false);
+  }
   if (sub === 'open') return partnerCard(ctx, arg);
   if (sub === 'toggle') {
     await ptRpc(ctx, 'toggle', arg);
+
     return partnerCard(ctx, arg);
   }
   if (sub === 'confirm') {
@@ -2626,19 +2642,25 @@ async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: strin
   if (key === 'ptreward') {
     const reward = parseAmount(text);
     if (!Number.isFinite(reward) || reward < 0 || reward > 1_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC entre 0 e 1000000.');
-    await setSession(ctx, `pturl|${args[0] ?? ''}|${Math.round(reward)}`, 'awaiting_input');
-    return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n${PROMPTS.pturl}`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+    const name = args[0] ? decodeURIComponent(args[0]) : 'PARTNER';
+    // Step 3/4: the link is mandatory — never create the partner before it arrives.
+    await setSession(ctx, 'pturl', 'awaiting_input', { name, rewardFc: Math.round(reward) });
+    return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
   }
   if (key === 'pturl') {
     const url = text.trim();
-    if (!/^https?:\/\/\S+$/i.test(url)) throw new Error('KEEP_SESSION::⚠️ Envie um link válido começando com https://');
-    const name = args[0] ? decodeURIComponent(args[0]) : 'PARTNER';
-    const reward = Math.round(parseAmount(args[1] || '500')) || 0;
-    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward }) as any;
-    await clearSession(ctx);
-    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\nO link fica oculto: no jogo aparece só o botão GO.`);
-    return partnersHub({ ...ctx, messageId: undefined }, false);
+    if (!/^https:\/\/[^\s.]+\.[^\s]{2,}$/i.test(url) || url.length > 300) {
+      throw new Error('KEEP_SESSION::⚠️ Link inválido. Envie uma URL completa começando com https:// — ex.: <code>https://t.me/seucanal</code>');
+    }
+    const session = await getSession(ctx);
+    const name = String(session?.context?.name || (args[0] ? decodeURIComponent(args[0]) : 'PARTNER'));
+    const reward = Math.round(Number(session?.context?.rewardFc ?? parseAmount(args[1] || '0'))) || 0;
+    await setSession(ctx, 'ptsave', 'awaiting_confirm', { name, rewardFc: reward, url });
+    return send(ctx,
+      `🤝 <b>CONFIRMAR PARCEIRO</b>\n🏷 Nome: <b>${esc(name)}</b>\n🪙 Recompensa: <b>${fmt(reward)} FC</b>\n🔗 Link: <code>${esc(url)}</code>\n\nO link fica oculto no jogo: o jogador vê só o nome e o botão GO.`,
+      kb([[{ t: '✅ SALVAR', d: 'pt:save' }, { t: '❌ CANCELAR', d: 'cancel' }]]));
   }
+
   if (!id) { await clearSession(ctx); return partnersHub({ ...ctx, messageId: undefined }, false); }
   if (key === 'ptrename') {
     const name = text.slice(0, 40);
@@ -2685,7 +2707,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'cb') { if (rest[0] !== 'ask') await clearSession(ctx); return cbCallback(ctx, rest); }
 
   // 🤝 Partner channels (name + reward + hidden link). Keeps its own wizard session.
-  if (head === 'pt') { if (rest[0] !== 'ask') await clearSession(ctx); return partnersCallback(ctx, rest); }
+  if (head === 'pt') { if (rest[0] !== 'ask' && rest[0] !== 'save') await clearSession(ctx); return partnersCallback(ctx, rest); }
 
   // 💰 Spending Event module (independent from the weekly pool and the referral event).
   if (head === 'sp') { await clearSession(ctx); return spendCallback(ctx, rest); }
