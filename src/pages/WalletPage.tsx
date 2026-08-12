@@ -234,12 +234,20 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       <div className="grid grid-cols-2 gap-2">
         <Panel title={t('wallet.balance')} icon={<Coins />}>
           <div className="flex items-center gap-2"><img src={coin} className="h-8 w-8 object-contain" alt="FC"/><strong className="text-lg text-amber-200">{Math.floor(balance).toLocaleString('pt-BR')} FC</strong></div>
-          <p className="mt-1 text-[9px] text-slate-400">{t('wallet.balanceEquivalent', { ton: fcToTon(balance).toLocaleString('pt-BR', { maximumFractionDigits: 4 }) })}</p>
+          <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.fcInGameOnly')}</p>
         </Panel>
-        <Panel title={t('wallet.conversion')} icon={<Wallet />}>
-          <strong className="text-sm text-sky-300">1 TON</strong><p className="text-[10px] text-slate-300">= {FC_PER_TON.toLocaleString('pt-BR')} FC</p>
+        <Panel title={t('wallet.tonWithdrawable')} icon={<Gift />}>
+          <div className="flex items-center gap-2"><img src={tonIcon} className="h-8 w-8 object-contain" alt="TON"/><strong className="text-lg text-sky-300">{formatTon(availableTon)} TON</strong></div>
+          <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.tonRewardsOnly')}</p>
+          {reservedTon > 0 ? <p className="mt-1 text-[9px] font-bold text-amber-300">{t('wallet.tonReserved', { ton: formatTon(reservedTon) })}</p> : null}
         </Panel>
       </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+        <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
+        <p className="mt-1 text-[10px] text-slate-300">1 TON = {FC_PER_TON.toLocaleString('pt-BR')} FC — {t('wallet.oneWayNote')}</p>
+      </div>
+
 
       <Panel title={t('wallet.deposit')} icon={<ArrowDownToLine />}>
         <div className="grid grid-cols-4 gap-1">{[1,3,5,10].map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{value} TON</Quick>)}</div>
