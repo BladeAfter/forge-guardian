@@ -151,14 +151,14 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const withdrawal = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
-      if (withdrawFc < MIN_WITHDRAWAL_FC) throw new Error(t('wallet.errors.minWithdraw'));
-      if (withdrawFc % MIN_WITHDRAWAL_FC !== 0) throw new Error(t('wallet.errors.multipleWithdraw'));
-      if (!validWithdrawal(withdrawFc, balance)) throw new Error(t('wallet.errors.insufficientBalance'));
-      return requestWithdrawal(telegramInitData, withdrawFc, address, crypto.randomUUID());
+      if (withdrawTon < minWithdrawTon) throw new Error(t('wallet.errors.minWithdrawTon', { ton: formatTon(minWithdrawTon) }));
+      if (withdrawTon > availableTon) throw new Error(t('wallet.errors.insufficientTon'));
+      return requestTonWithdrawal(telegramInitData, withdrawTon, address, crypto.randomUUID());
     },
-    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
+    onSuccess: async () => { setConfirmWithdraw(false); setWithdrawTon(0); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
     onError: error => toast.error(tError(error))
   });
+
 
   const invalidateEggs = async () => {
     await Promise.all(['pet-egg-orders', 'pet-inventory', 'pet-dashboard', 'wallet-history', 'wallet-summary', 'game-state', 'community-pool'].map(key =>
