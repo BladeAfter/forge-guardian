@@ -72,7 +72,9 @@ export function normalizeRarity(rarity?: string | null): HeroRarity {
     common: 'common', comum: 'common', uncommon: 'uncommon', incomum: 'uncommon',
     rare: 'rare', raro: 'rare', rara: 'rare', epic: 'epic', 'épico': 'epic', epico: 'epic',
     'épica': 'epic', epica: 'epic', legendary: 'legendary', 'lendário': 'legendary',
-    lendario: 'legendary', 'lendária': 'legendary', lendaria: 'legendary'
+    lendario: 'legendary', 'lendária': 'legendary', lendaria: 'legendary',
+    mythic: 'mythic', 'mítico': 'mythic', mitico: 'mythic', 'mítica': 'mythic', mitica: 'mythic',
+    ancestral: 'ancestral', ancient: 'ancestral'
   };
   return aliases[value] ?? 'common';
 }
