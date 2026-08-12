@@ -66,6 +66,7 @@ export const PET_RARITY_LABELS: Record<string, string> = {
   rare: 'RARO',
   epic: 'ÉPICO',
   legendary: 'LENDÁRIO',
+  mythic: 'MÍTICO',
   ancestral: 'ANCESTRAL',
 };
 
