@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { showEntryInterstitial } from './adsgram';
+import { showEntryAd } from './adsgram';
 import { fetchPvpAdsState } from './services';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -104,6 +104,7 @@ function App() {
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
   const entryAdRef = useRef(false);
+  const [entryAdDone, setEntryAdDone] = useState(false);
   const passRecoveryRef = useRef(false);
 
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
@@ -269,15 +270,16 @@ function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  // AdsGram entry interstitial: a dedicated interstitial block (never the rewarded block),
-  // shown at most once per real Mini App session and only when an int-XXXXX id is registered.
+  // AdsGram entry ad: same rewarded block used by PvP (42560), but purely monetization —
+  // it never calls the PvP reward endpoint and never grants tickets/FC/TON/XP/items.
+  // Runs once per real Mini App session, before the loading screen, and never blocks boot.
   useEffect(() => {
-    if (!backendEnabled || !telegramInitData || entryAdRef.current) return;
+    if (entryAdRef.current) return;
     entryAdRef.current = true;
-    fetchPvpAdsState(telegramInitData)
-      .then((payload) => showEntryInterstitial(payload.ads))
-      .catch((adError) => console.error('[adsgram] entry interstitial skipped', adError));
-  }, [backendEnabled, telegramInitData]);
+    showEntryAd()
+      .catch((adError) => console.error('[adsgram] entry ad skipped', adError))
+      .finally(() => setEntryAdDone(true));
+  }, []);
 
   // Premium egg purchases paid earlier (even with the app closed) are finished here — a single
   // reconciliation per session, always idempotent: one payment can only ever deliver one pet.
@@ -621,6 +623,11 @@ function App() {
 
   if (outsideTelegram) {
     return <OpenInTelegramGate />;
+  }
+
+  // Minimal dark boot backdrop while the entry ad plays: no Village, no loading bar yet.
+  if (!entryAdDone) {
+    return <div className="min-h-screen bg-[#03060f]" />;
   }
 
   // One single boot screen: Telegram init, session validation and game data all live behind it.
