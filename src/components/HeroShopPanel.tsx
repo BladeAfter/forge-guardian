@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { n, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
 import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
-import { buyMarketListing, cancelMarketListing, createMarketListing } from '../services';
-import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market';
+import {
+  buyMarketListing,
+  cancelMarketListing,
+  createMarketListing,
+  createMarketPaymentIntent,
+  waitForMarketPayment,
+} from '../services';
+import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketSort } from '../market';
 
 type Props = {
   telegramInitData: string | null;
@@ -22,36 +29,52 @@ type Props = {
 
 const RARITY_FILTERS = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 const rarityColor = (rarity: string) => RARITY_COLORS[(rarity as HeroRarity)] ?? '#94a3b8';
+const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 });
 
-/** Marketplace is FC-only by design: there is no TON/crypto path in this screen. */
+/**
+ * Marketplace with two currencies: FC (game coin) and TON. TON purchases spend the
+ * internal withdrawable TON balance first; when it is not enough the backend reserves
+ * the listing and the buyer pays from the connected wallet.
+ */
 export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
+  const [tonUI] = n();
+  const wallet = useTonWallet();
   const [tab, setTab] = useState<'recruit' | 'market'>('recruit');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
   const [sort, setSort] = useState<MarketSort>('newest');
+  const [currencyFilter, setCurrencyFilter] = useState<MarketCurrency | 'all'>('all');
   const [sellKind, setSellKind] = useState<MarketItemType>('hero');
+  const [sellCurrency, setSellCurrency] = useState<MarketCurrency>('FC');
   const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
   const [price, setPrice] = useState('');
   const [sortOpen, setSortOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [page, setPage] = useState(1);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   // Maintenance switch and the admin bypass are decided by the backend only.
   const status = useMarketStatus(telegramInitData, tab === 'market');
   const marketAccess = status.data?.canAccess ?? false;
   const marketOpen = tab === 'market' && marketAccess;
   useMarketRealtime(marketOpen);
-  const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort);
+  const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort, currencyFilter);
   const mine = useMarketMine(telegramInitData, marketOpen && marketTab === 'mine');
   const sellable = useMarketSellable(telegramInitData, marketOpen && marketTab === 'sell');
 
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
-  const feePercent = Number(settings?.feePercent ?? 5);
-  const minPrice = Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const isTonSale = sellCurrency === 'TON';
+  const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
+  const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
   const settlementHours = Number(settings?.settlementHours ?? 72);
+  const availableTon = Number(browse.data?.availableTon ?? 0);
+
+  // Selling is the only action locked for young accounts: browsing and buying stay open.
+  const eligibility = sellable.data?.eligibility;
+  const canSell = eligibility ? eligibility.canSell !== false : true;
 
   // Live price band for the selected item — the backend is the single source of truth.
   const quote = useMarketQuote(telegramInitData, marketOpen && marketTab === 'sell' && !!selected, {
@@ -60,11 +83,17 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     itemCode: sellKind === 'item' ? selected?.code : undefined,
   });
   const band = quote.data?.range ?? null;
-  const bandMin = Math.max(Number(band?.min ?? minPrice), minPrice);
-  const bandMax = Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000);
-  const bandRecommended = Number(band?.recommended ?? bandMin);
-  const outOfBand = Number(price) > 0 && (Number(price) < bandMin || Number(price) > bandMax);
-  const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
+  const bandActive = !isTonSale && band?.currency !== 'TON';
+  const bandMin = bandActive ? Math.max(Number(band?.min ?? minPrice), minPrice) : minPrice;
+  const bandMax = bandActive
+    ? Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000)
+    : Number(settings?.maxPriceTon ?? 100_000);
+  const bandRecommended = bandActive ? Number(band?.recommended ?? bandMin) : bandMin;
+  const priceValue = Number(price) || 0;
+  const outOfBand = priceValue > 0 && (priceValue < bandMin || priceValue > bandMax);
+  const split = useMemo(() => marketFeeSplit(priceValue, feePercent, sellCurrency), [priceValue, feePercent, sellCurrency]);
+  const priceUnit = isTonSale ? 'TON' : 'FC';
+  const amountLabel = (value: number) => (isTonSale ? tonAmount(value) : formatCurrency(value));
 
   const sortLabel = (value: MarketSort) =>
     value === 'newest' ? t('market.sortNewest') : value === 'price_low' ? t('market.sortPriceLow') : t('market.sortPriceHigh');
@@ -90,13 +119,49 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
       queryClient.invalidateQueries({ queryKey: ['pet-dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['player-inventory'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-summary'] }),
+      queryClient.invalidateQueries({ queryKey: ['ton-wallet'] }),
     ]);
   };
 
+  /**
+   * External wallet payment. The backend reserves the listing (payment intent) and only
+   * delivers the item after it sees the exact transfer on-chain.
+   */
+  const payWithWallet = async (listingId: string) => {
+    if (!wallet) { await tonUI.openModal(); throw new Error(t('market.connectWallet')); }
+    const address = String(wallet.account?.address ?? '');
+    const intent = await createMarketPaymentIntent(telegramInitData ?? '', listingId, address);
+    await tonUI.n({
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: undefined, stateInit: undefined }],
+      // The comment is what links this transfer to the reservation.
+      ...({ } as Record<string, never>),
+    } as never);
+    toast.message(t('market.paymentSent', { minutes: 10 }));
+    const result = await waitForMarketPayment(telegramInitData ?? '', intent.paymentId);
+    if (result?.status === 'confirmed') toast.success(t('market.paymentConfirmed'));
+    else toast.message(t('market.paymentPending'));
+  };
+
   const buyMutation = useMutation({
-    mutationFn: (listingId: string) => buyMarketListing(telegramInitData ?? '', listingId),
-    onSuccess: async (result) => { toast.success(`${result.name} · -${formatCurrency(result.pricePaid)} FC`); await refreshAll(); },
-    onError: (error) => toast.error(error instanceof Error ? error.message : t('market.loadError')),
+    mutationFn: async (listingId: string) => {
+      const listing = listings.find((item) => item.id === listingId);
+      if (listing?.currency === 'TON' && Number(listing.priceTon) > availableTon) {
+        setPayingId(listingId);
+        await payWithWallet(listingId);
+        return null;
+      }
+      return await buyMarketListing(telegramInitData ?? '', listingId);
+    },
+    onSuccess: async (result) => {
+      if (result) {
+        const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
+        toast.success(`${result.name} · -${paid}`);
+      }
+      setPayingId(null);
+      await refreshAll();
+    },
+    onError: (error) => { setPayingId(null); toast.error(error instanceof Error ? error.message : t('market.loadError')); },
   });
   const cancelMutation = useMutation({
     mutationFn: (listingId: string) => cancelMarketListing(telegramInitData ?? '', listingId),
@@ -108,10 +173,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
       itemType: sellKind,
       itemInstanceId: sellKind === 'item' ? undefined : selected?.id,
       itemCode: sellKind === 'item' ? selected?.code : undefined,
-      priceFc: Math.trunc(Number(price) || 0),
+      currency: sellCurrency,
+      priceFc: isTonSale ? undefined : Math.trunc(priceValue),
+      priceTon: isTonSale ? Math.round(priceValue * 1000) / 1000 : undefined,
     }),
     onSuccess: async (result) => {
-      toast.success(`${t('market.youReceive')}: ${formatCurrency(result.sellerReceives)} FC`);
+      toast.success(`${t('market.youReceive')}: ${amountLabel(result.sellerReceives)} ${priceUnit}`);
       setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
@@ -127,6 +194,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     : sellKind === 'pet'
       ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase() }))
       : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}` }));
+
+
 
 
   return (
