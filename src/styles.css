@@ -636,9 +636,9 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   50%      { opacity: .85; transform: scale(1.06); }
 }
 @keyframes gb-swap {
-  0%   { opacity: 0; transform: translateY(26px) scale(.9); filter: brightness(2.2); }
-  60%  { opacity: 1; transform: translateY(0) scale(1.02); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+  0%   { opacity: 0; transform: translateY(22px) scale(calc(var(--gb-scale, 1) * .88)); filter: brightness(2.2); }
+  60%  { opacity: 1; transform: translateY(0) scale(calc(var(--gb-scale, 1) * 1.03)); }
+  100% { opacity: 1; transform: translateY(0) scale(calc(var(--gb-scale, 1) * 1)); filter: brightness(1); }
 }
 .gb-boss {
   --gb-scale: 1.3;
@@ -651,6 +651,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @media (min-width: 640px) { .gb-boss { --gb-scale: 1.35; } }
 .gb-aura { animation: gb-aura 5s ease-in-out infinite; will-change: opacity, transform; }
 .gb-enter { animation: gb-swap .9s cubic-bezier(.2,.8,.2,1) both; }
+/* Boss keeps floating after the entrance animation (both target transform). */
+.gb-boss.gb-enter { animation: gb-swap .9s cubic-bezier(.2,.8,.2,1) both, gb-float 6.5s ease-in-out .9s infinite; }
 .gb-swap-overlay {
   position: absolute; inset: 0; z-index: 20; display: grid; place-content: center; gap: .35rem;
   text-align: center; background: radial-gradient(circle at 50% 40%, rgba(0,0,0,.35), rgba(0,0,0,.85));
