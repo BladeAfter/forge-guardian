@@ -2309,6 +2309,45 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_stat_repair_audit: {
+        Row: {
+          created_at: string
+          hero_id: string
+          hero_key: string | null
+          id: string
+          new_base_atk: number | null
+          new_base_hp: number | null
+          old_base_atk: number | null
+          old_base_hp: number | null
+          rarity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id: string
+          hero_key?: string | null
+          id?: string
+          new_base_atk?: number | null
+          new_base_hp?: number | null
+          old_base_atk?: number | null
+          old_base_hp?: number | null
+          rarity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string
+          hero_key?: string | null
+          id?: string
+          new_base_atk?: number | null
+          new_base_hp?: number | null
+          old_base_atk?: number | null
+          old_base_hp?: number | null
+          rarity?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       market_item_ownership_history: {
         Row: {
           created_at: string
@@ -8361,6 +8400,19 @@ export type Database = {
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_recruit_rarity_flags: { Args: never; Returns: Json }
+      hero_stat_ranges: {
+        Args: { p_rarity: string }
+        Returns: {
+          max_ag: number
+          max_atk: number
+          max_hg: number
+          max_hp: number
+          min_ag: number
+          min_atk: number
+          min_hg: number
+          min_hp: number
+        }[]
+      }
       hero_summon_rates: { Args: never; Returns: Json }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
       join_clan: {
