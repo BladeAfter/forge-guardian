@@ -296,18 +296,23 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
         <div className="mt-2 space-y-1">
           {(data.history ?? []).length === 0 ? <p className="py-3 text-center text-[9px] text-slate-500">—</p> : null}
           {(data.history ?? []).map((row) => (
-            <div key={row.cycle} className="rounded-xl border border-white/10 bg-black/55 p-2">
-              <div className="flex justify-between text-[10px]">
-                <b className="text-violet-200">{t('clanBoss.cycle')} #{row.cycle}</b>
-                <span className={row.status === 'defeated' ? 'text-emerald-300' : 'text-slate-400'}>
-                  {row.status === 'defeated' ? t('clanBoss.historyDefeated') : t('clanBoss.historyExpired')}
-                </span>
+            <div key={row.cycle} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/55 p-2">
+              <img src={clanBossArt(row.bossKey)} alt="" loading="lazy" width={1024} height={1280} className="h-10 w-10 shrink-0 object-contain" />
+              <div className="min-w-0 flex-1">
+                <div className="flex justify-between text-[10px]">
+                  <b className="text-violet-200">{t('clanBoss.cycle')} #{row.cycle} · {row.bossName ?? ''}</b>
+                  <span className={row.status === 'defeated' ? 'text-emerald-300' : 'text-slate-400'}>
+                    {row.status === 'defeated' ? t('clanBoss.historyDefeated') : t('clanBoss.historyExpired')}
+                  </span>
+                </div>
+                <p className="text-[9px] text-slate-400">
+                  {t('clanBoss.topDamage')}: {row.topName ? `@${row.topName}` : '—'}
+                  {row.topDamage ? ` (${abbreviateDamage(row.topDamage)})` : ''} · {abbreviateDamage(row.totalDamage)} · {t('clanBoss.clanXp')} +{row.clanXp}
+                </p>
               </div>
-              <p className="text-[9px] text-slate-400">
-                {t('clanBoss.topDamage')}: {row.topName ? `@${row.topName}` : '—'} · {abbreviateDamage(row.totalDamage)} · {t('clanBoss.clanXp')} +{row.clanXp}
-              </p>
             </div>
           ))}
+
         </div>
       ) : null}
       <div className="h-6" />
@@ -330,22 +335,23 @@ function Stat({ label, value, tone }: { label: string; value: string; tone: 'vio
   );
 }
 
-function Frame({ children, onClose, clan, cycle }: { children: React.ReactNode; onClose: () => void; clan?: ClanBossState['clan']; cycle?: number }) {
+function Frame({ children, onClose, clan, cycle, bossKey }: { children: React.ReactNode; onClose: () => void; clan?: ClanBossState['clan']; cycle?: number; bossKey?: string }) {
   const t = useT();
+  const theme = bossKey ? clanBossTheme(bossKey) : DEFAULT_CLAN_BOSS_THEME;
   return (
-    <div className="fullscreen-page overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,rgba(76,29,149,.55),#070610_70%)] text-white">
+    <div className="fullscreen-page overflow-y-auto text-white" style={{ backgroundImage: theme.page }}>
       <div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3">
         <header className="mb-3 flex items-center justify-between">
-          <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-violet-300/25 bg-black/50"><ArrowLeft /></button>
+          <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-200/25 bg-black/50"><ArrowLeft /></button>
           <div className="flex items-center gap-2">
             {clan ? <ClanCrest emblem={clan.emblem} size={28} /> : null}
             <div className="text-center">
               <p className="text-[8px] tracking-[.28em] text-amber-300">{clan ? `[${clan.tag}] ${clan.name}` : 'MYTHREON'}</p>
-              <b className="text-[12px] tracking-[.14em] text-violet-100">{t('clanBoss.title')}</b>
-              {cycle ? <p className="text-[8px] tracking-[.2em] text-violet-300/80">{t('clanBoss.cycle')} #{cycle}</p> : null}
+              <b className="text-[12px] tracking-[.14em] text-white">{t('clanBoss.title')}</b>
+              {cycle ? <p className={`text-[8px] tracking-[.2em] ${theme.accent}`}>{t('clanBoss.cycle')} #{cycle}</p> : null}
             </div>
           </div>
-          <div className="grid h-10 w-10 place-items-center rounded-xl border border-rose-300/25 bg-black/50"><Sword className="h-4 w-4 text-rose-300" /></div>
+          <div className="grid h-10 w-10 place-items-center rounded-xl border border-amber-200/25 bg-black/50"><Sword className="h-4 w-4 text-amber-200" /></div>
         </header>
         {children}
       </div>
@@ -354,19 +360,21 @@ function Frame({ children, onClose, clan, cycle }: { children: React.ReactNode; 
 }
 
 /** Compact entry card rendered inside the Clan Hub boss tab. */
-export function ClanBossTeaser({ onOpen }: { onOpen: () => void }) {
+export function ClanBossTeaser({ onOpen, bossKey, bossName }: { onOpen: () => void; bossKey?: string; bossName?: string }) {
   const t = useT();
+  const theme = clanBossTheme(bossKey);
   return (
-    <button type="button" onClick={onOpen} className="relative z-10 w-full cursor-pointer overflow-hidden rounded-3xl border border-violet-400/30 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,.4),rgba(0,0,0,.85)_70%)] p-3 text-left">
+    <button type="button" onClick={onOpen} className={`relative z-10 w-full cursor-pointer overflow-hidden rounded-3xl border ${theme.border} p-3 text-left`} style={{ backgroundImage: theme.stage }}>
       <div className="flex items-center gap-3">
-        <img src={warlordArt} alt="Abyssal Warlord" loading="lazy" width={1024} height={1280} className="h-24 w-auto object-contain drop-shadow-[0_0_18px_rgba(168,85,247,.5)]" />
+        <img src={theme.art} alt={bossName ?? 'Clan Boss'} loading="lazy" width={1024} height={1280} style={{ filter: theme.glow }} className="h-24 w-auto object-contain" />
         <div className="min-w-0 flex-1">
-          <b className="block text-[12px] font-black tracking-[.12em] text-violet-100">ABYSSAL WARLORD</b>
+          <b className="block text-[12px] font-black tracking-[.12em] text-white">{(bossName ?? 'ABYSSAL WARLORD').toUpperCase()}</b>
           <p className="mt-1 flex items-center gap-1 text-[9px] text-amber-300/90"><Flame className="h-3 w-3" />{t('clanBoss.title')}</p>
           <p className="mt-1 flex items-center gap-1 text-[9px] text-slate-400"><Users className="h-3 w-3" />{t('clanBoss.participants')}</p>
-          <span className="mt-2 inline-block rounded-xl border border-rose-300/40 bg-rose-500/20 px-3 py-2 text-[9px] font-black tracking-[.16em] text-rose-100">{t('clanBoss.open')}</span>
+          <span className="mt-2 inline-block rounded-xl border border-amber-200/40 bg-black/50 px-3 py-2 text-[9px] font-black tracking-[.16em] text-amber-100">{t('clanBoss.open')}</span>
         </div>
       </div>
     </button>
   );
 }
+
