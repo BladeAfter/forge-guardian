@@ -8393,30 +8393,18 @@ export type Database = {
       }
       market_account_days: { Args: { p_user: string }; Returns: number }
       market_active_days: { Args: { p_user: string }; Returns: number }
-      market_browse:
-        | {
-            Args: {
-              p_item_type?: string
-              p_limit?: number
-              p_offset?: number
-              p_rarity?: string
-              p_sort?: string
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_currency?: string
-              p_item_type?: string
-              p_limit?: number
-              p_offset?: number
-              p_rarity?: string
-              p_sort?: string
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
+      market_browse: {
+        Args: {
+          p_currency?: string
+          p_item_type?: string
+          p_limit?: number
+          p_offset?: number
+          p_rarity?: string
+          p_sort?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       market_buy_listing: {
         Args: { p_listing_id: string; p_telegram_id: number }
         Returns: Json
