@@ -27,9 +27,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   const { data, isLoading, isError, refetch } = useClanBoss(telegramInitData, true);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [hit, setHit] = useState<{ damage: number; critical: boolean } | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [impact, setImpact] = useState<{ id: string; kind: 'player' | 'crit' | 'boss' } | null>(null);
+  const { events, phase, push } = useCombatFx();
+  const seen = useRef<Set<string>>(new Set());
 
   useClanBossRealtime(data?.boss?.id, data?.clan?.id, Boolean(data?.inClan));
 
@@ -44,10 +45,13 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     if (!boss || boss.maxHp <= 0) return 0;
     return Math.max(0, Math.min(100, (boss.currentHp / boss.maxHp) * 100));
   }, [boss]);
+  // Bar eases old -> new; the numeric readout below always shows the real value.
+  const easedHp = useEasedPercent(hpPercent);
 
   const cooldownLeft = me?.nextAttackAt ? new Date(me.nextAttackAt).getTime() - now : 0;
   const onCooldown = cooldownLeft > 0;
   const defeated = Boolean(boss && (boss.status !== 'active' || boss.currentHp <= 0));
+
 
   const attack = async () => {
     if (busy || !boss) return;
