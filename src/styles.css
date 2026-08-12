@@ -809,3 +809,13 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .gb-boss, .gb-aura, .gb-enter, .gb-arena-art, .gb-arena-mist { animation: none; }
 }
 
+
+/* 🌌 Ovo Mítico — cosmic card treatment (light effects only, Mini App friendly). */
+.egg-card-cosmic{position:relative;background:radial-gradient(circle at 50% 22%,rgba(139,92,246,.30),rgba(6,10,26,.92) 62%),#05070f;box-shadow:0 0 18px rgba(139,92,246,.28),inset 0 0 24px rgba(56,189,248,.10);overflow:hidden}
+.egg-card-cosmic::before{content:'';position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 62%,rgba(251,191,36,.55) 74%,rgba(139,92,246,.55) 84%,transparent 96%);animation:egg-cosmic-spin 7s linear infinite;opacity:.45;pointer-events:none}
+.egg-card-cosmic::after{content:'';position:absolute;inset:1px;border-radius:14px;background:inherit;background-image:radial-gradient(circle at 50% 22%,rgba(139,92,246,.24),rgba(6,10,26,.94) 60%);pointer-events:none}
+.egg-card-cosmic > *{position:relative;z-index:1}
+.egg-image-cosmic{filter:drop-shadow(0 0 10px rgba(139,92,246,.65)) drop-shadow(0 0 18px rgba(56,189,248,.35));animation:egg-cosmic-float 4.5s ease-in-out infinite}
+@keyframes egg-cosmic-spin{to{transform:rotate(360deg)}}
+@keyframes egg-cosmic-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.03)}}
+@media (prefers-reduced-motion:reduce){.egg-card-cosmic::before,.egg-image-cosmic{animation:none}}

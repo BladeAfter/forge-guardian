@@ -18,12 +18,12 @@ import { useT, useLanguage } from '../LanguageContext';
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
 /** Rates always render in ascending rarity order, once per rarity. */
 const sortedRates = (rates: Record<string, number>) =>
   Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => RARITY_ORDER.indexOf(a[0]) - RARITY_ORDER.indexOf(b[0]));
 
-const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
+const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#a78bfa', ancestral: '#f472b6' };
 
 const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: string; badgeClass: string }> = {
   common: { borderClass: 'border-slate-400/55', glowClass: 'from-slate-400/20', badgeClass: 'border-slate-300/40 bg-slate-500/15 text-slate-200' },
@@ -245,9 +245,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 const owned = egg.quantity > 0;
                 const ton = !egg.priceFc && !!egg.priceTon;
                 const locked = !egg.isPurchasable || (!egg.priceFc && !egg.priceTon);
+                const cosmic = egg.slug === 'mythic-egg';
                 return (
-                  <div key={egg.id} className="flex flex-col rounded-2xl border border-amber-300/20 bg-black/55 p-3 text-center">
-                    <img src={egg.image} alt={egg.name} className="mx-auto h-24 w-24 object-contain" />
+                  <div key={egg.id} className={`flex flex-col rounded-2xl border p-3 text-center ${cosmic ? 'egg-card-cosmic border-violet-300/40' : 'border-amber-300/20 bg-black/55'}`}>
+                    <img src={egg.image} alt={egg.name} className={`mx-auto h-24 w-24 object-contain ${cosmic ? 'egg-image-cosmic' : ''}`} />
                     <h3 className="truncate text-xs font-black">{egg.name}</h3>
                     {/* Price is rendered exactly once here; the buy button may repeat it. */}
                     <p className="text-[9px] font-bold uppercase text-amber-200">
