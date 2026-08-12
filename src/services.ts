@@ -18,7 +18,7 @@ import type{PassTier,PassXpGain,SeasonPassDashboard,SeasonPassOrder}from'./seaso
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
-import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketItemType,MarketMine,MarketQuote,MarketSellable,MarketSort,MarketStatus} from './market';
+import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketCurrency,MarketItemType,MarketMine,MarketPaymentIntent,MarketPaymentStatus,MarketQuote,MarketSellable,MarketSort,MarketStatus} from './market';
 
 
 const demoPlayerId = (telegramInitData: string) => {
