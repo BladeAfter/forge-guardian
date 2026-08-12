@@ -1,5 +1,5 @@
 import type {SpecialEventsDashboard} from './specialEvents';
-import type {SpendingEventDashboard} from './spendingEvent';
+import type {SpendingEventDashboard,SpendingEventPopup} from './spendingEvent';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
@@ -366,3 +366,21 @@ export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<
 
 /** Spending Event (SPENDING EVENT tab): the backend counts every confirmed spend. */
 export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');const payload=await response.json().catch(()=>null)as(SpendingEventDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');return payload}
+
+/**
+ * Entry highlight for an ACTIVE Spending Event. Never blocks the boot: any failure
+ * resolves as `{show:false}` so the game keeps running exactly as before.
+ */
+export async function spendingEventPopupRequest(initData:string):Promise<SpendingEventPopup>{
+  try{
+    const response=await forgeFetch('spending-event',{initData,action:'popup'});
+    if(!response.ok)return{show:false};
+    const payload=await response.json().catch(()=>null) as SpendingEventPopup|null;
+    return payload&&payload.show?payload:{show:false};
+  }catch{return{show:false}}
+}
+
+/** Records that the player saw the highlight (per user + per event, so it follows the account). */
+export async function markSpendingEventPopupSeen(initData:string):Promise<void>{
+  try{await forgeFetch('spending-event',{initData,action:'popup-seen'})}catch{/* silent: cosmetic only */}
+}

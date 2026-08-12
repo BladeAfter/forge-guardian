@@ -2828,10 +2828,29 @@ async function spendHub(ctx: Ctx, editing = true) {
     [{ t: '▶️ START EVENT', d: 'sp:start' }, { t: '⏹ END EVENT', d: 'sp:end' }],
     [{ t: '📅 DURATION', d: 'sp:dur' }, { t: '🎁 REWARDS', d: 'sp:rw' }],
     [{ t: '🏆 VIEW RANKING', d: 'sp:rank' }, { t: '✅ VALID SPEND TYPES', d: 'sp:types' }],
+    [{ t: '📣 ENTRY POPUP', d: 'sp:popup' }],
     [{ t: '🔒 FINALIZE', d: 'sp:fin' }, { t: '📜 AUDIT', d: 'sp:audit' }],
     nav(),
   ];
   return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
+}
+
+// Entry popup: purely cosmetic in-game highlight. It never changes points or rewards.
+async function spendPopupMenu(ctx: Ctx) {
+  const r = await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId }) as any;
+  const cfg = r?.config || {};
+  const on = cfg.enabled !== false;
+  const freq = String(cfg.frequency || 'daily');
+  const body = ['📣 <b>SPENDING EVENT POPUP</b>', '',
+    `Status: <b>${on ? 'ON' : 'OFF'}</b>`,
+    `Frequência: <b>${freq === 'event' ? 'ONCE PER EVENT' : 'ONCE PER DAY'}</b>`,
+    '', 'O aviso aparece na Vila quando existe evento <b>ativo</b> e pode ser fechado a qualquer momento.'].join('\n');
+  return edit(ctx, body, kb([
+    [{ t: on ? '🔴 DESLIGAR' : '🟢 LIGAR', d: `sp:popset:${on ? 'off' : 'on'}` }],
+    [{ t: `${freq === 'daily' ? '✅ ' : ''}ONCE PER DAY`, d: 'sp:popfreq:daily' }],
+    [{ t: `${freq === 'event' ? '✅ ' : ''}ONCE PER EVENT`, d: 'sp:popfreq:event' }],
+    [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav(),
+  ]));
 }
 
 async function spendRanking(ctx: Ctx) {
@@ -2897,6 +2916,13 @@ async function spendCallback(ctx: Ctx, rest: string[]) {
     case 'rw': return spendRewards(ctx);
     case 'audit': return spendAudit(ctx);
     case 'types': return edit(ctx, SPEND_TYPES_TEXT, kb([[{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+    case 'popup': return spendPopupMenu(ctx);
+    case 'popset':
+      await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId, p_enabled: a === 'on' });
+      return spendPopupMenu(ctx);
+    case 'popfreq':
+      await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId, p_frequency: a === 'event' ? 'event' : 'daily' });
+      return spendPopupMenu(ctx);
     case 'ask': return ask(ctx, a, PROMPTS[a] || 'Envie o valor.');
     case 'new': return ask(ctx, 'spname', PROMPTS.spname);
     case 'dur':

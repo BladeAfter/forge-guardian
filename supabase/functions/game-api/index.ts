@@ -892,8 +892,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   /**
    * Spending Event (SPENDING EVENT tab). Points, ranking, totals and estimated
    * rewards are computed server-side from confirmed spends only.
+   * `popup` / `popup-seen` only drive the entry highlight: they never change the event itself.
    */
   'spending-event': async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'popup') return rpc(db, 'get_spending_event_popup', { p_telegram_id: user.id });
+    if (action === 'popup-seen') return rpc(db, 'mark_spending_event_popup_seen', { p_telegram_id: user.id });
     const limit = Math.min(200, Math.max(5, Number(body.limit) || 20));
     return rpc(db, 'get_spending_event_dashboard', { p_telegram_id: user.id, p_limit: limit });
   },

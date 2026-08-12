@@ -26,11 +26,12 @@ import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
+import {SpendingEventPopup}from'./components/SpendingEventPopup';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, markSpendingEventPopupSeen, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -167,6 +168,26 @@ function App() {
   const calendarChestMutation=useMutation({mutationFn:(id:string)=>openCalendarChest(telegramInitData??'',id),onSuccess:async result=>{setChestResult(result);setCalendarResult(null);await Promise.all([refetchBoss(),queryClient.invalidateQueries({queryKey:['player-inventory']}),queryClient.invalidateQueries({queryKey:['player-heroes']}),queryClient.invalidateQueries({queryKey:['community-pool']}),queryClient.invalidateQueries({queryKey:['game-state']}),queryClient.invalidateQueries({queryKey:['daily-quests']}),queryClient.invalidateQueries({queryKey:['season-pass']})])},onError:error=>toast.error(error instanceof Error?error.message:'Não foi possível abrir o baú. Tente novamente.'),onSettled:()=>{openingChestRef.current=false}});
   /** One click = one chest: the ref blocks a second request before React re-renders. */
   const openChest=(id:string)=>{if(openingChestRef.current||calendarChestMutation.isPending)return;openingChestRef.current=true;calendarChestMutation.mutate(id)};
+
+  /**
+   * SPENDING EVENT entry highlight.
+   * Fetched only AFTER the boot finished and only while the Village is quiet (no
+   * internal page, no reward/chest/shop/settings modal open). The request is
+   * failure-tolerant by design: any error resolves as "don't show" and the game
+   * keeps running exactly as before. It never gates rendering.
+   */
+  const [spendingPopupDismissed,setSpendingPopupDismissed]=useState(false);
+  const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
+  const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
+  const {data:spendingPopupData}=useQuery({
+    queryKey:['spending-event-popup',telegramInitData],
+    enabled:backendEnabled&&homeQuiet&&!spendingPopupDismissed,
+    queryFn:()=>spendingEventPopupRequest(telegramInitData??''),
+    staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
+  });
+  const spendingPopup=homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
+  /** Closing (X or VIEW EVENT) records the view server-side, per user and per event. */
+  const dismissSpendingPopup=()=>{setSpendingPopupDismissed(true);if(telegramInitData)void markSpendingEventPopupSeen(telegramInitData)};
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
@@ -742,11 +763,16 @@ function App() {
   if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')}/></>;
+  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} initialTab={poolInitialTab}/></>;
 
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
       <PassXpToasts telegramInitData={telegramInitData}/>
+      {spendingPopup?<SpendingEventPopup
+        data={spendingPopup}
+        onClose={dismissSpendingPopup}
+        onView={()=>{dismissSpendingPopup();setPoolInitialTab('spending');openInternal('pool')}}
+      />:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
@@ -793,7 +819,7 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
-            <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>openInternal('pool')}/>
+            <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.heroShop} label={t('shop')} onClick={()=>setShopOpen(true)}/>

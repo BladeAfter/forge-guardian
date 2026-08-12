@@ -5339,6 +5339,54 @@ export type Database = {
           },
         ]
       }
+      spending_event_popup_views: {
+        Row: {
+          created_at: string
+          event_id: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          times_seen: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          times_seen?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          times_seen?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_popup_views_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spending_event_popup_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spending_event_results: {
         Row: {
           created_at: string
@@ -6555,6 +6603,10 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_spending_event_popup_config: {
+        Args: { p_admin_id: number; p_enabled?: boolean; p_frequency?: string }
+        Returns: Json
+      }
       admin_spending_event_ranking: {
         Args: { p_admin_id: number; p_event_id: string; p_limit?: number }
         Returns: Json
@@ -7288,6 +7340,10 @@ export type Database = {
         Args: { p_limit?: number; p_telegram_id: number }
         Returns: Json
       }
+      get_spending_event_popup: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_spending_event_ranking: {
         Args: { p_event_id: string; p_limit?: number; p_offset?: number }
         Returns: Json
@@ -7349,6 +7405,10 @@ export type Database = {
       }
       mark_notifications_read: {
         Args: { p_ids?: string[]; p_telegram_id: number }
+        Returns: Json
+      }
+      mark_spending_event_popup_seen: {
+        Args: { p_telegram_id: number }
         Returns: Json
       }
       market_browse: {
