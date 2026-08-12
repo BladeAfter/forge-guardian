@@ -156,11 +156,21 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
 
   return (
     <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle} bossKey={boss?.key}>
-      {/* Boss stage — container size never changes, only the art transforms */}
+      {/* Boss stage — layered themed arena: far backdrop, mid scene, floor, fx, boss */}
       <div
         className={`cb-stage relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-[0_24px_70px_rgba(0,0,0,.6)]`}
-        style={{ backgroundImage: boss?.backgroundUrl ? `url(${boss.backgroundUrl})` : theme.stage, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        style={{ backgroundImage: theme.stage }}
       >
+        <img
+          key={`arena-${boss?.key}`}
+          src={boss?.backgroundUrl && boss.backgroundUrl.length > 4 ? boss.backgroundUrl : theme.arena}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          className="cb-arena-art"
+        />
+        <div className="cb-arena-shade" />
+        <div className={`cb-arena-fx cb-fx-${theme.fx}`} />
         {/* depth: floor haze + vignette + subtle gold frame */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 to-transparent" />
         <div className="pointer-events-none absolute inset-0 rounded-3xl shadow-[inset_0_0_60px_rgba(0,0,0,.75)]" />
@@ -173,7 +183,9 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
             <span>{t('clanBoss.cycleCompleted')}</span>
           </div>
         ) : null}
-        <div className="relative h-64">
+        <div className="cb-arena relative flex h-64 items-center justify-center sm:h-72">
+          <div className="cb-boss-aura" style={{ backgroundImage: theme.aura }} />
+          <div className="cb-boss-base" style={{ backgroundImage: theme.base }} />
           <img
             key={`${boss?.key}:${cycleSwap}`}
             src={art}
@@ -181,7 +193,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
             width={1024}
             height={1280}
             style={{ filter: theme.glow }}
-            className={`cb-boss-art cb-enter mx-auto h-64 w-auto object-contain ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
+            className={`cb-boss-art cb-enter ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
           />
           <FloatingDamage events={events} />
         </div>
@@ -194,6 +206,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
           </p>
           <div className="mt-2"><TurnIndicator phase={phase} idleLabel={t('clanBoss.waiting')} /></div>
         </div>
+
 
         {/* HP — bar eases, number stays exact */}
         <div className="relative mt-3">
