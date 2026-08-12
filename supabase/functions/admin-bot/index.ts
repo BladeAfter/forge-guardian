@@ -3886,6 +3886,204 @@ async function nftPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   }
 }
 
+// ---------------------------------------------------------------- ⚔️ NFT EXCLUSIVE heroes
+// Tier above ANCESTRAL. Never in recruit/chest/drop pools, never fusable/sellable.
+// Every unit carries a unique serial (Eternis #001) bound to a single player.
+const NFTH_FIELDS: Array<{ k: string; col: string; label: string }> = [
+  { k: 'atk', col: 'base_atk', label: '⚔️ ATK' },
+  { k: 'hp', col: 'base_hp', label: '❤️ HP' },
+  { k: 'def', col: 'base_def', label: '🛡 DEF' },
+  { k: 'spd', col: 'base_speed', label: '💨 SPEED' },
+  { k: 'crit', col: 'crit_rate', label: '🎯 CRIT %' },
+  { k: 'skill', col: 'skill_power', label: '✨ SKILL POWER' },
+  { k: 'growth', col: 'growth_multiplier', label: '📈 CRESCIMENTO' },
+  { k: 'maxlvl', col: 'max_level', label: '🔝 NÍVEL MÁX' },
+];
+
+async function nfthHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_hero_overview', { p_admin_id: ctx.adminId }) as any;
+  const t = d.totals ?? {};
+  const lines = (d.templates ?? []).map((x: any) =>
+    `• <code>${esc(x.heroKey)}</code> ${esc(x.name)} — ${fmt(x.minted)} unid. (🟢 ${fmt(x.available)} · 👤 ${fmt(x.owned)})`).join('\n') || 'Nenhum herói NFT cadastrado.';
+  const text = `⚔️ <b>NFT EXCLUSIVE HEROES</b>\n<i>Tier acima de ANCESTRAL</i>\n${lines}\n\n<b>REGISTRO</b>\nUnidades ${fmt(t.units)} · 🟢 ${fmt(t.available)} · 👤 ${fmt(t.owned)} · ↩️ ${fmt(t.revoked)}\n\nNão entram em recrutamento, baús, drops, fusão ou mercado. Evolução (nível e estrelas) permitida.`;
+  const rows = [
+    [{ t: '➕ CRIAR UNIDADE', d: 'nfth:new' }, { t: '🎁 ENTREGAR', d: 'nfth:ask:nfthgive' }],
+    [{ t: '📋 LISTAR REGISTRO', d: 'nfth:list:0' }, { t: '🔎 PESQUISAR', d: 'nfth:ask:nfthsearch' }],
+    [{ t: '⚙️ EDITOR DE POWER', d: 'nfth:bal' }, { t: '📊 ESTATÍSTICAS', d: 'nfth:stats' }],
+    [{ t: '↩️ REVOGAR', d: 'nfth:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nfth:hist' }],
+    nav('m:heroes'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nfthTemplateMenu(ctx: Ctx, mode: 'mint' | 'bal') {
+  const d = await rpc('admin_nft_hero_overview', { p_admin_id: ctx.adminId }) as any;
+  const rows = (d.templates ?? []).map((x: any) => [{
+    t: `⚔️ ${x.name} (${x.available}/${x.minted})`,
+    d: mode === 'mint' ? `nfth:tpl:${x.heroKey}` : `nfth:bt:${x.heroKey}`,
+  }]);
+  if (mode === 'mint') rows.push([{ t: '⌨️ DIGITAR HERO KEY', d: 'nfth:ask:nfthmint' }]);
+  rows.push(nav('nfth:hub'));
+  return edit(ctx, mode === 'mint'
+    ? '➕ <b>CRIAR UNIDADE NFT</b>\nEscolha o herói exclusivo que receberá novos seriais.'
+    : '⚙️ <b>EDITOR DE POWER</b>\nEscolha o herói NFT para ajustar atributos, crescimento e nível máximo.', kb(rows));
+}
+
+async function nfthTemplateCard(ctx: Ctx, heroKey: string) {
+  const d = await rpc('admin_nft_hero_overview', { p_admin_id: ctx.adminId }) as any;
+  const x = (d.templates ?? []).find((r: any) => r.heroKey === heroKey);
+  if (!x) return send(ctx, '⚠️ Herói NFT não encontrado.', kb([nav('nfth:hub')]));
+  return edit(ctx, `⚔️ <b>${esc(x.name)}</b>\n<code>${esc(x.heroKey)}</code> · ${esc(String(x.class ?? '').toUpperCase())}\nATK ${fmt(x.baseAtk)} · HP ${fmt(x.baseHp)} · DEF ${fmt(x.baseDef)}\nSPD ${fmt(x.speed)} · CRIT ${x.crit}% · SKILL ${x.skillPower}\nUnidades: ${fmt(x.minted)} · 🟢 ${fmt(x.available)} · 👤 ${fmt(x.owned)}\n\nCada unidade recebe serial único e instância exclusiva.`,
+    kb([[{ t: '➕ 1 UNIDADE', d: `nfth:mint:${heroKey}:1` }, { t: '➕ 5', d: `nfth:mint:${heroKey}:5` }, { t: '➕ 10', d: `nfth:mint:${heroKey}:10` }],
+        [{ t: '📋 UNIDADES DISPONÍVEIS', d: `nfth:avail:${heroKey}` }, { t: '⚙️ POWER', d: `nfth:bt:${heroKey}` }], nav('nfth:new')]));
+}
+
+async function nfthBalanceCard(ctx: Ctx, heroKey: string, useEdit = true) {
+  const d = await rpc('admin_nft_hero_overview', { p_admin_id: ctx.adminId }) as any;
+  const x = (d.templates ?? []).find((r: any) => r.heroKey === heroKey);
+  if (!x) return send(ctx, '⚠️ Herói NFT não encontrado.', kb([nav('nfth:hub')]));
+  const text = [`⚙️ <b>POWER · ${esc(x.name)}</b>`, `<code>${esc(x.heroKey)}</code> · ${esc(String(x.class ?? '').toUpperCase())}`, '',
+    `⚔️ ATK <b>${fmt(x.baseAtk)}</b> · ❤️ HP <b>${fmt(x.baseHp)}</b>`,
+    `🛡 DEF <b>${fmt(x.baseDef)}</b> · 💨 SPEED <b>${fmt(x.speed)}</b>`,
+    `🎯 CRIT <b>${x.crit}%</b> · ✨ SKILL <b>${x.skillPower}</b>`,
+    `📈 CRESCIMENTO <b>${x.growth}x</b> · 🔝 NÍVEL MÁX <b>${fmt(x.maxLevel)}</b>`, '',
+    'Alterações valem para novas unidades e recalculam os stats das já entregues.'].join('\n');
+  const rows: any[] = [];
+  for (let i = 0; i < NFTH_FIELDS.length; i += 2) {
+    rows.push(NFTH_FIELDS.slice(i, i + 2).map((f) => ({ t: f.label, d: `nfth:set:${heroKey}:${f.k}` })));
+  }
+  rows.push([{ t: '📋 UNIDADES', d: `nfth:avail:${heroKey}` }]);
+  rows.push(nav('nfth:bal'));
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nfthMint(ctx: Ctx, heroKey: string, qty: number) {
+  const r = await rpc('admin_nft_hero_create', { p_admin_id: ctx.adminId, p_hero_key: heroKey, p_quantity: qty }) as any;
+  const created = (r.created ?? []) as any[];
+  await send(ctx, `✅ <b>${fmt(created.length)}</b> unidade(s) de <b>${esc(r.hero)}</b> criada(s).\n${created.map((c) => `• ${nftSerial(c.serial)} <code>${esc(c.instance)}</code>`).join('\n')}`);
+  return nfthTemplateCard({ ...ctx, messageId: undefined }, r.heroKey ?? heroKey);
+}
+
+async function nfthAvailable(ctx: Ctx, heroKey: string | null, ref?: string) {
+  const units = await rpc('admin_nft_hero_available', { p_admin_id: ctx.adminId, p_hero_key: heroKey, p_limit: 30 }) as any[];
+  if (!units.length) return send(ctx, '⚠️ Nenhuma unidade NFT disponível. Crie novas unidades primeiro.', kb([[{ t: '➕ CRIAR UNIDADE', d: 'nfth:new' }], nav('nfth:hub')]));
+  const rows = units.map((u) => [{ t: `${u.hero} ${nftSerial(u.serial)}`, d: ref ? `nfth:deliver:${u.id}:${ref}` : `nfth:unit:${u.id}` }]);
+  rows.push(nav('nfth:hub'));
+  const head = ref ? `🎁 <b>ENTREGAR HERÓI NFT</b>\nJogador: <code>${esc(ref)}</code>\nEscolha a unidade única:` : '🟢 <b>UNIDADES DISPONÍVEIS</b>';
+  return send(ctx, head, kb(rows));
+}
+
+async function nfthUnitCard(ctx: Ctx, id: string, useEdit = true) {
+  const rows = await rpc('admin_nft_hero_search', { p_admin_id: ctx.adminId, p_query: id }) as any[];
+  const u = rows[0];
+  if (!u) return send(ctx, '⚠️ Unidade NFT não encontrada.', kb([nav('nfth:hub')]));
+  const owner = u.owner ? `${esc(u.owner.name)} · <code>${u.owner.telegramId}</code>` : '—';
+  const text = `⚔️ <b>${esc(u.hero)}</b> ${nftSerial(u.serial)}\nInstância <code>${esc(u.instance)}</code>\nStatus: <b>${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}</b>\nNível ${fmt(u.level)} · ⚔️ ${fmt(u.atk)} · ❤️ ${fmt(u.hp)} · 💪 ${fmt(u.power)}\nDono: ${owner}\n<code>${esc(u.id)}</code>`;
+  const buttons = u.status === 'OWNED'
+    ? [[{ t: '↩️ REVOGAR', d: `nfth:rev:${u.id}` }], nav('nfth:hub')]
+    : [[{ t: '🎁 ENTREGAR', d: 'nfth:ask:nfthgive' }], nav('nfth:hub')];
+  return useEdit ? edit(ctx, text, kb(buttons)) : send(ctx, text, kb(buttons));
+}
+
+async function nfthRegistry(ctx: Ctx, offset: number, ownedOnly = false) {
+  const d = await rpc('admin_nft_hero_registry', { p_admin_id: ctx.adminId, p_limit: 15, p_offset: offset }) as any;
+  const units = ((d.units ?? []) as any[]).filter((u) => !ownedOnly || u.status === 'OWNED');
+  const lines = units.map((u) => `• ${esc(u.hero)} ${nftSerial(u.serial)} — ${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}${u.owner ? ` · ${esc(u.owner.name)}` : ''}`).join('\n') || 'sem unidades nesta página';
+  const rows = units.slice(0, 10).map((u) => [{ t: `${u.hero} ${nftSerial(u.serial)}${u.status === 'OWNED' ? ' 👤' : ''}`, d: ownedOnly ? `nfth:rev:${u.id}` : `nfth:unit:${u.id}` }]);
+  const pager: any[] = [];
+  if (offset > 0) pager.push({ t: '⬅️ Anterior', d: `nfth:${ownedOnly ? 'revlist' : 'list'}:${Math.max(0, offset - 15)}` });
+  if (offset + 15 < Number(d.total ?? 0)) pager.push({ t: 'Próxima ➡️', d: `nfth:${ownedOnly ? 'revlist' : 'list'}:${offset + 15}` });
+  if (pager.length) rows.push(pager);
+  rows.push(nav('nfth:hub'));
+  return edit(ctx, `${ownedOnly ? '↩️ <b>REVOGAR HERÓI NFT</b>\nEscolha a unidade entregue:' : `📋 <b>REGISTRO NFT HEROES</b> (${fmt(d.total)})`}\n${lines}`, kb(rows));
+}
+
+async function nfthCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  switch (sub) {
+    case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+    case 'new': return nfthTemplateMenu(ctx, 'mint');
+    case 'bal': return nfthTemplateMenu(ctx, 'bal');
+    case 'bt': return nfthBalanceCard(ctx, a);
+    case 'tpl': return nfthTemplateCard(ctx, a);
+    case 'mint': return nfthMint(ctx, a, Number(b || 1));
+    case 'avail': return nfthAvailable(ctx, a || null);
+    case 'unit': return nfthUnitCard(ctx, a);
+    case 'list': return nfthRegistry(ctx, Number(a || 0));
+    case 'revlist': return nfthRegistry(ctx, Number(a || 0), true);
+    case 'set': {
+      const f = NFTH_FIELDS.find((x) => x.k === b);
+      if (!f) return nfthBalanceCard(ctx, a);
+      return ask(ctx, `nfthstat|${a}|${b}`, `⚙️ <b>${f.label}</b> — <code>${esc(a)}</code>\n${PROMPTS.nfthstat}`);
+    }
+    case 'rev':
+      return send(ctx, '⚠️ Confirmar a <b>revogação</b>? O herói sai da coleção do jogador e a unidade volta ao registro como disponível.',
+        kb([[{ t: '✅ CONFIRMAR', d: `nfth:revoke:${a}` }, { t: '❌ Cancelar', d: 'nfth:hub' }]]));
+    case 'revoke': {
+      const r = await rpc('admin_nft_hero_revoke', { p_admin_id: ctx.adminId, p_nft_id: a, p_reason: 'revogado pelo painel admin' }) as any;
+      await send(ctx, `↩️ <b>${esc(r.hero)}</b> ${nftSerial(r.serial)} revogado.\n<code>${esc(r.instance)}</code>`);
+      return nfthHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'deliver': {
+      const r = await rpc('admin_nft_hero_give', { p_admin_id: ctx.adminId, p_ref: b, p_nft_id: a, p_reason: 'entrega NFT pelo painel admin' }) as any;
+      await send(ctx, `⚔️ <b>${esc(r.hero)}</b> ${nftSerial(r.serial)} entregue a <b>${esc(r.playerName)}</b> (<code>${r.telegramId}</code>).\nInstância <code>${esc(r.instance)}</code>\n⚔️ ${fmt(r.atk)} · ❤️ ${fmt(r.hp)} · 💪 ${fmt(r.power)}`);
+      return nfthHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'stats': {
+      const s = await rpc('admin_nft_hero_stats', { p_admin_id: ctx.adminId }) as any;
+      const lines = ((s.byHero ?? []) as any[]).map((x) => `• ${esc(x.hero)} — 👤 ${fmt(x.owned)} · média 💪 ${fmt(x.avgPower)} · topo ${fmt(x.topPower)}`).join('\n') || 'sem unidades entregues';
+      return edit(ctx, `📊 <b>NFT HEROES · BALANCEAMENTO</b>\nPower médio ANCESTRAL: <b>${fmt(s.ancestralAvgPower)}</b>\nPower médio NFT: <b>${fmt(s.nftAvgPower)}</b>\nDonos únicos: <b>${fmt(s.nftOwners)}</b>\n\n${lines}`, kb([nav('nfth:hub')]));
+    }
+    case 'hist': {
+      const rows = await rpc('admin_nft_hero_history', { p_admin_id: ctx.adminId, p_limit: 20 }) as any[];
+      const lines = rows.map((h) => `• ${String(h.createdAt).slice(0, 16).replace('T', ' ')} · <b>${esc(h.action)}</b> ${esc(h.hero)} <code>${esc(h.instance)}</code>${h.to ? ` → ${esc(h.to)}` : ''}${h.from ? ` (de ${esc(h.from)})` : ''}`).join('\n') || 'sem histórico';
+      return edit(ctx, `📜 <b>HISTÓRICO NFT HEROES</b>\n${lines}`, kb([nav('nfth:hub')]));
+    }
+    default: return nfthHub(ctx);
+  }
+}
+
+async function nfthPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  switch (key) {
+    case 'nfthgive': {
+      const ref = text.split(/\s+/)[0];
+      if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');
+      await clearSession(ctx);
+      return nfthAvailable({ ...ctx, messageId: undefined }, null, ref);
+    }
+    case 'nfthmint': {
+      const [heroKey, qty] = text.split(/\s+/);
+      if (!heroKey) throw new Error('KEEP_SESSION::⚠️ Envie <code>hero_key quantidade</code>. Ex.: <code>kaelion 3</code>');
+      await clearSession(ctx);
+      return nfthMint({ ...ctx, messageId: undefined }, heroKey, Number(qty || 1));
+    }
+    case 'nfthstat': {
+      const [heroKey, fieldKey] = args;
+      const f = NFTH_FIELDS.find((x) => x.k === fieldKey);
+      if (!heroKey || !f) { await clearSession(ctx); return nfthHub({ ...ctx, messageId: undefined }, false); }
+      const value = Number(text.replace(',', '.').replace(/[^\d.\-]/g, ''));
+      if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido maior que zero.');
+      await rpc('admin_nft_hero_set_stats', {
+        p_admin_id: ctx.adminId, p_hero_key: heroKey,
+        p_patch: { [f.col]: f.k === 'maxlvl' ? Math.round(value) : value },
+        p_reason: 'ajuste de power pelo bot admin',
+      });
+      await clearSession(ctx);
+      await send(ctx, `✅ ${f.label} de <code>${esc(heroKey)}</code> atualizado para <b>${text.trim()}</b>.`);
+      return nfthBalanceCard({ ...ctx, messageId: undefined }, heroKey, false);
+    }
+    case 'nfthsearch': {
+      const rows = await rpc('admin_nft_hero_search', { p_admin_id: ctx.adminId, p_query: text }) as any[];
+      await clearSession(ctx);
+      if (!rows.length) return send(ctx, '🔎 Nenhum herói NFT encontrado.', kb([nav('nfth:hub')]));
+      const buttons = rows.slice(0, 12).map((u) => [{ t: `${u.hero} ${nftSerial(u.serial)}${u.owner ? ` · ${u.owner.name}` : ''}`, d: `nfth:unit:${u.id}` }]);
+      buttons.push(nav('nfth:hub'));
+      return send(ctx, `🔎 <b>${fmt(rows.length)}</b> unidade(s) encontrada(s).`, kb(buttons));
+    }
+    default: return nfthHub({ ...ctx, messageId: undefined }, false);
+  }
+}
+
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
