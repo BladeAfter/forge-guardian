@@ -321,8 +321,15 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
 
   }
 
+  // Daily free PvP tickets follow the 21:00 calendar reset. The RPC is idempotent per game day,
+  // so refresh/logout/login/device changes can never grant it twice.
+  if (['dashboard', 'battle', 'search', 'history'].includes(action)) {
+    try { await rpc(db, 'pvp_apply_daily_tickets', { p_telegram_id: user.id }); } catch (_) { /* non-blocking */ }
+  }
+
   let fn = 'get_pvp_dashboard';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
+
   if (action === 'search') fn = 'search_pvp_opponents';
   else if (action === 'history') fn = 'get_pvp_history';
   else if (action === 'ranking') { fn = 'get_pvp_ranking'; args = {}; }
