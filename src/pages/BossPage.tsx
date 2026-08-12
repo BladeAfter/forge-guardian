@@ -93,13 +93,13 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
-  return <section className="space-y-4"><div className={`boss-arena relative overflow-hidden rounded-3xl border ${theme.border} p-4 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
+  return <section className="space-y-4"><div className={`boss-arena relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
     <img key={`arena-${theme.key}`} src={theme.arena} alt="" aria-hidden className="gb-arena-art"/><div className="gb-arena-shade"/><div className="gb-arena-mist"/>
     {swap?<div className="gb-swap-overlay"><b>{swap==='defeated'?t('boss.swapDefeated'):t('boss.swapExpired')}</b><span>{t('boss.swapRewards')}</span><span>{t('boss.swapNext')}</span></div>:null}
-    <div className="relative mx-auto mt-6 grid h-64 w-full place-items-center">
+    <div className="gb-stage relative mx-auto grid h-44 w-full place-items-center sm:h-52">
       <div className="gb-arena-floor"/>
-      <div className="gb-aura absolute h-52 w-52 rounded-full blur-2xl" style={{backgroundImage:theme.aura}}/>
-      <img key={`${global?.cycleId??'boss'}`} src={bossArt} alt={global?.name??combat?.bossName??t('boss.defaultName')} className="gb-boss gb-enter relative h-64 w-full object-contain" style={{filter:theme.glow}}/>
+      <div className="gb-aura absolute h-40 w-40 rounded-full blur-2xl sm:h-48 sm:w-48" style={{backgroundImage:theme.aura}}/>
+      <img key={`${global?.cycleId??'boss'}`} src={bossArt} alt={global?.name??combat?.bossName??t('boss.defaultName')} className="gb-boss gb-enter relative h-full w-full object-contain" style={{filter:theme.glow}}/>
     </div><div className="relative">
 
       <div className="flex justify-between"><div><p className={`text-xs uppercase tracking-[.3em] ${theme.accent}`}>{t('boss.globalBoss')}{global?` · ${t('boss.cycle')} #${global.cycleNumber}`:''}</p><h3 className="text-lg font-semibold">{global?.name??combat?.bossName??t('boss.defaultName')}</h3><p className="text-[10px] text-slate-400">{global?.subtitle??`${t('boss.globalBoss')} · ${t('levelShort')}${global?.bossLevel??combat?.bossLevel??1}`}</p><p className="text-[10px] text-slate-400">{lang.boss} {bossNumber}/{totalBosses}{endsIn!==null?` · ${t('boss.endsIn')} ${formatDuration(endsIn)}`:''}</p></div><div className="text-right"><ShieldCheck className="ml-auto h-5 w-5 text-rose-400"/><p className="text-[10px] text-slate-400">{translate(languageCode,'kills')}: {combat?.defeats??game.boss.defeats??0}</p><button type="button" onClick={()=>setIsRankingOpen(true)} className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-xl border border-amber-300/40 bg-amber-400/10 px-2.5 text-[10px] font-bold text-amber-300"><Trophy className="h-3.5 w-3.5"/>{t('boss.ranking')}</button></div></div>
