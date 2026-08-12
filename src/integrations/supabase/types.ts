@@ -4884,6 +4884,50 @@ export type Database = {
           },
         ]
       }
+      pvp_ad_views: {
+        Row: {
+          block_id: string | null
+          created_at: string
+          cycle_date: string
+          id: string
+          provider: string
+          rewarded_at: string | null
+          source: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          block_id?: string | null
+          created_at?: string
+          cycle_date?: string
+          id?: string
+          provider?: string
+          rewarded_at?: string | null
+          source?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          block_id?: string | null
+          created_at?: string
+          cycle_date?: string
+          id?: string
+          provider?: string
+          rewarded_at?: string | null
+          source?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_ad_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_battles: {
         Row: {
           attacker_id: string
@@ -8697,6 +8741,12 @@ export type Database = {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
       }
+      pvp_ad_view_begin: { Args: { p_telegram_id: number }; Returns: Json }
+      pvp_ad_view_reward: {
+        Args: { p_source?: string; p_telegram_id: number; p_view_id?: string }
+        Returns: Json
+      }
+      pvp_ads_state: { Args: { p_user_id: string }; Returns: Json }
       pvp_apply_daily_tickets: {
         Args: { p_telegram_id: number }
         Returns: Json
