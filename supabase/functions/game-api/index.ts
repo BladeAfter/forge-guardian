@@ -821,6 +821,15 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
         p_message_id: isUuid(body.messageId) ? body.messageId : null,
       });
     }
+    // Clan boss (Abyssal Warlord): isolated from the global boss. The instance id is
+    // only a staleness hint — the RPC re-resolves the caller's clan and refuses anything else.
+    if (action === 'boss-state') return rpc(db, 'get_clan_boss', { p_telegram_id: user.id });
+    if (action === 'boss-strike') {
+      return rpc(db, 'clan_boss_strike', {
+        p_telegram_id: user.id,
+        p_instance_id: isUuid(body.instanceId) ? body.instanceId : null,
+      });
+    }
     if (action === 'boss-attack') return rpc(db, 'clan_boss_attack', { p_telegram_id: user.id });
     if (action === 'shop') {
       const item = String(body.item || '');

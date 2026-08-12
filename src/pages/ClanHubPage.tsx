@@ -6,6 +6,7 @@ import { useT } from '../LanguageContext';
 import { useClanDashboard } from '../hooks';
 import { clanErrorKey, clanRequest, type ClanMessage, type ClanSummary } from '../clans';
 import { ClanCrest } from '../components/ClanHall';
+import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
 import { formatCurrency } from '../utils';
 
 type Tab = 'members' | 'chat' | 'missions' | 'ranking' | 'boss';
@@ -24,6 +25,8 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   const [messages, setMessages] = useState<ClanMessage[] | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  // The clan boss lives on its own fullscreen surface (exclusive creature, HP, ranking and rewards).
+  const [bossOpen, setBossOpen] = useState(false);
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['clan-dashboard'] });
@@ -278,21 +281,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           </div>
         )) : null}
 
-        {tab === 'boss' ? (
-          data.boss ? (
-            <div className="rounded-2xl border border-white/10 bg-black/55 p-4">
-              <b className="text-sm">{data.boss.name}</b>
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-rose-600 to-amber-300" style={{ width: `${Math.max(0, (data.boss.currentHealth / Math.max(1, data.boss.maxHealth)) * 100)}%` }} /></div>
-              <p className="mt-1 text-[9px] text-slate-400">{Math.round(data.boss.currentHealth).toLocaleString()} / {Math.round(data.boss.maxHealth).toLocaleString()}</p>
-              <button disabled={busy} onClick={() => void run({ action: 'boss-attack' })} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-500 to-rose-700 py-3 text-[10px] font-black text-white disabled:opacity-50">{t('clan.attack')}</button>
-              <div className="mt-3 space-y-1">
-                {data.boss.top.map((entry, index) => (
-                  <div key={`${entry.name}-${index}`} className="flex justify-between text-[10px]"><span>#{index + 1} {entry.name}</span><b className="text-amber-300">{Math.round(entry.damage).toLocaleString()}</b></div>
-                ))}
-              </div>
-            </div>
-          ) : <p className="py-6 text-center text-[10px] text-slate-400">—</p>
-        ) : null}
+        {tab === 'boss' ? <ClanBossTeaser onOpen={() => setBossOpen(true)} /> : null}
       </div>
     </Shell>
   );

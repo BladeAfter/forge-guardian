@@ -19,6 +19,7 @@ import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
 import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
 import{fetchClanDashboard,type ClanDashboard}from'./clans';
+import{fetchClanBoss,type ClanBossState}from'./clanBoss';
 import type{SpecialEventsDashboard}from'./specialEvents';
 import{specialEventsRequest,spendingEventRequest}from'./services';
 import type{SpendingEventDashboard}from'./spendingEvent';
@@ -92,6 +93,35 @@ export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQu
 export const useRarityFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<RarityFusionDashboard>({queryKey:['rarity-fusion',telegramInitData],queryFn:()=>fetchRarityFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
 
 /** Clan dashboard: membership, members, missions, clan boss and ranking (server-owned). */
+/**
+ * Clan boss state. Never shares a query key or a channel with the global boss,
+ * so both bosses can be open in the same session without cross-invalidation.
+ */
+export const useClanBoss=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanBossState>({
+  queryKey:['clan-boss',telegramInitData],
+  queryFn:()=>fetchClanBoss(telegramInitData??''),
+  enabled,staleTime:5_000,refetchInterval:enabled?20_000:false,refetchOnWindowFocus:true,retry:1
+});
+
+/** Realtime HP + internal ranking, filtered to this clan's own instance only. */
+export const useClanBossRealtime=(instanceId:string|null|undefined,clanId:string|null|undefined,enabled:boolean)=>{
+  const queryClient=useQueryClient();
+  useEffect(()=>{
+    if(!enabled||!clanId)return;
+    let timer:number|undefined;
+    const refresh=()=>{
+      window.clearTimeout(timer);
+      timer=window.setTimeout(()=>{void queryClient.invalidateQueries({queryKey:['clan-boss']})},250);
+    };
+    const channel=supabase.channel(`clan-boss-${clanId}`)
+      .on('postgres_changes',{event:'*',schema:'public',table:'clan_boss_instances',filter:`clan_id=eq.${clanId}`},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'clan_boss_damage',
+        ...(instanceId?{filter:`instance_id=eq.${instanceId}`}:{filter:`clan_id=eq.${clanId}`})},refresh)
+      .subscribe();
+    return()=>{window.clearTimeout(timer);void supabase.removeChannel(channel)};
+  },[instanceId,clanId,enabled,queryClient]);
+};
+
 export const useClanDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanDashboard>({queryKey:['clan-dashboard',telegramInitData],queryFn:()=>fetchClanDashboard(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 
 /**

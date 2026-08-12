@@ -697,6 +697,106 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_boss_claims: {
+        Row: {
+          clan_id: string
+          created_at: string
+          damage: number
+          id: string
+          instance_id: string
+          payload: Json
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          damage?: number
+          id?: string
+          instance_id: string
+          payload?: Json
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          damage?: number
+          id?: string
+          instance_id?: string
+          payload?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_claims_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_boss_claims_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "clan_boss_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_boss_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_boss_config: {
+        Row: {
+          base_hp: number
+          boss_key: string
+          boss_name: string
+          clan_xp_reward: number
+          cooldown_seconds: number
+          duration_hours: number
+          hp_per_clan_level_pct: number
+          hp_per_cycle_pct: number
+          hp_per_member_pct: number
+          id: number
+          min_damage_pct: number
+          rewards: Json
+          updated_at: string
+        }
+        Insert: {
+          base_hp?: number
+          boss_key?: string
+          boss_name?: string
+          clan_xp_reward?: number
+          cooldown_seconds?: number
+          duration_hours?: number
+          hp_per_clan_level_pct?: number
+          hp_per_cycle_pct?: number
+          hp_per_member_pct?: number
+          id?: number
+          min_damage_pct?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Update: {
+          base_hp?: number
+          boss_key?: string
+          boss_name?: string
+          clan_xp_reward?: number
+          cooldown_seconds?: number
+          duration_hours?: number
+          hp_per_clan_level_pct?: number
+          hp_per_cycle_pct?: number
+          hp_per_member_pct?: number
+          id?: number
+          min_damage_pct?: number
+          rewards?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clan_boss_cycles: {
         Row: {
           clan_id: string
@@ -740,6 +840,145 @@ export type Database = {
             columns: ["clan_id"]
             isOneToOne: false
             referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_boss_damage: {
+        Row: {
+          attacks: number
+          clan_id: string
+          created_at: string
+          damage: number
+          id: string
+          instance_id: string
+          last_attack_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attacks?: number
+          clan_id: string
+          created_at?: string
+          damage?: number
+          id?: string
+          instance_id: string
+          last_attack_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attacks?: number
+          clan_id?: string
+          created_at?: string
+          damage?: number
+          id?: string
+          instance_id?: string
+          last_attack_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_damage_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_boss_damage_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "clan_boss_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_boss_damage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_boss_instances: {
+        Row: {
+          attacks: number
+          boss_key: string
+          boss_name: string
+          clan_id: string
+          clan_xp_awarded: number
+          created_at: string
+          current_hp: number
+          cycle: number
+          ends_at: string
+          finished_at: string | null
+          id: string
+          level: number
+          max_hp: number
+          min_damage_required: number
+          participants: number
+          rewards_snapshot: Json
+          starts_at: string
+          status: string
+          top_user_id: string | null
+          total_damage: number
+        }
+        Insert: {
+          attacks?: number
+          boss_key?: string
+          boss_name?: string
+          clan_id: string
+          clan_xp_awarded?: number
+          created_at?: string
+          current_hp: number
+          cycle?: number
+          ends_at: string
+          finished_at?: string | null
+          id?: string
+          level?: number
+          max_hp: number
+          min_damage_required?: number
+          participants?: number
+          rewards_snapshot?: Json
+          starts_at?: string
+          status?: string
+          top_user_id?: string | null
+          total_damage?: number
+        }
+        Update: {
+          attacks?: number
+          boss_key?: string
+          boss_name?: string
+          clan_id?: string
+          clan_xp_awarded?: number
+          created_at?: string
+          current_hp?: number
+          cycle?: number
+          ends_at?: string
+          finished_at?: string | null
+          id?: string
+          level?: number
+          max_hp?: number
+          min_damage_required?: number
+          participants?: number
+          rewards_snapshot?: Json
+          starts_at?: string
+          status?: string
+          top_user_id?: string | null
+          total_damage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_instances_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_boss_instances_top_user_id_fkey"
+            columns: ["top_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
             referencedColumns: ["id"]
           },
         ]
@@ -5741,6 +5980,15 @@ export type Database = {
       }
       admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
+      admin_clan_boss: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
+        Returns: Json
+      }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -6647,6 +6895,77 @@ export type Database = {
         Returns: Json
       }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_boss_cfg: {
+        Args: never
+        Returns: {
+          base_hp: number
+          boss_key: string
+          boss_name: string
+          clan_xp_reward: number
+          cooldown_seconds: number
+          duration_hours: number
+          hp_per_clan_level_pct: number
+          hp_per_cycle_pct: number
+          hp_per_member_pct: number
+          id: number
+          min_damage_pct: number
+          rewards: Json
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_boss_deliver: {
+        Args: { p_reward: Json; p_user_id: string }
+        Returns: undefined
+      }
+      clan_boss_ensure: {
+        Args: { p_clan_id: string }
+        Returns: {
+          attacks: number
+          boss_key: string
+          boss_name: string
+          clan_id: string
+          clan_xp_awarded: number
+          created_at: string
+          current_hp: number
+          cycle: number
+          ends_at: string
+          finished_at: string | null
+          id: string
+          level: number
+          max_hp: number
+          min_damage_required: number
+          participants: number
+          rewards_snapshot: Json
+          starts_at: string
+          status: string
+          top_user_id: string | null
+          total_damage: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_instances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_boss_scaled_hp: {
+        Args: { p_clan_id: string; p_cycle: number }
+        Returns: number
+      }
+      clan_boss_settle: {
+        Args: { p_instance_id: string; p_status: string }
+        Returns: undefined
+      }
+      clan_boss_strike: {
+        Args: { p_instance_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
       clan_chat: {
         Args: {
           p_action?: string
@@ -6887,6 +7206,7 @@ export type Database = {
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_channel_rewards: { Args: { p_telegram_id: number }; Returns: Json }
+      get_clan_boss: { Args: { p_telegram_id: number }; Returns: Json }
       get_clan_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_community_pool_dashboard: {
         Args: { p_telegram_id: number }
