@@ -62,6 +62,7 @@ const MAIN_MENU = kb([
   [{ t: '💰 SPENDING EVENT', d: 'm:spending' }],
   [{ t: '👹 CLAN BOSS', d: 'm:clanboss' }],
   [{ t: '🤝 PARTNERS', d: 'm:partners' }],
+  [{ t: '💎 NFT PETS', d: 'nft:hub' }],
 
 
 
@@ -1608,7 +1609,8 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '➕ CRIAR PET', d: 'pw:new' }, { t: '🥚 OVOS (CMS)', d: 'pw:eggs' }],
             [{ t: '🍖 COMIDAS', d: 'view:foods' }, { t: '🥚 OVOS (LEGADO)', d: 'view:eggs' }],
             [{ t: '🧬 EVOLUÇÃO', d: 'view:tiers' }, { t: '🧩 FRAGMENTOS', d: 'ask:givefrag' }],
-            [{ t: '🐲 DAR PET', d: 'ask:grantpet' }, { t: '🎁 ENVIAR ITEM', d: 'ask:giveitem' }], nav()]));
+            [{ t: '🐲 DAR PET', d: 'ask:grantpet' }, { t: '🎁 ENVIAR ITEM', d: 'ask:giveitem' }],
+            [{ t: '💎 NFT PETS (EXCLUSIVOS)', d: 'nft:hub' }], nav()]));
     }
     case 'pvp': {
       const d = await rpc('admin_pvp_overview', { p_admin_id: ctx.adminId, p_top: 10 });
@@ -2046,6 +2048,9 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
+  nftsearch: '🔎 Envie o nome do pet NFT, o <b>serial/instância</b> (<code>NFT-IGNARION-0001</code>), o nome do dono ou o Telegram ID.',
+  nftmint: '💎 Envie <code>slug quantidade</code> para criar novas unidades.\nEx.: <code>ignarion 3</code>',
   ptname: '🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>',
   ptreward: '🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>',
   pturl: '🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>',
@@ -2898,6 +2903,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'pw') return petCms.callback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
+  // 💎 NFT EXCLUSIVE pets (admin-only delivery, unique serials).
+  if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
   if (head === 'pr') return prCallback(ctx, rest);
 
@@ -3731,6 +3738,147 @@ function parseValue(raw: string): unknown {
   try { return JSON.parse(raw); } catch { return raw; }
 }
 
+
+// ---------------------------------------------------------------- 💎 NFT EXCLUSIVE pets
+// Unique units: one serial can only belong to a single player. Never drawn from eggs,
+// never sold in the shop — delivery and revocation happen only through this module.
+const NFT_STATUS_LABEL: Record<string, string> = {
+  AVAILABLE: '🟢 DISPONÍVEL', OWNED: '👤 ENTREGUE', REVOKED: '↩️ REVOGADO', BURNED: '🔥 QUEIMADO',
+};
+const nftSerial = (n: number) => `#${String(n ?? 0).padStart(3, '0')}`;
+
+async function nftHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
+  const t = d.totals ?? {};
+  const lines = (d.templates ?? []).map((x: any) =>
+    `• <code>${esc(x.slug)}</code> ${esc(x.name)} — ${fmt(x.minted)} unid. (🟢 ${fmt(x.available)} · 👤 ${fmt(x.owned)})`).join('\n') || 'Nenhum template NFT cadastrado.';
+  const text = `💎 <b>NFT EXCLUSIVE PETS</b>\n${lines}\n\n<b>REGISTRO</b>\nUnidades ${fmt(t.units)} · 🟢 ${fmt(t.available)} · 👤 ${fmt(t.owned)} · ↩️ ${fmt(t.revoked)}\n\nEstes pets não entram em ovos, sorteios, loja, fusão ou mercado.`;
+  const rows = [
+    [{ t: '➕ CRIAR UNIDADE', d: 'nft:new' }, { t: '🎁 ENTREGAR', d: 'nft:ask:nftgive' }],
+    [{ t: '📋 LISTAR REGISTRO', d: 'nft:list:0' }, { t: '🔎 PESQUISAR', d: 'nft:ask:nftsearch' }],
+    [{ t: '↩️ REVOGAR', d: 'nft:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nft:hist' }],
+    nav('m:pets'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftTemplateMenu(ctx: Ctx) {
+  const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
+  const rows = (d.templates ?? []).map((x: any) => [{ t: `💎 ${x.name} (${x.available}/${x.minted})`, d: `nft:tpl:${x.slug}` }]);
+  rows.push([{ t: '⌨️ DIGITAR SLUG', d: 'nft:ask:nftmint' }]);
+  rows.push(nav('nft:hub'));
+  return edit(ctx, '➕ <b>CRIAR UNIDADE NFT</b>\nEscolha o pet exclusivo que receberá novos seriais.', kb(rows));
+}
+
+async function nftTemplateCard(ctx: Ctx, slug: string) {
+  const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
+  const x = (d.templates ?? []).find((r: any) => r.slug === slug);
+  if (!x) return send(ctx, '⚠️ Template NFT não encontrado.', kb([nav('nft:hub')]));
+  return edit(ctx, `💎 <b>${esc(x.name)}</b>\nSlug <code>${esc(x.slug)}</code> · ${esc(String(x.rarity).toUpperCase())}\nUnidades: ${fmt(x.minted)} · 🟢 ${fmt(x.available)} · 👤 ${fmt(x.owned)}\n\nCada unidade recebe um serial único e um identificador de instância.`,
+    kb([[{ t: '➕ 1 UNIDADE', d: `nft:mint:${slug}:1` }, { t: '➕ 5', d: `nft:mint:${slug}:5` }, { t: '➕ 10', d: `nft:mint:${slug}:10` }],
+        [{ t: '📋 UNIDADES DISPONÍVEIS', d: `nft:avail:${slug}` }], nav('nft:new')]));
+}
+
+async function nftMint(ctx: Ctx, slug: string, qty: number) {
+  const r = await rpc('admin_nft_create', { p_admin_id: ctx.adminId, p_slug: slug, p_quantity: qty }) as any;
+  const created = (r.created ?? []) as any[];
+  await send(ctx, `✅ <b>${fmt(created.length)}</b> unidade(s) de <b>${esc(r.pet)}</b> criada(s).\n${created.map((c) => `• ${nftSerial(c.serial)} <code>${esc(c.instance)}</code>`).join('\n')}`);
+  return nftTemplateCard({ ...ctx, messageId: undefined }, slug);
+}
+
+async function nftAvailable(ctx: Ctx, slug: string | null, ref?: string) {
+  const units = await rpc('admin_nft_available', { p_admin_id: ctx.adminId, p_slug: slug, p_limit: 30 }) as any[];
+  if (!units.length) return send(ctx, '⚠️ Nenhuma unidade NFT disponível. Crie novas unidades primeiro.', kb([[{ t: '➕ CRIAR UNIDADE', d: 'nft:new' }], nav('nft:hub')]));
+  const rows = units.map((u) => [{ t: `${u.pet} ${nftSerial(u.serial)}`, d: ref ? `nft:deliver:${u.id}:${ref}` : `nft:unit:${u.id}` }]);
+  rows.push(nav('nft:hub'));
+  const head = ref ? `🎁 <b>ENTREGAR NFT</b>\nJogador: <code>${esc(ref)}</code>\nEscolha a unidade única:` : '🟢 <b>UNIDADES DISPONÍVEIS</b>';
+  return send(ctx, head, kb(rows));
+}
+
+async function nftUnitCard(ctx: Ctx, id: string, useEdit = true) {
+  const rows = await rpc('admin_nft_search', { p_admin_id: ctx.adminId, p_query: id }) as any[];
+  const u = rows[0];
+  if (!u) return send(ctx, '⚠️ Unidade NFT não encontrada.', kb([nav('nft:hub')]));
+  const owner = u.owner ? `${esc(u.owner.name)} · <code>${u.owner.telegramId}</code>` : '—';
+  const text = `💎 <b>${esc(u.pet)}</b> ${nftSerial(u.serial)}\nInstância <code>${esc(u.instance)}</code>\nStatus: <b>${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}</b>\nDono: ${owner}\n<code>${esc(u.id)}</code>`;
+  const buttons = u.status === 'OWNED'
+    ? [[{ t: '↩️ REVOGAR', d: `nft:rev:${u.id}` }], nav('nft:hub')]
+    : [[{ t: '🎁 ENTREGAR', d: 'nft:ask:nftgive' }], nav('nft:hub')];
+  return useEdit ? edit(ctx, text, kb(buttons)) : send(ctx, text, kb(buttons));
+}
+
+async function nftRegistry(ctx: Ctx, offset: number, ownedOnly = false) {
+  const d = await rpc('admin_nft_registry', { p_admin_id: ctx.adminId, p_limit: 15, p_offset: offset }) as any;
+  const units = ((d.units ?? []) as any[]).filter((u) => !ownedOnly || u.status === 'OWNED');
+  const lines = units.map((u) => `• ${esc(u.pet)} ${nftSerial(u.serial)} — ${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}${u.owner ? ` · ${esc(u.owner.name)}` : ''}`).join('\n') || 'sem unidades nesta página';
+  const rows = units.slice(0, 10).map((u) => [{ t: `${u.pet} ${nftSerial(u.serial)}${u.status === 'OWNED' ? ' 👤' : ''}`, d: ownedOnly ? `nft:rev:${u.id}` : `nft:unit:${u.id}` }]);
+  const pager: any[] = [];
+  if (offset > 0) pager.push({ t: '⬅️ Anterior', d: `nft:${ownedOnly ? 'revlist' : 'list'}:${Math.max(0, offset - 15)}` });
+  if (offset + 15 < Number(d.total ?? 0)) pager.push({ t: 'Próxima ➡️', d: `nft:${ownedOnly ? 'revlist' : 'list'}:${offset + 15}` });
+  if (pager.length) rows.push(pager);
+  rows.push(nav('nft:hub'));
+  return edit(ctx, `${ownedOnly ? '↩️ <b>REVOGAR NFT</b>\nEscolha a unidade entregue:' : `📋 <b>REGISTRO NFT</b> (${fmt(d.total)})`}\n${lines}`, kb(rows));
+}
+
+async function nftCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  switch (sub) {
+    case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+    case 'new': return nftTemplateMenu(ctx);
+    case 'tpl': return nftTemplateCard(ctx, a);
+    case 'mint': return nftMint(ctx, a, Number(b || 1));
+    case 'avail': return nftAvailable(ctx, a || null);
+    case 'unit': return nftUnitCard(ctx, a);
+    case 'list': return nftRegistry(ctx, Number(a || 0));
+    case 'revlist': return nftRegistry(ctx, Number(a || 0), true);
+    case 'rev':
+      return send(ctx, '⚠️ Confirmar a <b>revogação</b>? A unidade volta ao registro como disponível e sai do inventário do jogador.',
+        kb([[{ t: '✅ CONFIRMAR', d: `nft:revoke:${a}` }, { t: '❌ Cancelar', d: 'nft:hub' }]]));
+    case 'revoke': {
+      const r = await rpc('admin_nft_revoke', { p_admin_id: ctx.adminId, p_nft_id: a, p_reason: 'revogado pelo painel admin' }) as any;
+      await send(ctx, `↩️ <b>${esc(r.pet)}</b> ${nftSerial(r.serial)} revogado.\n<code>${esc(r.instance)}</code>`);
+      return nftHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'deliver': {
+      const r = await rpc('admin_nft_give', { p_admin_id: ctx.adminId, p_ref: b, p_nft_id: a, p_reason: 'entrega NFT pelo painel admin' }) as any;
+      await send(ctx, `💎 <b>${esc(r.pet)}</b> ${nftSerial(r.serial)} entregue a <b>${esc(r.playerName)}</b> (<code>${r.telegramId}</code>).\nInstância <code>${esc(r.instance)}</code>`);
+      return nftHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'hist': {
+      const rows = await rpc('admin_nft_history', { p_admin_id: ctx.adminId, p_limit: 20 }) as any[];
+      const lines = rows.map((h) => `• ${String(h.createdAt).slice(0, 16).replace('T', ' ')} · <b>${esc(h.action)}</b> ${esc(h.pet)} <code>${esc(h.instance)}</code>${h.to ? ` → ${esc(h.to)}` : ''}${h.from ? ` (de ${esc(h.from)})` : ''}`).join('\n') || 'sem histórico';
+      return edit(ctx, `📜 <b>HISTÓRICO NFT</b>\n${lines}`, kb([nav('nft:hub')]));
+    }
+    default: return nftHub(ctx);
+  }
+}
+
+async function nftPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  switch (key) {
+    case 'nftgive': {
+      const ref = text.split(/\s+/)[0];
+      if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');
+      await clearSession(ctx);
+      return nftAvailable({ ...ctx, messageId: undefined }, null, ref);
+    }
+    case 'nftmint': {
+      const [slug, qty] = text.split(/\s+/);
+      if (!slug) throw new Error('KEEP_SESSION::⚠️ Envie <code>slug quantidade</code>. Ex.: <code>ignarion 3</code>');
+      await clearSession(ctx);
+      return nftMint({ ...ctx, messageId: undefined }, slug, Number(qty || 1));
+    }
+    case 'nftsearch': {
+      const rows = await rpc('admin_nft_search', { p_admin_id: ctx.adminId, p_query: text }) as any[];
+      await clearSession(ctx);
+      if (!rows.length) return send(ctx, '🔎 Nenhuma unidade NFT encontrada.', kb([nav('nft:hub')]));
+      const buttons = rows.slice(0, 12).map((u) => [{ t: `${u.pet} ${nftSerial(u.serial)}${u.owner ? ` · ${u.owner.name}` : ''}`, d: `nft:unit:${u.id}` }]);
+      buttons.push(nav('nft:hub'));
+      return send(ctx, `🔎 <b>${fmt(rows.length)}</b> unidade(s) encontrada(s).`, kb(buttons));
+    }
+    default: return nftHub({ ...ctx, messageId: undefined }, false);
+  }
+}
+
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
@@ -3741,6 +3889,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
+  if (key.startsWith('nft')) return nftPrompt(ctx, key, args, text);
   if (key === 'wlhot') {
     const address = text.trim();
     const friendly = toFriendlyTonAddress(address);
