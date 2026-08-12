@@ -518,6 +518,7 @@ async function heroManagementHub(ctx: Ctx) {
       [{ t: '⚡ QUICK CREATE', d: 'hw:quick' }],
       [{ t: '✏️ EDIT HERO', d: 'hw:edit' }],
       [{ t: '📋 DUPLICATE HERO', d: 'hw:dup' }],
+      [{ t: '⚔️ NFT HEROES (EXCLUSIVOS)', d: 'nfth:hub' }],
       [{ t: '🛒 HERO SHOP', d: 'm:shop' }],
       [{ t: '📚 ALL HEROES', d: 'm:herolist' }],
       nav(),
