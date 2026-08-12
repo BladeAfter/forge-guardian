@@ -128,7 +128,20 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         setEvolution(payload.evolveResult);
         return;
       }
+      // Purchases only reach here AFTER the backend committed the debit + delivery.
+      if (variables?.action === 'buy-food' || variables?.action === 'buy-egg') {
+        const name = variables.action === 'buy-food'
+          ? dashboard.foods.find((food) => food.code === variables.foodCode)?.name
+          : dashboard.eggs.find((egg) => egg.id === variables.eggId)?.name;
+        toast.success(name
+          ? t('pets.purchaseSuccessItem', { name, quantity: variables.quantity })
+          : t('pets.purchaseSuccess'));
+        setFoodTarget(null);
+        setEggTarget(null);
+        return;
+      }
       toast.success(t('pets.companionUpdated'));
+
     },
     onError: (mutationError) => {
       toast.error(tError(mutationError));
