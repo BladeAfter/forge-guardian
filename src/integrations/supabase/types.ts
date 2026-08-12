@@ -6672,6 +6672,10 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
+      admin_market_set_enabled: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
       admin_market_set_fee: {
         Args: { p_admin_id: number; p_percent: number }
         Returns: Json
@@ -8053,6 +8057,7 @@ export type Database = {
         Args: { p_listing_id: string; p_telegram_id: number }
         Returns: Json
       }
+      market_can_access: { Args: { p_telegram_id: number }; Returns: boolean }
       market_cancel_listing: {
         Args: { p_listing_id: string; p_telegram_id: number }
         Returns: Json
@@ -8068,6 +8073,10 @@ export type Database = {
         Returns: Json
       }
       market_get_sellable: { Args: { p_telegram_id: number }; Returns: Json }
+      market_is_bypass_admin: {
+        Args: { p_telegram_id: number }
+        Returns: boolean
+      }
       market_my_listings: { Args: { p_telegram_id: number }; Returns: Json }
       market_price_quote: {
         Args: {
@@ -8110,6 +8119,8 @@ export type Database = {
         Args: { p_a: string; p_b: string }
         Returns: boolean
       }
+      market_status: { Args: { p_telegram_id: number }; Returns: Json }
+      market_status_json: { Args: never; Returns: Json }
       market_user_wallets: {
         Args: { p_user: string }
         Returns: {
