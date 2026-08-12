@@ -1,4 +1,4 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral';
 
 export type ShopHero = {
   id: string;
@@ -39,19 +39,22 @@ export const HERO_CATALOG: ShopHero[] = [
 ];
 
 export const RARITY_ODDS: Array<{ rarity: HeroRarity; chance: number }> = [
-  { rarity: 'legendary', chance: 0.3 },
+  { rarity: 'ancestral', chance: 0.02 },
+  { rarity: 'mythic', chance: 0.08 },
+  { rarity: 'legendary', chance: 1.3 },
   { rarity: 'epic', chance: 2.7 },
   { rarity: 'rare', chance: 10 },
-  { rarity: 'uncommon', chance: 25 },
-  { rarity: 'common', chance: 62 }
+  { rarity: 'uncommon', chance: 30 },
+  { rarity: 'common', chance: 55.9 }
 ];
 
 export const RARITY_COLORS: Record<HeroRarity, string> = {
-  common: '#94a3b8', uncommon: '#4ade80', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24'
+  common: '#94a3b8', uncommon: '#4ade80', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24',
+  mythic: '#fb7185', ancestral: '#f472b6'
 };
 
 export const RARITY_DAMAGE: Record<HeroRarity, number> = {
-  common: 0.15, uncommon: 0.25, rare: 0.4, epic: 0.7, legendary: 1.2
+  common: 0.15, uncommon: 0.25, rare: 0.4, epic: 0.7, legendary: 1.2, mythic: 1.8, ancestral: 2.6
 };
 
 export const DEFAULT_BOSS_TEAM = ['common-1', 'uncommon-1', 'rare-1', 'epic-1', 'legendary-1'];

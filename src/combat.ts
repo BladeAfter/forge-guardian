@@ -1,15 +1,17 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral';
 
 export const HERO_RARITY_STATS = {
   common: { baseAtk: 1.875, baseHp: 100, timeReductionMinutes: 48 },
   uncommon: { baseAtk: 1.975, baseHp: 130, timeReductionMinutes: 60 },
   rare: { baseAtk: 2.165, baseHp: 170, timeReductionMinutes: 80 },
   epic: { baseAtk: 2.395, baseHp: 220, timeReductionMinutes: 100 },
-  legendary: { baseAtk: 2.68, baseHp: 300, timeReductionMinutes: 120 }
+  legendary: { baseAtk: 2.68, baseHp: 300, timeReductionMinutes: 120 },
+  mythic: { baseAtk: 3.02, baseHp: 400, timeReductionMinutes: 145 },
+  ancestral: { baseAtk: 3.42, baseHp: 530, timeReductionMinutes: 175 }
 } as const;
 
 export const RARITY_DAMAGE_RESISTANCE: Record<HeroRarity, number> = {
-  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8
+  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8, mythic: .75, ancestral: .7
 };
 export const BASE_BOSS_DURATION_SECONDS = 86_400;
 export const MIN_BOSS_DURATION_SECONDS = 14_400;
