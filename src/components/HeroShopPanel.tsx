@@ -248,11 +248,11 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                 <p className="mt-0.5 text-[8px] uppercase tracking-[0.2em] text-slate-400">{t('market.recruitSubtitle')}</p>
                 <div className="mt-3 rounded-xl border border-white/10 bg-white/[.02] p-2">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">{t('market.summonOdds')}</p>
-                  <div className="mt-1.5 grid grid-cols-5 gap-1">
-                    {summonOdds.slice().reverse().map((entry) => (
-                      <div key={entry.rarity} className="text-center">
-                        <p className="truncate text-[7px] font-bold uppercase" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
-                        <p className="text-[12px] font-black text-white">{entry.chance}%</p>
+                  <div className="mt-1.5 grid grid-cols-3 gap-x-1 gap-y-1.5 xs:grid-cols-6">
+                    {summonOdds.filter((entry) => entry.rarity !== 'ancestral').map((entry) => (
+                      <div key={entry.rarity} className="min-w-0 text-center">
+                        <p className="truncate text-[6.5px] font-bold uppercase leading-tight tracking-tight" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
+                        <p className="text-[11px] font-black leading-tight text-white">{entry.chance}%</p>
                       </div>
                     ))}
                   </div>
