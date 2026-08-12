@@ -32,7 +32,8 @@ function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }
   const [broken, setBroken] = useState(false);
   const glyph = itemGlyph(item);
   const cls = size === 'slot' ? 'h-full w-full' : 'mx-auto mb-2 h-20 w-20';
-  if (glyph) return <span className={`grid place-items-center ${cls} text-${size === 'slot' ? '2xl' : '4xl'}`} aria-hidden>{glyph}</span>;
+  if (glyph) return <span className={`grid place-items-center ${cls} ${size === 'slot' ? 'text-2xl' : 'text-4xl'}`} aria-hidden>{glyph}</span>;
+
   if (isImageUrl(item.image) && !broken) {
     return (
       <img
