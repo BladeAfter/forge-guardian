@@ -2607,6 +2607,93 @@ export type Database = {
           },
         ]
       }
+      partner_channels: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          name: string
+          reward_fc: number
+          sort_order: number
+          target_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          name: string
+          reward_fc?: number
+          sort_order?: number
+          target_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          reward_fc?: number
+          sort_order?: number
+          target_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_claims: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          id: string
+          partner_id: string
+          reward_fc: number
+          status: string
+          telegram_id: number
+          updated_at: string
+          user_id: string
+          visited_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          partner_id: string
+          reward_fc?: number
+          status?: string
+          telegram_id: number
+          updated_at?: string
+          user_id: string
+          visited_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          partner_id?: string
+          reward_fc?: number
+          status?: string
+          telegram_id?: number
+          updated_at?: string
+          user_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_claims_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_recovery_audit: {
         Row: {
           action: string
@@ -6724,6 +6811,15 @@ export type Database = {
         Args: { p_admin_id: number; p_name: string }
         Returns: string
       }
+      admin_partners: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_partner_id?: string
+          p_payload?: Json
+        }
+        Returns: Json
+      }
       admin_pass_history: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
@@ -7550,6 +7646,10 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      claim_partner_reward: {
+        Args: { p_partner_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       claim_season_pass_reward: {
         Args: { p_reward_id: string; p_telegram_id: number }
         Returns: Json
@@ -7919,6 +8019,7 @@ export type Database = {
         Returns: Json
       }
       get_hero_shop_config: { Args: never; Returns: Json }
+      get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
       get_pet_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -8145,6 +8246,10 @@ export type Database = {
       }
       open_season_mythic_egg: {
         Args: { p_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      partner_channel_visit: {
+        Args: { p_partner_id: string; p_telegram_id: number }
         Returns: Json
       }
       payment_recovery_deliver: {

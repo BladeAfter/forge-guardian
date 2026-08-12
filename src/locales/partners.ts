@@ -1,0 +1,53 @@
+import type { LocaleBundle } from './registry';
+
+/** partners namespace: compact partner-channel list (name + reward + GO only). */
+export const partners: LocaleBundle = {
+  en: {
+    'partners.button': 'PARTNERS',
+    'partners.title': 'PARTNER CHANNELS',
+    'partners.go': 'GO',
+    'partners.claim': 'CLAIM',
+    'partners.claimed': 'CLAIMED',
+    'partners.empty': 'No partner channels available right now.',
+    'partners.loading': 'Loading partners...',
+    'partners.retry': 'TRY AGAIN',
+    'partners.rewardTitle': 'PARTNER REWARD',
+    'partners.hint': 'Open the channel and come back to claim your reward. One reward per partner.',
+  },
+  pt: {
+    'partners.button': 'PARCEIROS',
+    'partners.title': 'CANAIS PARCEIROS',
+    'partners.go': 'GO',
+    'partners.claim': 'COLETAR',
+    'partners.claimed': 'COLETADO',
+    'partners.empty': 'Nenhum canal parceiro disponível agora.',
+    'partners.loading': 'Carregando parceiros...',
+    'partners.retry': 'TENTAR NOVAMENTE',
+    'partners.rewardTitle': 'RECOMPENSA DE PARCEIRO',
+    'partners.hint': 'Abra o canal e volte para coletar. Uma recompensa por parceiro.',
+  },
+  es: {
+    'partners.button': 'SOCIOS',
+    'partners.title': 'CANALES SOCIOS',
+    'partners.go': 'GO',
+    'partners.claim': 'RECLAMAR',
+    'partners.claimed': 'RECLAMADO',
+    'partners.empty': 'No hay canales socios disponibles ahora.',
+    'partners.loading': 'Cargando socios...',
+    'partners.retry': 'INTENTAR DE NUEVO',
+    'partners.rewardTitle': 'RECOMPENSA DE SOCIO',
+    'partners.hint': 'Abre el canal y vuelve para reclamar. Una recompensa por socio.',
+  },
+  ru: {
+    'partners.button': 'ПАРТНЁРЫ',
+    'partners.title': 'ПАРТНЁРСКИЕ КАНАЛЫ',
+    'partners.go': 'GO',
+    'partners.claim': 'ЗАБРАТЬ',
+    'partners.claimed': 'ПОЛУЧЕНО',
+    'partners.empty': 'Партнёрских каналов пока нет.',
+    'partners.loading': 'Загрузка партнёров...',
+    'partners.retry': 'ПОВТОРИТЬ',
+    'partners.rewardTitle': 'НАГРАДА ПАРТНЁРА',
+    'partners.hint': 'Откройте канал и вернитесь, чтобы забрать награду. Одна награда за партнёра.',
+  },
+};

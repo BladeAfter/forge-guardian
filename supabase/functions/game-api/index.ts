@@ -968,6 +968,19 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * Partner channels. The Mini App only ever receives NAME + REWARD + claimed flag;
+   * the real destination URL is resolved server-side by `go` and never listed.
+   */
+  partners: async (db, user, body) => {
+    const action = String(body.action || 'list');
+    if (action === 'list') return rpc(db, 'get_partner_channels', { p_telegram_id: user.id });
+    if (!isUuid(body.partnerId)) throw new Error('INVALID_PARTNER');
+    if (action === 'go') return rpc(db, 'partner_channel_visit', { p_telegram_id: user.id, p_partner_id: body.partnerId });
+    if (action === 'claim') return rpc(db, 'claim_partner_reward', { p_telegram_id: user.id, p_partner_id: body.partnerId });
+    throw new Error('INVALID_ACTION');
+  },
+
 
   pool: async (db, user) => {
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
