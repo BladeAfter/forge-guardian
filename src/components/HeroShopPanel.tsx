@@ -133,10 +133,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     const intent = await createMarketPaymentIntent(telegramInitData ?? '', listingId, address);
     await tonUI.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 600,
-      messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: undefined, stateInit: undefined }],
       // The comment is what links this transfer to the reservation.
-      ...({ } as Record<string, never>),
-    } as never);
+      messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }],
+    });
+
     toast.message(t('market.paymentSent', { minutes: 10 }));
     const result = await waitForMarketPayment(telegramInitData ?? '', intent.paymentId);
     if (result?.status === 'confirmed') toast.success(t('market.paymentConfirmed'));
