@@ -56,6 +56,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [confirming, setConfirming] = useState(false);
   const [page, setPage] = useState(1);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [tonPrompt, setTonPrompt] = useState<{ id: string; price: number; name: string } | null>(null);
 
   // Maintenance switch and the admin bypass are decided by the backend only.
   const status = useMarketStatus(telegramInitData, tab === 'market');
@@ -176,9 +177,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
         toast.success(`${result.name} · -${paid}`);
       }
       setPayingId(null);
+      setTonPrompt(null);
       await refreshAll();
     },
-    onError: (error) => { setPayingId(null); toast.error(error instanceof Error ? error.message : t('market.loadError')); },
+    onError: (error) => { setPayingId(null); setTonPrompt(null); toast.error(error instanceof Error ? error.message : t('market.loadError')); },
   });
   const cancelMutation = useMutation({
     mutationFn: (listingId: string) => cancelMarketListing(telegramInitData ?? '', listingId),
@@ -445,7 +447,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                               ) : (
                                 <button
                                   disabled={buyMutation.isPending || (listing.status === 'reserved' && !listing.reservedForMe)}
-                                  onClick={() => buyMutation.mutate(listing.id)}
+                                  onClick={() => startPurchase(listing.id)}
                                   className={`w-full rounded-lg border py-1.5 text-[9px] font-black uppercase tracking-[0.12em] disabled:opacity-50 ${listing.currency === 'TON' ? 'border-sky-300/50 bg-sky-400/15 text-sky-200' : 'border-amber-300/50 bg-amber-400/15 text-amber-200'}`}
                                 >
                                   {listing.status === 'reserved' && !listing.reservedForMe
@@ -681,6 +683,46 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
             </div>
           )}
         </div>
+
+        {tonPrompt ? (
+          <div className="absolute inset-0 z-30 grid place-items-center bg-black/80 p-4">
+            <div className="w-full max-w-[330px] rounded-2xl border border-sky-300/35 bg-[#0b1220] p-4">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-sky-200">
+                {wallet ? t('market.insufficientTonTitle') : t('market.walletRequiredTitle')}
+              </p>
+              {wallet ? null : (
+                <p className="mt-2 text-[9px] leading-relaxed text-slate-300">{t('market.walletRequiredText')}</p>
+              )}
+              <div className="mt-3 space-y-1.5 rounded-xl border border-white/10 bg-black/40 p-2.5 text-[10px]">
+                <div className="flex items-center justify-between"><span className="text-slate-400">{t('market.priceLabel')}</span><strong className="text-sky-300">{tonAmount(tonPrompt.price)} TON</strong></div>
+                <div className="flex items-center justify-between"><span className="text-slate-400">{t('market.availableLabel')}</span><strong className="text-slate-200">{tonAmount(availableTon)} TON</strong></div>
+              </div>
+              <p className="mt-2 text-[8px] leading-relaxed text-slate-500">{t('market.noSplitPayment')}</p>
+              <div className="mt-3 grid gap-2">
+                {wallet ? (
+                  <button
+                    disabled={buyMutation.isPending}
+                    onClick={() => buyMutation.mutate(tonPrompt.id)}
+                    className="rounded-xl border border-sky-300/50 bg-sky-400/15 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-sky-100 disabled:opacity-40"
+                  >
+                    <Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />
+                    {t('market.payFullWallet', { amount: tonAmount(tonPrompt.price) })}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { void tonUI.openModal(); }}
+                    className="rounded-xl border border-sky-300/50 bg-sky-400/15 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-sky-100"
+                  >{t('market.connectWalletCta')}</button>
+                )}
+                <button
+                  disabled={buyMutation.isPending}
+                  onClick={() => setTonPrompt(null)}
+                  className="rounded-xl border border-white/15 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-slate-300 disabled:opacity-40"
+                >{t('market.cancel')}</button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
