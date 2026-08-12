@@ -136,40 +136,50 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
 
   return (
     <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle}>
-      {/* Boss stage */}
-      <div className="relative overflow-hidden rounded-3xl border border-violet-400/25 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,.35),rgba(0,0,0,.9)_70%)] p-3">
+      {/* Boss stage — container size never changes, only the art transforms */}
+      <div className="cb-stage relative overflow-hidden rounded-3xl border border-violet-400/25 bg-[radial-gradient(circle_at_50%_10%,rgba(139,92,246,.35),rgba(0,0,0,.9)_70%)] p-3">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-rose-900/50 to-transparent" />
-        <img
-          src={warlordArt}
-          alt={boss?.name ?? 'Abyssal Warlord'}
-          width={1024}
-          height={1280}
-          className={`relative mx-auto h-56 w-auto object-contain drop-shadow-[0_0_28px_rgba(168,85,247,.55)] transition-transform ${shake ? 'translate-x-1 scale-[1.03]' : ''}`}
-        />
-        {hit ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center">
-            <div className="animate-bounce text-center">
-              {hit.critical ? <p className="text-[9px] font-black tracking-[.2em] text-amber-300">{t('clanBoss.critical')}</p> : null}
-              <b className="text-2xl font-black text-rose-300 drop-shadow-[0_0_12px_rgba(244,63,94,.9)]">-{abbreviateDamage(hit.damage)}</b>
-            </div>
-          </div>
-        ) : null}
+        {impact ? <div className={`cb-flash ${impact.kind === 'boss' ? 'cb-flash-boss' : impact.kind === 'crit' ? 'cb-flash-crit' : 'cb-flash-player'}`} /> : null}
+        {impact && impact.kind !== 'boss' ? <div className="cb-slash"><i /><i /></div> : null}
+        <div className="relative h-56">
+          <img
+            src={warlordArt}
+            alt={boss?.name ?? 'Abyssal Warlord'}
+            width={1024}
+            height={1280}
+            className={`cb-boss-art mx-auto h-56 w-auto object-contain drop-shadow-[0_0_28px_rgba(168,85,247,.55)] ${impact ? (impact.kind === 'boss' ? 'cb-charge' : 'cb-hit') : ''}`}
+          />
+          <FloatingDamage events={events} />
+        </div>
         <div className="relative mt-2 text-center">
           <b className="text-base font-black tracking-[.14em] text-violet-100">{boss?.name}</b>
           <p className="text-[8px] tracking-[.28em] text-amber-300/80">{t('clanBoss.level')} {boss?.level ?? 1}</p>
+          <div className="mt-2"><TurnIndicator phase={phase} idleLabel={t('clanBoss.waiting')} /></div>
         </div>
 
-        {/* HP */}
+        {/* HP — bar eases, number stays exact */}
         <div className="relative mt-3">
           <div className="flex items-end justify-between text-[9px] tracking-[.2em] text-violet-200/80">
             <span>{t('clanBoss.hp')}</span>
             <span className="font-black text-white">{Math.round(boss?.currentHp ?? 0).toLocaleString()} / {Math.round(boss?.maxHp ?? 0).toLocaleString()}</span>
           </div>
           <div className="mt-1 h-4 overflow-hidden rounded-full border border-violet-300/30 bg-black/70">
-            <div className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-violet-400 transition-all duration-500" style={{ width: `${hpPercent}%` }} />
+            <div className="h-full bg-gradient-to-r from-rose-700 via-rose-500 to-violet-400" style={{ width: `${easedHp}%` }} />
           </div>
         </div>
+
+        {/* NEXT ATTACK — driven by the real cooldown, no extra timers */}
+        <div className="relative mt-3 space-y-1 rounded-2xl border border-white/10 bg-black/45 p-2">
+          <p className="text-[8px] font-black tracking-[.22em] text-slate-400">{t('clanBoss.nextAttack')}</p>
+          <NextAttackBar
+            label={t('clanBoss.playerSlot')}
+            remainingMs={cooldownLeft}
+            totalSeconds={boss?.cooldownSeconds ?? 1}
+            readyLabel={t('clanBoss.ready')}
+          />
+        </div>
       </div>
+
 
       {defeated ? (
         <div className="mt-3 rounded-3xl border border-amber-300/40 bg-amber-400/10 p-4 text-center">
