@@ -16,8 +16,9 @@ import { events } from './events';
 import { market } from './market';
 import { spending } from './spending';
 import { clanBoss } from './clanBoss';
+import { partners } from './partners';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners];
 
 
 function merge(language: LanguageCode): Dict {
