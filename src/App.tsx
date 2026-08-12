@@ -33,7 +33,7 @@ import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, markSpendingEventPopupSeen, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -91,6 +91,9 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
   return <button type="button" onClick={onClick} className="home-feature forge-golden-tile group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
 
+
+/** In-memory only: resets on every real app launch (Mini App reopen). */
+let spendingPopupAutoOpened=false;
 
 function App() {
   const [tab, setTab] = useState<TabKey>(tabFromPath);
@@ -189,6 +192,7 @@ function App() {
    * keeps running exactly as before. It never gates rendering.
    */
   const [spendingPopupDismissed,setSpendingPopupDismissed]=useState(false);
+  const [spendingPopupOpen,setSpendingPopupOpen]=useState(false);
   const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
   const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
   const {data:spendingPopupData}=useQuery({
@@ -197,9 +201,21 @@ function App() {
     queryFn:()=>spendingEventPopupRequest(telegramInitData??''),
     staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
   });
-  const spendingPopup=homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
-  /** Closing (X or VIEW EVENT) records the view server-side, per user and per event. */
-  const dismissSpendingPopup=()=>{setSpendingPopupDismissed(true);if(telegramInitData)void markSpendingEventPopupSeen(telegramInitData)};
+  /**
+   * Auto-open exactly once per app launch (in-memory flag only, never persisted):
+   * closing the Mini App and reopening it shows the highlight again while the event is active.
+   */
+  useEffect(()=>{
+    if(spendingPopupAutoOpened)return;
+    if(!homeQuiet||spendingPopupDismissed)return;
+    if(!spendingPopupData?.show)return;
+    spendingPopupAutoOpened=true;
+    setSpendingPopupOpen(true);
+  },[homeQuiet,spendingPopupDismissed,spendingPopupData]);
+  const spendingPopup=spendingPopupOpen&&homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
+  /** Closing only affects the current launch: nothing is stored client- or server-side. */
+  const dismissSpendingPopup=()=>{setSpendingPopupOpen(false);setSpendingPopupDismissed(true)};
+
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
