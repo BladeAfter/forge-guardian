@@ -2088,27 +2088,39 @@ export type Database = {
           available_from: string | null
           available_until: string | null
           base_atk: number | null
+          base_def: number | null
           base_hp: number | null
+          base_speed: number | null
           battle_image: string | null
           buffs: Json
+          crit_rate: number | null
           description: string | null
           discount_percent: number
           drop_weight: number
           enabled: boolean
           featured: boolean
           fusion_pool_enabled: boolean
+          growth_multiplier: number
           hero_class: string
           hero_key: string
           image: string
           in_shop: boolean
+          is_nft_exclusive: boolean
           max_level: number
           name: string
+          nft_class_label: string | null
+          nft_passive: Json
           per_player_limit: number | null
           power: number | null
           price_fc: number | null
           price_ton: number | null
+          random_drop_eligible: boolean
           rarity: string
+          recruit_eligible: boolean
           recruit_enabled: boolean
+          reward_pool_eligible: boolean
+          shop_eligible: boolean
+          skill_power: number | null
           skills: Json
           sort_order: number
           start_level: number
@@ -2119,27 +2131,39 @@ export type Database = {
           available_from?: string | null
           available_until?: string | null
           base_atk?: number | null
+          base_def?: number | null
           base_hp?: number | null
+          base_speed?: number | null
           battle_image?: string | null
           buffs?: Json
+          crit_rate?: number | null
           description?: string | null
           discount_percent?: number
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
           fusion_pool_enabled?: boolean
+          growth_multiplier?: number
           hero_class?: string
           hero_key: string
           image: string
           in_shop?: boolean
+          is_nft_exclusive?: boolean
           max_level?: number
           name: string
+          nft_class_label?: string | null
+          nft_passive?: Json
           per_player_limit?: number | null
           power?: number | null
           price_fc?: number | null
           price_ton?: number | null
+          random_drop_eligible?: boolean
           rarity: string
+          recruit_eligible?: boolean
           recruit_enabled?: boolean
+          reward_pool_eligible?: boolean
+          shop_eligible?: boolean
+          skill_power?: number | null
           skills?: Json
           sort_order?: number
           start_level?: number
@@ -2150,27 +2174,39 @@ export type Database = {
           available_from?: string | null
           available_until?: string | null
           base_atk?: number | null
+          base_def?: number | null
           base_hp?: number | null
+          base_speed?: number | null
           battle_image?: string | null
           buffs?: Json
+          crit_rate?: number | null
           description?: string | null
           discount_percent?: number
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
           fusion_pool_enabled?: boolean
+          growth_multiplier?: number
           hero_class?: string
           hero_key?: string
           image?: string
           in_shop?: boolean
+          is_nft_exclusive?: boolean
           max_level?: number
           name?: string
+          nft_class_label?: string | null
+          nft_passive?: Json
           per_player_limit?: number | null
           power?: number | null
           price_fc?: number | null
           price_ton?: number | null
+          random_drop_eligible?: boolean
           rarity?: string
+          recruit_eligible?: boolean
           recruit_enabled?: boolean
+          reward_pool_eligible?: boolean
+          shop_eligible?: boolean
+          skill_power?: number | null
           skills?: Json
           sort_order?: number
           start_level?: number
@@ -2940,6 +2976,125 @@ export type Database = {
           {
             foreignKeyName: "market_transactions_seller_user_id_fkey"
             columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_hero_history: {
+        Row: {
+          action: string
+          admin_telegram_id: number | null
+          created_at: string
+          from_user_id: string | null
+          id: string
+          metadata: Json
+          nft_hero_id: string
+          reason: string | null
+          to_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_telegram_id?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json
+          nft_hero_id: string
+          reason?: string | null
+          to_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_telegram_id?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json
+          nft_hero_id?: string
+          reason?: string | null
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_hero_history_nft_hero_id_fkey"
+            columns: ["nft_hero_id"]
+            isOneToOne: false
+            referencedRelation: "nft_heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_heroes: {
+        Row: {
+          assigned_at: string | null
+          created_at: string
+          created_by_admin: number | null
+          hero_template_id: string
+          id: string
+          level: number
+          metadata: Json
+          minted: boolean
+          nft_serial: number
+          owner_user_id: string | null
+          player_hero_id: string | null
+          revoked_at: string | null
+          stars: number
+          status: string
+          unique_instance_id: string
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          hero_template_id: string
+          id?: string
+          level?: number
+          metadata?: Json
+          minted?: boolean
+          nft_serial: number
+          owner_user_id?: string | null
+          player_hero_id?: string | null
+          revoked_at?: string | null
+          stars?: number
+          status?: string
+          unique_instance_id: string
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          hero_template_id?: string
+          id?: string
+          level?: number
+          metadata?: Json
+          minted?: boolean
+          nft_serial?: number
+          owner_user_id?: string | null
+          player_hero_id?: string | null
+          revoked_at?: string | null
+          stars?: number
+          status?: string
+          unique_instance_id?: string
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_heroes_hero_template_id_fkey"
+            columns: ["hero_template_id"]
+            isOneToOne: false
+            referencedRelation: "hero_catalog"
+            referencedColumns: ["hero_key"]
+          },
+          {
+            foreignKeyName: "nft_heroes_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
@@ -4204,6 +4359,8 @@ export type Database = {
           bonus_atk: number
           bonus_hp: number
           created_at: string
+          crit_rate: number | null
+          defense: number | null
           exclusive_badge: string | null
           exclusive_pass_tier: string | null
           exclusive_passive: Json
@@ -4216,12 +4373,18 @@ export type Database = {
           hp_growth: number
           id: string
           image: string | null
+          is_nft_exclusive: boolean
           is_season_exclusive: boolean
           level: number
           locked: boolean
           market_locked: boolean
           name: string
+          nft_hero_id: string | null
+          nft_instance_id: string | null
+          nft_serial: number | null
           rarity: string
+          skill_power: number | null
+          speed: number | null
           stats_generated_at: string | null
           stats_seed: string
           tradable: boolean
@@ -4237,6 +4400,8 @@ export type Database = {
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          crit_rate?: number | null
+          defense?: number | null
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -4249,12 +4414,18 @@ export type Database = {
           hp_growth: number
           id?: string
           image?: string | null
+          is_nft_exclusive?: boolean
           is_season_exclusive?: boolean
           level?: number
           locked?: boolean
           market_locked?: boolean
           name: string
+          nft_hero_id?: string | null
+          nft_instance_id?: string | null
+          nft_serial?: number | null
           rarity: string
+          skill_power?: number | null
+          speed?: number | null
           stats_generated_at?: string | null
           stats_seed: string
           tradable?: boolean
@@ -4270,6 +4441,8 @@ export type Database = {
           bonus_atk?: number
           bonus_hp?: number
           created_at?: string
+          crit_rate?: number | null
+          defense?: number | null
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -4282,12 +4455,18 @@ export type Database = {
           hp_growth?: number
           id?: string
           image?: string | null
+          is_nft_exclusive?: boolean
           is_season_exclusive?: boolean
           level?: number
           locked?: boolean
           market_locked?: boolean
           name?: string
+          nft_hero_id?: string | null
+          nft_instance_id?: string | null
+          nft_serial?: number | null
           rarity?: string
+          skill_power?: number | null
+          speed?: number | null
           stats_generated_at?: string | null
           stats_seed?: string
           tradable?: boolean
@@ -7507,6 +7686,50 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_nft_hero_available: {
+        Args: { p_admin_id: number; p_hero_key?: string; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_hero_create: {
+        Args: { p_admin_id: number; p_hero_key: string; p_quantity?: number }
+        Returns: Json
+      }
+      admin_nft_hero_give: {
+        Args: {
+          p_admin_id: number
+          p_nft_id: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_nft_hero_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_hero_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_hero_registry: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_nft_hero_revoke: {
+        Args: { p_admin_id: number; p_nft_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_nft_hero_search: {
+        Args: { p_admin_id: number; p_query: string }
+        Returns: Json
+      }
+      admin_nft_hero_set_stats: {
+        Args: {
+          p_admin_id: number
+          p_hero_key: string
+          p_patch: Json
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_nft_hero_stats: { Args: { p_admin_id: number }; Returns: Json }
       admin_nft_history: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
@@ -8904,6 +9127,17 @@ export type Database = {
       hero_fusion_config: { Args: never; Returns: Json }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
+      hero_nft_class_mult: {
+        Args: { p_archetype: string }
+        Returns: {
+          atk_mult: number
+          crit_bonus: number
+          def_mult: number
+          hp_mult: number
+          skill_mult: number
+          speed_bonus: number
+        }[]
+      }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
