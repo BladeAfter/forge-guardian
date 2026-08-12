@@ -338,6 +338,17 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                     ))}
                   </div>
 
+                  <div className="-mx-1 mt-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {(['all', 'FC', 'TON'] as const).map((value) => (
+                      <button key={value} onClick={() => { setCurrencyFilter(value); setPage(1); }} className={`${chipClass(currencyFilter === value)} shrink-0`}>
+                        {value === 'all' ? t('market.all') : value}
+                      </button>
+                    ))}
+                    {availableTon > 0 ? (
+                      <span className="shrink-0 rounded-full border border-sky-300/40 bg-sky-400/10 px-2.5 py-1 text-[9px] font-black text-sky-200">{tonAmount(availableTon)} TON</span>
+                    ) : null}
+                  </div>
+
                   <div className="relative mt-2 flex items-center gap-2">
                     <button
                       onClick={() => setSortOpen((open) => !open)}
@@ -412,15 +423,23 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
                             </div>
                             <div className="flex w-[86px] shrink-0 flex-col items-end gap-1">
-                              <p className="text-right text-[11px] font-black leading-tight text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
+                              <p className={`text-right text-[11px] font-black leading-tight ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                               {listing.mine ? (
                                 <span className="w-full rounded-lg border border-white/10 py-1 text-center text-[8px] font-black text-slate-400">{t('market.own')}</span>
                               ) : (
                                 <button
-                                  disabled={buyMutation.isPending}
+                                  disabled={buyMutation.isPending || (listing.status === 'reserved' && !listing.reservedForMe)}
                                   onClick={() => buyMutation.mutate(listing.id)}
-                                  className="w-full rounded-lg border border-amber-300/50 bg-amber-400/15 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-amber-200 disabled:opacity-50"
-                                >{t('market.buy')}</button>
+                                  className={`w-full rounded-lg border py-1.5 text-[9px] font-black uppercase tracking-[0.12em] disabled:opacity-50 ${listing.currency === 'TON' ? 'border-sky-300/50 bg-sky-400/15 text-sky-200' : 'border-amber-300/50 bg-amber-400/15 text-amber-200'}`}
+                                >
+                                  {listing.status === 'reserved' && !listing.reservedForMe
+                                    ? t('market.reserved')
+                                    : payingId === listing.id
+                                      ? t('market.paying')
+                                      : listing.currency === 'TON' && Number(listing.priceTon) > availableTon
+                                        ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                        : t('market.buy')}
+                                </button>
                               )}
                             </div>
                           </div>
@@ -467,7 +486,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       {listing.image ? <img src={listing.image} alt={listing.name} className="h-10 w-10 rounded-lg object-cover" /> : <div className="grid h-10 w-10 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-black text-white">{listing.name}</p>
-                        <p className="text-[9px] font-black text-amber-300">{formatCurrency(listing.priceFc)} FC</p>
+                        <p className={`text-[9px] font-black ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${listing.status === 'active' ? 'bg-emerald-400/15 text-emerald-300' : listing.status === 'sold' ? 'bg-sky-400/15 text-sky-300' : 'bg-white/10 text-slate-400'}`}>
                         {listing.status === 'active' ? t('market.statusActive') : listing.status === 'sold' ? t('market.statusSold') : t('market.statusCancelled')}
@@ -486,7 +505,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                         <p className="truncate text-[10px] font-black text-white">{purchase.name}</p>
                         <p className="truncate text-[8px] text-slate-500">{t('market.seller')}: {purchase.seller}</p>
                       </div>
-                      <p className="text-[10px] font-black text-amber-300">{formatCurrency(purchase.priceFc)} FC</p>
+                      <p className={`text-[10px] font-black ${purchase.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(purchase)}</p>
                     </div>
                   )) : <p className="text-center text-[10px] text-slate-500">{t('market.noPurchases')}</p>}
                 </div>
@@ -502,6 +521,27 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       </button>
                     ))}
                   </div>
+
+                  <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseCurrency')}</p>
+                  <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+                    {(['FC', 'TON'] as const).map((value) => (
+                      <button
+                        key={value}
+                        onClick={() => { setSellCurrency(value); setPrice(''); setConfirming(false); }}
+                        className={`rounded-lg border px-1 py-1.5 text-[9px] font-black uppercase ${sellCurrency === value ? (value === 'TON' ? 'border-sky-300/60 bg-sky-400/15 text-sky-200' : 'border-amber-300/60 bg-amber-400/15 text-amber-200') : 'border-white/10 bg-white/[.03] text-slate-400'}`}
+                      >{value}</button>
+                    ))}
+                  </div>
+                  {sellCurrency === 'TON' ? (
+                    <p className="mt-1.5 text-[8px] leading-relaxed text-sky-200/80">{t('market.tonSaleHint')}</p>
+                  ) : null}
+
+                  {!canSell ? (
+                    <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-300/30 bg-amber-400/10 p-2.5">
+                      <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
+                      <p className="text-[9px] leading-relaxed text-amber-100">{t('market.sellLocked')}</p>
+                    </div>
+                  ) : null}
 
                   <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseItem')}</p>
                   {sellable.isLoading ? <p className="mt-3 text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
@@ -537,12 +577,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                           <>
                             <div className="flex items-center justify-between text-[9px]">
                               <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.priceBand')}</span>
-                              <span className="font-black text-sky-200">{formatCurrency(bandMin)} – {formatCurrency(bandMax)} FC</span>
+                              <span className="font-black text-sky-200">{amountLabel(bandMin)} – {amountLabel(bandMax)} {priceUnit}</span>
                             </div>
                             <div className="mt-1 flex items-center justify-between text-[9px]">
                               <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.recommended')}</span>
                               <button onClick={() => setPrice(String(bandRecommended))} className="rounded-md border border-emerald-400/40 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-black text-emerald-200">
-                                {formatCurrency(bandRecommended)} FC · {t('market.useRecommended')}
+                                {amountLabel(bandRecommended)} {priceUnit} · {t('market.useRecommended')}
                               </button>
                             </div>
                             <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
@@ -557,24 +597,24 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.enterPrice')}</p>
                       <input
                         value={price}
-                        onChange={(event) => { setPrice(event.target.value.replace(/[^0-9]/g, '').slice(0, 12)); setConfirming(false); }}
-                        inputMode="numeric"
+                        onChange={(event) => { setPrice(event.target.value.replace(isTonSale ? /[^0-9.]/g : /[^0-9]/g, '').slice(0, 12)); setConfirming(false); }}
+                        inputMode="decimal"
                         placeholder={String(bandRecommended || minPrice)}
                         className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-sm font-black text-amber-200 outline-none"
                       />
-                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: formatCurrency(bandMin) })}</p>
+                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: `${amountLabel(bandMin)} ${priceUnit}` })}</p>
                       {outOfBand ? (
                         <p className="mt-1 text-[8px] font-bold text-rose-300">
-                          {t('market.outOfBand', { min: formatCurrency(bandMin), max: formatCurrency(bandMax) })}
+                          {t('market.outOfBand', { min: `${amountLabel(bandMin)} ${priceUnit}`, max: `${amountLabel(bandMax)} ${priceUnit}` })}
                         </p>
                       ) : null}
                       <div className="mt-2 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.fee')}</span>
-                        <span className="font-black text-rose-300">{feePercent}% · {formatCurrency(split.fee)} FC</span>
+                        <span className="font-black text-rose-300">{feePercent}% · {amountLabel(split.fee)} {priceUnit}</span>
                       </div>
                       <div className="flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.youReceive')}</span>
-                        <span className="font-black text-emerald-300">{formatCurrency(split.receives)} FC</span>
+                        <span className="font-black text-emerald-300">{amountLabel(split.receives)} {priceUnit}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.holdTitle')}</span>
@@ -587,8 +627,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
                             {t('market.confirmSaleBody', {
                               name: selected.name,
-                              price: formatCurrency(split.price),
-                              receives: formatCurrency(split.receives),
+                              price: `${amountLabel(split.price)} ${priceUnit}`,
+                              receives: `${amountLabel(split.receives)} ${priceUnit}`,
                               hours: settlementHours,
                             })}
                           </p>
@@ -606,7 +646,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                         </div>
                       ) : (
                         <button
-                          disabled={listMutation.isPending || split.price < bandMin || split.price > bandMax}
+                          disabled={listMutation.isPending || !canSell || split.price < bandMin || split.price > bandMax}
                           onClick={() => setConfirming(true)}
                           className="mt-3 w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 disabled:opacity-40"
                         >{t('market.list')}</button>
