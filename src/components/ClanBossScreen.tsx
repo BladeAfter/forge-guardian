@@ -58,12 +58,33 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     setBusy(true);
     try {
       const result = await strikeClanBoss(telegramInitData, boss.id);
-      setHit({ damage: result.damage, critical: result.critical });
-      setShake(true);
-      window.setTimeout(() => setShake(false), 420);
-      window.setTimeout(() => setHit(null), 1600);
+      // One animation per confirmed backend combat event (never on refetch).
+      const eventId = result.eventId ?? `${boss.id}:${result.nextAttackAt}:${result.currentHp}`;
+      if (!seen.current.has(eventId)) {
+        seen.current.add(eventId);
+        push({ id: `${eventId}:player`, kind: result.critical ? 'CRITICAL' : 'PLAYER_ATTACK', damage: result.damage, critical: result.critical });
+        setImpact({ id: eventId, kind: result.critical ? 'crit' : 'player' });
+        window.setTimeout(() => setImpact((current) => (current?.id === eventId ? null : current)), 620);
+
+        // Boss retaliation / hero status only animate when the backend reports them.
+        const bossDamage = Number(result.bossAttack?.teamDamage ?? result.bossAttack?.damage ?? result.teamDamage ?? 0);
+        const extras: CombatEvent[] = [];
+        if (bossDamage > 0) extras.push({ id: `${eventId}:boss`, kind: 'BOSS_ATTACK', damage: bossDamage });
+        (result.heroesDefeated ?? []).forEach((name, index) => extras.push({ id: `${eventId}:down:${index}`, kind: 'HERO_DEFEATED', label: `${name} DEFEATED` }));
+        (result.heroesRevived ?? []).forEach((name, index) => extras.push({ id: `${eventId}:up:${index}`, kind: 'HERO_REVIVED', label: `${name} REVIVED` }));
+        if (extras.length) {
+          window.setTimeout(() => {
+            extras.forEach(push);
+            if (bossDamage > 0) {
+              setImpact({ id: `${eventId}:boss`, kind: 'boss' });
+              window.setTimeout(() => setImpact((current) => (current?.id === `${eventId}:boss` ? null : current)), 720);
+            }
+          }, 700);
+        }
+      }
       if (result.defeated) toast.success(t('clanBoss.defeated'));
       await refetch();
+
     } catch (error) {
       const raw = error instanceof Error ? error.message : '';
       console.error('[CLAN BOSS STRIKE FAILED]', raw);
