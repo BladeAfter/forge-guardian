@@ -2531,6 +2531,42 @@ export type Database = {
           },
         ]
       }
+      pet_attribute_pool: {
+        Row: {
+          allowed_rarities: Json
+          buff_key: string
+          created_at: string
+          enabled: boolean
+          label: string
+          max_override: number | null
+          min_override: number | null
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          allowed_rarities?: Json
+          buff_key: string
+          created_at?: string
+          enabled?: boolean
+          label: string
+          max_override?: number | null
+          min_override?: number | null
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          allowed_rarities?: Json
+          buff_key?: string
+          created_at?: string
+          enabled?: boolean
+          label?: string
+          max_override?: number | null
+          min_override?: number | null
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       pet_buff_pool: {
         Row: {
           buff_key: string
@@ -3002,6 +3038,57 @@ export type Database = {
           },
         ]
       }
+      pet_rarity_config: {
+        Row: {
+          attr_max: number
+          attr_min: number
+          color_primary: string
+          color_secondary: string
+          created_at: string
+          enabled: boolean
+          glow: string
+          label: string
+          label_pt: string
+          multiplier: number
+          power: number
+          rarity: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          attr_max?: number
+          attr_min?: number
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          enabled?: boolean
+          glow?: string
+          label: string
+          label_pt: string
+          multiplier?: number
+          power?: number
+          rarity: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          attr_max?: number
+          attr_min?: number
+          color_primary?: string
+          color_secondary?: string
+          created_at?: string
+          enabled?: boolean
+          glow?: string
+          label?: string
+          label_pt?: string
+          multiplier?: number
+          power?: number
+          rarity?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pet_settings: {
         Row: {
           key: string
@@ -3145,6 +3232,7 @@ export type Database = {
       pets: {
         Row: {
           active_skill: Json | null
+          availability_type: string
           base_passives: Json
           category: string
           created_at: string
@@ -3153,6 +3241,7 @@ export type Database = {
           exclusive_pass_tier: string | null
           exclusive_passive: Json
           exclusive_season_id: string | null
+          hide_name_until_discovered: boolean
           id: string
           image_adult_url: string | null
           image_ancestral_url: string | null
@@ -3161,12 +3250,18 @@ export type Database = {
           is_enabled: boolean
           is_season_exclusive: boolean
           name: string
+          obtainable_from: Json
+          primary_attribute_key: string | null
+          primary_attribute_value: number | null
+          rarity: string | null
+          show_in_catalog: boolean
           slug: string
           species: string
           updated_at: string
         }
         Insert: {
           active_skill?: Json | null
+          availability_type?: string
           base_passives?: Json
           category: string
           created_at?: string
@@ -3175,6 +3270,7 @@ export type Database = {
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
           exclusive_season_id?: string | null
+          hide_name_until_discovered?: boolean
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
@@ -3183,12 +3279,18 @@ export type Database = {
           is_enabled?: boolean
           is_season_exclusive?: boolean
           name: string
+          obtainable_from?: Json
+          primary_attribute_key?: string | null
+          primary_attribute_value?: number | null
+          rarity?: string | null
+          show_in_catalog?: boolean
           slug: string
           species: string
           updated_at?: string
         }
         Update: {
           active_skill?: Json | null
+          availability_type?: string
           base_passives?: Json
           category?: string
           created_at?: string
@@ -3197,6 +3299,7 @@ export type Database = {
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
           exclusive_season_id?: string | null
+          hide_name_until_discovered?: boolean
           id?: string
           image_adult_url?: string | null
           image_ancestral_url?: string | null
@@ -3205,6 +3308,11 @@ export type Database = {
           is_enabled?: boolean
           is_season_exclusive?: boolean
           name?: string
+          obtainable_from?: Json
+          primary_attribute_key?: string | null
+          primary_attribute_value?: number | null
+          rarity?: string | null
+          show_in_catalog?: boolean
           slug?: string
           species?: string
           updated_at?: string
@@ -4785,6 +4893,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_pet_pool: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          pet_id: string
+          rarity: string
+          source_key: string
+          source_type: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          pet_id: string
+          rarity: string
+          source_key: string
+          source_type: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          pet_id?: string
+          rarity?: string
+          source_key?: string
+          source_type?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_pet_pool_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_exclusive_deliveries: {
         Row: {
           created_at: string
@@ -6054,6 +6206,32 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number; p_query?: string }
         Returns: Json
       }
+      admin_create_egg_visual: {
+        Args: {
+          p_admin_id: number
+          p_currency: string
+          p_image_url: string
+          p_name: string
+          p_price: number
+        }
+        Returns: Json
+      }
+      admin_create_pet_visual: {
+        Args: {
+          p_admin_id: number
+          p_attribute_key: string
+          p_attribute_value: number
+          p_availability?: string
+          p_category?: string
+          p_description?: string
+          p_image_url: string
+          p_name: string
+          p_rarity: string
+          p_show_in_catalog?: boolean
+          p_sources?: Json
+        }
+        Returns: Json
+      }
       admin_create_snapshot: {
         Args: { p_admin_id: number; p_label: string }
         Returns: Json
@@ -6062,6 +6240,11 @@ export type Database = {
         Args: { p_admin_id: number; p_hero_key: string; p_reason?: string }
         Returns: Json
       }
+      admin_egg_detail: {
+        Args: { p_admin_id: number; p_egg_id: string }
+        Returns: Json
+      }
+      admin_egg_list: { Args: { p_admin_id: number }; Returns: Json }
       admin_events: {
         Args: {
           p_action: string
@@ -6243,7 +6426,21 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
+      admin_pet_catalog: {
+        Args: {
+          p_admin_id: number
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+        }
+        Returns: Json
+      }
       admin_pet_config: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pet_detail_cms: {
+        Args: { p_admin_id: number; p_pet_id: string }
+        Returns: Json
+      }
+      admin_pet_rarities: { Args: { p_admin_id: number }; Returns: Json }
       admin_player_channel_claims: {
         Args: { p_admin_id: number; p_player: string }
         Returns: Json
@@ -6354,6 +6551,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_roll_pet_attribute: {
+        Args: { p_admin_id: number; p_exclude?: string; p_rarity: string }
+        Returns: Json
+      }
       admin_search_heroes: {
         Args: { p_admin_id: number; p_limit?: number; p_query?: string }
         Returns: Json
@@ -6402,6 +6603,29 @@ export type Database = {
           p_channel_key: string
           p_enabled?: boolean
           p_reward_fc?: number
+        }
+        Returns: Json
+      }
+      admin_set_egg_odds: {
+        Args: { p_admin_id: number; p_egg_id: string; p_rates: Json }
+        Returns: Json
+      }
+      admin_set_egg_pet_weight: {
+        Args: {
+          p_admin_id: number
+          p_egg_id: string
+          p_pet_id: string
+          p_rarity: string
+          p_weight: number
+        }
+        Returns: Json
+      }
+      admin_set_egg_price_visual: {
+        Args: {
+          p_admin_id: number
+          p_currency: string
+          p_egg_id: string
+          p_price: number
         }
         Returns: Json
       }
@@ -6631,12 +6855,26 @@ export type Database = {
       }
       admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_super_id: { Args: never; Returns: number }
+      admin_toggle_egg_pet: {
+        Args: {
+          p_admin_id: number
+          p_egg_id: string
+          p_pet_id: string
+          p_rarity: string
+          p_weight?: number
+        }
+        Returns: Json
+      }
       admin_unlink_referral: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
         Returns: Json
       }
       admin_update_channel: {
         Args: { p_admin_id: number; p_channel_key: string; p_patch: Json }
+        Returns: Json
+      }
+      admin_update_egg_visual: {
+        Args: { p_admin_id: number; p_egg_id: string; p_patch: Json }
         Returns: Json
       }
       admin_update_pet_egg_economy: {
@@ -6733,6 +6971,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_update_pet_visual: {
+        Args: {
+          p_admin_id: number
+          p_patch: Json
+          p_pet_id: string
+          p_reason?: string
+        }
+        Returns: Json
       }
       admin_update_pool_settings: {
         Args: {
@@ -7500,8 +7747,18 @@ export type Database = {
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
+      pet_rarity_order: { Args: { v: string }; Returns: number }
       pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
       pet_xp_required: { Args: { v: number }; Returns: number }
+      pick_pet_for_source: {
+        Args: {
+          p_rarity: string
+          p_seed: string
+          p_source_key: string
+          p_source_type: string
+        }
+        Returns: string
+      }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
       pool_eligibility: { Args: { p_user_id: string }; Returns: Json }
@@ -7722,6 +7979,7 @@ export type Database = {
         }
         Returns: string
       }
+      unaccent_fallback: { Args: { v: string }; Returns: string }
       unequip_combat_hero: {
         Args: { p_slot: number; p_telegram_id: number }
         Returns: Json
