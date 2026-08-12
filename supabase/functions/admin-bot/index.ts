@@ -3731,6 +3731,25 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
+  if (key === 'wlhot') {
+    const address = text.trim();
+    const friendly = toFriendlyTonAddress(address);
+    if (!friendly || !/^[A-Za-z0-9_-]{48}$/.test(friendly)) {
+      throw new Error('KEEP_SESSION::⚠️ Endereço TON inválido. Envie o endereço da carteira (formato <code>UQ...</code>/<code>EQ...</code> ou <code>0:...</code>).');
+    }
+    await wlRpc(ctx, 'set_hot_wallet', { address: friendly });
+    await clearSession(ctx);
+    await send(ctx, `🔥 <b>HOT WALLET ATUALIZADA</b>\n🏦 <code>${esc(friendly)}</code>\nVale imediatamente para novos depósitos.`);
+    return hotWalletHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'wlmin') {
+    const min = parseAmount(text);
+    if (!Number.isFinite(min) || min <= 0 || min > 100_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON entre 0 e 100000 (ex.: <code>1</code>).');
+    await wlRpc(ctx, 'set_min_withdraw', { minWithdrawTon: min });
+    await clearSession(ctx);
+    await send(ctx, `⬇️ <b>SAQUE MÍNIMO</b> atualizado para <b>${fmt(min)} TON</b>.`);
+    return hotWalletHub({ ...ctx, messageId: undefined }, false);
+  }
   if (key === 'prreason') {
     if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
     return prConfirm(ctx, args[0] ?? '', args[1] ?? '', text.slice(0, 300));
