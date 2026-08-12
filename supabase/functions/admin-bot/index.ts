@@ -1994,7 +1994,7 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 const PROMPTS: Record<string, string> = {
   ptname: '🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>',
   ptreward: '🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>',
-  pturl: '🔗 Envie o <b>link do canal</b> (fica oculto no backend, só o botão GO usa).\nEx.: <code>https://t.me/seucanal</code>',
+  pturl: '🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>',
   ptrename: '🏷 Envie o <b>novo nome</b> do parceiro.',
   ptsetreward: '🪙 Envie a <b>nova recompensa em FC</b>.',
   ptsetlink: '🔗 Envie o <b>novo link</b> (https://...).',
@@ -2707,7 +2707,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'cb') { if (rest[0] !== 'ask') await clearSession(ctx); return cbCallback(ctx, rest); }
 
   // 🤝 Partner channels (name + reward + hidden link). Keeps its own wizard session.
-  if (head === 'pt') { if (rest[0] !== 'ask') await clearSession(ctx); return partnersCallback(ctx, rest); }
+  if (head === 'pt') { if (rest[0] !== 'ask' && rest[0] !== 'save') await clearSession(ctx); return partnersCallback(ctx, rest); }
 
   // 💰 Spending Event module (independent from the weekly pool and the referral event).
   if (head === 'sp') { await clearSession(ctx); return spendCallback(ctx, rest); }
