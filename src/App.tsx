@@ -403,6 +403,8 @@ function App() {
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
   const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
+  /** Presentation-only counter: reuses the existing notification sources (no new system). */
+  const unreadNotifications=(referralDashboard?.notifications?.length??0)+(dailyReward?.claimed?0:1);
   useEffect(()=>{
     if(serverBalance===null)return;
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
