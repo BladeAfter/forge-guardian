@@ -352,6 +352,9 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
         speed: 90 + (Number(hero.level) || 1),
         power: Math.round((Number(hero.final_atk) || 0) * 2 + (Number(hero.final_hp) || 0)),
         exclusiveBadge: hero.is_season_exclusive ? hero.exclusive_badge : null,
+        isNft: Boolean(hero.is_nft_exclusive),
+        nftSerial: hero.nft_serial ?? null,
+        nftInstance: hero.nft_instance_id ?? null,
       })),
     };
 
