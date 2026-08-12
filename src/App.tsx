@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
-import { Bell, Settings, X } from 'lucide-react';
+import { Bell, ChevronRight, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
@@ -688,6 +688,8 @@ function App() {
   };
   const featuredMission = game.missions.find((mission) => !mission.claimed) ?? game.missions[0];
   const dailyReward = game.missions.find((mission) => mission.id === 'mission-1');
+  /** Presentation-only counter: reuses the existing notification sources (no new system). */
+  const unreadNotifications = (referralDashboard?.notifications?.length ?? 0) + (dailyReward?.claimed ? 0 : 1);
   const calendarDay = calendarDashboard?.currentDay??((Math.max(1, game.loginStreak) - 1) % 30) + 1;
   const calendarRewards=calendarDashboard?.rewards??CALENDAR_REWARDS;
   // Streak counts one presence per official game day: the server claim history is the authority.
@@ -800,24 +802,14 @@ function App() {
                 balance={fcBalance}
                 tonBalance={tonBalance}
                 onBalanceClick={()=>setTab('wallet')}
-                actions={<>
-                  <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
-                    <Bell />
-                    {!dailyReward?.claimed || referralDashboard?.notifications?.length ? <span className="absolute right-1 top-1 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
-                  </button>
-                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
+                actions={
+                  <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
                     <Settings />
+                    {unreadNotifications > 0 ? <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full border border-black bg-rose-500" /> : null}
                   </button>
-                </>}
+                }
               />
             </section>
-            {notificationsOpen ? (
-              <div className="absolute right-0 top-full z-40 mt-1 w-56 max-w-full rounded-2xl border border-white/10 bg-[#080c13]/95 p-3 text-xs shadow-2xl backdrop-blur-xl">
-                <p className="font-bold text-white">{t('notifications')}</p>
-                <p className="mt-2 text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
-                {referralDashboard?.notifications?.slice(0,3).map(item=><div key={item.id} className="mt-2 border-t border-white/10 pt-2"><p className="font-bold text-emerald-300">{item.message}</p><p className="text-[9px] text-slate-400">{item.title}</p></div>)}
-              </div>
-            ) : null}
           </div>
 
 
@@ -955,6 +947,42 @@ function App() {
                     <button key={code} onClick={() => changeLanguage(code)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white hover:border-amber-300/40 hover:bg-amber-400/10">{label}</button>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => { setSettingsOpen(false); setNotificationsOpen(true); }}
+                  className="mt-4 flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left hover:border-amber-300/40 hover:bg-amber-400/10"
+                >
+                  <span className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-amber-300" />
+                    <span>
+                      <span className="block text-sm font-bold text-white">{t('notifications')}</span>
+                      <span className="block text-[10px] text-slate-400">{t('common.notificationsHint')}</span>
+                    </span>
+                  </span>
+                  {unreadNotifications > 0 ? (
+                    <span className="shrink-0 rounded-full bg-rose-500/20 px-2 py-1 text-[10px] font-black text-rose-300">{unreadNotifications} {t('common.unread')}</span>
+                  ) : (
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {notificationsOpen ? (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#090d15] p-5 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-black">{t('notifications')}</h2>
+                  <button onClick={() => setNotificationsOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+                </div>
+                <p className="mt-4 text-xs text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
+                {referralDashboard?.notifications?.map(item => (
+                  <div key={item.id} className="mt-3 border-t border-white/10 pt-3">
+                    <p className="text-xs font-bold text-emerald-300">{item.message}</p>
+                    <p className="text-[10px] text-slate-400">{item.title}</p>
+                  </div>
+                ))}
               </div>
             </div>
           ) : null}
