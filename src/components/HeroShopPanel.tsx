@@ -398,7 +398,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
 
                   {browse.isError ? (
                     <div className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-center">
-                      <p className="text-[11px] text-rose-200">{browse.error instanceof Error ? browse.error.message : t('market.loadError')}</p>
+                      <p className="text-[11px] text-rose-200">{t('market.loadError')}</p>
                       <button onClick={() => void browse.refetch()} className="mt-2 rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black text-amber-200">{t('market.retry')}</button>
                     </div>
                   ) : browse.isLoading ? (
