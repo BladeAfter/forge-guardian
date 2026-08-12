@@ -92,3 +92,17 @@ export function rankTone(position: number): string {
 }
 
 export const rankMedal = (position: number) => (position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '');
+
+/**
+ * Entry highlight payload (backend owned). `show:false` is always a valid answer and
+ * means "render nothing" — the popup can never interfere with the game boot.
+ */
+export type SpendingEventPopup = {
+  show: boolean;
+  firstTime?: boolean;
+  frequency?: 'daily' | 'event';
+  event?: { id: string; name: string; status: string; startsAt: string; endsAt: string; topLimit: number };
+  player?: { points: number; fcSpent: number; tonSpent: number; position: number | null; estimatedReward: string | null };
+  totals?: { participants: number };
+  serverTime?: string;
+};

@@ -1,5 +1,5 @@
 import type {SpecialEventsDashboard} from './specialEvents';
-import type {SpendingEventDashboard} from './spendingEvent';
+import type {SpendingEventDashboard,SpendingEventPopup} from './spendingEvent';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
