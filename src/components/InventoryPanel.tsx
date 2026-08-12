@@ -5,7 +5,7 @@ import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
 import { openCalendarChest, petRequest } from '../services';
-import { PET_FOOD_ICONS } from '../petLabels';
+import { getInventoryItemVisual } from '../inventoryVisuals';
 import type { InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
 
@@ -18,39 +18,35 @@ const RARITY_BORDER: Record<string, string> = {
 const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'other'];
 
 /**
- * Single source of truth for item art: food rows carry the SAME icon key used by
- * Pets → Food (`pet_food_items.icon`), which is an emoji key and never a URL.
- * Anything that is not an absolute/relative image path renders as an emoji glyph.
+ * Art comes from `getInventoryItemVisual` (shared asset map keyed by stable item
+ * codes) so the inventory always shows the same official art as the other
+ * screens and never renders a broken image.
  */
-function itemGlyph(item: InventoryItem): string | null {
-  if (item.itemType === 'food') return PET_FOOD_ICONS[String(item.image ?? '')] ?? PET_FOOD_ICONS[item.itemId] ?? '🍖';
-  return null;
-}
-const isImageUrl = (value: string | null | undefined) => !!value && (value.startsWith('http') || value.startsWith('/') || value.startsWith('data:'));
-
 function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }) {
   const [broken, setBroken] = useState(false);
-  const glyph = itemGlyph(item);
+  const visual = getInventoryItemVisual(item);
   const cls = size === 'slot' ? 'h-full w-full' : 'mx-auto mb-2 h-20 w-20';
-  if (glyph) return <span className={`grid place-items-center ${cls} ${size === 'slot' ? 'text-2xl' : 'text-4xl'}`} aria-hidden>{glyph}</span>;
 
-  if (isImageUrl(item.image) && !broken) {
+  if (visual.image && !broken) {
     return (
       <img
-        src={item.image as string}
+        src={visual.image}
         alt={item.name}
         loading="lazy"
         decoding="async"
-        onError={() => { setBroken(true); console.error('[INVENTORY ASSET]', { itemId: item.itemId, itemType: item.itemType, image: item.image }); }}
-        className={size === 'slot' ? 'h-full w-full object-cover' : 'mx-auto mb-2 h-20 w-20 rounded-xl object-cover'}
+        onError={() => { setBroken(true); console.error('[INVENTORY ASSET]', { itemId: item.itemId, itemType: item.itemType, image: visual.image }); }}
+        className={size === 'slot' ? 'h-full w-full object-contain p-1' : 'mx-auto mb-2 h-20 w-20 rounded-xl object-contain'}
       />
     );
   }
+  const glyph = visual.glyph;
+  if (glyph) return <span className={`grid place-items-center ${cls} ${size === 'slot' ? 'text-2xl' : 'text-4xl'}`} aria-hidden>{glyph}</span>;
   return <span className={`grid place-items-center ${cls} text-slate-400`}><Package size={size === 'slot' ? 18 : 28} /></span>;
 }
 
 const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryItem; onSelect: (item: InventoryItem) => void }) {
-  const border = (item.rarity && RARITY_BORDER[item.rarity]) || 'rgba(255,255,255,.14)';
+  const rarity = getInventoryItemVisual(item).rarity;
+  const border = (rarity && RARITY_BORDER[rarity]) || 'rgba(255,255,255,.14)';
   return (
     <button
       onClick={() => onSelect(item)}
