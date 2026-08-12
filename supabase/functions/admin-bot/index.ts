@@ -4574,7 +4574,10 @@ Deno.serve(async (req) => {
     if (pending && !(isCommand && (cmdWord === '/start' || cmdWord === '/menu' || cmdWord === '/cancel'))) {
       try {
         await handlePrompt(ctx, pending, text);
-        await clearSession(ctx);
+        // Multi-step wizards (e.g. partner NAME -> REWARD -> LINK -> ...) advance the
+        // session inside handlePrompt. Only clear it when no new step was queued.
+        const next = await getSession(ctx);
+        if (!next || next.action === pending) await clearSession(ctx);
       } catch (error) {
         const raw = error instanceof Error ? error.message : String(error);
         if (raw.startsWith('KEEP_SESSION::')) {
