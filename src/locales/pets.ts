@@ -59,6 +59,8 @@ export const pets: LocaleBundle = {
     'pets.total': 'Total',
     'pets.currentBalance': 'Current balance',
     'pets.afterPurchase': 'After purchase',
+    'pets.purchaseSuccess': 'Purchase successful!',
+    'pets.purchaseSuccessItem': 'Purchased {name} x{quantity} successfully!',
     'pets.payWithTon': 'Pay with TON',
     'pets.insufficientBalance': 'Insufficient balance',
     'pets.buyLabel': 'Buy',
