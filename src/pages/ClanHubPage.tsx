@@ -84,6 +84,12 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
     if (result) setMessages(result.messages);
   };
 
+  // Fullscreen clan boss view. Rendered before the dashboard guards so the button
+  // opens instantly; the screen owns its own loading, error and retry states.
+  if (bossOpen) {
+    return <ClanBossScreen telegramInitData={telegramInitData} onClose={() => { setBossOpen(false); setTab('boss'); void refresh(); }} />;
+  }
+
   if (isError && !data) {
     const raw = loadError instanceof Error ? loadError.message : '';
     const key = clanErrorKey(raw);
