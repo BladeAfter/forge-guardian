@@ -1,9 +1,11 @@
 import { memo, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
-import { openCalendarChest } from '../services';
+import { openCalendarChest, petRequest } from '../services';
+import { PET_FOOD_ICONS } from '../petLabels';
 import type { InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
 
@@ -15,6 +17,38 @@ const RARITY_BORDER: Record<string, string> = {
 
 const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'other'];
 
+/**
+ * Single source of truth for item art: food rows carry the SAME icon key used by
+ * Pets → Food (`pet_food_items.icon`), which is an emoji key and never a URL.
+ * Anything that is not an absolute/relative image path renders as an emoji glyph.
+ */
+function itemGlyph(item: InventoryItem): string | null {
+  if (item.itemType === 'food') return PET_FOOD_ICONS[String(item.image ?? '')] ?? PET_FOOD_ICONS[item.itemId] ?? '🍖';
+  return null;
+}
+const isImageUrl = (value: string | null | undefined) => !!value && (value.startsWith('http') || value.startsWith('/') || value.startsWith('data:'));
+
+function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }) {
+  const [broken, setBroken] = useState(false);
+  const glyph = itemGlyph(item);
+  const cls = size === 'slot' ? 'h-full w-full' : 'mx-auto mb-2 h-20 w-20';
+  if (glyph) return <span className={`grid place-items-center ${cls} ${size === 'slot' ? 'text-2xl' : 'text-4xl'}`} aria-hidden>{glyph}</span>;
+
+  if (isImageUrl(item.image) && !broken) {
+    return (
+      <img
+        src={item.image as string}
+        alt={item.name}
+        loading="lazy"
+        decoding="async"
+        onError={() => { setBroken(true); console.error('[INVENTORY ASSET]', { itemId: item.itemId, itemType: item.itemType, image: item.image }); }}
+        className={size === 'slot' ? 'h-full w-full object-cover' : 'mx-auto mb-2 h-20 w-20 rounded-xl object-cover'}
+      />
+    );
+  }
+  return <span className={`grid place-items-center ${cls} text-slate-400`}><Package size={size === 'slot' ? 18 : 28} /></span>;
+}
+
 const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryItem; onSelect: (item: InventoryItem) => void }) {
   const border = (item.rarity && RARITY_BORDER[item.rarity]) || 'rgba(255,255,255,.14)';
   return (
@@ -24,11 +58,7 @@ const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryIte
       style={{ borderColor: border }}
       aria-label={item.name}
     >
-      {item.image ? (
-        <img src={item.image} alt={item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-      ) : (
-        <span className="grid h-full w-full place-items-center text-slate-400"><Package size={18} /></span>
-      )}
+      <ItemArt item={item} size="slot" />
       <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-1 text-[7px] uppercase tracking-[.04em] text-slate-200">{item.name}</span>
       <span className="absolute right-0.5 top-0.5 rounded bg-black/80 px-1 text-[8px] font-black text-amber-200">x{item.quantity}</span>
     </button>
@@ -45,17 +75,31 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
   const items = data?.items ?? [];
   const visible = useMemo(() => (filter === 'all' ? items : items.filter((i) => i.category === filter)), [items, filter]);
 
+  const invalidate = (keys: string[]) => Promise.all(keys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
+
   // Chests reuse the SAME server action used by the calendar screen; no second opening function exists.
   const openChest = useMutation({
     mutationFn: (item: InventoryItem) => openCalendarChest(telegramInitData, String(item.instanceId), 'shop'),
     onSuccess: async (result) => {
       setSelected(null);
       toast.success(result.hero?.name ?? t('inventory.opened'));
-      await Promise.all(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'game-state'].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] })));
+      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'game-state']);
     },
     onError: (openError) => toast.error(openError instanceof Error ? openError.message : t('inventory.openError')),
   });
+
+  // Eggs reuse the exact same hatch action as Pets → Eggs (petRequest 'hatch').
+  const hatchEgg = useMutation({
+    mutationFn: (item: InventoryItem) => petRequest(telegramInitData, { action: 'hatch', eggId: item.itemId, idempotencyKey: crypto.randomUUID() }),
+    onSuccess: async (payload) => {
+      setSelected(null);
+      toast.success(payload.result?.name ? t('inventory.eggHatched', { name: payload.result.name }) : t('inventory.opened'));
+      await invalidate(['player-inventory', 'pet-dashboard', 'pets', 'game-state']);
+    },
+    onError: (hatchError) => toast.error(hatchError instanceof Error ? hatchError.message : t('inventory.hatchError')),
+  });
+
+  const busy = openChest.isPending || hatchEgg.isPending;
 
   return (
     <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
@@ -93,33 +137,54 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
         </div>
       )}
 
-      {selected ? (
-        <div className="fixed inset-0 z-[95] grid place-items-center bg-black/80 p-4" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-[300px] rounded-2xl border border-amber-300/25 bg-[#080c14] p-4" onClick={(event) => event.stopPropagation()}>
-            <div className="mb-2 flex items-start justify-between gap-2">
-              <b className="text-sm font-black uppercase tracking-[.08em] text-amber-200">{selected.name}</b>
-              <button onClick={() => setSelected(null)} aria-label={t('inventory.close')} className="text-slate-400"><X size={16} /></button>
-            </div>
-            {selected.image ? <img src={selected.image} alt={selected.name} className="mx-auto mb-2 h-20 w-20 rounded-xl object-cover" /> : null}
-            <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
-            <p className="text-[10px] text-slate-400">{selected.description}</p>
-            {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
-            {selected.itemType === 'chest' && selected.instanceId ? (
-              <button
-                disabled={openChest.isPending}
-                onClick={() => openChest.mutate(selected)}
-                className="mt-3 min-h-[36px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
-              >
-                {openChest.isPending ? t('inventory.opening') : t('inventory.open')}
-              </button>
-            ) : selected.itemType === 'egg' ? (
-              <p className="mt-3 text-[10px] text-slate-400">{t('inventory.useInPets')}</p>
-            ) : selected.itemType === 'food' ? (
-              <p className="mt-3 text-[10px] text-slate-400">{t('inventory.useInFeed')}</p>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      {/*
+        Portalled to <body>: the Heroes screen wraps tabs in a translated container,
+        which would otherwise become the containing block for `fixed` and push the
+        sheet off-screen — leaving only a black backdrop in the Telegram Mini App.
+      */}
+      {selected
+        ? createPortal(
+            <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/80 p-4 sm:items-center" onClick={() => !busy && setSelected(null)}>
+              <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/25 bg-[#080c14] p-4" onClick={(event) => event.stopPropagation()}>
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <b className="text-sm font-black uppercase tracking-[.08em] text-amber-200">{selected.name}</b>
+                  <button onClick={() => setSelected(null)} aria-label={t('inventory.close')} className="text-slate-400"><X size={16} /></button>
+                </div>
+                <ItemArt item={selected} size="modal" />
+                <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
+                <p className="text-[10px] text-slate-400">{selected.description}</p>
+                {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
+                {selected.itemType === 'chest' && selected.instanceId ? (
+                  <button
+                    disabled={busy}
+                    onClick={() => openChest.mutate(selected)}
+                    className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
+                  >
+                    {openChest.isPending ? t('inventory.opening') : t('inventory.open')}
+                  </button>
+                ) : selected.itemType === 'egg' ? (
+                  <button
+                    disabled={busy}
+                    onClick={() => hatchEgg.mutate(selected)}
+                    className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
+                  >
+                    {hatchEgg.isPending ? t('inventory.hatching') : t('inventory.hatch')}
+                  </button>
+                ) : selected.itemType === 'food' ? (
+                  <p className="mt-3 text-[10px] text-slate-400">{t('inventory.useInFeed')}</p>
+                ) : null}
+                <button
+                  disabled={busy}
+                  onClick={() => setSelected(null)}
+                  className="mt-2 min-h-[34px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300 disabled:opacity-50"
+                >
+                  {t('inventory.cancel')}
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }
