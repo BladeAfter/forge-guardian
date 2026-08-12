@@ -6916,6 +6916,7 @@ export type Database = {
         Args: { p_admin_id: number; p_hero_key: string }
         Returns: Json
       }
+      admin_hero_rarity_flags: { Args: { p_admin_id: number }; Returns: Json }
       admin_hero_shop_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_list_audit: {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
@@ -7318,6 +7319,10 @@ export type Database = {
       }
       admin_set_hero_fusion_pool: {
         Args: { p_admin_id: number; p_enabled: boolean; p_hero_key: string }
+        Returns: Json
+      }
+      admin_set_hero_rarity_enabled: {
+        Args: { p_admin_id: number; p_enabled: boolean; p_rarity: string }
         Returns: Json
       }
       admin_set_hero_rarity_rates: {
@@ -8348,11 +8353,14 @@ export type Database = {
         }
         Returns: Json
       }
+      hero_effective_summon_odds: { Args: never; Returns: Json }
       hero_fusion_config: { Args: never; Returns: Json }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
+      hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
+      hero_recruit_rarity_flags: { Args: never; Returns: Json }
       hero_summon_rates: { Args: never; Returns: Json }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
       join_clan: {
