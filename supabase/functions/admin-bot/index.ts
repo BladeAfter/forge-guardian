@@ -2706,7 +2706,7 @@ async function partnersCallback(ctx: Ctx, rest: string[]) {
     const reward = Math.round(Number(c.rewardFc ?? 0)) || 0;
     const validationEnabled = c.validationEnabled === true;
     const chatId = String(c.chatId || '').trim() || null;
-    if (!name || !/^https:\/\/\S+$/i.test(url) || (validationEnabled && !chatId)) {
+    if (!name || !/^https?:\/\/\S+$/i.test(url) || (validationEnabled && !chatId)) {
       await clearSession(ctx);
       return edit(ctx, '⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.', kb([[{ t: '⬅️ PARCEIROS', d: 'm:partners' }], nav()]));
     }
