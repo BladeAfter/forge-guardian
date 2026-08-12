@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { showEntryInterstitial } from './adsgram';
+import { fetchPvpAdsState } from './services';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -102,6 +103,7 @@ function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
+  const entryAdRef = useRef(false);
   const passRecoveryRef = useRef(false);
 
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
