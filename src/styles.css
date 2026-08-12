@@ -696,8 +696,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 /* Global Boss arena: cinematic scene layers (themed art, mist, vignette, embers). */
 .gb-arena-art {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  object-position: 50% 58%;
-  transform: scale(1.35); filter: saturate(1) contrast(1.08) blur(1.2px);
+  object-position: center center;
+  transform: scale(1.18); filter: saturate(1) contrast(1.08) blur(1.2px);
   animation: gb-arena-drift 26s ease-in-out infinite alternate;
 }
 .gb-arena-shade {
