@@ -61,6 +61,7 @@ const MAIN_MENU = kb([
   [{ t: '🛒 MARKETPLACE', d: 'm:market' }],
   [{ t: '💰 SPENDING EVENT', d: 'm:spending' }],
   [{ t: '👹 CLAN BOSS', d: 'm:clanboss' }],
+  [{ t: '🤝 PARTNERS', d: 'm:partners' }],
 
 
 
@@ -1669,6 +1670,7 @@ async function module(ctx: Ctx, name: string) {
     case 'market': return marketHub(ctx);
     case 'spending': return spendHub(ctx);
     case 'clanboss': return cbHub(ctx);
+    case 'partners': return partnersHub(ctx);
 
 
     case 'gifts': return giftHub(ctx);
@@ -1990,6 +1992,13 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  ptname: '🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>',
+  ptreward: '🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>',
+  pturl: '🔗 Envie o <b>link do canal</b> (fica oculto no backend, só o botão GO usa).\nEx.: <code>https://t.me/seucanal</code>',
+  ptrename: '🏷 Envie o <b>novo nome</b> do parceiro.',
+  ptsetreward: '🪙 Envie a <b>nova recompensa em FC</b>.',
+  ptsetlink: '🔗 Envie o <b>novo link</b> (https://...).',
+  ptsort: '🔢 Envie a <b>ordem</b> de exibição (1 = primeiro).',
   spname: '💰 Envie o <b>nome</b> do novo evento de gastos.\nEx.: <code>SPENDING EVENT</code>',
   spdays: '📅 Envie a <b>duração em dias</b> (1 a 90).\nEx.: <code>7</code>',
   spreward: '🎁 Envie a recompensa no formato <code>posição|texto</code> ou <code>de-até|texto</code>.\nEx.: <code>1|Ancestral Egg + Exclusive Hero</code>\nEx.: <code>11-12|Rare Chest + 20 Universal Fragments</code>',
@@ -2540,6 +2549,119 @@ async function giftPrompt(ctx: Ctx, key: string, arg: string, text: string) {
   }
 }
 
+
+// ---------------------------------------------------------------- 🤝 partner channels
+// The player only ever sees NAME + REWARD + GO. The destination URL lives in
+// partner_channels.target_url and is resolved server-side by the game API.
+const ptRpc = (ctx: Ctx, action: string, partnerId: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc('admin_partners', { p_admin_id: ctx.adminId, p_action: action, p_partner_id: partnerId, p_payload: payload });
+
+async function partnersHub(ctx: Ctx, editing = true) {
+  const d = await ptRpc(ctx, 'list') as any;
+  const items = (d?.partners ?? []) as any[];
+  const lines = items.map((x) => `${x.enabled ? '🟢' : '🔴'} <b>${esc(x.name)}</b> · ${fmt(x.rewardFc)} FC\n   visitas ${fmt(x.visits)} · resgates ${fmt(x.claims)}`);
+  const text = [
+    '🤝 <b>PARTNER CHANNELS</b>',
+    'O jogador vê apenas <b>NOME + RECOMPENSA + GO</b>. O link fica oculto no servidor e cada parceiro paga <b>uma única vez por jogador</b>.',
+    '',
+    lines.join('\n') || '— nenhum parceiro cadastrado —',
+  ].join('\n');
+  const rows = items.slice(0, 12).map((x) => [{ t: `${x.enabled ? '🟢' : '🔴'} ${String(x.name).slice(0, 22)}`, d: `pt:open:${x.id}` }]);
+  const markup = kb([[{ t: '➕ NOVO PARCEIRO', d: 'pt:ask:ptname' }], ...rows, [{ t: '🔄 ATUALIZAR', d: 'm:partners' }], nav()]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function partnerCard(ctx: Ctx, id: string, editing = true) {
+  const d = await ptRpc(ctx, 'detail', id) as any;
+  const c = d?.partner;
+  if (!c) return partnersHub(ctx, editing);
+  const text = [
+    `🤝 <b>${esc(c.name)}</b> ${c.enabled ? '🟢 ATIVO' : '🔴 DESATIVADO'}`,
+    `🪙 Recompensa: <b>${fmt(c.rewardFc)} FC</b> (uma vez por jogador)`,
+    `🔢 Ordem: ${fmt(c.sortOrder)}`,
+    `🔗 Link: <b>configurado</b> (${esc(c.urlHost)}) — oculto para os jogadores`,
+    '',
+    `👀 Visitas: <b>${fmt(c.visits)}</b> · ✅ Resgates: <b>${fmt(c.claims)}</b>`,
+    `💸 FC distribuído: <b>${fmt(c.distributedFc)}</b>`,
+    c.lastClaimAt ? `🕒 Último resgate: <code>${String(c.lastClaimAt).slice(0, 16).replace('T', ' ')}</code>` : '🕒 Nenhum resgate ainda',
+  ].join('\n');
+  const markup = kb([
+    [{ t: '🏷 NOME', d: `pt:ask:ptrename|${id}` }, { t: '🪙 RECOMPENSA', d: `pt:ask:ptsetreward|${id}` }],
+    [{ t: '🔗 LINK', d: `pt:ask:ptsetlink|${id}` }, { t: '🔢 ORDEM', d: `pt:ask:ptsort|${id}` }],
+    [{ t: c.enabled ? '🔴 DESATIVAR' : '🟢 ATIVAR', d: `pt:toggle:${id}` }],
+    [{ t: '🗑 REMOVER', d: `pt:confirm:${id}` }],
+    nav('m:partners'),
+  ]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function partnersCallback(ctx: Ctx, rest: string[]) {
+  const [sub, arg] = [rest[0], rest.slice(1).join(':')];
+  if (sub === 'ask') { const k = arg; return ask(ctx, k, PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
+  if (sub === 'open') return partnerCard(ctx, arg);
+  if (sub === 'toggle') {
+    await ptRpc(ctx, 'toggle', arg);
+    return partnerCard(ctx, arg);
+  }
+  if (sub === 'confirm') {
+    return edit(ctx, '⚠️ Remover este parceiro? Ele deixa de aparecer no jogo (os resgates já pagos são preservados).',
+      kb([[{ t: '✅ CONFIRMAR', d: `pt:del:${arg}` }, { t: '❌ Cancelar', d: `pt:open:${arg}` }]]));
+  }
+  if (sub === 'del') {
+    await ptRpc(ctx, 'delete', arg);
+    await send(ctx, '🗑 Parceiro removido.');
+    return partnersHub({ ...ctx, messageId: undefined }, false);
+  }
+  return partnersHub(ctx);
+}
+
+async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  const id = args[0] || '';
+  if (key === 'ptname') {
+    const name = text.slice(0, 40);
+    if (name.length < 2) throw new Error('KEEP_SESSION::⚠️ Envie um nome com pelo menos 2 caracteres.');
+    await setSession(ctx, `ptreward|${encodeURIComponent(name)}`, 'awaiting_input');
+    return send(ctx, `🏷 Nome: <b>${esc(name)}</b>\n\n${PROMPTS.ptreward}`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
+  if (key === 'ptreward') {
+    const reward = parseAmount(text);
+    if (!Number.isFinite(reward) || reward < 0 || reward > 1_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC entre 0 e 1000000.');
+    await setSession(ctx, `pturl|${args[0] ?? ''}|${Math.round(reward)}`, 'awaiting_input');
+    return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n${PROMPTS.pturl}`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
+  if (key === 'pturl') {
+    const url = text.trim();
+    if (!/^https?:\/\/\S+$/i.test(url)) throw new Error('KEEP_SESSION::⚠️ Envie um link válido começando com https://');
+    const name = args[0] ? decodeURIComponent(args[0]) : 'PARTNER';
+    const reward = Math.round(parseAmount(args[1] || '500')) || 0;
+    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\nO link fica oculto: no jogo aparece só o botão GO.`);
+    return partnersHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (!id) { await clearSession(ctx); return partnersHub({ ...ctx, messageId: undefined }, false); }
+  if (key === 'ptrename') {
+    const name = text.slice(0, 40);
+    if (name.length < 2) throw new Error('KEEP_SESSION::⚠️ Envie um nome com pelo menos 2 caracteres.');
+    await ptRpc(ctx, 'rename', id, { name });
+  } else if (key === 'ptsetreward') {
+    const reward = parseAmount(text);
+    if (!Number.isFinite(reward) || reward < 0 || reward > 1_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC entre 0 e 1000000.');
+    await ptRpc(ctx, 'reward', id, { rewardFc: Math.round(reward) });
+  } else if (key === 'ptsetlink') {
+    const url = text.trim();
+    if (!/^https?:\/\/\S+$/i.test(url)) throw new Error('KEEP_SESSION::⚠️ Envie um link válido começando com https://');
+    await ptRpc(ctx, 'link', id, { url });
+  } else if (key === 'ptsort') {
+    const order = parseAmount(text);
+    if (!Number.isFinite(order) || order < 1 || order > 999) throw new Error('KEEP_SESSION::⚠️ Envie um número entre 1 e 999.');
+    await ptRpc(ctx, 'sort', id, { sortOrder: Math.round(order) });
+  }
+  await clearSession(ctx);
+  await send(ctx, '✅ Parceiro atualizado.');
+  return partnerCard({ ...ctx, messageId: undefined }, id, false);
+}
+
 // ---------------------------------------------------------------- actions
 
 
@@ -2561,6 +2683,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 👹 Clan Boss module (Abyssal Warlord) — fully independent from the 👑 global boss panel.
   if (head === 'cb') { if (rest[0] !== 'ask') await clearSession(ctx); return cbCallback(ctx, rest); }
+
+  // 🤝 Partner channels (name + reward + hidden link). Keeps its own wizard session.
+  if (head === 'pt') { if (rest[0] !== 'ask') await clearSession(ctx); return partnersCallback(ctx, rest); }
 
   // 💰 Spending Event module (independent from the weekly pool and the referral event).
   if (head === 'sp') { await clearSession(ctx); return spendCallback(ctx, rest); }
@@ -3372,6 +3497,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('sp') && ['spname', 'spdays', 'spreward'].includes(key)) return spendPrompt(ctx, key, text);
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
+  if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
   if (key === 'prreason') {
     if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
