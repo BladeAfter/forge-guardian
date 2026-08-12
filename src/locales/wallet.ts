@@ -258,7 +258,7 @@ export const wallet: LocaleBundle = {
     'wallet.balanceEquivalent': 'Эквивалент {ton} TON',
     'wallet.tonWithdrawable': 'TON К ВЫВОДУ',
     'wallet.withdrawTon': 'ВЫВЕСТИ TON',
-    'wallet.tonRewardsOnly': 'Сюда попадают только официальные награды (пул, события, админ).',
+    'wallet.tonRewardsOnly': 'Сюда попадают только официальные награды (пул, события).',
     'wallet.fcInGameOnly': 'FC — внутриигровая валюта, её нельзя вывести.',
     'wallet.oneWayNote': 'в одну сторону: TON покупает FC, FC не возвращается в TON.',
     'wallet.tonReserved': '{ton} TON зарезервировано в заявках на вывод',
