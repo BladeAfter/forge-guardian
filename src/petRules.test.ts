@@ -2,7 +2,7 @@ import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus
 describe('pet rules',()=>{
  it('keeps only one pet active',()=>expect(activateOnlyPet([{id:'a',isActive:true},{id:'b',isActive:false}],'b').filter(x=>x.isActive).map(x=>x.id)).toEqual(['b']));
  it('normalizes Portuguese rarities',()=>expect(['comum','incomum','raro','épico','lendário'].map(normalizePetRarity)).toEqual(['common','uncommon','rare','epic','legendary']));
- it('falls unknown rarity back to common',()=>expect(normalizePetRarity('mythic')).toBe('common'));
+ it('falls unknown rarity back to common',()=>expect(normalizePetRarity('nonsense')).toBe('common'));
  it('increases boss damage by the final bonus',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
  it('increases team hp correctly',()=>expect(applyEligibleBonus(100,5,true)).toBe(105));
  it('does not affect ineligible farm rewards',()=>expect(applyEligibleBonus(1000,15,false)).toBe(1000));
