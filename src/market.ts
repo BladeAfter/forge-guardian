@@ -104,27 +104,59 @@ export type MarketMyListing = {
   level: number;
   image: string | null;
   priceFc: number;
-  status: 'active' | 'sold' | 'cancelled';
+  priceTon: number;
+  currency: MarketCurrency;
+  status: 'active' | 'reserved' | 'sold' | 'cancelled';
   feePercent: number;
   createdAt: string;
   soldAt: string | null;
   cancelledAt: string | null;
 };
 
-export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; seller: string; createdAt: string };
+export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; priceTon: number; currency: MarketCurrency; seller: string; createdAt: string };
 
 export type MarketMine = { listings: MarketMyListing[]; purchases: MarketPurchase[]; settings: MarketSettings };
 
-export type MarketBuyResult = { ok: boolean; pricePaid: number; feeFc: number; sellerReceived: number; balanceFc: number; itemType: MarketItemType; name: string };
-export type MarketCreateResult = { ok: boolean; listingId: string; feePercent: number; sellerReceives: number };
+export type MarketBuyResult = { ok: boolean; currency: MarketCurrency; pricePaid: number; feeFc: number; sellerReceived: number; balanceFc: number; availableTon?: number; itemType: MarketItemType; name: string };
+export type MarketCreateResult = { ok: boolean; listingId: string; currency: MarketCurrency; feePercent: number; sellerReceives: number };
+
+/**
+ * External-wallet TON payment. The listing is reserved for this buyer until
+ * `expiresAt`; the backend confirms the transfer on-chain and then delivers the item.
+ */
+export type MarketPaymentIntent = {
+  paymentId: string;
+  listingId: string;
+  paymentAddress: string;
+  amountNano: string;
+  amountTon: number;
+  paymentComment: string;
+  expiresAt: string;
+};
+export type MarketPaymentStatus = {
+  paymentId: string;
+  status: 'pending' | 'confirmed' | 'expired' | 'cancelled';
+  amountTon: number;
+  expiresAt: string;
+  listingId: string;
+};
 
 /** Client-side preview of the split. The backend recalculates and is the authority. */
-export const marketFeeSplit = (price: number, feePercent: number) => {
-  const clean = Number.isFinite(price) && price > 0 ? Math.trunc(price) : 0;
+export const marketFeeSplit = (price: number, feePercent: number, currency: MarketCurrency = 'FC') => {
+  const clean = Number.isFinite(price) && price > 0 ? (currency === 'TON' ? Math.round(price * 1000) / 1000 : Math.trunc(price)) : 0;
   const percent = Number.isFinite(feePercent) && feePercent >= 0 ? feePercent : 5;
-  const fee = Math.round((clean * percent) / 100);
-  return { price: clean, fee, receives: clean - fee };
+  const rawFee = (clean * percent) / 100;
+  const fee = currency === 'TON' ? Math.round(rawFee * 1000) / 1000 : Math.round(rawFee);
+  const receives = currency === 'TON' ? Math.round((clean - fee) * 1000) / 1000 : clean - fee;
+  return { price: clean, fee, receives };
 };
+
+/** Display helper: FC uses thousands separators, TON keeps up to 3 decimals. */
+export const marketPriceLabel = (listing: { currency: MarketCurrency; priceFc: number; priceTon: number }) =>
+  listing.currency === 'TON'
+    ? `${Number(listing.priceTon ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 })} TON`
+    : `${Number(listing.priceFc ?? 0).toLocaleString('en-US')} FC`;
+
 
 /**
  * Marketplace maintenance switch. Single source of truth: the backend
