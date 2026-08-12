@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Flame, History, Skull, Sword, Users } from 'lucide-react';
+import { ArrowLeft, Flame, History, Skull, Sword, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT } from '../LanguageContext';
 import { useClanBoss, useClanBossRealtime } from '../hooks';
