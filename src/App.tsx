@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { showEntryInterstitial } from './adsgram';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -265,6 +266,16 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // AdsGram entry interstitial: a dedicated interstitial block (never the rewarded block),
+  // shown at most once per real Mini App session and only when an int-XXXXX id is registered.
+  useEffect(() => {
+    if (!backendEnabled || !telegramInitData || entryAdRef.current) return;
+    entryAdRef.current = true;
+    fetchPvpAdsState(telegramInitData)
+      .then((payload) => showEntryInterstitial(payload.ads))
+      .catch((adError) => console.error('[adsgram] entry interstitial skipped', adError));
+  }, [backendEnabled, telegramInitData]);
 
   // Premium egg purchases paid earlier (even with the app closed) are finished here — a single
   // reconciliation per session, always idempotent: one payment can only ever deliver one pet.
