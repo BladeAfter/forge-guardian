@@ -219,7 +219,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
 
   return (
     <div className="fullscreen-page flex items-center justify-center p-3">
-      <div className="flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl">
+      <div className="relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl">
         <div className="flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">MYTHREON</p>
