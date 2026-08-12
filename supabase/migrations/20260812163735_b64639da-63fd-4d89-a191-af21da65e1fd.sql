@@ -1,0 +1,1 @@
+ALTER FUNCTION public.market_browse(bigint, text, text, text, integer, integer, text) VOLATILE;

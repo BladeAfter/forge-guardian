@@ -6948,8 +6948,8 @@ export type Database = {
           p_action: string
           p_admin_id: number
           p_context?: Json
-          p_new: Json
-          p_old: Json
+          p_new?: Json
+          p_old?: Json
           p_reason?: string
           p_target_id: string
           p_target_type: string
