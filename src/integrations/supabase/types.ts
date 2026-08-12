@@ -2815,7 +2815,9 @@ export type Database = {
           reward_fc: number
           sort_order: number
           target_url: string
+          telegram_chat_id: string | null
           updated_at: string
+          validation_enabled: boolean
         }
         Insert: {
           created_at?: string
@@ -2825,7 +2827,9 @@ export type Database = {
           reward_fc?: number
           sort_order?: number
           target_url: string
+          telegram_chat_id?: string | null
           updated_at?: string
+          validation_enabled?: boolean
         }
         Update: {
           created_at?: string
@@ -2835,7 +2839,9 @@ export type Database = {
           reward_fc?: number
           sort_order?: number
           target_url?: string
+          telegram_chat_id?: string | null
           updated_at?: string
+          validation_enabled?: boolean
         }
         Relationships: []
       }
@@ -7091,7 +7097,7 @@ export type Database = {
       }
       admin_partners: {
         Args: {
-          p_action: string
+          p_action?: string
           p_admin_id: number
           p_partner_id?: string
           p_payload?: Json
@@ -7836,6 +7842,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_wallet_config: {
+        Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
+        Returns: Json
+      }
       admin_withdrawal_detail: {
         Args: { p_admin_id: number; p_withdrawal_id: string }
         Returns: Json
@@ -7932,10 +7942,19 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
-      claim_partner_reward: {
-        Args: { p_partner_id: string; p_telegram_id: number }
-        Returns: Json
-      }
+      claim_partner_reward:
+        | {
+            Args: { p_partner_id: string; p_telegram_id: number }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_membership_verified?: boolean
+              p_partner_id: string
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
       claim_season_pass_reward: {
         Args: { p_reward_id: string; p_telegram_id: number }
         Returns: Json
@@ -8602,6 +8621,10 @@ export type Database = {
       }
       partner_channel_visit: {
         Args: { p_partner_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      partner_validation_target: {
+        Args: { p_partner_id: string }
         Returns: Json
       }
       payment_recovery_deliver: {
