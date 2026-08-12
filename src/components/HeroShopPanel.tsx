@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { n, useTonWallet } from '@tonconnect/ui-react';
+import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
 import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
@@ -39,7 +39,7 @@ const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', 
 export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
-  const [tonUI] = n();
+  const [tonUI] = useTonConnectUI();
   const wallet = useTonWallet();
   const [tab, setTab] = useState<'recruit' | 'market'>('recruit');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
@@ -131,7 +131,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     if (!wallet) { await tonUI.openModal(); throw new Error(t('market.connectWallet')); }
     const address = String(wallet.account?.address ?? '');
     const intent = await createMarketPaymentIntent(telegramInitData ?? '', listingId, address);
-    await tonUI.n({
+    await tonUI.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: undefined, stateInit: undefined }],
       // The comment is what links this transfer to the reservation.
