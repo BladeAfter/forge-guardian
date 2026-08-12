@@ -176,7 +176,7 @@ export const wallet: LocaleBundle = {
     'wallet.balanceEquivalent': 'Equivalente a {ton} TON',
     'wallet.tonWithdrawable': 'TON RETIRABLE',
     'wallet.withdrawTon': 'RETIRAR TON',
-    'wallet.tonRewardsOnly': 'Solo las recompensas oficiales (pool, eventos, admin) llegan aquí.',
+    'wallet.tonRewardsOnly': 'Solo las recompensas oficiales (pool, eventos) llegan aquí.',
     'wallet.fcInGameOnly': 'FC es la moneda del juego y no se puede retirar.',
     'wallet.oneWayNote': 'una vía: TON compra FC, FC nunca vuelve a TON.',
     'wallet.tonReserved': '{ton} TON reservados en retiros pendientes',
