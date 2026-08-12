@@ -1640,6 +1640,7 @@ export type Database = {
           last_seen_at: string
           market_cooldown_until: string | null
           market_pending_fc: number
+          market_pending_ton: number
           market_restricted_until: string | null
           market_trust: string
           premium_until: string | null
@@ -1674,6 +1675,7 @@ export type Database = {
           last_seen_at?: string
           market_cooldown_until?: string | null
           market_pending_fc?: number
+          market_pending_ton?: number
           market_restricted_until?: string | null
           market_trust?: string
           premium_until?: string | null
@@ -1708,6 +1710,7 @@ export type Database = {
           last_seen_at?: string
           market_cooldown_until?: string | null
           market_pending_fc?: number
+          market_pending_ton?: number
           market_restricted_until?: string | null
           market_trust?: string
           premium_until?: string | null
@@ -2326,13 +2329,17 @@ export type Database = {
           buyer_user_id: string | null
           cancelled_at: string | null
           created_at: string
+          currency: string
           fee_percent: number
           id: string
           item_code: string | null
           item_instance_id: string | null
           item_type: string
-          price_fc: number
+          price_fc: number | null
+          price_ton: number | null
           quantity: number
+          reserved_for: string | null
+          reserved_until: string | null
           risk_level: string
           seller_user_id: string
           snapshot: Json
@@ -2344,13 +2351,17 @@ export type Database = {
           buyer_user_id?: string | null
           cancelled_at?: string | null
           created_at?: string
+          currency?: string
           fee_percent?: number
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type: string
-          price_fc: number
+          price_fc?: number | null
+          price_ton?: number | null
           quantity?: number
+          reserved_for?: string | null
+          reserved_until?: string | null
           risk_level?: string
           seller_user_id: string
           snapshot?: Json
@@ -2362,13 +2373,17 @@ export type Database = {
           buyer_user_id?: string | null
           cancelled_at?: string | null
           created_at?: string
+          currency?: string
           fee_percent?: number
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type?: string
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           quantity?: number
+          reserved_for?: string | null
+          reserved_until?: string | null
           risk_level?: string
           seller_user_id?: string
           snapshot?: Json
@@ -2435,15 +2450,94 @@ export type Database = {
           },
         ]
       }
+      market_payment_intents: {
+        Row: {
+          amount_nano: number
+          amount_ton: number
+          buyer_user_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          listing_id: string
+          payment_address: string
+          payment_comment: string
+          seller_user_id: string
+          status: string
+          transaction_id: string | null
+          tx_hash: string | null
+          updated_at: string
+          wallet_address: string | null
+        }
+        Insert: {
+          amount_nano: number
+          amount_ton: number
+          buyer_user_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          listing_id: string
+          payment_address: string
+          payment_comment: string
+          seller_user_id: string
+          status?: string
+          transaction_id?: string | null
+          tx_hash?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Update: {
+          amount_nano?: number
+          amount_ton?: number
+          buyer_user_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          listing_id?: string
+          payment_address?: string
+          payment_comment?: string
+          seller_user_id?: string
+          status?: string
+          transaction_id?: string | null
+          tx_hash?: string | null
+          updated_at?: string
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_payment_intents_buyer_user_id_fkey"
+            columns: ["buyer_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_payment_intents_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "market_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_payment_intents_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_price_ranges: {
         Row: {
           created_at: string
           id: string
           item_type: string
           max_fc: number
+          max_ton: number | null
           min_fc: number
+          min_ton: number | null
           rarity: string
           recommended_fc: number | null
+          recommended_ton: number | null
           updated_at: string
         }
         Insert: {
@@ -2451,9 +2545,12 @@ export type Database = {
           id?: string
           item_type: string
           max_fc: number
+          max_ton?: number | null
           min_fc: number
+          min_ton?: number | null
           rarity: string
           recommended_fc?: number | null
+          recommended_ton?: number | null
           updated_at?: string
         }
         Update: {
@@ -2461,9 +2558,12 @@ export type Database = {
           id?: string
           item_type?: string
           max_fc?: number
+          max_ton?: number | null
           min_fc?: number
+          min_ton?: number | null
           rarity?: string
           recommended_fc?: number | null
+          recommended_ton?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -2522,72 +2622,87 @@ export type Database = {
           admin_notes: string | null
           buyer_user_id: string
           created_at: string
-          fee_fc: number
+          currency: string
+          fee_fc: number | null
           fee_percent: number
+          fee_ton: number | null
           id: string
           item_code: string | null
           item_instance_id: string | null
           item_type: string
           listing_id: string
-          price_fc: number
+          price_fc: number | null
+          price_ton: number | null
           reversed_at: string | null
           risk_flags: string[]
           risk_score: number
-          seller_received_fc: number
+          seller_received_fc: number | null
+          seller_received_ton: number | null
           seller_user_id: string
           settle_at: string | null
           settled_at: string | null
           snapshot: Json
           spending_recorded: boolean
           status: string
+          tx_hash: string | null
         }
         Insert: {
           admin_id?: number | null
           admin_notes?: string | null
           buyer_user_id: string
           created_at?: string
-          fee_fc: number
+          currency?: string
+          fee_fc?: number | null
           fee_percent: number
+          fee_ton?: number | null
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type: string
           listing_id: string
-          price_fc: number
+          price_fc?: number | null
+          price_ton?: number | null
           reversed_at?: string | null
           risk_flags?: string[]
           risk_score?: number
-          seller_received_fc: number
+          seller_received_fc?: number | null
+          seller_received_ton?: number | null
           seller_user_id: string
           settle_at?: string | null
           settled_at?: string | null
           snapshot?: Json
           spending_recorded?: boolean
           status?: string
+          tx_hash?: string | null
         }
         Update: {
           admin_id?: number | null
           admin_notes?: string | null
           buyer_user_id?: string
           created_at?: string
-          fee_fc?: number
+          currency?: string
+          fee_fc?: number | null
           fee_percent?: number
+          fee_ton?: number | null
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type?: string
           listing_id?: string
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           reversed_at?: string | null
           risk_flags?: string[]
           risk_score?: number
-          seller_received_fc?: number
+          seller_received_fc?: number | null
+          seller_received_ton?: number | null
           seller_user_id?: string
           settle_at?: string | null
           settled_at?: string | null
           snapshot?: Json
           spending_recorded?: boolean
           status?: string
+          tx_hash?: string | null
         }
         Relationships: [
           {
@@ -8149,17 +8264,30 @@ export type Database = {
       }
       market_account_days: { Args: { p_user: string }; Returns: number }
       market_active_days: { Args: { p_user: string }; Returns: number }
-      market_browse: {
-        Args: {
-          p_item_type?: string
-          p_limit?: number
-          p_offset?: number
-          p_rarity?: string
-          p_sort?: string
-          p_telegram_id: number
-        }
-        Returns: Json
-      }
+      market_browse:
+        | {
+            Args: {
+              p_item_type?: string
+              p_limit?: number
+              p_offset?: number
+              p_rarity?: string
+              p_sort?: string
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_currency?: string
+              p_item_type?: string
+              p_limit?: number
+              p_offset?: number
+              p_rarity?: string
+              p_sort?: string
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
       market_buy_listing: {
         Args: { p_listing_id: string; p_telegram_id: number }
         Returns: Json
@@ -8169,13 +8297,41 @@ export type Database = {
         Args: { p_listing_id: string; p_telegram_id: number }
         Returns: Json
       }
+      market_cancel_payment_intent: {
+        Args: { p_payment_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      market_confirm_payment_intent: {
+        Args: { p_amount_nano: number; p_payment_id: string; p_tx_hash: string }
+        Returns: Json
+      }
       market_create_listing: {
         Args: {
+          p_currency?: string
           p_item_code: string
           p_item_instance_id: string
           p_item_type: string
-          p_price_fc: number
+          p_price_fc?: number
+          p_price_ton?: number
           p_telegram_id: number
+        }
+        Returns: Json
+      }
+      market_create_payment_intent: {
+        Args: {
+          p_listing_id: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      market_expire_payment_intents: { Args: never; Returns: number }
+      market_finalize_purchase: {
+        Args: {
+          p_buyer: string
+          p_external?: boolean
+          p_listing_id: string
+          p_tx_hash?: string
         }
         Returns: Json
       }
@@ -8185,6 +8341,22 @@ export type Database = {
         Returns: boolean
       }
       market_my_listings: { Args: { p_telegram_id: number }; Returns: Json }
+      market_payment_status: {
+        Args: { p_payment_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      market_pending_payment_intents: {
+        Args: { p_max_age_minutes?: number }
+        Returns: {
+          amount_nano: number
+          buyer_user_id: string
+          created_at: string
+          listing_id: string
+          payment_address: string
+          payment_comment: string
+          payment_id: string
+        }[]
+      }
       market_price_quote: {
         Args: {
           p_item_code?: string
@@ -8195,7 +8367,12 @@ export type Database = {
         Returns: Json
       }
       market_price_range: {
-        Args: { p_item_type: string; p_level?: number; p_rarity: string }
+        Args: {
+          p_currency?: string
+          p_item_type: string
+          p_level?: number
+          p_rarity: string
+        }
         Returns: Json
       }
       market_reverse_transaction: {
