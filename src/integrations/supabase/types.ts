@@ -1646,6 +1646,7 @@ export type Database = {
           pvp_wins: number
           telegram_id: number
           ton_balance: number
+          ton_reserved: number
           updated_at: string
           username: string | null
           vip_until: string | null
@@ -1673,6 +1674,7 @@ export type Database = {
           pvp_wins?: number
           telegram_id: number
           ton_balance?: number
+          ton_reserved?: number
           updated_at?: string
           username?: string | null
           vip_until?: string | null
@@ -1700,6 +1702,7 @@ export type Database = {
           pvp_wins?: number
           telegram_id?: number
           ton_balance?: number
+          ton_reserved?: number
           updated_at?: string
           username?: string | null
           vip_until?: string | null
@@ -5548,6 +5551,7 @@ export type Database = {
           id: string
           reward_json: Json
           reward_status: string
+          reward_ton: number
           user_id: string
         }
         Insert: {
@@ -5558,6 +5562,7 @@ export type Database = {
           id?: string
           reward_json?: Json
           reward_status?: string
+          reward_ton?: number
           user_id: string
         }
         Update: {
@@ -5568,6 +5573,7 @@ export type Database = {
           id?: string
           reward_json?: Json
           reward_status?: string
+          reward_ton?: number
           user_id?: string
         }
         Relationships: [
@@ -5745,6 +5751,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      ton_reward_ledger: {
+        Row: {
+          amount_ton: number
+          balance_after: number | null
+          created_at: string
+          direction: string
+          id: string
+          note: string | null
+          source_id: string | null
+          source_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          balance_after?: number | null
+          created_at?: string
+          direction: string
+          id?: string
+          note?: string | null
+          source_id?: string | null
+          source_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          balance_after?: number | null
+          created_at?: string
+          direction?: string
+          id?: string
+          note?: string | null
+          source_id?: string | null
+          source_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_reward_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_channel_rewards: {
         Row: {
@@ -5963,6 +6016,7 @@ export type Database = {
           paid_at: string | null
           processed_at: string | null
           refunded_at: string | null
+          source: string
           status: string
           telegram_id: number | null
           tx_hash: string | null
@@ -5985,6 +6039,7 @@ export type Database = {
           paid_at?: string | null
           processed_at?: string | null
           refunded_at?: string | null
+          source?: string
           status?: string
           telegram_id?: number | null
           tx_hash?: string | null
@@ -6007,6 +6062,7 @@ export type Database = {
           paid_at?: string | null
           processed_at?: string | null
           refunded_at?: string | null
+          source?: string
           status?: string
           telegram_id?: number | null
           tx_hash?: string | null
@@ -6827,6 +6883,10 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_spending_event_pay: {
+        Args: { p_admin_id: number; p_event_id: string }
+        Returns: Json
+      }
       admin_spending_event_popup_config: {
         Args: { p_admin_id: number; p_enabled?: boolean; p_frequency?: string }
         Returns: Json
@@ -6863,6 +6923,32 @@ export type Database = {
           p_rarity: string
           p_weight?: number
         }
+        Returns: Json
+      }
+      admin_ton_adjust: {
+        Args: {
+          p_admin_id: number
+          p_amount_ton: number
+          p_direction: string
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      admin_ton_audit: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_ton_balance: {
+        Args: { p_admin_id: number; p_query: string }
+        Returns: Json
+      }
+      admin_ton_reward_history: {
+        Args: { p_admin_id: number; p_limit?: number; p_user_id?: string }
+        Returns: Json
+      }
+      admin_ton_withdrawals: {
+        Args: { p_admin_id: number; p_limit?: number; p_status?: string }
         Returns: Json
       }
       admin_unlink_referral: {
@@ -7350,7 +7436,27 @@ export type Database = {
         }
         Returns: Json
       }
+      credit_ton_reward: {
+        Args: {
+          p_amount_ton: number
+          p_note?: string
+          p_source_id?: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       current_ton_fc_rate: { Args: never; Returns: number }
+      debit_ton_balance: {
+        Args: {
+          p_amount_ton: number
+          p_note?: string
+          p_source_id?: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       deliver_pet_egg_order: { Args: { p_order_id: string }; Returns: Json }
       distribute_community_pool: {
         Args: { p_force?: boolean }
@@ -7595,6 +7701,7 @@ export type Database = {
         Args: { p_event_id: string; p_limit?: number; p_offset?: number }
         Returns: Json
       }
+      get_ton_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
       grant_clan_xp: {
@@ -7691,6 +7798,7 @@ export type Database = {
       market_my_listings: { Args: { p_telegram_id: number }; Returns: Json }
       market_seller_label: { Args: { p_user: string }; Returns: string }
       market_settings_json: { Args: never; Returns: Json }
+      min_withdraw_ton: { Args: never; Returns: number }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
@@ -7761,6 +7869,10 @@ export type Database = {
       }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
+      pool_credit_pending_rewards: {
+        Args: { p_history_id: string }
+        Returns: Json
+      }
       pool_eligibility: { Args: { p_user_id: string }; Returns: Json }
       pool_ranking_share: { Args: { p_pos: number }; Returns: number }
       pool_record_revenue: {
@@ -7862,6 +7974,15 @@ export type Database = {
         Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
         Returns: Json
       }
+      request_ton_withdrawal: {
+        Args: {
+          p_amount_ton: number
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
       request_wallet_withdrawal: {
         Args: {
           p_amount_fc: number
@@ -7940,6 +8061,10 @@ export type Database = {
       }
       simulate_pvp_battle: {
         Args: { a: Json; d: Json; seed: string }
+        Returns: Json
+      }
+      spending_event_pay_rewards: {
+        Args: { p_event_id: string }
         Returns: Json
       }
       spending_event_refresh_ticker: {
