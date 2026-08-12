@@ -18,7 +18,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
   const { data: fusion } = useHeroFusion(telegramInitData, true);
-  const [tab, setTab] = useState<'collection' | 'fusion'>('collection');
+  const [tab, setTab] = useState<'collection' | 'fusion' | 'inventory'>('collection');
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
