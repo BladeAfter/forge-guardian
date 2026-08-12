@@ -122,7 +122,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
         :combat?.status==='defeated'
         ?<button onClick={onClaimReward} className="mt-4 w-full rounded-2xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 font-black text-black">{t('collectReward')} {combat.rewardAmount.toLocaleString()} FC</button>
         :onAttack?<button type="button" onClick={()=>onAttack()} disabled={isAttacking||combat?.bossActive===false} className="mt-4 w-full rounded-2xl bg-gradient-to-b from-rose-400 to-rose-700 py-3 font-black text-white disabled:opacity-40">{isAttacking?t('boss.attacking'):t('boss.attack')}</button>:null}
-    </div></div>
+    </div>
+
     {isRankingOpen&&<div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={()=>setIsRankingOpen(false)}><div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between"><h3 className="text-sm font-bold text-amber-300">{t('boss.rankingTitle')}</h3><button type="button" aria-label={t('close')} onClick={()=>setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button></div>
       <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]"><Stat label={t('boss.totalDamage')} value={compact(ranking.data?.cycle?.totalDamage??global?.totalDamage??0)}/><Stat label={t('boss.rewardPool')} value={`${compact(ranking.data?.cycle?.rewardPoolFc??global?.rewardPoolFc??0)} FC`} gold/><Stat label={t('boss.yourRank')} value={ranking.data?.you?.rank?`#${ranking.data.you.rank}`:'—'}/></div>
