@@ -347,13 +347,15 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
             {data.catalog.map((pet) => {
-              const buff = Object.entries(pet.basePassives)[0];
+              const buff = pet.discovered ? Object.entries(pet.basePassives)[0] : null;
               return (
                 <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30'}`}>
                   <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
-                    {pet.species} · {pet.discovered ? t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 }) : t('pets.notDiscovered')}
+                    {pet.discovered
+                      ? `${pet.species} · ${t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 })}`
+                      : `${petRarityLabel(pet.rarity ?? null)} · ${t('pets.notDiscovered')}`}
                   </p>
                   {buff && (
                     <PetBuff
@@ -365,12 +367,13 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                     />
                   )}
 
-                  {pet.sources && pet.sources.length > 0 && (
+                  {pet.discovered && pet.sources && pet.sources.length > 0 && (
                     <p className="mt-1 text-[8px] leading-relaxed text-slate-500">{t('pets.obtainedFrom', { sources: pet.sources.join(', ') })}</p>
                   )}
                 </div>
               );
             })}
+
           </div>
         )}
       </main>
