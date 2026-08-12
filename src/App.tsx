@@ -149,11 +149,15 @@ function App() {
   });
   const recruitPrice=(count:number)=>Number(heroShopConfig?.prices?.[String(count)]??25_000*count);
   const summonOdds=useMemo(()=>{
+    // Canonical order (common -> mythic). Ancestral is event/admin exclusive and never shown.
+    const order:HeroRarity[]=['common','uncommon','rare','epic','legendary','mythic'];
     const odds=heroShopConfig?.odds;
-    if(!odds)return RARITY_ODDS;
-    return (Object.entries(odds) as Array<[HeroRarity,number]>)
-      .map(([rarity,chance])=>({rarity,chance:Number(chance)}))
-      .sort((a,b)=>a.chance-b.chance);
+    const base=odds
+      ?(Object.entries(odds) as Array<[HeroRarity,number]>).map(([rarity,chance])=>({rarity,chance:Number(chance)}))
+      :RARITY_ODDS;
+    return base
+      .filter(entry=>entry.rarity!=='ancestral'&&order.includes(entry.rarity))
+      .sort((a,b)=>order.indexOf(a.rarity)-order.indexOf(b.rarity));
   },[heroShopConfig?.odds]);
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);
   const {data:petDashboard}=usePetDashboard(telegramInitData,backendEnabled);

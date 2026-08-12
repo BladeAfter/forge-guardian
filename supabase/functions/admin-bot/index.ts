@@ -346,17 +346,17 @@ async function heroPricesView(ctx: Ctx) {
 async function heroOddsView(ctx: Ctx) {
   const d = await heroShopConfig(ctx);
   const o = d.config.odds;
-  const total = RARITY_ORDER.reduce((sum, r) => sum + Number(o[r] ?? 0), 0);
+  const total = RARITY_ORDER.filter((r) => r !== 'ancestral').reduce((sum, r) => sum + Number(o[r] ?? 0), 0);
   const text = [
     '🎲 <b>CHANCES DE INVOCAÇÃO</b>', '',
-    ...RARITY_ORDER.map((r) => `${RARITY_LABEL[r]} — <b>${pct(o[r])}%</b> (${fmt(d.by_rarity[r] ?? 0)} heróis)`),
+    ...RARITY_ORDER.filter((r) => r !== 'ancestral').map((r) => `${RARITY_LABEL[r]} — <b>${pct(o[r])}%</b> (${fmt(d.by_rarity[r] ?? 0)} heróis)`),
     '', `Total: <b>${pct(total)}%</b> — precisa ser exatamente 100%.`,
+    'ANCESTRAL — <b>0%</b> · exclusivo de eventos e presentes do admin.',
   ].join('\n');
   return edit(ctx, text, kb([
     [{ t: 'COMUM', d: 'ho:common' }, { t: 'INCOMUM', d: 'ho:uncommon' }],
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
     [{ t: 'LENDÁRIO', d: 'ho:legendary' }, { t: 'MÍTICO', d: 'ho:mythic' }],
-    [{ t: 'ANCESTRAL', d: 'ho:ancestral' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
     nav('m:shop'),
   ]));
@@ -614,6 +614,7 @@ async function hwEditMenu(ctx: Ctx, heroKey: string) {
     `⭐ ${esc(String(h.rarity).toUpperCase())} · 🎭 ${esc(h.hero_class)}`,
     `⚔️ ATK ${fmt(h.base_atk)} · ❤️ HP ${fmt(h.base_hp)}`,
     `🛒 Loja: ${h.in_shop ? `✅ ${fmt(h.price_fc)} FC` : '❌'} · 👁 Ativo: ${h.enabled ? '✅' : '⛔'}`,
+    `🎲 Recruit: ${String(h.rarity) === 'ancestral' ? '⛔ ANCESTRAL (exclusivo evento/admin)' : h.recruit_enabled ? '✅' : '⛔'}`,
   ].join('\n');
   const markup = kb([
     [{ t: '🖼 Trocar imagem', d: 'hw:f:image' }],
@@ -621,6 +622,7 @@ async function hwEditMenu(ctx: Ctx, heroKey: string) {
     [{ t: '⚔️ ATK', d: 'hw:f:atk' }, { t: '❤️ HP', d: 'hw:f:hp' }],
     [{ t: '🎭 Classe', d: 'hw:f:class' }, { t: '💰 Preço', d: 'hw:f:price' }],
     [{ t: `🛒 Loja ${h.in_shop ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:shop' }, { t: `👁 Ativo ${h.enabled ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:enabled' }],
+    ...(String(h.rarity) === 'ancestral' ? [] : [[{ t: `🎲 Recruit ${h.recruit_enabled ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:recruit' }]]),
     [{ t: '🗑 Remover', d: 'hw:del' }],
     [{ t: '📋 DUPLICAR', d: `hw:d:${h.hero_key}` }],
     nav('m:heroes'),
@@ -710,7 +712,9 @@ async function heroWizardCallback(ctx: Ctx, rest: string[]) {
     const key = draft.hero_key;
     if (!key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
     const h = await rpc('admin_hero_detail', { p_admin_id: ctx.adminId, p_hero_key: key });
-    const patch = arg === 'shop' ? { in_shop: !h.in_shop } : { enabled: !h.enabled };
+    const patch = arg === 'shop' ? { in_shop: !h.in_shop }
+      : arg === 'recruit' ? { recruit_enabled: !h.recruit_enabled }
+      : { enabled: !h.enabled };
     return hwEditApply(ctx, key, patch);
   }
 
@@ -2991,13 +2995,14 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'ho') {
     const rarity = rest[0];
     const cfg = await heroShopConfig(ctx);
-    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 7 raridades precisa fechar 100%.`);
+    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 6 raridades (Ancestral fica em 0%) precisa fechar 100%.`);
   }
   if (head === 'hoc') {
     const rarity = rest[0];
     const cfg = await heroShopConfig(ctx);
     const rates: Record<string, number> = {};
     for (const k of RARITY_ORDER) rates[k] = Number(cfg.config.odds[k] ?? 0);
+    rates.ancestral = 0;
     rates[rarity] = Number(rest[1]);
     const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
     return send(ctx, `✅ <b>${RARITY_LABEL[rarity]}</b>: ${pct(cfg.config.odds[rarity])}% → <b>${pct(r.odds[rarity])}%</b>\n\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
@@ -3815,13 +3820,14 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     }
     case 'hodds': {
       const parts = text.replace(/,/g, '.').split(/[\s;]+/).map(Number).filter((n) => Number.isFinite(n));
-      if (parts.length !== 5) return send(ctx, '⚠️ Envie 5 números: comum incomum raro épico lendário.', kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+      // Ancestral is event/admin exclusive: it is always 0 and is not asked for here.
+      if (parts.length !== 6) return send(ctx, '⚠️ Envie 6 números: comum incomum raro épico lendário mítico.\nAncestral é exclusivo (0%).', kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
       const total = parts.reduce((a, b) => a + b, 0);
       if (Math.abs(total - 100) > 0.001) {
         return send(ctx, `❌ Total inválido: <b>${pct(total)}%</b>\nA soma precisa ser exatamente 100%.`, kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
       }
-      const rates: Record<string, number> = {};
-      RARITY_ORDER.forEach((k, i) => { rates[k] = parts[i]; });
+      const rates: Record<string, number> = { ancestral: 0 };
+      RARITY_ORDER.filter((k) => k !== 'ancestral').forEach((k, i) => { rates[k] = parts[i]; });
       const before = (await heroShopConfig(ctx)).config.odds;
       const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
       return send(ctx, `✅ Chances salvas.\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]}: ${pct(before[k])}% → <b>${pct(r.odds[k])}%</b>`).join('\n')}`,
@@ -4198,6 +4204,9 @@ const ERRORS: Record<string, string> = {
   not_processing: '⚠️ Este saque não está em processamento.',
 
   rates_must_total_100: '❌ Total inválido. A soma das raridades precisa ser exatamente 100%.',
+  ancestral_not_summonable: '⛔ Ancestral é exclusivo de eventos e presentes do admin — a chance precisa ser 0%.',
+  empty_pool_for_rarity: '⚠️ Nenhum herói ativo com Recruit habilitado nessa raridade. Cadastre um herói antes de definir a chance.',
+  recruit_pool_unavailable: '⚠️ Nenhum herói disponível no pool de recrutamento.',
   invalid_price: '⚠️ Preço inválido. Use um número entre 1 e 1.000.000.000.',
   invalid_count: '⚠️ Pacote inválido. Use 1x, 5x ou 10x.',
   immutable_setting: '⚠️ O ID do administrador mestre não pode ser alterado pelo painel.',

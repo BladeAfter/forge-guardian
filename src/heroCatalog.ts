@@ -38,14 +38,14 @@ export const HERO_CATALOG: ShopHero[] = [
   { id: 'legendary-5', name: 'Imperador da Forja', rarity: 'legendary', image: shop('legendary-5') }
 ];
 
+// Ancestral heroes are event/admin exclusive: they never appear in the recruit odds.
 export const RARITY_ODDS: Array<{ rarity: HeroRarity; chance: number }> = [
-  { rarity: 'ancestral', chance: 0.02 },
-  { rarity: 'mythic', chance: 0.08 },
-  { rarity: 'legendary', chance: 1.3 },
+  { rarity: 'mythic', chance: 0.3 },
+  { rarity: 'legendary', chance: 0.3 },
   { rarity: 'epic', chance: 2.7 },
   { rarity: 'rare', chance: 10 },
-  { rarity: 'uncommon', chance: 30 },
-  { rarity: 'common', chance: 55.9 }
+  { rarity: 'uncommon', chance: 25 },
+  { rarity: 'common', chance: 61.7 }
 ];
 
 export const RARITY_COLORS: Record<HeroRarity, string> = {
