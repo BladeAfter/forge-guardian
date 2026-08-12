@@ -2861,8 +2861,32 @@ async function handleCallback(ctx: Ctx, data: string) {
         kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
     }
     if (sub === 'list') return marketHub(ctx, arg || 'active');
+    // ---- 🛡 security surface (risk queue, escrow, price bands, restrictions)
+    if (sub === 'sec') return mkSecurityHub(ctx);
+    if (sub === 'review') return mkReviewQueue(ctx);
+    if (sub === 'ranges') return mkRanges(ctx);
+    if (sub === 'secaudit') return mkSecurityAudit(ctx);
+    if (sub === 'trade') return mkTradeCard(ctx, arg || '');
+    if (sub === 'appr') {
+      return edit(ctx, '⚠️ <b>APROVAR NEGOCIAÇÃO?</b>\n\nO valor sai do escrow e é pago ao vendedor imediatamente.',
+        kb([[{ t: '✅ CONFIRMAR', d: `mk:doAppr|${arg}` }], [{ t: '❌ CANCELAR', d: 'mk:review' }]]));
+    }
+    if (sub === 'doAppr') {
+      await rpc('admin_market_approve_trade', { p_admin_id: ctx.adminId, p_transaction_id: arg });
+      return edit(ctx, '✅ <b>Negociação aprovada e liquidada.</b>', kb([[{ t: '🚨 FILA DE REVISÃO', d: 'mk:review' }], nav('mk:sec')]));
+    }
+    if (sub === 'rev') {
+      return edit(ctx, '⚠️ <b>REVERTER NEGOCIAÇÃO?</b>\n\nO item volta ao vendedor e os FC voltam ao comprador.',
+        kb([[{ t: '✅ CONFIRMAR', d: `mk:doRev|${arg}` }], [{ t: '❌ CANCELAR', d: 'mk:review' }]]));
+    }
+    if (sub === 'doRev') {
+      await rpc('admin_market_reverse_trade', { p_admin_id: ctx.adminId, p_transaction_id: arg, p_reason: 'revertida pelo admin (bot)' });
+      return edit(ctx, '↩️ <b>Negociação revertida.</b>\n\nItem devolvido ao vendedor e FC devolvidos ao comprador.',
+        kb([[{ t: '🚨 FILA DE REVISÃO', d: 'mk:review' }], nav('mk:sec')]));
+    }
     return marketHub(ctx);
   }
+
 
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
 
