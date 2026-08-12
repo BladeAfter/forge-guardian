@@ -119,7 +119,8 @@ export function PlayerHeader({
   tonBalance,
   onBalanceClick,
   actions,
-  className = ''
+  className = '',
+  tonChipVariant = 'default'
 }: {
   profile: TelegramPlayerProfile | null;
   loading?: boolean;
@@ -129,16 +130,18 @@ export function PlayerHeader({
   onBalanceClick?: () => void;
   actions?: React.ReactNode;
   className?: string;
+  tonChipVariant?: 'default' | 'villageCompact';
 }) {
   return (
     <div className={`player-header ${className}`}>
       <PlayerIdentity profile={profile} loading={loading} onRetry={onRetry} />
       <div className="flex shrink-0 items-center gap-1.5">
         <BalanceChip balance={balance} onClick={onBalanceClick} />
-        {typeof tonBalance === 'number' ? <TonBalanceChip balance={tonBalance} onClick={onBalanceClick} /> : null}
+        {typeof tonBalance === 'number' ? <TonBalanceChip balance={tonBalance} onClick={onBalanceClick} variant={tonChipVariant} /> : null}
       </div>
       {actions}
     </div>
   );
 }
+
 
