@@ -2995,7 +2995,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'ho') {
     const rarity = rest[0];
     const cfg = await heroShopConfig(ctx);
-    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 7 raridades precisa fechar 100%.`);
+    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 6 raridades (Ancestral fica em 0%) precisa fechar 100%.`);
   }
   if (head === 'hoc') {
     const rarity = rest[0];
