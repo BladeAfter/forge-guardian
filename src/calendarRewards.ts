@@ -46,7 +46,17 @@ export function officialGameDayKey(date:Date=new Date()):string{
 
 export type InventoryChest={id:string;itemCode:string;name:string;subtitle:string;quantity:number;rarityRates:Record<string,number>};
 export type InventoryEgg={id:string;slug:string;name:string;image:string|null;quantity:number;rarityRates:Record<string,number>};
-export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[]};
+/**
+ * Consolidated read-only view of everything the player owns. Quantities come
+ * straight from the tables that own them (no mirrored balances anywhere).
+ */
+export type InventoryCategory='chests'|'eggs'|'food'|'fragments'|'equipment'|'other';
+export type InventoryItem={
+ key:string;itemId:string;instanceId:string|null;itemType:string;category:InventoryCategory;
+ name:string;description:string;image:string|null;rarity:string|null;quantity:number;usable:boolean;action:string|null;
+};
+export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[];items:InventoryItem[]};
+
 export type ChestOpenResult={hero:{id:string;name:string;image:string;rarity:string;level:number;baseAtk:number;baseHp:number};chest?:{code:string;name:string;subtitle:string};inventory?:PlayerInventory};
 export type CalendarClaimResult={reward:CalendarReward;balance:number;inventoryItemId:string|null;inventory?:PlayerInventory;dashboard:CalendarDashboard};
 /**

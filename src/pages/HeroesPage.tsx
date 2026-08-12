@@ -4,6 +4,7 @@ import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
+import { InventoryPanel } from '../components/InventoryPanel';
 import type { PvpHero } from '../pvp';
 import { useT, useLanguage } from '../LanguageContext';
 
@@ -18,7 +19,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
   const { data: fusion } = useHeroFusion(telegramInitData, true);
-  const [tab, setTab] = useState<'collection' | 'fusion'>('collection');
+  const [tab, setTab] = useState<'collection' | 'fusion' | 'inventory'>('collection');
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
@@ -43,12 +44,12 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           <button onClick={onClose} aria-label={t('heroes.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X /></button>
         </header>
 
-        <nav className="mb-3 grid grid-cols-2 gap-2">
-          {([['collection', t('heroes.tabCollection')], ['fusion', t('heroes.tabFusion')]] as const).map(([key, label]) => (
+        <nav className="mb-3 grid grid-cols-3 gap-2">
+          {([['collection', t('heroes.tabCollection')], ['fusion', t('heroes.tabFusion')], ['inventory', t('heroes.tabInventory')]] as const).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`min-h-[38px] rounded-xl border text-[11px] font-black uppercase tracking-[.12em] transition-colors ${tab === key ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
+              className={`min-h-[38px] rounded-xl border px-1 text-[10px] font-black uppercase tracking-[.08em] transition-colors ${tab === key ? 'border-amber-300/60 bg-amber-300/15 text-amber-200' : 'border-white/12 bg-black/50 text-slate-300'}`}
             >
               {label}
             </button>
@@ -56,8 +57,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         </nav>
 
         <div className="relative overflow-x-hidden">
-          <div className="flex w-[200%] transition-transform duration-300 ease-out" style={{ transform: tab === 'fusion' ? 'translateX(-50%)' : 'translateX(0)' }}>
-            <div className={`w-1/2 shrink-0 pr-1 ${tab === 'fusion' ? 'pointer-events-none' : ''}`}>
+          <div className="flex w-[300%] transition-transform duration-300 ease-out" style={{ transform: tab === 'inventory' ? 'translateX(-66.6667%)' : tab === 'fusion' ? 'translateX(-33.3333%)' : 'translateX(0)' }}>
+            <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
+
         <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
           <p className="mt-1 text-sm font-black text-amber-200">{data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}</p>
@@ -110,7 +112,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           </div>
         )}
             </div>
-            <div className={`w-1/2 shrink-0 pl-1 ${tab === 'collection' ? 'pointer-events-none' : ''}`}>
+            <div className={`w-1/3 shrink-0 px-1 ${tab !== 'fusion' ? 'pointer-events-none' : ''}`}>
               {loadingRarity && !rarityFusion ? (
                 <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loadingFusion')}</p>
               ) : rarityError ? (
@@ -119,6 +121,10 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                 <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} active={tab === 'fusion'} />
               ) : null}
             </div>
+            <div className={`w-1/3 shrink-0 pl-1 ${tab !== 'inventory' ? 'pointer-events-none' : ''}`}>
+              <InventoryPanel telegramInitData={telegramInitData} active={tab === 'inventory'} />
+            </div>
+
           </div>
         </div>
       </div>
