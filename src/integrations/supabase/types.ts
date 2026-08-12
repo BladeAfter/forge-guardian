@@ -1646,6 +1646,8 @@ export type Database = {
           pvp_banned: boolean
           pvp_losses: number
           pvp_tickets: number
+          pvp_tickets_reset_at: string | null
+          pvp_tickets_reset_day: string | null
           pvp_trophies: number
           pvp_wins: number
           telegram_id: number
@@ -1678,6 +1680,8 @@ export type Database = {
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
+          pvp_tickets_reset_at?: string | null
+          pvp_tickets_reset_day?: string | null
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id: number
@@ -1710,6 +1714,8 @@ export type Database = {
           pvp_banned?: boolean
           pvp_losses?: number
           pvp_tickets?: number
+          pvp_tickets_reset_at?: string | null
+          pvp_tickets_reset_day?: string | null
           pvp_trophies?: number
           pvp_wins?: number
           telegram_id?: number
@@ -8322,11 +8328,16 @@ export type Database = {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
       }
+      pvp_apply_daily_tickets: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       pvp_hero_json: {
         Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
         Returns: Json
       }
       pvp_league: { Args: { t: number }; Returns: string }
+      pvp_reset_daily_tickets_all: { Args: never; Returns: number }
       pvp_stat_unit: { Args: { v: string }; Returns: number }
       pvp_team_json: { Args: { p_type: string; p_user: string }; Returns: Json }
       pvp_team_power: {
