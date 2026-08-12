@@ -802,6 +802,7 @@ function App() {
                 balance={fcBalance}
                 tonBalance={tonBalance}
                 onBalanceClick={()=>setTab('wallet')}
+                tonChipVariant="villageCompact"
                 actions={
                   <button onClick={() => setSettingsOpen(true)} aria-label="Configurações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-slate-200 shadow-lg backdrop-blur-md">
                     <Settings />
@@ -809,6 +810,7 @@ function App() {
                   </button>
                 }
               />
+
             </section>
           </div>
 
