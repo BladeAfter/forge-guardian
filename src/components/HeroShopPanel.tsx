@@ -6,7 +6,7 @@ import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketRealtime, useMarketSellable } from '../hooks';
+import { useMarketBrowse, useMarketMine, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
 import { buyMarketListing, cancelMarketListing, createMarketListing } from '../services';
 import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market';
 
