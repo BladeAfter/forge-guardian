@@ -83,24 +83,33 @@ export function BalanceChip({ balance, onClick }: { balance: number; onClick?: (
 }
 
 /** Withdrawable TON (rewards only) — never a converted FC value. */
-export function TonBalanceChip({ balance, onClick }: { balance: number; onClick?: () => void }) {
+export function TonBalanceChip({
+  balance,
+  onClick,
+  variant = 'default'
+}: {
+  balance: number;
+  onClick?: () => void;
+  variant?: 'default' | 'villageCompact';
+}) {
   const t = useT();
   const value = formatTon(balance);
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className="balance-chip flex items-center gap-1.5 rounded-xl border border-sky-400/40 bg-black/80 px-2 py-1.5 text-sky-200 shadow-[inset_0_0_18px_rgba(56,189,248,.1)]"
+      className={`balance-chip ton-balance-chip flex items-center gap-1.5 rounded-xl border border-sky-400/40 bg-black/80 px-2 py-1.5 text-sky-200 shadow-[inset_0_0_18px_rgba(56,189,248,.1)] ${variant === 'villageCompact' ? 'ton-balance-chip--village-compact' : ''}`}
       aria-label={t('profile.tonBalanceAria', { value })}
     >
-      <img src={tonIcon} alt="" className="balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(56,189,248,.5)]" />
+      <img src={tonIcon} alt="" className="balance-chip-coin ton-balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(56,189,248,.5)]" />
       <span className="min-w-0 flex-1 text-right">
-        <span className="balance-chip-value block font-black text-sky-100">{value}</span>
-        <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">TON</span>
+        <span className="balance-chip-value ton-balance-chip-value block font-black text-sky-100">{value}</span>
+        <span className="balance-chip-label ton-balance-chip-label block uppercase tracking-[.12em] text-slate-400">TON</span>
       </span>
     </Tag>
   );
 }
+
 
 export function PlayerHeader({
   profile,
