@@ -58,6 +58,7 @@ const MAIN_MENU = kb([
   [{ t: '🎁 PRESENTES', d: 'm:gifts' }, { t: '🎉 EVENTOS', d: 'm:events' }],
   [{ t: '💳 RECUPERAÇÃO DE PAGAMENTOS', d: 'm:precovery' }],
   [{ t: '🛒 MARKETPLACE', d: 'm:market' }],
+  [{ t: '💰 SPENDING EVENT', d: 'm:spending' }],
 
 
 
@@ -1510,6 +1511,7 @@ async function module(ctx: Ctx, name: string) {
     case 'events': return eventsHub(ctx);
     case 'precovery': return prHub(ctx);
     case 'market': return marketHub(ctx);
+    case 'spending': return spendHub(ctx);
 
 
     case 'gifts': return giftHub(ctx);
@@ -1831,6 +1833,9 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  spname: '💰 Envie o <b>nome</b> do novo evento de gastos.\nEx.: <code>SPENDING EVENT</code>',
+  spdays: '📅 Envie a <b>duração em dias</b> (1 a 90).\nEx.: <code>7</code>',
+  spreward: '🎁 Envie a recompensa no formato <code>posição|texto</code> ou <code>de-até|texto</code>.\nEx.: <code>1|Ancestral Egg + Exclusive Hero</code>\nEx.: <code>11-12|Rare Chest + 20 Universal Fragments</code>',
   mksearch: '🔍 Envie o nome do item ou o <b>ID do anúncio</b>.',
   mkuser: '👤 Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os anúncios do jogador.',
   mkfee: '💸 Envie a nova taxa do mercado em % (0 a 50).\nEx.: <code>5</code> ou <code>3</code>',
@@ -2375,6 +2380,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
   if (head === 'pr') return prCallback(ctx, rest);
 
+  // 💰 Spending Event module (independent from the weekly pool and the referral event).
+  if (head === 'sp') { await clearSession(ctx); return spendCallback(ctx, rest); }
+
   // 🎉 Special events module (independent from the weekly community pool).
   if (head === 'ev') {
     await clearSession(ctx);
@@ -2774,6 +2782,178 @@ async function handleCallback(ctx: Ctx, data: string) {
   return send(ctx, 'Comando não reconhecido.', MAIN_MENU);
 }
 
+
+// ---------------------------------------------------------------- 💰 SPENDING EVENT
+// Tracking-only module: it never touches prices, payments, PvP or the wallet.
+// Every number comes from the RPCs, which count confirmed spends exclusively.
+const spPoints = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+async function spendOverview(ctx: Ctx) {
+  return await rpc('admin_spending_event_overview', { p_admin_id: ctx.adminId }) as any;
+}
+
+async function spendHub(ctx: Ctx, editing = true) {
+  const d = await spendOverview(ctx);
+  const ev = d?.event;
+  const totals = d?.totals || {};
+  const body = ev
+    ? [`💰 <b>SPENDING EVENT</b>`, ``,
+       `🏷 <b>${esc(ev.name)}</b> · status <b>${esc(String(ev.status).toUpperCase())}</b>`,
+       `🕒 ${String(ev.startsAt).slice(0, 16).replace('T', ' ')} → ${String(ev.endsAt).slice(0, 16).replace('T', ' ')}`,
+       `🔁 1 TON = <b>${spPoints(ev.tonRateFc)}</b> pontos`,
+       ``,
+       `📊 Pontos totais: <b>${spPoints(totals.points)}</b>`,
+       `🪙 FC gastos: <b>${spPoints(totals.fcSpent)}</b>`,
+       `💎 TON gastos: <b>${Number(totals.tonSpent ?? 0)}</b>`,
+       `👥 Participantes: <b>${spPoints(totals.participants)}</b>`].join('\n')
+    : '💰 <b>SPENDING EVENT</b>\n\nNenhum evento criado ainda.';
+  const rows = [
+    [{ t: '📊 ACTIVE EVENT', d: 'sp:hub' }, { t: '➕ CREATE EVENT', d: 'sp:new' }],
+    [{ t: '▶️ START EVENT', d: 'sp:start' }, { t: '⏹ END EVENT', d: 'sp:end' }],
+    [{ t: '📅 DURATION', d: 'sp:dur' }, { t: '🎁 REWARDS', d: 'sp:rw' }],
+    [{ t: '🏆 VIEW RANKING', d: 'sp:rank' }, { t: '✅ VALID SPEND TYPES', d: 'sp:types' }],
+    [{ t: '🔒 FINALIZE', d: 'sp:fin' }, { t: '📜 AUDIT', d: 'sp:audit' }],
+    nav(),
+  ];
+  return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
+}
+
+async function spendRanking(ctx: Ctx) {
+  const d = await spendOverview(ctx);
+  if (!d?.event) return spendHub(ctx);
+  const r = await rpc('admin_spending_event_ranking', { p_admin_id: ctx.adminId, p_event_id: d.event.id, p_limit: 20 }) as any;
+  const list = (r?.ranking || []).map((row: any) =>
+    `#${row.position} ${esc(row.username ? '@' + row.username : row.name)}\n   <b>${spPoints(row.points)}</b> pts · ${spPoints(row.fcSpent)} FC · ${Number(row.tonSpent ?? 0)} TON`).join('\n') || '—';
+  return edit(ctx, `🏆 <b>RANKING — SPENDING EVENT</b>\n\n${list.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'sp:rank' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+}
+
+async function spendRewards(ctx: Ctx) {
+  const d = await spendOverview(ctx);
+  if (!d?.event) return spendHub(ctx);
+  const rows = await db.from('spending_event_rewards')
+    .select('position_from, position_to, label, event_id')
+    .or(`event_id.eq.${d.event.id},event_id.is.null`)
+    .order('position_from', { ascending: true });
+  const own = (rows.data || []).filter((x: any) => x.event_id === d.event.id);
+  const list = (own.length ? own : (rows.data || []).filter((x: any) => !x.event_id))
+    .map((x: any) => `${x.position_from === x.position_to ? '#' + x.position_from : '#' + x.position_from + '–#' + x.position_to} → ${esc(x.label)}`).join('\n') || '—';
+  return edit(ctx, `🎁 <b>RECOMPENSAS DO SPENDING EVENT</b>\n\n${list.slice(0, 3400)}`,
+    kb([[{ t: '✏️ EDITAR POSIÇÃO', d: 'sp:ask:spreward' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+}
+
+async function spendAudit(ctx: Ctx) {
+  const d = await spendOverview(ctx);
+  if (!d?.event) return spendHub(ctx);
+  const r = await rpc('admin_spending_event_audit', { p_admin_id: ctx.adminId, p_event_id: d.event.id, p_limit: 15 }) as any;
+  const list = (r?.entries || []).map((e: any) =>
+    `• ${String(e.createdAt).slice(5, 16).replace('T', ' ')} ${esc(e.player || '—')}\n   <code>${esc(e.sourceType)}</code> ${Number(e.originalAmount)} ${esc(e.currency)} → <b>${spPoints(e.points)}</b> pts`).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DE GASTOS</b>\n\n${list.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'sp:audit' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+}
+
+const SPEND_TYPES_TEXT = [
+  '✅ <b>CONTA COMO GASTO</b>',
+  '• Recrutamento e fusão de heróis',
+  '• Comida de pet e evoluções pagas',
+  '• Tickets de PvP e criação de clã',
+  '• Compras no marketplace (só o comprador)',
+  '• Battle Pass e compra de níveis',
+  '• Ovos premium (Epic, Dragon, Ancestral) e baús',
+  '• Entradas pagas em eventos',
+  '',
+  '⛔ <b>NÃO CONTA</b>',
+  '• Depósitos e saques em TON',
+  '• Comissões, prêmios e recompensas',
+  '• FC recebido por venda no mercado',
+  '• Crédito de administrador, refund e transferências',
+  '',
+  '💎 Compras em TON só contam quando <b>confirmadas</b> na blockchain.',
+  '🔁 A taxa TON→FC é congelada em cada lançamento, então o histórico nunca muda.',
+].join('\n');
+
+async function spendCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = [rest[0], rest[1] || ''];
+  const d = await spendOverview(ctx);
+  switch (sub) {
+    case 'hub': return spendHub(ctx);
+    case 'rank': return spendRanking(ctx);
+    case 'rw': return spendRewards(ctx);
+    case 'audit': return spendAudit(ctx);
+    case 'types': return edit(ctx, SPEND_TYPES_TEXT, kb([[{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+    case 'ask': return ask(ctx, a, PROMPTS[a] || 'Envie o valor.');
+    case 'new': return ask(ctx, 'spname', PROMPTS.spname);
+    case 'dur':
+      return edit(ctx, '📅 <b>DURAÇÃO DO EVENTO</b>\nEscolha uma opção ou envie uma duração personalizada.',
+        kb([[{ t: '1 dia', d: 'sp:durgo:1' }, { t: '3 dias', d: 'sp:durgo:3' }, { t: '7 dias', d: 'sp:durgo:7' }],
+            [{ t: '14 dias', d: 'sp:durgo:14' }, { t: '30 dias', d: 'sp:durgo:30' }],
+            [{ t: '✏️ PERSONALIZADO', d: 'sp:ask:spdays' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+    case 'durgo': {
+      if (!d?.event) return spendHub(ctx);
+      await rpc('admin_spending_event_set_duration', { p_admin_id: ctx.adminId, p_event_id: d.event.id, p_days: Number(a) });
+      await send(ctx, `✅ Duração atualizada para <b>${Number(a)} dias</b>.`);
+      return spendHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'start':
+    case 'end': {
+      if (!d?.event) return spendHub(ctx);
+      const status = sub === 'start' ? 'active' : 'finished';
+      await rpc('admin_spending_event_set_status', { p_admin_id: ctx.adminId, p_event_id: d.event.id, p_status: status });
+      await send(ctx, sub === 'start' ? '▶️ Evento ativado. A contagem começa agora, do zero.' : '⏹ Evento encerrado.');
+      return spendHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'fin': {
+      if (!d?.event) return spendHub(ctx);
+      return edit(ctx, '🔒 <b>FINALIZAR EVENTO</b>\nO ranking final será congelado e os resultados gravados para distribuição.\n\nConfirma?',
+        kb([[{ t: '✅ CONFIRMAR', d: 'sp:fingo' }, { t: '❌ CANCELAR', d: 'sp:hub' }]]));
+    }
+    case 'fingo': {
+      if (!d?.event) return spendHub(ctx);
+      const r = await rpc('admin_spending_event_finalize', { p_admin_id: ctx.adminId, p_event_id: d.event.id }) as any;
+      await send(ctx, `🔒 Ranking congelado com <b>${fmt(r?.winners ?? 0)}</b> posições.`);
+      return spendHub({ ...ctx, messageId: undefined }, false);
+    }
+    default: return spendHub(ctx);
+  }
+}
+
+async function spendPrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'spname') {
+    await setSession(ctx, `spdays|${encodeURIComponent(text.slice(0, 40))}`, 'awaiting_input');
+    return send(ctx, `🏷 Nome: <b>${esc(text.slice(0, 40))}</b>\n\n${PROMPTS.spdays}`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
+  if (key === 'spdays') {
+    const days = parseAmount(text);
+    if (!Number.isFinite(days) || days < 1 || days > 90) throw new Error('KEEP_SESSION::⚠️ Envie um número de dias entre 1 e 90.');
+    const session = await getSession(ctx);
+    const raw = String(session?.action || '').split('|')[1] || '';
+    const name = raw ? decodeURIComponent(raw) : 'SPENDING EVENT';
+    const d = await rpc('admin_spending_event_create', { p_admin_id: ctx.adminId, p_name: name, p_days: Math.round(days) }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>EVENTO CRIADO</b>\n${esc(d?.event?.name || name)} · ${Math.round(days)} dias\nTodos começam com 0 pontos.`);
+    return spendHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'spreward') {
+    const [slot, ...labelParts] = text.split('|');
+    const label = labelParts.join('|').trim();
+    const range = String(slot || '').trim().replace(/#/g, '');
+    const [from, to] = range.includes('-') ? range.split('-') : [range, range];
+    if (!/^\d+$/.test(String(from).trim()) || !/^\d+$/.test(String(to).trim()) || label.length < 2) {
+      throw new Error('KEEP_SESSION::⚠️ Formato inválido. Use <code>1|Ancestral Egg</code> ou <code>11-12|Rare Chest</code>.');
+    }
+    const d = await spendOverview(ctx);
+    if (!d?.event) { await clearSession(ctx); return spendHub(ctx, false); }
+    await rpc('admin_spending_event_set_reward', {
+      p_admin_id: ctx.adminId, p_event_id: d.event.id,
+      p_from: Number(from), p_to: Number(to), p_label: label.slice(0, 200),
+    });
+    await clearSession(ctx);
+    await send(ctx, `✅ Recompensa salva para <b>#${Number(from)}${Number(to) !== Number(from) ? '–#' + Number(to) : ''}</b>.`);
+    return spendRewards({ ...ctx, messageId: undefined });
+  }
+  return spendHub(ctx, false);
+}
+
 function parseValue(raw: string): unknown {
   try { return JSON.parse(raw); } catch { return raw; }
 }
@@ -2784,6 +2964,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
+  if (key.startsWith('sp') && ['spname', 'spdays', 'spreward'].includes(key)) return spendPrompt(ctx, key, text);
   if (key === 'prsearch') return prSearch(ctx, text);
   if (key === 'prreason') {
     if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
