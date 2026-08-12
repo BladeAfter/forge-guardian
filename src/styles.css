@@ -564,6 +564,82 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 /* ---------- Clan Boss combat FX (visual only) ---------- */
 .cb-stage { position: relative; }
 .cb-boss-art { will-change: transform; }
+/* ---- Clan Boss arena: layered themed scene (far backdrop -> fx -> boss) ---- */
+.cb-arena-art {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center center;
+  transform: scale(1.06);
+  filter: saturate(1.02) contrast(1.06);
+  animation: cb-arena-drift 30s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes cb-arena-drift {
+  0%   { transform: scale(1.06) translate3d(-.8%, 0, 0); }
+  100% { transform: scale(1.12) translate3d(.8%, -1%, 0); }
+}
+.cb-arena-shade {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(80% 55% at 50% 42%, rgba(0,0,0,0) 0%, rgba(0,0,0,.28) 62%, rgba(0,0,0,.7) 100%),
+    linear-gradient(180deg, rgba(3,5,10,.62) 0%, rgba(3,5,10,.1) 26%, rgba(3,5,10,.45) 66%, rgba(3,5,10,.9) 100%);
+}
+/* Ambient particle field — cheap, GPU friendly, tinted per boss element. */
+.cb-arena-fx {
+  position: absolute; inset: 0; pointer-events: none; opacity: .55;
+  background-repeat: repeat;
+  background-size: 180px 180px, 260px 260px;
+  animation: cb-fx-fall 16s linear infinite;
+}
+@keyframes cb-fx-fall {
+  0%   { background-position: 0 0, 60px 0; }
+  100% { background-position: 40px 180px, 0 260px; }
+}
+.cb-fx-ember  { background-image: radial-gradient(circle, rgba(251,146,60,.85) 0 1.4px, transparent 2px), radial-gradient(circle, rgba(248,113,113,.6) 0 1px, transparent 2px); animation-direction: reverse; }
+.cb-fx-snow   { background-image: radial-gradient(circle, rgba(224,247,255,.9) 0 1.6px, transparent 2.4px), radial-gradient(circle, rgba(165,243,252,.55) 0 1.2px, transparent 2px); }
+.cb-fx-spore  { background-image: radial-gradient(circle, rgba(190,242,100,.75) 0 1.5px, transparent 2.2px), radial-gradient(circle, rgba(74,222,128,.5) 0 1px, transparent 2px); animation-duration: 22s; }
+.cb-fx-spark  { background-image: radial-gradient(circle, rgba(191,219,254,.9) 0 1.2px, transparent 2px), radial-gradient(circle, rgba(250,204,21,.5) 0 1px, transparent 2px); animation-duration: 9s; }
+.cb-fx-gold   { background-image: radial-gradient(circle, rgba(253,224,71,.85) 0 1.4px, transparent 2px), radial-gradient(circle, rgba(255,255,255,.45) 0 1px, transparent 2px); animation-direction: reverse; animation-duration: 20s; }
+.cb-fx-mist {
+  background-image:
+    radial-gradient(60% 40% at 30% 70%, rgba(148,163,184,.16), rgba(0,0,0,0) 70%),
+    radial-gradient(55% 38% at 72% 62%, rgba(148,163,184,.14), rgba(0,0,0,0) 70%);
+  background-size: cover, cover; background-repeat: no-repeat;
+  animation: cb-fx-mist-drift 18s ease-in-out infinite alternate;
+}
+@keyframes cb-fx-mist-drift {
+  0%   { transform: translate3d(-2%, 0, 0); opacity: .45; }
+  100% { transform: translate3d(2%, -1.5%, 0); opacity: .7; }
+}
+/* Boss framing: always centered, contained, never sunk to the bottom. */
+.cb-arena { position: relative; overflow: hidden; }
+.cb-arena > .cb-boss-art {
+  position: relative; z-index: 2;
+  display: block; margin: 0 auto;
+  height: 100%; width: 100%;
+  max-height: 100%; max-width: 100%;
+  object-fit: contain; object-position: center center;
+  transform-origin: center center;
+}
+.cb-boss-aura {
+  position: absolute; left: 50%; top: 48%; z-index: 1;
+  height: 62%; width: 62%; transform: translate(-50%, -50%);
+  border-radius: 9999px; filter: blur(14px);
+  animation: gb-aura 5.5s ease-in-out infinite; pointer-events: none;
+}
+.cb-boss-base {
+  position: absolute; left: 50%; bottom: 4%; z-index: 1;
+  height: 16%; width: 72%; transform: translateX(-50%);
+  border-radius: 9999px; filter: blur(8px); pointer-events: none;
+  animation: cb-base-pulse 4.5s ease-in-out infinite;
+}
+@keyframes cb-base-pulse {
+  0%, 100% { opacity: .7; transform: translateX(-50%) scale(.96); }
+  50%      { opacity: 1;  transform: translateX(-50%) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-arena-art, .cb-arena-fx, .cb-boss-aura, .cb-boss-base { animation: none; }
+}
+
 .cb-boss-art.cb-hit { animation: cb-boss-recoil .55s cubic-bezier(.22,.9,.2,1) both; }
 .cb-boss-art.cb-charge { animation: cb-boss-charge .7s cubic-bezier(.3,.8,.25,1) both; }
 @keyframes cb-boss-recoil {
