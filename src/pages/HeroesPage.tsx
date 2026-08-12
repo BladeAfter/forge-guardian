@@ -4,6 +4,7 @@ import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
+import { InventoryPanel } from '../components/InventoryPanel';
 import type { PvpHero } from '../pvp';
 import { useT, useLanguage } from '../LanguageContext';
 
@@ -111,7 +112,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           </div>
         )}
             </div>
-            <div className={`w-1/2 shrink-0 pl-1 ${tab === 'collection' ? 'pointer-events-none' : ''}`}>
+            <div className={`w-1/3 shrink-0 px-1 ${tab !== 'fusion' ? 'pointer-events-none' : ''}`}>
               {loadingRarity && !rarityFusion ? (
                 <p className="py-20 text-center text-sm text-slate-300">{t('heroes.loadingFusion')}</p>
               ) : rarityError ? (
@@ -120,6 +121,10 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                 <HeroRarityFusion telegramInitData={telegramInitData} data={rarityFusion} active={tab === 'fusion'} />
               ) : null}
             </div>
+            <div className={`w-1/3 shrink-0 pl-1 ${tab !== 'inventory' ? 'pointer-events-none' : ''}`}>
+              <InventoryPanel telegramInitData={telegramInitData} active={tab === 'inventory'} />
+            </div>
+
           </div>
         </div>
       </div>
