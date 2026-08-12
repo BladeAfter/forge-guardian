@@ -947,6 +947,42 @@ function App() {
                     <button key={code} onClick={() => changeLanguage(code)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white hover:border-amber-300/40 hover:bg-amber-400/10">{label}</button>
                   ))}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => { setSettingsOpen(false); setNotificationsOpen(true); }}
+                  className="mt-4 flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left hover:border-amber-300/40 hover:bg-amber-400/10"
+                >
+                  <span className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-amber-300" />
+                    <span>
+                      <span className="block text-sm font-bold text-white">{t('notifications')}</span>
+                      <span className="block text-[10px] text-slate-400">{t('common.notificationsHint')}</span>
+                    </span>
+                  </span>
+                  {unreadNotifications > 0 ? (
+                    <span className="shrink-0 rounded-full bg-rose-500/20 px-2 py-1 text-[10px] font-black text-rose-300">{unreadNotifications} {t('common.unread')}</span>
+                  ) : (
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {notificationsOpen ? (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-sm rounded-[2rem] border border-white/10 bg-[#090d15] p-5 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-black">{t('notifications')}</h2>
+                  <button onClick={() => setNotificationsOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+                </div>
+                <p className="mt-4 text-xs text-slate-300">{dailyReward?.claimed ? t('rewardCollected') : t('rewardAvailable')}</p>
+                {referralDashboard?.notifications?.map(item => (
+                  <div key={item.id} className="mt-3 border-t border-white/10 pt-3">
+                    <p className="text-xs font-bold text-emerald-300">{item.message}</p>
+                    <p className="text-[10px] text-slate-400">{item.title}</p>
+                  </div>
+                ))}
               </div>
             </div>
           ) : null}
