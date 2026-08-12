@@ -3,6 +3,10 @@ import type { LocaleBundle } from "./registry";
 /** pool namespace translations. */
 export const pool: LocaleBundle = {
   en: {
+    "pool.estReward": "Est. reward",
+    "pool.notEligible": "NOT ELIGIBLE",
+    "pool.rankingPool": "Ranking pool",
+    "pool.rafflePool": "Raffle pool",
     "pool.requirementPoints": "Points",
     "pool.requirementHeroes": "Heroes",
     "pool.title": "COMMUNITY POOL",
@@ -33,6 +37,10 @@ export const pool: LocaleBundle = {
     "pool.gotIt": "GOT IT",
   },
   pt: {
+    "pool.estReward": "Prêmio estimado",
+    "pool.notEligible": "NÃO ELEGÍVEL",
+    "pool.rankingPool": "Bolo do ranking",
+    "pool.rafflePool": "Bolo do sorteio",
     "pool.requirementPoints": "Pontos",
     "pool.requirementHeroes": "Heróis",
     "pool.title": "POOL COMUNITÁRIA",
@@ -63,6 +71,10 @@ export const pool: LocaleBundle = {
     "pool.gotIt": "ENTENDI",
   },
   es: {
+    "pool.estReward": "Premio estimado",
+    "pool.notEligible": "NO ELEGIBLE",
+    "pool.rankingPool": "Bolsa del ranking",
+    "pool.rafflePool": "Bolsa del sorteo",
     "pool.requirementPoints": "Puntos",
     "pool.requirementHeroes": "Héroes",
     "pool.title": "POOL COMUNITARIA",
@@ -93,6 +105,10 @@ export const pool: LocaleBundle = {
     "pool.gotIt": "ENTENDIDO",
   },
   ru: {
+    "pool.estReward": "Оценка приза",
+    "pool.notEligible": "НЕТ ПРАВА",
+    "pool.rankingPool": "Фонд рейтинга",
+    "pool.rafflePool": "Фонд розыгрыша",
     "pool.requirementPoints": "Очки",
     "pool.requirementHeroes": "Герои",
     "pool.title": "ОБЩИЙ ПРИЗОВОЙ ФОНД",
