@@ -26,3 +26,15 @@ export function formatTon(value:number|string|null|undefined):string{
   const text=amount.toFixed(9).replace(/0+$/,'').replace(/\.$/,'');
   return text==='-0'?'0':text;
 }
+
+export type TonWithdrawalQuote={grossTon:number;feePercent:number;feeTon:number;netTon:number};
+/**
+ * Withdrawals are TON-only now (FC has no direct cash-out value).
+ * Display estimate; the backend recalculates and stays the authority.
+ */
+export function tonWithdrawalQuote(ton:number,feePercent:number=DEFAULT_WITHDRAW_FEE_PERCENT):TonWithdrawalQuote{
+  const percent=Number.isFinite(feePercent)&&feePercent>=0&&feePercent<=50?feePercent:DEFAULT_WITHDRAW_FEE_PERCENT;
+  const gross=Number.isFinite(ton)&&ton>0?Math.round(ton*1e6)/1e6:0;
+  const fee=Math.round(gross*percent/100*1e6)/1e6;
+  return{grossTon:gross,feePercent:percent,feeTon:fee,netTon:Math.round((gross-fee)*1e6)/1e6};
+}

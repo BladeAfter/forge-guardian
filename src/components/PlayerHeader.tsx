@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { coin } from '../gameAssets';
+import tonIcon from '../assets/ton-coin.png';
+import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
+
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import { useT } from '../LanguageContext';
 
@@ -60,11 +63,13 @@ export function PlayerIdentity({
   );
 }
 
-export function BalanceChip({ balance }: { balance: number }) {
+export function BalanceChip({ balance, onClick }: { balance: number; onClick?: () => void }) {
   const t = useT();
   const value = formatCurrency(balance);
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div
+    <Tag
+      {...(onClick ? { type: 'button' as const, onClick } : {})}
       className="balance-chip flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-black/80 px-2 py-1.5 text-amber-200 shadow-[inset_0_0_18px_rgba(245,158,11,.08)]"
       aria-label={t('profile.balanceAria', { value })}
     >
@@ -73,7 +78,27 @@ export function BalanceChip({ balance }: { balance: number }) {
         <span className="balance-chip-value block font-black text-amber-100">{value}</span>
         <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">FC</span>
       </span>
-    </div>
+    </Tag>
+  );
+}
+
+/** Withdrawable TON (rewards only) — never a converted FC value. */
+export function TonBalanceChip({ balance, onClick }: { balance: number; onClick?: () => void }) {
+  const t = useT();
+  const value = formatTon(balance);
+  const Tag = onClick ? 'button' : 'div';
+  return (
+    <Tag
+      {...(onClick ? { type: 'button' as const, onClick } : {})}
+      className="balance-chip flex items-center gap-1.5 rounded-xl border border-sky-400/40 bg-black/80 px-2 py-1.5 text-sky-200 shadow-[inset_0_0_18px_rgba(56,189,248,.1)]"
+      aria-label={t('profile.tonBalanceAria', { value })}
+    >
+      <img src={tonIcon} alt="" className="balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(56,189,248,.5)]" />
+      <span className="min-w-0 flex-1 text-right">
+        <span className="balance-chip-value block font-black text-sky-100">{value}</span>
+        <span className="balance-chip-label block uppercase tracking-[.12em] text-slate-400">TON</span>
+      </span>
+    </Tag>
   );
 }
 
@@ -82,6 +107,8 @@ export function PlayerHeader({
   loading,
   onRetry,
   balance,
+  tonBalance,
+  onBalanceClick,
   actions,
   className = ''
 }: {
@@ -89,14 +116,20 @@ export function PlayerHeader({
   loading?: boolean;
   onRetry?: () => void;
   balance: number;
+  tonBalance?: number;
+  onBalanceClick?: () => void;
   actions?: React.ReactNode;
   className?: string;
 }) {
   return (
     <div className={`player-header ${className}`}>
       <PlayerIdentity profile={profile} loading={loading} onRetry={onRetry} />
-      <BalanceChip balance={balance} />
+      <div className="flex shrink-0 items-center gap-1.5">
+        <BalanceChip balance={balance} onClick={onBalanceClick} />
+        {typeof tonBalance === 'number' ? <TonBalanceChip balance={tonBalance} onClick={onBalanceClick} /> : null}
+      </div>
       {actions}
     </div>
   );
 }
+

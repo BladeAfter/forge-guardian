@@ -7,7 +7,7 @@ import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './p
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useWalletSummary } from './hooks';
+import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { QuestsPage } from './pages/QuestsPage';
 import { BossPage } from './pages/BossPage';
@@ -396,6 +396,9 @@ function App() {
 
   // FC have a single source of truth: the server balance (game_players.forge_coins).
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
+  // Withdrawable TON lives on its own ledger (rewards only) and is shown beside FC.
+  const {data:tonRewardWallet}=useTonRewardWallet(telegramInitData,backendEnabled);
+  const tonBalance=Number.isFinite(tonRewardWallet?.availableTon)?Number(tonRewardWallet?.availableTon):0;
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
   const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
@@ -777,7 +780,7 @@ function App() {
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
         <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' || tab === 'profile' ? 'hidden' : 'block'}`}>
-          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalance} />
+          <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalance} tonBalance={tonBalance} onBalanceClick={()=>setTab('wallet')} />
         </header>
 
 
@@ -793,6 +796,8 @@ function App() {
                 loading={profileLoading}
                 onRetry={()=>void refetchProfile()}
                 balance={fcBalance}
+                tonBalance={tonBalance}
+                onBalanceClick={()=>setTab('wallet')}
                 actions={<>
                   <button onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notificações" className="player-header-icon relative rounded-xl border border-white/10 bg-[#080c13]/90 text-amber-200 shadow-lg backdrop-blur-md">
                     <Bell />

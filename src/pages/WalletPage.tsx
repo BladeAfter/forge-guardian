@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Wallet } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Gift, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
-import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, MIN_WITHDRAWAL_FC, fcToTon, formatTon, tonToFc, validDeposit, validWithdrawal, withdrawalQuote } from '../economy';
-import { createDepositIntent, requestWithdrawal, verifyPendingDeposits } from '../services';
+import tonIcon from '../assets/ton-coin.png';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote, validDeposit } from '../economy';
+import { createDepositIntent, requestTonWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
-import { usePetDashboard, useWalletSummary } from '../hooks';
+import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
+
 
 type Props = {
   game: GameState;
@@ -38,21 +40,29 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const queryClient = useQueryClient();
   const backendEnabled = Boolean(telegramInitData);
   const { data: summary } = useWalletSummary(telegramInitData, backendEnabled);
+  const { data: tonWallet } = useTonWallet(telegramInitData, backendEnabled);
   const { data: pets } = usePetDashboard(telegramInitData, backendEnabled);
-  const balance = summary?.balanceFc ?? game.balance;
+  const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
+  const availableTon = tonWallet?.availableTon ?? 0;
+  const reservedTon = tonWallet?.reservedTon ?? 0;
+  const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   const [depositTon, setDepositTon] = useState(1);
-  const [withdrawFc, setWithdrawFc] = useState(MIN_WITHDRAWAL_FC);
+  const [withdrawTon, setWithdrawTon] = useState(0);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
   const recoveredRef = useRef(false);
   const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable) ?? [], [pets?.eggs]);
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
-  const feePercent = summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
-  const quote = useMemo(() => withdrawalQuote(withdrawFc, feePercent), [withdrawFc, feePercent]);
+  const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
+  const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
+  const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+
 
   const invalidateWallet = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['wallet-summary', telegramInitData] }),
+      queryClient.invalidateQueries({ queryKey: ['ton-wallet'] }),
+
       queryClient.invalidateQueries({ queryKey: ['wallet-deposits'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-withdrawals'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
@@ -143,14 +153,14 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const withdrawal = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
-      if (withdrawFc < MIN_WITHDRAWAL_FC) throw new Error(t('wallet.errors.minWithdraw'));
-      if (withdrawFc % MIN_WITHDRAWAL_FC !== 0) throw new Error(t('wallet.errors.multipleWithdraw'));
-      if (!validWithdrawal(withdrawFc, balance)) throw new Error(t('wallet.errors.insufficientBalance'));
-      return requestWithdrawal(telegramInitData, withdrawFc, address, crypto.randomUUID());
+      if (withdrawTon < minWithdrawTon) throw new Error(t('wallet.errors.minWithdrawTon', { ton: formatTon(minWithdrawTon) }));
+      if (withdrawTon > availableTon) throw new Error(t('wallet.errors.insufficientTon'));
+      return requestTonWithdrawal(telegramInitData, withdrawTon, address, crypto.randomUUID());
     },
-    onSuccess: async () => { setConfirmWithdraw(false); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
+    onSuccess: async () => { setConfirmWithdraw(false); setWithdrawTon(0); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
     onError: error => toast.error(tError(error))
   });
+
 
   const invalidateEggs = async () => {
     await Promise.all(['pet-egg-orders', 'pet-inventory', 'pet-dashboard', 'wallet-history', 'wallet-summary', 'game-state', 'community-pool'].map(key =>
@@ -226,12 +236,20 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       <div className="grid grid-cols-2 gap-2">
         <Panel title={t('wallet.balance')} icon={<Coins />}>
           <div className="flex items-center gap-2"><img src={coin} className="h-8 w-8 object-contain" alt="FC"/><strong className="text-lg text-amber-200">{Math.floor(balance).toLocaleString('pt-BR')} FC</strong></div>
-          <p className="mt-1 text-[9px] text-slate-400">{t('wallet.balanceEquivalent', { ton: fcToTon(balance).toLocaleString('pt-BR', { maximumFractionDigits: 4 }) })}</p>
+          <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.fcInGameOnly')}</p>
         </Panel>
-        <Panel title={t('wallet.conversion')} icon={<Wallet />}>
-          <strong className="text-sm text-sky-300">1 TON</strong><p className="text-[10px] text-slate-300">= {FC_PER_TON.toLocaleString('pt-BR')} FC</p>
+        <Panel title={t('wallet.tonWithdrawable')} icon={<Gift />}>
+          <div className="flex items-center gap-2"><img src={tonIcon} className="h-8 w-8 object-contain" alt="TON"/><strong className="text-lg text-sky-300">{formatTon(availableTon)} TON</strong></div>
+          <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.tonRewardsOnly')}</p>
+          {reservedTon > 0 ? <p className="mt-1 text-[9px] font-bold text-amber-300">{t('wallet.tonReserved', { ton: formatTon(reservedTon) })}</p> : null}
         </Panel>
       </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+        <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
+        <p className="mt-1 text-[10px] text-slate-300">1 TON = {FC_PER_TON.toLocaleString('pt-BR')} FC — {t('wallet.oneWayNote')}</p>
+      </div>
+
 
       <Panel title={t('wallet.deposit')} icon={<ArrowDownToLine />}>
         <div className="grid grid-cols-4 gap-1">{[1,3,5,10].map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{value} TON</Quick>)}</div>
@@ -245,28 +263,30 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </button>
       </Panel>
 
-      <Panel title={t('wallet.withdraw')} icon={<ArrowUpFromLine />}>
-        <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} {t('wallet.thousandShort')}</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>{t('wallet.max')}</Quick></div>
-        <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label={t('wallet.fcAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+      <Panel title={t('wallet.withdrawTon')} icon={<ArrowUpFromLine />}>
+        <div className="grid grid-cols-4 gap-1">{[1,5,10].map(value => <Quick key={value} active={withdrawTon===value} onClick={() => setWithdrawTon(value)}>{value} TON</Quick>)}<Quick active={withdrawTon===availableTon && availableTon>0} onClick={() => setWithdrawTon(availableTon)}>{t('wallet.max')}</Quick></div>
+        <input type="number" min={minWithdrawTon} step="0.1" value={withdrawTon} onChange={event => setWithdrawTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minWithdrawTonNote', { ton: formatTon(minWithdrawTon) })}</p>
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+          <Line label={t('wallet.available')} value={`${formatTon(availableTon)} TON`} />
           <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
           <Line label={t('wallet.withdrawFee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
           <div className="h-px w-full bg-white/10" />
           <Line label={t('wallet.youWillReceiveTon')} value={`${formatTon(quote.netTon)} TON`} tone="net" />
         </div>
-        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">{t('wallet.debitNote', { amount: withdrawFc.toLocaleString('pt-BR'), percent: quote.feePercent })}</p>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">{t('wallet.tonWithdrawNote', { percent: quote.feePercent })}</p>
         <div className="mt-3">
-          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? t('wallet.requesting') : t('wallet.requestWithdraw')}</Primary>
+          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !canWithdraw}>{withdrawal.isPending ? t('wallet.requesting') : t('wallet.requestWithdraw')}</Primary>
         </div>
       </Panel>
+
 
       {confirmWithdraw ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <div className="w-full max-w-xs rounded-2xl border border-amber-300/30 bg-[#0a0f19] p-4">
             <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">{t('wallet.confirmTitle')}</h4>
             <div className="mt-3 space-y-2">
-              <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+              <Line label={t('wallet.amount')} value={`${formatTon(withdrawTon)} TON`} />
               <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
               <Line label={t('wallet.fee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
               <div className="h-px w-full bg-white/10" />
