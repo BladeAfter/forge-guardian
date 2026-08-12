@@ -42,6 +42,8 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
 
   const boss = data?.boss;
   const me = data?.me;
+  const theme = clanBossTheme(boss?.key);
+  const art = clanBossArt(boss?.key, boss?.imageUrl);
   const hpPercent = useMemo(() => {
     if (!boss || boss.maxHp <= 0) return 0;
     return Math.max(0, Math.min(100, (boss.currentHp / boss.maxHp) * 100));
@@ -52,6 +54,23 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   const cooldownLeft = me?.nextAttackAt ? new Date(me.nextAttackAt).getTime() - now : 0;
   const onCooldown = cooldownLeft > 0;
   const defeated = Boolean(boss && (boss.status !== 'active' || boss.currentHp <= 0));
+
+  // Presentation-only cycle transition: when the backend hands over a NEW boss
+  // instance we replay the "cycle completed" beat and fade the new art in.
+  const previousInstance = useRef<string | null>(null);
+  const [cycleSwap, setCycleSwap] = useState(0);
+  useEffect(() => {
+    if (!boss?.id) return;
+    const previous = previousInstance.current;
+    previousInstance.current = boss.id;
+    if (previous && previous !== boss.id) setCycleSwap((value) => value + 1);
+  }, [boss?.id]);
+  useEffect(() => {
+    if (!cycleSwap) return;
+    const timer = window.setTimeout(() => setCycleSwap(0), 2200);
+    return () => window.clearTimeout(timer);
+  }, [cycleSwap]);
+
 
 
   const attack = async () => {
