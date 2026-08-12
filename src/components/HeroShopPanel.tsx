@@ -189,8 +189,34 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
               ) : null}
             </div>
 
+          ) : !marketAccess ? (
+            <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+              <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-6">
+                <Store className="mx-auto h-10 w-10 text-amber-300 opacity-60" />
+                <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-slate-400">{t('market.title')}</p>
+                <p className="mt-1 text-sm font-black uppercase tracking-[0.12em] text-amber-200">🛠 {t('market.maintenance')}</p>
+                <p className="mt-2 text-[10px] leading-relaxed text-slate-300">{status.data?.maintenanceMessage ?? t('market.maintenanceMessage')}</p>
+                <div className="mt-4 flex justify-center gap-2">
+                  <button onClick={() => void status.refetch()} className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
+                    <RefreshCw className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.retry')}
+                  </button>
+                  <button onClick={() => setTab('recruit')} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
+                    {t('market.tabRecruit')}
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <div>
+              {status.data && !status.data.enabled ? (
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1.5">
+                  <span className="text-[10px]">🧪</span>
+                  <p className="text-[8px] font-black uppercase tracking-[0.14em] text-fuchsia-200">
+                    {t('market.adminTestMode')} · <span className="font-bold normal-case tracking-normal text-slate-300">{t('market.adminTestModeHint')}</span>
+                  </p>
+                </div>
+              ) : null}
+
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-black text-white">{t('market.title')}</p>
