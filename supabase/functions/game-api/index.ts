@@ -316,7 +316,15 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
 
 async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'dashboard');
+  // Lightweight ads config/counter (used by the entry interstitial), no matchmaking work.
+  if (action === 'ads') {
+    const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+    if (player.error) throw new Error(player.error.message);
+    if (!player.data?.id) return { ads: null };
+    return { ads: await rpc(db, 'pvp_ads_state', { p_user_id: player.data.id }) };
+  }
   // The hero collection must never depend on PvP matchmaking or stats.
+
   if (action === 'heroes') {
     const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
     if (player.error) throw new Error(player.error.message);
