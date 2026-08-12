@@ -98,6 +98,23 @@ export async function showAd(blockId: string): Promise<AdShowOutcome> {
 const SESSION_KEY = 'mythreon:adsgram:entry-shown';
 
 /**
+ * Entry ad (game opening): reuses the SAME rewarded block as PvP (42560) but NEVER
+ * grants any reward — no ticket, FC, TON, XP or item, and no backend call at all.
+ * Shown at most once per real Mini App session and always resolves (never blocks boot).
+ */
+export async function showEntryAd(blockId: string = ADSGRAM_PVP_REWARD_BLOCK_ID, timeoutMs = 20000): Promise<AdShowOutcome | 'skipped-session'> {
+  if (typeof window === 'undefined') return 'skipped-session';
+  try {
+    if (window.sessionStorage.getItem(SESSION_KEY)) return 'skipped-session';
+    window.sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {
+    return 'skipped-session';
+  }
+  const guard = new Promise<AdShowOutcome>((resolve) => window.setTimeout(() => resolve('error'), timeoutMs));
+  return Promise.race([showAd(blockId), guard]);
+}
+
+/**
  * Entry interstitial: at most once per real Mini App session (sessionStorage), never
  * on tab switches, modals or re-renders. Uses a dedicated interstitial block id.
  */
