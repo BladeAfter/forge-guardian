@@ -2893,7 +2893,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'cb') { if (rest[0] !== 'ask') await clearSession(ctx); return cbCallback(ctx, rest); }
 
   // 🤝 Partner channels (name + reward + hidden link). Keeps its own wizard session.
-  if (head === 'pt') { if (rest[0] !== 'ask' && rest[0] !== 'save') await clearSession(ctx); return partnersCallback(ctx, rest); }
+  if (head === 'pt') { if (!['ask', 'save', 'val'].includes(rest[0])) await clearSession(ctx); return partnersCallback(ctx, rest); }
 
   // 💰 Spending Event module (independent from the weekly pool and the referral event).
   if (head === 'sp') { await clearSession(ctx); return spendCallback(ctx, rest); }
