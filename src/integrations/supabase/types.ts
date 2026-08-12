@@ -1968,6 +1968,7 @@ export type Database = {
           price_fc: number | null
           price_ton: number | null
           rarity: string
+          recruit_enabled: boolean
           skills: Json
           sort_order: number
           start_level: number
@@ -1998,6 +1999,7 @@ export type Database = {
           price_fc?: number | null
           price_ton?: number | null
           rarity: string
+          recruit_enabled?: boolean
           skills?: Json
           sort_order?: number
           start_level?: number
@@ -2028,6 +2030,7 @@ export type Database = {
           price_fc?: number | null
           price_ton?: number | null
           rarity?: string
+          recruit_enabled?: boolean
           skills?: Json
           sort_order?: number
           start_level?: number
@@ -2269,6 +2272,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hero_rarity_mismatch_audit: {
+        Row: {
+          created_at: string
+          flag: string
+          hero_key: string
+          id: string
+          owned_rarity: string
+          player_hero_id: string
+          resolved_at: string | null
+          template_rarity: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          flag?: string
+          hero_key: string
+          id?: string
+          owned_rarity: string
+          player_hero_id: string
+          resolved_at?: string | null
+          template_rarity: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          flag?: string
+          hero_key?: string
+          id?: string
+          owned_rarity?: string
+          player_hero_id?: string
+          resolved_at?: string | null
+          template_rarity?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       market_item_ownership_history: {
         Row: {
