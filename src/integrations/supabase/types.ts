@@ -2946,6 +2946,135 @@ export type Database = {
           },
         ]
       }
+      nft_pet_history: {
+        Row: {
+          action: string
+          admin_telegram_id: number | null
+          created_at: string
+          from_user_id: string | null
+          id: string
+          metadata: Json
+          nft_pet_id: string
+          reason: string | null
+          to_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_telegram_id?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json
+          nft_pet_id: string
+          reason?: string | null
+          to_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_telegram_id?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          metadata?: Json
+          nft_pet_id?: string
+          reason?: string | null
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_pet_history_nft_pet_id_fkey"
+            columns: ["nft_pet_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_pets: {
+        Row: {
+          assigned_at: string | null
+          blockchain: string | null
+          contract_address: string | null
+          created_at: string
+          created_by_admin: number | null
+          id: string
+          metadata: Json
+          minted: boolean
+          nft_address: string | null
+          nft_serial: number
+          owner_user_id: string | null
+          pet_template_id: string
+          player_pet_id: string | null
+          revoked_at: string | null
+          status: string
+          token_id: string | null
+          unique_instance_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          id?: string
+          metadata?: Json
+          minted?: boolean
+          nft_address?: string | null
+          nft_serial: number
+          owner_user_id?: string | null
+          pet_template_id: string
+          player_pet_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          token_id?: string | null
+          unique_instance_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          id?: string
+          metadata?: Json
+          minted?: boolean
+          nft_address?: string | null
+          nft_serial?: number
+          owner_user_id?: string | null
+          pet_template_id?: string
+          player_pet_id?: string | null
+          revoked_at?: string | null
+          status?: string
+          token_id?: string | null
+          unique_instance_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_pets_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_pets_pet_template_id_fkey"
+            columns: ["pet_template_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_pets_player_pet_fk"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_channels: {
         Row: {
           created_at: string
@@ -3969,6 +4098,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          egg_eligible: boolean
           exclusive_badge: string | null
           exclusive_pass_tier: string | null
           exclusive_passive: Json
@@ -3980,6 +4110,7 @@ export type Database = {
           image_baby_url: string | null
           image_young_url: string | null
           is_enabled: boolean
+          is_nft_exclusive: boolean
           is_season_exclusive: boolean
           name: string
           obtainable_from: Json
@@ -3998,6 +4129,7 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          egg_eligible?: boolean
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -4009,6 +4141,7 @@ export type Database = {
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_nft_exclusive?: boolean
           is_season_exclusive?: boolean
           name: string
           obtainable_from?: Json
@@ -4027,6 +4160,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          egg_eligible?: boolean
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -4038,6 +4172,7 @@ export type Database = {
           image_baby_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
+          is_nft_exclusive?: boolean
           is_season_exclusive?: boolean
           name?: string
           obtainable_from?: Json
@@ -4419,6 +4554,7 @@ export type Database = {
           is_season_exclusive: boolean
           level: number
           market_locked: boolean
+          nft_pet_id: string | null
           obtained_at: string
           pet_id: string
           rarity: string
@@ -4440,6 +4576,7 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           market_locked?: boolean
+          nft_pet_id?: string | null
           obtained_at?: string
           pet_id: string
           rarity: string
@@ -4461,6 +4598,7 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           market_locked?: boolean
+          nft_pet_id?: string | null
           obtained_at?: string
           pet_id?: string
           rarity?: string
@@ -4476,6 +4614,13 @@ export type Database = {
             columns: ["exclusive_season_id"]
             isOneToOne: false
             referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_pets_nft_pet_id_fkey"
+            columns: ["nft_pet_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
             referencedColumns: ["id"]
           },
           {
@@ -7344,6 +7489,40 @@ export type Database = {
       admin_next_hero_key: {
         Args: { p_admin_id: number; p_name: string }
         Returns: string
+      }
+      admin_nft_available: {
+        Args: { p_admin_id: number; p_limit?: number; p_slug?: string }
+        Returns: Json
+      }
+      admin_nft_create: {
+        Args: { p_admin_id: number; p_quantity?: number; p_slug: string }
+        Returns: Json
+      }
+      admin_nft_give: {
+        Args: {
+          p_admin_id: number
+          p_nft_id: string
+          p_reason?: string
+          p_ref: string
+        }
+        Returns: Json
+      }
+      admin_nft_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_registry: {
+        Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      admin_nft_revoke: {
+        Args: { p_admin_id: number; p_nft_id: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_nft_search: {
+        Args: { p_admin_id: number; p_query: string }
+        Returns: Json
       }
       admin_partners: {
         Args: {
