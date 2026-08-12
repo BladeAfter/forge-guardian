@@ -189,6 +189,7 @@ function App() {
    * keeps running exactly as before. It never gates rendering.
    */
   const [spendingPopupDismissed,setSpendingPopupDismissed]=useState(false);
+  const [spendingPopupOpen,setSpendingPopupOpen]=useState(false);
   const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
   const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
   const {data:spendingPopupData}=useQuery({
@@ -197,9 +198,21 @@ function App() {
     queryFn:()=>spendingEventPopupRequest(telegramInitData??''),
     staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
   });
-  const spendingPopup=homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
-  /** Closing (X or VIEW EVENT) records the view server-side, per user and per event. */
-  const dismissSpendingPopup=()=>{setSpendingPopupDismissed(true);if(telegramInitData)void markSpendingEventPopupSeen(telegramInitData)};
+  /**
+   * Auto-open exactly once per app launch (in-memory flag only, never persisted):
+   * closing the Mini App and reopening it shows the highlight again while the event is active.
+   */
+  useEffect(()=>{
+    if(spendingPopupAutoOpened)return;
+    if(!homeQuiet||spendingPopupDismissed)return;
+    if(!spendingPopupData?.show)return;
+    spendingPopupAutoOpened=true;
+    setSpendingPopupOpen(true);
+  },[homeQuiet,spendingPopupDismissed,spendingPopupData]);
+  const spendingPopup=spendingPopupOpen&&homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
+  /** Closing only affects the current launch: nothing is stored client- or server-side. */
+  const dismissSpendingPopup=()=>{setSpendingPopupOpen(false);setSpendingPopupDismissed(true)};
+
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
