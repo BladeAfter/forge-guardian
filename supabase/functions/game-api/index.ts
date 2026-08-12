@@ -881,6 +881,15 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
+   * Spending Event (SPENDING EVENT tab). Points, ranking, totals and estimated
+   * rewards are computed server-side from confirmed spends only.
+   */
+  'spending-event': async (db, user, body) => {
+    const limit = Math.min(200, Math.max(5, Number(body.limit) || 20));
+    return rpc(db, 'get_spending_event_dashboard', { p_telegram_id: user.id, p_limit: limit });
+  },
+
+  /**
    * Player market (FC only). Eligibility, marketplace fee, market locks and the
    * atomic purchase all live inside the RPCs — the client can only ask.
    * There is no TON path here on purpose.

@@ -1,4 +1,5 @@
 import type {SpecialEventsDashboard} from './specialEvents';
+import type {SpendingEventDashboard} from './spendingEvent';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
@@ -362,3 +363,6 @@ export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initDa
 export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;priceFc:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
 export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
 export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});
+
+/** Spending Event (SPENDING EVENT tab): the backend counts every confirmed spend. */
+export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');const payload=await response.json().catch(()=>null)as(SpendingEventDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');return payload}

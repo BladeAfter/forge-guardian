@@ -20,7 +20,8 @@ import type{DailyQuestsDashboard}from'./quests';
 import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
 import{fetchClanDashboard,type ClanDashboard}from'./clans';
 import type{SpecialEventsDashboard}from'./specialEvents';
-import{specialEventsRequest}from'./services';
+import{specialEventsRequest,spendingEventRequest}from'./services';
+import type{SpendingEventDashboard}from'./spendingEvent';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -55,6 +56,24 @@ export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>us
 
 /** Special events tab: short refetch keeps the referral ranking live without a reload. */
 export const useSpecialEvents=(telegramInitData:string|null,enabled:boolean)=>useQuery<SpecialEventsDashboard>({queryKey:['special-events',telegramInitData],queryFn:()=>specialEventsRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
+
+/**
+ * Spending Event: realtime reacts to the public aggregate ticker only, so a
+ * change never triggers another write (no realtime -> refetch -> realtime loop).
+ * A moderate 25s refetch is the fallback when realtime is unavailable.
+ */
+export const useSpendingEvent=(telegramInitData:string|null,enabled:boolean,limit=20)=>{
+  const client=useQueryClient();
+  const query=useQuery<SpendingEventDashboard>({queryKey:['spending-event',telegramInitData,limit],queryFn:()=>spendingEventRequest(telegramInitData??'',limit),enabled,staleTime:10_000,refetchInterval:enabled?25_000:false,refetchOnWindowFocus:true,retry:1});
+  useEffect(()=>{
+    if(!enabled)return;
+    const channel=supabase.channel('spending-event-ticker')
+      .on('postgres_changes',{event:'*',schema:'public',table:'spending_event_ticker'},()=>{void client.invalidateQueries({queryKey:['spending-event']})})
+      .subscribe();
+    return()=>{void supabase.removeChannel(channel)};
+  },[enabled,client]);
+  return query;
+};
 
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 
