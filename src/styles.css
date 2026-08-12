@@ -717,7 +717,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   100% { opacity: 1; transform: translateY(0) scale(calc(var(--gb-scale, 1) * 1)); filter: brightness(1); }
 }
 .gb-boss {
-  --gb-scale: 0.94;
+  --gb-scale: 1.06;
   animation: gb-float 6.5s ease-in-out infinite;
   transform-origin: center center;
   will-change: transform;
@@ -729,6 +729,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* Taller, viewport-aware stage so the boss stays the hero element on小 screens. */
+  height: clamp(210px, 34vh, 300px);
 }
 .gb-stage > .gb-boss {
   position: relative;
@@ -741,7 +743,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   object-position: center center;
   margin: 0 auto;
 }
-@media (min-width: 640px) { .gb-boss { --gb-scale: 0.96; } }
+@media (min-width: 640px) { .gb-boss { --gb-scale: 1.02; } .gb-stage { height: clamp(240px, 36vh, 340px); } }
+
 
 /* Upper epic section: arena/lair backdrop centered with the boss. */
 .gb-hero { background-color: #05070c; }
