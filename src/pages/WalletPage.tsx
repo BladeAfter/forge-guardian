@@ -284,7 +284,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           <div className="w-full max-w-xs rounded-2xl border border-amber-300/30 bg-[#0a0f19] p-4">
             <h4 className="text-center text-[10px] font-black tracking-[.2em] text-amber-300">{t('wallet.confirmTitle')}</h4>
             <div className="mt-3 space-y-2">
-              <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+              <Line label={t('wallet.amount')} value={`${formatTon(withdrawTon)} TON`} />
               <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
               <Line label={t('wallet.fee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
               <div className="h-px w-full bg-white/10" />
