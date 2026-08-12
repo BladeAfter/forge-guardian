@@ -146,6 +146,8 @@ function App() {
     enabled:backendEnabled&&Boolean(telegramInitData),
     queryFn:()=>fetchHeroShopConfig(telegramInitData??''),
     staleTime:15_000,
+    // Admin can disable a rarity at any time; keep the shop odds close to live.
+    refetchInterval:30_000,
   });
   const recruitPrice=(count:number)=>Number(heroShopConfig?.prices?.[String(count)]??25_000*count);
   const summonOdds=useMemo(()=>{
@@ -156,7 +158,9 @@ function App() {
       ?(Object.entries(odds) as Array<[HeroRarity,number]>).map(([rarity,chance])=>({rarity,chance:Number(chance)}))
       :RARITY_ODDS;
     return base
-      .filter(entry=>entry.rarity!=='ancestral'&&order.includes(entry.rarity))
+      // The backend only returns rarities that are enabled in the shop: a disabled
+      // rarity simply disappears from SUMMON ODDS (never shown as 0%).
+      .filter(entry=>entry.rarity!=='ancestral'&&order.includes(entry.rarity)&&entry.chance>0)
       .sort((a,b)=>order.indexOf(a.rarity)-order.indexOf(b.rarity));
   },[heroShopConfig?.odds]);
   const {data:referralDashboard}=useReferralDashboard(telegramInitData,backendEnabled);

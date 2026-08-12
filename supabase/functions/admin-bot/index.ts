@@ -296,9 +296,13 @@ const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic
 const pct = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
 type HeroShopOverview = {
-  config: { prices: Record<string, number>; odds: Record<string, number> };
+  config: { prices: Record<string, number>; odds: Record<string, number>; baseOdds?: Record<string, number>; rarityEnabled?: Record<string, boolean> };
+  rarity_flags?: Record<string, boolean>;
   heroes_total: number; heroes_enabled: number; by_rarity: Record<string, number>;
 };
+// Rarities that can be switched on/off in the shop. Ancestral is event/admin exclusive.
+const SHOP_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+type RarityFlagRow = { rarity: string; enabled: boolean; base: number; effective: number; heroes: number };
 async function heroShopConfig(ctx: Ctx): Promise<HeroShopOverview> {
   return await rpc('admin_hero_shop_overview', { p_admin_id: ctx.adminId }) as HeroShopOverview;
 }
@@ -310,7 +314,7 @@ async function heroShopHub(ctx: Ctx) {
     '🏪 <b>LOJA DE HERÓIS</b>',
     '',
     `💰 1x <b>${fmt(p['1'])} FC</b> · 5x <b>${fmt(p['5'])} FC</b> · 10x <b>${fmt(p['10'])} FC</b>`,
-    `🎲 ${RARITY_ORDER.map((r) => `${RARITY_LABEL[r]} ${pct(d.config.odds[r])}%`).join(' · ')}`,
+    `🎲 ${SHOP_RARITIES.map((r) => `${(d.rarity_flags?.[r] ?? true) ? '🟢' : '🔴'} ${RARITY_LABEL[r]} ${pct(d.config.odds[r] ?? 0)}%`).join(' · ')}`,
     `🦸 ${fmt(d.heroes_enabled)} heróis ativos de ${fmt(d.heroes_total)}`,
     '',
     'Tudo aqui vale na hora no Mini App, sem deploy.',
@@ -318,12 +322,50 @@ async function heroShopHub(ctx: Ctx) {
   return edit(ctx, text, kb([
     [{ t: '💰 PREÇOS DE RECRUTAMENTO', d: 'hs:prices' }],
     [{ t: '🎲 CHANCES DE INVOCAÇÃO', d: 'hs:odds' }],
+    [{ t: '🎚 RARIDADES', d: 'hr:home' }],
     [{ t: '🦸 EDITAR HERÓIS', d: 'hs:list' }],
     [{ t: '🧬 DUPLICATE FUSE SETTINGS', d: 'hs:fusion' }],
     [{ t: '⚗️ RARITY FUSION SETTINGS', d: 'rf:home' }],
     [{ t: '➕ CRIAR HERÓI', d: 'hw:new' }, { t: '✏️ EDITAR HERÓI', d: 'hw:edit' }],
     [{ t: '📦 ITENS DA LOJA', d: 'hs:store' }],
     nav(),
+  ]));
+}
+
+async function rarityFlags(ctx: Ctx): Promise<{ rarities: RarityFlagRow[]; total_effective: number }> {
+  return await rpc('admin_hero_rarity_flags', { p_admin_id: ctx.adminId });
+}
+
+/** Availability switchboard: disabling a rarity keeps its base chance stored. */
+async function rarityFlagsView(ctx: Ctx) {
+  const d = await rarityFlags(ctx);
+  const text = [
+    '🎚 <b>RARIDADES DA LOJA</b>', '',
+    ...d.rarities.map((r) => `${r.enabled ? '🟢' : '🔴'} <b>${RARITY_LABEL[r.rarity]}</b> — base ${pct(r.base)}% · loja ${r.enabled ? `${pct(r.effective)}%` : 'fora'} · ${fmt(r.heroes)} heróis`),
+    '', `Σ ativos: <b>${pct(d.total_effective)}%</b> (normalizado automaticamente).`,
+    '', 'Desativar não zera a chance base: a raridade sai da loja, das odds e do sorteio, e volta igual ao reativar.',
+    'ANCESTRAL não entra aqui — segue exclusivo de eventos e presentes do admin.',
+  ].join('\n');
+  return edit(ctx, text, kb([
+    ...d.rarities.map((r) => [{ t: `${r.enabled ? '🟢' : '🔴'} ${RARITY_LABEL[r.rarity]}`, d: `hr:v:${r.rarity}` }]),
+    nav('m:shop'),
+  ]));
+}
+
+async function rarityFlagDetail(ctx: Ctx, rarity: string) {
+  const d = await rarityFlags(ctx);
+  const row = d.rarities.find((r) => r.rarity === rarity);
+  if (!row) return rarityFlagsView(ctx);
+  const text = [
+    `<b>${RARITY_LABEL[rarity]}</b>`, '',
+    `Status atual: ${row.enabled ? '🟢 <b>ATIVO</b>' : '🔴 <b>DESATIVADO</b>'}`,
+    `Chance base: <b>${pct(row.base)}%</b>`,
+    `Na loja agora: <b>${row.enabled ? `${pct(row.effective)}%` : '—'}</b>`,
+    `Heróis recrutáveis: <b>${fmt(row.heroes)}</b>`,
+  ].join('\n');
+  return edit(ctx, text, kb([
+    [row.enabled ? { t: '🔴 DESATIVAR', d: `hr:set:${rarity}:0` } : { t: '🟢 ATIVAR', d: `hr:set:${rarity}:1` }],
+    [{ t: '⬅️ VOLTAR', d: 'hr:home' }],
   ]));
 }
 
@@ -2960,6 +3002,27 @@ async function handleCallback(ctx: Ctx, data: string) {
         kb([[{ t: '✅ CONFIRMAR', d: `hsr:${scope}` }, { t: '❌ CANCELAR', d: 'm:shop' }]]));
     }
     return heroShopHub(ctx);
+  }
+  if (head === 'hr') {
+    const view = rest[0];
+    if (view === 'v') return rarityFlagDetail(ctx, rest[1]);
+    if (view === 'set') {
+      const rarity = rest[1];
+      const enabled = rest[2] === '1';
+      try {
+        await rpc('admin_set_hero_rarity_enabled', { p_admin_id: ctx.adminId, p_rarity: rarity, p_enabled: enabled });
+      } catch (e) {
+        const msg = String((e as Error)?.message || e);
+        if (msg.includes('LAST_ACTIVE_RARITY')) {
+          await send(ctx, '⚠️ É preciso manter pelo menos uma raridade ativa com heróis no pool.');
+          return rarityFlagDetail(ctx, rarity);
+        }
+        throw e;
+      }
+      await send(ctx, `${RARITY_LABEL[rarity]}\nStatus: ${enabled ? '🟢 ATIVO' : '🔴 DESATIVADO'}`);
+      return rarityFlagsView(ctx);
+    }
+    return rarityFlagsView(ctx);
   }
   if (head === 'rf') {
     const view = rest[0];
