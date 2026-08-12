@@ -118,6 +118,13 @@ async function clearSession(ctx: Ctx) {
   if (error) console.error('session clear failed:', error.message);
 }
 
+// 🐲 Visual pet/egg CMS (buttons + photos only). Keeps its own persisted session ('petcms').
+const petCms = createPetCms({
+  db, botToken: BOT_TOKEN, tg, rpc, kb, nav, fmt, esc, send, edit, setSession, getSession, clearSession,
+});
+
+
+
 /** Prompt: persists the pending action so the next plain text reply is executed. */
 async function ask(ctx: Ctx, cmd: string, question: string) {
   await setSession(ctx, cmd, 'awaiting_input');
