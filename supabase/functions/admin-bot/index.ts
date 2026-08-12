@@ -426,12 +426,14 @@ async function rarityFusionAudit(ctx: Ctx, ref?: string) {
 // so an image uploaded here shows up in shop, collection, PvP, boss, fusion and chests with no deploy.
 const HW_RARITIES: [string, string][] = [
   ['common', '⚪ COMMON'], ['uncommon', '🟢 UNCOMMON'], ['rare', '🔵 RARE'], ['epic', '🟣 EPIC'], ['legendary', '🟡 LEGENDARY'],
+  ['mythic', '🔴 MYTHIC'], ['ancestral', '🌟 ANCESTRAL'],
 ];
 const HW_CLASSES: [string, string][] = [
-  ['warrior', '⚔️ Warrior'], ['archer', '🏹 Archer'], ['tank', '🛡 Tank'], ['mage', '✨ Mage'], ['support', '💚 Support'],
+  ['warrior', '⚔️ Warrior'], ['archer', '🏹 Archer'], ['tank', '🛡 Tank'], ['mage', '✨ Mage'], ['support', '💚 Support'], ['assassin', '🗡 Assassin'],
 ];
 const HW_DEFAULT_STATS: Record<string, [number, number]> = {
   common: [100, 1000], uncommon: [125, 1250], rare: [160, 1600], epic: [210, 2100], legendary: [300, 3000],
+  mythic: [420, 4200], ancestral: [580, 5800],
 };
 const HW_RARITY_LABEL = Object.fromEntries(HW_RARITIES) as Record<string, string>;
 const HW_CLASS_LABEL = Object.fromEntries(HW_CLASSES) as Record<string, string>;
