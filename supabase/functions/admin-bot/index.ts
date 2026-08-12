@@ -712,7 +712,9 @@ async function heroWizardCallback(ctx: Ctx, rest: string[]) {
     const key = draft.hero_key;
     if (!key) return send(ctx, '⚠️ Selecione o herói novamente.', kb([[{ t: '✏️ EDIT HERO', d: 'hw:edit' }], nav('m:heroes')]));
     const h = await rpc('admin_hero_detail', { p_admin_id: ctx.adminId, p_hero_key: key });
-    const patch = arg === 'shop' ? { in_shop: !h.in_shop } : { enabled: !h.enabled };
+    const patch = arg === 'shop' ? { in_shop: !h.in_shop }
+      : arg === 'recruit' ? { recruit_enabled: !h.recruit_enabled }
+      : { enabled: !h.enabled };
     return hwEditApply(ctx, key, patch);
   }
 
