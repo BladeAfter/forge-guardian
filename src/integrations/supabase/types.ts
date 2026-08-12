@@ -5050,6 +5050,209 @@ export type Database = {
         }
         Relationships: []
       }
+      spending_event_entries: {
+        Row: {
+          conversion_rate_fc: number
+          created_at: string
+          currency: string
+          event_id: string
+          id: string
+          is_reversal: boolean
+          original_amount: number
+          source_transaction_id: string
+          source_type: string
+          spending_points: number
+          user_id: string
+        }
+        Insert: {
+          conversion_rate_fc?: number
+          created_at?: string
+          currency: string
+          event_id: string
+          id?: string
+          is_reversal?: boolean
+          original_amount?: number
+          source_transaction_id: string
+          source_type: string
+          spending_points?: number
+          user_id: string
+        }
+        Update: {
+          conversion_rate_fc?: number
+          created_at?: string
+          currency?: string
+          event_id?: string
+          id?: string
+          is_reversal?: boolean
+          original_amount?: number
+          source_transaction_id?: string
+          source_type?: string
+          spending_points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_entries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spending_event_results: {
+        Row: {
+          created_at: string
+          event_id: string
+          final_points: number
+          final_rank: number
+          id: string
+          reward_json: Json
+          reward_status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          final_points?: number
+          final_rank: number
+          id?: string
+          reward_json?: Json
+          reward_status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          final_points?: number
+          final_rank?: number
+          id?: string
+          reward_json?: Json
+          reward_status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_results_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spending_event_rewards: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          items: Json
+          label: string
+          position_from: number
+          position_to: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          items?: Json
+          label: string
+          position_from: number
+          position_to: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          items?: Json
+          label?: string
+          position_from?: number
+          position_to?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_rewards_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spending_event_ticker: {
+        Row: {
+          event_id: string
+          participants: number
+          total_fc: number
+          total_points: number
+          total_ton: number
+          updated_at: string
+        }
+        Insert: {
+          event_id: string
+          participants?: number
+          total_fc?: number
+          total_points?: number
+          total_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          event_id?: string
+          participants?: number
+          total_fc?: number
+          total_points?: number
+          total_ton?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_ticker_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spending_events: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          status: string
+          ton_rate_fc: number
+          top_limit: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          name?: string
+          starts_at?: string
+          status?: string
+          ton_rate_fc?: number
+          top_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          name?: string
+          starts_at?: string
+          status?: string
+          ton_rate_fc?: number
+          top_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ton_payment_logs: {
         Row: {
           blockchain_status: string | null
@@ -5440,6 +5643,26 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "boss_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      active_spending_event: {
+        Args: never
+        Returns: {
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          status: string
+          ton_rate_fc: number
+          top_limit: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "spending_events"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -6066,6 +6289,44 @@ export type Database = {
       }
       admin_set_withdraw_fee_percent: {
         Args: { p_admin_id: number; p_percent: number }
+        Returns: Json
+      }
+      admin_spending_event_audit: {
+        Args: { p_admin_id: number; p_event_id: string; p_limit?: number }
+        Returns: Json
+      }
+      admin_spending_event_create: {
+        Args: { p_admin_id: number; p_days?: number; p_name?: string }
+        Returns: Json
+      }
+      admin_spending_event_finalize: {
+        Args: { p_admin_id: number; p_event_id: string }
+        Returns: Json
+      }
+      admin_spending_event_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_spending_event_ranking: {
+        Args: { p_admin_id: number; p_event_id: string; p_limit?: number }
+        Returns: Json
+      }
+      admin_spending_event_set_duration: {
+        Args: { p_admin_id: number; p_days: number; p_event_id: string }
+        Returns: Json
+      }
+      admin_spending_event_set_reward: {
+        Args: {
+          p_admin_id: number
+          p_event_id: string
+          p_from: number
+          p_label: string
+          p_to: number
+        }
+        Returns: Json
+      }
+      admin_spending_event_set_status: {
+        Args: { p_admin_id: number; p_event_id: string; p_status: string }
         Returns: Json
       }
       admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
@@ -6703,6 +6964,14 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_spending_event_dashboard: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
+      }
+      get_spending_event_ranking: {
+        Args: { p_event_id: string; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
       grant_clan_xp: {
@@ -6924,6 +7193,20 @@ export type Database = {
         Args: { p_amount?: number; p_event: string; p_telegram_id: number }
         Returns: undefined
       }
+      record_spending_points: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_source_transaction_id: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      record_spending_reversal: {
+        Args: { p_source_transaction_id: string }
+        Returns: undefined
+      }
       record_ton_revenue: {
         Args: {
           p_amount_ton: number
@@ -7022,6 +7305,15 @@ export type Database = {
         Args: { a: Json; d: Json; seed: string }
         Returns: Json
       }
+      spending_event_refresh_ticker: {
+        Args: { p_event_id: string }
+        Returns: undefined
+      }
+      spending_event_reward_label: {
+        Args: { p_event_id: string; p_position: number }
+        Returns: string
+      }
+      spending_ton_rate_fc: { Args: never; Returns: number }
       start_pvp_battle: {
         Args: { p_opponent_id: string; p_telegram_id: number }
         Returns: Json
