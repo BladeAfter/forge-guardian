@@ -18,6 +18,7 @@ export type PetCatalogItem = {
   id: string; name: string; slug: string; species: string; category: string; description: string;
   basePassives: PetBuffs; activeSkill: Record<string, unknown> | null;
   images: Record<'baby' | 'young' | 'adult' | 'ancestral', string>;
+  rarity?: PetRarity | null;
   discovered: boolean; bestRarity: PetRarity | null; bestLevel: number | null; sources?: string[];
 };
 
