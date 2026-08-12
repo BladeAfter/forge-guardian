@@ -1,18 +1,26 @@
 /**
- * Player Market (FC only) — types shared by the shop panel and the service layer.
- * Every rule (eligibility, fee, minimum price, atomic purchase) is enforced by the
- * backend RPCs; the client only renders what the server returns.
+ * Player Market — types shared by the shop panel and the service layer.
+ * Every rule (eligibility, fee, minimum price, price band, atomic purchase, TON
+ * reservation) is enforced by the backend RPCs; the client only renders what the
+ * server returns. Listings are priced in FC or in TON, never in both.
  */
 export type MarketItemType = 'hero' | 'pet' | 'item';
 export type MarketSort = 'newest' | 'price_low' | 'price_high';
+export type MarketCurrency = 'FC' | 'TON';
 
 export type MarketSettings = {
   feePercent: number;
+  /** Fee applied to TON sales (may differ from the FC fee). */
+  feePercentTon?: number;
   maxActiveListings: number;
   maxPriceFc: number;
+  maxPriceTon?: number;
   minPrice: Partial<Record<MarketItemType, number>>;
+  minPriceTon?: Partial<Record<MarketItemType, number>>;
   /** Escrow window: how long a sale stays on hold before the seller is paid. */
   settlementHours?: number;
+  /** How long an external-wallet payment keeps a listing reserved. */
+  reservationMinutes?: number;
 };
 
 export type MarketListing = {
@@ -23,6 +31,9 @@ export type MarketListing = {
   level: number;
   image: string | null;
   priceFc: number;
+  /** Price in TON when `currency` is 'TON'. */
+  priceTon: number;
+  currency: MarketCurrency;
   quantity: number;
   seller: string;
   mine: boolean;
@@ -30,11 +41,16 @@ export type MarketListing = {
   hp: number;
   stars: number;
   createdAt: string;
+  /** Set while another buyer holds a wallet-payment reservation. */
+  status?: 'active' | 'reserved';
+  reservedForMe?: boolean;
 };
 
 export type MarketBrowse = {
   listings: MarketListing[];
   balanceFc: number;
+  /** Internal withdrawable TON balance available to pay for TON listings. */
+  availableTon?: number;
   settings: MarketSettings;
   activeCount: number;
 };
@@ -49,7 +65,9 @@ export type MarketPriceRange = {
   source: 'config' | 'median';
   itemType: string;
   rarity: string;
+  currency?: MarketCurrency;
 };
+
 
 export type MarketSellEligibility = {
   canSell: boolean;
