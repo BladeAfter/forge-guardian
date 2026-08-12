@@ -2768,25 +2768,33 @@ function partnerConfirmText(c: Record<string, unknown>) {
 
 async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   const id = args[0] || '';
+  // Wizard: NAME -> REWARD -> LINK -> VALIDATION -> (CHAT ID) -> CONFIRM -> SAVE.
+  // Nothing is persisted in partner_channels before the explicit ✅ SALVAR.
   if (key === 'ptname') {
     const name = text.slice(0, 40);
     if (name.length < 2) throw new Error('KEEP_SESSION::⚠️ Envie um nome com pelo menos 2 caracteres.');
-    await setSession(ctx, `ptreward|${encodeURIComponent(name)}`, 'awaiting_input');
+    // Draft lives in the session context (and in the action key, as a fallback).
+    const ok = await setSession(ctx, `ptreward|${encodeURIComponent(name)}`, 'awaiting_input', { name });
+    if (!ok) throw new Error('KEEP_SESSION::⚠️ Não foi possível salvar o rascunho. Envie o nome novamente.');
     return send(ctx, `🏷 Nome: <b>${esc(name)}</b>\n\n${PROMPTS.ptreward}`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
   }
   if (key === 'ptreward') {
     const reward = parseAmount(text);
     if (!Number.isFinite(reward) || reward < 0 || reward > 1_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC entre 0 e 1000000.');
-    const name = args[0] ? decodeURIComponent(args[0]) : 'PARTNER';
-    // Step 3/5: the link is mandatory — never create the partner before it arrives.
-    await setSession(ctx, 'pturl', 'awaiting_input', { name, rewardFc: Math.round(reward) });
-    return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+    const session = await getSession(ctx);
+    const name = String(session?.context?.name || (args[0] ? decodeURIComponent(args[0]) : '')).trim();
+    if (!name) throw new Error('KEEP_SESSION::⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.');
+    // Step 3/6: the link is mandatory — never create the partner here.
+    const ok = await setSession(ctx, 'pturl', 'awaiting_input', { name, rewardFc: Math.round(reward) });
+    if (!ok) throw new Error('KEEP_SESSION::⚠️ Não foi possível salvar o rascunho. Envie a recompensa novamente.');
+    return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n🔗 <b>Envie agora o LINK do canal/grupo parceiro.</b>\nEx.: <code>https://t.me/cashway</code>\n\n<i>O link é usado apenas pelo botão GO no jogo e nunca é exibido ao jogador.</i>`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
   }
   if (key === 'pturl') {
     const url = text.trim();
-    if (!/^https:\/\/[^\s.]+\.[^\s]{2,}$/i.test(url) || url.length > 300) {
-      throw new Error('KEEP_SESSION::⚠️ Link inválido. Envie uma URL completa começando com https:// — ex.: <code>https://t.me/seucanal</code>');
+    if (!/^https?:\/\/[^\s.]+\.[^\s]{2,}$/i.test(url) || url.length > 300) {
+      throw new Error('KEEP_SESSION::⚠️ Link inválido. Envie um link válido — ex.: <code>https://t.me/cashway</code>');
     }
+
     const session = await getSession(ctx);
     const name = String(session?.context?.name || (args[0] ? decodeURIComponent(args[0]) : 'PARTNER'));
     const reward = Math.round(Number(session?.context?.rewardFc ?? parseAmount(args[1] || '0'))) || 0;
