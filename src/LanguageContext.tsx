@@ -123,11 +123,29 @@ export function LanguageProvider({ children, initData }: { children: ReactNode; 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
+/**
+ * Safe fallback context: during HMR / partial remounts the provider can be
+ * missing for a frame. Throwing there blanks the whole Mini App, so we return
+ * a neutral English context instead of crashing.
+ */
+const FALLBACK_CONTEXT: LanguageContextValue = {
+  language: 'en',
+  ready: false,
+  setLanguage: async () => {},
+  applyRemoteLanguage: () => {},
+  t: (key: string, vars?: Record<string, string | number>) => translate('en', key, vars),
+  tError: (error: unknown) => translateError('en', error),
+};
+
 export function useLanguage(): LanguageContextValue {
   const context = useContext(LanguageContext);
-  if (!context) throw new Error('useLanguage must be used inside <LanguageProvider>');
+  if (!context) {
+    console.warn('[LANGUAGE] useLanguage used outside <LanguageProvider>; using fallback');
+    return FALLBACK_CONTEXT;
+  }
   return context;
 }
+
 
 /** Convenience hook: `const t = useT();` */
 export function useT(): Translator {
