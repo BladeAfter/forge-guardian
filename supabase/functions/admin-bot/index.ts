@@ -2909,6 +2909,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
   // 💎 NFT EXCLUSIVE pets (admin-only delivery, unique serials).
+  // ⚔️ NFT EXCLUSIVE heroes (unique serials, admin-only delivery + power editor).
+  if (head === 'nfth') { if (rest[0] !== 'ask') await clearSession(ctx); return nfthCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
   if (head === 'pr') return prCallback(ctx, rest);
