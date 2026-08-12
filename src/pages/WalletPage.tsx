@@ -261,21 +261,23 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </button>
       </Panel>
 
-      <Panel title={t('wallet.withdraw')} icon={<ArrowUpFromLine />}>
-        <div className="grid grid-cols-4 gap-1">{[100000,300000,500000].map(value => <Quick key={value} active={withdrawFc===value} onClick={() => setWithdrawFc(value)}>{value/1000} {t('wallet.thousandShort')}</Quick>)}<Quick active={withdrawFc===Math.floor(balance/100000)*100000} onClick={() => setWithdrawFc(Math.floor(balance/100000)*100000)}>{t('wallet.max')}</Quick></div>
-        <input type="number" min="100000" step="100000" value={withdrawFc} onChange={event => setWithdrawFc(Number(event.target.value))} aria-label={t('wallet.fcAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+      <Panel title={t('wallet.withdrawTon')} icon={<ArrowUpFromLine />}>
+        <div className="grid grid-cols-4 gap-1">{[1,5,10].map(value => <Quick key={value} active={withdrawTon===value} onClick={() => setWithdrawTon(value)}>{value} TON</Quick>)}<Quick active={withdrawTon===availableTon && availableTon>0} onClick={() => setWithdrawTon(availableTon)}>{t('wallet.max')}</Quick></div>
+        <input type="number" min={minWithdrawTon} step="0.1" value={withdrawTon} onChange={event => setWithdrawTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minWithdrawTonNote', { ton: formatTon(minWithdrawTon) })}</p>
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <Line label={t('wallet.amount')} value={`${withdrawFc.toLocaleString('pt-BR')} FC`} />
+          <Line label={t('wallet.available')} value={`${formatTon(availableTon)} TON`} />
           <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
           <Line label={t('wallet.withdrawFee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
           <div className="h-px w-full bg-white/10" />
           <Line label={t('wallet.youWillReceiveTon')} value={`${formatTon(quote.netTon)} TON`} tone="net" />
         </div>
-        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">{t('wallet.debitNote', { amount: withdrawFc.toLocaleString('pt-BR'), percent: quote.feePercent })}</p>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">{t('wallet.tonWithdrawNote', { percent: quote.feePercent })}</p>
         <div className="mt-3">
-          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !validWithdrawal(withdrawFc,balance)}>{withdrawal.isPending ? t('wallet.requesting') : t('wallet.requestWithdraw')}</Primary>
+          <Primary onClick={() => setConfirmWithdraw(true)} disabled={!connected || withdrawal.isPending || !canWithdraw}>{withdrawal.isPending ? t('wallet.requesting') : t('wallet.requestWithdraw')}</Primary>
         </div>
       </Panel>
+
 
       {confirmWithdraw ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
