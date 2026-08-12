@@ -41,6 +41,34 @@ const candidateBotTokens = () =>
   GAME_TOKEN_VARS.map((name) => String(Deno.env.get(name) || '').trim())
     .filter((token, index, all) => token && all.indexOf(token) === index);
 
+/**
+ * Membership check used by partner channels with validation enabled. Uses the GAME
+ * bot (the one players interact with) and only trusts the explicit member statuses.
+ * Any transport/permission failure returns false so a reward is never paid blindly.
+ */
+export async function telegramIsChatMember(chatId: string, telegramUserId: number): Promise<boolean> {
+  const token = gameBotToken();
+  if (!token) return false;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getChatMember`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, user_id: telegramUserId }),
+    });
+    const payload = await response.json().catch(() => null) as { ok?: boolean; result?: { status?: string } } | null;
+    if (!payload?.ok) {
+      console.error('[PARTNER VALIDATION] getChatMember failed', response.status, JSON.stringify(payload));
+      return false;
+    }
+    return ['creator', 'administrator', 'member', 'restricted'].includes(String(payload.result?.status || ''));
+  } catch (error) {
+    console.error('[PARTNER VALIDATION] getChatMember error', error);
+    return false;
+  }
+}
+
+
+
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
