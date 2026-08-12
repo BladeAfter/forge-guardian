@@ -41,6 +41,34 @@ const candidateBotTokens = () =>
   GAME_TOKEN_VARS.map((name) => String(Deno.env.get(name) || '').trim())
     .filter((token, index, all) => token && all.indexOf(token) === index);
 
+/**
+ * Membership check used by partner channels with validation enabled. Uses the GAME
+ * bot (the one players interact with) and only trusts the explicit member statuses.
+ * Any transport/permission failure returns false so a reward is never paid blindly.
+ */
+export async function telegramIsChatMember(chatId: string, telegramUserId: number): Promise<boolean> {
+  const token = gameBotToken();
+  if (!token) return false;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getChatMember`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, user_id: telegramUserId }),
+    });
+    const payload = await response.json().catch(() => null) as { ok?: boolean; result?: { status?: string } } | null;
+    if (!payload?.ok) {
+      console.error('[PARTNER VALIDATION] getChatMember failed', response.status, JSON.stringify(payload));
+      return false;
+    }
+    return ['creator', 'administrator', 'member', 'restricted'].includes(String(payload.result?.status || ''));
+  } catch (error) {
+    console.error('[PARTNER VALIDATION] getChatMember error', error);
+    return false;
+  }
+}
+
+
+
 
 const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
 
@@ -1013,13 +1041,31 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   /**
    * Partner channels. The Mini App only ever receives NAME + REWARD + claimed flag;
    * the real destination URL is resolved server-side by `go` and never listed.
+   * When the admin enabled validation for a partner, the reward is only paid after
+   * Telegram confirms the player is a member of the configured chat.
    */
   partners: async (db, user, body) => {
     const action = String(body.action || 'list');
     if (action === 'list') return rpc(db, 'get_partner_channels', { p_telegram_id: user.id });
     if (!isUuid(body.partnerId)) throw new Error('INVALID_PARTNER');
     if (action === 'go') return rpc(db, 'partner_channel_visit', { p_telegram_id: user.id, p_partner_id: body.partnerId });
-    if (action === 'claim') return rpc(db, 'claim_partner_reward', { p_telegram_id: user.id, p_partner_id: body.partnerId });
+    if (action === 'claim') {
+      const target = (await rpc(db, 'partner_validation_target', { p_partner_id: body.partnerId })) as
+        | { validationEnabled?: boolean; chatId?: string | null }
+        | null;
+      let verified: boolean | null = null;
+      if (target?.validationEnabled) {
+        const chatId = String(target.chatId || '').trim();
+        if (!chatId) throw new Error('PARTNER_VALIDATION_UNAVAILABLE');
+        verified = await telegramIsChatMember(chatId, user.id);
+        if (!verified) throw new Error('PARTNER_NOT_JOINED');
+      }
+      return rpc(db, 'claim_partner_reward', {
+        p_telegram_id: user.id,
+        p_partner_id: body.partnerId,
+        p_membership_verified: verified,
+      });
+    }
     throw new Error('INVALID_ACTION');
   },
 
