@@ -71,14 +71,16 @@ export const canFuse = (hero: FusionHero, balance: number) =>
   Boolean(hero.next) && hero.duplicates >= (hero.next?.duplicatesRequired ?? 0) && balance >= (hero.next?.costFc ?? 0);
 
 // ------------------------------------------------------------------ rarity fusion (5 heroes -> next rarity)
-export const FUSION_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'ancestral'] as const;
+export const FUSION_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
 export type FusionRarity = (typeof FUSION_RARITIES)[number];
 
 export const RARITY_COLOR: Record<string, string> = {
-  common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6',
+  common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24',
+  mythic: '#fb7185', ancestral: '#f472b6',
 };
 export const RARITY_LABEL: Record<string, string> = {
-  common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY', ancestral: 'ANCESTRAL',
+  common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY',
+  mythic: 'MYTHIC', ancestral: 'ANCESTRAL',
 };
 
 export type RarityFusionTier = { target: string; cost_fc: number; chance: number; fragments: number };

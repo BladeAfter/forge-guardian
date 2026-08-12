@@ -290,8 +290,9 @@ async function passHistory(ctx: Ctx) {
 // ---------------------------------------------------------------- hero shop (menu driven)
 const RARITY_LABEL: Record<string, string> = {
   common: 'COMUM', uncommon: 'INCOMUM', rare: 'RARO', epic: 'ÉPICO', legendary: 'LENDÁRIO',
+  mythic: 'MÍTICO', ancestral: 'ANCESTRAL',
 };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
 const pct = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
 type HeroShopOverview = {
@@ -354,7 +355,8 @@ async function heroOddsView(ctx: Ctx) {
   return edit(ctx, text, kb([
     [{ t: 'COMUM', d: 'ho:common' }, { t: 'INCOMUM', d: 'ho:uncommon' }],
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
-    [{ t: 'LENDÁRIO', d: 'ho:legendary' }],
+    [{ t: 'LENDÁRIO', d: 'ho:legendary' }, { t: 'MÍTICO', d: 'ho:mythic' }],
+    [{ t: 'ANCESTRAL', d: 'ho:ancestral' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
     nav('m:shop'),
   ]));
@@ -424,12 +426,14 @@ async function rarityFusionAudit(ctx: Ctx, ref?: string) {
 // so an image uploaded here shows up in shop, collection, PvP, boss, fusion and chests with no deploy.
 const HW_RARITIES: [string, string][] = [
   ['common', '⚪ COMMON'], ['uncommon', '🟢 UNCOMMON'], ['rare', '🔵 RARE'], ['epic', '🟣 EPIC'], ['legendary', '🟡 LEGENDARY'],
+  ['mythic', '🔴 MYTHIC'], ['ancestral', '🌟 ANCESTRAL'],
 ];
 const HW_CLASSES: [string, string][] = [
-  ['warrior', '⚔️ Warrior'], ['archer', '🏹 Archer'], ['tank', '🛡 Tank'], ['mage', '✨ Mage'], ['support', '💚 Support'],
+  ['warrior', '⚔️ Warrior'], ['archer', '🏹 Archer'], ['tank', '🛡 Tank'], ['mage', '✨ Mage'], ['support', '💚 Support'], ['assassin', '🗡 Assassin'],
 ];
 const HW_DEFAULT_STATS: Record<string, [number, number]> = {
   common: [100, 1000], uncommon: [125, 1250], rare: [160, 1600], epic: [210, 2100], legendary: [300, 3000],
+  mythic: [420, 4200], ancestral: [580, 5800],
 };
 const HW_RARITY_LABEL = Object.fromEntries(HW_RARITIES) as Record<string, string>;
 const HW_CLASS_LABEL = Object.fromEntries(HW_CLASSES) as Record<string, string>;
@@ -2987,7 +2991,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'ho') {
     const rarity = rest[0];
     const cfg = await heroShopConfig(ctx);
-    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 5 raridades precisa fechar 100%.`);
+    return ask(ctx, `hodd|${rarity}`, `Chance atual de <b>${RARITY_LABEL[rarity]}</b>: <b>${pct(cfg.config.odds[rarity])}%</b>\n\nEnvie a nova porcentagem (ex.: <code>60</code> ou <code>2.5</code>). O total das 7 raridades precisa fechar 100%.`);
   }
   if (head === 'hoc') {
     const rarity = rest[0];

@@ -28,7 +28,7 @@ type Props = {
   onClose: () => void;
 };
 
-const RARITY_FILTERS = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+const RARITY_FILTERS = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
 const rarityColor = (rarity: string) => RARITY_COLORS[(rarity as HeroRarity)] ?? '#94a3b8';
 const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 });
 
