@@ -2916,6 +2916,13 @@ async function spendCallback(ctx: Ctx, rest: string[]) {
     case 'rw': return spendRewards(ctx);
     case 'audit': return spendAudit(ctx);
     case 'types': return edit(ctx, SPEND_TYPES_TEXT, kb([[{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
+    case 'popup': return spendPopupMenu(ctx);
+    case 'popset':
+      await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId, p_enabled: a === 'on' });
+      return spendPopupMenu(ctx);
+    case 'popfreq':
+      await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId, p_frequency: a === 'event' ? 'event' : 'daily' });
+      return spendPopupMenu(ctx);
     case 'ask': return ask(ctx, a, PROMPTS[a] || 'Envie o valor.');
     case 'new': return ask(ctx, 'spname', PROMPTS.spname);
     case 'dur':
