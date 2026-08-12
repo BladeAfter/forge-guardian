@@ -7,7 +7,7 @@ import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './p
 import { Bell, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
-import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet, useWalletSummary } from './hooks';
+import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
 import { QuestsPage } from './pages/QuestsPage';
 import { BossPage } from './pages/BossPage';
@@ -397,8 +397,8 @@ function App() {
   // FC have a single source of truth: the server balance (game_players.forge_coins).
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
   // Withdrawable TON lives on its own ledger (rewards only) and is shown beside FC.
-  const {data:tonWallet}=useTonWallet(telegramInitData,backendEnabled);
-  const tonBalance=Number.isFinite(tonWallet?.availableTon)?Number(tonWallet?.availableTon):0;
+  const {data:tonRewardWallet}=useTonRewardWallet(telegramInitData,backendEnabled);
+  const tonBalance=Number.isFinite(tonRewardWallet?.availableTon)?Number(tonRewardWallet?.availableTon):0;
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
   const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
