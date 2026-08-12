@@ -65,9 +65,46 @@ function HeroSelector({slot,heroes,current,pending,onClose,onEquip,t}:{slot:numb
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]"/><div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10"><header className="mb-4 flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p><h1 className="text-xl font-black">{t('pvp.subtitle')}</h1></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X/></button></header>{children}</div></div>}
 function Opponent({opponent:o,selected,onSelect,onFight,pending,tickets,onBuyTickets,t}:{opponent:PvpOpponent;selected:boolean;onSelect:()=>void;onFight:()=>void;pending:boolean;tickets:number;onBuyTickets:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){const noTickets=tickets<1;return<div onClick={onSelect} className={`rounded-2xl border bg-black/60 p-3 ${selected?'border-amber-300':'border-white/10'}`}><div className="flex items-center gap-3"><Avatar src={o.avatarUrl} name={o.name}/><div className="flex-1"><b className="block truncate">{o.name}</b>{o.username?<p className="truncate text-[9px] text-amber-200/80">@{o.username}</p>:null}<p className="text-[9px] text-slate-400">{o.league} · {t('pvp.trophies',{count:o.trophies})} · {t('pvp.wins',{count:o.wins})}</p></div><b className="text-xs text-amber-200">⚔ {o.teamPower}</b></div><div className="mt-3 grid grid-cols-5 gap-1">{o.defenseTeam.map(h=><div key={h.heroId} className="overflow-hidden rounded-lg border bg-black" style={{borderColor:color[h.rarity]}}><img src={h.imageUrl} className="aspect-square w-full object-cover"/><p className="truncate px-1 text-[7px]">{h.name}</p><p className="px-1 pb-1 text-[6px]">A {h.finalAtk} · H {h.finalHp}</p></div>)}</div>{selected&&(noTickets?<div className="mt-3"><p className="text-center text-[10px] font-black uppercase tracking-[.18em] text-rose-300">{t('pvp.noTickets')}</p><button type="button" onClick={e=>{e.stopPropagation();onBuyTickets()}} className="mt-2 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 text-[11px] font-black text-black">{t('pvp.buyTickets')}</button></div>:<button type="button" disabled={pending} onClick={e=>{e.stopPropagation();onFight()}} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-400 to-red-700 py-3 font-black text-white disabled:grayscale disabled:opacity-40">{pending?t('pvp.starting'):t('pvp.battle1Ticket')}</button>)}</div>}
+/**
+ * Rewarded-ad block: the click only OPENS the ad (server-registered view). The ticket is
+ * credited exclusively after AdsGram reports a valid completion and the backend confirms it.
+ */
+function AdRewardBlock({ads,initData,onRewarded,t}:{ads?:PvpAdsState;initData:string;onRewarded:()=>void|Promise<unknown>;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const [phase,setPhase]=useState<'idle'|'loading'|'watching'>('idle');
+ const busy=useRef(false);
+ if(!ads?.enabled||!ads.blockId)return null;
+ const limit=ads.dailyLimit??10,used=ads.watchedToday??0,reached=used>=limit;
+ const run=async()=>{
+  if(busy.current||reached)return;             // double click / limit guard
+  busy.current=true;setPhase('loading');
+  try{
+   const begin=await beginPvpAdView(initData); // server checks the daily limit first
+   setPhase('watching');
+   const outcome=await showAd(begin.blockId||ads.blockId!);
+   if(outcome!=='completed'){
+    toast.error(outcome==='no-ads'?t('pvp.ads.noAds'):outcome==='skipped'?t('pvp.ads.notCompleted'):t('pvp.ads.error'));
+    return;                                    // no ticket, no counter increment
+   }
+   const result=await claimPvpAdReward(initData,begin.viewId);
+   if(result.granted){toast.success(t('pvp.ads.rewardSuccess'));await onRewarded()}
+   else toast.error(t('pvp.ads.notCompleted'));
+  }catch(error){toast.error(error instanceof Error?error.message:t('pvp.ads.error'))}
+  finally{busy.current=false;setPhase('idle')}
+ };
+ const label=phase==='loading'?t('pvp.ads.loading'):phase==='watching'?t('pvp.ads.watching'):t('pvp.ads.watch');
+ return<div className="mt-4 rounded-2xl border border-sky-300/30 bg-gradient-to-b from-sky-400/10 to-transparent p-3">
+  <b className="block text-[12px] font-black text-sky-200">{t('pvp.ads.title')}</b>
+  <p className="mt-1 whitespace-pre-line text-[10px] text-slate-300">{t('pvp.ads.description')}</p>
+  <button type="button" disabled={reached||phase!=='idle'} onClick={run} className="mt-3 w-full rounded-xl bg-gradient-to-b from-sky-400 to-blue-700 py-3 text-[11px] font-black text-white disabled:grayscale disabled:opacity-40">{label}</button>
+  <p className="mt-2 text-center text-[10px] font-bold text-slate-300">{t('pvp.ads.counter')}: {used} / {limit}</p>
+  {reached?<p className="mt-1 text-center text-[10px] font-black text-emerald-300">{t('pvp.ads.limitReached')}</p>:null}
+ </div>;
+}
+
 /** Compact bottom sheet: the arena keeps its layout, the ticket counter just gains a [+]. */
-function TicketSheet({tickets,shop,pending,onClose,onBuy,t}:{tickets:number;shop?:PvpTicketShop;pending:boolean;onClose:()=>void;onBuy:(quantity:number)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+function TicketSheet({tickets,shop,ads,initData,onRewarded,pending,onClose,onBuy,t}:{tickets:number;shop?:PvpTicketShop;ads?:PvpAdsState;initData:string;onRewarded:()=>void|Promise<unknown>;pending:boolean;onClose:()=>void;onBuy:(quantity:number)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
  const limit=shop?.dailyLimit??10,bought=shop?.boughtToday??0,remaining=Math.max(0,shop?.remaining??limit-bought),packs=shop?.packs?.length?shop.packs:[{tickets:1,priceFc:5000},{tickets:3,priceFc:13500},{tickets:5,priceFc:20000}];
+
  return<div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80" onClick={onClose}>
   <div className="forge-safe-page w-full max-w-[480px] rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}>
    <div className="flex items-start justify-between">
