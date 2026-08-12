@@ -602,15 +602,21 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     if (amount < 1) throw new Error('Minimum deposit is 1 TON');
     fn = 'create_wallet_deposit';
     args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
-  } else if (action === 'withdraw') {
-    const amount = Number(body.amountFc);
-    // The connected wallet is snapshotted on the withdrawal row in user-friendly mainnet form (UQ…).
+  } else if (action === 'ton-wallet') {
+    // Withdrawable TON balance (rewards only) — never derived from FC.
+    fn = 'get_ton_wallet';
+  } else if (action === 'withdraw-ton') {
+    const amount = Number(body.amountTon);
     const address = toFriendlyTonAddress(body.walletAddress);
     if (!String(body.walletAddress || '').trim()) throw new Error('Connect your TON wallet before requesting a withdrawal.');
     if (!address) throw new Error('Endereço TON inválido.');
-    if (!Number.isInteger(amount) || amount < 100_000 || amount % 100_000 !== 0) throw new Error('O valor deve ser múltiplo de 100.000 FC.');
-    fn = 'request_wallet_withdrawal';
-    args = { ...args, p_amount_fc: amount, p_wallet_address: address, p_idempotency_key: `withdraw:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Valor de saque inválido.');
+    fn = 'request_ton_withdrawal';
+    args = { ...args, p_amount_ton: amount, p_wallet_address: address, p_idempotency_key: `withdraw-ton:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'withdraw') {
+    // FC → TON withdrawal was removed with the FC/TON separation.
+    throw new Error('FC_WITHDRAWAL_DISABLED');
+
 
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
