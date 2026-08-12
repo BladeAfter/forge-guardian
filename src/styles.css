@@ -507,3 +507,10 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .clan-hall-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a58a5f}
 @media (max-width:380px){.clan-hall{width:clamp(126px,34vw,150px);max-width:calc(100vw - 200px)}}
 @media (prefers-reduced-motion:reduce){.clan-hall-torch i,.clan-hall-flag b,.clan-hall-smoke i,.clan-hall-motes i,.clan-hall-window-glow,.clan-hall-invite{animation:none}.clan-hall-smoke,.clan-hall-motes{display:none}}
+
+/* Spending Event entry highlight: light fade + scale (250ms), nothing heavy. */
+@keyframes spendingPopupIn {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.spending-popup-in { animation: spendingPopupIn 250ms ease-out both; }
