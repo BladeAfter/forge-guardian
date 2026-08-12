@@ -2614,8 +2614,9 @@ async function partnersCallback(ctx: Ctx, rest: string[]) {
     return partnersHub({ ...ctx, messageId: undefined }, false);
   }
   if (sub === 'open') return partnerCard(ctx, arg);
-
+  if (sub === 'toggle') {
     await ptRpc(ctx, 'toggle', arg);
+
     return partnerCard(ctx, arg);
   }
   if (sub === 'confirm') {
