@@ -2610,13 +2610,34 @@ async function giftPrompt(ctx: Ctx, key: string, arg: string, text: string) {
 const ptRpc = (ctx: Ctx, action: string, partnerId: string | null = null, payload: Record<string, unknown> = {}) =>
   rpc('admin_partners', { p_admin_id: ctx.adminId, p_action: action, p_partner_id: partnerId, p_payload: payload });
 
+/**
+ * Membership validation runs with the GAME bot (the same bot the players use), so the
+ * capability check must be done with that token too — otherwise validation would be
+ * enabled for a chat the runtime bot cannot read.
+ */
+async function partnerCanValidate(chatId: string): Promise<{ ok: boolean; title?: string; error?: string }> {
+  const chat = await tgAs(GAME_BOT_TOKEN, 'getChat', { chat_id: chatId });
+  if (!chat.ok) return { ok: false, error: String(chat.error || 'chat inacessível') };
+  const me = await tgAs(GAME_BOT_TOKEN, 'getChatMember', { chat_id: chatId, user_id: SUPER_ADMIN_ID });
+  if (!me.ok) return { ok: false, error: String(me.error || 'sem permissão para consultar membros') };
+  return { ok: true, title: String((chat as any)?.result?.title || '') };
+}
+
+const PT_VALIDATION_QUESTION = [
+  '🛡 <b>DESEJA VALIDAR SE O JOGADOR ENTROU NO CANAL/GRUPO?</b>',
+  '',
+  'Com validação: a recompensa só é paga depois que o servidor confirmar a entrada.',
+  'Sem validação: o jogador toca GO, volta e resgata (uma vez por jogador).',
+].join('\n');
+
 async function partnersHub(ctx: Ctx, editing = true) {
   const d = await ptRpc(ctx, 'list') as any;
   const items = (d?.partners ?? []) as any[];
-  const lines = items.map((x) => `${x.enabled ? '🟢' : '🔴'} <b>${esc(x.name)}</b> · ${fmt(x.rewardFc)} FC\n   visitas ${fmt(x.visits)} · resgates ${fmt(x.claims)}`);
+  const lines = items.map((x) => `${x.enabled ? '🟢' : '🔴'} <b>${esc(x.name)}</b> · ${fmt(x.rewardFc)} FC ${x.validationEnabled ? '🛡' : ''}\n   visitas ${fmt(x.visits)} · resgates ${fmt(x.claims)}`);
   const text = [
     '🤝 <b>PARTNER CHANNELS</b>',
     'O jogador vê apenas <b>NOME + RECOMPENSA + GO</b>. O link fica oculto no servidor e cada parceiro paga <b>uma única vez por jogador</b>.',
+    '🛡 = validação de entrada ativa.',
     '',
     lines.join('\n') || '— nenhum parceiro cadastrado —',
   ].join('\n');
@@ -2634,6 +2655,8 @@ async function partnerCard(ctx: Ctx, id: string, editing = true) {
     `🪙 Recompensa: <b>${fmt(c.rewardFc)} FC</b> (uma vez por jogador)`,
     `🔢 Ordem: ${fmt(c.sortOrder)}`,
     `🔗 Link: <b>configurado</b> (${esc(c.urlHost)}) — oculto para os jogadores`,
+    `🛡 Validação de entrada: <b>${c.validationEnabled ? 'ATIVA' : 'DESATIVADA'}</b>`,
+    `🆔 Chat ID: ${c.chatId ? `<code>${esc(c.chatId)}</code>` : '— não configurado —'}`,
     '',
     `👀 Visitas: <b>${fmt(c.visits)}</b> · ✅ Resgates: <b>${fmt(c.claims)}</b>`,
     `💸 FC distribuído: <b>${fmt(c.distributedFc)}</b>`,
@@ -2642,6 +2665,7 @@ async function partnerCard(ctx: Ctx, id: string, editing = true) {
   const markup = kb([
     [{ t: '🏷 NOME', d: `pt:ask:ptrename|${id}` }, { t: '🪙 RECOMPENSA', d: `pt:ask:ptsetreward|${id}` }],
     [{ t: '🔗 LINK', d: `pt:ask:ptsetlink|${id}` }, { t: '🔢 ORDEM', d: `pt:ask:ptsort|${id}` }],
+    [{ t: '🆔 CHAT ID', d: `pt:ask:ptsetchat|${id}` }, { t: c.validationEnabled ? '🛡 DESATIVAR VALIDAÇÃO' : '🛡 ATIVAR VALIDAÇÃO', d: `pt:vtoggle:${id}` }],
     [{ t: c.enabled ? '🔴 DESATIVAR' : '🟢 ATIVAR', d: `pt:toggle:${id}` }],
     [{ t: '🗑 REMOVER', d: `pt:confirm:${id}` }],
     nav('m:partners'),
@@ -2652,25 +2676,64 @@ async function partnerCard(ctx: Ctx, id: string, editing = true) {
 async function partnersCallback(ctx: Ctx, rest: string[]) {
   const [sub, arg] = [rest[0], rest.slice(1).join(':')];
   if (sub === 'ask') { const k = arg; return ask(ctx, k, PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
+
+  // Step 4/5 of the wizard: validate membership or not.
+  if (sub === 'val') {
+    const session = await getSession(ctx);
+    const c = session?.context ?? {};
+    if (!c.name || !c.url) {
+      await clearSession(ctx);
+      return edit(ctx, '⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.', kb([[{ t: '⬅️ PARCEIROS', d: 'm:partners' }], nav()]));
+    }
+    if (arg === '1') {
+      await setSession(ctx, 'ptchat', 'awaiting_input', { ...c, validationEnabled: true });
+      return edit(ctx, `🛡 Validação: <b>ATIVA</b>\n\n${PROMPTS.ptchat}\n\n⚠️ O Chat ID é diferente do link. O bot do jogo precisa estar no canal/grupo para conseguir validar.`,
+        kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+    }
+    await setSession(ctx, 'ptsave', 'awaiting_confirm', { ...c, validationEnabled: false, chatId: null });
+    return edit(ctx, partnerConfirmText({ ...c, validationEnabled: false }), kb([[{ t: '✅ SALVAR', d: 'pt:save' }, { t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
+
   if (sub === 'save') {
     const session = await getSession(ctx);
     const c = session?.context ?? {};
     const name = String(c.name || '').trim();
     const url = String(c.url || '').trim();
     const reward = Math.round(Number(c.rewardFc ?? 0)) || 0;
-    if (!name || !/^https:\/\/\S+$/i.test(url)) {
+    const validationEnabled = c.validationEnabled === true;
+    const chatId = String(c.chatId || '').trim() || null;
+    if (!name || !/^https:\/\/\S+$/i.test(url) || (validationEnabled && !chatId)) {
       await clearSession(ctx);
       return edit(ctx, '⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.', kb([[{ t: '⬅️ PARCEIROS', d: 'm:partners' }], nav()]));
     }
-    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward }) as any;
+    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward, validationEnabled, chatId }) as any;
     await clearSession(ctx);
-    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\n🔗 Link salvo e oculto: no jogo aparece só o nome e o botão GO.`);
+    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\n🛡 Validação: <b>${validationEnabled ? 'ATIVA' : 'DESATIVADA'}</b>\n🔗 Link salvo e oculto: no jogo aparece só o nome e o botão GO.`);
     return partnersHub({ ...ctx, messageId: undefined }, false);
   }
   if (sub === 'open') return partnerCard(ctx, arg);
   if (sub === 'toggle') {
     await ptRpc(ctx, 'toggle', arg);
 
+    return partnerCard(ctx, arg);
+  }
+  if (sub === 'vtoggle') {
+    const d = await ptRpc(ctx, 'detail', arg) as any;
+    const current = d?.partner;
+    if (!current) return partnersHub(ctx);
+    if (current.validationEnabled) {
+      await ptRpc(ctx, 'validation', arg, { validationEnabled: false });
+      return partnerCard(ctx, arg);
+    }
+    const chatId = String(current.chatId || '').trim();
+    if (!chatId) return edit(ctx, `🆔 Antes de ativar a validação, configure o <b>Chat ID</b> do canal/grupo.\n\n${PROMPTS.ptsetchat}`,
+      kb([[{ t: '🆔 CHAT ID', d: `pt:ask:ptsetchat|${arg}` }], [{ t: '⬅️ PARCEIRO', d: `pt:open:${arg}` }]]));
+    const capability = await partnerCanValidate(chatId);
+    if (!capability.ok) {
+      return edit(ctx, `⚠️ <b>O bot não consegue validar membros desse canal/grupo.</b>\nChat: <code>${esc(chatId)}</code>\nMotivo: <code>${esc(capability.error)}</code>\n\nAdicione o bot do jogo ao canal/grupo como administrador e tente de novo. A validação <b>não</b> foi ativada.`,
+        kb([[{ t: '🔁 TENTAR DE NOVO', d: `pt:vtoggle:${arg}` }], [{ t: '🆔 TROCAR CHAT ID', d: `pt:ask:ptsetchat|${arg}` }], [{ t: '⬅️ PARCEIRO', d: `pt:open:${arg}` }]]));
+    }
+    await ptRpc(ctx, 'validation', arg, { validationEnabled: true });
     return partnerCard(ctx, arg);
   }
   if (sub === 'confirm') {
@@ -2685,6 +2748,20 @@ async function partnersCallback(ctx: Ctx, rest: string[]) {
   return partnersHub(ctx);
 }
 
+function partnerConfirmText(c: Record<string, unknown>) {
+  const validation = c.validationEnabled === true;
+  return [
+    '🤝 <b>CONFIRMAR PARCEIRO</b>',
+    `🏷 Nome: <b>${esc(c.name)}</b>`,
+    `🪙 Recompensa: <b>${fmt(c.rewardFc)} FC</b>`,
+    `🔗 Link: <code>${esc(c.url)}</code>`,
+    `🛡 Validação: <b>${validation ? 'ATIVA' : 'DESATIVADA'}</b>`,
+    validation ? `🆔 Chat ID: <code>${esc(c.chatId)}</code>` : '',
+    '',
+    'O link fica oculto no jogo: o jogador vê só o nome e o botão GO.',
+  ].filter(Boolean).join('\n');
+}
+
 async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   const id = args[0] || '';
   if (key === 'ptname') {
@@ -2697,7 +2774,7 @@ async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: strin
     const reward = parseAmount(text);
     if (!Number.isFinite(reward) || reward < 0 || reward > 1_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um valor de FC entre 0 e 1000000.');
     const name = args[0] ? decodeURIComponent(args[0]) : 'PARTNER';
-    // Step 3/4: the link is mandatory — never create the partner before it arrives.
+    // Step 3/5: the link is mandatory — never create the partner before it arrives.
     await setSession(ctx, 'pturl', 'awaiting_input', { name, rewardFc: Math.round(reward) });
     return send(ctx, `🪙 Recompensa: <b>${fmt(Math.round(reward))} FC</b>\n\n🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>`, kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
   }
@@ -2709,9 +2786,24 @@ async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: strin
     const session = await getSession(ctx);
     const name = String(session?.context?.name || (args[0] ? decodeURIComponent(args[0]) : 'PARTNER'));
     const reward = Math.round(Number(session?.context?.rewardFc ?? parseAmount(args[1] || '0'))) || 0;
-    await setSession(ctx, 'ptsave', 'awaiting_confirm', { name, rewardFc: reward, url });
-    return send(ctx,
-      `🤝 <b>CONFIRMAR PARCEIRO</b>\n🏷 Nome: <b>${esc(name)}</b>\n🪙 Recompensa: <b>${fmt(reward)} FC</b>\n🔗 Link: <code>${esc(url)}</code>\n\nO link fica oculto no jogo: o jogador vê só o nome e o botão GO.`,
+    // Step 4/5: ask for validation BEFORE creating anything.
+    await setSession(ctx, 'ptvalidation', 'awaiting_choice', { name, rewardFc: reward, url });
+    return send(ctx, `🔗 Link: <code>${esc(url)}</code>\n\n${PT_VALIDATION_QUESTION}`,
+      kb([[{ t: '✅ SIM, VALIDAR', d: 'pt:val:1' }], [{ t: '❌ NÃO VALIDAR', d: 'pt:val:0' }], [{ t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
+  if (key === 'ptchat') {
+    const chatId = text.trim();
+    if (!/^(-?\d{5,20}|@[A-Za-z0-9_]{4,40})$/.test(chatId)) {
+      throw new Error('KEEP_SESSION::⚠️ Chat ID inválido. Envie o ID numérico (ex.: <code>-1001234567890</code>) ou <code>@usuario_do_canal</code>. O link do canal <b>não</b> serve aqui.');
+    }
+    const capability = await partnerCanValidate(chatId);
+    if (!capability.ok) {
+      throw new Error(`KEEP_SESSION::⚠️ <b>O bot não consegue validar membros desse canal/grupo.</b>\nChat: <code>${esc(chatId)}</code>\nMotivo: <code>${esc(capability.error)}</code>\n\nAdicione o bot do jogo como administrador e envie o Chat ID novamente.`);
+    }
+    const session = await getSession(ctx);
+    const c = session?.context ?? {};
+    await setSession(ctx, 'ptsave', 'awaiting_confirm', { ...c, validationEnabled: true, chatId });
+    return send(ctx, `${capability.title ? `📡 Canal: <b>${esc(capability.title)}</b>\n` : ''}✅ O bot consegue validar membros.\n\n${partnerConfirmText({ ...c, validationEnabled: true, chatId })}`,
       kb([[{ t: '✅ SALVAR', d: 'pt:save' }, { t: '❌ CANCELAR', d: 'cancel' }]]));
   }
 
@@ -2728,6 +2820,18 @@ async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: strin
     const url = text.trim();
     if (!/^https?:\/\/\S+$/i.test(url)) throw new Error('KEEP_SESSION::⚠️ Envie um link válido começando com https://');
     await ptRpc(ctx, 'link', id, { url });
+  } else if (key === 'ptsetchat') {
+    const chatId = text.trim();
+    if (!/^(-?\d{5,20}|@[A-Za-z0-9_]{4,40})$/.test(chatId)) {
+      throw new Error('KEEP_SESSION::⚠️ Chat ID inválido. Envie o ID numérico (ex.: <code>-1001234567890</code>) ou <code>@usuario_do_canal</code>.');
+    }
+    const capability = await partnerCanValidate(chatId);
+    await ptRpc(ctx, 'chat', id, { chatId, validationEnabled: capability.ok });
+    await clearSession(ctx);
+    await send(ctx, capability.ok
+      ? `✅ Chat ID salvo e validação <b>ATIVA</b>.`
+      : `🆔 Chat ID salvo, mas ⚠️ <b>o bot não consegue validar membros desse canal/grupo</b> (<code>${esc(capability.error)}</code>).\nA validação ficou <b>DESATIVADA</b> — adicione o bot do jogo como administrador e ative de novo.`);
+    return partnerCard({ ...ctx, messageId: undefined }, id, false);
   } else if (key === 'ptsort') {
     const order = parseAmount(text);
     if (!Number.isFinite(order) || order < 1 || order > 999) throw new Error('KEEP_SESSION::⚠️ Envie um número entre 1 e 999.');
@@ -2736,6 +2840,34 @@ async function partnersPrompt(ctx: Ctx, key: string, args: string[], text: strin
   await clearSession(ctx);
   await send(ctx, '✅ Parceiro atualizado.');
   return partnerCard({ ...ctx, messageId: undefined }, id, false);
+}
+
+// ---------------------------------------------------------------- 🔥 hot wallet
+// Address + minimum withdrawal live in wallet_settings and take effect immediately
+// for deposits, TonConnect and withdrawals — nothing is hardcoded in the app.
+const wlRpc = (ctx: Ctx, action = 'get', payload: Record<string, unknown> = {}) =>
+  rpc('admin_wallet_config', { p_admin_id: ctx.adminId, p_action: action, p_payload: payload });
+
+async function hotWalletHub(ctx: Ctx, editing = true) {
+  const d = await wlRpc(ctx) as any;
+  const address = String(d?.hotWallet || '');
+  const text = [
+    '🔥 <b>HOT WALLET</b>',
+    address ? `🏦 Endereço: <code>${esc(address)}</code>` : '⚠️ <b>Nenhuma hot wallet configurada</b> — depósitos ficam sem destino.',
+    `⬇️ Saque mínimo: <b>${fmt(d?.minWithdrawTon ?? 0)} TON</b>`,
+    d?.updatedAt ? `🕒 Atualizado: <code>${String(d.updatedAt).slice(0, 16).replace('T', ' ')}</code>` : '',
+    '',
+    `🟡 Saques pendentes: <b>${fmt(d?.pendingWithdrawals)}</b> · 📥 Depósitos 24h: <b>${fmt(d?.depositsToday)}</b>`,
+    '',
+    'A alteração vale imediatamente para novos depósitos e para o TonConnect do jogo (sem deploy).',
+  ].filter(Boolean).join('\n');
+  const markup = kb([
+    [{ t: '✏️ TROCAR ENDEREÇO', d: 'ask:wlhot' }],
+    [{ t: '⬇️ SAQUE MÍNIMO', d: 'ask:wlmin' }],
+    [{ t: '🔄 ATUALIZAR', d: 'm:hotwallet' }],
+    nav('m:wallet'),
+  ]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
 }
 
 // ---------------------------------------------------------------- actions
