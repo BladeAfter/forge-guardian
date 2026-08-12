@@ -18,7 +18,7 @@ import type{PassTier,PassXpGain,SeasonPassDashboard,SeasonPassOrder}from'./seaso
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
-import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketItemType,MarketMine,MarketSellable,MarketSort} from './market';
+import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketItemType,MarketMine,MarketSellable,MarketSort,MarketStatus} from './market';
 
 
 const demoPlayerId = (telegramInitData: string) => {
@@ -345,8 +345,10 @@ const MARKET_ERRORS:Record<string,string>={
   ITEM_NO_LONGER_AVAILABLE:'Item não está mais disponível.',
   CANNOT_BUY_OWN_LISTING:'Você não pode comprar seu próprio anúncio.',
   NOT_ENOUGH_FORGE_COINS:'FC insuficientes para esta compra.',
+  MARKET_UNDER_MAINTENANCE:'O mercado está em manutenção.',
 };
 export type MarketAction=
+  |{action:'status'}
   |{action:'browse';itemType?:MarketItemType|'all';rarity?:string;sort?:MarketSort;limit?:number;offset?:number}
   |{action:'sellable'}
   |{action:'mine'}
@@ -360,6 +362,7 @@ export async function marketRequest<T>(initData:string,input:MarketAction):Promi
   if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(MARKET_ERRORS[raw]||raw||'Não foi possível processar o mercado.')}
   return payload;
 }
+export const fetchMarketStatus=(initData:string)=>marketRequest<MarketStatus>(initData,{action:'status'});
 export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',rarity:string,sort:MarketSort)=>marketRequest<MarketBrowse>(initData,{action:'browse',itemType,rarity,sort,limit:60});
 export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
 export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});

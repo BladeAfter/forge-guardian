@@ -77,3 +77,15 @@ export const marketFeeSplit = (price: number, feePercent: number) => {
   const fee = Math.round((clean * percent) / 100);
   return { price: clean, fee, receives: clean - fee };
 };
+
+/**
+ * Marketplace maintenance switch. Single source of truth: the backend
+ * (`market_status` RPC) decides both `enabled` and the admin bypass.
+ */
+export type MarketStatus = {
+  enabled: boolean;
+  canAccess: boolean;
+  adminBypass: boolean;
+  maintenanceMessage: string;
+  updatedAt: string | null;
+};

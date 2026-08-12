@@ -923,10 +923,14 @@ async function marketHub(ctx: Ctx, status = 'active') {
   const o = await rpc('admin_market_overview', { p_admin_id: ctx.adminId }) as any;
   const listings = await rpc('admin_market_listings', { p_admin_id: ctx.adminId, p_status: status, p_limit: 10 }) as any[];
   const s = o.settings || {};
+  const st = o.status || {};
+  const enabled = st.enabled !== false;
   const min = s.minPrice || {};
   const body = (listings || []).map(mkLine).join('\n') || '—';
   return edit(ctx, [
     '🛒 <b>MARKETPLACE (FC)</b>',
+    `Status: ${enabled ? '🟢 <b>MARKET ATIVO</b>' : '🔴 <b>MARKET EM MANUTENÇÃO</b>'}`,
+    `Admin bypass: <b>${fmt(st.bypassCount ?? 1)}</b> user(s)`,
     `Taxa atual: <b>${Number(s.feePercent ?? 5)}%</b> (queimada, não vai para a pool TON)`,
     `Limite por jogador: <b>${fmt(s.maxActiveListings ?? 20)}</b> anúncios ativos`,
     `Preço mínimo: herói ${fmt(min.hero ?? 0)} FC · pet ${fmt(min.pet ?? 0)} FC · item ${fmt(min.item ?? 0)} FC`,
@@ -935,8 +939,9 @@ async function marketHub(ctx: Ctx, status = 'active') {
     `Volume total: <b>${fmt(o.volumeFc)} FC</b> · queimado ${fmt(o.burnedFc)} FC`,
     '',
     `<b>${status === 'all' ? 'ÚLTIMOS' : status.toUpperCase()}</b>`,
-    body.slice(0, 2800),
+    body.slice(0, 2500),
   ].join('\n'), kb([
+    [enabled ? { t: '🔴 DESATIVAR MARKET', d: 'mk:toggle|off' } : { t: '🟢 ATIVAR MARKET', d: 'mk:toggle|on' }],
     [{ t: '🟢 ATIVOS', d: 'mk:list|active' }, { t: '🔵 VENDIDOS', d: 'mk:list|sold' }, { t: '⚪️ TODOS', d: 'mk:list|all' }],
     [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
     [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
@@ -2700,6 +2705,24 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'mk') {
     const [sub, arg] = String(rest[0] || '').split('|');
     if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'toggle') {
+      const on = arg === 'on';
+      return edit(ctx, on
+        ? '⚠️ <b>ATIVAR MARKETPLACE?</b>\n\nTodos os jogadores voltarão a acessar o mercado imediatamente.'
+        : '⚠️ <b>DESATIVAR MARKETPLACE?</b>\n\nJogadores comuns não poderão acessar o mercado.\nO Admin de testes continuará com acesso.',
+        kb([
+          [{ t: '✅ CONFIRMAR', d: `mk:doToggle|${on ? 'on' : 'off'}` }],
+          [{ t: '❌ CANCELAR', d: 'm:market' }],
+        ]));
+    }
+    if (sub === 'doToggle') {
+      const on = arg === 'on';
+      const st = await rpc('admin_market_set_enabled', { p_admin_id: ctx.adminId, p_enabled: on }) as any;
+      return edit(ctx, on
+        ? '✅ <b>Marketplace ativado para todos os jogadores.</b>'
+        : `✅ <b>Marketplace desativado.</b>\n\nModo manutenção ativo para jogadores.\nAdmin bypass: <b>${fmt(st?.bypassCount ?? 1)}</b> user(s)`,
+        kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
+    }
     if (sub === 'list') return marketHub(ctx, arg || 'active');
     return marketHub(ctx);
   }
