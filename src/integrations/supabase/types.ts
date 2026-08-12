@@ -3018,6 +3018,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_discoveries: {
+        Row: {
+          created_at: string
+          discovered_at: string
+          id: string
+          pet_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discovered_at?: string
+          id?: string
+          pet_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discovered_at?: string
+          id?: string
+          pet_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_discoveries_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_discoveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_egg_orders: {
         Row: {
           amount_nano: string
