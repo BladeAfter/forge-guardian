@@ -452,10 +452,15 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .balance-chip-label{font-size:7px}
   .balance-chip{width:clamp(74px,21vw,92px);min-width:74px;max-width:92px;padding-left:.375rem;padding-right:.375rem}
   .balance-chip-coin{width:18px;height:18px}
+  .ton-balance-chip--village-compact{width:clamp(70px,19vw,86px);min-width:70px;max-width:86px;padding-left:.25rem;padding-right:.25rem;gap:.2rem}
+  .ton-balance-chip--village-compact .ton-balance-chip-coin{width:16px;height:16px}
+  .ton-balance-chip--village-compact .ton-balance-chip-value{font-size:clamp(10px,3vw,13px)}
 }
 @media (max-width:339px){
   .balance-chip{min-width:66px;width:clamp(66px,19vw,80px)}
+  .ton-balance-chip--village-compact{width:clamp(64px,18vw,76px);min-width:64px;max-width:76px}
 }
+
 
 /* Overlay pages render above the Telegram header, so they own their safe area. */
 .forge-safe-page{padding-top:max(0.75rem,calc(env(safe-area-inset-top) + 0.5rem)) !important}
