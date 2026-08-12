@@ -68,14 +68,14 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     }
   };
 
-  if (isLoading) return <Frame onClose={onClose}><p className="py-20 text-center text-[10px] tracking-[.2em] text-violet-200/70">{t('common.loading')}</p></Frame>;
+  if (isLoading) return <Frame onClose={onClose}><p className="py-20 text-center text-[10px] tracking-[.2em] text-violet-200/70">{t('clanBoss.loading')}</p></Frame>;
 
   if (isError || !data) {
     return (
       <Frame onClose={onClose}>
         <div className="py-16 text-center">
           <p className="text-[11px] text-rose-200">{t('clanBoss.error')}</p>
-          <button onClick={() => void refetch()} className="mt-4 rounded-xl border border-violet-300/40 bg-violet-500/20 px-5 py-3 text-[10px] font-black text-violet-100">{t('clanBoss.tryAgain')}</button>
+          <button type="button" onClick={() => void refetch()} className="mt-4 rounded-xl border border-violet-300/40 bg-violet-500/20 px-5 py-3 text-[10px] font-black text-violet-100">{t('clanBoss.tryAgain')}</button>
         </div>
       </Frame>
     );
@@ -91,6 +91,21 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
       </Frame>
     );
   }
+
+  // In a clan, but the backend has no active instance for THIS clan (cycle settled,
+  // creation pending). Never an endless spinner: show the state plus a retry.
+  if (!boss) {
+    return (
+      <Frame onClose={onClose} clan={data.clan}>
+        <div className="mt-16 rounded-3xl border border-violet-400/25 bg-black/60 p-6 text-center">
+          <Skull className="mx-auto h-10 w-10 text-violet-300" />
+          <p className="mt-4 text-[11px] font-black tracking-[.12em] text-violet-100">{t('clanBoss.noActive')}</p>
+          <button type="button" onClick={() => void refetch()} className="mt-4 w-full rounded-xl border border-violet-300/40 bg-violet-500/20 py-3 text-[10px] font-black text-violet-100">{t('clanBoss.tryAgain')}</button>
+        </div>
+      </Frame>
+    );
+  }
+
 
   return (
     <Frame onClose={onClose} clan={data.clan} cycle={boss?.cycle}>
