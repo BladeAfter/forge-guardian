@@ -40,17 +40,23 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const queryClient = useQueryClient();
   const backendEnabled = Boolean(telegramInitData);
   const { data: summary } = useWalletSummary(telegramInitData, backendEnabled);
+  const { data: tonWallet } = useTonWallet(telegramInitData, backendEnabled);
   const { data: pets } = usePetDashboard(telegramInitData, backendEnabled);
-  const balance = summary?.balanceFc ?? game.balance;
+  const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
+  const availableTon = tonWallet?.availableTon ?? 0;
+  const reservedTon = tonWallet?.reservedTon ?? 0;
+  const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   const [depositTon, setDepositTon] = useState(1);
-  const [withdrawFc, setWithdrawFc] = useState(MIN_WITHDRAWAL_FC);
+  const [withdrawTon, setWithdrawTon] = useState(0);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
   const recoveredRef = useRef(false);
   const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable) ?? [], [pets?.eggs]);
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
-  const feePercent = summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
-  const quote = useMemo(() => withdrawalQuote(withdrawFc, feePercent), [withdrawFc, feePercent]);
+  const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
+  const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
+  const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+
 
   const invalidateWallet = async () => {
     await Promise.all([
