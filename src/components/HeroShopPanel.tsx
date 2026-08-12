@@ -63,6 +63,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const bandMin = Math.max(Number(band?.min ?? minPrice), minPrice);
   const bandMax = Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000);
   const bandRecommended = Number(band?.recommended ?? bandMin);
+  const outOfBand = Number(price) > 0 && (Number(price) < bandMin || Number(price) > bandMax);
   const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
 
   const sortLabel = (value: MarketSort) =>
@@ -441,7 +442,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       return (
                         <button
                           key={option.id ?? option.code}
-                                        onClick={() => { setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
+                          onClick={() => { setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
                           className={`overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : 'border-white/10'}`}
                         >
                           {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
