@@ -415,6 +415,13 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
     fn = 'buy_pvp_tickets';
     args = { ...args, p_quantity: quantity, p_idempotency_key: `pvp_ticket:${user.id}:${key}` };
+  } else if (action === 'ads-begin') {
+    // Opens the AdsGram rewarded view. No ticket is granted here — the click only starts the ad.
+    fn = 'pvp_ad_view_begin';
+  } else if (action === 'ads-reward') {
+    // Called ONLY after a valid AdsGram reward/completion event. All limits are enforced in the RPC.
+    fn = 'pvp_ad_view_reward';
+    args = { ...args, p_view_id: isUuid(body.viewId) ? body.viewId : null, p_source: 'client' };
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
 
 
@@ -423,8 +430,13 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
   if (action === 'battle' && Array.isArray(data?.battleLog)) {
     data.battleLog = data.battleLog.filter((entry: any) => Number.isInteger(entry?.turn));
   }
+  // Ads counter travels with every dashboard-shaped payload so the UI updates without a reopen.
+  if (data && typeof data === 'object' && isUuid(data.userId)) {
+    try { data.adsShop = await rpc(db, 'pvp_ads_state', { p_user_id: data.userId }); } catch (_) { /* non-blocking */ }
+  }
   return data;
 }
+
 
 const TONCENTER_BASE = (Deno.env.get('TONCENTER_BASE_URL') || 'https://toncenter.com').replace(/\/+$/, '');
 
