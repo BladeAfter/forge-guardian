@@ -604,3 +604,20 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .cb-flash { animation-duration: .2s !important; }
   .cb-float { animation: cb-float-rise .5s linear both; }
 }
+
+/* Clan Boss cycle progression — boss entrance + cycle-complete overlay */
+.cb-enter { animation: cb-enter-fade 1.1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes cb-enter-fade {
+  0% { opacity: 0; transform: translateY(18px) scale(.94); filter: brightness(2.4) saturate(0); }
+  45% { opacity: 1; filter: brightness(1.4); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+.cb-cycle-overlay { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; gap: 6px; border-radius: 24px; background: radial-gradient(circle at 50% 45%, rgba(0,0,0,.55), rgba(0,0,0,.9)); animation: cb-cycle-fade 2.2s ease-out both; }
+.cb-cycle-overlay b { font-size: 15px; font-weight: 950; letter-spacing: .2em; color: #fde68a; text-shadow: 0 0 18px rgba(253,224,71,.75), 0 2px 6px #000; }
+.cb-cycle-overlay span { font-size: 9px; font-weight: 900; letter-spacing: .3em; color: #e2e8f0; }
+@keyframes cb-cycle-fade { 0% { opacity: 0; } 12% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; } }
+.cb-hpbar { position: relative; overflow: hidden; }
+.cb-hpbar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.35), transparent 55%); }
+@media (prefers-reduced-motion: reduce) {
+  .cb-enter, .cb-cycle-overlay { animation: none; }
+}
