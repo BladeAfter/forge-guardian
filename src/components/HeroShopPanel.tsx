@@ -6,7 +6,7 @@ import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
+import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
 import { buyMarketListing, cancelMarketListing, createMarketListing } from '../services';
 import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market';
 
@@ -36,6 +36,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
   const [price, setPrice] = useState('');
   const [sortOpen, setSortOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [page, setPage] = useState(1);
 
   // Maintenance switch and the admin bypass are decided by the backend only.
@@ -50,6 +51,18 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
   const feePercent = Number(settings?.feePercent ?? 5);
   const minPrice = Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const settlementHours = Number(settings?.settlementHours ?? 72);
+
+  // Live price band for the selected item — the backend is the single source of truth.
+  const quote = useMarketQuote(telegramInitData, marketOpen && marketTab === 'sell' && !!selected, {
+    itemType: sellKind,
+    itemInstanceId: sellKind === 'item' ? undefined : selected?.id,
+    itemCode: sellKind === 'item' ? selected?.code : undefined,
+  });
+  const band = quote.data?.range ?? null;
+  const bandMin = Math.max(Number(band?.min ?? minPrice), minPrice);
+  const bandMax = Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000);
+  const bandRecommended = Number(band?.recommended ?? bandMin);
   const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
 
   const sortLabel = (value: MarketSort) =>
@@ -98,7 +111,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     }),
     onSuccess: async (result) => {
       toast.success(`${t('market.youReceive')}: ${formatCurrency(result.sellerReceives)} FC`);
-      setSelected(null); setPrice(''); setMarketTab('mine');
+      setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : t('market.loadError')),
@@ -428,7 +441,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       return (
                         <button
                           key={option.id ?? option.code}
-                          onClick={() => setSelected({ id: option.id, code: option.code, name: option.name })}
+                                        onClick={() => { setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
                           className={`overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : 'border-white/10'}`}
                         >
                           {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}

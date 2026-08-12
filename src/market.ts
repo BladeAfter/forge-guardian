@@ -11,6 +11,8 @@ export type MarketSettings = {
   maxActiveListings: number;
   maxPriceFc: number;
   minPrice: Partial<Record<MarketItemType, number>>;
+  /** Escrow window: how long a sale stays on hold before the seller is paid. */
+  settlementHours?: number;
 };
 
 export type MarketListing = {
