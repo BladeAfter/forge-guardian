@@ -200,10 +200,13 @@ export const startPvpBattle=(initData:string,opponentId:string)=>pvpRequest<PvpB
 /** Ticket purchase: the server owns price, daily limit and Battle Pass validation. */
 export const buyPvpTickets=(initData:string,quantity:number,idempotencyKey:string)=>pvpRequest<PvpDashboard>(initData,{action:'buy-tickets',quantity,idempotencyKey});
 
-export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'withdraw';amountFc:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'};
+export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'};
 export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey});
-export const requestWithdrawal=(initData:string,amountFc:number,walletAddress:string,idempotencyKey:string)=>walletRequest(initData,{action:'withdraw',amountFc,walletAddress,idempotencyKey});
+/** Withdrawable TON balance: only official rewards land here, never FC. */
+export const fetchTonWallet=(initData:string)=>walletRequest<TonWallet>(initData,{action:'ton-wallet'});
+export const requestTonWithdrawal=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string)=>walletRequest<TonWithdrawalReceipt>(initData,{action:'withdraw-ton',amountTon,walletAddress,idempotencyKey});
+
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
 export const verifyEggPurchases=(initData:string)=>walletRequest<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>}>(initData,{action:'verify-egg-purchases'});
