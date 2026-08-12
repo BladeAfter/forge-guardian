@@ -2598,8 +2598,23 @@ async function partnerCard(ctx: Ctx, id: string, editing = true) {
 async function partnersCallback(ctx: Ctx, rest: string[]) {
   const [sub, arg] = [rest[0], rest.slice(1).join(':')];
   if (sub === 'ask') { const k = arg; return ask(ctx, k, PROMPTS[k.split('|')[0]] || 'Envie o valor.'); }
+  if (sub === 'save') {
+    const session = await getSession(ctx);
+    const c = session?.context ?? {};
+    const name = String(c.name || '').trim();
+    const url = String(c.url || '').trim();
+    const reward = Math.round(Number(c.rewardFc ?? 0)) || 0;
+    if (!name || !/^https:\/\/\S+$/i.test(url)) {
+      await clearSession(ctx);
+      return edit(ctx, '⚠️ Cadastro expirado. Comece novamente em ➕ NOVO PARCEIRO.', kb([[{ t: '⬅️ PARCEIROS', d: 'm:partners' }], nav()]));
+    }
+    const d = await ptRpc(ctx, 'create', null, { name, url, rewardFc: reward }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>PARCEIRO CRIADO</b>\n${esc(d?.partner?.name || name)} · ${fmt(reward)} FC\n🔗 Link salvo e oculto: no jogo aparece só o nome e o botão GO.`);
+    return partnersHub({ ...ctx, messageId: undefined }, false);
+  }
   if (sub === 'open') return partnerCard(ctx, arg);
-  if (sub === 'toggle') {
+
     await ptRpc(ctx, 'toggle', arg);
     return partnerCard(ctx, arg);
   }
