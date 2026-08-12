@@ -3600,6 +3600,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_rarity_mismatch_audit: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          id: string
+          new_rarity: string | null
+          note: string | null
+          old_rarity: string | null
+          pet_id: string | null
+          pet_slug: string | null
+          scope: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          new_rarity?: string | null
+          note?: string | null
+          old_rarity?: string | null
+          pet_id?: string | null
+          pet_slug?: string | null
+          scope: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          new_rarity?: string | null
+          note?: string | null
+          old_rarity?: string | null
+          pet_id?: string | null
+          pet_slug?: string | null
+          scope?: string
+        }
+        Relationships: []
+      }
       pet_settings: {
         Row: {
           key: string
@@ -3764,7 +3800,7 @@ export type Database = {
           obtainable_from: Json
           primary_attribute_key: string | null
           primary_attribute_value: number | null
-          rarity: string | null
+          rarity: string
           show_in_catalog: boolean
           slug: string
           species: string
@@ -3793,7 +3829,7 @@ export type Database = {
           obtainable_from?: Json
           primary_attribute_key?: string | null
           primary_attribute_value?: number | null
-          rarity?: string | null
+          rarity?: string
           show_in_catalog?: boolean
           slug: string
           species: string
@@ -3822,7 +3858,7 @@ export type Database = {
           obtainable_from?: Json
           primary_attribute_key?: string | null
           primary_attribute_value?: number | null
-          rarity?: string | null
+          rarity?: string
           show_in_catalog?: boolean
           slug?: string
           species?: string
@@ -7070,6 +7106,10 @@ export type Database = {
         Returns: Json
       }
       admin_pet_rarities: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pet_rarity_audit: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
       admin_player_channel_claims: {
         Args: { p_admin_id: number; p_player: string }
         Returns: Json
