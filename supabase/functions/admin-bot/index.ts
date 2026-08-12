@@ -614,6 +614,7 @@ async function hwEditMenu(ctx: Ctx, heroKey: string) {
     `⭐ ${esc(String(h.rarity).toUpperCase())} · 🎭 ${esc(h.hero_class)}`,
     `⚔️ ATK ${fmt(h.base_atk)} · ❤️ HP ${fmt(h.base_hp)}`,
     `🛒 Loja: ${h.in_shop ? `✅ ${fmt(h.price_fc)} FC` : '❌'} · 👁 Ativo: ${h.enabled ? '✅' : '⛔'}`,
+    `🎲 Recruit: ${String(h.rarity) === 'ancestral' ? '⛔ ANCESTRAL (exclusivo evento/admin)' : h.recruit_enabled ? '✅' : '⛔'}`,
   ].join('\n');
   const markup = kb([
     [{ t: '🖼 Trocar imagem', d: 'hw:f:image' }],
@@ -621,6 +622,7 @@ async function hwEditMenu(ctx: Ctx, heroKey: string) {
     [{ t: '⚔️ ATK', d: 'hw:f:atk' }, { t: '❤️ HP', d: 'hw:f:hp' }],
     [{ t: '🎭 Classe', d: 'hw:f:class' }, { t: '💰 Preço', d: 'hw:f:price' }],
     [{ t: `🛒 Loja ${h.in_shop ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:shop' }, { t: `👁 Ativo ${h.enabled ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:enabled' }],
+    ...(String(h.rarity) === 'ancestral' ? [] : [[{ t: `🎲 Recruit ${h.recruit_enabled ? 'ON→OFF' : 'OFF→ON'}`, d: 'hw:t:recruit' }]]),
     [{ t: '🗑 Remover', d: 'hw:del' }],
     [{ t: '📋 DUPLICAR', d: `hw:d:${h.hero_key}` }],
     nav('m:heroes'),
