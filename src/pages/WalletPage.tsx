@@ -61,6 +61,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const invalidateWallet = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['wallet-summary', telegramInitData] }),
+      queryClient.invalidateQueries({ queryKey: ['ton-wallet'] }),
+
       queryClient.invalidateQueries({ queryKey: ['wallet-deposits'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-withdrawals'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-history'] }),
