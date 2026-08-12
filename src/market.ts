@@ -11,6 +11,8 @@ export type MarketSettings = {
   maxActiveListings: number;
   maxPriceFc: number;
   minPrice: Partial<Record<MarketItemType, number>>;
+  /** Escrow window: how long a sale stays on hold before the seller is paid. */
+  settlementHours?: number;
 };
 
 export type MarketListing = {
@@ -37,15 +39,43 @@ export type MarketBrowse = {
   activeCount: number;
 };
 
-export type MarketSellableHero = { id: string; name: string; rarity: string; level: number; image: string | null; stars: number; atk: number; hp: number };
-export type MarketSellablePet = { id: string; name: string; rarity: string; level: number; image: string | null; evolution: string | null; tier: number };
-export type MarketSellableItem = { code: string; itemType: string; quantity: number };
+/** Server-computed safe price band. `source` is 'median' once there are enough settled sales. */
+export type MarketPriceRange = {
+  min: number;
+  max: number;
+  recommended: number;
+  median: number | null;
+  samples: number;
+  source: 'config' | 'median';
+  itemType: string;
+  rarity: string;
+};
+
+export type MarketSellEligibility = {
+  canSell: boolean;
+  reason?: string | null;
+  accountDays?: number;
+  activeDays?: number;
+  [key: string]: unknown;
+};
+
+export type MarketSellableHero = { id: string; name: string; rarity: string; level: number; image: string | null; stars: number; atk: number; hp: number; priceRange?: MarketPriceRange };
+export type MarketSellablePet = { id: string; name: string; rarity: string; level: number; image: string | null; evolution: string | null; tier: number; priceRange?: MarketPriceRange };
+export type MarketSellableItem = { code: string; itemType: string; quantity: number; priceRange?: MarketPriceRange };
 
 export type MarketSellable = {
   heroes: MarketSellableHero[];
   pets: MarketSellablePet[];
   items: MarketSellableItem[];
   settings: MarketSettings;
+  eligibility?: MarketSellEligibility;
+};
+
+/** Live quote for one specific item the player owns (price band + fee + eligibility). */
+export type MarketQuote = {
+  range: MarketPriceRange;
+  settings: MarketSettings;
+  eligibility: MarketSellEligibility;
 };
 
 export type MarketMyListing = {

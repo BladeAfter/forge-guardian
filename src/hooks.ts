@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { realtimeSupabase as supabase } from './realtimeClient';
 
 import type { ChannelRewards, RewardHistory } from './services';
-import { fetchGlobalBossRanking, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketSellable, fetchMarketStatus } from './services';
-import type { MarketBrowse, MarketItemType, MarketMine, MarketSellable, MarketSort, MarketStatus } from './market';
+import { fetchGlobalBossRanking, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
+import type { MarketBrowse, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
 
 import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking } from './combat';
@@ -175,6 +175,16 @@ export const useMarketBrowse=(telegramInitData:string|null,enabled:boolean,itemT
 export const useMarketSellable=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketSellable>({
   queryKey:['market-sellable',telegramInitData],queryFn:()=>fetchMarketSellable(telegramInitData??''),
   enabled,staleTime:5_000,retry:1
+});
+
+/**
+ * Live price quote for the item being listed. The band (min/max/recommended) is
+ * computed server-side from the median of recent settled sales — the client only shows it.
+ */
+export const useMarketQuote=(telegramInitData:string|null,enabled:boolean,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string})=>useQuery<MarketQuote>({
+  queryKey:['market-quote',telegramInitData,input.itemType,input.itemInstanceId??input.itemCode??''],
+  queryFn:()=>fetchMarketQuote(telegramInitData??'',input),
+  enabled,staleTime:15_000,retry:1
 });
 
 export const useMarketMine=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketMine>({

@@ -6,7 +6,7 @@ import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
+import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
 import { buyMarketListing, cancelMarketListing, createMarketListing } from '../services';
 import { marketFeeSplit, type MarketItemType, type MarketSort } from '../market';
 
@@ -36,6 +36,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
   const [price, setPrice] = useState('');
   const [sortOpen, setSortOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [page, setPage] = useState(1);
 
   // Maintenance switch and the admin bypass are decided by the backend only.
@@ -50,6 +51,19 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
   const feePercent = Number(settings?.feePercent ?? 5);
   const minPrice = Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const settlementHours = Number(settings?.settlementHours ?? 72);
+
+  // Live price band for the selected item — the backend is the single source of truth.
+  const quote = useMarketQuote(telegramInitData, marketOpen && marketTab === 'sell' && !!selected, {
+    itemType: sellKind,
+    itemInstanceId: sellKind === 'item' ? undefined : selected?.id,
+    itemCode: sellKind === 'item' ? selected?.code : undefined,
+  });
+  const band = quote.data?.range ?? null;
+  const bandMin = Math.max(Number(band?.min ?? minPrice), minPrice);
+  const bandMax = Number(band?.max ?? settings?.maxPriceFc ?? 50_000_000);
+  const bandRecommended = Number(band?.recommended ?? bandMin);
+  const outOfBand = Number(price) > 0 && (Number(price) < bandMin || Number(price) > bandMax);
   const split = useMemo(() => marketFeeSplit(Number(price) || 0, feePercent), [price, feePercent]);
 
   const sortLabel = (value: MarketSort) =>
@@ -98,7 +112,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
     }),
     onSuccess: async (result) => {
       toast.success(`${t('market.youReceive')}: ${formatCurrency(result.sellerReceives)} FC`);
-      setSelected(null); setPrice(''); setMarketTab('mine');
+      setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : t('market.loadError')),
@@ -428,7 +442,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       return (
                         <button
                           key={option.id ?? option.code}
-                          onClick={() => setSelected({ id: option.id, code: option.code, name: option.name })}
+                          onClick={() => { setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
                           className={`overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : 'border-white/10'}`}
                         >
                           {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
@@ -444,15 +458,46 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                   {selected ? (
                     <div className="mt-3 rounded-2xl border border-amber-300/25 bg-black/40 p-3">
                       <p className="text-[11px] font-black text-white">{selected.name}</p>
+
+                      {/* Safe price band + recommendation — computed by the backend (median of recent settled sales). */}
+                      <div className="mt-2 rounded-xl border border-sky-400/20 bg-sky-400/[.06] p-2">
+                        {quote.isLoading ? (
+                          <p className="text-[9px] text-slate-400">{t('market.loading')}</p>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between text-[9px]">
+                              <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.priceBand')}</span>
+                              <span className="font-black text-sky-200">{formatCurrency(bandMin)} – {formatCurrency(bandMax)} FC</span>
+                            </div>
+                            <div className="mt-1 flex items-center justify-between text-[9px]">
+                              <span className="uppercase tracking-[0.14em] text-slate-400">{t('market.recommended')}</span>
+                              <button onClick={() => setPrice(String(bandRecommended))} className="rounded-md border border-emerald-400/40 bg-emerald-400/10 px-1.5 py-0.5 text-[9px] font-black text-emerald-200">
+                                {formatCurrency(bandRecommended)} FC · {t('market.useRecommended')}
+                              </button>
+                            </div>
+                            <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
+                              {band?.source === 'median'
+                                ? t('market.bandMedian', { value: formatCurrency(Number(band?.median ?? 0)), count: Number(band?.samples ?? 0) })
+                                : t('market.bandConfig')}
+                            </p>
+                          </>
+                        )}
+                      </div>
+
                       <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.enterPrice')}</p>
                       <input
                         value={price}
-                        onChange={(event) => setPrice(event.target.value.replace(/[^0-9]/g, '').slice(0, 12))}
+                        onChange={(event) => { setPrice(event.target.value.replace(/[^0-9]/g, '').slice(0, 12)); setConfirming(false); }}
                         inputMode="numeric"
-                        placeholder={String(minPrice)}
+                        placeholder={String(bandRecommended || minPrice)}
                         className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-sm font-black text-amber-200 outline-none"
                       />
-                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: formatCurrency(minPrice) })}</p>
+                      <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: formatCurrency(bandMin) })}</p>
+                      {outOfBand ? (
+                        <p className="mt-1 text-[8px] font-bold text-rose-300">
+                          {t('market.outOfBand', { min: formatCurrency(bandMin), max: formatCurrency(bandMax) })}
+                        </p>
+                      ) : null}
                       <div className="mt-2 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400">{t('market.fee')}</span>
                         <span className="font-black text-rose-300">{feePercent}% · {formatCurrency(split.fee)} FC</span>
@@ -461,13 +506,44 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                         <span className="text-slate-400">{t('market.youReceive')}</span>
                         <span className="font-black text-emerald-300">{formatCurrency(split.receives)} FC</span>
                       </div>
-                      <button
-                        disabled={listMutation.isPending || split.price < minPrice}
-                        onClick={() => listMutation.mutate()}
-                        className="mt-3 w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 disabled:opacity-40"
-                      >{t('market.list')}</button>
+                      <div className="mt-1 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-400">{t('market.holdTitle')}</span>
+                        <span className="font-black text-amber-200">{settlementHours}h</span>
+                      </div>
+
+                      {confirming ? (
+                        <div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-400/[.08] p-2.5">
+                          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-200">{t('market.confirmSaleTitle')}</p>
+                          <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
+                            {t('market.confirmSaleBody', {
+                              name: selected.name,
+                              price: formatCurrency(split.price),
+                              receives: formatCurrency(split.receives),
+                              hours: settlementHours,
+                            })}
+                          </p>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            <button
+                              disabled={listMutation.isPending}
+                              onClick={() => listMutation.mutate()}
+                              className="rounded-lg border border-emerald-400/50 bg-emerald-400/15 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-emerald-200 disabled:opacity-40"
+                            >{t('market.confirm')}</button>
+                            <button
+                              onClick={() => setConfirming(false)}
+                              className="rounded-lg border border-white/15 py-2 text-[9px] font-black uppercase tracking-[0.14em] text-slate-300"
+                            >{t('market.cancel')}</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          disabled={listMutation.isPending || split.price < bandMin || split.price > bandMax}
+                          onClick={() => setConfirming(true)}
+                          className="mt-3 w-full rounded-xl border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 disabled:opacity-40"
+                        >{t('market.list')}</button>
+                      )}
                     </div>
                   ) : null}
+
 
                   {settings ? (
                     <p className="mt-3 text-center text-[8px] uppercase tracking-[0.16em] text-slate-500">

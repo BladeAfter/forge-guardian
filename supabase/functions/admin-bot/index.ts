@@ -946,7 +946,7 @@ async function marketHub(ctx: Ctx, status = 'active') {
     [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
     [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
     [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
-    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }],
+    [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }, { t: '🛡 MARKET SECURITY', d: 'mk:sec' }],
     nav(),
   ]));
 }
@@ -959,6 +959,147 @@ async function marketAudit(ctx: Ctx) {
   return edit(ctx, `📜 <b>AUDITORIA DO MERCADO</b>\n${body.slice(0, 3500)}`,
     kb([[{ t: '🔄 ATUALIZAR', d: 'mk:audit' }], nav('m:market')]));
 }
+
+// ---------------------------------------------------------------- 🛡 MARKET SECURITY
+// Read-only views + guarded actions on top of the market security RPCs. Every rule
+// (risk scoring, escrow window, price bands, restrictions) lives in the database.
+const mkFlags = (flags: unknown) => {
+  const list = Array.isArray(flags) ? flags : [];
+  return list.length ? list.map((f: unknown) => `<code>${esc(String(f))}</code>`).join(' ') : '—';
+};
+const mkRisk = (score: unknown) => {
+  const value = Number(score ?? 0);
+  return `${value >= 80 ? '🔴' : value >= 50 ? '🟠' : '🟡'} <b>${value}</b>`;
+};
+
+/** Writes one whitelisted security setting (the RPC validates the key and audits it). */
+const mkSecSet = (ctx: Ctx, key: string, value: unknown) =>
+  rpc('admin_market_set_security', { p_admin_id: ctx.adminId, p_key: key, p_value: value }) as Promise<any>;
+
+async function mkSecurityHub(ctx: Ctx) {
+  const o = await rpc('admin_market_overview', { p_admin_id: ctx.adminId }) as any;
+  const queue = await rpc('admin_market_review_queue', { p_admin_id: ctx.adminId, p_limit: 5 }) as any[];
+  const s = o.settings || {};
+  const req = s.sellRequirements || {};
+  const pair = s.pairLimits || {};
+  const vel = s.velocity || {};
+  const dyn = s.dynamicRange || {};
+  const pending = (queue || []).map((t: any) =>
+    `${MK_TYPE[t.itemType] ?? '•'} <code>#${esc(t.code)}</code> <b>${esc(t.name)}</b> — ${fmt(t.priceFc)} FC\n   ${mkRisk(t.riskScore)} · ${mkFlags(t.flags)}\n   ${esc(t.seller ?? '—')} → ${esc(t.buyer ?? '—')}`,
+  ).join('\n') || 'Nenhuma negociação em revisão. ✅';
+  return edit(ctx, [
+    '🛡 <b>MARKET SECURITY</b>',
+    '<i>Antifraude do mercado entre jogadores. Tudo é validado no banco.</i>',
+    '',
+    `⏳ Retenção (escrow): <b>${fmt(s.settlementHours ?? 72)}h</b>`,
+    `👤 Requisitos p/ vender: conta <b>${fmt(req.accountDays ?? 7)}d</b> · ativo <b>${fmt(req.activeDays ?? 3)}d</b> · heróis <b>${fmt(req.heroes ?? 5)}</b>`,
+    `👥 Limite por par/24h: <b>${fmt(pair.tradesPerDay ?? 3)}</b> trades · <b>${fmt(pair.fcPerDay ?? 0)} FC</b>`,
+    `⚡️ Velocidade: 5m <b>${fmt(vel.per5m ?? 5)}</b> · 1h <b>${fmt(vel.per1h ?? 15)}</b> · 24h <b>${fmt(vel.per24h ?? 40)}</b> · cooldown <b>${fmt(vel.cooldownMinutes ?? 360)}min</b>`,
+    `📊 Faixa dinâmica: <b>${fmt(dyn.minPercent ?? 50)}%</b>–<b>${fmt(dyn.maxPercent ?? 200)}%</b> da mediana · min amostras <b>${fmt(dyn.minSamples ?? 5)}</b> · janela <b>${fmt(dyn.days ?? 30)}d</b>`,
+    '',
+    `<b>EM REVISÃO (${fmt((queue || []).length)})</b>`,
+    pending.slice(0, 2200),
+  ].join('\n'), kb([
+    [{ t: '🚨 FILA DE REVISÃO', d: 'mk:review' }, { t: '🔎 VER NEGOCIAÇÃO', d: 'ask:mktrade' }],
+    [{ t: '🏷 FAIXAS DE PREÇO', d: 'mk:ranges' }, { t: '✏️ DEFINIR FAIXA', d: 'ask:mkrange' }],
+    [{ t: '⛔️ RESTRINGIR JOGADOR', d: 'ask:mkrestrict' }, { t: '🧾 HISTÓRICO DO JOGADOR', d: 'ask:mkhist' }],
+    [{ t: '⏳ RETENÇÃO (H)', d: 'ask:mksettle' }, { t: '👤 REQUISITOS', d: 'ask:mkreq' }],
+    [{ t: '👥 LIMITE POR PAR', d: 'ask:mkpair' }, { t: '⚡️ VELOCIDADE', d: 'ask:mkvel' }],
+    [{ t: '📊 FAIXA DINÂMICA', d: 'ask:mkdyn' }],
+    [{ t: '📜 AUDITORIA DE SEGURANÇA', d: 'mk:secaudit' }],
+    nav('m:market'),
+  ]));
+}
+
+async function mkReviewQueue(ctx: Ctx) {
+  const queue = await rpc('admin_market_review_queue', { p_admin_id: ctx.adminId, p_limit: 10 }) as any[];
+  const rows = queue || [];
+  const body = rows.map((t: any) => [
+    `${MK_TYPE[t.itemType] ?? '•'} <code>#${esc(t.code)}</code> <b>${esc(t.name)}</b> · ${esc(t.rarity ?? '—')}`,
+    `   ${fmt(t.priceFc)} FC (mediana ${fmt(t.median ?? 0)}) · vendedor recebe ${fmt(t.receivedFc)} FC`,
+    `   ${mkRisk(t.riskScore)} · ${mkFlags(t.flags)}`,
+    `   ${esc(t.seller ?? '—')} (${fmt(t.sellerAccountDays)}d) → ${esc(t.buyer ?? '—')} (${fmt(t.buyerAccountDays)}d) · par 24h: ${fmt(t.pairTradesToday)}`,
+  ].join('\n')).join('\n\n') || 'Nenhuma negociação em revisão. ✅';
+  return edit(ctx, `🚨 <b>FILA DE REVISÃO</b>\n${body.slice(0, 3400)}`, kb([
+    ...rows.slice(0, 5).map((t: any) => [{ t: `🔎 #${t.code}`, d: `mk:trade|${t.code}` }]),
+    [{ t: '🔄 ATUALIZAR', d: 'mk:review' }],
+    nav('mk:sec'),
+  ]));
+}
+
+async function mkTradeCard(ctx: Ctx, code: string, editing = true) {
+  const d = await rpc('admin_market_trade_detail', { p_admin_id: ctx.adminId, p_code: code }) as any;
+  if (!d?.found) {
+    const text = `⚠️ Nenhuma negociação encontrada para <code>${esc(code)}</code>.`;
+    return editing ? edit(ctx, text, kb([nav('mk:sec')])) : send(ctx, text, kb([nav('mk:sec')]));
+  }
+  const text = [
+    `🔎 <b>NEGOCIAÇÃO #${esc(d.code)}</b>`,
+    `${MK_TYPE[d.itemType] ?? '•'} <b>${esc(d.name)}</b> · status <b>${esc(d.status)}</b>`,
+    '',
+    `Preço: <b>${fmt(d.priceFc)} FC</b> · taxa ${fmt(d.feeFc)} FC · vendedor recebe <b>${fmt(d.receivedFc)} FC</b>`,
+    `Risco: ${mkRisk(d.riskScore)} · ${mkFlags(d.flags)}`,
+    `Mesma carteira: <b>${d.sameWallet ? 'SIM ⚠️' : 'não'}</b>`,
+    '',
+    `Vendedor: ${esc(d.seller ?? '—')} (conta ${fmt(d.sellerAccountDays)}d)`,
+    `Comprador: ${esc(d.buyer ?? '—')} (conta ${fmt(d.buyerAccountDays)}d)`,
+    '',
+    `Criada: ${prWhen(d.createdAt)}`,
+    `Libera em: ${prWhen(d.settleAt)}${d.settledAt ? ` · liquidada ${prWhen(d.settledAt)}` : ''}`,
+    d.reversedAt ? `Revertida: ${prWhen(d.reversedAt)}` : '',
+    d.notes ? `Notas: <i>${esc(String(d.notes)).slice(0, 200)}</i>` : '',
+  ].filter(Boolean).join('\n');
+  const actions = ['review', 'pending'].includes(String(d.status))
+    ? [[{ t: '✅ APROVAR E PAGAR', d: `mk:appr|${d.id}` }, { t: '↩️ REVERTER', d: `mk:rev|${d.id}` }]]
+    : [];
+  const markup = kb([...actions, [{ t: '🚨 FILA', d: 'mk:review' }], nav('mk:sec')]);
+  return editing ? edit(ctx, text, markup) : send(ctx, text, markup);
+}
+
+async function mkRanges(ctx: Ctx) {
+  const rows = await rpc('admin_market_price_ranges', { p_admin_id: ctx.adminId }) as any[];
+  const body = (rows || []).map((r: any) =>
+    `${MK_TYPE[r.itemType] ?? '•'} <b>${esc(r.itemType)}</b> · ${esc(r.rarity)} — ${fmt(r.minFc)} a ${fmt(r.maxFc)} FC · recomendado ${r.recommendedFc ? fmt(r.recommendedFc) : 'auto'}`,
+  ).join('\n') || 'Nenhuma faixa configurada (o mercado usa o preço mínimo global).';
+  return edit(ctx, `🏷 <b>FAIXAS DE PREÇO</b>\n<i>A faixa exibida ao jogador se ajusta pela mediana das vendas recentes.</i>\n\n${body.slice(0, 3400)}`,
+    kb([[{ t: '✏️ DEFINIR FAIXA', d: 'ask:mkrange' }], [{ t: '🔄 ATUALIZAR', d: 'mk:ranges' }], nav('mk:sec')]));
+}
+
+async function mkSecurityAudit(ctx: Ctx) {
+  const rows = await rpc('admin_market_security_audit', { p_admin_id: ctx.adminId, p_limit: 15 }) as any[];
+  const body = (rows || []).map((a: any) => [
+    `• <code>${esc(a.event)}</code>${a.code ? ` #${esc(a.code)}` : ''} ${a.priceFc ? `— ${fmt(a.priceFc)} FC` : ''}`,
+    `   ${mkRisk(a.riskScore)} · ${mkFlags(a.flags)}`,
+    `   ${esc(a.seller ?? '—')} → ${esc(a.buyer ?? '—')} · ${prWhen(a.createdAt)}${a.adminId ? ` · admin <code>${esc(String(a.adminId))}</code>` : ''}`,
+  ].join('\n')).join('\n') || '—';
+  return edit(ctx, `📜 <b>AUDITORIA DE SEGURANÇA</b>\n${body.slice(0, 3500)}`,
+    kb([[{ t: '🔄 ATUALIZAR', d: 'mk:secaudit' }], nav('mk:sec')]));
+}
+
+/** Player security dossier: shared wallets, referral links and trading pairs. */
+async function mkUserHistory(ctx: Ctx, query: string) {
+  const d = await rpc('admin_market_user_history', { p_admin_id: ctx.adminId, p_query: query, p_limit: 10 }) as any;
+  if (!d?.found) return send(ctx, `⚠️ Jogador não encontrado: <code>${esc(query)}</code>`, kb([nav('mk:sec')]));
+  const p = d.player || {};
+  const wallets = (d.sharedWallet || []).map((w: any) => `⚠️ ${esc(w.label)} · <code>${esc(String(w.telegramId))}</code>`).join('\n') || 'nenhuma';
+  const pairs = (d.pairs || []).slice(0, 8).map((s: any) =>
+    `• ${esc(s.seller)} → ${esc(s.buyer)} · ${fmt(s.trades)} trades · ${fmt(s.totalFc)} FC`).join('\n') || '—';
+  return send(ctx, [
+    `🧾 <b>DOSSIÊ DE MERCADO</b>`,
+    `👤 ${esc(p.label ?? '—')} · <code>${esc(String(p.telegramId ?? '—'))}</code>`,
+    `Conta: <b>${fmt(p.accountDays)}d</b> · dias ativos <b>${fmt(p.activeDays)}</b> · trust <b>${esc(String(p.trust ?? 'normal'))}</b>`,
+    `Pendente em escrow: <b>${fmt(p.pendingFc)} FC</b>`,
+    `Restrito até: ${prWhen(p.restrictedUntil)} · cooldown ${prWhen(p.cooldownUntil)}`,
+    '',
+    `<b>CARTEIRAS COMPARTILHADAS</b>\n${wallets}`,
+    '',
+    `Convidado por: ${esc(d.invitedBy ?? '—')} · indicados: <b>${fmt((d.referrals || []).length)}</b>`,
+    '',
+    `<b>PARES DE NEGOCIAÇÃO</b>\n${pairs}`,
+  ].join('\n').slice(0, 3800), kb([[{ t: '⛔️ RESTRINGIR', d: 'ask:mkrestrict' }], nav('mk:sec')]));
+}
+
+
 
 const PR_KIND: Record<string, string> = { deposit: '💰 DEPOSIT', premium_egg: '🥚 PREMIUM_EGG', battle_pass: '🎟 BATTLE_PASS' };
 
@@ -1858,6 +1999,15 @@ const PROMPTS: Record<string, string> = {
   mklimit: '🚧 Envie o novo limite de anúncios ativos por jogador (1 a 200).\nEx.: <code>20</code>',
   mkmin: '🏷 Envie: <code>hero|pet|item valor_fc</code>\nEx.: <code>hero 10000</code>',
   mkcancel: '🗑 Envie o <b>ID do anúncio</b> a cancelar. O item volta ao inventário do vendedor.',
+  mktrade: '🔎 Envie o <b>código</b> da negociação (4 caracteres, ex.: <code>A1B2</code>) ou o ID completo.',
+  mkhist: '🧾 Envie Telegram ID, @usuário ou nome para ver o dossiê de mercado (carteiras, indicações e pares).',
+  mkrestrict: '⛔️ Envie <code>ID_ou_@usuario horas</code>\nEx.: <code>8118569391 24</code>\nUse <code>0</code> horas para liberar o jogador.',
+  mkrange: '🏷 Envie <code>tipo raridade min max [recomendado]</code>\nEx.: <code>hero epic 50000 400000 120000</code>\nTipos: hero, pet, item · raridade curinga: <code>default</code>',
+  mksettle: '⏳ Envie as horas de retenção do pagamento (escrow) antes de pagar o vendedor.\nEx.: <code>72</code>',
+  mkreq: '👤 Envie <code>diasConta diasAtivo heróis</code> exigidos para vender.\nEx.: <code>7 3 5</code>',
+  mkpair: '👥 Envie <code>tradesPorDia fcPorDia</code> permitidos entre o mesmo par de jogadores.\nEx.: <code>3 2000000</code>',
+  mkvel: '⚡️ Envie <code>por5min por1h por24h cooldownMin</code>.\nEx.: <code>5 15 40 360</code>',
+  mkdyn: '📊 Envie <code>min% max% minAmostras dias</code> da faixa dinâmica pela mediana.\nEx.: <code>50 200 5 30</code>',
   evcreate: '🎉 Novo evento especial.\nEnvie: <code>nome | prêmio TON | dias | (opcional) início YYYY-MM-DD HH:MM</code>\nEx.: <code>Referral Championship | 100 | 30</code>',
 
   evprize: '💎 Digite o novo prêmio total do evento em TON.\nEx.: <code>100</code>',
@@ -2724,8 +2874,32 @@ async function handleCallback(ctx: Ctx, data: string) {
         kb([[{ t: '🛒 MARKETPLACE', d: 'm:market' }], nav()]));
     }
     if (sub === 'list') return marketHub(ctx, arg || 'active');
+    // ---- 🛡 security surface (risk queue, escrow, price bands, restrictions)
+    if (sub === 'sec') return mkSecurityHub(ctx);
+    if (sub === 'review') return mkReviewQueue(ctx);
+    if (sub === 'ranges') return mkRanges(ctx);
+    if (sub === 'secaudit') return mkSecurityAudit(ctx);
+    if (sub === 'trade') return mkTradeCard(ctx, arg || '');
+    if (sub === 'appr') {
+      return edit(ctx, '⚠️ <b>APROVAR NEGOCIAÇÃO?</b>\n\nO valor sai do escrow e é pago ao vendedor imediatamente.',
+        kb([[{ t: '✅ CONFIRMAR', d: `mk:doAppr|${arg}` }], [{ t: '❌ CANCELAR', d: 'mk:review' }]]));
+    }
+    if (sub === 'doAppr') {
+      await rpc('admin_market_approve_trade', { p_admin_id: ctx.adminId, p_transaction_id: arg });
+      return edit(ctx, '✅ <b>Negociação aprovada e liquidada.</b>', kb([[{ t: '🚨 FILA DE REVISÃO', d: 'mk:review' }], nav('mk:sec')]));
+    }
+    if (sub === 'rev') {
+      return edit(ctx, '⚠️ <b>REVERTER NEGOCIAÇÃO?</b>\n\nO item volta ao vendedor e os FC voltam ao comprador.',
+        kb([[{ t: '✅ CONFIRMAR', d: `mk:doRev|${arg}` }], [{ t: '❌ CANCELAR', d: 'mk:review' }]]));
+    }
+    if (sub === 'doRev') {
+      await rpc('admin_market_reverse_trade', { p_admin_id: ctx.adminId, p_transaction_id: arg, p_reason: 'revertida pelo admin (bot)' });
+      return edit(ctx, '↩️ <b>Negociação revertida.</b>\n\nItem devolvido ao vendedor e FC devolvidos ao comprador.',
+        kb([[{ t: '🚨 FILA DE REVISÃO', d: 'mk:review' }], nav('mk:sec')]));
+    }
     return marketHub(ctx);
   }
+
 
   if (head === 'ref') return ask(ctx, `ref|${rest[0]}`, `Envie a nova porcentagem do nível ${rest[0]} (0-100).`);
 
@@ -3207,6 +3381,87 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
 
   switch (key) {
+    // ---- 🛡 market security prompts
+    case 'mktrade': {
+      return mkTradeCard(ctx, text.slice(0, 40), false);
+    }
+    case 'mkhist': return mkUserHistory(ctx, text.slice(0, 60));
+    case 'mkrestrict': {
+      const [ref, rawHours] = text.split(/\s+/);
+      const hours = rawHours === undefined ? 24 : Math.round(parseAmount(rawHours));
+      if (!ref || !Number.isFinite(hours) || hours < 0 || hours > 8760) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>ID_ou_@usuario horas</code> (ex.: <code>8118569391 24</code>). Use <code>0</code> horas para liberar.');
+      }
+      const r = await rpc('admin_market_restrict_user', { p_admin_id: ctx.adminId, p_query: ref, p_hours: hours }) as any;
+      if (!r?.found) throw new Error('KEEP_SESSION::⚠️ Jogador não encontrado. Envie o ID do Telegram ou @usuario.');
+      return send(ctx, hours <= 0
+        ? `✅ <b>${esc(r.player)}</b> liberado no mercado.`
+        : `⛔️ <b>${esc(r.player)}</b> restrito por <b>${fmt(hours)}h</b> (não pode anunciar nem comprar).`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkrange': {
+      const parts = text.split(/\s+/).filter(Boolean);
+      const [kind, rarity] = parts;
+      const min = Math.round(parseAmount(parts[2] ?? ''));
+      const max = Math.round(parseAmount(parts[3] ?? ''));
+      const rec = parts[4] === undefined ? null : Math.round(parseAmount(parts[4]));
+      if (!['hero', 'pet', 'item'].includes(String(kind).toLowerCase()) || !rarity || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>tipo raridade min max [recomendado]</code>\nEx.: <code>hero epic 50000 400000 120000</code>\nTipos: hero, pet, item. Use <code>default</code> como raridade curinga.');
+      }
+      const r = await rpc('admin_market_set_price_range', {
+        p_admin_id: ctx.adminId,
+        p_item_type: String(kind).toLowerCase(),
+        p_rarity: String(rarity).toLowerCase(),
+        p_min: min,
+        p_max: max,
+        p_recommended: rec,
+      }) as any;
+      const range = r?.range || {};
+      return send(ctx, `✅ <b>FAIXA ATUALIZADA</b>\n${esc(String(kind).toLowerCase())} · ${esc(String(rarity).toLowerCase())}\n${fmt(range.min ?? min)} a ${fmt(range.max ?? max)} FC · recomendado ${fmt(range.recommended ?? rec ?? 0)} FC`,
+        kb([[{ t: '🏷 FAIXAS DE PREÇO', d: 'mk:ranges' }], nav('mk:sec')]));
+    }
+    case 'mksettle': {
+      const hours = Math.round(parseAmount(text));
+      if (!Number.isFinite(hours) || hours < 0 || hours > 720) throw new Error('KEEP_SESSION::⚠️ Envie as horas de retenção (0 a 720). Ex.: <code>72</code>.');
+      await mkSecSet(ctx, 'market_settlement_hours', hours);
+      return send(ctx, `✅ Retenção de pagamento agora é <b>${fmt(hours)}h</b>.`, kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkreq': {
+      const [d1, d2, d3] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![d1, d2, d3].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>diasConta diasAtivo heróis</code> (ex.: <code>7 3 5</code>).');
+      }
+      await mkSecSet(ctx, 'market_sell_requirements', { accountDays: d1, activeDays: d2, heroes: d3 });
+      return send(ctx, `✅ Requisitos para vender: conta <b>${fmt(d1)}d</b> · ativo <b>${fmt(d2)}d</b> · heróis <b>${fmt(d3)}</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkpair': {
+      const [trades, fcPerDay] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![trades, fcPerDay].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>tradesPorDia fcPorDia</code> (ex.: <code>3 2000000</code>).');
+      }
+      await mkSecSet(ctx, 'market_pair_limits', { tradesPerDay: trades, fcPerDay });
+      return send(ctx, `✅ Limite por par/24h: <b>${fmt(trades)}</b> trades · <b>${fmt(fcPerDay)} FC</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkvel': {
+      const [p5, p1h, p24, cd] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![p5, p1h, p24, cd].every((v) => Number.isFinite(v) && v >= 0)) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>por5min por1h por24h cooldownMin</code> (ex.: <code>5 15 40 360</code>).');
+      }
+      await mkSecSet(ctx, 'market_velocity', { per5m: p5, per1h: p1h, per24h: p24, cooldownMinutes: cd });
+      return send(ctx, `✅ Velocidade: 5m <b>${fmt(p5)}</b> · 1h <b>${fmt(p1h)}</b> · 24h <b>${fmt(p24)}</b> · cooldown <b>${fmt(cd)}min</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    case 'mkdyn': {
+      const [minPercent, maxPercent, minSamples, days] = text.split(/\s+/).map((v) => Math.round(parseAmount(v)));
+      if (![minPercent, maxPercent, minSamples, days].every((v) => Number.isFinite(v) && v >= 0) || maxPercent <= minPercent) {
+        throw new Error('KEEP_SESSION::⚠️ Formato: <code>min% max% minAmostras dias</code> (ex.: <code>50 200 5 30</code>).');
+      }
+      await mkSecSet(ctx, 'market_dynamic_range', { minPercent, maxPercent, minSamples, days });
+      return send(ctx, `✅ Faixa dinâmica: <b>${fmt(minPercent)}%</b>–<b>${fmt(maxPercent)}%</b> da mediana · min amostras <b>${fmt(minSamples)}</b> · janela <b>${fmt(days)}d</b>.`,
+        kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
     // ---- 🛒 marketplace prompts (every rule is enforced inside the RPCs)
     case 'mksearch': {
       const rows = await rpc('admin_market_search', { p_admin_id: ctx.adminId, p_query: text.slice(0, 60), p_limit: 15 }) as any[];
