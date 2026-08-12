@@ -3,11 +3,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { realtimeSupabase as supabase } from './realtimeClient';
 
 import type { ChannelRewards, RewardHistory } from './services';
-import { fetchGlobalBossRanking, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
+import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
 import type { MarketBrowse, MarketCurrency, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
 
 import type { GameState } from './types';
-import type { BossCombat, GlobalBossRanking } from './combat';
+import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
 import type { PvpDashboard, PvpHero } from './pvp';
@@ -43,6 +43,11 @@ export const useBossCombat = (telegramInitData: string | null, enabled: boolean)
 export const useGlobalBossRanking=(telegramInitData:string|null,enabled:boolean,limit=50)=>useQuery<GlobalBossRanking>({
   queryKey:['global-boss-ranking',telegramInitData,limit],queryFn:()=>fetchGlobalBossRanking(telegramInitData??'',limit),
   enabled,refetchInterval:enabled?10_000:false,staleTime:8_000,retry:1
+});
+/** Global boss history (past cycles); one row per finished boss cycle. */
+export const useGlobalBossHistory=(telegramInitData:string|null,enabled:boolean,limit=10)=>useQuery<GlobalBossHistoryRow[]>({
+  queryKey:['global-boss-history',telegramInitData,limit],queryFn:()=>fetchGlobalBossHistory(telegramInitData??'',limit),
+  enabled,staleTime:30_000,retry:1
 });
 export const useReferralDashboard=(telegramInitData:string|null,enabled:boolean,level?:1|2|3,offset=0)=>useQuery<ReferralDashboard>({queryKey:['referral-dashboard',telegramInitData,level??'all',offset],queryFn:()=>fetchReferralDashboard(telegramInitData??'',level,offset),enabled,staleTime:60_000,refetchInterval:120_000,refetchOnWindowFocus:true,retry:1});
 export const usePetDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<PetDashboard>({queryKey:['pet-dashboard',telegramInitData],queryFn:async()=>petRequest(telegramInitData??'',{action:'dashboard'}) as Promise<PetDashboard>,enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});

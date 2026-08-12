@@ -9,7 +9,8 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
-import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
+import { useGlobalBossHistory, useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
+import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
@@ -24,8 +25,22 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const [isRankingOpen,setIsRankingOpen]=useState(false);
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
+  const history=useGlobalBossHistory(telegramInitData??null,Boolean(telegramInitData));
+  // Cycle swap banner: shows "Boss Defeated / Rewards Distributed / Next Boss Appeared".
+  const [swap,setSwap]=useState<'defeated'|'expired'|null>(null);
+  const lastCycle=useRef<number|null>(global?.cycleNumber??null);
   // Live cycle: reward pool, HP, ends_at, boss swap, status and ranking arrive via Realtime.
   useGlobalBossRealtime(global?.cycleId??null,Boolean(telegramInitData));
+
+  useEffect(()=>{
+    const cycle=global?.cycleNumber??null; if(cycle===null)return;
+    if(lastCycle.current!==null&&cycle>lastCycle.current){
+      setSwap(global?.endedReason==='expired'?'expired':'defeated');
+      const timer=window.setTimeout(()=>setSwap(null),3200);
+      lastCycle.current=cycle; return()=>clearTimeout(timer);
+    }
+    lastCycle.current=cycle;
+  },[global?.cycleNumber,global?.endedReason]);
 
   const previous=useRef(combat?.bossCurrentHp ?? game.boss.healthPercent);
   const equipInFlight=useRef(false);
@@ -74,14 +89,25 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
     equipInFlight.current=true;
     try{await onEquipHero(hero.id,selectedSlot);setIsHeroModalOpen(false);setSelectedSlot(null);}catch(error){console.error('Falha ao equipar herói',error);}finally{equipInFlight.current=false;}
   };
-  return <section className="space-y-4"><div className={`boss-arena relative overflow-hidden rounded-3xl border border-white/10 bg-forge-black/80 p-4 shadow-card ${hit?'boss-arena-hit':''}`}>
-    <img src={backgrounds.boss} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70"/><div className="absolute inset-0 bg-gradient-to-b from-[#07090d]/20 via-[#07090d]/50 to-[#07090d]/95"/>
-    <img src={dragon} alt={combat?.bossName??t('boss.defaultName')} className="boss-dragon relative mx-auto mt-8 h-64 w-full object-contain"/><div className="relative">
-      <div className="flex justify-between"><div><p className="text-xs uppercase tracking-[.3em] text-amber-300/90">{t('boss.globalBoss')}{global?` · ${t('boss.cycle')} #${global.cycleNumber}`:''}</p><h3 className="text-lg font-semibold">{global?.name??combat?.bossName??t('boss.defaultName')}</h3><p className="text-[10px] text-slate-400">{lang.boss} · Nv. {combat?.bossLevel??1}{endsIn!==null?` · ${t('boss.endsIn')} ${formatDuration(endsIn)}`:''}</p></div><div className="text-right"><ShieldCheck className="ml-auto h-5 w-5 text-rose-400"/><p className="text-[10px] text-slate-400">{translate(languageCode,'kills')}: {combat?.defeats??game.boss.defeats??0}</p><button type="button" onClick={()=>setIsRankingOpen(true)} className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-xl border border-amber-300/40 bg-amber-400/10 px-2.5 text-[10px] font-bold text-amber-300"><Trophy className="h-3.5 w-3.5"/>{t('boss.ranking')}</button></div></div>
-      <div className="mt-3 rounded-2xl bg-black/65 p-3"><div className="flex justify-between text-sm"><span>{t('boss.globalHp')}</span><b>{Math.ceil(hp).toLocaleString()} / {maxHp.toLocaleString()} HP</b></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-rose-500 via-orange-500 to-amber-400 transition-all duration-500" style={{width:`${progress}%`}}/></div>{global?<div className="mt-2 flex justify-between text-[9px] text-slate-400"><span>{t('boss.participants')}: {global.participants.toLocaleString()}</span><span>{t('boss.rewardPool')}: {compact(global.rewardPoolFc)} FC</span></div>:null}</div>
+  const theme=globalBossTheme(global?.bossKey,global?.bossNumber);
+  const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
+  const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
+  const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
+  return <section className="space-y-4"><div className={`boss-arena relative overflow-hidden rounded-3xl border ${theme.border} p-4 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundImage:theme.stage}}>
+    <img src={backgrounds.boss} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25"/><div className="absolute inset-0" style={{backgroundImage:theme.stage,opacity:.72}}/>
+    {swap?<div className="gb-swap-overlay"><b>{swap==='defeated'?t('boss.swapDefeated'):t('boss.swapExpired')}</b><span>{t('boss.swapRewards')}</span><span>{t('boss.swapNext')}</span></div>:null}
+    <div className="relative mx-auto mt-6 grid h-64 w-full place-items-center">
+      <div className="gb-aura absolute h-52 w-52 rounded-full blur-2xl" style={{backgroundImage:theme.aura}}/>
+      <img key={`${global?.cycleId??'boss'}`} src={bossArt} alt={global?.name??combat?.bossName??t('boss.defaultName')} className="gb-boss gb-enter relative h-64 w-full object-contain" style={{filter:theme.glow}}/>
+    </div><div className="relative">
+      <div className="flex justify-between"><div><p className={`text-xs uppercase tracking-[.3em] ${theme.accent}`}>{t('boss.globalBoss')}{global?` · ${t('boss.cycle')} #${global.cycleNumber}`:''}</p><h3 className="text-lg font-semibold">{global?.name??combat?.bossName??t('boss.defaultName')}</h3><p className="text-[10px] text-slate-400">{global?.subtitle??`${t('boss.globalBoss')} · ${t('levelShort')}${global?.bossLevel??combat?.bossLevel??1}`}</p><p className="text-[10px] text-slate-400">{lang.boss} {bossNumber}/{totalBosses}{endsIn!==null?` · ${t('boss.endsIn')} ${formatDuration(endsIn)}`:''}</p></div><div className="text-right"><ShieldCheck className="ml-auto h-5 w-5 text-rose-400"/><p className="text-[10px] text-slate-400">{translate(languageCode,'kills')}: {combat?.defeats??game.boss.defeats??0}</p><button type="button" onClick={()=>setIsRankingOpen(true)} className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-xl border border-amber-300/40 bg-amber-400/10 px-2.5 text-[10px] font-bold text-amber-300"><Trophy className="h-3.5 w-3.5"/>{t('boss.ranking')}</button></div></div>
+      <div className="mt-3 rounded-2xl border border-white/10 bg-black/65 p-3"><div className="flex justify-between text-sm"><span>{t('boss.globalHp')}</span><b>{Math.ceil(hp).toLocaleString()} / {maxHp.toLocaleString()} HP</b></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full transition-all duration-500" style={{width:`${progress}%`,backgroundImage:theme.bar}}/></div>{global?<div className="mt-2 flex justify-between text-[9px] text-slate-400"><span>{t('boss.participants')}: {global.participants.toLocaleString()}</span><span>{t('boss.rewardPool')}: {compact(global.rewardPoolFc)} FC</span></div>:null}</div>
       {global?.lastReward?<p className="mt-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-2.5 text-center text-[10px] text-emerald-200">{t('boss.lastReward')}: <b>{compact(global.lastReward.rewardFc)} FC</b> · #{global.lastReward.rank}</p>:null}
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs"><Stat label={t('boss.totalDamage')} value={compact(global?.totalDamage??0)}/><Stat label={t('boss.yourDamage')} value={compact(global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage)}/><Stat label={t('boss.yourRank')} value={global?.yourRank?`#${global.yourRank}`:'—'}/><Stat label={t('boss.estReward')} value={`${compact(Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100)))} FC`} gold/><Stat label={t('teamAttack')} value={totalAtk.toFixed(3)}/><Stat label={t('teamHealth')} value={`${totalHp}/${totalMaxHp}`}/><Stat label={t('damagePerCycle')} value={damage.toFixed(3)}/><Stat label={t('boss.petBonusLabel')} value={activePet?`${activePet.name} · ${petBonusText}`:petBonusText}/><Stat label={t('timeRemainingLabel')} value={alive.length?formatDuration(remaining??NaN):t('waitingRevive')}/><Stat label="Revive" value={formatDuration(effectiveReviveSeconds(petReviveBonus))}/><Stat label={t('rarityEstimate')} value={formatDuration(calculateRarityEstimatedDuration(heroes))}/><Stat label={t('nextAttacks')} value={`${t('teamLabel')} ${formatDuration(secondsUntil(combat?.nextHeroAttackAt))} · ${t('bossLabel')} ${formatDuration(secondsUntil(combat?.bossNextAttackAt))}`}/></div>
       {global&&global.minimumDamage>0?<p className="mt-2 text-center text-[9px] text-slate-400">{t('boss.minDamage')}: {compact(global.minimumDamage)}</p>:null}
+      {isFinalBoss?<p className="mt-2 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-2.5 text-center text-[10px] font-bold text-amber-200">{t('boss.comingSoon')}</p>:null}
+      {history.data?.length?<div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-2.5"><p className={`text-[9px] font-bold uppercase tracking-[.2em] ${theme.accent}`}>{t('boss.historyTitle')}</p><div className="mt-2 space-y-1.5">{history.data.slice(0,5).map(row=><div key={row.cycleId} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/55 p-1.5"><img src={globalBossArt(row.bossKey,row.bossNumber)} alt="" loading="lazy" className="h-8 w-8 shrink-0 object-contain"/><div className="min-w-0 flex-1"><div className="flex justify-between text-[9px]"><b className="text-slate-200">#{row.cycleNumber} · {row.name}</b><span className={row.endedReason==='defeated'||row.status==='defeated'?'text-emerald-300':'text-slate-400'}>{row.endedReason==='defeated'||row.status==='defeated'?t('boss.historyDefeated'):t('boss.historyExpired')}</span></div><p className="text-[9px] text-slate-400">{t('boss.totalDamage')}: {compact(row.totalDamage)} · {t('boss.yourDamage')}: {compact(row.yourDamage??0)}{row.yourReward?` · +${compact(row.yourReward)} FC`:''}</p></div></div>)}</div></div>:null}
+
 
       <PetCompanion pet={activePet} buffs={bossPetBonuses} />
       <div className="mt-4 flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-[.2em]">{t('combatEquipment')}</p><span className="text-[9px] text-emerald-400">{syncing?t('syncingBackend'):backendOfficial?t('officialBackend'):t('testMode')}</span></div>

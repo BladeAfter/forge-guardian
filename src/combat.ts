@@ -29,13 +29,27 @@ export type CombatHero = {
 
 export type GlobalBossState = {
   cycleId: string; cycleNumber: number; name: string; image?: string | null;
-  status: 'active' | 'defeated' | 'distributing' | 'completed';
+  /** Progression metadata (10 global bosses, each stronger than the previous one). */
+  bossKey?: string | null; bossNumber?: number | null; subtitle?: string | null;
+  theme?: string | null; background?: string | null; totalBosses?: number | null;
+  bossLevel?: number | null; endedReason?: 'defeated' | 'expired' | string | null;
+  status: 'active' | 'defeated' | 'expired' | 'distributing' | 'completed';
   maxHp: number; currentHp: number; rewardPoolFc: number; totalDamage: number;
   participants: number; startsAt?: string | null; endsAt?: string | null; defeatedAt?: string | null;
   yourDamage: number; yourRank: number | null; yourSharePercent: number; estimatedReward: number;
   minimumDamage: number; minimumRewardFc: number; rankBonusEnabled: boolean;
   lastReward?: { cycleNumber?: number; rewardFc: number; rank: number; damage: number } | null;
 };
+
+export type GlobalBossHistoryRow = {
+  cycleId: string; cycleNumber: number; name: string; bossNumber?: number | null; bossKey?: string | null;
+  status: string; endedReason?: 'defeated' | 'expired' | string | null;
+  maxHp: number; totalDamage: number; participants: number; rewardPoolFc: number;
+  completedAt?: string | null; defeatedAt?: string | null;
+  topName?: string | null; topDamage?: number | null;
+  yourDamage: number; yourRank: number | null; yourReward: number;
+};
+
 
 export type GlobalBossRankingEntry = {
   rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null;
