@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
-import { Bell, Settings, X } from 'lucide-react';
+import { Bell, ChevronRight, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
