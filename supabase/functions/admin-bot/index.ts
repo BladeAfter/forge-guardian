@@ -2397,6 +2397,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'm') { await clearSession(ctx); return module(ctx, rest[0]); }
   // Hero wizard keeps its own persisted session, so it must run before the generic prompts.
   if (head === 'hw') return heroWizardCallback(ctx, rest);
+  // 🐲 Pet CMS keeps its own persisted session too.
+  if (head === 'pw') return petCms.callback(ctx, rest);
   if (head === 'cl') { if (!['ask'].includes(rest[0])) await clearSession(ctx); return clansCallback(ctx, rest); }
   if (head === 'gf') return giftCallback(ctx, rest);
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
@@ -3828,6 +3830,27 @@ Deno.serve(async (req) => {
     // Hero wizard: the persisted step decides how the next message (text OR photo) is interpreted.
     // Menu commands are never triggered while a wizard step is waiting for an answer.
     const wiz = await getSession(ctx);
+    if (wiz?.action === 'petcms') {
+      const wizText = String(update.message?.text || '').trim();
+      const wizCmd = wizText.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
+      if (!['/start', '/menu', '/admin', '/cancel'].includes(wizCmd)) {
+        const photos = update.message?.photo as { file_id: string }[] | undefined;
+        const doc = update.message?.document as { file_id: string; mime_type?: string } | undefined;
+        const draft = wiz.context as never;
+        try {
+          if (photos?.length) await petCms.photo(ctx, wiz.step, draft, String(photos[photos.length - 1].file_id));
+          else if (doc?.mime_type?.startsWith('image/')) await petCms.photo(ctx, wiz.step, draft, String(doc.file_id));
+          else if (wizText) await petCms.text(ctx, wiz.step, draft, wizText);
+          else await send(ctx, '⚠️ Envie um texto ou uma foto para continuar.', kb([[{ t: '❌ CANCELAR', d: 'cancel' }]]));
+        } catch (err) {
+          const raw = err instanceof Error ? err.message : String(err);
+          console.error('pet cms error:', raw);
+          await send(ctx, `⚠️ Falha no editor de pets: <code>${esc(raw).slice(0, 300)}</code>`, kb([[{ t: '🐲 PET CMS', d: 'pw:hub' }], nav()]));
+        }
+        return new Response(JSON.stringify({ ok: true }));
+      }
+      await clearSession(ctx);
+    }
     if (wiz?.action === 'herowiz') {
       const wizText = String(update.message?.text || '').trim();
       const wizCmd = wizText.split(/\s+/)[0].replace(/@.*/, '').toLowerCase();
