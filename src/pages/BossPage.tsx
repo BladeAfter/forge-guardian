@@ -9,7 +9,7 @@ import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroM
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
-import { useGlobalBossHistory, useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
+import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
 
@@ -25,7 +25,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const [isRankingOpen,setIsRankingOpen]=useState(false);
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
-  const history=useGlobalBossHistory(telegramInitData??null,Boolean(telegramInitData));
+  
   // Cycle swap banner: shows "Boss Defeated / Rewards Distributed / Next Boss Appeared".
   const [swap,setSwap]=useState<'defeated'|'expired'|null>(null);
   const lastCycle=useRef<number|null>(global?.cycleNumber??null);
@@ -108,7 +108,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs"><Stat label={t('boss.totalDamage')} value={compact(global?.totalDamage??0)}/><Stat label={t('boss.yourDamage')} value={compact(global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage)}/><Stat label={t('boss.yourRank')} value={global?.yourRank?`#${global.yourRank}`:'—'}/><Stat label={t('boss.estReward')} value={`${compact(Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100)))} FC`} gold/><Stat label={t('teamAttack')} value={totalAtk.toFixed(3)}/><Stat label={t('teamHealth')} value={`${totalHp}/${totalMaxHp}`}/><Stat label={t('damagePerCycle')} value={damage.toFixed(3)}/><Stat label={t('boss.petBonusLabel')} value={activePet?`${activePet.name} · ${petBonusText}`:petBonusText}/><Stat label={t('timeRemainingLabel')} value={alive.length?formatDuration(remaining??NaN):t('waitingRevive')}/><Stat label="Revive" value={formatDuration(effectiveReviveSeconds(petReviveBonus))}/><Stat label={t('rarityEstimate')} value={formatDuration(calculateRarityEstimatedDuration(heroes))}/><Stat label={t('nextAttacks')} value={`${t('teamLabel')} ${formatDuration(secondsUntil(combat?.nextHeroAttackAt))} · ${t('bossLabel')} ${formatDuration(secondsUntil(combat?.bossNextAttackAt))}`}/></div>
       {global&&global.minimumDamage>0?<p className="mt-2 text-center text-[9px] text-slate-400">{t('boss.minDamage')}: {compact(global.minimumDamage)}</p>:null}
       {isFinalBoss?<p className="mt-2 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-2.5 text-center text-[10px] font-bold text-amber-200">{t('boss.comingSoon')}</p>:null}
-      {history.data?.length?<div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-2.5"><p className={`text-[9px] font-bold uppercase tracking-[.2em] ${theme.accent}`}>{t('boss.historyTitle')}</p><div className="mt-2 space-y-1.5">{history.data.slice(0,5).map(row=><div key={row.cycleId} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/55 p-1.5"><img src={globalBossArt(row.bossKey,row.bossNumber)} alt="" loading="lazy" className="h-8 w-8 shrink-0 object-contain"/><div className="min-w-0 flex-1"><div className="flex justify-between text-[9px]"><b className="text-slate-200">#{row.cycleNumber} · {row.name}</b><span className={row.endedReason==='defeated'||row.status==='defeated'?'text-emerald-300':'text-slate-400'}>{row.endedReason==='defeated'||row.status==='defeated'?t('boss.historyDefeated'):t('boss.historyExpired')}</span></div><p className="text-[9px] text-slate-400">{t('boss.totalDamage')}: {compact(row.totalDamage)} · {t('boss.yourDamage')}: {compact(row.yourDamage??0)}{row.yourReward?` · +${compact(row.yourReward)} FC`:''}</p></div></div>)}</div></div>:null}
+      
 
 
       <PetCompanion pet={activePet} buffs={bossPetBonuses} />
