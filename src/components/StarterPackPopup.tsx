@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Loader2, Check } from 'lucide-react';
-import { useTranslator } from '../LanguageContext';
+import { useT } from '../LanguageContext';
 
 /** Official art already used elsewhere in the game (no duplicated assets). */
 const FC_ART = '/assets/game/ui/forge-coin.png';
@@ -20,7 +20,7 @@ type Props = {
  * so the player can retry, and nothing is marked as claimed.
  */
 export function StarterPackPopup({ onClaim, onDone }: Props) {
-  const t = useTranslator();
+  const t = useT();
   const [state, setState] = useState<'idle' | 'loading' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
 
