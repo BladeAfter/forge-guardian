@@ -1700,6 +1700,7 @@ export type Database = {
           market_pending_ton: number
           market_restricted_until: string | null
           market_trust: string
+          name: string | null
           premium_until: string | null
           pvp_banned: boolean
           pvp_losses: number
@@ -1735,6 +1736,7 @@ export type Database = {
           market_pending_ton?: number
           market_restricted_until?: string | null
           market_trust?: string
+          name?: string | null
           premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
@@ -1770,6 +1772,7 @@ export type Database = {
           market_pending_ton?: number
           market_restricted_until?: string | null
           market_trust?: string
+          name?: string | null
           premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
