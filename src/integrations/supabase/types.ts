@@ -5062,6 +5062,9 @@ export type Database = {
           created_at: string
           crit_rate: number | null
           defense: number | null
+          equip_atk: number
+          equip_def: number
+          equip_hp: number
           exclusive_badge: string | null
           exclusive_pass_tier: string | null
           exclusive_passive: Json
@@ -5103,6 +5106,9 @@ export type Database = {
           created_at?: string
           crit_rate?: number | null
           defense?: number | null
+          equip_atk?: number
+          equip_def?: number
+          equip_hp?: number
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -5144,6 +5150,9 @@ export type Database = {
           created_at?: string
           crit_rate?: number | null
           defense?: number | null
+          equip_atk?: number
+          equip_def?: number
+          equip_hp?: number
           exclusive_badge?: string | null
           exclusive_pass_tier?: string | null
           exclusive_passive?: Json
@@ -10038,6 +10047,18 @@ export type Database = {
         Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
         Returns: Json
       }
+      equip_hero_equipment: {
+        Args: {
+          p_hero_id: string
+          p_instance_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      equipment_class_ok: {
+        Args: { p_archetype: string; p_hero_class: string }
+        Returns: boolean
+      }
       event_default_rules: { Args: never; Returns: Json }
       event_distribute: { Args: { p_event_id: string }; Returns: Json }
       event_finalize: { Args: { p_event_id: string }; Returns: Json }
@@ -10294,6 +10315,10 @@ export type Database = {
         Returns: Json
       }
       hero_effective_summon_odds: { Args: never; Returns: Json }
+      hero_equipment_json: {
+        Args: { p_hero_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       hero_fusion_config: { Args: never; Returns: Json }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
@@ -10310,6 +10335,7 @@ export type Database = {
       }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
+      hero_recalc_equipment: { Args: { p_hero: string }; Returns: undefined }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_recruit_rarity_flags: { Args: never; Returns: Json }
       hero_stat_ranges: {
@@ -11000,6 +11026,15 @@ export type Database = {
       unaccent_fallback: { Args: { v: string }; Returns: string }
       unequip_combat_hero: {
         Args: { p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
+      unequip_hero_equipment: {
+        Args: {
+          p_hero_id: string
+          p_instance_id?: string
+          p_slot?: string
+          p_telegram_id: number
+        }
         Returns: Json
       }
       universal_fragment_balance: {
