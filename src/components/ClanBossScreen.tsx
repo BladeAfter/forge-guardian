@@ -35,7 +35,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   // Auto ATK is a backend benefit: the client only toggles the stored preference.
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoOverride, setAutoOverride] = useState<ClanBossAutoAttackState | null>(null);
-  const auto = autoOverride ?? data?.autoAttack ?? null;
+  // The panel is always visible on the Clan Boss screen (same as the Global Boss):
+  // when the backend has no state yet we fall back to a locked/disabled view.
+  const auto: ClanBossAutoAttackState =
+    autoOverride ?? data?.autoAttack ?? { eligible: false, enabled: false, active: false, hasTeam: false, intervalSeconds: 1800, reason: 'no_pass' };
   // Once the server state refreshes it becomes the source of truth again.
   useEffect(() => { setAutoOverride(null); }, [data?.autoAttack?.nextAttackAt, data?.autoAttack?.enabled]);
 
@@ -271,7 +274,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
       </div>
 
       {/* Season Pass benefit: offline Auto ATK (independent from the Global Boss) */}
-      {auto ? (
+      {(
         <div className={`mt-3 flex items-center justify-between gap-2 rounded-2xl border p-3 ${auto.active ? 'border-amber-300/50 bg-gradient-to-r from-amber-400/15 to-violet-500/10' : 'border-white/10 bg-black/60'}`}>
           <div className="min-w-0">
             <p className={`text-[11px] font-black uppercase tracking-[.18em] ${auto.active ? 'text-amber-200' : 'text-slate-300'}`}>
@@ -311,7 +314,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
             </button>
           ) : null}
         </div>
-      ) : null}
+      )}
 
       {/* Attack */}
       <button
