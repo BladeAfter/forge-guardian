@@ -3353,6 +3353,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'mk') {
     const [sub, arg] = String(rest[0] || '').split('|');
     if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'revenue') return marketRevenue(ctx);
     if (sub === 'toggle') {
       const on = arg === 'on';
       return edit(ctx, on
