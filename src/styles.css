@@ -861,3 +861,11 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   box-shadow:0 0 12px rgba(34,211,238,.55);
 }
 @media (prefers-reduced-motion:reduce){.nft-hero-card{animation:none}}
+
+/* MYTHIC egg name: official mythic rarity tint (magenta/violet) with a soft glow. */
+.egg-name-mythic{
+  color:#f0abfc;
+  background-image:linear-gradient(100deg,#e879f9 0%,#c084fc 55%,#a855f7 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:0 0 10px rgba(232,121,249,.35);
+}
