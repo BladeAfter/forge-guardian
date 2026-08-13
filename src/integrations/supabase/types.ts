@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_reward_claims: {
+        Row: {
+          ad_event_id: string
+          amount_ton: number
+          block_id: string | null
+          created_at: string
+          id: string
+          reward_period: string
+          rewarded_at: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ad_event_id: string
+          amount_ton?: number
+          block_id?: string | null
+          created_at?: string
+          id?: string
+          reward_period: string
+          rewarded_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ad_event_id?: string
+          amount_ton?: number
+          block_id?: string | null
+          created_at?: string
+          id?: string
+          reward_period?: string
+          rewarded_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -5950,32 +5992,41 @@ export type Database = {
       referral_commissions: {
         Row: {
           amount_fc: number
+          amount_ton: number
           created_at: string
           from_user: string
           id: string
           idempotency_key: string | null
           level: number
           purchase_id: string
+          source_amount_ton: number | null
+          source_type: string | null
           user_id: string
         }
         Insert: {
-          amount_fc: number
+          amount_fc?: number
+          amount_ton?: number
           created_at?: string
           from_user: string
           id?: string
           idempotency_key?: string | null
           level: number
           purchase_id: string
+          source_amount_ton?: number | null
+          source_type?: string | null
           user_id: string
         }
         Update: {
           amount_fc?: number
+          amount_ton?: number
           created_at?: string
           from_user?: string
           id?: string
           idempotency_key?: string | null
           level?: number
           purchase_id?: string
+          source_amount_ton?: number | null
+          source_type?: string | null
           user_id?: string
         }
         Relationships: [
@@ -6056,6 +6107,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_first_ton_events: {
+        Row: {
+          amount_ton: number
+          buyer_id: string
+          commission_ton: number
+          created_at: string
+          processed_at: string
+          source_id: string
+          source_type: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ton: number
+          buyer_id: string
+          commission_ton?: number
+          created_at?: string
+          processed_at?: string
+          source_id: string
+          source_type: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ton?: number
+          buyer_id?: string
+          commission_ton?: number
+          created_at?: string
+          processed_at?: string
+          source_id?: string
+          source_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       referral_purchase_events: {
         Row: {
@@ -7678,10 +7762,18 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ad_reward_begin: { Args: { p_telegram_id: number }; Returns: Json }
+      ad_reward_claim: {
+        Args: { p_source?: string; p_telegram_id: number; p_view_id?: string }
+        Returns: Json
+      }
+      ad_reward_period_reset_at: { Args: never; Returns: string }
+      ad_rewards_state: { Args: { p_user_id: string }; Returns: Json }
       add_universal_fragments: {
         Args: { p_quantity: number; p_user_id: string }
         Returns: number
       }
+      admin_ad_rewards_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_adjust_balance: {
         Args: {
           p_admin_id: number
@@ -9346,6 +9438,7 @@ export type Database = {
       game_next_reset_at: { Args: { p_at?: string }; Returns: string }
       game_timezone: { Args: never; Returns: string }
       generate_missing_hero_stats: { Args: never; Returns: number }
+      get_ad_rewards: { Args: { p_telegram_id: number }; Returns: Json }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_channel_rewards: { Args: { p_telegram_id: number }; Returns: Json }
@@ -9911,6 +10004,15 @@ export type Database = {
       }
       recruit_heroes: {
         Args: { p_count: number; p_telegram_id: number }
+        Returns: Json
+      }
+      referral_pay_ton_commission: {
+        Args: {
+          p_amount_ton: number
+          p_buyer_id: string
+          p_source_id: string
+          p_source_type: string
+        }
         Returns: Json
       }
       remove_pvp_team_slot: {

@@ -22,6 +22,7 @@ import {HeroesPage}from'./pages/HeroesPage';
 import {ClanHubPage}from'./pages/ClanHubPage';
 import {ClanHall}from'./components/ClanHall';
 import {PartnersModal}from'./components/PartnersModal';
+import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
@@ -461,16 +462,12 @@ function App() {
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
   },[serverBalance]);
 
-  // Notifications are shown once and then marked as read ON THE SERVER, so relaunching the
-  // Mini App never replays an old commission toast (React state alone would reset every boot).
+  // Notifications are silently marked as read ON THE SERVER: commissions are TON-only now
+  // and must NEVER pop a toast/modal when the player opens the Mini App.
   useEffect(()=>{
     const unread=referralDashboard?.notifications??[];
     if(!unread.length||!telegramInitData)return;
-    const latest=unread[0];
-    if(latest.id!==lastCommissionNotification.current){
-      lastCommissionNotification.current=latest.id;
-      if(latest.amountFc)toast.success(`${latest.message} · ${latest.title}`);
-    }
+    lastCommissionNotification.current=unread[0].id;
     markNotificationsRead(telegramInitData,unread.map(item=>item.id))
       .then(()=>queryClient.invalidateQueries({queryKey:['referral-dashboard']}))
       .catch((error:unknown)=>console.error('[NOTIFICATIONS]',error instanceof Error?error.message:error));
@@ -560,6 +557,7 @@ function App() {
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
+  const [rewardsOpen,setRewardsOpen]=useState(false);
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
@@ -906,13 +904,20 @@ function App() {
             <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
-          {/* Small, discreet entry point: the partner list itself is a compact modal. */}
-          <button
-            onClick={()=>setPartnersOpen(true)}
-            className="self-start rounded-full border border-amber-300/30 bg-black/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200"
-          >🤝 {t('partners.button')}</button>
+          {/* Small, discreet entry points: partner channels and TON rewarded ads. */}
+          <div className="flex w-full items-center gap-2">
+            <button
+              onClick={()=>setPartnersOpen(true)}
+              className="rounded-full border border-amber-300/30 bg-black/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200"
+            >🤝 {t('partners.button')}</button>
+            <button
+              onClick={()=>setRewardsOpen(true)}
+              className="rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-400/20 to-orange-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-100 shadow-[0_0_14px_rgba(251,191,36,.3)]"
+            >💎 {t('adRewards.button')}</button>
+          </div>
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
+          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
 
           {shopOpen ? (
             <HeroShopPanel
