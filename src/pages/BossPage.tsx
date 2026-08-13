@@ -12,6 +12,9 @@ import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue
 import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
+import { TowerOfEternityPanel } from '../components/TowerOfEternityPanel';
+
+type BossMode='global'|'tower';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
 type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onClaimReward:()=>Promise<void>|void};
@@ -23,6 +26,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
+  const [bossMode,setBossMode]=useState<BossMode>('global');
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
   
