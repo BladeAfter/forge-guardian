@@ -59,6 +59,8 @@ export type InventoryItem={
  /** Equipment-only metadata (weapons / armor / rings). Absent for every other item type. */
  slot?:'weapon'|'armor'|'ring';kind?:string;heroClass?:string|null;
  bonusAttack?:number;bonusDefense?:number;bonusHp?:number;power?:number;
+ /** Equipment usage state: an equipped item is locked for trading. */
+ equipped?:boolean;equippedHeroId?:string|null;equippedHeroName?:string|null;listed?:boolean;
 };
 export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[];items:InventoryItem[]};
 

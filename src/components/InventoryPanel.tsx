@@ -175,6 +175,9 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
                       {selected.heroClass ? ` · ${selected.heroClass}` : ''}
                     </p>
                     <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> · DEF <b className="text-white">+{selected.bonusDefense ?? 0}</b> · HP <b className="text-white">+{selected.bonusHp ?? 0}</b></p>
+                    <p className={selected.equipped ? 'font-black uppercase tracking-[.12em] text-amber-300' : 'font-black uppercase tracking-[.12em] text-emerald-300'}>
+                      {selected.equipped ? `🔒 EQUIPPED${selected.equippedHeroName ? ` · ${selected.equippedHeroName}` : ''}` : selected.listed ? '🔒 LISTED' : 'AVAILABLE'}
+                    </p>
                   </div>
                 ) : null}
                 <button
