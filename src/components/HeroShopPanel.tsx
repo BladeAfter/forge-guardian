@@ -231,6 +231,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
       ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), ...normalize(pet.locks, pet.available) }))
       : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}`, ...normalize(item.locks, item.available) }));
   const freeOptions = sellOptions.filter((option) => option.available);
+  const selectedOption = sellOptions.find((option) => option.id === selected?.id && option.code === selected?.code) ?? null;
 
   return (
     <div className="fullscreen-page flex items-center justify-center p-3">
@@ -582,7 +583,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseItem')}</p>
                   {sellable.isLoading ? <p className="mt-3 text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
                   {!sellable.isLoading && !sellOptions.length ? <p className="mt-3 text-center text-[10px] text-slate-500">{t('market.nothingOwned')}</p> : null}
-                  {!sellable.isLoading && sellOptions.length && !freeOptions.length ? <p className="mt-2 text-center text-[9px] leading-relaxed text-amber-200/80">{t('market.lockedHint')}</p> : null}
+                  {!sellable.isLoading && sellOptions.length > 0 && freeOptions.length === 0 ? <p className="mt-2 text-center text-[9px] leading-relaxed text-amber-200/80">{t('market.lockedHint')}</p> : null}
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
                     {sellOptions.map((option) => {
                       const active = selected?.id === option.id && selected?.code === option.code;
@@ -678,6 +679,14 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                       {confirming ? (
                         <div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-400/[.08] p-2.5">
                           <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-200">{t('market.confirmSaleTitle')}</p>
+                          {selectedOption ? (
+                            <div className="mt-1.5 space-y-0.5 rounded-lg border border-white/10 bg-black/40 p-2 text-[9px]">
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{t('market.heroes')}</span><strong className="text-white">{selectedOption.name}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">RARITY</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).toUpperCase()}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">LEVEL</span><strong className="text-white">{selectedOption.level}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{selectedOption.detail}</span><strong className={isTonSale ? 'text-sky-300' : 'text-amber-300'}>{amountLabel(split.price)} {priceUnit}</strong></div>
+                            </div>
+                          ) : null}
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
                             {t('market.confirmSaleBody', {
                               name: selected.name,

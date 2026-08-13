@@ -891,6 +891,7 @@ function App() {
             <HeroShopPanel
               telegramInitData={telegramInitData}
               fcBalance={fcBalance}
+              tonBalance={tonBalance}
               summonOdds={summonOdds}
               recruitPrice={recruitPrice}
               shopResults={shopResults}
