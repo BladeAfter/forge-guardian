@@ -4814,6 +4814,26 @@ Deno.serve(async (req) => {
       const info = await tg('getWebhookInfo', {});
       return new Response(JSON.stringify({ setWebhook: res, info }), { headers: { 'Content-Type': 'application/json' } });
     }
+    // Safe self-heal: re-points the webhook at this very function with the server-side secret.
+    // No secret is returned and the only possible outcome is the canonical registration.
+    if (url.searchParams.get('resync')) {
+      const hookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/admin-bot`;
+      await tg('setWebhook', {
+        url: hookUrl,
+        allowed_updates: ['message', 'callback_query'],
+        ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
+      });
+      const info = await tg('getWebhookInfo', {});
+      const r = info?.result ?? {};
+      return new Response(JSON.stringify({
+        ok: true,
+        superAdminId: SUPER_ADMIN_ID,
+        webhookMatches: r?.url === hookUrl,
+        pendingUpdates: r?.pending_update_count ?? null,
+        lastError: r?.last_error_message ?? null,
+        hasSecret: Boolean(WEBHOOK_SECRET),
+      }), { headers: { 'Content-Type': 'application/json' } });
+    }
     return new Response('ok');
   }
   if (req.method !== 'POST') return new Response('ok');
