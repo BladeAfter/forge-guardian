@@ -35,6 +35,7 @@ export const mainScreenArt = {
   pvp: gameAsset('ui/pool.webp'),
   invite: gameAsset('ui/invite-referral.webp'),
   pet: gameAsset('pets/pyron.webp')
+  ,market: gameAsset('ui/player-market.png')
   ,seasonPass: gameAsset('ui/season-pass-icon.png')
 };
 
