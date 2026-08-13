@@ -823,16 +823,16 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.buyEggTitle')}</p>
-            <h2 className="truncate text-lg font-black">🥚 {egg.name}</h2>
+            <h2 className={`break-words text-lg font-black leading-tight ${egg.slug === 'mythic-egg' ? 'egg-name-mythic' : ''}`}>{cleanEggName(egg.name)}</h2>
           </div>
           <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
-        <img src={egg.image} alt={egg.name} className="mx-auto h-28 w-28 object-contain" />
+        <img src={egg.image} alt={cleanEggName(egg.name)} className="mx-auto h-28 w-28 max-w-full object-contain" />
 
-        <div className="mt-2 flex flex-wrap justify-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
           {sortedRates(egg.rarityRates).map(([key, value]) => (
-            <span key={key} style={{ color: rarityColor[key] }} className="text-[9px] font-bold">{petRarityLabel(key)} {value}%</span>
+            <span key={key} style={{ color: rarityColor[String(key).toLowerCase()] }} className="whitespace-nowrap text-[9px] font-bold">{petRarityLabel(key)} {value}%</span>
           ))}
         </div>
 
