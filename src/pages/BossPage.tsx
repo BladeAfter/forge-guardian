@@ -12,6 +12,9 @@ import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue
 import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
+import { TowerOfEternityPanel } from '../components/TowerOfEternityPanel';
+
+type BossMode='global'|'tower';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
 type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onClaimReward:()=>Promise<void>|void};
@@ -23,6 +26,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
+  const [bossMode,setBossMode]=useState<BossMode>('global');
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
   
@@ -93,7 +97,15 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
-  return <section className="space-y-3"><div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
+  const modeSelector=<div className="grid grid-cols-2 gap-1 rounded-2xl border border-amber-400/25 bg-black/60 p-1">
+    {([['global','🌍 GLOBAL BOSS'],['tower','🏰 TOWER']] as Array<[BossMode,string]>).map(([value,label])=>{
+      const active=bossMode===value;
+      return <button type="button" key={value} onClick={()=>setBossMode(value)} className={`min-h-9 rounded-xl text-[10px] font-black uppercase tracking-wide transition ${active?'border border-amber-300/70 bg-gradient-to-b from-amber-500/25 to-amber-900/40 text-amber-100':'text-slate-400'}`}>{label}</button>;
+    })}
+  </div>;
+  if(bossMode==='tower')return <section className="space-y-3">{modeSelector}<TowerOfEternityPanel balance={game.balance} collection={collection} collectionLoading={collectionLoading}/></section>;
+  return <section className="space-y-3">{modeSelector}<div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
+
     <img key={`arena-${theme.key}`} src={theme.arena} alt="" aria-hidden className="gb-arena-art"/><div className="gb-arena-shade"/><div className="gb-arena-mist"/>
     {swap?<div className="gb-swap-overlay"><b>{swap==='defeated'?t('boss.swapDefeated'):t('boss.swapExpired')}</b><span>{t('boss.swapRewards')}</span><span>{t('boss.swapNext')}</span></div>:null}
     <div className="relative flex items-start justify-between gap-2"><div><p className={`text-[10px] uppercase tracking-[.3em] ${theme.accent}`}>{t('boss.globalBoss')}{global?` · ${t('boss.cycle')} #${global.cycleNumber}`:''}</p><h3 className="text-lg font-semibold leading-tight">{global?.name??combat?.bossName??t('boss.defaultName')}</h3><p className="text-[10px] text-slate-300/80">{global?.subtitle??`${t('boss.globalBoss')} · ${t('levelShort')}${global?.bossLevel??combat?.bossLevel??1}`}</p><p className="text-[10px] text-slate-300/80">{lang.boss} {bossNumber}/{totalBosses}{endsIn!==null?` · ${t('boss.endsIn')} ${formatDuration(endsIn)}`:''}</p></div><div className="text-right"><ShieldCheck className="ml-auto h-5 w-5 text-rose-400"/><p className="text-[10px] text-slate-300/80">{translate(languageCode,'kills')}: {combat?.defeats??game.boss.defeats??0}</p><button type="button" onClick={()=>setIsRankingOpen(true)} className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-xl border border-amber-300/40 bg-amber-400/10 px-2.5 text-[10px] font-bold text-amber-300"><Trophy className="h-3.5 w-3.5"/>{t('boss.ranking')}</button></div></div>
