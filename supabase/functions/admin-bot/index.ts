@@ -4834,6 +4834,40 @@ Deno.serve(async (req) => {
         hasSecret: Boolean(WEBHOOK_SECRET),
       }), { headers: { 'Content-Type': 'application/json' } });
     }
+    // Read-only diagnostics: confirms which bot the token belongs to and the live webhook state.
+    // Never returns the token itself.
+    if (url.searchParams.get('diag')) {
+      const me = await tg('getMe', {});
+      const info = await tg('getWebhookInfo', {});
+      const r = info?.result ?? {};
+      return new Response(JSON.stringify({
+        ok: true,
+        bot: me?.result ? { id: me.result.id, username: me.result.username } : null,
+        tokenConfigured: Boolean(BOT_TOKEN),
+        tokenSource: Deno.env.get('TELEGRAM_BOT_TOKEN_Admin') ? 'TELEGRAM_BOT_TOKEN_Admin'
+          : Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN') ? 'TELEGRAM_ADMIN_BOT_TOKEN'
+          : Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : null,
+        superAdminId: SUPER_ADMIN_ID,
+        webhook: {
+          url: r?.url ?? null,
+          pending_update_count: r?.pending_update_count ?? null,
+          last_error_message: r?.last_error_message ?? null,
+          last_error_date: r?.last_error_date ?? null,
+        },
+      }, null, 2), { headers: { 'Content-Type': 'application/json' } });
+    }
+    // Server-side self test: renders the main menu straight to the super admin chat.
+    if (url.searchParams.get('selftest')) {
+      const ctx: Ctx = { chatId: SUPER_ADMIN_ID, adminId: SUPER_ADMIN_ID };
+      try {
+        await clearSession(ctx).catch(() => {});
+        await home(ctx);
+        return new Response(JSON.stringify({ ok: true, sent: 'main_menu' }), { headers: { 'Content-Type': 'application/json' } });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
     return new Response('ok');
   }
   if (req.method !== 'POST') return new Response('ok');
