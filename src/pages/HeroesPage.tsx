@@ -71,11 +71,37 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           <div className="flex w-[300%] transition-transform duration-300 ease-out" style={{ transform: tab === 'inventory' ? 'translateX(-66.6667%)' : tab === 'fusion' ? 'translateX(-33.3333%)' : 'translateX(0)' }}>
             <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
 
-        <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
-          <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
-          <p className="mt-1 text-sm font-black text-amber-200">{data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}</p>
-          <p className="text-[10px] text-slate-400">{t('heroes.collectionHint')}</p>
+        <section className="rounded-2xl border border-white/10 bg-black/45 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-200">
+              {data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}
+            </p>
+            {!isDefaultHeroFilters(filters) ? (
+              <button onClick={() => setFilters(DEFAULT_HERO_FILTERS)} className="flex shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] text-slate-300">
+                <X size={10} /> {t('heroes.filterClear')}
+              </button>
+            ) : null}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <select aria-label={t('heroes.filterRarity')} value={filters.rarity} onChange={(e) => setFilters((f) => ({ ...f, rarity: e.target.value }))} className={selectClass}>
+              {HERO_FILTER_RARITIES.map((r) => (
+                <option key={r} value={r}>{`${t('heroes.filterRarity')}: ${r === 'all' ? t('heroes.filterAll') : t(`rarity.${r}`)}`}</option>
+              ))}
+            </select>
+            <select aria-label={t('heroes.filterClass')} value={filters.archetype} onChange={(e) => setFilters((f) => ({ ...f, archetype: e.target.value }))} className={selectClass}>
+              {HERO_FILTER_CLASSES.map((c) => (
+                <option key={c} value={c}>{`${t('heroes.filterClass')}: ${c === 'all' ? t('heroes.filterAll') : c.toUpperCase()}`}</option>
+              ))}
+            </select>
+            <select aria-label={t('heroes.filterPower')} value={filters.power} onChange={(e) => setFilters((f) => ({ ...f, power: e.target.value as SortDir, level: 'default' }))} className={selectClass}>
+              {sortOptions.map(([value, label]) => (<option key={value} value={value}>{`${t('heroes.filterPower')}: ${label}`}</option>))}
+            </select>
+            <select aria-label={t('heroes.filterLevel')} value={filters.level} onChange={(e) => setFilters((f) => ({ ...f, level: e.target.value as SortDir, power: 'default' }))} className={selectClass}>
+              {sortOptions.map(([value, label]) => (<option key={value} value={value}>{`${t('heroes.filterLevel')}: ${label}`}</option>))}
+            </select>
+          </div>
         </section>
+
 
         {error || stalled ? (
           <div className="py-20 text-center">
