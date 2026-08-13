@@ -89,3 +89,39 @@ export const PET_FOOD_ICONS: Record<string, string> = {
   fruit: '🍎',
   rare: '✨',
 };
+
+/**
+ * NFT EXCLUSIVE is a category ABOVE every normal rarity. The database may still
+ * carry a legacy `rarity` (often `common`) on NFT pets, so the UI must never
+ * trust it: any NFT marker wins and the normal rarity badge is hidden.
+ */
+export type NftPetLike = {
+  rarity?: string | null;
+  isNft?: boolean | null;
+  nft?: unknown;
+  nftSerial?: number | null;
+  specialCategory?: string | null;
+  special_category?: string | null;
+  specialType?: string | null;
+  special_type?: string | null;
+  exclusiveBadge?: string | null;
+};
+
+const NFT_TOKEN = /nft/i;
+
+export function isNftExclusivePet(pet?: NftPetLike | null): boolean {
+  if (!pet) return false;
+  if (pet.isNft === true) return true;
+  if (pet.nft) return true;
+  if (typeof pet.nftSerial === 'number' && pet.nftSerial > 0) return true;
+  const markers = [pet.rarity, pet.specialCategory, pet.special_category, pet.specialType, pet.special_type, pet.exclusiveBadge];
+  return markers.some((value) => typeof value === 'string' && NFT_TOKEN.test(value));
+}
+
+/** Rarity key used ONLY for presentation (colors, badges). Stats stay untouched. */
+export const petDisplayRarity = (pet?: NftPetLike | null): string =>
+  isNftExclusivePet(pet) ? 'nft_exclusive' : String(pet?.rarity ?? 'common');
+
+/** The single rarity badge text for a pet. NFT pets never show COMUM/ANCESTRAL/etc. */
+export const petDisplayRarityLabel = (pet?: NftPetLike | null): string =>
+  isNftExclusivePet(pet) ? PET_RARITY_LABELS.nft_exclusive : petRarityLabel(pet?.rarity ?? null);

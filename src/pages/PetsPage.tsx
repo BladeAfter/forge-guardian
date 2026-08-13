@@ -9,7 +9,7 @@ import { petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
-import { petBuffLabel, petBuffShortLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
+import { isNftExclusivePet, petBuffLabel, petBuffShortLabel, petDisplayRarity, petDisplayRarityLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { useT, useLanguage } from '../LanguageContext';
@@ -180,8 +180,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               <div className="min-w-0">
                 <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
                 <h2 className="truncate text-2xl font-black">{active.name}</h2>
-                <p style={{ color: rarityColor[active.rarity] }} className="text-xs font-bold uppercase">
-                  {t('pets.rarityLevel', { rarity: petRarityLabel(active.rarity), level: active.level, max: active.maxLevel })}
+                <p style={{ color: rarityColor[petDisplayRarity(active)] }} className="text-xs font-bold uppercase">
+                  {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(active), level: active.level, max: active.maxLevel })}
                 </p>
                 <p className="text-[10px] text-slate-400">
                   {t('pets.levelProgress', { stage: petStageLabel(active.evolutionStage), label: active.evolutionLabel, power: fmt(active.power) })}
@@ -390,8 +390,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
                     {pet.discovered
-                      ? `${pet.species} · ${t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 })}`
-                      : `${petRarityLabel(pet.rarity ?? null)} · ${t('pets.notDiscovered')}`}
+                      ? `${pet.species} · ${t('pets.rarityLevel', { rarity: petDisplayRarityLabel({ ...pet, rarity: pet.bestRarity }), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 })}`
+                      : `${petDisplayRarityLabel(pet)} · ${t('pets.notDiscovered')}`}
                   </p>
                   {buff && (
                     <PetBuff
@@ -545,9 +545,9 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
         <img src={pet.image} alt={pet.name} className="h-16 w-16 shrink-0 object-contain" />
         <div className="min-w-0 flex-1">
           <b className="block truncate text-sm">{pet.name}</b>
-          {pet.isNft && (
+          {isNftExclusivePet(pet) && (
             <span className="forge-nft-tag mt-0.5 inline-block rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-[2px] text-[7px] font-black tracking-[.16em] text-amber-100">
-              NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(3, '0')}` : ''}
+              NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(4, "0")}` : ""}
             </span>
           )}
           <p className="text-[9px] text-slate-400">
@@ -707,8 +707,8 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
 
 function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
   const t = useT();
-  const style = PET_RARITY_STYLE[pet.rarity] ?? PET_RARITY_STYLE.common;
-  const isNft = Boolean(pet.isNft);
+  const isNft = isNftExclusivePet(pet);
+  const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
   const serial = pet.nft?.serial;
   return (
     <div
@@ -719,7 +719,15 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
       <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : style.glowClass} to-transparent blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-1">
-        <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
+        {/* NFT EXCLUSIVE replaces the normal rarity badge — never both. */}
+        {isNft ? (
+          <span className="forge-nft-tag flex items-center gap-1 rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-1 text-[7px] font-black tracking-[.16em] text-amber-100">
+            NFT EXCLUSIVE
+            {serial ? <b className="text-violet-100">#{String(serial).padStart(4, '0')}</b> : null}
+          </span>
+        ) : (
+          <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
+        )}
         {pet.isActive && (
           <span className="flex items-center gap-1 rounded-full border border-emerald-300/45 bg-emerald-950/80 px-2 py-1 text-[7px] font-black text-emerald-200">
             <Check className="h-2.5 w-2.5" />{t('pets.active')}
@@ -727,18 +735,6 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
         )}
       </div>
 
-      {isNft && (
-        <div className="relative z-10 mt-1 flex items-center justify-center gap-1">
-          <span className="forge-nft-tag rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-[3px] text-[7px] font-black tracking-[.18em] text-amber-100">
-            NFT EXCLUSIVE
-          </span>
-          {serial ? (
-            <span className="rounded-full border border-violet-200/50 bg-black/60 px-2 py-[3px] text-[7px] font-black tracking-[.12em] text-violet-100">
-              #{String(serial).padStart(3, '0')}
-            </span>
-          ) : null}
-        </div>
-      )}
 
       <div className="relative z-10 mt-1 grid h-[124px] place-items-center">
         <img src={pet.image} alt={pet.name} className="h-[118px] w-full object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]" />

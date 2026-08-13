@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { petDisplayRarity } from '../petLabels';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
 import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem } from 'lucide-react';
@@ -228,7 +229,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const sellOptions: SellOption[] = sellKind === 'hero'
     ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}`, ...normalize(hero.locks, hero.available) }))
     : sellKind === 'pet'
-      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), ...normalize(pet.locks, pet.available) }))
+      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: petDisplayRarity(pet), level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), ...normalize(pet.locks, pet.available) }))
       : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}`, ...normalize(item.locks, item.available) }));
   const freeOptions = sellOptions.filter((option) => option.available);
   const selectedOption = sellOptions.find((option) => option.id === selected?.id && option.code === selected?.code) ?? null;
@@ -682,7 +683,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           {selectedOption ? (
                             <div className="mt-1.5 space-y-0.5 rounded-lg border border-white/10 bg-black/40 p-2 text-[9px]">
                               <div className="flex items-center justify-between"><span className="text-slate-400">{t('market.heroes')}</span><strong className="text-white">{selectedOption.name}</strong></div>
-                              <div className="flex items-center justify-between"><span className="text-slate-400">RARITY</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).toUpperCase()}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">RARITY</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).replace(/_/g, ' ').toUpperCase()}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">LEVEL</span><strong className="text-white">{selectedOption.level}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">{selectedOption.detail}</span><strong className={isTonSale ? 'text-sky-300' : 'text-amber-300'}>{amountLabel(split.price)} {priceUnit}</strong></div>
                             </div>
