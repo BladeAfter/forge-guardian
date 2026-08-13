@@ -1091,17 +1091,22 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
         priceFc = Number(body.priceFc);
         if (!Number.isInteger(priceFc) || priceFc <= 0) throw new Error('INVALID_PRICE');
       }
+      // Stackable/instance item codes are namespaced: `food:x`, `ufrag`, `pfrag:<uuid>`, `equip:<uuid>`
+      // or a plain inventory code (chests, fragments).
       if (itemType === 'item') {
-        if (!/^[a-z0-9_]{2,60}$/.test(String(body.itemCode || ''))) throw new Error('INVALID_ITEM');
+        if (!/^[a-z0-9_:-]{2,60}$/.test(String(body.itemCode || '').toLowerCase())) throw new Error('INVALID_ITEM');
       } else if (!isUuid(body.itemInstanceId)) throw new Error('INVALID_ITEM');
+      const quantity = Math.max(1, Math.min(9999, Math.trunc(Number(body.quantity) || 1)));
+      if (itemType !== 'item' && quantity !== 1) throw new Error('INVALID_QUANTITY');
       return rpc(db, 'market_create_listing', {
         p_telegram_id: user.id,
         p_item_type: itemType,
         p_item_instance_id: itemType === 'item' ? null : body.itemInstanceId,
-        p_item_code: itemType === 'item' ? String(body.itemCode) : null,
+        p_item_code: itemType === 'item' ? String(body.itemCode).toLowerCase() : null,
         p_price_fc: priceFc,
         p_currency: currency,
         p_price_ton: priceTon,
+        p_quantity: quantity,
       });
     }
     if (action === 'cancel') {
