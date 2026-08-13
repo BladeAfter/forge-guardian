@@ -2938,12 +2938,15 @@ export type Database = {
           admin_id: number | null
           buyer_user_id: string | null
           created_at: string
+          currency: string | null
           details: Json
           event: string
-          fee_fc: number
+          fee_fc: number | null
+          fee_ton: number | null
           id: string
           listing_id: string | null
-          price_fc: number
+          price_fc: number | null
+          price_ton: number | null
           risk_flags: string[]
           risk_score: number
           seller_user_id: string | null
@@ -2953,12 +2956,15 @@ export type Database = {
           admin_id?: number | null
           buyer_user_id?: string | null
           created_at?: string
+          currency?: string | null
           details?: Json
           event: string
-          fee_fc?: number
+          fee_fc?: number | null
+          fee_ton?: number | null
           id?: string
           listing_id?: string | null
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           risk_flags?: string[]
           risk_score?: number
           seller_user_id?: string | null
@@ -2968,12 +2974,15 @@ export type Database = {
           admin_id?: number | null
           buyer_user_id?: string | null
           created_at?: string
+          currency?: string | null
           details?: Json
           event?: string
-          fee_fc?: number
+          fee_fc?: number | null
+          fee_ton?: number | null
           id?: string
           listing_id?: string | null
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           risk_flags?: string[]
           risk_score?: number
           seller_user_id?: string | null
