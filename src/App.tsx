@@ -783,7 +783,7 @@ function App() {
           return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
         }).filter((hero): hero is ShopHero => Boolean(hero)));
 
-        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] })]);
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }), queryClient.invalidateQueries({ queryKey: ['market-sellable'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }
@@ -891,6 +891,7 @@ function App() {
             <HeroShopPanel
               telegramInitData={telegramInitData}
               fcBalance={fcBalance}
+              tonBalance={tonBalance}
               summonOdds={summonOdds}
               recruitPrice={recruitPrice}
               shopResults={shopResults}

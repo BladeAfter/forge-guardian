@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
@@ -15,12 +15,14 @@ import {
   createMarketPaymentIntent,
   waitForMarketPayment,
 } from '../services';
-import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketSort } from '../market';
+import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSort } from '../market';
 import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
   telegramInitData: string | null;
   fcBalance: number;
+  /** Same withdrawable TON balance shown in the main HUD. */
+  tonBalance?: number;
   summonOdds: Array<{ rarity: HeroRarity; chance: number }>;
   recruitPrice: (count: number) => number;
   shopResults: ShopHero[];
@@ -37,7 +39,7 @@ const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', 
  * internal withdrawable TON balance first; when it is not enough the backend reserves
  * the listing and the buyer pays from the connected wallet.
  */
-export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
+export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
   const [tonUI] = useTonConnectUI();
@@ -72,7 +74,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
   const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
   const settlementHours = Number(settings?.settlementHours ?? 72);
-  const availableTon = Number(browse.data?.availableTon ?? 0);
+  const availableTon = Number(browse.data?.availableTon ?? sellable.data?.availableTon ?? tonBalance ?? 0);
+  // Header chip: prefer the live server value, fall back to the HUD balance.
+  const tonWalletBalance = Number(sellable.data?.availableTon ?? browse.data?.availableTon ?? tonBalance ?? 0);
 
   // Selling is the only action locked for young accounts: browsing and buying stay open.
   const eligibility = sellable.data?.eligibility;
@@ -207,15 +211,27 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
   const chipClass = (active: boolean) =>
     `rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] transition ${active ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`;
 
-  type SellOption = { id?: string; code?: string; name: string; rarity: string; level: number; image: string | null; detail: string };
+  type SellOption = { id?: string; code?: string; name: string; rarity: string; level: number; image: string | null; detail: string; locks: MarketLockReason[]; available: boolean };
+  const lockLabel = (lock: MarketLockReason) =>
+    lock === 'pvp_team' ? t('market.lockPvp')
+      : lock === 'global_boss_team' ? t('market.lockGlobalBoss')
+      : lock === 'clan_boss_team' ? t('market.lockClanBoss')
+      : lock === 'active_pet' ? t('market.lockActivePet')
+      : lock === 'equipped' ? t('market.lockEquipped')
+      : lock === 'listed' ? t('market.lockListed')
+      : lock === 'exclusive' ? t('market.lockExclusive')
+      : t('market.lockNotTradable');
+  const normalize = (locks: MarketLockReason[] | undefined, available: boolean | undefined) => {
+    const list = Array.from(new Set(locks ?? []));
+    return { locks: list, available: available ?? list.length === 0 };
+  };
   const sellOptions: SellOption[] = sellKind === 'hero'
-    ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}` }))
+    ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}`, ...normalize(hero.locks, hero.available) }))
     : sellKind === 'pet'
-      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase() }))
-      : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}` }));
-
-
-
+      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: pet.rarity, level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), ...normalize(pet.locks, pet.available) }))
+      : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}`, ...normalize(item.locks, item.available) }));
+  const freeOptions = sellOptions.filter((option) => option.available);
+  const selectedOption = sellOptions.find((option) => option.id === selected?.id && option.code === selected?.code) ?? null;
 
   return (
     <div className="fullscreen-page flex items-center justify-center p-3">
@@ -227,6 +243,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
+            <span className="flex items-center gap-1 rounded-full border border-sky-300/30 bg-black/40 px-2.5 py-1 text-[10px] font-black text-sky-300">
+              <Gem className="h-3 w-3" />{tonAmount(tonWalletBalance)} TON
+            </span>
             <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
           </div>
         </div>
@@ -563,20 +582,38 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
 
                   <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseItem')}</p>
                   {sellable.isLoading ? <p className="mt-3 text-center text-[11px] text-slate-400">{t('market.loading')}</p> : null}
-                  {!sellable.isLoading && !sellOptions.length ? <p className="mt-3 text-center text-[10px] text-slate-500">{t('market.nothingToSell')}</p> : null}
+                  {!sellable.isLoading && !sellOptions.length ? <p className="mt-3 text-center text-[10px] text-slate-500">{t('market.nothingOwned')}</p> : null}
+                  {!sellable.isLoading && sellOptions.length > 0 && freeOptions.length === 0 ? <p className="mt-2 text-center text-[9px] leading-relaxed text-amber-200/80">{t('market.lockedHint')}</p> : null}
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
                     {sellOptions.map((option) => {
                       const active = selected?.id === option.id && selected?.code === option.code;
+                      const locked = !option.available;
                       return (
                         <button
                           key={option.id ?? option.code}
-                          onClick={() => { setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
-                          className={`overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : 'border-white/10'}`}
+                          disabled={locked}
+                          title={locked ? option.locks.map(lockLabel).join(' · ') : undefined}
+                          onClick={() => { if (locked) return; setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
+                          className={`relative overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : locked ? 'border-rose-400/30' : 'border-white/10'}`}
                         >
-                          {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
+                          <div className={locked ? 'opacity-45' : ''}>
+                            {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
+                          </div>
+                          {locked ? (
+                            <div className="absolute inset-x-0 top-0 space-y-0.5 bg-gradient-to-b from-black/85 to-transparent p-1">
+                              {option.locks.slice(0, 3).map((lock) => (
+                                <p key={lock} className="flex items-center gap-0.5 text-[6.5px] font-black uppercase leading-tight tracking-tight text-rose-200">
+                                  <Lock className="h-2 w-2 shrink-0" />{lockLabel(lock)}
+                                </p>
+                              ))}
+                            </div>
+                          ) : null}
                           <div className="p-1">
                             <p className="truncate text-[8px] font-black text-white">{option.name}</p>
                             <p className="truncate text-[7px]" style={{ color: rarityColor(option.rarity) }}>{option.detail}</p>
+                            <p className={`truncate text-[6.5px] font-black uppercase tracking-tight ${locked ? 'text-rose-300' : 'text-emerald-300'}`}>
+                              {locked ? t('market.inUse') : t('market.available')}
+                            </p>
                           </div>
                         </button>
                       );
@@ -642,6 +679,14 @@ export function HeroShopPanel({ telegramInitData, fcBalance, summonOdds, recruit
                       {confirming ? (
                         <div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-400/[.08] p-2.5">
                           <p className="text-[10px] font-black uppercase tracking-[0.14em] text-amber-200">{t('market.confirmSaleTitle')}</p>
+                          {selectedOption ? (
+                            <div className="mt-1.5 space-y-0.5 rounded-lg border border-white/10 bg-black/40 p-2 text-[9px]">
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{t('market.heroes')}</span><strong className="text-white">{selectedOption.name}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">RARITY</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).toUpperCase()}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">LEVEL</span><strong className="text-white">{selectedOption.level}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{selectedOption.detail}</span><strong className={isTonSale ? 'text-sky-300' : 'text-amber-300'}>{amountLabel(split.price)} {priceUnit}</strong></div>
+                            </div>
+                          ) : null}
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
                             {t('market.confirmSaleBody', {
                               name: selected.name,
