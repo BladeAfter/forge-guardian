@@ -6006,7 +6006,7 @@ export type Database = {
       }
       referral_commissions: {
         Row: {
-          amount_fc: number
+          amount_fc: number | null
           amount_ton: number
           created_at: string
           from_user: string
@@ -6019,8 +6019,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          amount_fc?: number
-          amount_ton?: number
+          amount_fc?: number | null
+          amount_ton: number
           created_at?: string
           from_user: string
           id?: string
@@ -6032,7 +6032,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          amount_fc?: number
+          amount_fc?: number | null
           amount_ton?: number
           created_at?: string
           from_user?: string
@@ -6051,13 +6051,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referral_commissions_purchase_id_fkey"
-            columns: ["purchase_id"]
-            isOneToOne: false
-            referencedRelation: "referral_purchase_events"
-            referencedColumns: ["purchase_id"]
           },
           {
             foreignKeyName: "referral_commissions_user_id_fkey"
