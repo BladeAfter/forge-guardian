@@ -5409,6 +5409,7 @@ export type Database = {
           defender_team_snapshot: Json
           id: string
           is_bot_battle: boolean
+          pet_debug: Json | null
           result: string
           reward_fc: number
           total_turns: number
@@ -5428,6 +5429,7 @@ export type Database = {
           defender_team_snapshot: Json
           id?: string
           is_bot_battle?: boolean
+          pet_debug?: Json | null
           result: string
           reward_fc?: number
           total_turns: number
@@ -5447,6 +5449,7 @@ export type Database = {
           defender_team_snapshot?: Json
           id?: string
           is_bot_battle?: boolean
+          pet_debug?: Json | null
           result?: string
           reward_fc?: number
           total_turns?: number
@@ -9431,6 +9434,10 @@ export type Database = {
       pvp_ads_state: { Args: { p_user_id: string }; Returns: Json }
       pvp_apply_daily_tickets: {
         Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      pvp_apply_pet_modifiers: {
+        Args: { p_buffs: Json; p_team: Json }
         Returns: Json
       }
       pvp_bot_band: {
