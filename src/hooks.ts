@@ -11,7 +11,7 @@ import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './comb
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
 import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
-import { fetchTowerDashboard } from './services';
+import { fetchTowerDashboard, fetchTowerRanking } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { TonWallet, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
