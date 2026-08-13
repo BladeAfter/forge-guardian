@@ -870,6 +870,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       return withPet(await rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot }));
     }
     if (action === 'enter') return withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id }));
+    // Tower ranking: read-only leaderboard (highest floor, then team power, then who got there first).
+    if (action === 'ranking') {
+      const limit = Math.min(Math.max(Number(body.limit) || 50, 1), 100);
+      return await rpc(db, 'get_tower_ranking', { p_telegram_id: user.id, p_limit: limit });
+    }
     throw new Error('INVALID_ACTION');
   },
 
