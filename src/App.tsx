@@ -1122,7 +1122,7 @@ function App() {
         </section>
 
         {featuredMission ? (
-          <section className="village-cards mb-1 grid h-[112px] shrink-0 grid-cols-2 gap-2">
+          <section className="village-cards mb-1 grid h-[112px] shrink-0 grid-cols-1 gap-2">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-forge-black/85 p-4 shadow-card">
               <img src={mainScreenArt.dailyStreak} alt="" className="pointer-events-none absolute -right-3 -top-2 h-24 w-24 object-contain opacity-55" />
               <p className="relative text-[10px] uppercase tracking-[0.22em] text-slate-400">{lang.loginStreak}</p>
@@ -1134,16 +1134,6 @@ function App() {
               </div>
               <p className="relative mt-2 text-[11px] text-slate-400">Continue entrando todos os dias</p>
             </div>
-            <button
-              onClick={() => openInternal('market')}
-              className="relative overflow-hidden rounded-3xl border border-amber-300/25 bg-forge-black/85 p-4 text-left shadow-card"
-            >
-              <img src={mainScreenArt.market} alt="" loading="lazy" className="pointer-events-none absolute -bottom-3 -right-4 h-24 w-24 object-contain opacity-70 drop-shadow-[0_6px_16px_rgba(0,0,0,.6)]" />
-              <p className="relative text-[10px] uppercase tracking-[0.18em] text-slate-300">MYTHREON</p>
-              <p className="relative mt-2 text-xl font-black tracking-[0.05em] text-amber-300">MARKET</p>
-              <p className="relative mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-400">PLAYER TRADING</p>
-              <p className="relative mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">ABRIR →</p>
-            </button>
           </section>
         ) : null}
           </div>
