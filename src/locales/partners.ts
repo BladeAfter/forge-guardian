@@ -13,6 +13,8 @@ export const partners: LocaleBundle = {
     'partners.retry': 'TRY AGAIN',
     'partners.rewardTitle': 'PARTNER REWARD',
     'partners.hint': 'Open the channel and come back to claim your reward. One reward per partner.',
+    'partners.subtitle': 'Support our partners and claim FC rewards.',
+    'partners.category': 'Partner Channel',
   },
   pt: {
     'partners.button': 'PARCEIROS',
@@ -25,6 +27,8 @@ export const partners: LocaleBundle = {
     'partners.retry': 'TENTAR NOVAMENTE',
     'partners.rewardTitle': 'RECOMPENSA DE PARCEIRO',
     'partners.hint': 'Abra o canal e volte para coletar. Uma recompensa por parceiro.',
+    'partners.subtitle': 'Apoie nossos parceiros e receba recompensas em FC.',
+    'partners.category': 'Canal Parceiro',
   },
   es: {
     'partners.button': 'SOCIOS',
@@ -37,6 +41,8 @@ export const partners: LocaleBundle = {
     'partners.retry': 'INTENTAR DE NUEVO',
     'partners.rewardTitle': 'RECOMPENSA DE SOCIO',
     'partners.hint': 'Abre el canal y vuelve para reclamar. Una recompensa por socio.',
+    'partners.subtitle': 'Apoya a nuestros socios y reclama recompensas en FC.',
+    'partners.category': 'Canal Socio',
   },
   ru: {
     'partners.button': 'ПАРТНЁРЫ',
@@ -49,5 +55,7 @@ export const partners: LocaleBundle = {
     'partners.retry': 'ПОВТОРИТЬ',
     'partners.rewardTitle': 'НАГРАДА ПАРТНЁРА',
     'partners.hint': 'Откройте канал и вернитесь, чтобы забрать награду. Одна награда за партнёра.',
+    'partners.subtitle': 'Поддержите партнёров и получайте награды FC.',
+    'partners.category': 'Партнёрский канал',
   },
 };
