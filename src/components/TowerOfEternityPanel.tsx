@@ -8,6 +8,8 @@ import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
 import { TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
+import { PetCompanion } from './PetCompanion';
+import { activePetBonuses } from '../petBonuses';
 
 type Props = {
   balance: number;
@@ -82,6 +84,8 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   }
 
   const boss = data.boss;
+  const activePet = data.petSummary?.activePet ?? null;
+  const petBuffs = activePetBonuses(data.petSummary?.bonuses ?? null, Object.keys(data.petSummary?.bonuses ?? {})).slice(0, 4);
   const rewards = data.firstClear ? data.rewards : data.replayRewards;
   // The server-side FC balance is authoritative; the prop is only a fallback.
   const fc = Number.isFinite(Number(data.balanceFc)) ? Number(data.balanceFc) : Number(balance) || 0;
@@ -117,6 +121,12 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           <p className={`relative mt-1 text-base font-bold ${theme.accent}`}>{boss.name}</p>
           <p className="relative text-[9px] uppercase tracking-[.2em] text-slate-500">Tier {boss.tier} · {boss.role}</p>
         </div>
+
+        {activePet ? (
+          <div className="relative">
+            <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label="Pet Buff Active" />
+          </div>
+        ) : null}
 
         <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px]">
           <div className="rounded-2xl bg-black/65 p-2.5">
