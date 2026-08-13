@@ -2638,37 +2638,43 @@ export type Database = {
       market_item_ownership_history: {
         Row: {
           created_at: string
+          currency: string | null
           from_user_id: string | null
           id: string
           item_code: string | null
           item_instance_id: string | null
           item_type: string
           listing_id: string | null
-          price_fc: number
+          price_fc: number | null
+          price_ton: number | null
           to_user_id: string | null
           transaction_id: string | null
         }
         Insert: {
           created_at?: string
+          currency?: string | null
           from_user_id?: string | null
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type: string
           listing_id?: string | null
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           to_user_id?: string | null
           transaction_id?: string | null
         }
         Update: {
           created_at?: string
+          currency?: string | null
           from_user_id?: string | null
           id?: string
           item_code?: string | null
           item_instance_id?: string | null
           item_type?: string
           listing_id?: string | null
-          price_fc?: number
+          price_fc?: number | null
+          price_ton?: number | null
           to_user_id?: string | null
           transaction_id?: string | null
         }
