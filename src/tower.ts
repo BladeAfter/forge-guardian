@@ -35,6 +35,10 @@ export type TowerEquipmentDrop = {
   bonusDefense?: number | null;
   bonusHp?: number | null;
   power?: number | null;
+  /** Floor that produced the drop (server-side). */
+  floor?: number | null;
+  /** True when this floor granted its one-time drop. */
+  firstDropForFloor?: boolean;
 };
 
 export type TowerRewards = {
