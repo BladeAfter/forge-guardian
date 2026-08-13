@@ -950,6 +950,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       });
     }
     if (action === 'boss-attack') return rpc(db, 'clan_boss_attack', { p_telegram_id: user.id });
+    // Season Pass benefit: offline Auto ATK preference for the CLAN boss only.
+    // Independent from the global boss toggle (set_global_boss_auto_attack).
+    if (action === 'boss-auto-attack') {
+      return rpc(db, 'set_clan_boss_auto_attack', { p_telegram_id: user.id, p_enabled: body.enabled !== false });
+    }
     if (action === 'shop') {
       const item = String(body.item || '');
       if (!['pet_food', 'pvp_ticket', 'fragments', 'hero_chest'].includes(item)) throw new Error('INVALID_ITEM');
