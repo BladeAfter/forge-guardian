@@ -25,6 +25,8 @@ import{fetchClanBoss,type ClanBossState}from'./clanBoss';
 import type{SpecialEventsDashboard}from'./specialEvents';
 import{specialEventsRequest,spendingEventRequest}from'./services';
 import type{SpendingEventDashboard}from'./spendingEvent';
+import type{HeroMiningState}from'./heroMining';
+import{fetchHeroMining}from'./services';
 
 export const useGameState = (telegramInitData: string | null, enabled: boolean) => {
   return useQuery<GameState>({
@@ -240,4 +242,14 @@ export const useTowerRanking=(telegramInitData:string|null,enabled:boolean,limit
   queryKey:['tower-ranking',telegramInitData,limit],
   queryFn:()=>fetchTowerRanking(telegramInitData??'',limit),
   enabled:enabled&&Boolean(telegramInitData),refetchInterval:enabled?15_000:false,staleTime:10_000,retry:1,
+});
+
+/**
+ * Hero TON mining state. The server owns the accrual; a moderate refetch keeps
+ * the panel in sync while the player is on the Heroes screen.
+ */
+export const useHeroMining=(telegramInitData:string|null,enabled:boolean)=>useQuery<HeroMiningState>({
+  queryKey:['hero-mining',telegramInitData],
+  queryFn:()=>fetchHeroMining(telegramInitData??''),
+  enabled:enabled&&Boolean(telegramInitData),staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnWindowFocus:true,retry:1,
 });
