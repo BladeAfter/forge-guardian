@@ -698,9 +698,11 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         <span className="text-slate-400">{t('market.estimatedReceive')}</span>
                         <span className="font-black text-emerald-300">{amountLabel(split.receives)} {priceUnit}</span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between text-[10px]">
-                        <span className="text-slate-400">{t('market.holdTitle')}</span>
-                        <span className="font-black text-amber-200">{settlementHours}h</span>
+                      <div className="mt-1 flex items-start justify-between gap-2 text-[10px]">
+                        <span className="text-slate-400">{instantSettlement ? t('market.settlementTitle') : t('market.holdTitle')}</span>
+                        <span className={`text-right font-black ${instantSettlement ? 'text-emerald-300' : 'text-amber-200'}`}>
+                          {instantSettlement ? t('market.settlementInstant') : `${settlementHours}h`}
+                        </span>
                       </div>
 
                       {confirming ? (
