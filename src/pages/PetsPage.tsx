@@ -455,18 +455,46 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   }
 }
 
-function Shell({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+/**
+ * PETS and NFT EXCLUSIVE are two MAIN sections of this screen, selected in the
+ * header (never as a sub-tab next to Eggs/Food/Evolution/Catalog).
+ */
+type Section = 'pets' | 'nft';
+
+function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
       <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3">
-        <header className="mb-3 flex items-center justify-between gap-2 rounded-2xl border border-amber-300/20 bg-black/70 p-3">
-          <div className="min-w-0">
+        <header className="mb-3 rounded-2xl border border-amber-300/20 bg-black/70 p-3">
+          <div className="flex items-start justify-between gap-2">
             <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
-            <h1 className="text-xl font-black">PETS</h1>
+            <button type="button" onClick={onClose} aria-label={t('pets.close')} className="-mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-5 w-5" /></button>
           </div>
-          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5"><X /></button>
+          {section && onSection ? (
+            <div className="mt-1 flex items-end gap-4">
+              {([['pets', 'PETS'], ['nft', 'NFT EXCLUSIVE']] as [Section, string][]).map(([key, label]) => {
+                const on = section === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onSection(key)}
+                    className={`relative shrink-0 pb-1.5 text-left text-[15px] font-black uppercase tracking-[.06em] transition ${
+                      on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
+                    }`}
+                  >
+                    {key === 'nft' ? <span className="mr-1">💎</span> : null}
+                    {label}
+                    <span className={`absolute inset-x-0 bottom-0 h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <h1 className="text-xl font-black">PETS</h1>
+          )}
         </header>
         {children}
       </div>
