@@ -21,6 +21,7 @@ import {HeroesPage}from'./pages/HeroesPage';
 import {ClanHubPage}from'./pages/ClanHubPage';
 import {ClanHall}from'./components/ClanHall';
 import {PartnersModal}from'./components/PartnersModal';
+import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
