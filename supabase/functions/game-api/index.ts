@@ -845,19 +845,31 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
    */
   tower: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
-    if (action === 'dashboard') return rpc(db, 'get_tower_dashboard', { p_telegram_id: user.id });
+    // Same pet buff pipeline as the Boss: the active pet is resolved server-side and
+    // exposed as `petSummary` so the client can render the companion + its buffs.
+    const withPet = async (data: unknown) => {
+      if (!data || typeof data !== 'object') return data;
+      const pets = await db.rpc('get_pet_dashboard', { p_telegram_id: user.id });
+      if (pets.error) return data;
+      const summary = { activePet: pets.data?.activePet ?? null, bonuses: pets.data?.bonuses ?? {} };
+      const out = { ...(data as Record<string, unknown>), petSummary: summary };
+      const dash = out.dashboard;
+      if (dash && typeof dash === 'object') out.dashboard = { ...(dash as Record<string, unknown>), petSummary: summary };
+      return out;
+    };
+    if (action === 'dashboard') return withPet(await rpc(db, 'get_tower_dashboard', { p_telegram_id: user.id }));
     if (action === 'equip') {
       const slot = Number(body.slot);
       if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
       if (!isUuid(body.heroId)) throw new Error('HERO_NOT_FOUND');
-      return rpc(db, 'save_tower_team_slot', { p_telegram_id: user.id, p_slot: slot, p_hero_id: body.heroId });
+      return withPet(await rpc(db, 'save_tower_team_slot', { p_telegram_id: user.id, p_slot: slot, p_hero_id: body.heroId }));
     }
     if (action === 'remove') {
       const slot = Number(body.slot);
       if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
-      return rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot });
+      return withPet(await rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot }));
     }
-    if (action === 'enter') return rpc(db, 'tower_enter_floor', { p_telegram_id: user.id });
+    if (action === 'enter') return withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id }));
     throw new Error('INVALID_ACTION');
   },
 
