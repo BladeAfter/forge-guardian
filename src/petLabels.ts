@@ -68,6 +68,7 @@ export const PET_RARITY_LABELS: Record<string, string> = {
   legendary: 'LENDÁRIO',
   mythic: 'MÍTICO',
   ancestral: 'ANCESTRAL',
+  nft_exclusive: 'NFT EXCLUSIVE',
 };
 
 export const petRarityLabel = (rarity?: string | null) => PET_RARITY_LABELS[String(rarity ?? '')] ?? 'COMUM';
