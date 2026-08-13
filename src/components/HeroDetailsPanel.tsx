@@ -20,12 +20,14 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onCl
   const stars = state?.stars ?? hero.stars ?? 0;
   const maxLevel = state?.maxLevel ?? null;
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
-  const stat = (label: string, value: string | number) => (
+  const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
       <p className="text-[12px] font-black text-white">{value}</p>
+      {bonus ? <p className="text-[8px] font-black text-emerald-300">+{Number(bonus).toLocaleString()}</p> : null}
     </div>
   );
+
   return (
     <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/80 backdrop-blur-sm">
       <div className="forge-safe-page mx-auto min-h-full w-full max-w-[420px] p-3 pb-10">
