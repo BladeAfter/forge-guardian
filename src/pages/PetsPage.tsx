@@ -157,10 +157,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
   const pending = mutation.isPending;
 
-  if (isLoading) return <Shell onClose={onClose}><p className="py-24 text-center text-sm text-amber-200">{t('pets.loading')}</p></Shell>;
+  if (isLoading) return <Shell onClose={onClose} section={section} onSection={setSection}><p className="py-24 text-center text-sm text-amber-200">{t('pets.loading')}</p></Shell>;
   if (error || !data) {
     return (
-      <Shell onClose={onClose}>
+      <Shell onClose={onClose} section={section} onSection={setSection}>
         <p className="py-24 text-center text-sm text-rose-300">
           {error instanceof Error ? tError(error) : t('pets.loadError')}
         </p>
