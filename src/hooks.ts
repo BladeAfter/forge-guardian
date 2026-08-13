@@ -10,6 +10,8 @@ import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
+import type { TowerDashboard as TowerDashboardType } from './tower';
+import { fetchTowerDashboard } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { TonWallet, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
@@ -225,3 +227,10 @@ export const useMarketRealtime=(enabled:boolean)=>{
     return()=>{window.clearTimeout(timer);void supabase.removeChannel(channel)};
   },[enabled,queryClient]);
 };
+
+/** Tower of Eternity: individual progress, always resolved server-side. */
+export const useTowerDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<TowerDashboardType>({
+  queryKey:['tower-dashboard',telegramInitData],
+  queryFn:()=>fetchTowerDashboard(telegramInitData??''),
+  enabled:enabled&&Boolean(telegramInitData),staleTime:15_000,refetchOnWindowFocus:true,retry:1,
+});
