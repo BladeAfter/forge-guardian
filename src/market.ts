@@ -146,13 +146,17 @@ export type MarketMyListing = {
   priceTon: number;
   currency: MarketCurrency;
   status: 'active' | 'reserved' | 'sold' | 'cancelled';
+  /** Listed quantity (stackable items). Heroes and pets are always 1. */
+  quantity: number;
+  itemCode?: string | null;
+  category?: string | null;
   feePercent: number;
   createdAt: string;
   soldAt: string | null;
   cancelledAt: string | null;
 };
 
-export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; priceTon: number; currency: MarketCurrency; seller: string; createdAt: string };
+export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; priceTon: number; currency: MarketCurrency; quantity?: number; seller: string; createdAt: string };
 
 export type MarketMine = { listings: MarketMyListing[]; purchases: MarketPurchase[]; settings: MarketSettings };
 
