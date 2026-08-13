@@ -3,7 +3,7 @@ import { ArrowLeft, Flame, History, Skull, Sword, Trophy, Users } from 'lucide-r
 import { toast } from 'sonner';
 import { useT } from '../LanguageContext';
 import { useClanBoss, useClanBossRealtime } from '../hooks';
-import { abbreviateDamage, countdownLabel, strikeClanBoss, type ClanBossState } from '../clanBoss';
+import { abbreviateDamage, countdownLabel, setClanBossAutoAttack, strikeClanBoss, type ClanBossAutoAttackState, type ClanBossState } from '../clanBoss';
 import { clanBossArt, clanBossTheme, DEFAULT_CLAN_BOSS_THEME } from '../clanBossThemes';
 import { ClanCrest } from './ClanHall';
 import { FloatingDamage, NextAttackBar, TurnIndicator, useCombatFx, useEasedPercent, type CombatEvent } from './ClanBossCombatFx';
