@@ -76,7 +76,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
   const isTonSale = sellCurrency === 'TON';
   const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
-  // TON minimum is the hard backend rule (0.10 TON, 4 TON for Legendary+ heroes).
+  // TON minimum is the hard backend rule (0.10 TON, 10 TON for Legendary+ heroes).
   const minPriceTonForSelection = Number(selected?.minPriceTon ?? marketMinPriceTon(sellKind, selected?.rarity));
   const minPrice = isTonSale ? minPriceTonForSelection : Number(settings?.minPrice?.[sellKind] ?? 5000);
   const maxQuantity = Math.max(1, Number(selected?.max ?? 1));
