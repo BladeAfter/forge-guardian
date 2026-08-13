@@ -32,7 +32,9 @@ export type FusionHero = {
   power: number;
   maxLevel: number;
   inTeam: boolean;
+  isNft?: boolean;
   duplicates: number;
+
   next: FusionNext | null;
 };
 
@@ -58,14 +60,14 @@ export type FusionResult = {
 export const starRow = (stars: number, max = 5) => '★'.repeat(Math.max(0, stars)) + '☆'.repeat(Math.max(0, max - stars));
 
 /** Available materials for the next ascension of a hero (duplicates that are unlocked and idle). */
-export const pickMaterials = (hero: FusionHero, pool: FusionHero[]): string[] => {
-  const needed = hero.next?.duplicatesRequired ?? 0;
-  return pool
-    .filter((h) => h.heroKey === hero.heroKey && h.heroId !== hero.heroId && !h.locked && !h.inTeam)
+export const pickMaterials = (hero: FusionHero, pool: FusionHero[]): string[] =>
+  // Send every valid candidate: the backend re-validates and consumes only the
+  // exact amount required for the current star step (1★→2★ = 1, 2★→3★ = 2, ...).
+  pool
+    .filter((h) => h.heroKey === hero.heroKey && h.heroId !== hero.heroId && !h.locked && !h.inTeam && !h.isNft)
     .sort((a, b) => a.stars - b.stars || a.level - b.level)
-    .slice(0, needed)
     .map((h) => h.heroId);
-};
+
 
 export const canFuse = (hero: FusionHero, balance: number) =>
   Boolean(hero.next) && hero.duplicates >= (hero.next?.duplicatesRequired ?? 0) && balance >= (hero.next?.costFc ?? 0);

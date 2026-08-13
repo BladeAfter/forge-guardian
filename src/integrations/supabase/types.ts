@@ -10434,7 +10434,15 @@ export type Database = {
         Returns: Json
       }
       hero_fusion_config: { Args: never; Returns: Json }
+      hero_fusion_material_available: {
+        Args: { p_hero_id: string }
+        Returns: boolean
+      }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
+      hero_fusion_required_copies: {
+        Args: { p_stars: number }
+        Returns: number
+      }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
       hero_mining_enabled: { Args: never; Returns: boolean }
