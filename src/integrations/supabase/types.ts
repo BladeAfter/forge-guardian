@@ -10054,32 +10054,19 @@ export type Database = {
         Args: { p_amount_nano: number; p_payment_id: string; p_tx_hash: string }
         Returns: Json
       }
-      market_create_listing:
-        | {
-            Args: {
-              p_currency?: string
-              p_item_code: string
-              p_item_instance_id: string
-              p_item_type: string
-              p_price_fc?: number
-              p_price_ton?: number
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_currency?: string
-              p_item_code: string
-              p_item_instance_id: string
-              p_item_type: string
-              p_price_fc?: number
-              p_price_ton?: number
-              p_quantity?: number
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
+      market_create_listing: {
+        Args: {
+          p_currency?: string
+          p_item_code: string
+          p_item_instance_id: string
+          p_item_type: string
+          p_price_fc?: number
+          p_price_ton?: number
+          p_quantity?: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       market_create_payment_intent: {
         Args: {
           p_listing_id: string
