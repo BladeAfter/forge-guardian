@@ -177,20 +177,35 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                 {rewards.heroChest ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Gear Chest</p><p className="font-bold text-fuchsia-300">x{rewards.heroChest}</p></div> : null}
                 {rewards.towerKey ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Eternity Key</p><p className="font-bold text-fuchsia-300">x{rewards.towerKey}</p></div> : null}
                 {gear ? (
-                  <div className={`col-span-2 flex items-center gap-3 rounded-xl border ${gearTone.border} ${gearTone.bg} p-2.5 text-left`}>
-                    {gear.imageUrl ? <img src={gear.imageUrl} alt={gear.name} loading="lazy" className="h-12 w-12 rounded-lg object-cover" /> : null}
-                    <div className="min-w-0">
-                      <p className={`text-[9px] font-black uppercase tracking-[.18em] ${gearTone.text}`}>{gearSlotLabel} · {gear.rarity}</p>
-                      <p className="truncate text-[12px] font-bold text-white">{gear.name}</p>
-                      <p className="text-[10px] text-slate-400">
-                        {gear.bonusAttack ? `ATK +${gear.bonusAttack} ` : ''}
-                        {gear.bonusDefense ? `DEF +${gear.bonusDefense} ` : ''}
-                        {gear.bonusHp ? `HP +${gear.bonusHp}` : ''}
-                        {gear.heroClass ? ` · ${gear.heroClass}` : ''}
-                      </p>
+                  <div className={`col-span-2 mt-1 rounded-2xl border ${gearTone.border} ${gearTone.bg} p-3 text-left`}>
+                    <p className={`text-center text-[9px] font-black uppercase tracking-[.28em] ${gearTone.text}`}>Equipamento dropado</p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <div className={`grid h-14 w-14 shrink-0 place-items-center rounded-xl border ${gearTone.border} bg-black/60`}>
+                        {gear.imageUrl
+                          ? <img src={gear.imageUrl} alt={gear.name} loading="lazy" className="h-full w-full rounded-xl object-cover" />
+                          : <Swords className={`h-6 w-6 ${gearTone.text}`} />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-black text-white">{gear.name}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          <span className="rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{gearSlotLabel}</span>
+                          <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[.14em] ${gearTone.border} ${gearTone.text}`}>{gear.rarity}</span>
+                          {gear.heroClass ? <span className="rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-black uppercase tracking-[.14em] text-amber-200">{gear.heroClass}</span> : null}
+                          {gear.tier ? <span className="rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-black uppercase tracking-[.14em] text-slate-400">T{gear.tier}</span> : null}
+                        </div>
+                      </div>
                     </div>
+                    <div className="mt-2 grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                      <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">ATK</p><p className="font-bold text-rose-300">+{gear.bonusAttack ?? 0}</p></div>
+                      <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">DEF</p><p className="font-bold text-sky-300">+{gear.bonusDefense ?? 0}</p></div>
+                      <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">HP</p><p className="font-bold text-emerald-300">+{gear.bonusHp ?? 0}</p></div>
+                    </div>
+                    <p className="mt-2 text-center text-[9px] uppercase tracking-[.18em] text-slate-500">Salvo no inventário · Andar {gear.floor ?? battle.floor}</p>
                   </div>
-                ) : null}
+                ) : (
+                  <p className="col-span-2 mt-1 rounded-xl bg-black/50 p-2 text-[10px] text-slate-500">Nenhum equipamento dropado neste andar. Cada andar concede no máximo 1 peça (garantida a cada 10 andares).</p>
+                )}
+
               </div>
             ) : (
               <p className="mt-3 text-[11px] text-slate-400">Tentativa consumida. Reforce sua equipe e tente novamente.</p>
