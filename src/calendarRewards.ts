@@ -14,9 +14,11 @@ export const CHEST_REWARD_TABLE={
  uncommon_chest:{common:70,uncommon:30},
  rare_chest:{common:50,uncommon:35,rare:15},
  epic_chest:{common:30,uncommon:30,rare:30,epic:10},
- legendary_chest:{rare:45,epic:40,legendary:15}
+ legendary_chest:{rare:45,epic:40,legendary:15},
+ /** Starter Pack chest: uncommon heroes only (NFT heroes are never eligible). */
+ uncommon_hero_chest:{uncommon:100}
 } as const;
-export const CHEST_LABELS:Record<string,string>={common_chest:'Baú Comum',uncommon_chest:'Baú Incomum',rare_chest:'Baú Raro',epic_chest:'Baú Épico',legendary_chest:'Baú Lendário'};
+export const CHEST_LABELS:Record<string,string>={common_chest:'Baú Comum',uncommon_chest:'Baú Incomum',rare_chest:'Baú Raro',epic_chest:'Baú Épico',legendary_chest:'Baú Lendário',uncommon_hero_chest:'Baú de Herói Incomum'};
 export const CALENDAR_EGG_ODDS={'common-egg':{common:75,uncommon:20,rare:5},'rare-egg':{common:35,uncommon:40,rare:20,epic:5}} as const;
 /** The server owns the official game day (21:00 America/Sao_Paulo). Never compute it on the client. */
 export type CalendarDayStatus='CLAIMED'|'AVAILABLE'|'LOCKED';

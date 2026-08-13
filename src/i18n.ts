@@ -4,6 +4,15 @@ export type LanguageCode = "pt" | "en" | "es" | "ru";
 export type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
 const en: Record<string, string> = {
+  starterTitle: "WELCOME TO MYTHREON",
+  starterSubtitle: "Your adventure begins now!",
+  starterRewards: "STARTER REWARDS",
+  starterEgg: "Common Egg",
+  starterChest: "Uncommon Hero Chest",
+  starterClaim: "CLAIM REWARDS",
+  starterClaiming: "CLAIMING...",
+  starterClaimed: "REWARDS CLAIMED!",
+  starterError: "Could not claim rewards. Please try again.",
   blacksmith: "Village blacksmith",
   level: "Level",
   calendar: "Calendar",
@@ -124,6 +133,15 @@ const en: Record<string, string> = {
 };
 
 const pt: Record<string, string> = {
+  starterTitle: "BEM-VINDO AO MYTHREON",
+  starterSubtitle: "Sua aventura começa agora!",
+  starterRewards: "RECOMPENSAS INICIAIS",
+  starterEgg: "Ovo Comum",
+  starterChest: "Baú de Herói Incomum",
+  starterClaim: "RESGATAR",
+  starterClaiming: "RESGATANDO...",
+  starterClaimed: "RECOMPENSAS RESGATADAS!",
+  starterError: "Não foi possível resgatar. Tente novamente.",
   blacksmith: "Ferreiro da vila",
   level: "Nível",
   calendar: "Calendário",
@@ -244,6 +262,15 @@ const pt: Record<string, string> = {
 };
 
 const es: Record<string, string> = {
+  starterTitle: "BIENVENIDO A MYTHREON",
+  starterSubtitle: "¡Tu aventura comienza ahora!",
+  starterRewards: "RECOMPENSAS INICIALES",
+  starterEgg: "Huevo Común",
+  starterChest: "Cofre de Héroe Poco Común",
+  starterClaim: "RECLAMAR",
+  starterClaiming: "RECLAMANDO...",
+  starterClaimed: "¡RECOMPENSAS RECLAMADAS!",
+  starterError: "No se pudo reclamar. Inténtalo de nuevo.",
   ...en,
   blacksmith: "Herrero de la aldea",
   level: "Nivel",
@@ -347,6 +374,15 @@ const es: Record<string, string> = {
 };
 
 const ru: Record<string, string> = {
+  starterTitle: "ДОБРО ПОЖАЛОВАТЬ В MYTHREON",
+  starterSubtitle: "Ваше приключение начинается!",
+  starterRewards: "НАЧАЛЬНЫЕ НАГРАДЫ",
+  starterEgg: "Обычное яйцо",
+  starterChest: "Необычный сундук героя",
+  starterClaim: "ПОЛУЧИТЬ",
+  starterClaiming: "ПОЛУЧЕНИЕ...",
+  starterClaimed: "НАГРАДЫ ПОЛУЧЕНЫ!",
+  starterError: "Не удалось получить награды. Попробуйте снова.",
   ...en,
   blacksmith: "Кузнец деревни",
   level: "Уровень",
