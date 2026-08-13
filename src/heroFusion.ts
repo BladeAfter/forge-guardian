@@ -32,7 +32,9 @@ export type FusionHero = {
   power: number;
   maxLevel: number;
   inTeam: boolean;
+  isNft?: boolean;
   duplicates: number;
+
   next: FusionNext | null;
 };
 
