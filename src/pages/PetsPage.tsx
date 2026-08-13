@@ -744,63 +744,93 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
   );
 }
 
-/** Single premium NFT tag: dark background, gold border/text. Replaces the rarity chip entirely. */
 /**
- * NFT EXCLUSIVE earnings for THIS player only. It never renders pool balance,
- * pool health, treasury or other owners' obligations — those live in the backend
- * and are visible exclusively to the master admin through the admin bot.
+ * NFT EXCLUSIVE main section: shows ONLY the TON-producing NFT pets owned by
+ * this player. It never renders pool balance, pool health, reserved amounts,
+ * daily obligation, treasury or any system revenue — that data stays in the
+ * backend and is visible exclusively to the master admin through the admin bot.
  */
-function NftRewardCard({ telegramInitData }: { telegramInitData: string }) {
-  const t = useT();
+function NftExclusiveSection({ telegramInitData }: { telegramInitData: string }) {
   const queryClient = useQueryClient();
-  const { data } = useQuery({
-    queryKey: ['nft-reward'],
-    queryFn: () => fetchNftReward(telegramInitData),
-    staleTime: 30_000,
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['nft-rewards-mine'],
+    queryFn: () => fetchMyNftRewards(telegramInitData),
+    staleTime: 20_000,
   });
   const claim = useMutation({
-    mutationFn: () => claimNftReward(telegramInitData),
+    mutationFn: (positionId: string) => claimNftPosition(telegramInitData, positionId),
     onSuccess: (result) => {
-      toast.success(t('pets.nftClaimed', { amount: formatTon(result.amountTon) }));
-      queryClient.setQueryData(['nft-reward'], result);
+      toast.success(`+${formatTon(result.amountTon)} TON`);
+      queryClient.setQueryData(['nft-rewards-mine'], { totalSupply: result.totalSupply, items: result.items });
       queryClient.invalidateQueries({ queryKey: ['ton-wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });
     },
-    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : 'Erro'),
+    onError: (claimError: unknown) => toast.error(claimError instanceof Error ? claimError.message : 'Erro'),
   });
 
-  if (!data?.hasNft) return null;
-  const available = Number(data.availableTon ?? 0);
-  const canClaim = Boolean(data.canClaim) && !claim.isPending;
+  if (isLoading) return <p className="py-24 text-center text-sm text-amber-200">...</p>;
+  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : 'Erro'}</p>;
+
+  const items = data?.items ?? [];
+  if (items.length === 0) {
+    return (
+      <section className="forge-nft-card mt-2 overflow-hidden rounded-[1.8rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-6 text-center">
+        <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
+        <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">💎 NFT EXCLUSIVE</p>
+        <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">You don&apos;t own an NFT Exclusive Pet yet.</p>
+        <div className="mt-5 inline-flex flex-col rounded-2xl border border-amber-200/25 bg-black/50 px-6 py-3">
+          <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">Limited Collection</span>
+          <span className="text-lg font-black text-amber-100">{data?.totalSupply ?? 10} NFTs Total</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="forge-nft-card mt-3 overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
-      <div className="flex items-center justify-between">
-        <p className="text-[9px] font-black uppercase tracking-[.28em] text-amber-200">{t('pets.nftTitle')}</p>
-        <p className="text-[10px] font-black text-amber-100">
-          {t('pets.nftUnit', { serial: String(data.serial ?? 0).padStart(2, '0'), total: data.totalSupply ?? 10 })}
-        </p>
-      </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        {[
-          { label: t('pets.nftDaily'), value: formatTon(data.dailyYieldTon ?? 0) },
-          { label: t('pets.nftAvailable'), value: formatTon(available) },
-          { label: t('pets.nftLifetime'), value: formatTon(data.lifetimeEarnedTon ?? 0) },
-        ].map((item) => (
-          <div key={item.label} className="rounded-xl border border-amber-200/20 bg-black/40 px-1 py-2">
-            <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{item.label}</p>
-            <p className="text-[13px] font-black text-amber-100">{item.value} <span className="text-[8px] text-amber-300/80">TON</span></p>
-          </div>
-        ))}
-      </div>
-      <button
-        type="button"
-        disabled={!canClaim}
-        onClick={() => claim.mutate()}
-        className={`mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-500'}`}
-      >
-        {available > 0 ? t('pets.nftClaim', { amount: formatTon(available) }) : t('pets.nftNothing')}
-      </button>
-    </section>
+    <div className="mt-1 space-y-3 pb-10">
+      {items.map((item) => {
+        const available = Number(item.availableTon ?? 0);
+        const canClaim = Boolean(item.canClaim) && !claim.isPending;
+        return (
+          <section key={item.positionId} className="forge-nft-card relative overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
+            <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
+            <div className="relative flex items-center justify-between gap-2">
+              <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 NFT EXCLUSIVE</p>
+              <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{data?.totalSupply ?? 10}</p>
+            </div>
+            <div className="relative mt-2 flex items-center gap-3">
+              {item.image ? <img src={item.image} alt={item.name} className="h-16 w-16 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(251,191,36,.45)]" /> : null}
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-black text-white">{item.name.toUpperCase()}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-300/90">
+                  {petRarityLabel(item.rarity as PetRarity)} • LEVEL {item.level}
+                </p>
+              </div>
+            </div>
+            <div className="relative mt-3 grid grid-cols-3 gap-2 text-center">
+              {[
+                { label: 'Daily Yield', value: item.dailyYieldTon },
+                { label: 'Available to Claim', value: available },
+                { label: 'Lifetime Earned', value: item.lifetimeEarnedTon },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
+                  <p className="text-[7px] uppercase leading-tight tracking-[.12em] text-slate-400">{stat.label}</p>
+                  <p className="text-[13px] font-black text-amber-100">{formatTon(stat.value ?? 0)} <span className="text-[8px] text-amber-300/80">TON</span></p>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              disabled={!canClaim}
+              onClick={() => claim.mutate(item.positionId)}
+              className={`relative mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'bg-white/5 text-slate-500'}`}
+            >
+              {available > 0 ? `CLAIM ${formatTon(available)} TON` : 'NOTHING TO CLAIM'}
+            </button>
+          </section>
+        );
+      })}
+    </div>
   );
 }
 
