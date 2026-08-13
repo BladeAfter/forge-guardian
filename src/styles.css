@@ -843,3 +843,21 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   100%{opacity:.35;transform:translateY(0)}
 }
 .forge-nft-tag{box-shadow:0 0 12px rgba(251,191,36,.45)}
+
+/* ===== NFT EXCLUSIVE hero cards (tier above ANCESTRAL) ===== */
+.nft-hero-card{
+  border-color:rgba(34,211,238,.75)!important;
+  background-image:linear-gradient(180deg,#04202c 0%,#071227 55%,#03040c 100%);
+  box-shadow:0 0 0 1px rgba(34,211,238,.4),0 16px 32px rgba(8,145,178,.4),inset 0 0 22px rgba(56,189,248,.18);
+  animation:nft-hero-glow 3.2s ease-in-out infinite;
+}
+@keyframes nft-hero-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(34,211,238,.4),0 16px 32px rgba(8,145,178,.4),inset 0 0 22px rgba(56,189,248,.18)}
+  50%{box-shadow:0 0 0 1px rgba(165,243,252,.85),0 20px 40px rgba(14,116,144,.6),inset 0 0 30px rgba(34,211,238,.3)}
+}
+.nft-hero-tag{
+  color:#062c33;
+  background-image:linear-gradient(120deg,#67e8f9 0%,#a5f3fc 45%,#fde68a 100%);
+  box-shadow:0 0 12px rgba(34,211,238,.55);
+}
+@media (prefers-reduced-motion:reduce){.nft-hero-card{animation:none}}
