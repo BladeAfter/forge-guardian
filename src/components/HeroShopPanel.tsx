@@ -74,7 +74,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const isTonSale = sellCurrency === 'TON';
   const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
   const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
+  // TON sales settle instantly (no hold); FC sales keep the configured anti-fraud hold.
   const settlementHours = Number(settings?.settlementHours ?? 72);
+  const tonSettlementHours = Number(settings?.settlementHoursTon ?? 0);
+  const instantSettlement = isTonSale && tonSettlementHours <= 0;
   const availableTon = Number(browse.data?.availableTon ?? sellable.data?.availableTon ?? tonBalance ?? 0);
   // Header chip: prefer the live server value, fall back to the HUD balance.
   const tonWalletBalance = Number(sellable.data?.availableTon ?? browse.data?.availableTon ?? tonBalance ?? 0);
