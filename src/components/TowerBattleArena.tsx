@@ -3,6 +3,8 @@ import { Swords, Zap } from 'lucide-react';
 import type { PvpHero } from '../pvp';
 import type { TowerBattle } from '../tower';
 import { towerBossTheme } from '../towerBosses';
+import { PetCompanion } from './PetCompanion';
+import { activePetBonuses } from '../petBonuses';
 
 /**
  * Tower of Eternity battle screen: 5 heroes vs 1 floor boss.
@@ -64,6 +66,10 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
   const bossPct = Math.max(0, Math.min(100, Math.round((bossHp / bossMaxHp) * 100)));
   const turn = Math.min(battle.totalTurns, events[Math.min(index, Math.max(0, events.length - 1))]?.turn ?? battle.totalTurns);
   const rewards = (battle.rewards ?? {}) as Record<string, number>;
+  // The active pet and its buffs come from the same server-side pet system used by the Boss.
+  const activePet = battle.petSummary?.activePet ?? null;
+  const petBonuses = battle.petSummary?.bonuses ?? null;
+  const petBuffs = activePetBonuses(petBonuses, Object.keys(petBonuses ?? {})).slice(0, 4);
 
   return (
     <div className="fixed inset-0 z-[120] overflow-y-auto bg-[#04070c] text-white">
@@ -110,6 +116,7 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
 
         <section>
           <p className="mb-2 text-[9px] font-black uppercase tracking-[.2em] text-slate-400">Sua equipe</p>
+          {activePet ? <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label="Pet Buff Active" /> : null}
           <div className="grid grid-cols-5 gap-1.5">
             {heroes.map(h => {
               const pct = Math.max(0, Math.min(100, Math.round((h.hp / h.maxHp) * 100)));
