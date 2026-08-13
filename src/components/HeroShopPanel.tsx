@@ -16,7 +16,8 @@ import {
   createMarketPaymentIntent,
   waitForMarketPayment,
 } from '../services';
-import { marketFeeSplit, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSort } from '../market';
+import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMinPriceTon, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSellCategory, type MarketSort } from '../market';
+import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
 
 type Props = {
@@ -51,9 +52,11 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const [rarity, setRarity] = useState<string>('all');
   const [sort, setSort] = useState<MarketSort>('newest');
   const [currencyFilter, setCurrencyFilter] = useState<MarketCurrency | 'all'>('all');
-  const [sellKind, setSellKind] = useState<MarketItemType>('hero');
+  const [sellCategory, setSellCategory] = useState<MarketSellCategory>('hero');
+  const sellKind: MarketItemType = marketKindForCategory(sellCategory);
+  const [quantity, setQuantity] = useState(1);
   const [sellCurrency, setSellCurrency] = useState<MarketCurrency>('FC');
-  const [selected, setSelected] = useState<{ id?: string; code?: string; name: string } | null>(null);
+  const [selected, setSelected] = useState<{ id?: string; code?: string; name: string; rarity?: string; max?: number; stackable?: boolean; minPriceTon?: number } | null>(null);
   const [price, setPrice] = useState('');
   const [sortOpen, setSortOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -73,7 +76,12 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
   const isTonSale = sellCurrency === 'TON';
   const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
-  const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
+  // TON minimum is the hard backend rule (0.10 TON, 4 TON for Legendary+ heroes).
+  const minPriceTonForSelection = Number(selected?.minPriceTon ?? marketMinPriceTon(sellKind, selected?.rarity));
+  const minPrice = isTonSale ? minPriceTonForSelection : Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const maxQuantity = Math.max(1, Number(selected?.max ?? 1));
+  const isStackable = sellKind === 'item' && selected?.stackable !== false && maxQuantity > 1;
+  const listedQuantity = Math.min(Math.max(1, Math.trunc(quantity) || 1), maxQuantity);
   // TON sales settle instantly (no hold); FC sales keep the configured anti-fraud hold.
   const settlementHours = Number(settings?.settlementHours ?? 72);
   const tonSettlementHours = Number(settings?.settlementHoursTon ?? 0);
@@ -207,10 +215,11 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
       currency: sellCurrency,
       priceFc: isTonSale ? undefined : Math.trunc(priceValue),
       priceTon: isTonSale ? Math.round(priceValue * 1000) / 1000 : undefined,
+      quantity: sellKind === 'item' ? listedQuantity : 1,
     }),
     onSuccess: async (result) => {
       toast.success(t('market.listingCreated'));
-      setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
+      setSelected(null); setPrice(''); setQuantity(1); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : t('market.loadError')),
@@ -219,7 +228,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const chipClass = (active: boolean) =>
     `rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.12em] transition ${active ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`;
 
-  type SellOption = { id?: string; code?: string; name: string; rarity: string; level: number; image: string | null; detail: string; locks: MarketLockReason[]; available: boolean };
+  type SellOption = { id?: string; code?: string; name: string; rarity: string; level: number; image: string | null; detail: string; locks: MarketLockReason[]; available: boolean; quantity: number; stackable: boolean; minPriceTon: number };
   const lockLabel = (lock: MarketLockReason) =>
     lock === 'pvp_team' ? t('market.lockPvp')
       : lock === 'global_boss_team' ? t('market.lockGlobalBoss')
@@ -233,11 +242,32 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     const list = Array.from(new Set(locks ?? []));
     return { locks: list, available: available ?? list.length === 0 };
   };
-  const sellOptions: SellOption[] = sellKind === 'hero'
-    ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}`, ...normalize(hero.locks, hero.available) }))
-    : sellKind === 'pet'
-      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: petDisplayRarity(pet), level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), ...normalize(pet.locks, pet.available) }))
-      : (sellable.data?.items ?? []).map((item) => ({ code: item.code, name: item.code.replace(/_/g, ' ').toUpperCase(), rarity: 'rare', level: 1, image: null, detail: `x${item.quantity}`, ...normalize(item.locks, item.available) }));
+  const sellOptions: SellOption[] = sellCategory === 'hero'
+    ? (sellable.data?.heroes ?? []).map((hero) => ({ id: hero.id, name: hero.name, rarity: hero.rarity, level: hero.level, image: hero.image, detail: `ATK ${formatCurrency(hero.atk)} · HP ${formatCurrency(hero.hp)}`, quantity: 1, stackable: false, minPriceTon: Number(hero.minPriceTon ?? marketMinPriceTon('hero', hero.rarity)), ...normalize(hero.locks, hero.available) }))
+    : sellCategory === 'pet'
+      ? (sellable.data?.pets ?? []).map((pet) => ({ id: pet.id, name: pet.name, rarity: petDisplayRarity(pet), level: pet.level, image: pet.image, detail: String(pet.evolution ?? '').toUpperCase(), quantity: 1, stackable: false, minPriceTon: Number(pet.minPriceTon ?? marketMinPriceTon('pet', pet.rarity)), ...normalize(pet.locks, pet.available) }))
+      : (sellable.data?.items ?? [])
+        .filter((item) => (item.category ?? 'other') === sellCategory)
+        .map((item) => {
+          // Art comes from the SAME shared map the inventory uses, so nothing renders broken.
+          const visual = getInventoryItemVisual({
+            itemId: item.code.includes(':') ? item.code.split(':')[0] : item.code,
+            itemType: item.itemType, category: (item.category ?? 'other') as never,
+            image: item.image ?? null, rarity: item.rarity ?? null, quantity: item.quantity,
+          } as never);
+          return {
+            code: item.code,
+            name: item.name ?? item.code.replace(/_/g, ' ').toUpperCase(),
+            rarity: item.rarity ?? 'rare',
+            level: 1,
+            image: item.image ?? visual.image,
+            detail: `x${item.quantity}`,
+            quantity: Math.max(1, Number(item.quantity ?? 1)),
+            stackable: item.stackable !== false,
+            minPriceTon: Number(item.minPriceTon ?? marketMinPriceTon('item', item.rarity)),
+            ...normalize(item.locks, item.available),
+          };
+        });
   const freeOptions = sellOptions.filter((option) => option.available);
   const selectedOption = sellOptions.find((option) => option.id === selected?.id && option.code === selected?.code) ?? null;
 
@@ -463,7 +493,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                                 <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} · HP {formatCurrency(listing.hp)}</p>
                               ) : null}
                               <p className="truncate text-[7px] uppercase tracking-[0.14em] text-slate-500">
-                                {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.equipment')}
+                                {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.itemLabel')}
+                                {Number(listing.quantity ?? 1) > 1 ? ` · x${listing.quantity}` : ''}
                               </p>
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
                             </div>
@@ -532,7 +563,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                     <div key={listing.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[.03] p-2">
                       {listing.image ? <img src={listing.image} alt={listing.name} className="h-10 w-10 rounded-lg object-cover" /> : <div className="grid h-10 w-10 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[11px] font-black text-white">{listing.name}</p>
+                        <p className="truncate text-[11px] font-black text-white">
+                          {listing.name}{Number(listing.quantity ?? 1) > 1 ? <span className="ml-1 text-amber-200">x{listing.quantity}</span> : null}
+                        </p>
                         <p className={`text-[9px] font-black ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${listing.status === 'active' ? 'bg-emerald-400/15 text-emerald-300' : listing.status === 'sold' ? 'bg-sky-400/15 text-sky-300' : 'bg-white/10 text-slate-400'}`}>
@@ -549,7 +582,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                     <div key={purchase.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 p-2">
                       {purchase.image ? <img src={purchase.image} alt={purchase.name} className="h-9 w-9 rounded-lg object-cover" /> : <div className="grid h-9 w-9 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-black text-white">{purchase.name}</p>
+                        <p className="truncate text-[10px] font-black text-white">
+                          {purchase.name}{Number(purchase.quantity ?? 1) > 1 ? <span className="ml-1 text-amber-200">x{purchase.quantity}</span> : null}
+                        </p>
                         <p className="truncate text-[8px] text-slate-500">{t('market.seller')}: {purchase.seller}</p>
                       </div>
                       <p className={`text-[10px] font-black ${purchase.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(purchase)}</p>
@@ -561,10 +596,19 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
               {marketTab === 'sell' ? (
                 <div className="mt-3">
                   <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.chooseCategory')}</p>
-                  <div className="mt-1.5 grid grid-cols-3 gap-1.5">
-                    {(['hero', 'pet', 'item'] as const).map((value) => (
-                      <button key={value} onClick={() => { setSellKind(value); setSelected(null); }} className={`rounded-lg border px-1 py-1.5 text-[9px] font-black uppercase ${sellKind === value ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-                        {value === 'hero' ? t('market.heroes') : value === 'pet' ? t('market.pets') : t('market.equipment')}
+                  <div className="mt-1.5 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                    {MARKET_SELL_CATEGORIES.map((value) => (
+                      <button
+                        key={value}
+                        onClick={() => { setSellCategory(value); setSelected(null); setQuantity(1); }}
+                        className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-[9px] font-black uppercase tracking-[0.1em] ${sellCategory === value ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}
+                      >
+                        {value === 'hero' ? t('market.heroes')
+                          : value === 'pet' ? t('market.pets')
+                          : value === 'equipment' ? t('market.equipment')
+                          : value === 'fragments' ? t('market.fragments')
+                          : value === 'food' ? t('market.petFood')
+                          : t('market.chests')}
                       </button>
                     ))}
                   </div>
@@ -603,12 +647,15 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           key={option.id ?? option.code}
                           disabled={locked}
                           title={locked ? option.locks.map(lockLabel).join(' · ') : undefined}
-                          onClick={() => { if (locked) return; setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
+                          onClick={() => { if (locked) return; setSelected({ id: option.id, code: option.code, name: option.name, rarity: option.rarity, max: option.quantity, stackable: option.stackable, minPriceTon: option.minPriceTon }); setQuantity(1); setPrice(''); setConfirming(false); }}
                           className={`relative overflow-hidden rounded-xl border bg-black/40 text-left transition ${active ? 'border-amber-300 ring-2 ring-amber-300/50 scale-[1.02]' : locked ? 'border-rose-400/30' : 'border-white/10'}`}
                         >
                           <div className={locked ? 'opacity-45' : ''}>
                             {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
                           </div>
+                          {option.stackable && option.quantity > 1 ? (
+                            <span className="absolute bottom-8 right-1 rounded bg-black/80 px-1 text-[7px] font-black text-amber-200">x{option.quantity}</span>
+                          ) : null}
                           {active && !locked ? (
                             <span className="absolute right-1 top-1 rounded-md bg-amber-300 px-1 py-0.5 text-[6.5px] font-black uppercase tracking-tight text-black">✓ {t('market.selectedBadge')}</span>
                           ) : null}
@@ -682,6 +729,33 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         )}
                       </div>
 
+                      {isStackable ? (
+                        <div className="mt-2 rounded-xl border border-white/10 bg-black/40 p-2">
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.quantity')}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <button
+                              onClick={() => { setQuantity((value) => Math.max(1, value - 1)); setConfirming(false); }}
+                              className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-sm font-black text-slate-200"
+                            >−</button>
+                            <input
+                              value={String(listedQuantity)}
+                              onChange={(event) => { setQuantity(Math.min(maxQuantity, Math.max(1, Number(event.target.value.replace(/[^0-9]/g, '')) || 1))); setConfirming(false); }}
+                              inputMode="numeric"
+                              className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-1.5 text-center text-sm font-black text-amber-200 outline-none"
+                            />
+                            <button
+                              onClick={() => { setQuantity((value) => Math.min(maxQuantity, value + 1)); setConfirming(false); }}
+                              className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-sm font-black text-slate-200"
+                            >+</button>
+                            <button
+                              onClick={() => { setQuantity(maxQuantity); setConfirming(false); }}
+                              className="shrink-0 rounded-lg border border-amber-300/40 bg-amber-400/10 px-2 py-1.5 text-[8px] font-black uppercase text-amber-200"
+                            >MAX</button>
+                          </div>
+                          <p className="mt-1 text-[8px] text-slate-500">{t('market.quantityHint', { max: maxQuantity })}</p>
+                        </div>
+                      ) : null}
+
                       <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.enterPrice')}</p>
                       <input
                         value={price}
@@ -691,6 +765,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-sm font-black text-amber-200 outline-none"
                       />
                       <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: `${amountLabel(bandMin)} ${priceUnit}` })}</p>
+                      {isTonSale ? (
+                        <p className="text-[8px] font-bold text-sky-200/80">{t('market.minTonHint', { value: tonAmount(minPriceTonForSelection) })}</p>
+                      ) : null}
                       {outOfBand ? (
                         <p className="mt-1 text-[8px] font-bold text-rose-300">
                           {t('market.outOfBand', { min: `${amountLabel(bandMin)} ${priceUnit}`, max: `${amountLabel(bandMax)} ${priceUnit}` })}

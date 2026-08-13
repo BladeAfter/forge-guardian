@@ -85,10 +85,37 @@ export type MarketLockReason =
   | 'pvp_team' | 'global_boss_team' | 'clan_boss_team'
   | 'active_pet' | 'equipped';
 
-export type MarketSellableBase = { locks?: MarketLockReason[]; available?: boolean };
+export type MarketSellableBase = { locks?: MarketLockReason[]; available?: boolean; minPriceTon?: number };
 export type MarketSellableHero = MarketSellableBase & { id: string; name: string; rarity: string; level: number; image: string | null; stars: number; atk: number; hp: number; priceRange?: MarketPriceRange };
 export type MarketSellablePet = MarketSellableBase & { id: string; name: string; rarity: string; level: number; image: string | null; evolution: string | null; tier: number; priceRange?: MarketPriceRange };
-export type MarketSellableItem = MarketSellableBase & { code: string; itemType: string; quantity: number; priceRange?: MarketPriceRange };
+/**
+ * Stackable / instance items the player really owns. `code` is namespaced by source:
+ * plain inventory code (chests, fragments), `food:<code>`, `ufrag`, `pfrag:<id>`, `equip:<id>`.
+ */
+export type MarketSellableItem = MarketSellableBase & {
+  code: string; itemType: string; quantity: number; priceRange?: MarketPriceRange;
+  name?: string; image?: string | null; rarity?: string;
+  category?: MarketSellCategory; stackable?: boolean;
+};
+
+/** Sell tabs of the market. `hero`/`pet` are instances; the rest are item sources. */
+export type MarketSellCategory = 'hero' | 'pet' | 'equipment' | 'fragments' | 'food' | 'chests' | 'other';
+export const MARKET_SELL_CATEGORIES: MarketSellCategory[] = ['hero', 'pet', 'equipment', 'fragments', 'food', 'chests'];
+/** The item kind sent to the backend for each sell tab. */
+export const marketKindForCategory = (category: MarketSellCategory): MarketItemType =>
+  category === 'hero' ? 'hero' : category === 'pet' ? 'pet' : 'item';
+
+/**
+ * Mirror of the backend rule `market_min_price_ton`: 4 TON for Legendary+ heroes,
+ * 0.10 TON for everything else. The backend recalculates and stays the authority.
+ */
+export const MARKET_MIN_PRICE_TON = 0.1;
+export const MARKET_MIN_PRICE_TON_LEGENDARY_HERO = 4;
+export const marketMinPriceTon = (itemType: string, rarity?: string | null) =>
+  String(itemType).toLowerCase() === 'hero'
+  && ['legendary', 'mythic', 'ancestral', 'nft_exclusive', 'divine', 'celestial'].includes(String(rarity ?? '').toLowerCase())
+    ? MARKET_MIN_PRICE_TON_LEGENDARY_HERO
+    : MARKET_MIN_PRICE_TON;
 
 export type MarketSellable = {
   heroes: MarketSellableHero[];
@@ -119,13 +146,17 @@ export type MarketMyListing = {
   priceTon: number;
   currency: MarketCurrency;
   status: 'active' | 'reserved' | 'sold' | 'cancelled';
+  /** Listed quantity (stackable items). Heroes and pets are always 1. */
+  quantity: number;
+  itemCode?: string | null;
+  category?: string | null;
   feePercent: number;
   createdAt: string;
   soldAt: string | null;
   cancelledAt: string | null;
 };
 
-export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; priceTon: number; currency: MarketCurrency; seller: string; createdAt: string };
+export type MarketPurchase = { id: string; itemType: MarketItemType; name: string; rarity: string; image: string | null; priceFc: number; priceTon: number; currency: MarketCurrency; quantity?: number; seller: string; createdAt: string };
 
 export type MarketMine = { listings: MarketMyListing[]; purchases: MarketPurchase[]; settings: MarketSettings };
 

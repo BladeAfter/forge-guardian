@@ -342,7 +342,7 @@ export const fuseHeroesByRarity=(initData:string,heroIds:string[],idempotencyKey
 export const setHeroLock=(initData:string,heroId:string,locked:boolean)=>fusionRequest<{heroId:string;locked:boolean}>(initData,{action:'lock',heroId,locked});
 
 // ------------------------------------------------------------- player market (FC + TON)
-const MARKET_ERRORS:Record<string,string>={
+const MARKET_ERRORS:Record<string,string>={PRICE_BELOW_MINIMUM_LEGENDARY:'Heróis Lendários ou superiores custam no mínimo 4 TON.',INVALID_QUANTITY:'Quantidade inválida.',EQUIPMENT_EQUIPPED:'Desequipe o item antes de anunciá-lo.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
   INVALID_ITEM_TYPE:'Categoria inválida.',
   INVALID_ITEM:'Item inválido.',
@@ -401,7 +401,7 @@ export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',ra
 export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
 export const fetchMarketQuote=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string})=>marketRequest<MarketQuote>(initData,{action:'quote',...input});
 export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});
-export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
+export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number;quantity?:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
 export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
 export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});
 /** External wallet payment: reserves the listing and returns the exact transfer data. */
