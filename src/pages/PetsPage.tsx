@@ -51,6 +51,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
+  // Main section selector shown in the header: PETS | NFT EXCLUSIVE.
+  const [section, setSection] = useState<Section>('pets');
   const [tab, setTab] = useState<Tab>('pets');
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string; pet?: PlayerPet } | null>(null);
   const [feedTarget, setFeedTarget] = useState<PlayerPet | null>(null);
