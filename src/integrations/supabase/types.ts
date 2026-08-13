@@ -9438,6 +9438,7 @@ export type Database = {
       game_next_reset_at: { Args: { p_at?: string }; Returns: string }
       game_timezone: { Args: never; Returns: string }
       generate_missing_hero_stats: { Args: never; Returns: number }
+      get_ad_rewards: { Args: { p_telegram_id: number }; Returns: Json }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_channel_rewards: { Args: { p_telegram_id: number }; Returns: Json }
