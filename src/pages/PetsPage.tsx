@@ -390,8 +390,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
                     {pet.discovered
-                      ? `${pet.species} · ${t('pets.rarityLevel', { rarity: petRarityLabel(pet.bestRarity), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 })}`
-                      : `${petRarityLabel(pet.rarity ?? null)} · ${t('pets.notDiscovered')}`}
+                      ? `${pet.species} · ${t('pets.rarityLevel', { rarity: petDisplayRarityLabel({ ...pet, rarity: pet.bestRarity }), level: pet.bestLevel ?? 1, max: pet.bestLevel ?? 1 })}`
+                      : `${petDisplayRarityLabel(pet)} · ${t('pets.notDiscovered')}`}
                   </p>
                   {buff && (
                     <PetBuff
