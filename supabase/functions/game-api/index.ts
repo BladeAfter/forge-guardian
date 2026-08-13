@@ -994,6 +994,25 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
 
+  /**
+   * REWARDS tab: AdsGram rewarded ads paying real TON into the withdrawable balance.
+   * The server owns the reward value, the daily limit and the 21:00 (America/Sao_Paulo)
+   * reset. `begin` only opens a view; TON is credited by `reward` after AdsGram confirms.
+   */
+  ads: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'get_ad_rewards', { p_telegram_id: user.id });
+    if (action === 'begin') return rpc(db, 'ad_reward_begin', { p_telegram_id: user.id });
+    if (action === 'reward') {
+      return rpc(db, 'ad_reward_claim', {
+        p_telegram_id: user.id,
+        p_view_id: isUuid(body.viewId) ? body.viewId : null,
+        p_source: 'client',
+      });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
   /** Special events (EVENTS tab). Ranking and prizes are computed server-side only. */
   events: async (db, user) => {
     return rpc(db, 'get_special_events_dashboard', { p_telegram_id: user.id });
