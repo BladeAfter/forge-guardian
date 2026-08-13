@@ -26,6 +26,13 @@ html, body, #root {
   padding-bottom: calc(0.75rem + var(--tg-safe-area-inset-bottom) + var(--tg-content-safe-area-inset-bottom));
 }
 
+/* Keeps scrollable tabs (Boss, Wallet, etc.) clear of the fixed bottom nav on mobile. */
+.telegram-safe-body {
+  padding-bottom: calc(7.5rem + var(--tg-safe-area-inset-bottom) + var(--tg-content-safe-area-inset-bottom));
+}
+
+
+
 body {
   @apply bg-forge-black text-white antialiased;
 }
