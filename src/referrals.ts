@@ -10,6 +10,8 @@ export type ReferralDashboard={
   commissionLevels?:ReferralCommissionLevel[];summary?:{totalInvited:number;totalEarnedFc:number;earnedTodayFc:number;earned7DaysFc:number};
   pagination?:{offset:number;limit:number;hasMore:boolean};counts:{total:number;lv1:number;lv2:number;lv3:number};
   earnings:{today:number;yesterday:number;days7:number;days30:number;total:number};
+  earningsTon?:{today:number;days7:number;days30:number;total:number};
+  commissionHistory?:ReferralCommissionEntry[];
   invites:ReferralInvite[];tree:ReferralTreeNode[];ranking:ReferralRanking[];
   bonuses:Array<{milestone:number;bonusFc:number;enabled:boolean;claimed:boolean}>;
   notifications:Array<{id:string;title:string;message:string;amountFc:number|null;createdAt:string}>;
