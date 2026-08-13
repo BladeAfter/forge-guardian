@@ -79,6 +79,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // TON minimum is the hard backend rule (0.10 TON, 4 TON for Legendary+ heroes).
   const minPriceTonForSelection = Number(selected?.minPriceTon ?? marketMinPriceTon(sellKind, selected?.rarity));
   const minPrice = isTonSale ? minPriceTonForSelection : Number(settings?.minPrice?.[sellKind] ?? 5000);
+  const maxQuantity = Math.max(1, Number(selected?.max ?? 1));
+  const isStackable = sellKind === 'item' && selected?.stackable !== false && maxQuantity > 1;
+  const listedQuantity = Math.min(Math.max(1, Math.trunc(quantity) || 1), maxQuantity);
   // TON sales settle instantly (no hold); FC sales keep the configured anti-fraud hold.
   const settlementHours = Number(settings?.settlementHours ?? 72);
   const tonSettlementHours = Number(settings?.settlementHoursTon ?? 0);
@@ -645,6 +648,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           <div className={locked ? 'opacity-45' : ''}>
                             {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
                           </div>
+                          {option.stackable && option.quantity > 1 ? (
+                            <span className="absolute bottom-8 right-1 rounded bg-black/80 px-1 text-[7px] font-black text-amber-200">x{option.quantity}</span>
+                          ) : null}
                           {active && !locked ? (
                             <span className="absolute right-1 top-1 rounded-md bg-amber-300 px-1 py-0.5 text-[6.5px] font-black uppercase tracking-tight text-black">✓ {t('market.selectedBadge')}</span>
                           ) : null}
@@ -718,6 +724,33 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         )}
                       </div>
 
+                      {isStackable ? (
+                        <div className="mt-2 rounded-xl border border-white/10 bg-black/40 p-2">
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.quantity')}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <button
+                              onClick={() => { setQuantity((value) => Math.max(1, value - 1)); setConfirming(false); }}
+                              className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-sm font-black text-slate-200"
+                            >−</button>
+                            <input
+                              value={String(listedQuantity)}
+                              onChange={(event) => { setQuantity(Math.min(maxQuantity, Math.max(1, Number(event.target.value.replace(/[^0-9]/g, '')) || 1))); setConfirming(false); }}
+                              inputMode="numeric"
+                              className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-1.5 text-center text-sm font-black text-amber-200 outline-none"
+                            />
+                            <button
+                              onClick={() => { setQuantity((value) => Math.min(maxQuantity, value + 1)); setConfirming(false); }}
+                              className="grid h-8 w-8 place-items-center rounded-lg border border-white/15 text-sm font-black text-slate-200"
+                            >+</button>
+                            <button
+                              onClick={() => { setQuantity(maxQuantity); setConfirming(false); }}
+                              className="shrink-0 rounded-lg border border-amber-300/40 bg-amber-400/10 px-2 py-1.5 text-[8px] font-black uppercase text-amber-200"
+                            >MAX</button>
+                          </div>
+                          <p className="mt-1 text-[8px] text-slate-500">{t('market.quantityHint', { max: maxQuantity })}</p>
+                        </div>
+                      ) : null}
+
                       <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('market.enterPrice')}</p>
                       <input
                         value={price}
@@ -727,6 +760,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         className="mt-1 w-full rounded-xl border border-white/10 bg-black/50 px-3 py-2 text-sm font-black text-amber-200 outline-none"
                       />
                       <p className="mt-1 text-[8px] text-slate-500">{t('market.minPrice', { value: `${amountLabel(bandMin)} ${priceUnit}` })}</p>
+                      {isTonSale ? (
+                        <p className="text-[8px] font-bold text-sky-200/80">{t('market.minTonHint', { value: tonAmount(minPriceTonForSelection) })}</p>
+                      ) : null}
                       {outOfBand ? (
                         <p className="mt-1 text-[8px] font-bold text-rose-300">
                           {t('market.outOfBand', { min: `${amountLabel(bandMin)} ${priceUnit}`, max: `${amountLabel(bandMax)} ${priceUnit}` })}
