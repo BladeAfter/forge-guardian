@@ -9547,6 +9547,10 @@ export type Database = {
       }
       get_ton_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_tower_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_tower_ranking: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
+      }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
       global_boss_template_for_number: {
