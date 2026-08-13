@@ -4310,7 +4310,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
         r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: null, p_level: Number(parts[1] || 1), p_reason: 'concedido pelo painel' });
       } catch (grantError) {
         if (String((grantError as Error)?.message ?? '').includes('USE_NFT_FLOW')) {
-          return send(ctx, '⛔ Este pet é <b>NFT EXCLUSIVE</b>. Use o módulo 💎 NFT PETS para entregar (serial único preservado).', kb([[{ t: '💎 NFT PETS', d: 'nft:home' }], nav()]));
+          return send(ctx, '⛔ Este pet é <b>NFT EXCLUSIVE</b>. Use o módulo 💎 NFT PETS para entregar (serial único preservado).', kb([[{ t: '💎 NFT PETS', d: 'nft:hub' }], nav()]));
         }
         throw grantError;
       }
