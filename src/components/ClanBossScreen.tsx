@@ -36,6 +36,8 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoOverride, setAutoOverride] = useState<ClanBossAutoAttackState | null>(null);
   const auto = autoOverride ?? data?.autoAttack ?? null;
+  // Once the server state refreshes it becomes the source of truth again.
+  useEffect(() => { setAutoOverride(null); }, [data?.autoAttack?.nextAttackAt, data?.autoAttack?.enabled]);
 
   useClanBossRealtime(data?.boss?.id, data?.clan?.id, Boolean(data?.inClan));
 
