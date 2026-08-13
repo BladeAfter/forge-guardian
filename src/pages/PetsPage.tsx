@@ -18,7 +18,10 @@ import { useT, useLanguage } from '../LanguageContext';
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'];
+// Egg names come from the database and may carry decorative emojis that render as
+// tofu boxes inside the Telegram webview: strip them and keep the plain label.
+const cleanEggName = (name: string) => name.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
 /** Rates always render in ascending rarity order, once per rarity. */
 const sortedRates = (rates: Record<string, number>) =>
   Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => RARITY_ORDER.indexOf(a[0]) - RARITY_ORDER.indexOf(b[0]));
