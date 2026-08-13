@@ -192,7 +192,7 @@ export async function fetchReferralDashboard(telegramInitData:string,level?:1|2|
   const response=await forgeFetch('referral',({initData:telegramInitData,action:'dashboard',level,offset,limit:20}));
   const payload=await response.json().catch(()=>null) as ReferralDashboard&{error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar seus convites.');
-  return {...payload,invites:Array.isArray(payload.invites)?payload.invites:[],tree:Array.isArray(payload.tree)?payload.tree:[],ranking:Array.isArray(payload.ranking)?payload.ranking:[],bonuses:Array.isArray(payload.bonuses)?payload.bonuses:[],notifications:Array.isArray(payload.notifications)?payload.notifications:[]};
+  return {...payload,invites:Array.isArray(payload.invites)?payload.invites:[],tree:Array.isArray(payload.tree)?payload.tree:[],ranking:Array.isArray(payload.ranking)?payload.ranking:[],bonuses:Array.isArray(payload.bonuses)?payload.bonuses:[],notifications:Array.isArray(payload.notifications)?payload.notifications:[],commissionHistory:Array.isArray(payload.commissionHistory)?payload.commissionHistory:[]};
 }
 export async function bindReferral(telegramInitData:string,inviterTelegramId:number){
   const response=await forgeFetch('referral',({initData:telegramInitData,action:'bind',inviterTelegramId}));
