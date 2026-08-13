@@ -106,11 +106,11 @@ export const marketKindForCategory = (category: MarketSellCategory): MarketItemT
   category === 'hero' ? 'hero' : category === 'pet' ? 'pet' : 'item';
 
 /**
- * Mirror of the backend rule `market_min_price_ton`: 4 TON for Legendary+ heroes,
+ * Mirror of the backend rule `market_min_price_ton`: 10 TON for Legendary+ heroes,
  * 0.10 TON for everything else. The backend recalculates and stays the authority.
  */
 export const MARKET_MIN_PRICE_TON = 0.1;
-export const MARKET_MIN_PRICE_TON_LEGENDARY_HERO = 4;
+export const MARKET_MIN_PRICE_TON_LEGENDARY_HERO = 10;
 export const marketMinPriceTon = (itemType: string, rarity?: string | null) =>
   String(itemType).toLowerCase() === 'hero'
   && ['legendary', 'mythic', 'ancestral', 'nft_exclusive', 'divine', 'celestial'].includes(String(rarity ?? '').toLowerCase())
