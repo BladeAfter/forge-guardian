@@ -13,6 +13,11 @@ import type { InventoryItem } from './calendarRewards';
 
 const ui = (file: string) => `/assets/game/ui/${file}`;
 const chestArt = (file: string) => `/assets/game/chests/${file}`;
+/** Equipment art: `eq_<kind>_<rarity>_<tier>` maps to `<kind>-<rarity>.png`. */
+const equipmentArtFromCode = (code: string) => {
+  const parts = code.split('_'); // eq, kind, rarity, tier
+  return parts.length >= 3 && parts[0] === 'eq' ? `/assets/game/equipment/${parts[1]}-${parts[2]}.png` : null;
+};
 
 /** Official chest art, keyed by the rarity token found in the item code. */
 const CHEST_BY_RARITY: Record<string, string> = {
@@ -76,8 +81,13 @@ export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {
     };
   }
 
-  // 1. definition image from the backend (eggs, pet fragments, ...)
+  // 1. definition image from the backend (eggs, pet fragments, equipment, ...)
   if (isImageUrl(item.image)) return { image: item.image as string, glyph: null, rarity };
+
+  // 1b. equipment resolves from its stable template code when no URL came back.
+  if (type === 'equipment') {
+    return { image: equipmentArtFromCode(code), glyph: equipmentArtFromCode(code) ? null : '🛡️', rarity };
+  }
 
   // 2. official asset mapped by stable code / type
   const mapped =
