@@ -9437,14 +9437,23 @@ export type Database = {
         Args: { p_league: string; p_streak: number }
         Returns: Json
       }
+      pvp_dedupe_team: { Args: { p_team: Json }; Returns: Json }
       pvp_generate_bot: { Args: { p_user: string }; Returns: Json }
       pvp_hero_json: {
         Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
         Returns: Json
       }
+      pvp_hero_template_key: {
+        Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
+        Returns: string
+      }
       pvp_league: { Args: { t: number }; Returns: string }
       pvp_reset_daily_tickets_all: { Args: never; Returns: number }
       pvp_stat_unit: { Args: { v: string }; Returns: number }
+      pvp_team_has_duplicates: {
+        Args: { p_type: string; p_user: string }
+        Returns: boolean
+      }
       pvp_team_json: { Args: { p_type: string; p_user: string }; Returns: Json }
       pvp_team_power: {
         Args: { p_type: string; p_user: string }
