@@ -4562,6 +4562,7 @@ export type Database = {
           id: string
           level: number
           locked: boolean
+          market_locked: boolean
           source: string
           source_ref: string | null
           template_id: string
@@ -4574,6 +4575,7 @@ export type Database = {
           id?: string
           level?: number
           locked?: boolean
+          market_locked?: boolean
           source?: string
           source_ref?: string | null
           template_id: string
@@ -4586,6 +4588,7 @@ export type Database = {
           id?: string
           level?: number
           locked?: boolean
+          market_locked?: boolean
           source?: string
           source_ref?: string | null
           template_id?: string
@@ -9857,18 +9860,32 @@ export type Database = {
         Args: { p_amount_nano: number; p_payment_id: string; p_tx_hash: string }
         Returns: Json
       }
-      market_create_listing: {
-        Args: {
-          p_currency?: string
-          p_item_code: string
-          p_item_instance_id: string
-          p_item_type: string
-          p_price_fc?: number
-          p_price_ton?: number
-          p_telegram_id: number
-        }
-        Returns: Json
-      }
+      market_create_listing:
+        | {
+            Args: {
+              p_currency?: string
+              p_item_code: string
+              p_item_instance_id: string
+              p_item_type: string
+              p_price_fc?: number
+              p_price_ton?: number
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_currency?: string
+              p_item_code: string
+              p_item_instance_id: string
+              p_item_type: string
+              p_price_fc?: number
+              p_price_ton?: number
+              p_quantity?: number
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
       market_create_payment_intent: {
         Args: {
           p_listing_id: string
@@ -9895,6 +9912,18 @@ export type Database = {
       market_is_bypass_admin: {
         Args: { p_telegram_id: number }
         Returns: boolean
+      }
+      market_item_give: {
+        Args: { p_code: string; p_qty: number; p_snap: Json; p_user: string }
+        Returns: undefined
+      }
+      market_item_take: {
+        Args: { p_code: string; p_qty: number; p_user: string }
+        Returns: Json
+      }
+      market_min_price_ton: {
+        Args: { p_item_type: string; p_rarity: string }
+        Returns: number
       }
       market_my_listings: { Args: { p_telegram_id: number }; Returns: Json }
       market_payment_status: {
