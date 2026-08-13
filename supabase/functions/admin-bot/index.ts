@@ -1687,7 +1687,8 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '🔥 HOT WALLET', d: 'm:hotwallet' }],
             [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }, { t: `💸 WITHDRAWAL FEE (${feePercent}%)`, d: 'ask:wdfee' }],
-            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
+            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '💎 AJUSTAR TON', d: 'ask:tonadj' }],
+            [{ t: '📜 ÚLTIMOS AJUSTES TON', d: 'tonhist:1' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
     case 'hotwallet': return hotWalletHub(ctx);
     case 'wallets': {
