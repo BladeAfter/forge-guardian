@@ -5,7 +5,7 @@ import { forgeFetch } from './apiClient';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
-import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
+import type { BossCombat, GlobalBossAutoAttackState, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
@@ -150,6 +150,14 @@ export async function fetchGlobalBossHistory(telegramInitData:string,limit=10):P
   const response=await forgeFetch('boss',({initData:telegramInitData,action:'history',limit}));
   const payload=await response.json().catch(()=>null) as GlobalBossHistoryRow[]|{error?:string}|null;
   if(!response.ok||!payload||!Array.isArray(payload))throw new Error(bossErrorMessage((payload as{error?:string}|null)?.error||'','Não foi possível carregar o histórico do chefe.'));
+  return payload;
+}
+
+/** Season Pass benefit: enable/disable the offline Auto ATK on the Global Boss. */
+export async function setGlobalBossAutoAttack(telegramInitData:string,enabled:boolean):Promise<GlobalBossAutoAttackState>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'auto-attack',enabled}));
+  const payload=await response.json().catch(()=>null) as GlobalBossAutoAttackState&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível atualizar o Auto ATK.'));
   return payload;
 }
 

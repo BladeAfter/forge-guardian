@@ -63,6 +63,12 @@ export type GlobalBossRanking = {
   you: { rank: number; damage: number; sharePercent: number; estimatedReward: number } | null;
 };
 
+export type GlobalBossAutoAttackState = {
+  eligible: boolean; passTier?: string | null; enabled: boolean; hasTeam: boolean; active: boolean;
+  intervalSeconds: number; lastAttackAt?: string | null; nextAttackAt?: string | null;
+  attacksTotal?: number; reason?: 'no_pass' | 'disabled' | 'no_team' | null;
+};
+
 export type BossCombat = {
   id: string | null; bossId: string | null; bossName: string; bossLevel: number;
   bossMaxHp: number; bossCurrentHp: number; bossAttack: number;
@@ -78,6 +84,8 @@ export type BossCombat = {
   ownedHeroes?: Array<{ id: string; heroKey: string; name: string; image?: string; rarity: HeroRarity; level: number }>;
   /** Server-authoritative shared boss state (one boss for the whole server). */
   globalBoss?: GlobalBossState | null;
+  /** Season Pass benefit: offline Auto ATK on the Global Boss (server-driven). */
+  autoAttack?: GlobalBossAutoAttackState | null;
   petSummary?: { activePet: { name: string; image: string; level: number; rarity: string } | null; bonuses: Record<string, number> };
 };
 

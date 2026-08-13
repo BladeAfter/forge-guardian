@@ -684,6 +684,7 @@ function App() {
       syncing={bossSyncing}
       backendOfficial={backendEnabled}
       telegramInitData={telegramInitData}
+      onOpenSeasonPass={()=>openInternal('season-pass')}
       onEquipHero={async(heroId,slot)=>{
         if(backendEnabled)return equipHeroMutation.mutateAsync({heroId,slot});
         setGame(current=>{
