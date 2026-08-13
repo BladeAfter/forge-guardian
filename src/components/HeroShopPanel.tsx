@@ -202,7 +202,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
       priceTon: isTonSale ? Math.round(priceValue * 1000) / 1000 : undefined,
     }),
     onSuccess: async (result) => {
-      toast.success(`${t('market.youReceive')}: ${amountLabel(result.sellerReceives)} ${priceUnit}`);
+      toast.success(t('market.listingCreated'));
       setSelected(null); setPrice(''); setConfirming(false); setMarketTab('mine');
       await refreshAll();
     },
@@ -621,7 +621,26 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                     })}
                   </div>
 
-                  {selected ? (
+
+
+                  {settings ? (
+                    <p className="mt-3 text-center text-[8px] uppercase tracking-[0.16em] text-slate-500">
+                      {t('market.activeLimit', { count: browse.data?.activeCount ?? (mine.data?.listings ?? []).filter((item) => item.status === 'active').length, max: settings.maxActiveListings })}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        {selected ? (
+          <div className="absolute inset-0 z-40 flex items-end bg-black/75" onClick={() => { setSelected(null); setConfirming(false); }}>
+            <div onClick={(event) => event.stopPropagation()} className="max-h-[88%] w-full overflow-y-auto rounded-t-[1.75rem] border-t border-amber-300/30 bg-[#0b1220] p-3 pb-5">
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">{t('market.sellSheetTitle')}</p>
+                <button onClick={() => { setSelected(null); setConfirming(false); }} className="grid h-8 w-8 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+              </div>
                     <div className="mt-3 rounded-2xl border border-amber-300/25 bg-black/40 p-3">
                       <p className="text-[11px] font-black text-white">{selected.name}</p>
 
@@ -669,7 +688,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         <span className="font-black text-rose-300">{feePercent}% · {amountLabel(split.fee)} {priceUnit}</span>
                       </div>
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-400">{t('market.youReceive')}</span>
+                        <span className="text-slate-400">{t('market.estimatedReceive')}</span>
                         <span className="font-black text-emerald-300">{amountLabel(split.receives)} {priceUnit}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between text-[10px]">
@@ -716,19 +735,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         >{t('market.list')}</button>
                       )}
                     </div>
-                  ) : null}
-
-
-                  {settings ? (
-                    <p className="mt-3 text-center text-[8px] uppercase tracking-[0.16em] text-slate-500">
-                      {t('market.activeLimit', { count: browse.data?.activeCount ?? (mine.data?.listings ?? []).filter((item) => item.status === 'active').length, max: settings.maxActiveListings })}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
             </div>
-          )}
-        </div>
+          </div>
+        ) : null}
 
         {tonPrompt ? (
           <div className="absolute inset-0 z-30 grid place-items-center bg-black/80 p-4">
