@@ -182,7 +182,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     onSuccess: async (result) => {
       if (result) {
         const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
-        toast.success(`${result.name} · -${paid}`);
+        toast.success(`${t('market.purchaseCompleted')} · ${result.name} · -${paid}`, {
+          description: t('market.purchaseCompletedBody', { name: String(result.name ?? '') }),
+        });
       }
       setPayingId(null);
       setTonPrompt(null);
