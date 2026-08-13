@@ -6,6 +6,7 @@ import { starRow } from '../heroFusion';
 import { HeroEquipmentSlots } from './HeroEquipmentSlots';
 import type { HeroEquipmentState } from '../heroEquipment';
 import { useT } from '../LanguageContext';
+import { formatMiningTon, heroDailyRate } from '../heroMining';
 
 const RARITY_COLOR: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
@@ -13,13 +14,15 @@ const RARITY_COLOR: Record<string, string> = {
 };
 
 /** Hero sheet: stats come from the same rows used by PvP/Boss, equipment included. */
-export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; telegramInitData: string; onClose: () => void }) {
+export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, miningRates, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; telegramInitData: string; miningRates?: Record<string, number>; onClose: () => void }) {
   const t = useT();
   const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
 
   const stars = state?.stars ?? hero.stars ?? 0;
   const maxLevel = state?.maxLevel ?? null;
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
+  // Mining depends ONLY on rarity: level and equipment never change it.
+  const miningRate = heroDailyRate(miningRates, hero.rarity);
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
@@ -57,6 +60,12 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onCl
                 </p>
               ) : null}
             </div>
+            {miningRate > 0 ? (
+              <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
+                <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
+                <p className="text-[13px] font-black text-cyan-100">{formatMiningTon(miningRate, 6)} {t('mining.perDay')}</p>
+              </div>
+            ) : null}
             <div className="mt-2 grid grid-cols-2 gap-2">
               {stat('ATK', (equipment?.stats.atk ?? Number(hero.finalAtk ?? 0)).toLocaleString(), equipment?.stats.equipAtk)}
               {stat('HP', (equipment?.stats.hp ?? Number(hero.finalHp ?? 0)).toLocaleString(), equipment?.stats.equipHp)}
