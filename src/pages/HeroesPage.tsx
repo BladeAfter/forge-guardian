@@ -26,15 +26,23 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<HeroFilters>(DEFAULT_HERO_FILTERS);
   useEffect(() => { console.log('[HEROES] start'); }, []);
   useEffect(() => { if (data) console.log('[HEROES] player heroes loaded', data.heroes.length); }, [data]);
   useEffect(() => { if (error) console.error('[SCREEN ERROR]', { screen: 'heroes', step: 'player-heroes', message: error instanceof Error ? error.message : String(error) }); }, [error]);
   const heroes: PvpHero[] = data?.heroes ?? [];
+  // Filters are purely visual: they never touch ownership, stats or teams.
+  const visibleHeroes = useMemo(() => applyHeroFilters(heroes, filters), [heroes, filters]);
   const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
   const maxStars = fusion?.config?.max_stars ?? 5;
   const fusionHero = fusion?.heroes.find((h) => h.heroId === fusingId) ?? null;
+  const detailsHero = heroes.find((h) => h.heroId === detailsId) ?? null;
   // A pending query with no in-flight request (offline flag / paused) must not spin forever.
   const stalled = isLoading && !isFetching;
+  const selectClass = 'min-w-0 flex-1 appearance-none truncate rounded-lg border border-white/12 bg-black/70 px-1.5 py-1.5 text-[9px] font-black uppercase tracking-[.06em] text-slate-200';
+  const sortOptions: Array<[SortDir, string]> = [['default', t('heroes.filterDefault')], ['desc', t('heroes.filterDesc')], ['asc', t('heroes.filterAsc')]];
+
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
