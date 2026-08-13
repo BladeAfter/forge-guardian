@@ -4305,8 +4305,16 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const parts = text.split(/\s+/);
       const user = args[0] ?? parts.shift()!;
       // The pet template owns its rarity, so only slug + level are accepted here.
-      const r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: null, p_level: Number(parts[1] || 1), p_reason: 'concedido pelo painel' });
-      return send(ctx, `✅ Pet <b>${esc(r.pet)}</b> (${esc(String(r.rarity).toUpperCase())}) concedido.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
+      let r: any;
+      try {
+        r = await rpc('admin_grant_pet', { p_admin_id: ctx.adminId, p_ref: user, p_pet_slug: parts[0], p_rarity: null, p_level: Number(parts[1] || 1), p_reason: 'concedido pelo painel' });
+      } catch (grantError) {
+        if (String((grantError as Error)?.message ?? '').includes('USE_NFT_FLOW')) {
+          return send(ctx, '⛔ Este pet é <b>NFT EXCLUSIVE</b>. Use o módulo 💎 NFT PETS para entregar (serial único preservado).', kb([[{ t: '💎 NFT PETS', d: 'nft:home' }], nav()]));
+        }
+        throw grantError;
+      }
+      return send(ctx, `✅ Pet <b>${esc(r.pet)}</b> (${esc(String(r.rarity).toUpperCase().replace('NFT_EXCLUSIVE', 'NFT EXCLUSIVE'))}) concedido.`, kb([[{ t: '👤 Ver jogador', d: `find:${user}` }], nav()]));
     }
     case 'rfcommon': case 'rfuncommon': case 'rfrare': case 'rfepic': {
       const source = cmd.slice(2);
