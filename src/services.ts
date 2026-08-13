@@ -342,7 +342,7 @@ export const fuseHeroesByRarity=(initData:string,heroIds:string[],idempotencyKey
 export const setHeroLock=(initData:string,heroId:string,locked:boolean)=>fusionRequest<{heroId:string;locked:boolean}>(initData,{action:'lock',heroId,locked});
 
 // ------------------------------------------------------------- player market (FC + TON)
-const MARKET_ERRORS:Record<string,string>={PRICE_BELOW_MINIMUM_LEGENDARY:'Heróis Lendários ou superiores custam no mínimo 4 TON.',INVALID_QUANTITY:'Quantidade inválida.',EQUIPMENT_EQUIPPED:'Desequipe o item antes de anunciá-lo.',ITEM_NOT_TRADABLE:'Este item não pode ser negociado.',ITEM_NOT_OWNED:'Você não possui essa quantidade.',
+const MARKET_ERRORS:Record<string,string>={PRICE_BELOW_MINIMUM_LEGENDARY:'Heróis Lendários ou superiores custam no mínimo 4 TON.',INVALID_QUANTITY:'Quantidade inválida.',EQUIPMENT_EQUIPPED:'Desequipe o item antes de anunciá-lo.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
   INVALID_ITEM_TYPE:'Categoria inválida.',
   INVALID_ITEM:'Item inválido.',
