@@ -41,12 +41,14 @@ const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', 
  * internal withdrawable TON balance first; when it is not enough the backend reserves
  * the listing and the buyer pays from the connected wallet.
  */
-export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
+export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose, mode = 'recruit' }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
   const [tonUI] = useTonConnectUI();
   const wallet = useTonWallet();
-  const [tab, setTab] = useState<'recruit' | 'market'>('recruit');
+  // Access point only: the panel now opens either the Recruit view or the Player Market
+  // view (moved to the Village). The market system itself is untouched.
+  const tab: 'recruit' | 'market' = mode;
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
@@ -289,14 +291,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 px-4">
-          <button onClick={() => setTab('recruit')} className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] ${tab === 'recruit' ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-            <Swords className="h-3.5 w-3.5" />{t('market.tabRecruit')}
-          </button>
-          <button onClick={() => setTab('market')} className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] ${tab === 'market' ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-            <Store className="h-3.5 w-3.5" />{t('market.tabMarket')}
-          </button>
-        </div>
 
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
           {tab === 'recruit' ? (
