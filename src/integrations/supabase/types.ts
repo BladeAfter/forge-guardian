@@ -3436,6 +3436,173 @@ export type Database = {
           },
         ]
       }
+      nft_pool_settings: {
+        Row: {
+          accrual_enabled: boolean
+          health_days: Json
+          health_factors: Json
+          id: boolean
+          min_claim_ton: number
+          roi_multiplier: number
+          tier20_daily_ton: number
+          tier30_daily_ton: number
+          updated_at: string
+        }
+        Insert: {
+          accrual_enabled?: boolean
+          health_days?: Json
+          health_factors?: Json
+          id?: boolean
+          min_claim_ton?: number
+          roi_multiplier?: number
+          tier20_daily_ton?: number
+          tier30_daily_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          accrual_enabled?: boolean
+          health_days?: Json
+          health_factors?: Json
+          id?: boolean
+          min_claim_ton?: number
+          roi_multiplier?: number
+          tier20_daily_ton?: number
+          tier30_daily_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nft_pool_transactions: {
+        Row: {
+          amount_ton: number
+          balance_after: number
+          balance_before: number
+          claim_id: string | null
+          created_at: string
+          id: string
+          nft_id: string | null
+          note: string | null
+          telegram_id: number | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_ton: number
+          balance_after: number
+          balance_before: number
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id?: string | null
+          note?: string | null
+          telegram_id?: number | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_ton?: number
+          balance_after?: number
+          balance_before?: number
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          nft_id?: string | null
+          note?: string | null
+          telegram_id?: number | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      nft_reward_pool: {
+        Row: {
+          balance_ton: number
+          id: boolean
+          lifetime_funded_ton: number
+          lifetime_paid_ton: number
+          reserved_ton: number
+          updated_at: string
+        }
+        Insert: {
+          balance_ton?: number
+          id?: boolean
+          lifetime_funded_ton?: number
+          lifetime_paid_ton?: number
+          reserved_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          balance_ton?: number
+          id?: boolean
+          lifetime_funded_ton?: number
+          lifetime_paid_ton?: number
+          reserved_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nft_yield_positions: {
+        Row: {
+          accrued_ton: number
+          claimed_ton: number
+          created_at: string
+          daily_yield_ton: number
+          id: string
+          last_accrual_at: string
+          last_claim_at: string | null
+          nft_pet_id: string
+          nft_serial: number
+          owner_user_id: string | null
+          roi_reached: boolean
+          roi_target_ton: number
+          status: string
+          tier_ton: number
+          updated_at: string
+        }
+        Insert: {
+          accrued_ton?: number
+          claimed_ton?: number
+          created_at?: string
+          daily_yield_ton?: number
+          id?: string
+          last_accrual_at?: string
+          last_claim_at?: string | null
+          nft_pet_id: string
+          nft_serial: number
+          owner_user_id?: string | null
+          roi_reached?: boolean
+          roi_target_ton?: number
+          status?: string
+          tier_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          accrued_ton?: number
+          claimed_ton?: number
+          created_at?: string
+          daily_yield_ton?: number
+          id?: string
+          last_accrual_at?: string
+          last_claim_at?: string | null
+          nft_pet_id?: string
+          nft_serial?: number
+          owner_user_id?: string | null
+          roi_reached?: boolean
+          roi_target_ton?: number
+          status?: string
+          tier_ton?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_yield_positions_nft_pet_id_fkey"
+            columns: ["nft_pet_id"]
+            isOneToOne: true
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_channels: {
         Row: {
           created_at: string
@@ -8351,6 +8518,33 @@ export type Database = {
         Returns: Json
       }
       admin_nft_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_pool_config: {
+        Args: { p_admin_id: number; p_key: string; p_value: number }
+        Returns: Json
+      }
+      admin_nft_pool_fund: {
+        Args: {
+          p_admin_id: number
+          p_amount_ton: number
+          p_note?: string
+          p_type?: string
+        }
+        Returns: Json
+      }
+      admin_nft_pool_ledger: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_pool_set_tier: {
+        Args: { p_admin_id: number; p_serial: number; p_tier_ton: number }
+        Returns: Json
+      }
+      admin_nft_pool_toggle: {
+        Args: { p_admin_id: number; p_serial: number }
+        Returns: Json
+      }
+      admin_nft_pool_units: { Args: { p_admin_id: number }; Returns: Json }
       admin_nft_registry: {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
         Returns: Json
@@ -9997,6 +10191,37 @@ export type Database = {
         }[]
       }
       min_withdraw_ton: { Args: never; Returns: number }
+      nft_claim_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_effective_daily: {
+        Args: {
+          p_position: Database["public"]["Tables"]["nft_yield_positions"]["Row"]
+        }
+        Returns: number
+      }
+      nft_my_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_pool_accrue: { Args: never; Returns: Json }
+      nft_pool_health: { Args: never; Returns: string }
+      nft_pool_settings_row: {
+        Args: never
+        Returns: {
+          accrual_enabled: boolean
+          health_days: Json
+          health_factors: Json
+          id: boolean
+          min_claim_ton: number
+          roi_multiplier: number
+          tier20_daily_ton: number
+          tier30_daily_ton: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "nft_pool_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      nft_pool_sync_positions: { Args: never; Returns: number }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
@@ -10267,6 +10492,7 @@ export type Database = {
         Returns: string
       }
       roll_universal_fragment_rarity: { Args: never; Returns: string }
+      row_count_of_last: { Args: never; Returns: number }
       save_pvp_team_slot: {
         Args: {
           p_hero_id: string
