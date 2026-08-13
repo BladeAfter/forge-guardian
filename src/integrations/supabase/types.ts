@@ -3019,6 +3019,83 @@ export type Database = {
         }
         Relationships: []
       }
+      market_revenue_ledger: {
+        Row: {
+          buyer_user_id: string | null
+          created_at: string
+          currency: string
+          entry_type: string
+          fee_percent: number | null
+          gross_amount_fc: number | null
+          gross_amount_ton: number | null
+          id: string
+          item_code: string | null
+          item_instance_id: string | null
+          item_type: string | null
+          listing_id: string | null
+          market_fee_fc: number | null
+          market_fee_ton: number | null
+          payment_method: string
+          seller_net_fc: number | null
+          seller_net_ton: number | null
+          seller_user_id: string | null
+          transaction_id: string
+          tx_hash: string | null
+        }
+        Insert: {
+          buyer_user_id?: string | null
+          created_at?: string
+          currency: string
+          entry_type: string
+          fee_percent?: number | null
+          gross_amount_fc?: number | null
+          gross_amount_ton?: number | null
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type?: string | null
+          listing_id?: string | null
+          market_fee_fc?: number | null
+          market_fee_ton?: number | null
+          payment_method: string
+          seller_net_fc?: number | null
+          seller_net_ton?: number | null
+          seller_user_id?: string | null
+          transaction_id: string
+          tx_hash?: string | null
+        }
+        Update: {
+          buyer_user_id?: string | null
+          created_at?: string
+          currency?: string
+          entry_type?: string
+          fee_percent?: number | null
+          gross_amount_fc?: number | null
+          gross_amount_ton?: number | null
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type?: string | null
+          listing_id?: string | null
+          market_fee_fc?: number | null
+          market_fee_ton?: number | null
+          payment_method?: string
+          seller_net_fc?: number | null
+          seller_net_ton?: number | null
+          seller_user_id?: string | null
+          transaction_id?: string
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_revenue_ledger_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_security_audit: {
         Row: {
           admin_id: number | null
@@ -3187,6 +3264,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_treasury: {
+        Row: {
+          gross_volume_fc: number
+          gross_volume_ton: number
+          id: boolean
+          market_fee_revenue_fc: number
+          market_fee_revenue_ton: number
+          seller_payout_fc: number
+          seller_payout_ton: number
+          updated_at: string
+        }
+        Insert: {
+          gross_volume_fc?: number
+          gross_volume_ton?: number
+          id?: boolean
+          market_fee_revenue_fc?: number
+          market_fee_revenue_ton?: number
+          seller_payout_fc?: number
+          seller_payout_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          gross_volume_fc?: number
+          gross_volume_ton?: number
+          id?: boolean
+          market_fee_revenue_fc?: number
+          market_fee_revenue_ton?: number
+          seller_payout_fc?: number
+          seller_payout_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       nft_hero_history: {
         Row: {
@@ -8380,6 +8490,7 @@ export type Database = {
         Args: { p_admin_id: number; p_hours?: number; p_query: string }
         Returns: Json
       }
+      admin_market_revenue: { Args: { p_admin_id: number }; Returns: Json }
       admin_market_reverse_trade: {
         Args: {
           p_admin_id: number

@@ -1007,9 +1007,40 @@ async function marketHub(ctx: Ctx, status = 'active') {
     [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
     [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
     [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
+    [{ t: '🏪 MARKET FEES', d: 'mk:revenue' }],
     [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }, { t: '🛡 MARKET SECURITY', d: 'mk:sec' }],
     nav(),
   ]));
+}
+
+// Market fee revenue: the 5% never leaves the official hot wallet — this screen
+// shows how much of that balance belongs to the game instead of to the players.
+async function marketRevenue(ctx: Ctx) {
+  const r = await rpc('admin_market_revenue', { p_admin_id: ctx.adminId }) as any;
+  const rev = r?.revenue || {};
+  const ton = rev.feeTon || {};
+  const fc = rev.feeFc || {};
+  const s = rev.sales || {};
+  return edit(ctx, [
+    '🏪 <b>MARKET FEES</b>',
+    '<i>Receita do jogo retida na hot wallet oficial (sem transferência extra).</i>',
+    '',
+    '💎 <b>TAXA EM TON</b>',
+    `Hoje: <b>${fmtTon(ton.today)} TON</b>`,
+    `7 dias: <b>${fmtTon(ton.days7)} TON</b>`,
+    `30 dias: <b>${fmtTon(ton.days30)} TON</b>`,
+    `Lifetime: <b>${fmtTon(ton.lifetime)} TON</b>`,
+    '',
+    '🪙 <b>TAXA EM FC</b>',
+    `Hoje: <b>${fmt(fc.today)} FC</b> · 7d ${fmt(fc.days7)} FC · 30d ${fmt(fc.days30)} FC`,
+    `Lifetime: <b>${fmt(fc.lifetime)} FC</b>`,
+    '',
+    '📊 <b>VOLUME</b>',
+    `Vendas: <b>${fmt(s.count)}</b>`,
+    `Gross: <b>${fmtTon(s.grossTon)} TON</b> · ${fmt(s.grossFc)} FC`,
+    `Pago a vendedores: <b>${fmtTon(s.payoutTon)} TON</b> · ${fmt(s.payoutFc)} FC`,
+    `TON externo (wallet): ${fmtTon(s.externalTon)} TON · interno: ${fmtTon(s.internalTon)} TON`,
+  ].join('\n'), kb([[{ t: '🔄 ATUALIZAR', d: 'mk:revenue' }], nav('m:market')]));
 }
 
 async function marketAudit(ctx: Ctx) {
@@ -3322,6 +3353,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'mk') {
     const [sub, arg] = String(rest[0] || '').split('|');
     if (sub === 'audit') return marketAudit(ctx);
+    if (sub === 'revenue') return marketRevenue(ctx);
     if (sub === 'toggle') {
       const on = arg === 'on';
       return edit(ctx, on
