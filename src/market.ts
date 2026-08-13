@@ -17,8 +17,10 @@ export type MarketSettings = {
   maxPriceTon?: number;
   minPrice: Partial<Record<MarketItemType, number>>;
   minPriceTon?: Partial<Record<MarketItemType, number>>;
-  /** Escrow window: how long a sale stays on hold before the seller is paid. */
+  /** Escrow window for FC sales: how long a sale stays on hold before the seller is paid. */
   settlementHours?: number;
+  /** Escrow window for TON sales. 0 = instant settlement after payment confirmation. */
+  settlementHoursTon?: number;
   /** How long an external-wallet payment keeps a listing reserved. */
   reservationMinutes?: number;
 };

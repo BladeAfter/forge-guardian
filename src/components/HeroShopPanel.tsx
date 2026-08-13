@@ -74,7 +74,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const isTonSale = sellCurrency === 'TON';
   const feePercent = Number((isTonSale ? settings?.feePercentTon : settings?.feePercent) ?? settings?.feePercent ?? 5);
   const minPrice = Number((isTonSale ? settings?.minPriceTon?.[sellKind] : settings?.minPrice?.[sellKind]) ?? (isTonSale ? 0.1 : 5000));
+  // TON sales settle instantly (no hold); FC sales keep the configured anti-fraud hold.
   const settlementHours = Number(settings?.settlementHours ?? 72);
+  const tonSettlementHours = Number(settings?.settlementHoursTon ?? 0);
+  const instantSettlement = isTonSale && tonSettlementHours <= 0;
   const availableTon = Number(browse.data?.availableTon ?? sellable.data?.availableTon ?? tonBalance ?? 0);
   // Header chip: prefer the live server value, fall back to the HUD balance.
   const tonWalletBalance = Number(sellable.data?.availableTon ?? browse.data?.availableTon ?? tonBalance ?? 0);
@@ -157,6 +160,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
    * otherwise                      -> EXTERNAL_TON_WALLET (full price, internal untouched)
    */
   const startPurchase = (listingId: string) => {
+    // Double-click guard: one BUY tap can never open two purchase intents.
+    if (buyMutation.isPending || payingId) return;
     const listing = listings.find((item) => item.id === listingId);
     if (listing?.currency === 'TON' && Number(listing.priceTon) > availableTon) {
       setTonPrompt({ id: listingId, price: Number(listing.priceTon), name: listing.name });
@@ -179,7 +184,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     onSuccess: async (result) => {
       if (result) {
         const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
-        toast.success(`${result.name} · -${paid}`);
+        toast.success(`${t('market.purchaseCompleted')} · ${result.name} · -${paid}`, {
+          description: t('market.purchaseCompletedBody', { name: String(result.name ?? '') }),
+        });
       }
       setPayingId(null);
       setTonPrompt(null);
@@ -474,8 +481,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                                     ? t('market.reserved')
                                     : payingId === listing.id
                                       ? t('market.paying')
-                                      : listing.currency === 'TON' && Number(listing.priceTon) > availableTon
-                                        ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                      : listing.currency === 'TON'
+                                        ? Number(listing.priceTon) > availableTon
+                                          ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                          : <span className="text-[8px] leading-tight">{t('market.payTonBalance')}</span>
                                         : t('market.buy')}
                                 </button>
                               )}
@@ -695,9 +704,11 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         <span className="text-slate-400">{t('market.estimatedReceive')}</span>
                         <span className="font-black text-emerald-300">{amountLabel(split.receives)} {priceUnit}</span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between text-[10px]">
-                        <span className="text-slate-400">{t('market.holdTitle')}</span>
-                        <span className="font-black text-amber-200">{settlementHours}h</span>
+                      <div className="mt-1 flex items-start justify-between gap-2 text-[10px]">
+                        <span className="text-slate-400">{instantSettlement ? t('market.settlementTitle') : t('market.holdTitle')}</span>
+                        <span className={`text-right font-black ${instantSettlement ? 'text-emerald-300' : 'text-amber-200'}`}>
+                          {instantSettlement ? t('market.settlementInstant') : `${settlementHours}h`}
+                        </span>
                       </div>
 
                       {confirming ? (
@@ -712,7 +723,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                             </div>
                           ) : null}
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
-                            {t('market.confirmSaleBody', {
+                            {t(instantSettlement ? 'market.confirmSaleBodyTon' : 'market.confirmSaleBody', {
                               name: selected.name,
                               price: `${amountLabel(split.price)} ${priceUnit}`,
                               receives: `${amountLabel(split.receives)} ${priceUnit}`,
