@@ -81,8 +81,13 @@ export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {
     };
   }
 
-  // 1. definition image from the backend (eggs, pet fragments, ...)
+  // 1. definition image from the backend (eggs, pet fragments, equipment, ...)
   if (isImageUrl(item.image)) return { image: item.image as string, glyph: null, rarity };
+
+  // 1b. equipment resolves from its stable template code when no URL came back.
+  if (type === 'equipment') {
+    return { image: equipmentArtFromCode(code), glyph: equipmentArtFromCode(code) ? null : '🛡️', rarity };
+  }
 
   // 2. official asset mapped by stable code / type
   const mapped =
