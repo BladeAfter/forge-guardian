@@ -2,15 +2,9 @@
 // Everything here is button-driven: no JSON typing, no manual urls. Photos sent in the chat are
 // normalized (square, transparent-safe PNG) and stored in the private `pet-images` bucket, so the
 // creature shows up in the game (catalog, eggs, chests, rewards) with no deploy.
-// NOTE: imagescript is imported lazily — its wasm modules sometimes fail to fetch on cold boot and a
-// top-level import would crash the whole admin bot worker. Image normalization is optional.
-let ImageMod: any = null;
-async function loadImage(): Promise<any> {
-  if (ImageMod) return ImageMod;
-  const mod = await import('https://deno.land/x/imagescript@1.2.15/mod.ts');
-  ImageMod = (mod as any).Image;
-  return ImageMod;
-}
+// NOTE: no image library is used here. imagescript's wasm loader throws an unhandled
+// "brotli error" on this runtime, which kills the whole admin bot worker (HTTP 500 on the webhook).
+// Telegram photos are stored exactly as received — the game UI already handles arbitrary aspect ratios.
 
 export type Ctx = { chatId: number; adminId: number; messageId?: number };
 type Btn = { t: string; d: string };
@@ -75,31 +69,16 @@ export function createPetCms(d: PetCmsDeps) {
     await send(ctx, text, kb([...rows, CANCEL]));
   };
 
-  /** Normalizes any Telegram photo into a square PNG (transparency preserved) inside `pet-images`. */
+  /** Stores a Telegram photo as-is inside the private `pet-images` bucket. */
   async function uploadPhoto(fileId: string, baseName: string): Promise<string> {
     const info = await tg('getFile', { file_id: fileId });
     const filePath = info?.result?.file_path;
     if (!filePath) throw new Error('image_download_failed');
     const res = await fetch(`https://api.telegram.org/file/bot${d.botToken}/${filePath}`);
     if (!res.ok) throw new Error('image_download_failed');
-    const raw = new Uint8Array(await res.arrayBuffer());
-    let bytes = raw;
-    let contentType = 'image/png';
-    let ext = 'png';
-    try {
-      const Image = await loadImage();
-      const decoded = await Image.decode(raw);
-      const side = 512;
-      const scale = Math.min(side / decoded.width, side / decoded.height);
-      const resized = decoded.resize(Math.max(1, Math.round(decoded.width * scale)), Math.max(1, Math.round(decoded.height * scale)));
-      const canvas = new Image(side, side); // fully transparent canvas
-      canvas.composite(resized, Math.round((side - resized.width) / 2), Math.round((side - resized.height) / 2));
-      bytes = await canvas.encode(9);
-    } catch (err) {
-      console.error('pet image normalize failed, storing original:', err instanceof Error ? err.message : err);
-      ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-    }
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    const ext = (filePath.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
     const slug = (baseName || 'pet').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'pet';
     const path = `pets/${slug}-${Date.now()}.${ext}`;
