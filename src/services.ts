@@ -399,7 +399,7 @@ export async function marketRequest<T>(initData:string,input:MarketAction):Promi
     // signatures, SQL states) stays in the logs and never reaches the player.
     const known=MARKET_ERRORS[raw];
     if(!known)console.error('[MARKET]',raw);
-    throw new Error(known||(/^[A-Z0-9_]{3,60}$/.test(raw)?'Não foi possível criar o anúncio. Tente novamente.':'Não foi possível criar o anúncio. Tente novamente.'));
+    throw new Error(known||'Não foi possível processar o mercado. Tente novamente.');
   }
   return payload;
 }
