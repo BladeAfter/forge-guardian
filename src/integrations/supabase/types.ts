@@ -3541,6 +3541,78 @@ export type Database = {
           },
         ]
       }
+      nft_pet_orders: {
+        Row: {
+          amount_nano: string
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string
+          nft_pet_id: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          nft_pet_id: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          nft_pet_id?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_pet_orders_nft_pet_id_fkey"
+            columns: ["nft_pet_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_pet_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nft_pets: {
         Row: {
           assigned_at: string | null
@@ -3548,6 +3620,7 @@ export type Database = {
           contract_address: string | null
           created_at: string
           created_by_admin: number | null
+          for_sale: boolean
           id: string
           metadata: Json
           minted: boolean
@@ -3556,8 +3629,10 @@ export type Database = {
           owner_user_id: string | null
           pet_template_id: string
           player_pet_id: string | null
+          price_ton: number | null
           revoked_at: string | null
           status: string
+          tier_ton: number | null
           token_id: string | null
           unique_instance_id: string
           updated_at: string
@@ -3568,6 +3643,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          for_sale?: boolean
           id?: string
           metadata?: Json
           minted?: boolean
@@ -3576,8 +3652,10 @@ export type Database = {
           owner_user_id?: string | null
           pet_template_id: string
           player_pet_id?: string | null
+          price_ton?: number | null
           revoked_at?: string | null
           status?: string
+          tier_ton?: number | null
           token_id?: string | null
           unique_instance_id: string
           updated_at?: string
@@ -3588,6 +3666,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          for_sale?: boolean
           id?: string
           metadata?: Json
           minted?: boolean
@@ -3596,8 +3675,10 @@ export type Database = {
           owner_user_id?: string | null
           pet_template_id?: string
           player_pet_id?: string | null
+          price_ton?: number | null
           revoked_at?: string | null
           status?: string
+          tier_ton?: number | null
           token_id?: string | null
           unique_instance_id?: string
           updated_at?: string
@@ -10373,11 +10454,36 @@ export type Database = {
         }[]
       }
       min_withdraw_ton: { Args: never; Returns: number }
+      nft_assign_unit: {
+        Args: { p_nft_id: string; p_source: string; p_user_id: string }
+        Returns: Json
+      }
+      nft_buy_with_balance: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       nft_claim_position: {
         Args: { p_position_id: string; p_telegram_id: number }
         Returns: Json
       }
       nft_claim_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_confirm_purchase: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      nft_create_order: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_deliver_order: { Args: { p_order_id: string }; Returns: Json }
       nft_effective_daily: {
         Args: {
           p_position: Database["public"]["Tables"]["nft_yield_positions"]["Row"]
@@ -10409,6 +10515,8 @@ export type Database = {
         }
       }
       nft_pool_sync_positions: { Args: never; Returns: number }
+      nft_reconcile_orders: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_shop_json: { Args: { p_telegram_id: number }; Returns: Json }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
