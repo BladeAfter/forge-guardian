@@ -147,6 +147,12 @@ function parseAmount(raw: string): number {
   return Number(cleaned);
 }
 
+/** TON display with full 9-decimal precision (never used for math/storage). */
+function fmtTon(value: unknown): string {
+  const n = Number(value);
+  return (Number.isFinite(n) ? n : 0).toFixed(9);
+}
+
 
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
@@ -1687,7 +1693,8 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '🔥 HOT WALLET', d: 'm:hotwallet' }],
             [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }, { t: `💸 WITHDRAWAL FEE (${feePercent}%)`, d: 'ask:wdfee' }],
-            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
+            [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '💎 AJUSTAR TON', d: 'ask:tonadj' }],
+            [{ t: '📜 ÚLTIMOS AJUSTES TON', d: 'tonhist:1' }, { t: '🔎 AUDIT DEPOSITS', d: 'ask:auditdep' }], nav()]));
     }
     case 'hotwallet': return hotWalletHub(ctx);
     case 'wallets': {
@@ -2118,6 +2125,7 @@ const PROMPTS: Record<string, string> = {
   cllimit: 'Envie o novo limite de membros (1 a 100). Ex.: <code>50</code>',
   cltrophy: 'Envie o mínimo de troféus para entrar no clã. Ex.: <code>500</code>',
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  tonadj: '💎 <b>AJUSTAR TON</b>\n\nEnvie o <b>Telegram ID</b> do jogador.\nEx.: <code>8118569391</code>\n\n<i>Ajusta apenas o saldo TON interno/sacável do Mythreon. Não altera Hot Wallet nem carteira externa.</i>',
   pachat: 'Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.',
   passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
   channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"url":"https://t.me/+abc","reward_fc":5000,"enabled":true}</code>\n\nA recompensa é one-time por Telegram ID; não é necessário chat id.',
@@ -2988,6 +2996,65 @@ async function handleCallback(ctx: Ctx, data: string) {
       '',
       `HP, dano, participantes e ranking preservados (${fmt(Math.round(Number(r.currentHp || 0)))}/${fmt(r.maxHp)} HP · ${fmt(r.participants)} jogadores).`,
     ].join('\n'), kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+  }
+  // ---- 💎 AJUSTAR TON (internal withdrawable balance only)
+  if (head === 'tonop') {
+    const [mode, tg] = rest;
+    if (mode !== 'add' && mode !== 'remove') { await clearSession(ctx); return send(ctx, '⚠️ Operação inválida.', kb([nav('m:wallet')])); }
+    return ask(ctx, `tonamt|${mode}|${tg}`,
+      `${mode === 'add' ? '➕ <b>ADICIONAR TON</b>' : '➖ <b>REMOVER TON</b>'}\n\nDigite a quantidade de TON que deseja ${mode === 'add' ? 'adicionar' : 'remover'}.\nEx.: <code>2.5</code>`);
+  }
+  if (head === 'tongo') {
+    const session = await getSession(ctx);
+    const c = (session?.context || {}) as Record<string, unknown>;
+    // Double click: the session is cleared on the first press and the ledger key is unique server-side.
+    if (session?.action !== 'tonconfirm' || String(c.key || '') !== String(rest[0] || '')) {
+      return send(ctx, 'ℹ️ Este ajuste já foi processado ou expirou. Nenhuma alteração adicional foi feita.',
+        kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+    await clearSession(ctx);
+    try {
+      const r = await rpc('admin_adjust_ton_balance', {
+        p_admin_id: ctx.adminId,
+        p_target_telegram_id: Number(c.tg),
+        p_amount: Number(c.amount),
+        p_operation: String(c.mode),
+        p_reason: String(c.reason || ''),
+        p_idempotency_key: String(c.key),
+      }) as any;
+      if (r?.duplicate) {
+        return send(ctx, `ℹ️ Ajuste já aplicado anteriormente.\nSaldo TON: <b>${fmtTon(r.balanceAfter)} TON</b>`,
+          kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+      }
+      return send(ctx, [
+        '✅ <b>AJUSTE TON APLICADO</b>',
+        '',
+        `Jogador: <b>${esc(String(r.name))}</b> · <code>${esc(String(r.telegramId))}</code>`,
+        `Operação: ${r.operation === 'add' ? '➕ ADICIONAR' : '➖ REMOVER'} <b>${fmtTon(r.amountTon)} TON</b>`,
+        `Antes: ${fmtTon(r.balanceBefore)} TON`,
+        `Novo saldo: <b>${fmtTon(r.balanceAfter)} TON</b>`,
+        `Motivo: ${esc(String(c.reason || ''))}`,
+        '',
+        '<i>Hot Wallet e carteira externa do jogador não foram alteradas.</i>',
+      ].join('\n'), kb([
+        [{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }, { t: '📜 ÚLTIMOS AJUSTES', d: 'tonhist:1' }],
+        nav('m:wallet'),
+      ]));
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const friendly = msg.includes('INSUFFICIENT_TON_BALANCE') ? '❌ Saldo insuficiente. Nenhuma alteração foi feita.'
+        : msg.includes('PLAYER_NOT_FOUND') ? '❌ Jogador não encontrado.'
+        : `⚠️ Falha no ajuste: ${esc(msg)}`;
+      return send(ctx, friendly, kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+  }
+  if (head === 'tonhist') {
+    await clearSession(ctx);
+    const items = await rpc('admin_ton_adjust_history', { p_admin_id: ctx.adminId, p_limit: 10 }) as any[];
+    const lines = (items || []).map((x: any) =>
+      `${x.direction === 'credit' ? '➕' : '➖'} <b>${fmtTon(x.amountTon)} TON</b> → ${esc(String(x.player))} (<code>${esc(String(x.telegramId))}</code>)\n   ${esc(String(x.reason || '—'))} · ${String(x.createdAt).slice(0, 16).replace('T', ' ')}`).join('\n') || '—';
+    return edit(ctx, `📜 <b>ÚLTIMOS AJUSTES TON</b>\n(ledger real de ajustes manuais)\n\n${lines}`,
+      kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
   }
   if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
   if (head === 'balgo') {
@@ -4114,6 +4181,77 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     await clearSession(ctx);
     await send(ctx, `⬇️ <b>SAQUE MÍNIMO</b> atualizado para <b>${fmt(min)} TON</b>.`);
     return hotWalletHub({ ...ctx, messageId: undefined }, false);
+  }
+  // 💎 AJUSTAR TON — internal/withdrawable balance (game_players.ton_balance) only.
+  if (key === 'tonadj') {
+    const tg = text.replace(/\D/g, '');
+    if (!tg) throw new Error('KEEP_SESSION::⚠️ Envie apenas o <b>Telegram ID</b> numérico. Ex.: <code>8118569391</code>');
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) throw new Error('KEEP_SESSION::❌ Jogador não encontrado.');
+    await clearSession(ctx);
+    return send(ctx, [
+      '👤 <b>Jogador</b>',
+      `Nome: <b>${esc(r.name)}</b>`,
+      `Telegram ID: <code>${esc(String(r.telegramId))}</code>`,
+      '',
+      `💎 <b>TON atual:</b> ${fmtTon(r.balanceTon)} TON`,
+      '',
+      'Escolha a operação:',
+    ].join('\n'), kb([
+      [{ t: '➕ ADICIONAR TON', d: `tonop:add:${tg}` }, { t: '➖ REMOVER TON', d: `tonop:remove:${tg}` }],
+      [{ t: '❌ CANCELAR', d: 'cancel' }],
+    ]));
+  }
+  if (key === 'tonamt') {
+    const [mode, tg] = args;
+    const amount = parseAmount(text);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) {
+      throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior que zero (ex.: <code>2.5</code>).');
+    }
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) { await clearSession(ctx); return send(ctx, '❌ Jogador não encontrado.', kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()])); }
+    const current = Number(r.balanceTon);
+    if (mode === 'remove' && current < amount) {
+      await clearSession(ctx);
+      return send(ctx, [
+        '❌ <b>Saldo insuficiente.</b>',
+        `Saldo atual: ${fmtTon(current)} TON`,
+        `Tentativa de remoção: ${fmtTon(amount)} TON`,
+        '',
+        'Nenhuma alteração foi feita.',
+      ].join('\n'), kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], [{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
+    }
+    return ask(ctx, `tonreason|${mode}|${tg}|${amount}`,
+      `📝 <b>MOTIVO OBRIGATÓRIO</b>\nDescreva o motivo do ajuste.\nEx.: <code>Premiação PvP Top 5</code>`);
+  }
+  if (key === 'tonreason') {
+    const [mode, tg, rawAmount] = args;
+    if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
+    const amount = Number(rawAmount);
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) { await clearSession(ctx); return send(ctx, '❌ Jogador não encontrado.', kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()])); }
+    const current = Number(r.balanceTon);
+    const next = mode === 'add' ? current + amount : current - amount;
+    if (next < 0) {
+      await clearSession(ctx);
+      return send(ctx, `❌ <b>Saldo insuficiente.</b>\nSaldo atual: ${fmtTon(current)} TON\nTentativa de remoção: ${fmtTon(amount)} TON`,
+        kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+    const reason = text.slice(0, 300);
+    const key2 = crypto.randomUUID();
+    // The pending adjustment (with reason + idempotency key) lives in the session until CONFIRMAR.
+    await setSession(ctx, 'tonconfirm', 'awaiting_confirm', { mode, tg, amount, reason, key: key2 });
+    return send(ctx, [
+      '⚠️ <b>CONFIRMAR AJUSTE TON</b>',
+      '',
+      `Jogador: <b>${esc(r.name)}</b>`,
+      `Telegram ID: <code>${esc(String(tg))}</code>`,
+      `Operação: ${mode === 'add' ? '➕ ADICIONAR' : '➖ REMOVER'}`,
+      `Valor: <b>${fmtTon(amount)} TON</b>`,
+      `Saldo atual: ${fmtTon(current)} TON`,
+      `Novo saldo: <b>${fmtTon(next)} TON</b>`,
+      `Motivo: ${esc(reason)}`,
+    ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `tongo:${key2}` }, { t: '❌ CANCELAR', d: 'cancel' }]]));
   }
   if (key === 'prreason') {
     if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
