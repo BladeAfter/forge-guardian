@@ -9253,6 +9253,10 @@ export type Database = {
         Returns: Json
       }
       market_get_sellable: { Args: { p_telegram_id: number }; Returns: Json }
+      market_hero_locks: {
+        Args: { p_hero: Database["public"]["Tables"]["player_heroes"]["Row"] }
+        Returns: Json
+      }
       market_is_bypass_admin: {
         Args: { p_telegram_id: number }
         Returns: boolean
