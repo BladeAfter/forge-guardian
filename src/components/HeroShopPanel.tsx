@@ -358,9 +358,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <button onClick={() => void status.refetch()} className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
                     <RefreshCw className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.retry')}
                   </button>
-                  <button onClick={() => setTab('recruit')} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-                    {t('market.tabRecruit')}
+                  <button onClick={onClose} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
+                    {t('close')}
                   </button>
+
                 </div>
               </div>
             </div>
