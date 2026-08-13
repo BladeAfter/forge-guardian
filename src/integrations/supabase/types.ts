@@ -739,6 +739,86 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_boss_attack_log: {
+        Row: {
+          attack_type: string
+          clan_boss_id: string | null
+          clan_id: string | null
+          created_at: string
+          damage: number
+          id: string
+          pass_type: string | null
+          team_power: number
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          attack_type: string
+          clan_boss_id?: string | null
+          clan_id?: string | null
+          created_at?: string
+          damage?: number
+          id?: string
+          pass_type?: string | null
+          team_power?: number
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          attack_type?: string
+          clan_boss_id?: string | null
+          clan_id?: string | null
+          created_at?: string
+          damage?: number
+          id?: string
+          pass_type?: string | null
+          team_power?: number
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clan_boss_auto_attack: {
+        Row: {
+          attacks_total: number
+          created_at: string
+          enabled: boolean
+          last_auto_attack_at: string | null
+          next_auto_attack_at: string
+          paused_reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attacks_total?: number
+          created_at?: string
+          enabled?: boolean
+          last_auto_attack_at?: string | null
+          next_auto_attack_at?: string
+          paused_reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attacks_total?: number
+          created_at?: string
+          enabled?: boolean
+          last_auto_attack_at?: string | null
+          next_auto_attack_at?: string
+          paused_reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_auto_attack_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_boss_claims: {
         Row: {
           clan_id: string
@@ -9546,6 +9626,10 @@ export type Database = {
       }
       claim_starter_pack: { Args: { p_telegram_id: number }; Returns: Json }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_boss_auto_attack_state_json: {
+        Args: { p_user: string }
+        Returns: Json
+      }
       clan_boss_cfg: {
         Args: never
         Returns: {
@@ -10417,6 +10501,10 @@ export type Database = {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
       }
+      process_clan_boss_auto_attacks: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
       process_global_boss_auto_attacks: {
         Args: { p_limit?: number }
         Returns: Json
@@ -10616,6 +10704,10 @@ export type Database = {
       season_pass_xp_multipliers: { Args: never; Returns: Json }
       set_boss_team: {
         Args: { p_hero_ids: string[]; p_telegram_id: number }
+        Returns: Json
+      }
+      set_clan_boss_auto_attack: {
+        Args: { p_enabled: boolean; p_telegram_id: number }
         Returns: Json
       }
       set_global_boss_auto_attack: {
