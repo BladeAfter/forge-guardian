@@ -46,13 +46,20 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onCl
             </p>
             <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
               <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('common.power')}</p>
-              <p className="text-xl font-black text-amber-200">{Number(hero.power ?? 0).toLocaleString()}</p>
+              <p className="text-xl font-black text-amber-200">
+                {(equipment?.stats.power ?? Number(hero.power ?? 0)).toLocaleString()}
+              </p>
+              {equipment && equipment.stats.power > equipment.stats.basePower ? (
+                <p className="text-[8px] font-black text-emerald-300">
+                  {equipment.stats.basePower.toLocaleString()} → {equipment.stats.power.toLocaleString()}
+                </p>
+              ) : null}
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {stat('ATK', Number(hero.finalAtk ?? 0).toLocaleString())}
-              {stat('HP', Number(hero.finalHp ?? 0).toLocaleString())}
-              {hero.defense ? stat('DEF', Number(hero.defense).toLocaleString()) : null}
-              {hero.speed ? stat('SPD', Number(hero.speed).toLocaleString()) : null}
+              {stat('ATK', (equipment?.stats.atk ?? Number(hero.finalAtk ?? 0)).toLocaleString(), equipment?.stats.equipAtk)}
+              {stat('HP', (equipment?.stats.hp ?? Number(hero.finalHp ?? 0)).toLocaleString(), equipment?.stats.equipHp)}
+              {stat('DEF', (equipment?.stats.def ?? Number(hero.defense ?? 0)).toLocaleString(), equipment?.stats.equipDef)}
+              {stat('SPD', (equipment?.stats.spd ?? Number(hero.speed ?? 0)).toLocaleString())}
             </div>
             {hero.isNft ? (
               <p className="mt-2 rounded-lg border border-cyan-300/40 bg-cyan-300/10 py-1 text-[8px] font-black uppercase tracking-[.14em] text-cyan-200">
@@ -62,7 +69,8 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onCl
           </div>
         </div>
 
-        <HeroEquipmentSlots />
+        <HeroEquipmentSlots telegramInitData={telegramInitData} heroId={hero.heroId} onState={setEquipment} />
+
       </div>
     </div>
   );
