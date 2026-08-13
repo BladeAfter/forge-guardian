@@ -29,8 +29,30 @@ export type ClanBossHistoryRow = {
 };
 
 
+/**
+ * Season Pass benefit state for the CLAN boss Auto ATK. Mirrors the global boss
+ * shape but is a completely separate preference / cooldown on the backend.
+ */
+export type ClanBossAutoAttackState = {
+  eligible: boolean;
+  passTier?: string | null;
+  enabled: boolean;
+  hasTeam: boolean;
+  inClan?: boolean;
+  bossActive?: boolean;
+  active: boolean;
+  intervalSeconds: number;
+  lastAttackAt?: string | null;
+  nextAttackAt?: string | null;
+  attacksTotal?: number;
+  reason?: 'no_pass' | 'disabled' | 'no_team' | 'no_clan' | 'no_boss' | null;
+};
+
 export type ClanBossState = {
   inClan: boolean;
+  /** Season Pass offline Auto ATK state for the clan boss (server-driven). */
+  autoAttack?: ClanBossAutoAttackState | null;
+
   bossName?: string;
   /** How many bosses exist in the cycle progression (currently 10). */
   totalBosses?: number;
