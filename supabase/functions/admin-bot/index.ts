@@ -3216,7 +3216,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'tree') {
     const t = await rpc('admin_referral_tree', { p_admin_id: ctx.adminId, p_ref: rest[0] });
     const lines = t.levels.map((l: any) => `${'   '.repeat(l.level - 1)}└ N${l.level} ${esc(l.user.name)} ${l.user.username ? '@' + esc(l.user.username) : ''} — ${fmt(l.user.deposited_ton)} TON`);
-    return send(ctx, `🌳 <b>Árvore de convites</b>\n${lines.join('\n') || '—'}\n\n💸 Comissão total: <b>${fmt(t.total_commission_fc)} FC</b>\n${t.commissions.map((c: any) => `• N${c.level} ${fmt(c.amount_fc)} FC de ${esc(c.from)}`).join('\n')}`, MAIN_MENU);
+    return send(ctx, `🌳 <b>Árvore de convites</b>\n${lines.join('\n') || '—'}\n\n💸 Comissão total: <b>${Number(t.total_commission_ton ?? 0).toFixed(3)} TON</b>\n${t.commissions.map((c: any) => `• N${c.level} ${Number(c.amount_ton ?? 0).toFixed(3)} TON de ${esc(c.from)} (${esc(String(c.source_type || 'purchase'))} ${Number(c.source_amount_ton ?? 0).toFixed(3)} TON)`).join('\n')}`, MAIN_MENU);
   }
   if (head === 'hs') {
     const view = rest[0];
