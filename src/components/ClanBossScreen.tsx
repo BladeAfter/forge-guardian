@@ -35,7 +35,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   // Auto ATK is a backend benefit: the client only toggles the stored preference.
   const [autoBusy, setAutoBusy] = useState(false);
   const [autoOverride, setAutoOverride] = useState<ClanBossAutoAttackState | null>(null);
-  const auto = autoOverride ?? data?.autoAttack ?? null;
+  // The panel is always visible on the Clan Boss screen (same as the Global Boss):
+  // when the backend has no state yet we fall back to a locked/disabled view.
+  const auto: ClanBossAutoAttackState =
+    autoOverride ?? data?.autoAttack ?? { eligible: false, enabled: false, active: false, hasTeam: false, intervalSeconds: 1800, reason: 'no_pass' };
   // Once the server state refreshes it becomes the source of truth again.
   useEffect(() => { setAutoOverride(null); }, [data?.autoAttack?.nextAttackAt, data?.autoAttack?.enabled]);
 
