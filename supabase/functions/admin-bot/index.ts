@@ -147,6 +147,12 @@ function parseAmount(raw: string): number {
   return Number(cleaned);
 }
 
+/** TON display with full 9-decimal precision (never used for math/storage). */
+function fmtTon(value: unknown): string {
+  const n = Number(value);
+  return (Number.isFinite(n) ? n : 0).toFixed(9);
+}
+
 
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
