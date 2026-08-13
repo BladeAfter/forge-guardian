@@ -87,6 +87,7 @@ export function createPetCms(d: PetCmsDeps) {
     let contentType = 'image/png';
     let ext = 'png';
     try {
+      const Image = await loadImage();
       const decoded = await Image.decode(raw);
       const side = 512;
       const scale = Math.min(side / decoded.width, side / decoded.height);
