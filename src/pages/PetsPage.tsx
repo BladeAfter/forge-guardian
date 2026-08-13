@@ -180,8 +180,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               <div className="min-w-0">
                 <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
                 <h2 className="truncate text-2xl font-black">{active.name}</h2>
-                <p style={{ color: rarityColor[active.rarity] }} className="text-xs font-bold uppercase">
-                  {t('pets.rarityLevel', { rarity: petRarityLabel(active.rarity), level: active.level, max: active.maxLevel })}
+                <p style={{ color: rarityColor[petDisplayRarity(active)] }} className="text-xs font-bold uppercase">
+                  {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(active), level: active.level, max: active.maxLevel })}
                 </p>
                 <p className="text-[10px] text-slate-400">
                   {t('pets.levelProgress', { stage: petStageLabel(active.evolutionStage), label: active.evolutionLabel, power: fmt(active.power) })}
