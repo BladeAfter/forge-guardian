@@ -2119,6 +2119,7 @@ const PROMPTS: Record<string, string> = {
   cllimit: 'Envie o novo limite de membros (1 a 100). Ex.: <code>50</code>',
   cltrophy: 'Envie o mínimo de troféus para entrar no clã. Ex.: <code>500</code>',
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
+  tonadj: '💎 <b>AJUSTAR TON</b>\n\nEnvie o <b>Telegram ID</b> do jogador.\nEx.: <code>8118569391</code>\n\n<i>Ajusta apenas o saldo TON interno/sacável do Mythreon. Não altera Hot Wallet nem carteira externa.</i>',
   pachat: 'Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.',
   passuser: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.',
   channel: 'Envie: <code>news|community|payments {json}</code>\nEx.: <code>news {"url":"https://t.me/+abc","reward_fc":5000,"enabled":true}</code>\n\nA recompensa é one-time por Telegram ID; não é necessário chat id.',
