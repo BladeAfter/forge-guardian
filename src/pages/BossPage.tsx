@@ -103,7 +103,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       return <button type="button" key={value} onClick={()=>setBossMode(value)} className={`min-h-9 rounded-xl text-[10px] font-black uppercase tracking-wide transition ${active?'border border-amber-300/70 bg-gradient-to-b from-amber-500/25 to-amber-900/40 text-amber-100':'text-slate-400'}`}>{label}</button>;
     })}
   </div>;
-  if(bossMode==='tower')return <section className="space-y-3">{modeSelector}<TowerOfEternityPanel balance={game.balance} collection={collection} collectionLoading={collectionLoading}/></section>;
+  if(bossMode==='tower')return <section className="space-y-3">{modeSelector}<TowerOfEternityPanel balance={game.balance} collection={collection} collectionLoading={collectionLoading} telegramInitData={telegramInitData}/></section>;
   return <section className="space-y-3">{modeSelector}<div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
 
     <img key={`arena-${theme.key}`} src={theme.arena} alt="" aria-hidden className="gb-arena-art"/><div className="gb-arena-shade"/><div className="gb-arena-mist"/>
