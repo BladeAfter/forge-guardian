@@ -717,7 +717,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                             </div>
                           ) : null}
                           <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
-                            {t('market.confirmSaleBody', {
+                            {t(instantSettlement ? 'market.confirmSaleBodyTon' : 'market.confirmSaleBody', {
                               name: selected.name,
                               price: `${amountLabel(split.price)} ${priceUnit}`,
                               receives: `${amountLabel(split.receives)} ${priceUnit}`,
