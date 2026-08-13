@@ -10373,6 +10373,10 @@ export type Database = {
         }[]
       }
       min_withdraw_ton: { Args: never; Returns: number }
+      nft_claim_position: {
+        Args: { p_position_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       nft_claim_reward: { Args: { p_telegram_id: number }; Returns: Json }
       nft_effective_daily: {
         Args: {
@@ -10381,6 +10385,7 @@ export type Database = {
         Returns: number
       }
       nft_my_reward: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_my_rewards_json: { Args: { p_telegram_id: number }; Returns: Json }
       nft_pool_accrue: { Args: never; Returns: Json }
       nft_pool_health: { Args: never; Returns: string }
       nft_pool_settings_row: {

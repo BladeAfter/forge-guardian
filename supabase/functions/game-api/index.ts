@@ -1212,6 +1212,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'my');
     if (action === 'my') return rpc(db, 'nft_my_reward', { p_telegram_id: user.id });
     if (action === 'claim') return rpc(db, 'nft_claim_reward', { p_telegram_id: user.id });
+    // Player-only list of the NFTs they own (no pool data is ever returned).
+    if (action === 'mine') return rpc(db, 'nft_my_rewards_json', { p_telegram_id: user.id });
+    if (action === 'claim-one') {
+      return rpc(db, 'nft_claim_position', { p_telegram_id: user.id, p_position_id: String(body.positionId ?? '') });
+    }
     throw new Error('Ação inválida.');
   },
 };
