@@ -1637,6 +1637,7 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '⚡ XP SETTINGS', d: 'view:passxp' }],
             [{ t: '🎁 REWARDS (MAPA)', d: 'view:passrewards' }],
             [{ t: '🪜 LEVEL PURCHASE', d: 'm:passlevels' }],
+            [{ t: '🔍 CHECK MISSING REWARDS', d: 'view:passmissing' }],
             [{ t: '💰 PREÇOS/DATAS', d: 'ask:pass' }], [{ t: '🎁 RECOMPENSA', d: 'ask:passreward' }], nav()]));
     }
     case 'passlevels': {
@@ -1658,6 +1659,17 @@ async function module(ctx: Ctx, name: string) {
       return edit(ctx, `🎁 <b>MAPA DE RECOMPENSAS</b>\nPet Food entrega no inventário real de comida (chave <code>pet_food</code>).\n\n${chunk}${lines.length > 40 ? `\n\n… +${lines.length - 40} níveis` : ''}`,
         kb([[{ t: '🎁 EDITAR RECOMPENSA', d: 'ask:passreward' }], [{ t: '⬅️ PASSE', d: 'view:pass' }], nav()]));
     }
+
+    // Equipment rewards marked as claimed but with no matching item in the player's inventory.
+    case 'passmissing': {
+      const d = await rpc('admin_check_missing_pass_rewards', { p_limit: 100 });
+      const entries = (d?.entries || []) as any[];
+      const lines = entries.slice(0, 30).map((e) => `• @${esc(String(e.username ?? e.telegramId))} · <code>${e.telegramId}</code>\n   ${esc(e.season ?? '')} · Lv.${e.level} · ${esc(e.tier)} · ${esc(e.reward ?? e.slot)}\n   Claimed: <b>YES</b> · Inventory: <b>MISSING</b>`);
+      return edit(ctx, `🔍 <b>CHECK MISSING PASS REWARDS</b>\nInconsistências: <b>${fmt(Number(d?.total ?? 0))}</b>\n\n${lines.join('\n') || '✅ Nenhuma recompensa de equipamento faltando.'}${entries.length > 30 ? `\n\n… +${entries.length - 30}` : ''}`,
+        kb([[{ t: '🛠 FIX MISSING REWARDS', d: 'passfix:all' }], [{ t: '🔄 REVERIFICAR', d: 'view:passmissing' }], [{ t: '⬅️ PASSE', d: 'view:pass' }], nav()]));
+    }
+
+
 
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
@@ -3407,7 +3419,16 @@ async function handleCallback(ctx: Ctx, data: string) {
     }
 
   }
+  if (head === 'passfix') {
+    const target = rest[0] && rest[0] !== 'all' ? Number(rest[0]) : null;
+    const r = await rpc('admin_repair_missing_pass_rewards', { p_telegram_id: target, p_dry_run: false });
+    const details = (r?.details || []) as any[];
+    const lines = details.slice(0, 25).map((d) => `• <code>${d.telegramId}</code> Lv.${d.level} · ${esc(String(d.slot))} → <code>${esc(String(d.item ?? '—'))}</code>`);
+    return send(ctx, `🛠 <b>FIX MISSING REWARDS</b>\nCorrigidas: <b>${fmt(Number(r?.fixed ?? 0))}</b>\n\n${lines.join('\n') || 'Nada a corrigir.'}`,
+      kb([[{ t: '🔄 REVERIFICAR', d: 'view:passmissing' }], nav('m:pass')]));
+  }
   if (head === 'passxp') {
+
     const [mode, user] = rest;
     if (mode === 'level') return ask(ctx, `passlevel|${user}`, 'Envie o <b>nível</b> desejado do Battle Pass (ex.: <code>8</code>).');
     return ask(ctx, `passxpadj|${mode}|${user}`, `Envie a quantidade de <b>XP</b> para ${mode === 'remove' ? 'remover' : 'adicionar'} (ex.: <code>500</code>).`);

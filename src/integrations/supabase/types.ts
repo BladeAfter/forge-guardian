@@ -4483,6 +4483,7 @@ export type Database = {
           level: number
           locked: boolean
           source: string
+          source_ref: string | null
           template_id: string
           updated_at: string
           user_id: string
@@ -4494,6 +4495,7 @@ export type Database = {
           level?: number
           locked?: boolean
           source?: string
+          source_ref?: string | null
           template_id: string
           updated_at?: string
           user_id: string
@@ -4505,6 +4507,7 @@ export type Database = {
           level?: number
           locked?: boolean
           source?: string
+          source_ref?: string | null
           template_id?: string
           updated_at?: string
           user_id?: string
@@ -6433,6 +6436,68 @@ export type Database = {
           },
         ]
       }
+      season_pass_claim_audit: {
+        Row: {
+          claim_status: string
+          created_at: string
+          error_message: string | null
+          id: string
+          inventory_after: number | null
+          inventory_before: number | null
+          item_id: string | null
+          level: number | null
+          quantity: number | null
+          reward_code: string | null
+          reward_id: string | null
+          reward_type: string | null
+          season_id: string | null
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          claim_status: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          inventory_after?: number | null
+          inventory_before?: number | null
+          item_id?: string | null
+          level?: number | null
+          quantity?: number | null
+          reward_code?: string | null
+          reward_id?: string | null
+          reward_type?: string | null
+          season_id?: string | null
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          claim_status?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          inventory_after?: number | null
+          inventory_before?: number | null
+          item_id?: string | null
+          level?: number | null
+          quantity?: number | null
+          reward_code?: string | null
+          reward_id?: string | null
+          reward_type?: string | null
+          season_id?: string | null
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pass_claim_audit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_pass_claims: {
         Row: {
           claimed_at: string
@@ -7862,6 +7927,10 @@ export type Database = {
         Returns: Json
       }
       admin_channels_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_check_missing_pass_rewards: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
       admin_clan_boss: {
         Args: {
@@ -8337,6 +8406,10 @@ export type Database = {
         Returns: Json
       }
       admin_repair_daily_quests: { Args: { p_admin_id: number }; Returns: Json }
+      admin_repair_missing_pass_rewards: {
+        Args: { p_dry_run?: boolean; p_telegram_id?: number }
+        Returns: Json
+      }
       admin_reset_account: {
         Args: { p_admin_id: number; p_reason: string; p_ref: string }
         Returns: Json
