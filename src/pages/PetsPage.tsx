@@ -249,22 +249,39 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 const owned = egg.quantity > 0;
                 const ton = !egg.priceFc && !!egg.priceTon;
                 const locked = !egg.isPurchasable || (!egg.priceFc && !egg.priceTon);
-                const cosmic = egg.slug === 'mythic-egg';
-                return (
-                  <div key={egg.id} className={`flex flex-col rounded-2xl border p-3 text-center ${cosmic ? 'egg-card-cosmic border-violet-300/40' : 'border-amber-300/20 bg-black/55'}`}>
-                    <img src={egg.image} alt={egg.name} className={`mx-auto h-24 w-24 object-contain ${cosmic ? 'egg-image-cosmic' : ''}`} />
-                    <h3 className="truncate text-xs font-black">{egg.name}</h3>
-                    {/* Price is rendered exactly once here; the buy button may repeat it. */}
-                    <p className="text-[9px] font-bold uppercase text-amber-200">
-                      {formatEggPrice(egg)}
-                    </p>
-                    <div className="mt-1 flex flex-wrap justify-center gap-1">
-                      {sortedRates(egg.rarityRates).map(([key, value]) => (
-                        <span key={key} style={{ color: rarityColor[key] }} className="text-[8px] font-bold">
-                          {petRarityLabel(key)} {value}%
-                        </span>
-                      ))}
-                    </div>
+                 const cosmic = egg.slug === 'mythic-egg';
+                 const label = cleanEggName(egg.name);
+                 const labelParts = label.split(' ');
+                 const labelHead = labelParts.slice(0, -1).join(' ');
+                 const labelTail = labelParts[labelParts.length - 1] ?? label;
+                 return (
+                   <div key={egg.id} className={`flex min-w-0 flex-col rounded-2xl border p-3 text-center ${cosmic ? 'egg-card-cosmic border-violet-300/40' : 'border-amber-300/20 bg-black/55'}`}>
+                     <img src={egg.image} alt={label} loading="lazy" className={`mx-auto h-24 w-24 max-w-full object-contain ${cosmic ? 'egg-image-cosmic' : ''}`} />
+                     <h3 className="mt-1 break-words text-xs font-black leading-tight">
+                       {cosmic && labelHead ? (
+                         <>
+                           <span className="text-white">{labelHead} </span>
+                           <span className="egg-name-mythic">{labelTail.toUpperCase()}</span>
+                         </>
+                       ) : cosmic ? (
+                         <span className="egg-name-mythic">{labelTail.toUpperCase()}</span>
+                       ) : label}
+                     </h3>
+                     {/* Price is rendered exactly once here; the buy button may repeat it. */}
+                     <p className="text-[9px] font-bold uppercase text-amber-200">
+                       {formatEggPrice(egg)}
+                     </p>
+                     {/* Rates ascend from the weakest rarity to the strongest (LEGENDARY then MYTHIC). */}
+                     <div className="mt-1 flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5">
+                       {sortedRates(egg.rarityRates).map(([key, value], index) => (
+                         <span key={key} className="flex items-center gap-1">
+                           {index > 0 && <span className="text-[8px] text-slate-500">•</span>}
+                           <span style={{ color: rarityColor[String(key).toLowerCase()] }} className="whitespace-nowrap text-[8px] font-bold">
+                             {petRarityLabel(key)} {value}%
+                           </span>
+                         </span>
+                       ))}
+                     </div>
                     <p className="mt-1 text-[9px] text-slate-400">{t('pets.youOwn', { quantity: egg.quantity })}</p>
                     <div className="mt-auto">
                       {owned ? (
