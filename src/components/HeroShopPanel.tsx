@@ -595,11 +595,14 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           disabled={locked}
                           title={locked ? option.locks.map(lockLabel).join(' · ') : undefined}
                           onClick={() => { if (locked) return; setSelected({ id: option.id, code: option.code, name: option.name }); setPrice(''); setConfirming(false); }}
-                          className={`relative overflow-hidden rounded-xl border bg-black/40 text-left ${active ? 'border-amber-300' : locked ? 'border-rose-400/30' : 'border-white/10'}`}
+                          className={`relative overflow-hidden rounded-xl border bg-black/40 text-left transition ${active ? 'border-amber-300 ring-2 ring-amber-300/50 scale-[1.02]' : locked ? 'border-rose-400/30' : 'border-white/10'}`}
                         >
                           <div className={locked ? 'opacity-45' : ''}>
                             {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
                           </div>
+                          {active && !locked ? (
+                            <span className="absolute right-1 top-1 rounded-md bg-amber-300 px-1 py-0.5 text-[6.5px] font-black uppercase tracking-tight text-black">✓ {t('market.selectedBadge')}</span>
+                          ) : null}
                           {locked ? (
                             <div className="absolute inset-x-0 top-0 space-y-0.5 bg-gradient-to-b from-black/85 to-transparent p-1">
                               {option.locks.slice(0, 3).map((lock) => (
@@ -609,6 +612,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                               ))}
                             </div>
                           ) : null}
+
                           <div className="p-1">
                             <p className="truncate text-[8px] font-black text-white">{option.name}</p>
                             <p className="truncate text-[7px]" style={{ color: rarityColor(option.rarity) }}>{option.detail}</p>
