@@ -297,16 +297,7 @@ function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  // AdsGram entry ad: same rewarded block used by PvP (42560), but purely monetization —
-  // it never calls the PvP reward endpoint and never grants tickets/FC/TON/XP/items.
-  // Runs once per real Mini App session, before the loading screen, and never blocks boot.
-  useEffect(() => {
-    if (entryAdRef.current) return;
-    entryAdRef.current = true;
-    showEntryAd()
-      .catch((adError) => console.error('[adsgram] entry ad skipped', adError))
-      .finally(() => setEntryAdDone(true));
-  }, []);
+
 
   // Premium egg purchases paid earlier (even with the app closed) are finished here — a single
   // reconciliation per session, always idempotent: one payment can only ever deliver one pet.
