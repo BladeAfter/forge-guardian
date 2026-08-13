@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
-import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
+import { useHeroFusion, useHeroMining, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
 import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
+import { HeroMiningBar } from '../components/HeroMiningBar';
 import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { useT, useLanguage } from '../LanguageContext';
+
 
 const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee' };
 
@@ -22,6 +24,8 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   const { data: pvp } = usePvpDashboard(telegramInitData, true);
   // Fusion state (stars, duplicates, costs) comes from the same player_heroes rows used by PvP/Boss.
   const { data: fusion } = useHeroFusion(telegramInitData, true);
+  // Passive TON mining (rarity based). Rates and accrual are server-owned.
+  const { data: mining } = useHeroMining(telegramInitData, true);
   const [tab, setTab] = useState<'collection' | 'fusion' | 'inventory'>('collection');
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
@@ -71,7 +75,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           <div className="flex w-[300%] transition-transform duration-300 ease-out" style={{ transform: tab === 'inventory' ? 'translateX(-66.6667%)' : tab === 'fusion' ? 'translateX(-33.3333%)' : 'translateX(0)' }}>
             <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
 
-        <section className="rounded-2xl border border-white/10 bg-black/45 p-2.5">
+        <HeroMiningBar telegramInitData={telegramInitData} state={mining} />
+
+        <section className="mt-2 rounded-2xl border border-white/10 bg-black/45 p-2.5">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-200">
               {data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}
@@ -185,6 +191,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           hero={detailsHero}
 
           state={fusion?.heroes.find((h) => h.heroId === detailsHero.heroId) ?? null}
+          miningRates={mining?.rates}
           maxStars={maxStars}
           onClose={() => setDetailsId(null)}
         />

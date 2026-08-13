@@ -1259,6 +1259,19 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },
 
+  /**
+   * Hero TON mining. Production is accrued from the server clock only (offline included);
+   * the client never sends amounts. CLAIM ALL credits the withdrawable TON balance.
+   */
+  mining: async (db, user, body) => {
+    const action = String(body.action || 'status');
+    if (action === 'status') return rpc(db, 'get_hero_mining_state', { p_telegram_id: user.id });
+    if (action === 'claim') return rpc(db, 'claim_hero_mining', { p_telegram_id: user.id });
+    throw new Error('INVALID_ACTION');
+  },
+
+
+
   profile: async (db, user) => {
     if (!user.first_name) throw new Error('Usuário do Telegram não encontrado.');
     return rpc(db, 'upsert_telegram_player_profile', {

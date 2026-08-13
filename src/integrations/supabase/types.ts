@@ -1872,6 +1872,9 @@ export type Database = {
           display_name: string | null
           first_name: string | null
           forge_coins: number
+          hero_mining_claimed_at: string | null
+          hero_mining_lifetime_ton: number
+          hero_mining_unclaimed_ton: number
           id: string
           language: string
           language_locked: boolean
@@ -1910,6 +1913,9 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           forge_coins?: number
+          hero_mining_claimed_at?: string | null
+          hero_mining_lifetime_ton?: number
+          hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
           language_locked?: boolean
@@ -1948,6 +1954,9 @@ export type Database = {
           display_name?: string | null
           first_name?: string | null
           forge_coins?: number
+          hero_mining_claimed_at?: string | null
+          hero_mining_lifetime_ton?: number
+          hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
           language_locked?: boolean
@@ -2628,6 +2637,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hero_mining_claims: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          hero_count: number
+          id: string
+          rate_per_day: number
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          created_at?: string
+          hero_count?: number
+          id?: string
+          rate_per_day?: number
+          source?: string
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          hero_count?: number
+          id?: string
+          rate_per_day?: number
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_mining_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hero_mining_rates: {
+        Row: {
+          created_at: string
+          rarity: string
+          ton_per_day: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          rarity: string
+          ton_per_day?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          rarity?: string
+          ton_per_day?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hero_mining_settings: {
+        Row: {
+          enabled: boolean
+          id: boolean
+          min_claim_ton: number
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: boolean
+          min_claim_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: boolean
+          min_claim_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       hero_rarity_fusion_history: {
         Row: {
@@ -5082,6 +5171,7 @@ export type Database = {
           level: number
           locked: boolean
           market_locked: boolean
+          mining_last_at: string | null
           name: string
           nft_hero_id: string | null
           nft_instance_id: string | null
@@ -5126,6 +5216,7 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_last_at?: string | null
           name: string
           nft_hero_id?: string | null
           nft_instance_id?: string | null
@@ -5170,6 +5261,7 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_last_at?: string | null
           name?: string
           nft_hero_id?: string | null
           nft_instance_id?: string | null
@@ -8654,6 +8746,26 @@ export type Database = {
         Args: { p_admin_id: number; p_hero_key: string }
         Returns: Json
       }
+      admin_hero_mining_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_hero_mining_set_min_claim: {
+        Args: { p_admin_id: number; p_min_ton: number }
+        Returns: Json
+      }
+      admin_hero_mining_set_rate: {
+        Args: { p_admin_id: number; p_rarity: string; p_ton_per_day: number }
+        Returns: Json
+      }
+      admin_hero_mining_toggle: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
+      admin_hero_mining_user: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
       admin_hero_rarity_flags: { Args: { p_admin_id: number }; Returns: Json }
       admin_hero_shop_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_list_audit: {
@@ -9753,6 +9865,7 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      claim_hero_mining: { Args: { p_telegram_id: number }; Returns: Json }
       claim_partner_reward:
         | {
             Args: { p_partner_id: string; p_telegram_id: number }
@@ -10185,6 +10298,7 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_hero_mining_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_hero_shop_config: { Args: never; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
@@ -10322,6 +10436,9 @@ export type Database = {
       hero_fusion_config: { Args: never; Returns: Json }
       hero_fusion_multiplier: { Args: { p_stars: number }; Returns: number }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
+      hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
+      hero_mining_enabled: { Args: never; Returns: boolean }
+      hero_mining_rate: { Args: { p_rarity: string }; Returns: number }
       hero_nft_class_mult: {
         Args: { p_archetype: string }
         Returns: {
