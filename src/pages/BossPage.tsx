@@ -5,7 +5,8 @@ import type { GameState, LanguageStrings } from '../types';
 import { dragon } from '../gameAssets';
 import { translate, type LanguageCode } from '../i18n';
 import { HERO_CATALOG, RARITY_COLORS, type HeroRarity } from '../heroCatalog';
-import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero } from '../combat';
+import { setGlobalBossAutoAttack } from '../services';
+import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero, type GlobalBossAutoAttackState } from '../combat';
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
 import { PetCompanion } from '../components/PetCompanion';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
@@ -17,15 +18,19 @@ import { TowerOfEternityPanel } from '../components/TowerOfEternityPanel';
 type BossMode='global'|'tower';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number};
-type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onClaimReward:()=>Promise<void>|void};
+type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onOpenSeasonPass?:()=>void;onClaimReward:()=>Promise<void>|void};
 const RARITY_KEYS:HeroRarity[]=['common','uncommon','rare','epic','legendary','mythic','ancestral'];
 const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroRarity>={common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',epic:'epic',epico:'epic','épico':'epic',legendary:'legendary',lendario:'legendary','lendário':'legendary',mythic:'mythic','mítico':'mythic',mitico:'mythic',ancestral:'ancestral'};return map[String(value??'').trim().toLowerCase()]??'common'};
 const compact=(value:number)=>Math.floor(value).toLocaleString();
 
-export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onClaimReward}:Props){
+export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onOpenSeasonPass,onClaimReward}:Props){
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
+  // Season Pass benefit: offline Auto ATK (server-side scheduler). UI only reflects/toggles state.
+  const [autoBusy,setAutoBusy]=useState(false);
+  const [autoOverride,setAutoOverride]=useState<GlobalBossAutoAttackState|null>(null);
+  const auto=autoOverride??combat?.autoAttack??null;
   const [bossMode,setBossMode]=useState<BossMode>('global');
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
@@ -130,6 +135,25 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       <div className="mt-2 grid grid-cols-5 gap-1.5">{slotted.map((h,i)=><button type="button" key={COMBAT_SLOTS[i]} onClick={()=>openHeroSelector(COMBAT_SLOTS[i])} className="min-h-[145px] overflow-hidden rounded-xl border bg-black/65" style={{borderColor:h?RARITY_COLORS[h.rarity as HeroRarity]:'#64748b88'}}>{h?<><img src={h.image||HERO_CATALOG.find(x=>x.id===(combat?.ownedHeroes?.find(o=>o.id===h.heroId)?.heroKey))?.image} alt={h.name} className="aspect-square w-full object-cover"/><div className="p-1 text-center"><p className="truncate text-[8px] font-bold">{h.name}</p><p className="text-[8px]" style={{color:RARITY_COLORS[h.rarity as HeroRarity]}}>{t(h.rarity)} · {t('levelShort')}{h.level}</p><p className="text-[8px]">ATK {h.finalAtk.toFixed(3)}</p><p className="text-[8px]">HP {h.currentHp}/{h.maxHp}</p>{!h.isAlive&&<p className="text-[8px] text-rose-400">{t('defeated')}<br/>{t('revivesIn')} {formatDuration(secondsUntil(h.reviveAt))}</p>}{h.isAlive&&h.reviveProtected&&!h.reviveAttackUsed&&<p className="animate-pulse text-[8px] font-bold text-amber-300">{t('boss.revived')}<br/>{t('boss.readyToStrike')}</p>}</div></>:<span className="text-2xl text-slate-500">＋</span>}</button>)}</div>
       {/* Team building is always allowed; only attacking depends on an active boss. */}
       {combat&&combat.bossActive===false&&<p className="mt-3 rounded-2xl border border-white/10 bg-black/70 p-3 text-center text-[11px] text-slate-300">{t('boss.notActiveLine1')}<br/>{t('boss.notActiveLine2')}</p>}
+      {auto?<div className={`mt-4 flex items-center justify-between gap-2 rounded-2xl border p-3 ${auto.active?'border-amber-300/50 bg-gradient-to-r from-amber-400/15 to-orange-500/10':'border-white/10 bg-black/60'}`}>
+        <div className="min-w-0">
+          <p className={`text-[11px] font-black uppercase tracking-[.18em] ${auto.active?'text-amber-200':'text-slate-300'}`}>{auto.eligible?'⚔️':'🔒'} {t('boss.autoAtk')}</p>
+          <p className="mt-0.5 truncate text-[9px] text-slate-400">
+            {!auto.eligible?t('boss.autoAtkRequired')
+            :!auto.enabled?t('boss.autoAtkOff')
+            :!auto.hasTeam?t('boss.autoAtkNoTeam')
+            :`${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${formatDuration(secondsUntil(auto.nextAttackAt))}`}
+          </p>
+        </div>
+        {auto.eligible
+          ?<button type="button" disabled={autoBusy||!telegramInitData} onClick={async()=>{
+              if(!telegramInitData)return; setAutoBusy(true);
+              try{setAutoOverride(await setGlobalBossAutoAttack(telegramInitData,!auto.enabled))}
+              catch(error){toast.error(error instanceof Error?error.message:t('boss.autoAtkError'))}
+              finally{setAutoBusy(false)}
+            }} className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] transition active:scale-95 disabled:opacity-50 ${auto.enabled?'bg-gradient-to-b from-amber-300 to-orange-500 text-black':'border border-white/15 bg-black/60 text-slate-300'}`}>{auto.enabled?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</button>
+          :<button type="button" onClick={()=>onOpenSeasonPass?.()} className="shrink-0 rounded-full border border-amber-300/40 bg-black/60 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95">{t('boss.autoAtkUnlock')}</button>}
+      </div>:null}
       {global&&global.status!=='active'
         ?<p className="mt-4 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3 text-center text-[11px] font-bold text-amber-200">{t('boss.defeatedGlobal')}</p>
         :combat?.status==='defeated'
