@@ -1571,6 +1571,66 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_templates: {
+        Row: {
+          bonus_attack: number
+          bonus_defense: number
+          bonus_hp: number
+          code: string
+          created_at: string
+          description: string
+          hero_class: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          kind: string
+          name: string
+          power: number
+          rarity: string
+          slot: string
+          tier: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_attack?: number
+          bonus_defense?: number
+          bonus_hp?: number
+          code: string
+          created_at?: string
+          description?: string
+          hero_class?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          kind: string
+          name: string
+          power?: number
+          rarity: string
+          slot: string
+          tier?: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_attack?: number
+          bonus_defense?: number
+          bonus_hp?: number
+          code?: string
+          created_at?: string
+          description?: string
+          hero_class?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          kind?: string
+          name?: string
+          power?: number
+          rarity?: string
+          slot?: string
+          tier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_results: {
         Row: {
           created_at: string
@@ -4348,6 +4408,57 @@ export type Database = {
             columns: ["exclusive_season_id"]
             isOneToOne: false
             referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_equipment: {
+        Row: {
+          created_at: string
+          hero_id: string | null
+          id: string
+          level: number
+          locked: boolean
+          source: string
+          template_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id?: string | null
+          id?: string
+          level?: number
+          locked?: boolean
+          source?: string
+          template_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string | null
+          id?: string
+          level?: number
+          locked?: boolean
+          source?: string
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_equipment_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_equipment_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
             referencedColumns: ["id"]
           },
         ]
