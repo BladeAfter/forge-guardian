@@ -5950,32 +5950,41 @@ export type Database = {
       referral_commissions: {
         Row: {
           amount_fc: number
+          amount_ton: number
           created_at: string
           from_user: string
           id: string
           idempotency_key: string | null
           level: number
           purchase_id: string
+          source_amount_ton: number | null
+          source_type: string | null
           user_id: string
         }
         Insert: {
-          amount_fc: number
+          amount_fc?: number
+          amount_ton?: number
           created_at?: string
           from_user: string
           id?: string
           idempotency_key?: string | null
           level: number
           purchase_id: string
+          source_amount_ton?: number | null
+          source_type?: string | null
           user_id: string
         }
         Update: {
           amount_fc?: number
+          amount_ton?: number
           created_at?: string
           from_user?: string
           id?: string
           idempotency_key?: string | null
           level?: number
           purchase_id?: string
+          source_amount_ton?: number | null
+          source_type?: string | null
           user_id?: string
         }
         Relationships: [
@@ -6056,6 +6065,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_first_ton_events: {
+        Row: {
+          amount_ton: number
+          buyer_id: string
+          commission_ton: number
+          created_at: string
+          processed_at: string
+          source_id: string
+          source_type: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ton: number
+          buyer_id: string
+          commission_ton?: number
+          created_at?: string
+          processed_at?: string
+          source_id: string
+          source_type: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ton?: number
+          buyer_id?: string
+          commission_ton?: number
+          created_at?: string
+          processed_at?: string
+          source_id?: string
+          source_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       referral_purchase_events: {
         Row: {
@@ -9911,6 +9953,15 @@ export type Database = {
       }
       recruit_heroes: {
         Args: { p_count: number; p_telegram_id: number }
+        Returns: Json
+      }
+      referral_pay_ton_commission: {
+        Args: {
+          p_amount_ton: number
+          p_buyer_id: string
+          p_source_id: string
+          p_source_type: string
+        }
         Returns: Json
       }
       remove_pvp_team_slot: {
