@@ -29,8 +29,30 @@ export type ClanBossHistoryRow = {
 };
 
 
+/**
+ * Season Pass benefit state for the CLAN boss Auto ATK. Mirrors the global boss
+ * shape but is a completely separate preference / cooldown on the backend.
+ */
+export type ClanBossAutoAttackState = {
+  eligible: boolean;
+  passTier?: string | null;
+  enabled: boolean;
+  hasTeam: boolean;
+  inClan?: boolean;
+  bossActive?: boolean;
+  active: boolean;
+  intervalSeconds: number;
+  lastAttackAt?: string | null;
+  nextAttackAt?: string | null;
+  attacksTotal?: number;
+  reason?: 'no_pass' | 'disabled' | 'no_team' | 'no_clan' | 'no_boss' | null;
+};
+
 export type ClanBossState = {
   inClan: boolean;
+  /** Season Pass offline Auto ATK state for the clan boss (server-driven). */
+  autoAttack?: ClanBossAutoAttackState | null;
+
   bossName?: string;
   /** How many bosses exist in the cycle progression (currently 10). */
   totalBosses?: number;
@@ -102,6 +124,14 @@ export const fetchClanBoss = (initData: string) => clanRequest<ClanBossState>(in
 
 export const strikeClanBoss = (initData: string, instanceId: string | null) =>
   clanRequest<ClanBossStrike>(initData, { action: 'boss-strike', instanceId });
+
+/**
+ * Season Pass benefit: turn the offline Auto ATK ON/OFF for the CLAN boss only.
+ * The global boss toggle lives in services.ts and is never affected by this.
+ */
+export const setClanBossAutoAttack = (initData: string, enabled: boolean) =>
+  clanRequest<ClanBossAutoAttackState>(initData, { action: 'boss-auto-attack', enabled });
+
 
 /** Compact number formatting used across the clan boss screen (13.2K, 1.05M). */
 export function abbreviateDamage(value: number | null | undefined): string {
