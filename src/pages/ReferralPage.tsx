@@ -8,7 +8,7 @@ import {buildTelegramShareUrl,type ReferralInvite} from '../referrals';
 import {formatTon} from '../economy';
 
 type Props={telegramInitData:string;languageCode:LanguageCode;onClose:()=>void};
-const money=(value:number)=>Number(value||0).toLocaleString('pt-BR',{maximumFractionDigits:3});
+
 
 export function ReferralPage({telegramInitData,languageCode,onClose}:Props){
   const t=(key:string,vars?:Record<string,unknown>)=>translate(languageCode,key,vars as Record<string,string|number>|undefined);const [level,setLevel]=useState<1|2|3|undefined>();const [offset,setOffset]=useState(0);
