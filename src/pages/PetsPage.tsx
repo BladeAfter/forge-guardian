@@ -12,6 +12,7 @@ import type { PetRarity } from '../petRules';
 import { isNftExclusivePet, petBuffLabel, petBuffShortLabel, petDisplayRarity, petDisplayRarityLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
+import { NftShopSection } from '../components/NftShopSection';
 import { useT, useLanguage } from '../LanguageContext';
 
 
@@ -478,7 +479,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
  * PETS and NFT EXCLUSIVE are two MAIN sections of this screen, selected in the
  * header (never as a sub-tab next to Eggs/Food/Evolution/Catalog).
  */
-type Section = 'pets' | 'nft';
+type Section = 'pets' | 'nft' | 'shop';
 
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
@@ -493,18 +494,18 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
           </div>
           {section && onSection ? (
             <div className="mt-1 flex items-end gap-4">
-              {([['pets', 'PETS'], ['nft', 'NFT EXCLUSIVE']] as [Section, string][]).map(([key, label]) => {
+              {([['pets', 'PETS'], ['nft', 'NFT EXCLUSIVE'], ['shop', 'BUY NFT']] as [Section, string][]).map(([key, label]) => {
                 const on = section === key;
                 return (
                   <button
                     key={key}
                     type="button"
                     onClick={() => onSection(key)}
-                    className={`relative shrink-0 pb-1.5 text-left text-[15px] font-black uppercase tracking-[.06em] transition ${
+                    className={`relative shrink-0 pb-1.5 text-left text-[13px] font-black uppercase tracking-[.04em] transition ${
                       on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
                     }`}
                   >
-                    {key === 'nft' ? <span className="mr-1">💎</span> : null}
+                    {key === 'pets' ? null : <span className="mr-1">{key === 'nft' ? '💎' : '🛒'}</span>}
                     {label}
                     <span className={`absolute inset-x-0 bottom-0 h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
                   </button>
@@ -759,7 +760,7 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
  * daily obligation, treasury or any system revenue — that data stays in the
  * backend and is visible exclusively to the master admin through the admin bot.
  */
-function NftExclusiveSection({ telegramInitData }: { telegramInitData: string }) {
+function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitData: string; onGoToShop?: () => void }) {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-rewards-mine'],
@@ -787,6 +788,12 @@ function NftExclusiveSection({ telegramInitData }: { telegramInitData: string })
         <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
         <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">💎 NFT EXCLUSIVE</p>
         <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">You don&apos;t own an NFT Exclusive Pet yet.</p>
+        <p className="mx-auto mt-1 max-w-[260px] text-[11px] text-slate-400">Go to BUY NFT to purchase one.</p>
+        {onGoToShop ? (
+          <button type="button" onClick={onGoToShop} className="relative mt-4 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 px-3 py-2.5 text-[11px] font-black uppercase tracking-[.14em] text-black">
+            GO TO BUY NFT
+          </button>
+        ) : null}
         <div className="mt-5 inline-flex flex-col rounded-2xl border border-amber-200/25 bg-black/50 px-6 py-3">
           <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">Limited Collection</span>
           <span className="text-lg font-black text-amber-100">{data?.totalSupply ?? 10} NFTs Total</span>
