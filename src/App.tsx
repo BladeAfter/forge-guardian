@@ -838,7 +838,7 @@ function App() {
       />:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
-      <div className={`relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pb-24 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
+      <div className={`telegram-safe-body relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
         <header className={`main-player-header mb-2 shrink-0 border-b border-white/10 bg-[#080b10]/75 px-2 py-2.5 backdrop-blur-md ${tab === 'village' || tab === 'profile' ? 'hidden' : 'block'}`}>
           <PlayerHeader profile={playerProfile} loading={profileLoading} onRetry={()=>void refetchProfile()} balance={fcBalance} tonBalance={tonBalance} onBalanceClick={()=>setTab('wallet')} />
         </header>
@@ -1147,13 +1147,13 @@ function App() {
         <div className="mx-auto flex max-w-[480px] items-center justify-between">
           {navItems.map((item) => {
             const isMarket = item.key === 'market';
-            const active = !isMarket && tab === item.key;
+            const active = isMarket ? marketOpen : tab === item.key;
             const icon = isMarket ? mainScreenArt.market : (active ? navigationIcons[item.key].selected : navigationIcons[item.key].normal);
             return (
             <button
               key={item.key}
               onClick={() => isMarket ? openInternal('market') : navigateTo(item.key as TabKey)}
-              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : isMarket ? 'text-amber-200/90 hover:text-amber-100' : 'text-slate-400 hover:text-white'}`}
+              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
             >
               <img
                 src={icon}
