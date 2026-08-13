@@ -37,7 +37,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   legendary: { borderClass: 'border-amber-300/80', glowClass: 'from-amber-400/40', badgeClass: 'border-amber-200/60 bg-amber-500/20 text-amber-100' },
   mythic: { borderClass: 'border-rose-400/80', glowClass: 'from-rose-500/40', badgeClass: 'border-rose-200/60 bg-rose-600/20 text-rose-100' },
   ancestral: { borderClass: 'border-pink-300/80', glowClass: 'from-pink-400/40', badgeClass: 'border-pink-200/60 bg-pink-500/20 text-pink-100' },
-  nft_exclusive: { borderClass: 'border-cyan-300/90', glowClass: 'from-cyan-400/45', badgeClass: 'border-cyan-200/70 bg-gradient-to-r from-cyan-500/25 to-violet-500/25 text-cyan-100' },
+  // NFT EXCLUSIVE never uses a colored rarity chip — the single premium gold/dark tag replaces it.
+  nft_exclusive: { borderClass: 'border-amber-200/70', glowClass: 'from-amber-300/35', badgeClass: 'forge-nft-tag border-amber-200/80 bg-[#120c04] text-amber-200' },
 };
 
 
@@ -546,9 +547,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
         <div className="min-w-0 flex-1">
           <b className="block truncate text-sm">{pet.name}</b>
           {isNftExclusivePet(pet) && (
-            <span className="forge-nft-tag mt-0.5 inline-block rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-[2px] text-[7px] font-black tracking-[.16em] text-amber-100">
-              NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(4, "0")}` : ""}
-            </span>
+            <NftPetTag serial={pet.nft?.serial} className="mt-0.5" />
           )}
           <p className="text-[9px] text-slate-400">
             {t('pets.rarityLevel', { rarity: petStageLabel(pet.evolutionStage), level: pet.level, max: pet.maxLevel })} · {pet.evolutionLabel}
@@ -705,6 +704,16 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
   );
 }
 
+/** Single premium NFT tag: dark background, gold border/text. Replaces the rarity chip entirely. */
+function NftPetTag({ serial, className = '' }: { serial?: string | number | null; className?: string }) {
+  return (
+    <span className={`forge-nft-tag inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-[#120c04] px-2 py-1 text-[7px] font-black tracking-[.16em] text-amber-200 ${className}`}>
+      NFT EXCLUSIVE
+      {serial ? <b className="text-amber-100">#{String(serial).padStart(3, '0')}</b> : null}
+    </span>
+  );
+}
+
 function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
   const t = useT();
   const isNft = isNftExclusivePet(pet);
@@ -721,10 +730,7 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
       <div className="relative z-10 flex items-start justify-between gap-1">
         {/* NFT EXCLUSIVE replaces the normal rarity badge — never both. */}
         {isNft ? (
-          <span className="forge-nft-tag flex items-center gap-1 rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-1 text-[7px] font-black tracking-[.16em] text-amber-100">
-            NFT EXCLUSIVE
-            {serial ? <b className="text-violet-100">#{String(serial).padStart(4, '0')}</b> : null}
-          </span>
+          <NftPetTag serial={serial} />
         ) : (
           <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
         )}
