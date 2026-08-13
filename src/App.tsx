@@ -902,13 +902,20 @@ function App() {
             <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
-          {/* Small, discreet entry point: the partner list itself is a compact modal. */}
-          <button
-            onClick={()=>setPartnersOpen(true)}
-            className="self-start rounded-full border border-amber-300/30 bg-black/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200"
-          >🤝 {t('partners.button')}</button>
+          {/* Small, discreet entry points: partner channels and TON rewarded ads. */}
+          <div className="flex w-full items-center gap-2">
+            <button
+              onClick={()=>setPartnersOpen(true)}
+              className="rounded-full border border-amber-300/30 bg-black/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200"
+            >🤝 {t('partners.button')}</button>
+            <button
+              onClick={()=>setRewardsOpen(true)}
+              className="rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-400/20 to-orange-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-100 shadow-[0_0_14px_rgba(251,191,36,.3)]"
+            >💎 {t('adRewards.button')}</button>
+          </div>
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
+          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
 
           {shopOpen ? (
             <HeroShopPanel
