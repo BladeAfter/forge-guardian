@@ -274,7 +274,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
       </div>
 
       {/* Season Pass benefit: offline Auto ATK (independent from the Global Boss) */}
-      {auto ? (
+      {(
         <div className={`mt-3 flex items-center justify-between gap-2 rounded-2xl border p-3 ${auto.active ? 'border-amber-300/50 bg-gradient-to-r from-amber-400/15 to-violet-500/10' : 'border-white/10 bg-black/60'}`}>
           <div className="min-w-0">
             <p className={`text-[11px] font-black uppercase tracking-[.18em] ${auto.active ? 'text-amber-200' : 'text-slate-300'}`}>
