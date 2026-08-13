@@ -1161,21 +1161,26 @@ function App() {
 
       {!activePage?<nav className="telegram-safe-nav fixed bottom-0 left-0 right-0 border-t border-white/10 bg-forge-black/95 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[480px] items-center justify-between">
-          {navItems.map((item) => (
+          {navItems.map((item) => {
+            const isMarket = item.key === 'market';
+            const active = !isMarket && tab === item.key;
+            const icon = isMarket ? mainScreenArt.market : (active ? navigationIcons[item.key].selected : navigationIcons[item.key].normal);
+            return (
             <button
               key={item.key}
-              onClick={() => navigateTo(item.key)}
-              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${tab === item.key ? 'bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
+              onClick={() => isMarket ? openInternal('market') : navigateTo(item.key as TabKey)}
+              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : isMarket ? 'text-amber-200/90 hover:text-amber-100' : 'text-slate-400 hover:text-white'}`}
             >
               <img
-                src={tab === item.key ? navigationIcons[item.key].selected : navigationIcons[item.key].normal}
+                src={icon}
                 alt=""
                 className="h-7 w-7 object-contain transition duration-200"
-                style={tab === item.key ? { filter: 'sepia(1) saturate(1.8) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 6px rgba(251,191,36,.65))' } : undefined}
+                style={active ? { filter: 'sepia(1) saturate(1.8) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 6px rgba(251,191,36,.65))' } : undefined}
               />
               <span className="mt-1">{item.label}</span>
             </button>
-          ))}
+          );})}
+
         </div>
       </nav>:null}
     </div>
