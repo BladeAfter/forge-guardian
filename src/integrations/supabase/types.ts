@@ -7127,6 +7127,61 @@ export type Database = {
         }
         Relationships: []
       }
+      tower_equipment_drops: {
+        Row: {
+          created_at: string
+          floor: number
+          id: string
+          instance_id: string | null
+          rarity: string | null
+          slot: string | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          floor: number
+          id?: string
+          instance_id?: string | null
+          rarity?: string | null
+          slot?: string | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          floor?: number
+          id?: string
+          instance_id?: string | null
+          rarity?: string | null
+          slot?: string | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tower_equipment_drops_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "player_equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tower_equipment_drops_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tower_equipment_drops_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tower_progress: {
         Row: {
           attempts_date: string
@@ -10014,6 +10069,7 @@ export type Database = {
       }
       tower_enter_floor: { Args: { p_telegram_id: number }; Returns: Json }
       tower_entry_cost: { Args: { p_floor: number }; Returns: number }
+      tower_equipment_drop_audit: { Args: never; Returns: Json }
       tower_equipment_drop_rule: {
         Args: { p_first: boolean; p_floor: number }
         Returns: Json
