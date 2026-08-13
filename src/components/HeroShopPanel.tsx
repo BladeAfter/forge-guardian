@@ -30,6 +30,8 @@ type Props = {
   shopResults: ShopHero[];
   onRecruit: (count: 1 | 5 | 10) => void;
   onClose: () => void;
+  /** Which access point opened the panel: hero recruitment or the Player Market. */
+  mode?: 'recruit' | 'market';
 };
 
 const RARITY_FILTERS = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
@@ -41,12 +43,14 @@ const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', 
  * internal withdrawable TON balance first; when it is not enough the backend reserves
  * the listing and the buyer pays from the connected wallet.
  */
-export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose }: Props) {
+export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose, mode = 'recruit' }: Props) {
   const t = useT();
   const queryClient = useQueryClient();
   const [tonUI] = useTonConnectUI();
   const wallet = useTonWallet();
-  const [tab, setTab] = useState<'recruit' | 'market'>('recruit');
+  // Access point only: the panel now opens either the Recruit view or the Player Market
+  // view (moved to the Village). The market system itself is untouched.
+  const tab: 'recruit' | 'market' = mode;
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
@@ -278,7 +282,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         <div className="flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">MYTHREON</p>
-            <h2 className="text-lg font-black leading-tight text-white">{t('shop')}</h2>
+            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? t('market.tabMarket') : t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
@@ -289,14 +293,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 px-4">
-          <button onClick={() => setTab('recruit')} className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] ${tab === 'recruit' ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-            <Swords className="h-3.5 w-3.5" />{t('market.tabRecruit')}
-          </button>
-          <button onClick={() => setTab('market')} className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[10px] font-black uppercase tracking-[0.16em] ${tab === 'market' ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-white/[.03] text-slate-400'}`}>
-            <Store className="h-3.5 w-3.5" />{t('market.tabMarket')}
-          </button>
-        </div>
 
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
           {tab === 'recruit' ? (
@@ -362,9 +358,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <button onClick={() => void status.refetch()} className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
                     <RefreshCw className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.retry')}
                   </button>
-                  <button onClick={() => setTab('recruit')} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-                    {t('market.tabRecruit')}
+                  <button onClick={onClose} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
+                    {t('close')}
                   </button>
+
                 </div>
               </div>
             </div>

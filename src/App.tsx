@@ -46,8 +46,8 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'calendar'|'season-pass'|'heroes'|'clan';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan'};
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
@@ -546,7 +546,7 @@ function App() {
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
   const [rewardsOpen,setRewardsOpen]=useState(false);
-  const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop';
+  const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
   const setPetsOpen=(open:boolean)=>open?openInternal('pets'):closeInternal();
@@ -892,6 +892,10 @@ function App() {
                 onClick={()=>setPartnersOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
               >🤝 {t('partners.button')}</button>
+              <button
+                onClick={()=>{setActivePage(null);navigateTo('missions')}}
+                className="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
+              >📜 MISSIONS</button>
             </div>
             <div className="flex flex-col items-center gap-2">
               <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
@@ -908,8 +912,9 @@ function App() {
           {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
 
 
-          {shopOpen ? (
+          {shopOpen||marketOpen ? (
             <HeroShopPanel
+              mode={marketOpen?'market':'recruit'}
               telegramInitData={telegramInitData}
               fcBalance={fcBalance}
               tonBalance={tonBalance}
@@ -917,7 +922,7 @@ function App() {
               recruitPrice={recruitPrice}
               shopResults={shopResults}
               onRecruit={(count: 1 | 5 | 10) => void recruitHeroes(count)}
-              onClose={() => setShopOpen(false)}
+              onClose={closeInternal}
             />
           ) : null}
 
@@ -1126,14 +1131,14 @@ function App() {
               <p className="relative mt-2 text-[11px] text-slate-400">Continue entrando todos os dias</p>
             </div>
             <button
-              onClick={() => featuredMission.complete ? claimMission(featuredMission.id) : navigateTo('missions')}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-forge-black/85 p-4 text-left shadow-card"
+              onClick={() => openInternal('market')}
+              className="relative overflow-hidden rounded-3xl border border-amber-300/25 bg-forge-black/85 p-4 text-left shadow-card"
             >
-              <img src={mainScreenArt.missionIngots} alt="" className="pointer-events-none absolute -bottom-2 -right-4 h-24 w-24 object-contain opacity-55" />
-              <p className="relative text-[10px] uppercase tracking-[0.18em] text-slate-300">Missão em destaque</p>
-              <p className="relative mt-2 line-clamp-2 pr-9 text-sm font-bold text-white">{featuredMission.title}</p>
-              <p className="relative mt-3 text-xs font-bold text-emerald-400">+{formatCurrency(featuredMission.reward)} FC</p>
-              <p className="relative mt-1 text-[10px] text-amber-300">{featuredMission.complete ? 'TOQUE PARA RESGATAR' : 'VER MISSÕES →'}</p>
+              <img src={mainScreenArt.market} alt="" loading="lazy" className="pointer-events-none absolute -bottom-3 -right-4 h-24 w-24 object-contain opacity-70 drop-shadow-[0_6px_16px_rgba(0,0,0,.6)]" />
+              <p className="relative text-[10px] uppercase tracking-[0.18em] text-slate-300">MYTHREON</p>
+              <p className="relative mt-2 text-xl font-black tracking-[0.05em] text-amber-300">MARKET</p>
+              <p className="relative mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-400">PLAYER TRADING</p>
+              <p className="relative mt-3 text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">ABRIR →</p>
             </button>
           </section>
         ) : null}
