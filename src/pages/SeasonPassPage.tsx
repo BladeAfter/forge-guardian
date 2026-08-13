@@ -1,7 +1,7 @@
 import React from'react';
 import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
-import{ArrowLeft,Check,Lock,ScrollText,Star}from'lucide-react';
+import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
 import{toast}from'sonner';
 import{seasonPassRequest,buySeasonPassLevels}from'../services';
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
@@ -11,8 +11,13 @@ import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
 import{type PassReward,type PassTier,type PassLevelPurchaseConfig,type SeasonPassDashboard}from'../seasonPass';
 import mythicEggAsset from'../assets/season-1-mythic-egg-transparent.webp.asset.json';
+import petSilhouetteAsset from'../assets/pets/draviel.png.asset.json';
 
-const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':mythicEggAsset.url};
+const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp','epic-egg':'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':mythicEggAsset.url};
+// Mystery rewards never reveal the art: the silhouette below is what the player sees before claiming.
+const silhouette:Record<string,string>={'season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':petSilhouetteAsset.url,hero_random:'/assets/game/heroes/legendary-dragon-knight.png'};
+const equipIcon:Record<string,typeof Sword>={weapon:Sword,armor:Shield,ring:Gem};
+
 
 export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramInitData:string;onClose:()=>void;onMissions:()=>void}){
  const t=useT(),{tError}=useLanguage();
