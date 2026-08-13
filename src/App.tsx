@@ -910,12 +910,6 @@ function App() {
             </div>
           </div>
 
-          {/* MARKET takes over the old big MISSIONS card slot in the main grid. */}
-          <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.market} label="MARKET" subtitle="BUY & SELL" onClick={()=>openInternal('market')}/>
-            <div aria-hidden className="pointer-events-none invisible"><HomeFeature image={mainScreenArt.market} label="MARKET" subtitle="BUY & SELL" onClick={()=>{}}/></div>
-          </div>
-
 
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
