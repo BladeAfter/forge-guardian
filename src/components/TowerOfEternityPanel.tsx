@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import type { PvpHero } from '../pvp';
-import { useTowerDashboard } from '../hooks';
+import { useTowerDashboard, useTowerRanking } from '../hooks';
 import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
 import { TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
 import { towerBossTheme } from '../towerBosses';
@@ -35,6 +35,8 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const [isTeamOpen, setIsTeamOpen] = useState(false);
   const [slot, setSlot] = useState<number | null>(null);
   const [battle, setBattle] = useState<TowerBattle | null>(null);
+  const [isRankingOpen, setIsRankingOpen] = useState(false);
+  const ranking = useTowerRanking(initData || null, Boolean(initData) && isRankingOpen);
 
   const data = tower.data;
   const heroes = useMemo(() => (collection ?? []).slice().sort((a, b) => (b.power ?? 0) - (a.power ?? 0)), [collection]);
@@ -146,6 +148,13 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
         <div className="relative mt-3 grid gap-2">
           <button
             type="button"
+            onClick={() => setIsRankingOpen(true)}
+            className="min-h-11 rounded-2xl border border-amber-300/40 bg-amber-400/10 text-xs font-bold uppercase tracking-wide text-amber-300"
+          >
+            🏆 Ranking
+          </button>
+          <button
+            type="button"
             onClick={() => setIsTeamOpen(true)}
             className="min-h-11 rounded-2xl border border-amber-400/40 bg-amber-400/10 text-xs font-bold uppercase tracking-wide text-amber-200"
           >
@@ -204,6 +213,47 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                 <span className={run.result === 'win' ? 'text-emerald-300' : 'text-rose-300'}>{run.result === 'win' ? 'Vitória' : 'Derrota'}</span>
               </div>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {isRankingOpen ? (
+        <div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={() => setIsRankingOpen(false)}>
+          <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-amber-300">Tower of Eternity Ranking</h3>
+              <button type="button" aria-label="Fechar" onClick={() => setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]">
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Players</p><p className="mt-1 font-semibold">{compact(ranking.data?.totalPlayers ?? 0)}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Highest Floor</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.highestFloor ?? 0}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Your Rank</p><p className="mt-1 font-semibold">{ranking.data?.you?.rank ? `#${ranking.data.you.rank}` : '—'}</p></div>
+            </div>
+            <div className="mt-1.5 grid grid-cols-2 gap-1.5 text-[9px]">
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Best Floor</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.you?.floor ?? data.highestFloor}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Power</p><p className="mt-1 font-semibold">{compact(ranking.data?.you?.power ?? data.teamPower)}</p></div>
+            </div>
+            {ranking.isLoading && !ranking.data ? (
+              <p className="py-8 text-center text-xs text-slate-400">Carregando ranking…</p>
+            ) : !ranking.data?.top.length ? (
+              <p className="py-8 text-center text-xs text-slate-400">Nenhum jogador no ranking ainda.</p>
+            ) : (
+              <div className="mt-3 max-h-[55vh] space-y-1.5 overflow-y-auto">
+                {ranking.data.top.map(entry => (
+                  <div key={entry.userId} className={`flex items-center gap-2 rounded-2xl border p-2 ${entry.isYou ? 'border-amber-300/60 bg-amber-400/10' : entry.rank <= 3 ? 'border-amber-400/30 bg-amber-500/5' : 'border-white/10 bg-black/60'}`}>
+                    <span className="w-7 text-center text-[11px] font-black text-amber-300">#{entry.rank}</span>
+                    {entry.photoUrl
+                      ? <img src={entry.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      : <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[10px]">🗼</span>}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[11px] font-bold">{entry.name}{entry.isYou ? <span className="ml-1 text-[8px] text-amber-300">(você)</span> : null}</p>
+                      <p className="text-[9px] text-slate-400">Power {compact(entry.power)}{entry.updatedAt ? ` · ${new Date(entry.updatedAt).toLocaleDateString()}` : ''}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-300">Floor {entry.floor}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : null}
