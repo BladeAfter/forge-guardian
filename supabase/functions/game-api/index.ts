@@ -644,6 +644,67 @@ async function verifyEggPurchases(db: Db, user: TelegramUser) {
   return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, awaitingPayment: stillPending.length, results, summary };
 }
 
+/**
+ * Reconciler for NFT EXCLUSIVE purchases paid with TON Connect.
+ * Step 1 — the database delivers every order already confirmed (atomic + idempotent).
+ * Step 2 — only orders genuinely awaiting payment are looked up on-chain by their unique comment.
+ * An NFT purchase is never a deposit: no FC is credited and no pool figure is ever returned.
+ */
+async function verifyNftPurchases(db: Db, user: TelegramUser) {
+  const state = await rpc(db, 'nft_reconcile_orders', { p_telegram_id: user.id }) as any;
+  const completed: string[] = [...(state?.delivered ?? [])].map(String);
+  const alreadyDelivered: string[] = [...(state?.alreadyDelivered ?? [])].map(String);
+  const results: any[] = Array.isArray(state?.results) ? [...state.results] : [];
+  const orders: any[] = Array.isArray(state?.awaitingPayment) ? state.awaitingPayment : [];
+  const stillPending: string[] = [];
+
+  if (orders.length) {
+    const hotWallet = await hotWalletAddress(db);
+    const transactions = await fetchHotWalletIncoming(hotWallet);
+    for (const order of orders) {
+      const comment = String(order.paymentComment || '').trim();
+      const expectedNano = BigInt(String(order.amountNano || '0'));
+      const logRow: Record<string, unknown> = {
+        order_kind: 'nft',
+        order_id: order.id,
+        telegram_id: user.id,
+        product_id: String(order.petName ?? ''),
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
+      });
+      if (!match) {
+        stillPending.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
+        continue;
+      }
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      try {
+        const outcome = await rpc(db, 'nft_confirm_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano }) as any;
+        results.push({ ...outcome, petName: order.petName, priceTon: order.priceTon });
+        if (outcome?.status === 'already_delivered') alreadyDelivered.push(order.id);
+        else completed.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: String(outcome?.status ?? 'completed') });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        console.error('[FORGE ERROR] nft-purchase-confirm', { orderId: order.id, txHash, receivedNano, reason });
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: reason });
+        stillPending.push(order.id);
+      }
+    }
+  }
+
+  return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, results };
+}
+
+
+
 
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
@@ -1218,7 +1279,27 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (action === 'claim-one') {
         return await rpc(db, 'nft_claim_position', { p_telegram_id: user.id, p_position_id: String(body.positionId ?? '') });
       }
+      // BUY NFT store: sale data only (price, tier yield, supply, status).
+      if (action === 'shop') return await rpc(db, 'nft_shop_json', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nft:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_create_order', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nft:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyNftPurchases(db, user);
     } catch (error) {
+
       // The real backend reason must be observable; the UI keeps a friendly text.
       console.error('[NFT]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
       throw error;

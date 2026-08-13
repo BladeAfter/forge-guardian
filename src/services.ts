@@ -559,3 +559,50 @@ export async function claimNftPosition(telegramInitData:string,positionId:string
   if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
   return {totalSupply:payload.totalSupply??10,items:payload.items??[],amountTon:payload.amountTon??0};
 }
+
+/**
+ * BUY NFT store. Sale data only: price, tier daily yield, supply and status.
+ * The NFT Reward Pool (balance, reserved, health, treasury) is never part of this payload.
+ */
+export type NftShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;passives?:Record<string,number>};
+export type NftShop={totalSupply:number;sold:number;available:number;items:NftShopItem[];balanceTon:number};
+
+const NFT_SHOP_ERRORS:Record<string,string>={
+  NFT_SOLD_OUT:'Este NFT já foi vendido.',
+  NFT_NOT_FOR_SALE:'Este NFT não está disponível para compra.',
+  NFT_ALREADY_OWNED:'Este NFT já possui um proprietário.',
+  INSUFFICIENT_TON_BALANCE:'Saldo TON interno insuficiente.',
+  INVALID_NFT:'NFT inválido.',
+};
+
+export async function fetchNftShop(telegramInitData:string):Promise<NftShop>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'shop'});
+  const payload=await response.json().catch(()=>null) as NftShop&{error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload.items))throw new Error(nftError(payload?.error||'','Não foi possível carregar a loja de NFTs.'));
+  return payload;
+}
+
+/** Buys with the internal withdrawable TON balance (atomic; the server owns every rule). */
+export async function buyNftWithBalance(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'buy-balance',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {status?:string;playerPetId?:string;serial?:number;petName?:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível concluir a compra.'));
+  return payload;
+}
+
+/** Creates the on-chain order for TON Connect (unique comment binds payment ↔ NFT). */
+export async function createNftTonOrder(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'order',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {id:string;paymentAddress:string;amountNano:string;amountTon:number;paymentComment:string;expiresAt:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível iniciar o pagamento.'));
+  return payload;
+}
+
+export type NftPurchaseVerification={checked:number;completed:string[];alreadyDelivered:string[];pending:string[];results:Array<{status?:string;petName?:string;serial?:number}>};
+/** Confirms on-chain NFT payments and delivers the pet exactly once. */
+export async function verifyNftPurchases(telegramInitData:string):Promise<NftPurchaseVerification>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'verify-purchases'});
+  const payload=await response.json().catch(()=>null) as NftPurchaseVerification&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível verificar o pagamento.'));
+  return {checked:payload.checked??0,completed:payload.completed??[],alreadyDelivered:payload.alreadyDelivered??[],pending:payload.pending??[],results:payload.results??[]};
+}
