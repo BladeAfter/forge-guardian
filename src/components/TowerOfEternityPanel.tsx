@@ -83,12 +83,14 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
 
   const boss = data.boss;
   const rewards = data.firstClear ? data.rewards : data.replayRewards;
-  const canEnter = data.attemptsRemaining > 0 && balance >= data.entryCost && team.length > 0 && !enter.isPending;
+  // The server-side FC balance is authoritative; the prop is only a fallback.
+  const fc = Number.isFinite(Number(data.balanceFc)) ? Number(data.balanceFc) : Number(balance) || 0;
+  const canEnter = !enter.isPending;
 
   const start = () => {
     if (!team.length) { toast.error('Selecione sua equipe primeiro'); setIsTeamOpen(true); return; }
     if (data.attemptsRemaining <= 0) { toast.error('Sem tentativas hoje'); return; }
-    if (balance < data.entryCost) { toast.error('FC insuficiente para entrar na masmorra'); return; }
+    if (fc < data.entryCost) { toast.error('FC insuficiente para entrar na masmorra'); return; }
     enter.mutate();
   };
 
