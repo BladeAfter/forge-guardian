@@ -1197,7 +1197,20 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     console.log('[LANGUAGE]', { telegramId: user.id, language });
     return result;
   },
+
+  /**
+   * NFT EXCLUSIVE rewards. Returns ONLY the authenticated player's own unit:
+   * daily yield, available to claim and lifetime earned. The NFT Reward Pool
+   * (balance, reserved, health, revenue) is backend-only and NEVER exposed here.
+   */
+  nft: async (db, user, body) => {
+    const action = String(body.action || 'my');
+    if (action === 'my') return rpc(db, 'nft_my_reward', { p_telegram_id: user.id });
+    if (action === 'claim') return rpc(db, 'nft_claim_reward', { p_telegram_id: user.id });
+    throw new Error('Ação inválida.');
+  },
 };
+
 
 async function healthReport() {
   const report: Record<string, unknown> = {

@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
 import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
-import { petRequest } from '../services';
+import { claimNftReward, fetchNftReward, petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
@@ -211,6 +211,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           </div>
         )}
       </section>
+
+      <NftRewardCard telegramInitData={telegramInitData} />
 
       <nav className="mt-3 grid grid-cols-5 gap-1">
         {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
@@ -705,6 +707,65 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
 }
 
 /** Single premium NFT tag: dark background, gold border/text. Replaces the rarity chip entirely. */
+/**
+ * NFT EXCLUSIVE earnings for THIS player only. It never renders pool balance,
+ * pool health, treasury or other owners' obligations — those live in the backend
+ * and are visible exclusively to the master admin through the admin bot.
+ */
+function NftRewardCard({ telegramInitData }: { telegramInitData: string }) {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ['nft-reward'],
+    queryFn: () => fetchNftReward(telegramInitData),
+    staleTime: 30_000,
+  });
+  const claim = useMutation({
+    mutationFn: () => claimNftReward(telegramInitData),
+    onSuccess: (result) => {
+      toast.success(t('pets.nftClaimed', { amount: formatTon(result.amountTon) }));
+      queryClient.setQueryData(['nft-reward'], result);
+      queryClient.invalidateQueries({ queryKey: ['ton-wallet'] });
+    },
+    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : 'Erro'),
+  });
+
+  if (!data?.hasNft) return null;
+  const available = Number(data.availableTon ?? 0);
+  const canClaim = Boolean(data.canClaim) && !claim.isPending;
+
+  return (
+    <section className="forge-nft-card mt-3 overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[9px] font-black uppercase tracking-[.28em] text-amber-200">{t('pets.nftTitle')}</p>
+        <p className="text-[10px] font-black text-amber-100">
+          {t('pets.nftUnit', { serial: String(data.serial ?? 0).padStart(2, '0'), total: data.totalSupply ?? 10 })}
+        </p>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+        {[
+          { label: t('pets.nftDaily'), value: formatTon(data.dailyYieldTon ?? 0) },
+          { label: t('pets.nftAvailable'), value: formatTon(available) },
+          { label: t('pets.nftLifetime'), value: formatTon(data.lifetimeEarnedTon ?? 0) },
+        ].map((item) => (
+          <div key={item.label} className="rounded-xl border border-amber-200/20 bg-black/40 px-1 py-2">
+            <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{item.label}</p>
+            <p className="text-[13px] font-black text-amber-100">{item.value} <span className="text-[8px] text-amber-300/80">TON</span></p>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        disabled={!canClaim}
+        onClick={() => claim.mutate()}
+        className={`mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-500'}`}
+      >
+        {available > 0 ? t('pets.nftClaim', { amount: formatTon(available) }) : t('pets.nftNothing')}
+      </button>
+    </section>
+  );
+}
+
 function NftPetTag({ serial, className = '' }: { serial?: string | number | null; className?: string }) {
   return (
     <span className={`forge-nft-tag inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-[#120c04] px-2 py-1 text-[7px] font-black tracking-[.16em] text-amber-200 ${className}`}>
