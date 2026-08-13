@@ -105,8 +105,6 @@ function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
-  const entryAdRef = useRef(false);
-  const [entryAdDone, setEntryAdDone] = useState(false);
   const passRecoveryRef = useRef(false);
 
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
