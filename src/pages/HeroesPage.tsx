@@ -118,11 +118,15 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         ) : (
 
           <div className="mt-3 grid grid-cols-3 gap-2">
-            {heroes.map((hero) => {
+            {visibleHeroes.length === 0 ? (
+              <p className="col-span-3 py-16 text-center text-xs text-slate-300">{t('heroes.noResults')}</p>
+            ) : null}
+            {visibleHeroes.map((hero) => {
               const state = fusion?.heroes.find((h) => h.heroId === hero.heroId);
               const stars = state?.stars ?? hero.stars ?? 0;
               return (
-                <div key={hero.heroId} className={`overflow-hidden rounded-xl border bg-black/70 ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
+                <div key={hero.heroId} role="button" tabIndex={0} onClick={() => setDetailsId(hero.heroId)} onKeyDown={(e) => { if (e.key === 'Enter') setDetailsId(hero.heroId); }} className={`cursor-pointer overflow-hidden rounded-xl border bg-black/70 text-left ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
+
                   <div className="relative">
                     <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover" />
                     {hero.isNft ? (
