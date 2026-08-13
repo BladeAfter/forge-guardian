@@ -160,6 +160,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
    * otherwise                      -> EXTERNAL_TON_WALLET (full price, internal untouched)
    */
   const startPurchase = (listingId: string) => {
+    // Double-click guard: one BUY tap can never open two purchase intents.
+    if (buyMutation.isPending || payingId) return;
     const listing = listings.find((item) => item.id === listingId);
     if (listing?.currency === 'TON' && Number(listing.priceTon) > availableTon) {
       setTonPrompt({ id: listingId, price: Number(listing.priceTon), name: listing.name });
