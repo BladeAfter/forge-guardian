@@ -1279,7 +1279,27 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (action === 'claim-one') {
         return await rpc(db, 'nft_claim_position', { p_telegram_id: user.id, p_position_id: String(body.positionId ?? '') });
       }
+      // BUY NFT store: sale data only (price, tier yield, supply, status).
+      if (action === 'shop') return await rpc(db, 'nft_shop_json', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nft:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_create_order', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nft:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyNftPurchases(db, user);
     } catch (error) {
+
       // The real backend reason must be observable; the UI keeps a friendly text.
       console.error('[NFT]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
       throw error;
