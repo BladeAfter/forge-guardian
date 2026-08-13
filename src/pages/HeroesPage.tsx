@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
 import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
+import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
+import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { useT, useLanguage } from '../LanguageContext';
 
-const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
+const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee' };
+
 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
@@ -23,15 +26,23 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
   // Rarity fusion is only fetched once the player opens the tab.
   const { data: rarityFusion, isLoading: loadingRarity, error: rarityError } = useRarityFusion(telegramInitData, tab === 'fusion');
   const [fusingId, setFusingId] = useState<string | null>(null);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<HeroFilters>(DEFAULT_HERO_FILTERS);
   useEffect(() => { console.log('[HEROES] start'); }, []);
   useEffect(() => { if (data) console.log('[HEROES] player heroes loaded', data.heroes.length); }, [data]);
   useEffect(() => { if (error) console.error('[SCREEN ERROR]', { screen: 'heroes', step: 'player-heroes', message: error instanceof Error ? error.message : String(error) }); }, [error]);
   const heroes: PvpHero[] = data?.heroes ?? [];
+  // Filters are purely visual: they never touch ownership, stats or teams.
+  const visibleHeroes = useMemo(() => applyHeroFilters(heroes, filters), [heroes, filters]);
   const equipped = new Set([...(pvp?.attackTeam ?? []), ...(pvp?.defenseTeam ?? [])].map((h) => h.heroId));
   const maxStars = fusion?.config?.max_stars ?? 5;
   const fusionHero = fusion?.heroes.find((h) => h.heroId === fusingId) ?? null;
+  const detailsHero = heroes.find((h) => h.heroId === detailsId) ?? null;
   // A pending query with no in-flight request (offline flag / paused) must not spin forever.
   const stalled = isLoading && !isFetching;
+  const selectClass = 'min-w-0 flex-1 appearance-none truncate rounded-lg border border-white/12 bg-black/70 px-1.5 py-1.5 text-[9px] font-black uppercase tracking-[.06em] text-slate-200';
+  const sortOptions: Array<[SortDir, string]> = [['default', t('heroes.filterDefault')], ['desc', t('heroes.filterDesc')], ['asc', t('heroes.filterAsc')]];
+
   return (
     <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]" />
@@ -60,11 +71,37 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
           <div className="flex w-[300%] transition-transform duration-300 ease-out" style={{ transform: tab === 'inventory' ? 'translateX(-66.6667%)' : tab === 'fusion' ? 'translateX(-33.3333%)' : 'translateX(0)' }}>
             <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
 
-        <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
-          <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('heroes.collectionSubtitle')}</p>
-          <p className="mt-1 text-sm font-black text-amber-200">{data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}</p>
-          <p className="text-[10px] text-slate-400">{t('heroes.collectionHint')}</p>
+        <section className="rounded-2xl border border-white/10 bg-black/45 p-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-200">
+              {data ? t('heroes.collectionCount', { count: heroes.length }) : '—'}
+            </p>
+            {!isDefaultHeroFilters(filters) ? (
+              <button onClick={() => setFilters(DEFAULT_HERO_FILTERS)} className="flex shrink-0 items-center gap-1 rounded-lg border border-white/15 px-2 py-1 text-[8px] font-black uppercase tracking-[.12em] text-slate-300">
+                <X size={10} /> {t('heroes.filterClear')}
+              </button>
+            ) : null}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <select aria-label={t('heroes.filterRarity')} value={filters.rarity} onChange={(e) => setFilters((f) => ({ ...f, rarity: e.target.value }))} className={selectClass}>
+              {HERO_FILTER_RARITIES.map((r) => (
+                <option key={r} value={r}>{`${t('heroes.filterRarity')}: ${r === 'all' ? t('heroes.filterAll') : t(`rarity.${r}`)}`}</option>
+              ))}
+            </select>
+            <select aria-label={t('heroes.filterClass')} value={filters.archetype} onChange={(e) => setFilters((f) => ({ ...f, archetype: e.target.value }))} className={selectClass}>
+              {HERO_FILTER_CLASSES.map((c) => (
+                <option key={c} value={c}>{`${t('heroes.filterClass')}: ${c === 'all' ? t('heroes.filterAll') : c.toUpperCase()}`}</option>
+              ))}
+            </select>
+            <select aria-label={t('heroes.filterPower')} value={filters.power} onChange={(e) => setFilters((f) => ({ ...f, power: e.target.value as SortDir, level: 'default' }))} className={selectClass}>
+              {sortOptions.map(([value, label]) => (<option key={value} value={value}>{`${t('heroes.filterPower')}: ${label}`}</option>))}
+            </select>
+            <select aria-label={t('heroes.filterLevel')} value={filters.level} onChange={(e) => setFilters((f) => ({ ...f, level: e.target.value as SortDir, power: 'default' }))} className={selectClass}>
+              {sortOptions.map(([value, label]) => (<option key={value} value={value}>{`${t('heroes.filterLevel')}: ${label}`}</option>))}
+            </select>
+          </div>
         </section>
+
 
         {error || stalled ? (
           <div className="py-20 text-center">
@@ -81,11 +118,15 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
         ) : (
 
           <div className="mt-3 grid grid-cols-3 gap-2">
-            {heroes.map((hero) => {
+            {visibleHeroes.length === 0 ? (
+              <p className="col-span-3 py-16 text-center text-xs text-slate-300">{t('heroes.noResults')}</p>
+            ) : null}
+            {visibleHeroes.map((hero) => {
               const state = fusion?.heroes.find((h) => h.heroId === hero.heroId);
               const stars = state?.stars ?? hero.stars ?? 0;
               return (
-                <div key={hero.heroId} className={`overflow-hidden rounded-xl border bg-black/70 ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
+                <div key={hero.heroId} role="button" tabIndex={0} onClick={() => setDetailsId(hero.heroId)} onKeyDown={(e) => { if (e.key === 'Enter') setDetailsId(hero.heroId); }} className={`cursor-pointer overflow-hidden rounded-xl border bg-black/70 text-left ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
+
                   <div className="relative">
                     <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover" />
                     {hero.isNft ? (
@@ -107,7 +148,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                       <p className="mt-1.5 rounded-lg border border-cyan-300/40 bg-cyan-300/10 py-1 text-center text-[7px] font-black uppercase tracking-[.1em] text-cyan-200">{t('heroes.nftLocked')}</p>
                     ) : state ? (
                       <button
-                        onClick={() => setFusingId(hero.heroId)}
+                        onClick={(e) => { e.stopPropagation(); setFusingId(hero.heroId); }}
                         className="mt-1.5 flex min-h-[30px] w-full items-center justify-center gap-1 rounded-lg border border-amber-300/40 bg-amber-300/10 text-[8px] font-black uppercase tracking-[.12em] text-amber-200"
                       >
                         <Sparkles size={11} /> {t('heroes.fuse')}{state.duplicates > 0 ? ` (${state.duplicates})` : ''}
@@ -138,9 +179,19 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
       </div>
 
 
+      {detailsHero ? (
+        <HeroDetailsPanel
+          hero={detailsHero}
+          state={fusion?.heroes.find((h) => h.heroId === detailsHero.heroId) ?? null}
+          maxStars={maxStars}
+          onClose={() => setDetailsId(null)}
+        />
+      ) : null}
+
       {fusion && fusionHero ? (
         <HeroFusionPanel telegramInitData={telegramInitData} dashboard={fusion} hero={fusionHero} onClose={() => setFusingId(null)} />
       ) : null}
+
     </div>
   );
 }
