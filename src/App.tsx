@@ -615,13 +615,15 @@ function App() {
     });
   };
 
+  // Bottom nav: MARKET took over the old MISSIONS slot (Missions now lives on the Village home).
   const navItems = [
     { key: 'village', label: lang.tabs.village },
-    { key: 'missions', label: lang.tabs.missions },
+    { key: 'market', label: 'MARKET' },
     { key: 'boss', label: lang.tabs.boss },
     { key: 'wallet', label: lang.tabs.wallet },
     { key: 'profile', label: lang.tabs.profile }
   ] as const;
+
 
   // Admin-only diagnostics screen (Telegram id checked against the super admin).
   if (window.location.pathname === '/admin/diagnostics' && !telegramBooting) {
