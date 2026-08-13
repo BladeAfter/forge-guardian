@@ -212,6 +212,10 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
     const limit = Math.min(30, Math.max(1, Number(body.limit) || 10));
     return await rpc(db, 'get_global_boss_history', { p_telegram_id: user.id, p_limit: limit });
   }
+  // Auto ATK (Season Pass benefit) — persisted preference, Global Boss only.
+  if (action === 'auto-attack') {
+    return await rpc(db, 'set_global_boss_auto_attack', { p_telegram_id: user.id, p_enabled: body.enabled !== false });
+  }
   // Team management (equip/unequip/team) never requires an active boss; only `attack` does.
   const fn = action === 'equip' ? 'equip_combat_hero'
     : action === 'unequip' ? 'unequip_combat_hero'
