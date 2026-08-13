@@ -432,6 +432,28 @@ export async function markSpendingEventPopupSeen(initData:string):Promise<void>{
   try{await forgeFetch('spending-event',{initData,action:'popup-seen'})}catch{/* silent: cosmetic only */}
 }
 
+/* ---------------- Starter Pack (new accounts from 2026-08-13, UTC-3) ---------------- */
+export type StarterPackStatus={show:boolean;eligible?:boolean;claimed?:boolean;claimedAt?:string|null;
+ rewards?:{fc:number;eggCode:string;eggQuantity:number;chestCode:string;chestQuantity:number}};
+
+/** Never blocks the boot: any failure resolves as "don't show". */
+export async function starterPackStatusRequest(initData:string):Promise<StarterPackStatus>{
+  try{
+    const response=await forgeFetch('starter-pack',{initData,action:'status'});
+    if(!response.ok)return{show:false};
+    const payload=await response.json().catch(()=>null) as StarterPackStatus|null;
+    return payload??{show:false};
+  }catch{return{show:false}}
+}
+
+/** Atomic server-side delivery. Throws so the popup can keep itself open and offer a retry. */
+export async function claimStarterPackRequest(initData:string):Promise<{claimed:boolean;alreadyClaimed?:boolean;balance?:number}>{
+  const response=await forgeFetch('starter-pack',{initData,action:'claim'});
+  const payload=await response.json().catch(()=>null) as({claimed:boolean;alreadyClaimed?:boolean;balance?:number;error?:string})|null;
+  if(!response.ok||!payload)throw new Error(payload?.error||'STARTER_PACK_CLAIM_FAILED');
+  return payload;
+}
+
 /* ---------------- Tower of Eternity (solo dungeon, 100 floors) ---------------- */
 export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter'};
 const TOWER_ERRORS:Record<string,string>={TOWER_TEAM_EMPTY:'Selecione sua equipe antes de entrar na masmorra.',TOWER_NO_ATTEMPTS:'Você já usou todas as tentativas de hoje.',TOWER_DUPLICATE_HERO_TEAM:'Heróis duplicados não são permitidos na equipe.',INSUFFICIENT_FC:'FC insuficiente para entrar na masmorra.',HERO_NOT_FOUND:'Herói indisponível.',INVALID_SLOT:'Espaço inválido.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PLAYER_BANNED:'Conta suspensa.'};
