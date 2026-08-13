@@ -514,3 +514,21 @@ export async function claimNftReward(telegramInitData:string):Promise<NftClaimRe
   if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
   return payload;
 }
+
+/** One NFT EXCLUSIVE pet owned by the player. Pool data is never part of this payload. */
+export type NftRewardItem={positionId:string;serial:number;name:string;rarity:string;level:number;image?:string|null;tierTon:number;dailyYieldTon:number;availableTon:number;lifetimeEarnedTon:number;roiReached?:boolean;minClaimTon:number;canClaim:boolean;lastClaimAt?:string|null};
+export type NftRewardList={totalSupply:number;items:NftRewardItem[]};
+
+export async function fetchMyNftRewards(telegramInitData:string):Promise<NftRewardList>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'mine'});
+  const payload=await response.json().catch(()=>null) as NftRewardList&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível carregar seus NFTs.'));
+  return {totalSupply:payload.totalSupply??10,items:payload.items??[]};
+}
+
+export async function claimNftPosition(telegramInitData:string,positionId:string):Promise<NftRewardList&{amountTon:number}>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim-one',positionId});
+  const payload=await response.json().catch(()=>null) as NftRewardList&{amountTon:number;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  return payload;
+}
