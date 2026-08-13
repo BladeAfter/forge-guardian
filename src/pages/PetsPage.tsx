@@ -545,7 +545,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
         <img src={pet.image} alt={pet.name} className="h-16 w-16 shrink-0 object-contain" />
         <div className="min-w-0 flex-1">
           <b className="block truncate text-sm">{pet.name}</b>
-          {pet.isNft && (
+          {isNftExclusivePet(pet) && (
             <span className="forge-nft-tag mt-0.5 inline-block rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-[2px] text-[7px] font-black tracking-[.16em] text-amber-100">
               NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(4, "0")}` : ""}
             </span>
