@@ -10,8 +10,8 @@ import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
-import type { TowerDashboard as TowerDashboardType } from './tower';
-import { fetchTowerDashboard } from './services';
+import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
+import { fetchTowerDashboard, fetchTowerRanking } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { TonWallet, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
@@ -233,4 +233,11 @@ export const useTowerDashboard=(telegramInitData:string|null,enabled:boolean)=>u
   queryKey:['tower-dashboard',telegramInitData],
   queryFn:()=>fetchTowerDashboard(telegramInitData??''),
   enabled:enabled&&Boolean(telegramInitData),staleTime:15_000,refetchOnWindowFocus:true,retry:1,
+});
+
+/** Tower ranking; only polled while the ranking sheet is open (same pattern as the Global Boss). */
+export const useTowerRanking=(telegramInitData:string|null,enabled:boolean,limit=50)=>useQuery<TowerRanking>({
+  queryKey:['tower-ranking',telegramInitData,limit],
+  queryFn:()=>fetchTowerRanking(telegramInitData??'',limit),
+  enabled:enabled&&Boolean(telegramInitData),refetchInterval:enabled?15_000:false,staleTime:10_000,retry:1,
 });

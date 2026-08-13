@@ -102,6 +102,25 @@ export type TowerBattle = {
   dashboard: TowerDashboard;
 };
 
+/** Tower leaderboard: highest floor reached, then team power, then who got there first. */
+export type TowerRankingEntry = {
+  rank: number;
+  userId: string;
+  name: string;
+  username?: string | null;
+  photoUrl?: string | null;
+  floor: number;
+  power: number;
+  updatedAt?: string | null;
+  isYou: boolean;
+};
+export type TowerRanking = {
+  totalPlayers: number;
+  highestFloor: number;
+  top: TowerRankingEntry[];
+  you: { rank: number; floor: number; power: number; updatedAt?: string | null } | null;
+};
+
 /** Milestone rewards shown on the tower screen (presentational only). */
 export const TOWER_MILESTONES = [
   { floor: 10, reward: '50,000 FC + Eternity Key x1' },
