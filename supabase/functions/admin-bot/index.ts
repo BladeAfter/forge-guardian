@@ -1007,6 +1007,7 @@ async function marketHub(ctx: Ctx, status = 'active') {
     [{ t: '🔍 BUSCAR ANÚNCIO', d: 'ask:mksearch' }, { t: '👤 POR JOGADOR', d: 'ask:mkuser' }],
     [{ t: '💸 TAXA DO MERCADO', d: 'ask:mkfee' }, { t: '🚧 LIMITE DE ANÚNCIOS', d: 'ask:mklimit' }],
     [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
+    [{ t: '🏪 MARKET FEES', d: 'mk:revenue' }],
     [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }, { t: '🛡 MARKET SECURITY', d: 'mk:sec' }],
     nav(),
   ]));
