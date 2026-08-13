@@ -4299,6 +4299,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
+  if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
   if (key.startsWith('nfth')) return nfthPrompt(ctx, key, args, text);
   if (key.startsWith('nft')) return nftPrompt(ctx, key, args, text);
   if (key === 'wlhot') {
