@@ -212,7 +212,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         )}
       </section>
 
-      <NftRewardCard telegramInitData={telegramInitData} />
+      {/* NFT EXCLUSIVE lives in its own main section (header selector), never here. */}
 
       <nav className="mt-3 grid grid-cols-5 gap-1">
         {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
