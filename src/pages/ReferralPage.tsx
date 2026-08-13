@@ -5,6 +5,7 @@ import {useReferralDashboard} from '../hooks';
 import {translate,type LanguageCode} from '../i18n';
 import {mainScreenArt} from '../gameAssets';
 import {buildTelegramShareUrl,type ReferralInvite} from '../referrals';
+import {formatTon} from '../economy';
 
 type Props={telegramInitData:string;languageCode:LanguageCode;onClose:()=>void};
 const money=(value:number)=>Number(value||0).toLocaleString('pt-BR',{maximumFractionDigits:3});
