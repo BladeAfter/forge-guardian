@@ -125,6 +125,14 @@ export const fetchClanBoss = (initData: string) => clanRequest<ClanBossState>(in
 export const strikeClanBoss = (initData: string, instanceId: string | null) =>
   clanRequest<ClanBossStrike>(initData, { action: 'boss-strike', instanceId });
 
+/**
+ * Season Pass benefit: turn the offline Auto ATK ON/OFF for the CLAN boss only.
+ * The global boss toggle lives in services.ts and is never affected by this.
+ */
+export const setClanBossAutoAttack = (initData: string, enabled: boolean) =>
+  clanRequest<ClanBossAutoAttackState>(initData, { action: 'boss-auto-attack', enabled });
+
+
 /** Compact number formatting used across the clan boss screen (13.2K, 1.05M). */
 export function abbreviateDamage(value: number | null | undefined): string {
   const n = Math.max(0, Math.round(Number(value) || 0));
