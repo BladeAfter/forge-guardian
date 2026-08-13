@@ -7380,6 +7380,17 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_adjust_ton_balance: {
+        Args: {
+          p_admin_id: number
+          p_amount: number
+          p_idempotency_key: string
+          p_operation: string
+          p_reason: string
+          p_target_telegram_id: number
+        }
+        Returns: Json
+      }
       admin_ads_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_assert: { Args: { p_admin_id: number }; Returns: undefined }
       admin_boss_control: {
@@ -8256,12 +8267,20 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_ton_adjust_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
       admin_ton_audit: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
       admin_ton_balance: {
         Args: { p_admin_id: number; p_query: string }
+        Returns: Json
+      }
+      admin_ton_lookup: {
+        Args: { p_admin_id: number; p_telegram_id: number }
         Returns: Json
       }
       admin_ton_reward_history: {
