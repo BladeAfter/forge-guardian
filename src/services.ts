@@ -2,6 +2,7 @@ import type {SpecialEventsDashboard} from './specialEvents';
 import type {SpendingEventDashboard,SpendingEventPopup} from './spendingEvent';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
+import type { HeroMiningClaimResult, HeroMiningState } from './heroMining';
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 import type { GameState } from './types';
 import { buildDefaults } from './utils';
