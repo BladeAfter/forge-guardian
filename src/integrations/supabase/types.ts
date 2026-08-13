@@ -1769,6 +1769,8 @@ export type Database = {
           pvp_tickets_reset_day: string | null
           pvp_trophies: number
           pvp_wins: number
+          starter_pack_claimed: boolean
+          starter_pack_claimed_at: string | null
           telegram_id: number
           ton_balance: number
           ton_reserved: number
@@ -1805,6 +1807,8 @@ export type Database = {
           pvp_tickets_reset_day?: string | null
           pvp_trophies?: number
           pvp_wins?: number
+          starter_pack_claimed?: boolean
+          starter_pack_claimed_at?: string | null
           telegram_id: number
           ton_balance?: number
           ton_reserved?: number
@@ -1841,6 +1845,8 @@ export type Database = {
           pvp_tickets_reset_day?: string | null
           pvp_trophies?: number
           pvp_wins?: number
+          starter_pack_claimed?: boolean
+          starter_pack_claimed_at?: string | null
           telegram_id?: number
           ton_balance?: number
           ton_reserved?: number
@@ -8977,6 +8983,7 @@ export type Database = {
         Args: { p_reward_id: string; p_telegram_id: number }
         Returns: Json
       }
+      claim_starter_pack: { Args: { p_telegram_id: number }; Returns: Json }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
       clan_boss_cfg: {
         Args: never
@@ -9431,6 +9438,10 @@ export type Database = {
       }
       get_spending_event_ranking: {
         Args: { p_event_id: string; p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
+      get_starter_pack_status: {
+        Args: { p_telegram_id: number }
         Returns: Json
       }
       get_ton_wallet: { Args: { p_telegram_id: number }; Returns: Json }
@@ -10024,6 +10035,7 @@ export type Database = {
         Args: { p_opponent_id: string; p_telegram_id: number }
         Returns: Json
       }
+      starter_pack_cutoff: { Args: never; Returns: string }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }

@@ -873,6 +873,17 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * Starter Pack: welcome gift for accounts created on/after 2026-08-13 (UTC-3).
+   * Delivery is fully server-side and idempotent (one claim per player, ever).
+   */
+  'starter-pack': async (db, user, body) => {
+    const action = String(body.action || 'status');
+    if (action === 'claim') return rpc(db, 'claim_starter_pack', { p_telegram_id: user.id });
+    if (action !== 'status') throw new Error('INVALID_ACTION');
+    return rpc(db, 'get_starter_pack_status', { p_telegram_id: user.id });
+  },
+
   wallet: handleWallet,
   calendar: handleCalendar,
   'season-pass': handleSeasonPass,

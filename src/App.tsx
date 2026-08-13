@@ -29,11 +29,12 @@ import {HeroShopPanel}from'./components/HeroShopPanel';
 
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {SpendingEventPopup}from'./components/SpendingEventPopup';
+import {StarterPackPopup}from'./components/StarterPackPopup';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, spendingEventPopupRequest,starterPackStatusRequest,claimStarterPackRequest, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -215,6 +216,20 @@ function App() {
   const spendingPopup=spendingPopupOpen&&homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
   /** Closing only affects the current launch: nothing is stored client- or server-side. */
   const dismissSpendingPopup=()=>{setSpendingPopupOpen(false);setSpendingPopupDismissed(true)};
+
+  /**
+   * Starter Pack: the backend decides who is eligible (accounts created on/after
+   * 2026-08-13, UTC-3) and whether it was already claimed. Delivery is atomic and
+   * idempotent server-side, so retries can never duplicate rewards.
+   */
+  const {data:starterPackStatus,refetch:refetchStarterPack}=useQuery({
+    queryKey:['starter-pack',telegramInitData],
+    enabled:backendEnabled&&homeQuiet,
+    queryFn:()=>starterPackStatusRequest(telegramInitData??''),
+    staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
+  });
+  const [starterPackClosed,setStarterPackClosed]=useState(false);
+  const showStarterPack=Boolean(homeQuiet&&!starterPackClosed&&starterPackStatus?.show&&!starterPackStatus?.claimed);
 
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
@@ -818,6 +833,18 @@ function App() {
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
       <PassXpToasts telegramInitData={telegramInitData}/>
+      {showStarterPack?<StarterPackPopup
+        onClaim={async()=>{
+          await claimStarterPackRequest(telegramInitData??'');
+          await Promise.all([
+            refetchGame(),
+            refetchStarterPack(),
+            queryClient.invalidateQueries({queryKey:['player-inventory']}),
+            queryClient.invalidateQueries({queryKey:['pet-dashboard']}),
+          ]);
+        }}
+        onDone={()=>setStarterPackClosed(true)}
+      />:null}
       {spendingPopup?<SpendingEventPopup
         data={spendingPopup}
         onClose={dismissSpendingPopup}
