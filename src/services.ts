@@ -9,6 +9,7 @@ import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './comb
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
+import type {TowerBattle,TowerDashboard} from './tower';
 import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
