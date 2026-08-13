@@ -77,14 +77,24 @@ export type MarketSellEligibility = {
   [key: string]: unknown;
 };
 
-export type MarketSellableHero = { id: string; name: string; rarity: string; level: number; image: string | null; stars: number; atk: number; hp: number; priceRange?: MarketPriceRange };
-export type MarketSellablePet = { id: string; name: string; rarity: string; level: number; image: string | null; evolution: string | null; tier: number; priceRange?: MarketPriceRange };
-export type MarketSellableItem = { code: string; itemType: string; quantity: number; priceRange?: MarketPriceRange };
+/** Why an owned asset cannot be listed right now (server-computed). */
+export type MarketLockReason =
+  | 'listed' | 'locked' | 'not_tradable' | 'exclusive'
+  | 'pvp_team' | 'global_boss_team' | 'clan_boss_team'
+  | 'active_pet' | 'equipped';
+
+export type MarketSellableBase = { locks?: MarketLockReason[]; available?: boolean };
+export type MarketSellableHero = MarketSellableBase & { id: string; name: string; rarity: string; level: number; image: string | null; stars: number; atk: number; hp: number; priceRange?: MarketPriceRange };
+export type MarketSellablePet = MarketSellableBase & { id: string; name: string; rarity: string; level: number; image: string | null; evolution: string | null; tier: number; priceRange?: MarketPriceRange };
+export type MarketSellableItem = MarketSellableBase & { code: string; itemType: string; quantity: number; priceRange?: MarketPriceRange };
 
 export type MarketSellable = {
   heroes: MarketSellableHero[];
   pets: MarketSellablePet[];
   items: MarketSellableItem[];
+  balanceFc?: number;
+  /** Withdrawable TON balance (same value the main HUD shows). */
+  availableTon?: number;
   settings: MarketSettings;
   eligibility?: MarketSellEligibility;
 };
