@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
 import { useHeroFusion, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
 import { starRow } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
+import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
+import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { useT, useLanguage } from '../LanguageContext';
 
-const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', ancestral: '#f472b6' };
+const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee' };
+
 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
