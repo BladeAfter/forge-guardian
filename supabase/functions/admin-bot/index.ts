@@ -4117,6 +4117,77 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     await send(ctx, `⬇️ <b>SAQUE MÍNIMO</b> atualizado para <b>${fmt(min)} TON</b>.`);
     return hotWalletHub({ ...ctx, messageId: undefined }, false);
   }
+  // 💎 AJUSTAR TON — internal/withdrawable balance (game_players.ton_balance) only.
+  if (key === 'tonadj') {
+    const tg = text.replace(/\D/g, '');
+    if (!tg) throw new Error('KEEP_SESSION::⚠️ Envie apenas o <b>Telegram ID</b> numérico. Ex.: <code>8118569391</code>');
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) throw new Error('KEEP_SESSION::❌ Jogador não encontrado.');
+    await clearSession(ctx);
+    return send(ctx, [
+      '👤 <b>Jogador</b>',
+      `Nome: <b>${esc(r.name)}</b>`,
+      `Telegram ID: <code>${esc(String(r.telegramId))}</code>`,
+      '',
+      `💎 <b>TON atual:</b> ${fmtTon(r.balanceTon)} TON`,
+      '',
+      'Escolha a operação:',
+    ].join('\n'), kb([
+      [{ t: '➕ ADICIONAR TON', d: `tonop:add:${tg}` }, { t: '➖ REMOVER TON', d: `tonop:remove:${tg}` }],
+      [{ t: '❌ CANCELAR', d: 'cancel' }],
+    ]));
+  }
+  if (key === 'tonamt') {
+    const [mode, tg] = args;
+    const amount = parseAmount(text);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) {
+      throw new Error('KEEP_SESSION::⚠️ Valor inválido. Envie um número maior que zero (ex.: <code>2.5</code>).');
+    }
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) { await clearSession(ctx); return send(ctx, '❌ Jogador não encontrado.', kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()])); }
+    const current = Number(r.balanceTon);
+    if (mode === 'remove' && current < amount) {
+      await clearSession(ctx);
+      return send(ctx, [
+        '❌ <b>Saldo insuficiente.</b>',
+        `Saldo atual: ${fmtTon(current)} TON`,
+        `Tentativa de remoção: ${fmtTon(amount)} TON`,
+        '',
+        'Nenhuma alteração foi feita.',
+      ].join('\n'), kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], [{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()]));
+    }
+    return ask(ctx, `tonreason|${mode}|${tg}|${amount}`,
+      `📝 <b>MOTIVO OBRIGATÓRIO</b>\nDescreva o motivo do ajuste.\nEx.: <code>Premiação PvP Top 5</code>`);
+  }
+  if (key === 'tonreason') {
+    const [mode, tg, rawAmount] = args;
+    if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
+    const amount = Number(rawAmount);
+    const r = await rpc('admin_ton_lookup', { p_admin_id: ctx.adminId, p_telegram_id: Number(tg) }) as any;
+    if (!r?.ok) { await clearSession(ctx); return send(ctx, '❌ Jogador não encontrado.', kb([[{ t: '💳 CARTEIRA', d: 'm:wallet' }], nav()])); }
+    const current = Number(r.balanceTon);
+    const next = mode === 'add' ? current + amount : current - amount;
+    if (next < 0) {
+      await clearSession(ctx);
+      return send(ctx, `❌ <b>Saldo insuficiente.</b>\nSaldo atual: ${fmtTon(current)} TON\nTentativa de remoção: ${fmtTon(amount)} TON`,
+        kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+    const reason = text.slice(0, 300);
+    const key2 = crypto.randomUUID();
+    // The pending adjustment (with reason + idempotency key) lives in the session until CONFIRMAR.
+    await setSession(ctx, 'tonconfirm', 'awaiting_confirm', { mode, tg, amount, reason, key: key2 });
+    return send(ctx, [
+      '⚠️ <b>CONFIRMAR AJUSTE TON</b>',
+      '',
+      `Jogador: <b>${esc(r.name)}</b>`,
+      `Telegram ID: <code>${esc(String(tg))}</code>`,
+      `Operação: ${mode === 'add' ? '➕ ADICIONAR' : '➖ REMOVER'}`,
+      `Valor: <b>${fmtTon(amount)} TON</b>`,
+      `Saldo atual: ${fmtTon(current)} TON`,
+      `Novo saldo: <b>${fmtTon(next)} TON</b>`,
+      `Motivo: ${esc(reason)}`,
+    ].join('\n'), kb([[{ t: '✅ CONFIRMAR', d: `tongo:${key2}` }, { t: '❌ CANCELAR', d: 'cancel' }]]));
+  }
   if (key === 'prreason') {
     if (text.length < 3) throw new Error('KEEP_SESSION::⚠️ Descreva o motivo com pelo menos 3 caracteres.');
     return prConfirm(ctx, args[0] ?? '', args[1] ?? '', text.slice(0, 300));
