@@ -148,7 +148,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                       <p className="mt-1.5 rounded-lg border border-cyan-300/40 bg-cyan-300/10 py-1 text-center text-[7px] font-black uppercase tracking-[.1em] text-cyan-200">{t('heroes.nftLocked')}</p>
                     ) : state ? (
                       <button
-                        onClick={() => setFusingId(hero.heroId)}
+                        onClick={(e) => { e.stopPropagation(); setFusingId(hero.heroId); }}
                         className="mt-1.5 flex min-h-[30px] w-full items-center justify-center gap-1 rounded-lg border border-amber-300/40 bg-amber-300/10 text-[8px] font-black uppercase tracking-[.12em] text-amber-200"
                       >
                         <Sparkles size={11} /> {t('heroes.fuse')}{state.duplicates > 0 ? ` (${state.duplicates})` : ''}
