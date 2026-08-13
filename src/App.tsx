@@ -1147,13 +1147,13 @@ function App() {
         <div className="mx-auto flex max-w-[480px] items-center justify-between">
           {navItems.map((item) => {
             const isMarket = item.key === 'market';
-            const active = !isMarket && tab === item.key;
+            const active = isMarket ? marketOpen : tab === item.key;
             const icon = isMarket ? mainScreenArt.market : (active ? navigationIcons[item.key].selected : navigationIcons[item.key].normal);
             return (
             <button
               key={item.key}
               onClick={() => isMarket ? openInternal('market') : navigateTo(item.key as TabKey)}
-              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : isMarket ? 'text-amber-200/90 hover:text-amber-100' : 'text-slate-400 hover:text-white'}`}
+              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
             >
               <img
                 src={icon}
