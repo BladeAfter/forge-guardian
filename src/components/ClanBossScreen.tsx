@@ -32,6 +32,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
   const [impact, setImpact] = useState<{ id: string; kind: 'player' | 'crit' | 'boss' } | null>(null);
   const { events, phase, push } = useCombatFx();
   const seen = useRef<Set<string>>(new Set());
+  // Auto ATK is a backend benefit: the client only toggles the stored preference.
+  const [autoBusy, setAutoBusy] = useState(false);
+  const [autoOverride, setAutoOverride] = useState<ClanBossAutoAttackState | null>(null);
+  const auto = autoOverride ?? data?.autoAttack ?? null;
 
   useClanBossRealtime(data?.boss?.id, data?.clan?.id, Boolean(data?.inClan));
 
