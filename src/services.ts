@@ -606,3 +606,21 @@ export async function verifyNftPurchases(telegramInitData:string):Promise<NftPur
   if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível verificar o pagamento.'));
   return {checked:payload.checked??0,completed:payload.completed??[],alreadyDelivered:payload.alreadyDelivered??[],pending:payload.pending??[],results:payload.results??[]};
 }
+
+/**
+ * Hero TON mining. Rates, elapsed time and claimable amount are ALL server-side;
+ * the client only reads the state and asks for a claim.
+ */
+export async function miningRequest<T=HeroMiningState>(initData:string,action:'status'|'claim'):Promise<T>{
+  const response=await forgeFetch('mining',{initData,action});
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a mineração.');
+  const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;
+  if(!response.ok||!payload){
+    const raw=payload?.error||'';
+    const friendly:Record<string,string>={MINING_DISABLED:'A mineração está temporariamente pausada.',NOTHING_TO_CLAIM:'Nada para coletar ainda.',PLAYER_NOT_FOUND:'Jogador não encontrado.'};
+    throw new Error(friendly[raw]||raw||'Não foi possível processar a mineração.');
+  }
+  return payload;
+}
+export const fetchHeroMining=(initData:string)=>miningRequest<HeroMiningState>(initData,'status');
+export const claimHeroMining=(initData:string)=>miningRequest<HeroMiningClaimResult>(initData,'claim');
