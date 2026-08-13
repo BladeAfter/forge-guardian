@@ -640,10 +640,7 @@ function App() {
     return <OpenInTelegramGate />;
   }
 
-  // Minimal dark boot backdrop while the entry ad plays: no Village, no loading bar yet.
-  if (!entryAdDone) {
-    return <div className="min-h-screen bg-[#03060f]" />;
-  }
+
 
   // One single boot screen: Telegram init, session validation and game data all live behind it.
   if (!bootDone || !game) {
