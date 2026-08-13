@@ -2997,6 +2997,65 @@ async function handleCallback(ctx: Ctx, data: string) {
       `HP, dano, participantes e ranking preservados (${fmt(Math.round(Number(r.currentHp || 0)))}/${fmt(r.maxHp)} HP · ${fmt(r.participants)} jogadores).`,
     ].join('\n'), kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
   }
+  // ---- 💎 AJUSTAR TON (internal withdrawable balance only)
+  if (head === 'tonop') {
+    const [mode, tg] = rest;
+    if (mode !== 'add' && mode !== 'remove') { await clearSession(ctx); return send(ctx, '⚠️ Operação inválida.', kb([nav('m:wallet')])); }
+    return ask(ctx, `tonamt|${mode}|${tg}`,
+      `${mode === 'add' ? '➕ <b>ADICIONAR TON</b>' : '➖ <b>REMOVER TON</b>'}\n\nDigite a quantidade de TON que deseja ${mode === 'add' ? 'adicionar' : 'remover'}.\nEx.: <code>2.5</code>`);
+  }
+  if (head === 'tongo') {
+    const session = await getSession(ctx);
+    const c = (session?.context || {}) as Record<string, unknown>;
+    // Double click: the session is cleared on the first press and the ledger key is unique server-side.
+    if (session?.action !== 'tonconfirm' || String(c.key || '') !== String(rest[0] || '')) {
+      return send(ctx, 'ℹ️ Este ajuste já foi processado ou expirou. Nenhuma alteração adicional foi feita.',
+        kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+    await clearSession(ctx);
+    try {
+      const r = await rpc('admin_adjust_ton_balance', {
+        p_admin_id: ctx.adminId,
+        p_target_telegram_id: Number(c.tg),
+        p_amount: Number(c.amount),
+        p_operation: String(c.mode),
+        p_reason: String(c.reason || ''),
+        p_idempotency_key: String(c.key),
+      }) as any;
+      if (r?.duplicate) {
+        return send(ctx, `ℹ️ Ajuste já aplicado anteriormente.\nSaldo TON: <b>${fmtTon(r.balanceAfter)} TON</b>`,
+          kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+      }
+      return send(ctx, [
+        '✅ <b>AJUSTE TON APLICADO</b>',
+        '',
+        `Jogador: <b>${esc(String(r.name))}</b> · <code>${esc(String(r.telegramId))}</code>`,
+        `Operação: ${r.operation === 'add' ? '➕ ADICIONAR' : '➖ REMOVER'} <b>${fmtTon(r.amountTon)} TON</b>`,
+        `Antes: ${fmtTon(r.balanceBefore)} TON`,
+        `Novo saldo: <b>${fmtTon(r.balanceAfter)} TON</b>`,
+        `Motivo: ${esc(String(c.reason || ''))}`,
+        '',
+        '<i>Hot Wallet e carteira externa do jogador não foram alteradas.</i>',
+      ].join('\n'), kb([
+        [{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }, { t: '📜 ÚLTIMOS AJUSTES', d: 'tonhist:1' }],
+        nav('m:wallet'),
+      ]));
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const friendly = msg.includes('INSUFFICIENT_TON_BALANCE') ? '❌ Saldo insuficiente. Nenhuma alteração foi feita.'
+        : msg.includes('PLAYER_NOT_FOUND') ? '❌ Jogador não encontrado.'
+        : `⚠️ Falha no ajuste: ${esc(msg)}`;
+      return send(ctx, friendly, kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+    }
+  }
+  if (head === 'tonhist') {
+    await clearSession(ctx);
+    const items = await rpc('admin_ton_adjust_history', { p_admin_id: ctx.adminId, p_limit: 10 }) as any[];
+    const lines = (items || []).map((x: any) =>
+      `${x.direction === 'credit' ? '➕' : '➖'} <b>${fmtTon(x.amountTon)} TON</b> → ${esc(String(x.player))} (<code>${esc(String(x.telegramId))}</code>)\n   ${esc(String(x.reason || '—'))} · ${String(x.createdAt).slice(0, 16).replace('T', ' ')}`).join('\n') || '—';
+    return edit(ctx, `📜 <b>ÚLTIMOS AJUSTES TON</b>\n(ledger real de ajustes manuais)\n\n${lines}`,
+      kb([[{ t: '💎 AJUSTAR TON', d: 'ask:tonadj' }], nav('m:wallet')]));
+  }
   if (head === 'uf') { await clearSession(ctx); return userFcMenu(ctx, rest[0]); }
   if (head === 'balgo') {
     await clearSession(ctx);
