@@ -54,6 +54,9 @@ export type InventoryCategory='chests'|'eggs'|'food'|'fragments'|'equipment'|'ot
 export type InventoryItem={
  key:string;itemId:string;instanceId:string|null;itemType:string;category:InventoryCategory;
  name:string;description:string;image:string|null;rarity:string|null;quantity:number;usable:boolean;action:string|null;
+ /** Equipment-only metadata (weapons / armor / rings). Absent for every other item type. */
+ slot?:'weapon'|'armor'|'ring';kind?:string;heroClass?:string|null;
+ bonusAttack?:number;bonusDefense?:number;bonusHp?:number;power?:number;
 };
 export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[];items:InventoryItem[]};
 
