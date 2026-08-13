@@ -181,7 +181,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
 
       {detailsHero ? (
         <HeroDetailsPanel
+          telegramInitData={telegramInitData}
           hero={detailsHero}
+
           state={fusion?.heroes.find((h) => h.heroId === detailsHero.heroId) ?? null}
           maxStars={maxStars}
           onClose={() => setDetailsId(null)}

@@ -418,9 +418,26 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
     fn = 'fuse_heroes_by_rarity';
     args = { ...args, p_hero_ids: heroIds, p_idempotency_key: `rarity_fusion:${user.id}:${key}` };
+  } else if (action === 'hero-equipment') {
+    // Equipped items + inventory items available for each slot of one hero.
+    if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
+    fn = 'hero_equipment_json';
+    args = { ...args, p_hero_id: body.heroId };
+  } else if (action === 'equip-item') {
+    // Ownership, slot, class and "already equipped elsewhere" checks all live in the RPC.
+    if (!isUuid(body.heroId) || !isUuid(body.instanceId)) throw new Error('Equipamento inválido.');
+    fn = 'equip_hero_equipment';
+    args = { ...args, p_hero_id: body.heroId, p_instance_id: body.instanceId };
+  } else if (action === 'unequip-item') {
+    if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
+    const slot = ['weapon', 'armor', 'ring'].includes(String(body.slot)) ? String(body.slot) : null;
+    if (!slot && !isUuid(body.instanceId)) throw new Error('Equipamento inválido.');
+    fn = 'unequip_hero_equipment';
+    args = { ...args, p_hero_id: body.heroId, p_slot: slot, p_instance_id: isUuid(body.instanceId) ? body.instanceId : null };
   } else if (action === 'lock') {
     if (!isUuid(body.heroId)) throw new Error('Herói inválido.');
     fn = 'set_hero_lock';
+
     args = { ...args, p_hero_id: body.heroId, p_locked: Boolean(body.locked) };
   } else if (action === 'buy-tickets') {
     // Price, daily limit and Battle Pass check are all resolved server-side.

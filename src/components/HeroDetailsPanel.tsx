@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { PvpHero } from '../pvp';
 import type { FusionHero } from '../heroFusion';
 import { starRow } from '../heroFusion';
 import { HeroEquipmentSlots } from './HeroEquipmentSlots';
+import type { HeroEquipmentState } from '../heroEquipment';
 import { useT } from '../LanguageContext';
 
 const RARITY_COLOR: Record<string, string> = {
@@ -10,18 +12,22 @@ const RARITY_COLOR: Record<string, string> = {
   legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee',
 };
 
-/** Read-only hero sheet: stats come from the same rows used by PvP/Boss. */
-export function HeroDetailsPanel({ hero, state, maxStars, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; onClose: () => void }) {
+/** Hero sheet: stats come from the same rows used by PvP/Boss, equipment included. */
+export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; telegramInitData: string; onClose: () => void }) {
   const t = useT();
+  const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
+
   const stars = state?.stars ?? hero.stars ?? 0;
   const maxLevel = state?.maxLevel ?? null;
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
-  const stat = (label: string, value: string | number) => (
+  const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
       <p className="text-[12px] font-black text-white">{value}</p>
+      {bonus ? <p className="text-[8px] font-black text-emerald-300">+{Number(bonus).toLocaleString()}</p> : null}
     </div>
   );
+
   return (
     <div className="fixed inset-0 z-[90] overflow-y-auto bg-black/80 backdrop-blur-sm">
       <div className="forge-safe-page mx-auto min-h-full w-full max-w-[420px] p-3 pb-10">
@@ -42,13 +48,20 @@ export function HeroDetailsPanel({ hero, state, maxStars, onClose }: { hero: Pvp
             </p>
             <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
               <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('common.power')}</p>
-              <p className="text-xl font-black text-amber-200">{Number(hero.power ?? 0).toLocaleString()}</p>
+              <p className="text-xl font-black text-amber-200">
+                {(equipment?.stats.power ?? Number(hero.power ?? 0)).toLocaleString()}
+              </p>
+              {equipment && equipment.stats.power > equipment.stats.basePower ? (
+                <p className="text-[8px] font-black text-emerald-300">
+                  {equipment.stats.basePower.toLocaleString()} → {equipment.stats.power.toLocaleString()}
+                </p>
+              ) : null}
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {stat('ATK', Number(hero.finalAtk ?? 0).toLocaleString())}
-              {stat('HP', Number(hero.finalHp ?? 0).toLocaleString())}
-              {hero.defense ? stat('DEF', Number(hero.defense).toLocaleString()) : null}
-              {hero.speed ? stat('SPD', Number(hero.speed).toLocaleString()) : null}
+              {stat('ATK', (equipment?.stats.atk ?? Number(hero.finalAtk ?? 0)).toLocaleString(), equipment?.stats.equipAtk)}
+              {stat('HP', (equipment?.stats.hp ?? Number(hero.finalHp ?? 0)).toLocaleString(), equipment?.stats.equipHp)}
+              {stat('DEF', (equipment?.stats.def ?? Number(hero.defense ?? 0)).toLocaleString(), equipment?.stats.equipDef)}
+              {stat('SPD', (equipment?.stats.spd ?? Number(hero.speed ?? 0)).toLocaleString())}
             </div>
             {hero.isNft ? (
               <p className="mt-2 rounded-lg border border-cyan-300/40 bg-cyan-300/10 py-1 text-[8px] font-black uppercase tracking-[.14em] text-cyan-200">
@@ -58,7 +71,8 @@ export function HeroDetailsPanel({ hero, state, maxStars, onClose }: { hero: Pvp
           </div>
         </div>
 
-        <HeroEquipmentSlots />
+        <HeroEquipmentSlots telegramInitData={telegramInitData} heroId={hero.heroId} onState={setEquipment} />
+
       </div>
     </div>
   );
