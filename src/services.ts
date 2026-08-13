@@ -153,6 +153,14 @@ export async function fetchGlobalBossHistory(telegramInitData:string,limit=10):P
   return payload;
 }
 
+/** Season Pass benefit: enable/disable the offline Auto ATK on the Global Boss. */
+export async function setGlobalBossAutoAttack(telegramInitData:string,enabled:boolean):Promise<GlobalBossAutoAttackState>{
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'auto-attack',enabled}));
+  const payload=await response.json().catch(()=>null) as GlobalBossAutoAttackState&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível atualizar o Auto ATK.'));
+  return payload;
+}
+
 /** Attacking is the ONLY boss operation that requires an active boss. */
 export const attackBossOnServer=(initData:string)=>bossRequest(initData,'attack');
 
