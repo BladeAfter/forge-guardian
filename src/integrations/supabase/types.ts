@@ -6310,6 +6310,62 @@ export type Database = {
           },
         ]
       }
+      pvp_reward_settlements: {
+        Row: {
+          battle_id: string
+          created_at: string
+          fc_awarded: number
+          finalized_at: string
+          id: string
+          note: string | null
+          opponent_id: string | null
+          opponent_type: string
+          player_id: string
+          result: string
+          status: string
+          trophies_awarded: number
+          xp_awarded: number
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          fc_awarded?: number
+          finalized_at?: string
+          id?: string
+          note?: string | null
+          opponent_id?: string | null
+          opponent_type: string
+          player_id: string
+          result: string
+          status?: string
+          trophies_awarded?: number
+          xp_awarded?: number
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          fc_awarded?: number
+          finalized_at?: string
+          id?: string
+          note?: string | null
+          opponent_id?: string | null
+          opponent_type?: string
+          player_id?: string
+          result?: string
+          status?: string
+          trophies_awarded?: number
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_reward_settlements_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: true
+            referencedRelation: "pvp_battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_team_slots: {
         Row: {
           created_at: string
@@ -10301,6 +10357,7 @@ export type Database = {
       }
       market_account_days: { Args: { p_user: string }; Returns: number }
       market_active_days: { Args: { p_user: string }; Returns: number }
+      market_audit_unpaid_fc_sales: { Args: never; Returns: Json }
       market_browse: {
         Args: {
           p_currency?: string
@@ -10417,6 +10474,7 @@ export type Database = {
         }
         Returns: Json
       }
+      market_repair_unpaid_fc_sales: { Args: never; Returns: Json }
       market_reverse_transaction: {
         Args: {
           p_admin_id?: number
@@ -10636,6 +10694,7 @@ export type Database = {
         Args: { p_buffs: Json; p_team: Json }
         Returns: Json
       }
+      pvp_audit_unpaid_rewards: { Args: { p_hours?: number }; Returns: Json }
       pvp_bot_band: {
         Args: { p_league: string; p_streak: number }
         Returns: Json
@@ -10651,6 +10710,7 @@ export type Database = {
         Returns: string
       }
       pvp_league: { Args: { t: number }; Returns: string }
+      pvp_repair_unpaid_rewards: { Args: { p_hours?: number }; Returns: Json }
       pvp_reset_daily_tickets_all: { Args: never; Returns: number }
       pvp_stat_unit: { Args: { v: string }; Returns: number }
       pvp_team_has_duplicates: {
