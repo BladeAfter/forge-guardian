@@ -885,7 +885,13 @@ function App() {
           </div>
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
+            <div className="flex flex-col items-center gap-2">
+              <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
+              <button
+                onClick={()=>setPartnersOpen(true)}
+                className="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
+              >🤝 {t('partners.button')}</button>
+            </div>
             <div className="flex flex-col items-center gap-2">
               <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
               <button
@@ -895,14 +901,6 @@ function App() {
                 <Sparkles className="h-3.5 w-3.5" /> {t('adRewards.button')}
               </button>
             </div>
-          </div>
-
-          {/* Partner channels entry point. */}
-          <div className="flex w-full justify-center">
-            <button
-              onClick={()=>setPartnersOpen(true)}
-              className="rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
-            >🤝 {t('partners.button')}</button>
           </div>
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
