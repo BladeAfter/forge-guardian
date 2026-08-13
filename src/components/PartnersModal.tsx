@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { Check, Handshake, Sparkles, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
 import { claimPartner, fetchPartners, openPartner, type PartnerChannel } from '../partners';
 import { formatCurrency } from '../utils';
@@ -14,9 +14,27 @@ const openLink = (url: string) => {
   else window.open(url, '_blank', 'noopener,noreferrer');
 };
 
+/** Deterministic accent per partner so every card feels alive but stays stable between renders. */
+const ACCENTS = [
+  { ring: 'from-amber-300 to-orange-500', glow: 'rgba(251,191,36,.35)' },
+  { ring: 'from-sky-300 to-indigo-500', glow: 'rgba(56,189,248,.35)' },
+  { ring: 'from-violet-300 to-fuchsia-500', glow: 'rgba(167,139,250,.35)' },
+  { ring: 'from-emerald-300 to-teal-500', glow: 'rgba(52,211,153,.35)' },
+  { ring: 'from-rose-300 to-red-500', glow: 'rgba(251,113,133,.35)' },
+];
+const accentFor = (id: string) => ACCENTS[Math.abs([...id].reduce((a, c) => a + c.charCodeAt(0), 0)) % ACCENTS.length];
+const initialsOf = (name: string) =>
+  name
+    .replace(/[^\p{L}\p{N} ]/gu, ' ')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('') || '★';
+
 /**
- * Compact partner list. Only NAME + REWARD + GO are rendered: no logo, no URL,
- * no description. The destination is fetched on GO so the link stays server-side.
+ * Premium partner list. The Mini App still only knows NAME + REWARD + claimed state:
+ * the destination is fetched on GO so the link stays server-side.
  */
 export function PartnersModal({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
   const t = useT();
@@ -66,58 +84,110 @@ export function PartnersModal({ telegramInitData, onClose }: { telegramInitData:
   const partners: PartnerChannel[] = data?.partners ?? [];
 
   return (
-    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-[360px] rounded-2xl border border-amber-300/25 bg-[#090d15] p-3 shadow-2xl">
-        <header className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-200">{t('partners.title')}</p>
-          <button onClick={onClose} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-full bg-white/5 text-slate-300">
+    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+      <div
+        className="relative w-full max-w-[380px] overflow-hidden rounded-3xl border border-amber-300/30 bg-gradient-to-b from-[#141a2c] via-[#0b1020] to-[#05070e] p-3.5 shadow-[0_25px_60px_-18px_rgba(0,0,0,.95)]"
+        style={{ boxShadow: '0 0 0 1px rgba(251,191,36,.12), 0 25px 60px -18px rgba(0,0,0,.95)' }}
+      >
+        <div className="pointer-events-none absolute -top-24 left-1/2 h-44 w-64 -translate-x-1/2 rounded-full bg-amber-400/20 blur-3xl" />
+
+        <header className="relative flex items-start gap-2.5">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-400/30 to-orange-600/10 text-amber-200">
+            <Handshake className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-black uppercase tracking-[0.2em] text-amber-200">{t('partners.title')}</p>
+            <p className="mt-0.5 text-[9px] leading-snug text-slate-400">{t('partners.subtitle')}</p>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Fechar"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition active:scale-90"
+          >
             <X className="h-3.5 w-3.5" />
           </button>
         </header>
 
-        <div className="mt-3 max-h-[60vh] space-y-1.5 overflow-y-auto">
-          {isLoading ? <p className="py-6 text-center text-[10px] text-slate-400">{t('partners.loading')}</p> : null}
+        <div className="relative mt-3 max-h-[58vh] space-y-2 overflow-y-auto pr-0.5">
+          {isLoading ? <p className="py-8 text-center text-[10px] text-slate-400">{t('partners.loading')}</p> : null}
           {error ? (
-            <div className="py-6 text-center">
+            <div className="py-8 text-center">
               <p className="text-[10px] text-rose-300">{error instanceof Error ? error.message : ''}</p>
-              <button onClick={() => void refetch()} className="mt-2 rounded-lg border border-white/15 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-slate-200">
+              <button
+                onClick={() => void refetch()}
+                className="mt-2 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-slate-200 active:scale-95"
+              >
                 {t('partners.retry')}
               </button>
             </div>
           ) : null}
           {!isLoading && !error && !partners.length ? (
-            <p className="py-6 text-center text-[10px] text-slate-400">{t('partners.empty')}</p>
+            <p className="py-8 text-center text-[10px] text-slate-400">{t('partners.empty')}</p>
           ) : null}
 
           {partners.map((partner) => {
             const busy = (goMutation.isPending || claimMutation.isPending) && pending === partner.id;
+            const accent = accentFor(partner.id);
             return (
-              <div key={partner.id} className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-2.5 py-2">
-                <p className="min-w-0 flex-1 truncate text-[11px] font-bold text-white">{partner.name}</p>
-                {partner.claimed ? (
-                  <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.14em] text-emerald-300">✓ {t('partners.claimed')}</span>
-                ) : (
-                  <>
-                    <span className="shrink-0 text-[10px] font-black text-amber-200">+{formatCurrency(partner.rewardFc)} FC</span>
-                    <button
-                      disabled={busy}
-                      onClick={() => {
-                        setPending(partner.id);
-                        if (partner.visited) claimMutation.mutate(partner.id, { onSettled: () => setPending(null) });
-                        else goMutation.mutate(partner.id);
-                      }}
-                      className="shrink-0 rounded-lg border border-amber-300/50 bg-gradient-to-b from-amber-400/25 to-orange-600/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-amber-100 disabled:opacity-40"
-                    >
-                      {busy ? '...' : partner.visited ? t('partners.claim') : t('partners.go')}
-                    </button>
-                  </>
-                )}
+              <div
+                key={partner.id}
+                className={`relative flex items-center gap-2.5 overflow-hidden rounded-2xl border px-2.5 py-2.5 transition ${
+                  partner.claimed
+                    ? 'border-emerald-400/30 bg-emerald-950/25'
+                    : 'border-amber-300/20 bg-black/50 active:scale-[0.99]'
+                }`}
+                style={partner.claimed ? undefined : { boxShadow: `inset 0 0 22px -12px ${accent.glow}` }}
+              >
+                <div
+                  className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gradient-to-br ${
+                    partner.claimed ? 'from-emerald-300 to-teal-600' : accent.ring
+                  } text-[13px] font-black text-black shadow-lg`}
+                >
+                  {partner.claimed ? <Check className="h-5 w-5" /> : initialsOf(partner.name)}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[12px] font-black tracking-wide text-white">{partner.name}</p>
+                  <p className="mt-0.5 truncate text-[8px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    {t('partners.category')}
+                  </p>
+                  {partner.claimed ? (
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.14em] text-emerald-300">
+                      <Check className="h-2.5 w-2.5" />
+                      {t('partners.claimed')}
+                    </span>
+                  ) : (
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/15 px-2 py-0.5 text-[8px] font-black tracking-[0.1em] text-amber-200">
+                      <Sparkles className="h-2.5 w-2.5" />+{formatCurrency(partner.rewardFc)} FC
+                    </span>
+                  )}
+                </div>
+
+                {!partner.claimed ? (
+                  <button
+                    disabled={busy}
+                    onClick={() => {
+                      setPending(partner.id);
+                      if (partner.visited) claimMutation.mutate(partner.id, { onSettled: () => setPending(null) });
+                      else goMutation.mutate(partner.id);
+                    }}
+                    className={`shrink-0 rounded-xl border px-3.5 py-2 text-[9px] font-black uppercase tracking-[0.16em] text-black shadow-md transition active:scale-95 disabled:opacity-40 ${
+                      partner.visited
+                        ? 'border-emerald-200/50 bg-gradient-to-b from-emerald-300 to-teal-600'
+                        : 'border-amber-200/60 bg-gradient-to-b from-amber-300 to-orange-500'
+                    }`}
+                  >
+                    {busy ? '...' : partner.visited ? t('partners.claim') : t('partners.go')}
+                  </button>
+                ) : null}
               </div>
             );
           })}
         </div>
 
-        <p className="mt-2 text-[8px] leading-relaxed text-slate-500">{t('partners.hint')}</p>
+        <p className="relative mt-2.5 rounded-xl border border-white/5 bg-white/[0.03] px-2.5 py-2 text-[8px] leading-relaxed text-slate-500">
+          {t('partners.hint')}
+        </p>
       </div>
     </div>
   );
