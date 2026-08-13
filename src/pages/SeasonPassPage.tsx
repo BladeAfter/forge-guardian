@@ -1,7 +1,7 @@
 import React from'react';
 import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
-import{ArrowLeft,Check,Lock,ScrollText,Star}from'lucide-react';
+import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
 import{toast}from'sonner';
 import{seasonPassRequest,buySeasonPassLevels}from'../services';
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
@@ -11,8 +11,13 @@ import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
 import{type PassReward,type PassTier,type PassLevelPurchaseConfig,type SeasonPassDashboard}from'../seasonPass';
 import mythicEggAsset from'../assets/season-1-mythic-egg-transparent.webp.asset.json';
+import petSilhouetteAsset from'../assets/pets/draviel.png.asset.json';
 
-const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':mythicEggAsset.url};
+const art:Record<string,string>={fc:'/assets/game/coins/forge-coin.png',pet_food:'/assets/game/ui/season-pet-food.png',fragments:'/assets/game/ui/season-fragments.png',pvp_ticket:'/assets/game/ui/season-pvp-ticket.png',skin:'/assets/game/ui/season-skin.png',pet_egg:'/assets/game/pet-eggs/rare-egg.webp','epic-egg':'/assets/game/pet-eggs/rare-egg.webp',hero_chest:'/assets/game/chests/epic-chest.png','season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':mythicEggAsset.url};
+// Mystery rewards never reveal the art: the silhouette below is what the player sees before claiming.
+const silhouette:Record<string,string>={'season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':petSilhouetteAsset.url,hero_random:'/assets/game/heroes/legendary-dragon-knight.png'};
+const equipIcon:Record<string,typeof Sword>={weapon:Sword,armor:Shield,ring:Gem};
+
 
 export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramInitData:string;onClose:()=>void;onMissions:()=>void}){
  const t=useT(),{tError}=useLanguage();
@@ -60,7 +65,30 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
  </Shell>
 }
 
-function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void}){const t=useT();const exclusive=Boolean(r?.code&&art[r.code]);return<button disabled={!r?.unlocked||r.claimed||pending} onClick={()=>r&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${exclusive?'border-amber-300/70 bg-gradient-to-b from-violet-950/70 to-amber-950/30 shadow-[0_0_18px_rgba(251,191,36,.22)]':r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600'}`}>{exclusive?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}{r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<><img src={art[r.code??'']??art[r.type]??art.fragments} alt={r.title} className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>{!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}</>:null}<span className="block leading-tight">{r?.title??'—'}</span>{r&&!r.unlocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}</button>}
+function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void}){
+ const t=useT();
+ const code=r?.code??'',mysteryArt=silhouette[code]??(r?.type==='hero_random'?silhouette.hero_random:undefined);
+ const equipment=r?.type==='equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]);
+ const Icon=equipment?(equipIcon[code]??Sword):r?.type==='pvp_ticket'?Ticket:null;
+ const frame=premium?'border-amber-300/70 bg-gradient-to-b from-violet-950/80 via-black/60 to-amber-950/30 shadow-[0_0_20px_rgba(251,191,36,.28)]'
+  :mystery?'border-violet-300/60 bg-gradient-to-b from-violet-950/70 to-black/70 shadow-[0_0_16px_rgba(167,139,250,.25)]'
+  :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
+  :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
+ return<button disabled={!r?.unlocked||r.claimed||pending} onClick={()=>r&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
+  {premium?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
+  {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
+  {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
+   {mystery
+    ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_70%)] blur-[2px]"/><img src={mysteryArt} alt={r.title} className={`relative h-10 w-10 object-contain [filter:brightness(0)_saturate(0)] drop-shadow-[0_0_7px_rgba(251,191,36,.55)] ${r.unlocked?'':'opacity-40'}`}/></span>
+    :Icon
+     ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,.25),transparent_70%)] blur-[2px]"/><Icon className={`relative h-8 w-8 ${equipment?'text-black drop-shadow-[0_0_7px_rgba(125,211,252,.7)]':'text-amber-200'} ${r.unlocked?'':'opacity-40'}`} strokeWidth={2.5}/></span>
+     :<img src={art[code]??art[r.type]??art.fragments} alt={r.title} className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>}
+   {!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}
+  </>:null}
+  <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
+  {r&&!r.unlocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
+ </button>}
+
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
 function Pass({tier,owned,included=false,upgrade=false,price,bonus=0,pending,onBuy}:{tier:'adventurer'|'legendary';owned:boolean;included?:boolean;upgrade?:boolean;price:number;bonus?:number;pending:boolean;onBuy:()=>void}){const t=useT();const held=owned||included;return<div className={`rounded-2xl border p-3 text-center ${tier==='adventurer'?'border-emerald-400/30 bg-emerald-950/20':'border-violet-400/35 bg-violet-950/25'}`}><Star className={`mx-auto ${tier==='adventurer'?'text-emerald-300':'text-amber-300'}`}/><b className="mt-1 block text-xs">{tier==='adventurer'?`${t('pass.adventurerPassLine1')} ${t('pass.adventurerPassLine2')}`:`${t('pass.legendaryPassLine1')} ${t('pass.legendaryPassLine2')}`}</b><p className="text-lg font-black">{held?<span className="text-emerald-300">{included?t('pass.includedCheck'):t('pass.activeCheck')}</span>:`${formatTon(price)} TON`}</p>{bonus>0?<p className="mt-1 rounded-lg border border-amber-300/30 bg-amber-400/10 px-1 py-0.5 text-[8px] font-black text-amber-200">{t('pass.benefitXp',{percent:bonus})}</p>:null}<button disabled={held||pending} onClick={onBuy} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[9px] font-black text-black disabled:bg-emerald-500">{held?t('pass.acquired'):upgrade?t('pass.buyLegendary'):t('pass.buyPass')}</button></div>}
 
