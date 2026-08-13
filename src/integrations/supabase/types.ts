@@ -10014,11 +10014,19 @@ export type Database = {
       }
       tower_enter_floor: { Args: { p_telegram_id: number }; Returns: Json }
       tower_entry_cost: { Args: { p_floor: number }; Returns: number }
+      tower_equipment_drop_rule: {
+        Args: { p_first: boolean; p_floor: number }
+        Returns: Json
+      }
       tower_floor_rewards: {
         Args: { p_first: boolean; p_floor: number }
         Returns: Json
       }
       tower_grant_rewards: {
+        Args: { p_first: boolean; p_floor: number; p_user: string }
+        Returns: Json
+      }
+      tower_roll_equipment_drop: {
         Args: { p_first: boolean; p_floor: number; p_user: string }
         Returns: Json
       }
@@ -10067,6 +10075,7 @@ export type Database = {
             Returns: Json
           }
       wallet_hot_address: { Args: never; Returns: string }
+      weighted_pick: { Args: { p_weights: Json }; Returns: string }
       withdraw_fee_percent: { Args: never; Returns: number }
     }
     Enums: {

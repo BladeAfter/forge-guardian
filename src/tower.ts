@@ -21,12 +21,30 @@ export type TowerBoss = {
   entryCost: number;
 };
 
+export type TowerEquipmentDrop = {
+  instanceId: string;
+  code: string;
+  name: string;
+  slot: 'weapon' | 'armor' | 'ring' | string;
+  kind?: string | null;
+  heroClass?: string | null;
+  rarity: string;
+  tier?: number | null;
+  imageUrl?: string | null;
+  bonusAttack?: number | null;
+  bonusDefense?: number | null;
+  bonusHp?: number | null;
+  power?: number | null;
+};
+
 export type TowerRewards = {
   fragments: number;
   heroXp: number;
   petFood: number;
   heroChest: number;
   towerKey: number;
+  /** Equipment instance dropped on this clear (null when nothing dropped). */
+  equipment?: TowerEquipmentDrop | null;
 };
 
 export type PetSummary = {
