@@ -176,10 +176,19 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   if (section === 'nft') {
     return (
       <Shell onClose={onClose} section={section} onSection={setSection}>
-        <NftExclusiveSection telegramInitData={telegramInitData} />
+        <NftExclusiveSection telegramInitData={telegramInitData} onGoToShop={() => setSection('shop')} />
       </Shell>
     );
   }
+
+  if (section === 'shop') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <NftShopSection telegramInitData={telegramInitData} />
+      </Shell>
+    );
+  }
+
 
   return (
     <Shell onClose={onClose} section={section} onSection={setSection}>
