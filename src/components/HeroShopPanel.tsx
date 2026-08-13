@@ -477,8 +477,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                                     ? t('market.reserved')
                                     : payingId === listing.id
                                       ? t('market.paying')
-                                      : listing.currency === 'TON' && Number(listing.priceTon) > availableTon
-                                        ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                      : listing.currency === 'TON'
+                                        ? Number(listing.priceTon) > availableTon
+                                          ? <><Wallet className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.payWallet')}</>
+                                          : <span className="text-[8px] leading-tight">{t('market.payTonBalance')}</span>
                                         : t('market.buy')}
                                 </button>
                               )}
