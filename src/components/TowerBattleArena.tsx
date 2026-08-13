@@ -66,6 +66,10 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
   const bossPct = Math.max(0, Math.min(100, Math.round((bossHp / bossMaxHp) * 100)));
   const turn = Math.min(battle.totalTurns, events[Math.min(index, Math.max(0, events.length - 1))]?.turn ?? battle.totalTurns);
   const rewards = (battle.rewards ?? {}) as Record<string, number>;
+  // Equipment dropped by the floor rule (category first, then a random item of that pool).
+  const gear = ((battle.rewards ?? {}) as { equipment?: TowerEquipmentDrop | null }).equipment ?? null;
+  const gearTone = GEAR_TONES[String(gear?.rarity ?? '').toLowerCase()] ?? GEAR_TONES.common;
+  const gearSlotLabel = gear ? (GEAR_SLOTS[String(gear.slot)] ?? String(gear.slot)) : '';
   // The active pet and its buffs come from the same server-side pet system used by the Boss.
   const activePet = battle.petSummary?.activePet ?? null;
   const petBonuses = battle.petSummary?.bonuses ?? null;
@@ -162,6 +166,21 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                 {rewards.petFood ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Pet Food</p><p className="font-bold text-emerald-300">x{rewards.petFood}</p></div> : null}
                 {rewards.heroChest ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Gear Chest</p><p className="font-bold text-fuchsia-300">x{rewards.heroChest}</p></div> : null}
                 {rewards.towerKey ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Eternity Key</p><p className="font-bold text-fuchsia-300">x{rewards.towerKey}</p></div> : null}
+                {gear ? (
+                  <div className={`col-span-2 flex items-center gap-3 rounded-xl border ${gearTone.border} ${gearTone.bg} p-2.5 text-left`}>
+                    {gear.imageUrl ? <img src={gear.imageUrl} alt={gear.name} loading="lazy" className="h-12 w-12 rounded-lg object-cover" /> : null}
+                    <div className="min-w-0">
+                      <p className={`text-[9px] font-black uppercase tracking-[.18em] ${gearTone.text}`}>{gearSlotLabel} · {gear.rarity}</p>
+                      <p className="truncate text-[12px] font-bold text-white">{gear.name}</p>
+                      <p className="text-[10px] text-slate-400">
+                        {gear.bonusAttack ? `ATK +${gear.bonusAttack} ` : ''}
+                        {gear.bonusDefense ? `DEF +${gear.bonusDefense} ` : ''}
+                        {gear.bonusHp ? `HP +${gear.bonusHp}` : ''}
+                        {gear.heroClass ? ` · ${gear.heroClass}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <p className="mt-3 text-[11px] text-slate-400">Tentativa consumida. Reforce sua equipe e tente novamente.</p>
