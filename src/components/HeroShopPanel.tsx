@@ -493,7 +493,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                                 <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} · HP {formatCurrency(listing.hp)}</p>
                               ) : null}
                               <p className="truncate text-[7px] uppercase tracking-[0.14em] text-slate-500">
-                                {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.equipment')}
+                                {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.itemLabel')}
+                                {Number(listing.quantity ?? 1) > 1 ? ` · x${listing.quantity}` : ''}
                               </p>
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
                             </div>
@@ -562,7 +563,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                     <div key={listing.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[.03] p-2">
                       {listing.image ? <img src={listing.image} alt={listing.name} className="h-10 w-10 rounded-lg object-cover" /> : <div className="grid h-10 w-10 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[11px] font-black text-white">{listing.name}</p>
+                        <p className="truncate text-[11px] font-black text-white">
+                          {listing.name}{Number(listing.quantity ?? 1) > 1 ? <span className="ml-1 text-amber-200">x{listing.quantity}</span> : null}
+                        </p>
                         <p className={`text-[9px] font-black ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[8px] font-black ${listing.status === 'active' ? 'bg-emerald-400/15 text-emerald-300' : listing.status === 'sold' ? 'bg-sky-400/15 text-sky-300' : 'bg-white/10 text-slate-400'}`}>
@@ -579,7 +582,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                     <div key={purchase.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 p-2">
                       {purchase.image ? <img src={purchase.image} alt={purchase.name} className="h-9 w-9 rounded-lg object-cover" /> : <div className="grid h-9 w-9 place-items-center rounded-lg bg-black/40"><Tag className="h-4 w-4 text-slate-500" /></div>}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[10px] font-black text-white">{purchase.name}</p>
+                        <p className="truncate text-[10px] font-black text-white">
+                          {purchase.name}{Number(purchase.quantity ?? 1) > 1 ? <span className="ml-1 text-amber-200">x{purchase.quantity}</span> : null}
+                        </p>
                         <p className="truncate text-[8px] text-slate-500">{t('market.seller')}: {purchase.seller}</p>
                       </div>
                       <p className={`text-[10px] font-black ${purchase.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(purchase)}</p>
