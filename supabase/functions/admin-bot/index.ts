@@ -3419,7 +3419,16 @@ async function handleCallback(ctx: Ctx, data: string) {
     }
 
   }
+  if (head === 'passfix') {
+    const target = rest[0] && rest[0] !== 'all' ? Number(rest[0]) : null;
+    const r = await rpc('admin_repair_missing_pass_rewards', { p_telegram_id: target, p_dry_run: false });
+    const details = (r?.details || []) as any[];
+    const lines = details.slice(0, 25).map((d) => `• <code>${d.telegramId}</code> Lv.${d.level} · ${esc(String(d.slot))} → <code>${esc(String(d.item ?? '—'))}</code>`);
+    return send(ctx, `🛠 <b>FIX MISSING REWARDS</b>\nCorrigidas: <b>${fmt(Number(r?.fixed ?? 0))}</b>\n\n${lines.join('\n') || 'Nada a corrigir.'}`,
+      kb([[{ t: '🔄 REVERIFICAR', d: 'view:passmissing' }], nav('m:pass')]));
+  }
   if (head === 'passxp') {
+
     const [mode, user] = rest;
     if (mode === 'level') return ask(ctx, `passlevel|${user}`, 'Envie o <b>nível</b> desejado do Battle Pass (ex.: <code>8</code>).');
     return ask(ctx, `passxpadj|${mode}|${user}`, `Envie a quantidade de <b>XP</b> para ${mode === 'remove' ? 'remover' : 'adicionar'} (ex.: <code>500</code>).`);
