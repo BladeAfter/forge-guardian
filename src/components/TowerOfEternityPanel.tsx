@@ -56,7 +56,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading }:
       toast.error('FC insuficiente para entrar na masmorra');
       return;
     }
-    toast.info('A Torre da Eternidade abre em breve · Andar 37');
+    toast.success('A Torre da Eternidade abre em breve · Andar 37');
   };
 
   return (
