@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_reward_claims: {
+        Row: {
+          ad_event_id: string
+          amount_ton: number
+          block_id: string | null
+          created_at: string
+          id: string
+          reward_period: string
+          rewarded_at: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ad_event_id: string
+          amount_ton?: number
+          block_id?: string | null
+          created_at?: string
+          id?: string
+          reward_period: string
+          rewarded_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ad_event_id?: string
+          amount_ton?: number
+          block_id?: string | null
+          created_at?: string
+          id?: string
+          reward_period?: string
+          rewarded_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -7720,10 +7762,18 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      ad_reward_begin: { Args: { p_telegram_id: number }; Returns: Json }
+      ad_reward_claim: {
+        Args: { p_source?: string; p_telegram_id: number; p_view_id?: string }
+        Returns: Json
+      }
+      ad_reward_period_reset_at: { Args: never; Returns: string }
+      ad_rewards_state: { Args: { p_user_id: string }; Returns: Json }
       add_universal_fragments: {
         Args: { p_quantity: number; p_user_id: string }
         Returns: number
       }
+      admin_ad_rewards_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_adjust_balance: {
         Args: {
           p_admin_id: number
