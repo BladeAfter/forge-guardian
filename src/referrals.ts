@@ -1,5 +1,7 @@
-export type ReferralInvite={id:string;name:string;username:string|null;avatar:string|null;level:1|2|3;joinedAt:string;lastSeenAt:string;online:boolean;generated:number;commission:number};
-export type ReferralCommissionLevel={level:1|2|3;percent:number;invitedCount:number;totalEarnedFc:number};
+export type ReferralInvite={id:string;name:string;username:string|null;avatar:string|null;level:1|2|3;joinedAt:string;lastSeenAt:string;online:boolean;generated:number;commission:number;generatedTon?:number;commissionTon?:number;firstTonType?:string|null};
+export type ReferralCommissionLevel={level:1|2|3;percent:number;invitedCount:number;totalEarnedFc:number;totalEarnedTon?:number};
+/** Commissions are paid in TON on the invited player's FIRST valid TON transaction, once ever. */
+export type ReferralCommissionEntry={id:string;level:1|2|3;name:string;username:string|null;avatar:string|null;sourceType:string;sourceAmountTon:number;commissionTon:number;createdAt:string};
 export type ReferralTreeNode={id:string;parentId:string;name:string;avatar:string|null;level:1|2|3};
 export type ReferralRanking={position:number;id:string;name:string|null;avatar:string|null;invites:number;commissions:number};
 export type ReferralDashboard={
