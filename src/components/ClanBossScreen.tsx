@@ -268,6 +268,49 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
         <Stat label={t('clanBoss.power')} value={abbreviateDamage(me?.power)} tone="cyan" />
       </div>
 
+      {/* Season Pass benefit: offline Auto ATK (independent from the Global Boss) */}
+      {auto ? (
+        <div className={`mt-3 flex items-center justify-between gap-2 rounded-2xl border p-3 ${auto.active ? 'border-amber-300/50 bg-gradient-to-r from-amber-400/15 to-violet-500/10' : 'border-white/10 bg-black/60'}`}>
+          <div className="min-w-0">
+            <p className={`text-[11px] font-black uppercase tracking-[.18em] ${auto.active ? 'text-amber-200' : 'text-slate-300'}`}>
+              {auto.eligible ? '⚔️' : '🔒'} {t('boss.autoAtk')}
+            </p>
+            <p className="mt-0.5 text-[9px] text-slate-300/80">
+              {!auto.eligible
+                ? t('boss.autoAtkRequired')
+                : !auto.enabled
+                  ? t('boss.autoAtkOff')
+                  : auto.inClan === false
+                    ? t('clan.error.notInClan')
+                    : !auto.hasTeam
+                      ? t('boss.autoAtkNoTeam')
+                      : auto.bossActive === false
+                        ? t('clanBoss.waiting')
+                        : `${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${countdownLabel(auto.nextAttackAt, now)}`}
+            </p>
+          </div>
+          {auto.eligible ? (
+            <button
+              type="button"
+              disabled={autoBusy || !telegramInitData}
+              onClick={async () => {
+                setAutoBusy(true);
+                try {
+                  setAutoOverride(await setClanBossAutoAttack(telegramInitData, !auto.enabled));
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : t('boss.autoAtkError'));
+                } finally {
+                  setAutoBusy(false);
+                }
+              }}
+              className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] transition active:scale-95 disabled:opacity-50 ${auto.enabled ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'border border-white/15 bg-black/60 text-slate-300'}`}
+            >
+              {auto.enabled ? t('boss.autoAtkOn') : t('boss.autoAtkOffLabel')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Attack */}
       <button
         disabled={busy || defeated || onCooldown}
