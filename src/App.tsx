@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
-import { Bell, ChevronRight, Settings, X } from 'lucide-react';
+import { Bell, ChevronRight, Settings, Sparkles, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
@@ -21,6 +21,7 @@ import {HeroesPage}from'./pages/HeroesPage';
 import {ClanHubPage}from'./pages/ClanHubPage';
 import {ClanHall}from'./components/ClanHall';
 import {PartnersModal}from'./components/PartnersModal';
+import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
@@ -544,6 +545,7 @@ function App() {
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
+  const [rewardsOpen,setRewardsOpen]=useState(false);
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
@@ -884,10 +886,18 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-            <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
+            <div className="flex flex-col items-center gap-2">
+              <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
+              <button
+                onClick={()=>setRewardsOpen(true)}
+                className="flex items-center gap-1.5 rounded-full border border-sky-400/40 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-sky-200 shadow-[0_0_18px_rgba(56,189,248,.15)] transition active:scale-95"
+              >
+                <Sparkles className="h-3.5 w-3.5" /> {t('adRewards.button')}
+              </button>
+            </div>
           </div>
 
-          {/* Partner channels entry point (ads entry removed from Home per request). */}
+          {/* Partner channels entry point. */}
           <div className="flex w-full justify-center">
             <button
               onClick={()=>setPartnersOpen(true)}
@@ -896,6 +906,7 @@ function App() {
           </div>
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
+          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
 
 
           {shopOpen ? (
