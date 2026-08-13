@@ -1660,6 +1660,17 @@ async function module(ctx: Ctx, name: string) {
         kb([[{ t: '🎁 EDITAR RECOMPENSA', d: 'ask:passreward' }], [{ t: '⬅️ PASSE', d: 'view:pass' }], nav()]));
     }
 
+    // Equipment rewards marked as claimed but with no matching item in the player's inventory.
+    case 'passmissing': {
+      const d = await rpc('admin_check_missing_pass_rewards', { p_limit: 100 });
+      const entries = (d?.entries || []) as any[];
+      const lines = entries.slice(0, 30).map((e) => `• @${esc(String(e.username ?? e.telegramId))} · <code>${e.telegramId}</code>\n   ${esc(e.season ?? '')} · Lv.${e.level} · ${esc(e.tier)} · ${esc(e.reward ?? e.slot)}\n   Claimed: <b>YES</b> · Inventory: <b>MISSING</b>`);
+      return edit(ctx, `🔍 <b>CHECK MISSING PASS REWARDS</b>\nInconsistências: <b>${fmt(Number(d?.total ?? 0))}</b>\n\n${lines.join('\n') || '✅ Nenhuma recompensa de equipamento faltando.'}${entries.length > 30 ? `\n\n… +${entries.length - 30}` : ''}`,
+        kb([[{ t: '🛠 FIX MISSING REWARDS', d: 'passfix:all' }], [{ t: '🔄 REVERIFICAR', d: 'view:passmissing' }], [{ t: '⬅️ PASSE', d: 'view:pass' }], nav()]));
+    }
+
+
+
     case 'pool': {
       const d = await rpc('admin_pool_overview', { p_admin_id: ctx.adminId });
       const p = d.pool || {};
