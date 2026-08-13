@@ -549,8 +549,13 @@ export async function fetchMyNftRewards(telegramInitData:string):Promise<NftRewa
 }
 
 export async function claimNftPosition(telegramInitData:string,positionId:string):Promise<NftRewardList&{amountTon:number}>{
+  if(positionId==='single'){
+    const single=await claimNftReward(telegramInitData);
+    const list=await fetchMyNftRewards(telegramInitData);
+    return {...list,amountTon:single.amountTon};
+  }
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim-one',positionId});
   const payload=await response.json().catch(()=>null) as NftRewardList&{amountTon:number;error?:string}|null;
   if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
-  return payload;
+  return {totalSupply:payload.totalSupply??10,items:payload.items??[],amountTon:payload.amountTon??0};
 }
