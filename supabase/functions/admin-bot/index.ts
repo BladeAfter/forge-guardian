@@ -2074,6 +2074,12 @@ const PROMPTS: Record<string, string> = {
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
   nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
   nftsearch: '🔎 Envie o nome do pet NFT, o <b>serial/instância</b> (<code>NFT-IGNARION-0001</code>), o nome do dono ou o Telegram ID.',
+  npfund: '💎 Envie o valor em <b>TON</b> para <b>aportar</b> no NFT Reward Pool.\nEx.: <code>50</code>',
+  npadjust: '⚙️ Envie o ajuste em <b>TON</b> (use <code>-</code> para debitar).\nEx.: <code>-10</code>',
+  nptier: '💠 Envie <code>serial tier_ton</code> para alterar o tier da unidade.\nEx.: <code>3 30</code>',
+  npcfg20: '💠 Envie o novo rendimento diário do tier 20 TON. Ex.: <code>0.5</code>',
+  npcfg30: '💠 Envie o novo rendimento diário do tier 30 TON. Ex.: <code>0.8</code>',
+  npcfgmin: '💠 Envie o valor mínimo de resgate em TON. Ex.: <code>0.01</code>',
   nftmint: '💎 Envie <code>slug quantidade</code> para criar novas unidades.\nEx.: <code>ignarion 3</code>',
   ptname: '🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>',
   ptreward: '🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>',
@@ -2931,6 +2937,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   // 💎 NFT EXCLUSIVE pets (admin-only delivery, unique serials).
   // ⚔️ NFT EXCLUSIVE heroes (unique serials, admin-only delivery + power editor).
   if (head === 'nfth') { if (rest[0] !== 'ask') await clearSession(ctx); return nfthCallback(ctx, rest); }
+  if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
   if (head === 'pr') return prCallback(ctx, rest);
@@ -3852,6 +3859,7 @@ async function nftHub(ctx: Ctx, useEdit = true) {
     [{ t: '➕ CRIAR UNIDADE', d: 'nft:new' }, { t: '🎁 ENTREGAR', d: 'nft:ask:nftgive' }],
     [{ t: '📋 LISTAR REGISTRO', d: 'nft:list:0' }, { t: '🔎 PESQUISAR', d: 'nft:ask:nftsearch' }],
     [{ t: '↩️ REVOGAR', d: 'nft:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nft:hist' }],
+    [{ t: '💎 NFT POOL', d: 'np:hub' }],
     nav('m:pets'),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -3945,6 +3953,115 @@ async function nftCallback(ctx: Ctx, rest: string[]) {
       return edit(ctx, `📜 <b>HISTÓRICO NFT</b>\n${lines}`, kb([nav('nft:hub')]));
     }
     default: return nftHub(ctx);
+  }
+}
+
+
+// ---------------------------------------------------------------- 💎 NFT REWARD POOL (master admin only)
+// The pool is a REAL treasury used to pay NFT EXCLUSIVE yields. It exists only here:
+// the Mini App never receives pool balance, reserves, health or obligations —
+// players only ever see their own NFT yield. Every RPC below asserts the master admin id.
+const NP_HEALTH: Record<string, string> = { HEALTHY: '🟢 HEALTHY', STABLE: '🟡 STABLE', LOW: '🟠 LOW', CRITICAL: '🔴 CRITICAL' };
+const npTon = (v: unknown) => Number(v ?? 0).toFixed(4);
+
+async function nftPoolHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_pool_overview', { p_admin_id: ctx.adminId }) as any;
+  const text = `💎 <b>NFT REWARD POOL</b> <i>(backend only)</i>\n\n`
+    + `<b>Balance</b> ${npTon(d.balanceTon)} TON\n`
+    + `<b>Reserved</b> ${npTon(d.reservedTon)} TON\n`
+    + `<b>Available</b> ${npTon(d.availableTon)} TON\n`
+    + `<b>Daily obligation</b> ${npTon(d.dailyObligationTon)} TON\n`
+    + `<b>Claimable now</b> ${npTon(d.claimableTon)} TON\n`
+    + `<b>Lifetime funded</b> ${npTon(d.lifetimeFundedTon)} TON\n`
+    + `<b>Lifetime paid</b> ${npTon(d.lifetimePaidTon)} TON\n`
+    + `<b>Pool health</b> ${NP_HEALTH[String(d.health)] ?? esc(String(d.health))}\n`
+    + `NFTs ativos ${fmt(d.activeNfts)}/${fmt(d.totalNfts)}\n\n`
+    + `<i>Invisível para jogadores. Somente o admin mestre vê estes números.</i>`;
+  const rows = [
+    [{ t: '➕ APORTAR TON', d: 'np:ask:npfund' }, { t: '⚙️ AJUSTE MANUAL', d: 'np:ask:npadjust' }],
+    [{ t: '💠 UNIDADES (10 NFTs)', d: 'np:units' }, { t: '📜 LEDGER', d: 'np:ledger' }],
+    [{ t: '🔧 CONFIG RENDIMENTO', d: 'np:cfg' }],
+    nav('nft:hub'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftPoolUnits(ctx: Ctx, data?: any) {
+  const units = (data ?? await rpc('admin_nft_pool_units', { p_admin_id: ctx.adminId })) as any[];
+  const lines = units.map((u) => `• ${nftSerial(u.serial)} ${u.status === 'active' ? '🟢' : '⏸'} tier ${npTon(u.tierTon)} · dia ${npTon(u.effectiveDailyTon)} · disp ${npTon(u.availableTon)} · pago ${npTon(u.lifetimeEarnedTon)} · ${u.roiReached ? 'ROI ✅' : 'ROI …'} · ${esc(String(u.owner ?? '—'))}`).join('\n') || 'Nenhuma posição NFT.';
+  const rows = units.map((u) => [{ t: `${nftSerial(u.serial)} ${u.status === 'active' ? '⏸ PAUSAR' : '▶️ ATIVAR'}`, d: `np:toggle:${u.serial}` }]);
+  rows.push([{ t: '💠 ALTERAR TIER', d: 'np:ask:nptier' }]);
+  rows.push(nav('np:hub'));
+  return edit(ctx, `💠 <b>POSIÇÕES NFT</b>\n${lines}`, kb(rows));
+}
+
+async function nftPoolLedger(ctx: Ctx) {
+  const rows = await rpc('admin_nft_pool_ledger', { p_admin_id: ctx.adminId, p_limit: 20 }) as any[];
+  const lines = rows.map((r) => `• ${String(r.created_at).slice(0, 16).replace('T', ' ')} · <b>${esc(r.type)}</b> ${Number(r.amount_ton) >= 0 ? '+' : ''}${npTon(r.amount_ton)} → ${npTon(r.balance_after)}${r.telegram_id ? ` · <code>${r.telegram_id}</code>` : ''}${r.note ? ` · ${esc(r.note)}` : ''}`).join('\n') || 'sem lançamentos';
+  return edit(ctx, `📜 <b>NFT_POOL_TRANSACTION</b>\n${lines}`, kb([nav('np:hub')]));
+}
+
+async function nftPoolConfig(ctx: Ctx) {
+  const d = await rpc('admin_nft_pool_overview', { p_admin_id: ctx.adminId }) as any;
+  const c = d.settings ?? {};
+  const text = `🔧 <b>CONFIG DE RENDIMENTO</b>\nTier 20 TON → ${npTon(c.tier20DailyTon ?? 0.5)} TON/dia\nTier 30 TON → ${npTon(c.tier30DailyTon ?? 0.8)} TON/dia\nResgate mínimo ${npTon(c.minClaimTon ?? 0.01)} TON`;
+  return edit(ctx, text, kb([
+    [{ t: '💠 TIER 20', d: 'np:ask:npcfg20' }, { t: '💠 TIER 30', d: 'np:ask:npcfg30' }],
+    [{ t: '💠 RESGATE MÍNIMO', d: 'np:ask:npcfgmin' }],
+    nav('np:hub'),
+  ]));
+}
+
+async function nftPoolCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  switch (sub) {
+    case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+    case 'units': return nftPoolUnits(ctx);
+    case 'ledger': return nftPoolLedger(ctx);
+    case 'cfg': return nftPoolConfig(ctx);
+    case 'toggle': {
+      const units = await rpc('admin_nft_pool_toggle', { p_admin_id: ctx.adminId, p_serial: Number(a) }) as any[];
+      return nftPoolUnits(ctx, units);
+    }
+    default: return nftPoolHub(ctx);
+  }
+}
+
+async function nftPoolPrompt(ctx: Ctx, key: string, _args: string[], text: string) {
+  const num = Number(String(text).replace(',', '.').trim());
+  switch (key) {
+    case 'npfund':
+    case 'npadjust': {
+      if (!Number.isFinite(num) || num === 0) throw new Error('KEEP_SESSION::⚠️ Envie um valor numérico em TON.');
+      if (key === 'npfund' && num < 0) throw new Error('KEEP_SESSION::⚠️ Aportes devem ser positivos. Use AJUSTE MANUAL para debitar.');
+      const d = await rpc('admin_nft_pool_fund', {
+        p_admin_id: ctx.adminId, p_amount_ton: num,
+        p_type: key === 'npfund' ? 'FUND' : 'ADMIN_ADJUSTMENT',
+        p_note: key === 'npfund' ? 'aporte pelo painel admin' : 'ajuste manual pelo painel admin',
+      }) as any;
+      await clearSession(ctx);
+      await send(ctx, `💎 Pool atualizado: <b>${npTon(d.balanceTon)} TON</b> (${num >= 0 ? '+' : ''}${npTon(num)}).`);
+      return nftPoolHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'nptier': {
+      const [serial, tier] = String(text).trim().split(/\s+/).map((v) => Number(v.replace(',', '.')));
+      if (!Number.isFinite(serial) || !Number.isFinite(tier) || tier <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>serial tier_ton</code>. Ex.: <code>3 30</code>');
+      const units = await rpc('admin_nft_pool_set_tier', { p_admin_id: ctx.adminId, p_serial: serial, p_tier_ton: tier }) as any[];
+      await clearSession(ctx);
+      await send(ctx, `💠 Tier do NFT ${nftSerial(serial)} definido em <b>${npTon(tier)} TON</b>.`);
+      return nftPoolUnits({ ...ctx, messageId: undefined }, units);
+    }
+    case 'npcfg20':
+    case 'npcfg30':
+    case 'npcfgmin': {
+      if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+      const map: Record<string, string> = { npcfg20: 'tier20_daily_ton', npcfg30: 'tier30_daily_ton', npcfgmin: 'min_claim_ton' };
+      await rpc('admin_nft_pool_config', { p_admin_id: ctx.adminId, p_key: map[key], p_value: num });
+      await clearSession(ctx);
+      await send(ctx, '✅ Configuração de rendimento atualizada.');
+      return nftPoolHub({ ...ctx, messageId: undefined }, false);
+    }
+    default: return nftPoolHub({ ...ctx, messageId: undefined }, false);
   }
 }
 
