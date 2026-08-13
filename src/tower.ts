@@ -29,6 +29,11 @@ export type TowerRewards = {
   towerKey: number;
 };
 
+export type PetSummary = {
+  activePet: { name: string; image: string; level?: number; rarity?: string } | null;
+  bonuses: Record<string, number>;
+};
+
 export type TowerRun = {
   id: string;
   floor: number;
@@ -55,6 +60,8 @@ export type TowerDashboard = {
   team: PvpHero[];
   teamPower: number;
   history: TowerRun[];
+  /** Same structure used by the Boss: active pet + its real buffs. */
+  petSummary?: PetSummary | null;
 };
 
 export type TowerBattle = {
@@ -69,6 +76,7 @@ export type TowerBattle = {
   attackerState: Array<PvpHero & { currentHp?: number }>;
   defenderState: Array<TowerBoss & { currentHp?: number }>;
   team: PvpHero[];
+  petSummary?: PetSummary | null;
   dashboard: TowerDashboard;
 };
 
