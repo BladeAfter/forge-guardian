@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Swords, Zap } from 'lucide-react';
 import type { PvpHero } from '../pvp';
-import type { TowerBattle } from '../tower';
+import type { TowerBattle, TowerEquipmentDrop } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { PetCompanion } from './PetCompanion';
 import { activePetBonuses } from '../petBonuses';
+
+const GEAR_TONES: Record<string, { border: string; bg: string; text: string }> = {
+  common: { border: 'border-slate-500/40', bg: 'bg-slate-500/10', text: 'text-slate-300' },
+  uncommon: { border: 'border-emerald-400/40', bg: 'bg-emerald-500/10', text: 'text-emerald-300' },
+  rare: { border: 'border-sky-400/40', bg: 'bg-sky-500/10', text: 'text-sky-300' },
+  epic: { border: 'border-fuchsia-400/40', bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-300' },
+  legendary: { border: 'border-amber-300/50', bg: 'bg-amber-400/10', text: 'text-amber-300' },
+};
+
+const GEAR_SLOTS: Record<string, string> = { weapon: 'Arma', armor: 'Armadura', ring: 'Anel' };
 
 /**
  * Tower of Eternity battle screen: 5 heroes vs 1 floor boss.
