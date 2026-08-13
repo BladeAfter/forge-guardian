@@ -547,7 +547,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
           <b className="block truncate text-sm">{pet.name}</b>
           {pet.isNft && (
             <span className="forge-nft-tag mt-0.5 inline-block rounded-full border border-amber-200/70 bg-gradient-to-r from-amber-400/25 via-fuchsia-500/25 to-violet-500/25 px-2 py-[2px] text-[7px] font-black tracking-[.16em] text-amber-100">
-              NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(3, '0')}` : ''}
+              NFT EXCLUSIVE {pet.nft?.serial ? `#${String(pet.nft.serial).padStart(4, "0")}` : ""}
             </span>
           )}
           <p className="text-[9px] text-slate-400">
