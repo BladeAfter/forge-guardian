@@ -85,10 +85,16 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
               const state = fusion?.heroes.find((h) => h.heroId === hero.heroId);
               const stars = state?.stars ?? hero.stars ?? 0;
               return (
-                <div key={hero.heroId} className="overflow-hidden rounded-xl border bg-black/70" style={{ borderColor: color[hero.rarity] }}>
+                <div key={hero.heroId} className={`overflow-hidden rounded-xl border bg-black/70 ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
                   <div className="relative">
                     <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover" />
-                    {state?.locked ? <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-md bg-black/70 text-amber-300"><Lock size={11} /></span> : null}
+                    {hero.isNft ? (
+                      <>
+                        <span className="nft-hero-tag absolute left-1 top-1 rounded-md px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[.14em]">NFT Exclusive</span>
+                        <span className="absolute bottom-1 left-1 rounded-md bg-black/75 px-1.5 py-0.5 text-[7px] font-black tracking-[.1em] text-cyan-200">#{String(hero.nftSerial ?? 0).padStart(3, '0')}</span>
+                      </>
+                    ) : null}
+                    {state?.locked && !hero.isNft ? <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-md bg-black/70 text-amber-300"><Lock size={11} /></span> : null}
                   </div>
                   <div className="p-2 text-left">
                     <b className="block truncate text-[9px]">{hero.name}</b>
@@ -97,7 +103,9 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                     <p className="text-[8px] text-slate-300">ATK {hero.finalAtk} · HP {hero.finalHp}</p>
                     <p className="text-[8px] text-amber-200">{t('common.power')} {hero.power}</p>
                     {equipped.has(hero.heroId) ? <p className="text-[8px] font-black text-emerald-300">{t('heroes.inTeam')}</p> : null}
-                    {state ? (
+                    {hero.isNft ? (
+                      <p className="mt-1.5 rounded-lg border border-cyan-300/40 bg-cyan-300/10 py-1 text-center text-[7px] font-black uppercase tracking-[.1em] text-cyan-200">{t('heroes.nftLocked')}</p>
+                    ) : state ? (
                       <button
                         onClick={() => setFusingId(hero.heroId)}
                         className="mt-1.5 flex min-h-[30px] w-full items-center justify-center gap-1 rounded-lg border border-amber-300/40 bg-amber-300/10 text-[8px] font-black uppercase tracking-[.12em] text-amber-200"
