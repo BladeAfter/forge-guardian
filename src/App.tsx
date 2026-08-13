@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { showEntryAd } from './adsgram';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -22,7 +21,6 @@ import {HeroesPage}from'./pages/HeroesPage';
 import {ClanHubPage}from'./pages/ClanHubPage';
 import {ClanHall}from'./components/ClanHall';
 import {PartnersModal}from'./components/PartnersModal';
-import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
@@ -107,8 +105,6 @@ function App() {
   const [game, setGame] = useState<GameState | null>(null);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const eggRecoveryRef = useRef(false);
-  const entryAdRef = useRef(false);
-  const [entryAdDone, setEntryAdDone] = useState(false);
   const passRecoveryRef = useRef(false);
 
   const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
@@ -301,16 +297,7 @@ function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  // AdsGram entry ad: same rewarded block used by PvP (42560), but purely monetization —
-  // it never calls the PvP reward endpoint and never grants tickets/FC/TON/XP/items.
-  // Runs once per real Mini App session, before the loading screen, and never blocks boot.
-  useEffect(() => {
-    if (entryAdRef.current) return;
-    entryAdRef.current = true;
-    showEntryAd()
-      .catch((adError) => console.error('[adsgram] entry ad skipped', adError))
-      .finally(() => setEntryAdDone(true));
-  }, []);
+
 
   // Premium egg purchases paid earlier (even with the app closed) are finished here — a single
   // reconciliation per session, always idempotent: one payment can only ever deliver one pet.
@@ -557,7 +544,6 @@ function App() {
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
-  const [rewardsOpen,setRewardsOpen]=useState(false);
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
@@ -653,10 +639,7 @@ function App() {
     return <OpenInTelegramGate />;
   }
 
-  // Minimal dark boot backdrop while the entry ad plays: no Village, no loading bar yet.
-  if (!entryAdDone) {
-    return <div className="min-h-screen bg-[#03060f]" />;
-  }
+
 
   // One single boot screen: Telegram init, session validation and game data all live behind it.
   if (!bootDone || !game) {
@@ -904,20 +887,16 @@ function App() {
             <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
           </div>
 
-          {/* Small, discreet entry points: partner channels and TON rewarded ads. */}
-          <div className="flex w-full items-center gap-2">
+          {/* Partner channels entry point (ads entry removed from Home per request). */}
+          <div className="flex w-full justify-center">
             <button
               onClick={()=>setPartnersOpen(true)}
-              className="rounded-full border border-amber-300/30 bg-black/40 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200"
+              className="rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
             >🤝 {t('partners.button')}</button>
-            <button
-              onClick={()=>setRewardsOpen(true)}
-              className="rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-400/20 to-orange-500/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-100 shadow-[0_0_14px_rgba(251,191,36,.3)]"
-            >💎 {t('adRewards.button')}</button>
           </div>
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
-          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
+
 
           {shopOpen ? (
             <HeroShopPanel
