@@ -393,7 +393,14 @@ export async function marketRequest<T>(initData:string,input:MarketAction):Promi
   const response=await forgeFetch('market',{initData,...input});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o mercado.');
   const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
-  if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(MARKET_ERRORS[raw]||raw||'Não foi possível processar o mercado.')}
+  if(!response.ok||!payload){
+    const raw=payload?.error||'';
+    // Only known business codes are shown. Raw database/PostgREST text (function
+    // signatures, SQL states) stays in the logs and never reaches the player.
+    const known=MARKET_ERRORS[raw];
+    if(!known)console.error('[MARKET]',raw);
+    throw new Error(known||'Não foi possível processar o mercado. Tente novamente.');
+  }
   return payload;
 }
 export const fetchMarketStatus=(initData:string)=>marketRequest<MarketStatus>(initData,{action:'status'});
