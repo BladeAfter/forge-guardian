@@ -476,3 +476,34 @@ export const equipTowerHero=(initData:string,slot:number,heroId:string)=>towerRe
 export const removeTowerHero=(initData:string,slot:number)=>towerRequest<TowerDashboard>(initData,{action:'remove',slot});
 export const enterTowerFloor=(initData:string)=>towerRequest<TowerBattle>(initData,{action:'enter'});
 export const fetchTowerRanking=(initData:string,limit=50)=>towerRequest<TowerRanking>(initData,{action:'ranking',limit});
+
+
+/**
+ * NFT EXCLUSIVE rewards — the player only ever sees their OWN unit.
+ * The NFT Reward Pool (balance, reserved, health, revenue) is backend-only and
+ * is never returned to the Mini App; only the admin bot can read it.
+ */
+export type NftRewardState={hasNft:boolean;serial?:number;totalSupply:number;dailyYieldTon?:number;availableTon?:number;lifetimeEarnedTon?:number;minClaimTon?:number;canClaim?:boolean;lastClaimAt?:string|null};
+export type NftClaimResult=NftRewardState&{ok:boolean;claimId:string;amountTon:number};
+
+const NFT_ERRORS:Record<string,string>={
+  NFT_NOT_FOUND:'Nenhum NFT EXCLUSIVE ativo nesta conta.',
+  CLAIM_TOO_SMALL:'Valor acumulado ainda muito baixo para resgatar.',
+  POOL_INSUFFICIENT:'Pagamento temporariamente indisponível. Tente novamente mais tarde.',
+  PLAYER_NOT_FOUND:'Jogador não encontrado.',
+};
+const nftError=(code:string,fallback:string)=>NFT_ERRORS[code]??fallback;
+
+export async function fetchNftReward(telegramInitData:string):Promise<NftRewardState>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'my'});
+  const payload=await response.json().catch(()=>null) as NftRewardState&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível carregar seu NFT.'));
+  return payload;
+}
+
+export async function claimNftReward(telegramInitData:string):Promise<NftClaimResult>{
+  const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim'});
+  const payload=await response.json().catch(()=>null) as NftClaimResult&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  return payload;
+}
