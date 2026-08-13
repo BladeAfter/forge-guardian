@@ -314,7 +314,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
             </button>
           ) : null}
         </div>
-      ) : null}
+      )}
 
       {/* Attack */}
       <button
