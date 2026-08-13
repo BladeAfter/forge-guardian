@@ -1,20 +1,24 @@
 import { useMemo, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import type { PvpHero } from '../pvp';
+import { useTowerDashboard } from '../hooks';
+import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
+import { TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
+import { towerBossTheme } from '../towerBosses';
+import { TowerBattleArena } from './TowerBattleArena';
 
 type Props = {
   balance: number;
   collection?: PvpHero[];
   collectionLoading?: boolean;
+  telegramInitData?: string | null;
 };
 
-const TOWER_FLOOR = 37;
-const TOWER_FLOORS = 100;
-const ENTRY_COST = 300000;
-const RECOMMENDED_POWER = 185000;
-
-const compact = (value: number) => Math.floor(value).toLocaleString();
+const compact = (value: number) => Math.floor(Math.max(0, Number(value) || 0)).toLocaleString();
+const templateOf = (h: { templateId?: string; heroKey?: string; name: string; heroId: string }) =>
+  String(h.templateId || h.heroKey || h.name || h.heroId).toLowerCase();
 const normalizeRarity = (value?: string): HeroRarity => {
   const key = String(value ?? '').trim().toLowerCase();
   return (['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as HeroRarity[]).includes(key as HeroRarity)
@@ -22,75 +26,108 @@ const normalizeRarity = (value?: string): HeroRarity => {
     : 'common';
 };
 
-export function TowerOfEternityPanel({ balance, collection, collectionLoading }: Props) {
+export function TowerOfEternityPanel({ balance, collection, collectionLoading, telegramInitData }: Props) {
+  const q = useQueryClient();
+  const initData = telegramInitData ?? '';
+  const tower = useTowerDashboard(initData || null, Boolean(initData));
   const [isTeamOpen, setIsTeamOpen] = useState(false);
-  const [team, setTeam] = useState<string[]>([]);
+  const [slot, setSlot] = useState<number | null>(null);
+  const [battle, setBattle] = useState<TowerBattle | null>(null);
 
-  const heroes = useMemo(
-    () => (collection ?? []).slice().sort((a, b) => (b.power ?? 0) - (a.power ?? 0)),
-    [collection],
-  );
-  const teamPower = useMemo(
-    () => heroes.filter(h => team.includes(h.heroId)).reduce((sum, h) => sum + (h.power ?? 0), 0),
-    [heroes, team],
-  );
+  const data = tower.data;
+  const heroes = useMemo(() => (collection ?? []).slice().sort((a, b) => (b.power ?? 0) - (a.power ?? 0)), [collection]);
+  const team = data?.team ?? [];
+  const usedTemplates = useMemo(() => new Set(team.map(templateOf)), [team]);
+  const theme = towerBossTheme(data?.boss?.bossKey);
 
-  const toggleHero = (heroId: string) => {
-    setTeam(prev => {
-      if (prev.includes(heroId)) return prev.filter(id => id !== heroId);
-      if (prev.length >= 5) {
-        toast.error('Equipe cheia (5 heróis)');
-        return prev;
-      }
-      return [...prev, heroId];
-    });
-  };
+  const setDashboard = (next: TowerDashboard) => q.setQueryData(['tower-dashboard', initData], next);
+  const refresh = () => Promise.all([
+    q.invalidateQueries({ queryKey: ['tower-dashboard', initData] }),
+    q.invalidateQueries({ queryKey: ['game-state', initData] }),
+    q.invalidateQueries({ queryKey: ['player-inventory'] }),
+    q.invalidateQueries({ queryKey: ['player-heroes'] }),
+  ]);
 
-  const enter = () => {
-    if (team.length === 0) {
-      toast.error('Selecione sua equipe primeiro');
-      setIsTeamOpen(true);
-      return;
-    }
-    if (balance < ENTRY_COST) {
-      toast.error('FC insuficiente para entrar na masmorra');
-      return;
-    }
-    toast.success('A Torre da Eternidade abre em breve · Andar 37');
+  const equip = useMutation({
+    mutationFn: ({ targetSlot, heroId }: { targetSlot: number; heroId: string }) => equipTowerHero(initData, targetSlot, heroId),
+    onSuccess: next => { setDashboard(next); setSlot(null); },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao equipar herói'),
+  });
+  const unequip = useMutation({
+    mutationFn: (targetSlot: number) => removeTowerHero(initData, targetSlot),
+    onSuccess: next => setDashboard(next),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao remover herói'),
+  });
+  const enter = useMutation({
+    mutationFn: () => enterTowerFloor(initData),
+    onSuccess: async result => { setBattle(result); setDashboard(result.dashboard); await refresh(); },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Não foi possível entrar na masmorra'),
+  });
+
+  if (battle) return <TowerBattleArena battle={battle} onContinue={async () => { setBattle(null); await refresh(); }} />;
+
+  if (!initData) {
+    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-6 text-center text-xs text-slate-400">Abra o jogo pelo Telegram para acessar a Torre da Eternidade.</section>;
+  }
+  if (tower.isLoading && !data) {
+    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-8 text-center text-xs text-slate-400">Abrindo a Torre da Eternidade…</section>;
+  }
+  if (tower.error || !data) {
+    return (
+      <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-8 text-center">
+        <p className="text-xs text-slate-300">{tower.error instanceof Error ? tower.error.message : 'Não foi possível carregar a Torre.'}</p>
+        <button type="button" onClick={() => void tower.refetch()} className="mt-4 rounded-xl border border-amber-300/40 px-5 py-3 text-[11px] font-black uppercase tracking-[.12em] text-amber-200">Tentar novamente</button>
+      </section>
+    );
+  }
+
+  const boss = data.boss;
+  const rewards = data.firstClear ? data.rewards : data.replayRewards;
+  const canEnter = data.attemptsRemaining > 0 && balance >= data.entryCost && team.length > 0 && !enter.isPending;
+
+  const start = () => {
+    if (!team.length) { toast.error('Selecione sua equipe primeiro'); setIsTeamOpen(true); return; }
+    if (data.attemptsRemaining <= 0) { toast.error('Sem tentativas hoje'); return; }
+    if (balance < data.entryCost) { toast.error('FC insuficiente para entrar na masmorra'); return; }
+    enter.mutate();
   };
 
   return (
     <section className="space-y-3">
-      <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-[#080a11] p-4 shadow-card">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,.18),transparent_65%)]" />
+      <div className={`relative overflow-hidden rounded-3xl border ${theme.border} bg-[#080a11] p-4 shadow-card`}>
+        <img src={theme.arena} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
+        <div className="pointer-events-none absolute inset-0" style={{ background: theme.stage, opacity: .78 }} />
         <div className="relative text-center">
-          <p className="text-[10px] uppercase tracking-[.32em] text-amber-300/80">Solo Dungeon • {TOWER_FLOORS} Floors</p>
+          <p className="text-[10px] uppercase tracking-[.32em] text-amber-300/80">Solo Dungeon • {data.totalFloors} Floors</p>
           <h3 className="mt-1 text-xl font-black uppercase tracking-wide text-amber-200">Tower of Eternity</h3>
           <p className="mt-2 text-[11px] font-bold text-slate-200">
-            Floor <span className="text-amber-300">{TOWER_FLOOR}</span> / {TOWER_FLOORS}
+            Floor <span className="text-amber-300">{data.floor}</span> / {data.totalFloors}
           </p>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/70">
-            <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-200" style={{ width: `${(TOWER_FLOOR / TOWER_FLOORS) * 100}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-200" style={{ width: `${(data.floor / data.totalFloors) * 100}%` }} />
           </div>
         </div>
 
-        <div className="relative mt-4 rounded-2xl border border-amber-400/20 bg-black/60 p-3 text-center">
-          <p className="text-[9px] uppercase tracking-[.3em] text-slate-400">Boss do Andar</p>
-          <p className="mt-1 text-base font-bold text-rose-200">Abyssal Warden</p>
+        <div className={`relative mt-4 overflow-hidden rounded-2xl border ${theme.border} bg-black/55 p-3 text-center`}>
+          <div className="pointer-events-none absolute inset-0" style={{ background: theme.aura }} />
+          <p className="relative text-[9px] uppercase tracking-[.3em] text-slate-400">Boss do Andar</p>
+          <img src={theme.art} alt={boss.name} className="relative mx-auto mt-1 h-[132px] w-auto object-contain" style={{ filter: theme.glow }} loading="lazy" />
+          <p className={`relative mt-1 text-base font-bold ${theme.accent}`}>{boss.name}</p>
+          <p className="relative text-[9px] uppercase tracking-[.2em] text-slate-500">Tier {boss.tier} · {boss.role}</p>
         </div>
 
         <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px]">
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">Recommended Power</p>
-            <p className="mt-1 font-semibold text-amber-300">{compact(RECOMMENDED_POWER)}</p>
+            <p className="mt-1 font-semibold text-amber-300">{compact(boss.recommendedPower)}</p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">Entry Cost</p>
-            <p className="mt-1 font-semibold text-amber-300">{compact(ENTRY_COST)} FC</p>
+            <p className={`mt-1 font-semibold ${balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300'}`}>{compact(data.entryCost)} FC</p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
-            <p className="text-slate-400">First Clear</p>
-            <p className="mt-1 font-semibold text-emerald-300">Epic Fragments x10</p>
+            <p className="text-slate-400">{data.firstClear ? 'First Clear' : 'Replay'}</p>
+            <p className="mt-1 font-semibold text-emerald-300">Fragments x{rewards.fragments}</p>
           </div>
         </div>
 
@@ -100,14 +137,15 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading }:
             onClick={() => setIsTeamOpen(true)}
             className="min-h-11 rounded-2xl border border-amber-400/40 bg-amber-400/10 text-xs font-bold uppercase tracking-wide text-amber-200"
           >
-            Select Team {team.length ? `· ${team.length}/5 · ${compact(teamPower)}` : ''}
+            Select Team · {team.length}/5{team.length ? ` · ${compact(data.teamPower)}` : ''}
           </button>
           <button
             type="button"
-            onClick={enter}
-            className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black"
+            onClick={start}
+            disabled={!canEnter}
+            className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            Enter Dungeon • 300K FC
+            {enter.isPending ? 'Loading battle…' : `Enter Dungeon • ${compact(data.entryCost)} FC`}
           </button>
         </div>
       </div>
@@ -115,66 +153,106 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading }:
       <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
         <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Possible Rewards</p>
         <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Forge Coins</p><p className="mt-1 font-semibold text-amber-300">450,000 FC</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Fragments</p><p className="mt-1 font-semibold text-sky-300">Epic x10</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Pet Food</p><p className="mt-1 font-semibold text-emerald-300">x25</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Eternity Keys</p><p className="mt-1 font-semibold text-fuchsia-300">x1</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Fragments</p><p className="mt-1 font-semibold text-sky-300">x{rewards.fragments}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Hero XP</p><p className="mt-1 font-semibold text-amber-300">{compact(rewards.heroXp)}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Pet Food</p><p className="mt-1 font-semibold text-emerald-300">x{rewards.petFood}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Gear Chest</p><p className="mt-1 font-semibold text-fuchsia-300">{rewards.heroChest ? `x${rewards.heroChest}` : '—'}</p></div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-[10px]">
-        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Deepest Floor</p><p className="mt-1 font-semibold text-amber-300">{TOWER_FLOOR - 1}</p></div>
-        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Attempts</p><p className="mt-1 font-semibold">3 / 3</p></div>
+        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Deepest Floor</p><p className="mt-1 font-semibold text-amber-300">{data.highestFloor}</p></div>
+        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Attempts</p><p className="mt-1 font-semibold">{data.attemptsRemaining} / {data.attemptsLimit}</p></div>
         <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Replay Reward</p><p className="mt-1 font-semibold text-slate-200">50%</p></div>
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
         <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Milestone Rewards</p>
         <div className="mt-2 space-y-1.5">
-          {[
-            { floor: 10, reward: '50,000 FC', done: true },
-            { floor: 25, reward: 'Rare Fragments x15', done: true },
-            { floor: 50, reward: 'Legendary Fragments x10', done: false },
-            { floor: 75, reward: 'Mythic Egg x1', done: false },
-            { floor: 100, reward: 'Ancestral Fragments x25', done: false },
-          ].map(item => (
-            <div key={item.floor} className={`flex items-center justify-between rounded-xl border px-2.5 py-2 text-[10px] ${item.done ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-white/10 bg-black/60'}`}>
-              <span className="font-bold text-slate-200">Floor {item.floor}</span>
-              <span className={item.done ? 'text-emerald-300' : 'text-amber-200'}>{item.reward}</span>
-            </div>
-          ))}
+          {TOWER_MILESTONES.map(item => {
+            const done = data.highestFloor >= item.floor;
+            return (
+              <div key={item.floor} className={`flex items-center justify-between rounded-xl border px-2.5 py-2 text-[10px] ${done ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-white/10 bg-black/60'}`}>
+                <span className="font-bold text-slate-200">Floor {item.floor}</span>
+                <span className={done ? 'text-emerald-300' : 'text-amber-200'}>{item.reward}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {data.history.length ? (
+        <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
+          <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Últimas tentativas</p>
+          <div className="mt-2 space-y-1.5">
+            {data.history.map(run => (
+              <div key={run.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/60 px-2.5 py-2 text-[10px]">
+                <span className="font-bold text-slate-200">Floor {run.floor}</span>
+                <span className="text-slate-500">{run.turns} turnos</span>
+                <span className={run.result === 'win' ? 'text-emerald-300' : 'text-rose-300'}>{run.result === 'win' ? 'Vitória' : 'Derrota'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {isTeamOpen ? (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/75 p-2" onClick={() => setIsTeamOpen(false)}>
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/75 p-2" onClick={() => { setIsTeamOpen(false); setSlot(null); }}>
           <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold">Select Team · {team.length}/5</h3>
-              <button type="button" aria-label="Fechar" onClick={() => setIsTeamOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
+              <button type="button" aria-label="Fechar" onClick={() => { setIsTeamOpen(false); setSlot(null); }} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
             </div>
+
+            <div className="mt-3 grid grid-cols-5 gap-1.5">
+              {[1, 2, 3, 4, 5].map(n => {
+                const hero = team.find(h => Number(h.slot) === n);
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setSlot(n)}
+                    className={`overflow-hidden rounded-xl border bg-black/70 text-left ${slot === n ? 'border-amber-300' : 'border-white/10'}`}
+                  >
+                    {hero?.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" /> : <span className="grid aspect-square w-full place-items-center text-[10px] text-slate-500">+{n}</span>}
+                    <p className="truncate px-1 py-0.5 text-[8px] font-bold text-slate-200">{hero?.name ?? 'Vazio'}</p>
+                  </button>
+                );
+              })}
+            </div>
+            {slot && team.some(h => Number(h.slot) === slot) ? (
+              <button type="button" onClick={() => unequip.mutate(slot)} className="mt-2 w-full rounded-xl border border-rose-400/40 bg-rose-500/10 py-2 text-[11px] font-bold uppercase tracking-wide text-rose-200">Remover do slot {slot}</button>
+            ) : null}
+
+            <p className="mt-3 text-[9px] uppercase tracking-[.24em] text-slate-500">{slot ? `Escolha o herói do slot ${slot}` : 'Toque em um slot e escolha o herói'}</p>
+
             {collectionLoading && !heroes.length ? (
               <p className="py-8 text-center text-xs text-slate-400">Carregando heróis…</p>
             ) : !heroes.length ? (
               <p className="py-8 text-center text-xs text-slate-400">Nenhum herói disponível.</p>
             ) : (
-              <div className="mt-3 grid max-h-[52vh] grid-cols-3 gap-2 overflow-y-auto">
+              <div className="mt-2 grid max-h-[42vh] grid-cols-3 gap-2 overflow-y-auto">
                 {heroes.map(hero => {
-                  const selected = team.includes(hero.heroId);
+                  const selected = team.some(h => h.heroId === hero.heroId);
+                  const duplicate = !selected && usedTemplates.has(templateOf(hero));
                   const rarity = normalizeRarity(hero.rarity);
                   return (
                     <button
                       type="button"
                       key={hero.heroId}
-                      onClick={() => toggleHero(hero.heroId)}
-                      className="overflow-hidden rounded-xl border bg-black text-left"
+                      disabled={duplicate || equip.isPending}
+                      onClick={() => {
+                        if (!slot) { toast.error('Selecione um slot primeiro'); return; }
+                        equip.mutate({ targetSlot: slot, heroId: hero.heroId });
+                      }}
+                      className={`overflow-hidden rounded-xl border bg-black text-left ${duplicate ? 'opacity-40' : ''}`}
                       style={{ borderColor: selected ? '#fbbf24' : RARITY_COLORS[rarity] }}
                     >
-                      {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" /> : null}
+                      {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" loading="lazy" /> : null}
                       <div className="p-1.5">
                         <p className="truncate text-[9px] font-bold">{hero.name}</p>
                         <p className="text-[8px] text-amber-200">{compact(hero.power ?? 0)}</p>
-                        {selected ? <p className="text-[8px] text-amber-300">Selecionado</p> : null}
+                        {selected ? <p className="text-[8px] text-amber-300">Na equipe</p> : duplicate ? <p className="text-[8px] text-rose-300">Duplicado</p> : null}
                       </div>
                     </button>
                   );

@@ -9,6 +9,7 @@ import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './comb
 import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
+import type {TowerBattle,TowerDashboard} from './tower';
 import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary } from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
@@ -430,3 +431,17 @@ export async function spendingEventPopupRequest(initData:string):Promise<Spendin
 export async function markSpendingEventPopupSeen(initData:string):Promise<void>{
   try{await forgeFetch('spending-event',{initData,action:'popup-seen'})}catch{/* silent: cosmetic only */}
 }
+
+/* ---------------- Tower of Eternity (solo dungeon, 100 floors) ---------------- */
+export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter'};
+const TOWER_ERRORS:Record<string,string>={TOWER_TEAM_EMPTY:'Selecione sua equipe antes de entrar na masmorra.',TOWER_NO_ATTEMPTS:'Você já usou todas as tentativas de hoje.',TOWER_DUPLICATE_HERO_TEAM:'Heróis duplicados não são permitidos na equipe.',INSUFFICIENT_FC:'FC insuficiente para entrar na masmorra.',HERO_NOT_FOUND:'Herói indisponível.',INVALID_SLOT:'Espaço inválido.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PLAYER_BANNED:'Conta suspensa.'};
+export async function towerRequest<T=TowerDashboard>(telegramInitData:string,input:TowerAction={action:'dashboard'}):Promise<T>{
+ const response=await forgeFetch('tower',{initData:telegramInitData,...input});
+ if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Torre.');
+ const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+ if(!response.ok||!payload){const raw=payload?.error||'';throw new Error(TOWER_ERRORS[raw]||raw||'Não foi possível processar a Torre da Eternidade.')}
+ return payload}
+export const fetchTowerDashboard=(initData:string)=>towerRequest<TowerDashboard>(initData,{action:'dashboard'});
+export const equipTowerHero=(initData:string,slot:number,heroId:string)=>towerRequest<TowerDashboard>(initData,{action:'equip',slot,heroId});
+export const removeTowerHero=(initData:string,slot:number)=>towerRequest<TowerDashboard>(initData,{action:'remove',slot});
+export const enterTowerFloor=(initData:string)=>towerRequest<TowerBattle>(initData,{action:'enter'});

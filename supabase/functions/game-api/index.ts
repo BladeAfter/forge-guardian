@@ -838,6 +838,29 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   boss: handleBoss,
   pets: handlePets,
   pvp: handlePvp,
+  /**
+   * Tower of Eternity (solo dungeon, 100 floors). Fully isolated from the Global Boss
+   * and from the Clan Boss: progress, attempts, FC cost, boss scaling, the turn-based
+   * simulation and the rewards all live inside the RPCs.
+   */
+  tower: async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'dashboard') return rpc(db, 'get_tower_dashboard', { p_telegram_id: user.id });
+    if (action === 'equip') {
+      const slot = Number(body.slot);
+      if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
+      if (!isUuid(body.heroId)) throw new Error('HERO_NOT_FOUND');
+      return rpc(db, 'save_tower_team_slot', { p_telegram_id: user.id, p_slot: slot, p_hero_id: body.heroId });
+    }
+    if (action === 'remove') {
+      const slot = Number(body.slot);
+      if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
+      return rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot });
+    }
+    if (action === 'enter') return rpc(db, 'tower_enter_floor', { p_telegram_id: user.id });
+    throw new Error('INVALID_ACTION');
+  },
+
   wallet: handleWallet,
   calendar: handleCalendar,
   'season-pass': handleSeasonPass,

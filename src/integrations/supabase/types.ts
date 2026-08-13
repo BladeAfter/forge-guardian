@@ -6968,6 +6968,181 @@ export type Database = {
           },
         ]
       }
+      tower_bosses: {
+        Row: {
+          base_atk: number
+          base_def: number
+          base_hp: number
+          base_speed: number
+          behavior: string
+          boss_key: string
+          created_at: string
+          floor_index: number
+          id: string
+          name: string
+          role: string
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          base_atk?: number
+          base_def?: number
+          base_hp?: number
+          base_speed?: number
+          behavior?: string
+          boss_key: string
+          created_at?: string
+          floor_index: number
+          id?: string
+          name: string
+          role?: string
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          base_atk?: number
+          base_def?: number
+          base_hp?: number
+          base_speed?: number
+          behavior?: string
+          boss_key?: string
+          created_at?: string
+          floor_index?: number
+          id?: string
+          name?: string
+          role?: string
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tower_progress: {
+        Row: {
+          attempts_date: string
+          attempts_used: number
+          created_at: string
+          current_floor: number
+          highest_floor: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts_date?: string
+          attempts_used?: number
+          created_at?: string
+          current_floor?: number
+          highest_floor?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts_date?: string
+          attempts_used?: number
+          created_at?: string
+          current_floor?: number
+          highest_floor?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tower_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tower_runs: {
+        Row: {
+          boss_key: string
+          cost_fc: number
+          created_at: string
+          first_clear: boolean
+          floor: number
+          id: string
+          result: string
+          rewards: Json
+          turns: number
+          user_id: string
+        }
+        Insert: {
+          boss_key: string
+          cost_fc?: number
+          created_at?: string
+          first_clear?: boolean
+          floor: number
+          id?: string
+          result: string
+          rewards?: Json
+          turns?: number
+          user_id: string
+        }
+        Update: {
+          boss_key?: string
+          cost_fc?: number
+          created_at?: string
+          first_clear?: boolean
+          floor?: number
+          id?: string
+          result?: string
+          rewards?: Json
+          turns?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tower_runs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tower_team_slots: {
+        Row: {
+          created_at: string
+          hero_id: string
+          id: string
+          slot: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hero_id: string
+          id?: string
+          slot: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hero_id?: string
+          id?: string
+          slot?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tower_team_slots_hero_id_fkey"
+            columns: ["hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tower_team_slots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_channel_rewards: {
         Row: {
           channel_key: string
@@ -9093,6 +9268,7 @@ export type Database = {
         Returns: Json
       }
       get_ton_wallet: { Args: { p_telegram_id: number }; Returns: Json }
+      get_tower_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_wallet_summary: { Args: { p_telegram_id: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
       global_boss_template_for_number: {
@@ -9564,6 +9740,10 @@ export type Database = {
         Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
         Returns: Json
       }
+      remove_tower_team_slot: {
+        Args: { p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
       request_ton_withdrawal: {
         Args: {
           p_amount_ton: number
@@ -9614,6 +9794,10 @@ export type Database = {
         }
         Returns: Json
       }
+      save_tower_team_slot: {
+        Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
       search_clans: {
         Args: { p_query?: string; p_telegram_id: number }
         Returns: Json
@@ -9651,6 +9835,10 @@ export type Database = {
       }
       simulate_pvp_battle: {
         Args: { a: Json; d: Json; seed: string }
+        Returns: Json
+      }
+      simulate_tower_battle: {
+        Args: { a: Json; b: Json; seed: string }
         Returns: Json
       }
       spending_event_pay_rewards: {
@@ -9694,6 +9882,36 @@ export type Database = {
         }
         Returns: string
       }
+      tower_boss_for_floor: { Args: { p_floor: number }; Returns: Json }
+      tower_ensure_progress: {
+        Args: { p_user: string }
+        Returns: {
+          attempts_date: string
+          attempts_used: number
+          created_at: string
+          current_floor: number
+          highest_floor: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tower_progress"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      tower_enter_floor: { Args: { p_telegram_id: number }; Returns: Json }
+      tower_entry_cost: { Args: { p_floor: number }; Returns: number }
+      tower_floor_rewards: {
+        Args: { p_first: boolean; p_floor: number }
+        Returns: Json
+      }
+      tower_grant_rewards: {
+        Args: { p_first: boolean; p_floor: number; p_user: string }
+        Returns: Json
+      }
+      tower_team_json: { Args: { p_user: string }; Returns: Json }
       unaccent_fallback: { Args: { v: string }; Returns: string }
       unequip_combat_hero: {
         Args: { p_slot: number; p_telegram_id: number }
