@@ -2,7 +2,15 @@
 // Everything here is button-driven: no JSON typing, no manual urls. Photos sent in the chat are
 // normalized (square, transparent-safe PNG) and stored in the private `pet-images` bucket, so the
 // creature shows up in the game (catalog, eggs, chests, rewards) with no deploy.
-import { Image } from 'https://deno.land/x/imagescript@1.2.15/mod.ts';
+// NOTE: imagescript is imported lazily — its wasm modules sometimes fail to fetch on cold boot and a
+// top-level import would crash the whole admin bot worker. Image normalization is optional.
+let ImageMod: any = null;
+async function loadImage(): Promise<any> {
+  if (ImageMod) return ImageMod;
+  const mod = await import('https://deno.land/x/imagescript@1.2.15/mod.ts');
+  ImageMod = (mod as any).Image;
+  return ImageMod;
+}
 
 export type Ctx = { chatId: number; adminId: number; messageId?: number };
 type Btn = { t: string; d: string };
@@ -79,6 +87,7 @@ export function createPetCms(d: PetCmsDeps) {
     let contentType = 'image/png';
     let ext = 'png';
     try {
+      const Image = await loadImage();
       const decoded = await Image.decode(raw);
       const side = 512;
       const scale = Math.min(side / decoded.width, side / decoded.height);
