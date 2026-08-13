@@ -168,6 +168,14 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
                   </button>
                 ) : selected.itemType === 'food' ? (
                   <p className="mt-3 text-[10px] text-slate-400">{t('inventory.useInFeed')}</p>
+                ) : selected.itemType === 'equipment' ? (
+                  <div className="mt-3 space-y-1 rounded-xl border border-white/10 bg-black/40 p-2 text-[10px] text-slate-300">
+                    <p className="uppercase tracking-[.12em] text-slate-400">
+                      {selected.slot} · {selected.kind}
+                      {selected.heroClass ? ` · ${selected.heroClass}` : ''}
+                    </p>
+                    <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> · DEF <b className="text-white">+{selected.bonusDefense ?? 0}</b> · HP <b className="text-white">+{selected.bonusHp ?? 0}</b></p>
+                  </div>
                 ) : null}
                 <button
                   disabled={busy}

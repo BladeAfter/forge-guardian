@@ -13,6 +13,11 @@ import type { InventoryItem } from './calendarRewards';
 
 const ui = (file: string) => `/assets/game/ui/${file}`;
 const chestArt = (file: string) => `/assets/game/chests/${file}`;
+/** Equipment art: `eq_<kind>_<rarity>_<tier>` maps to `<kind>-<rarity>.png`. */
+const equipmentArtFromCode = (code: string) => {
+  const parts = code.split('_'); // eq, kind, rarity, tier
+  return parts.length >= 3 && parts[0] === 'eq' ? `/assets/game/equipment/${parts[1]}-${parts[2]}.png` : null;
+};
 
 /** Official chest art, keyed by the rarity token found in the item code. */
 const CHEST_BY_RARITY: Record<string, string> = {
