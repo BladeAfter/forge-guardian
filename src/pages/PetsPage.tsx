@@ -5,7 +5,7 @@ import { formatTon } from '../economy';
 import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
-import { claimNftReward, fetchNftReward, petRequest } from '../services';
+import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
