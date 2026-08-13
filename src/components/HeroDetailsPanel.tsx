@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import type { PvpHero } from '../pvp';
 import type { FusionHero } from '../heroFusion';
 import { starRow } from '../heroFusion';
 import { HeroEquipmentSlots } from './HeroEquipmentSlots';
+import type { HeroEquipmentState } from '../heroEquipment';
 import { useT } from '../LanguageContext';
 
 const RARITY_COLOR: Record<string, string> = {
@@ -10,9 +12,11 @@ const RARITY_COLOR: Record<string, string> = {
   legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee',
 };
 
-/** Read-only hero sheet: stats come from the same rows used by PvP/Boss. */
-export function HeroDetailsPanel({ hero, state, maxStars, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; onClose: () => void }) {
+/** Hero sheet: stats come from the same rows used by PvP/Boss, equipment included. */
+export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; telegramInitData: string; onClose: () => void }) {
   const t = useT();
+  const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
+
   const stars = state?.stars ?? hero.stars ?? 0;
   const maxLevel = state?.maxLevel ?? null;
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
