@@ -519,16 +519,43 @@ export async function claimNftReward(telegramInitData:string):Promise<NftClaimRe
 export type NftRewardItem={positionId:string;serial:number;name:string;rarity:string;level:number;image?:string|null;tierTon:number;dailyYieldTon:number;availableTon:number;lifetimeEarnedTon:number;roiReached?:boolean;minClaimTon:number;canClaim:boolean;lastClaimAt?:string|null};
 export type NftRewardList={totalSupply:number;items:NftRewardItem[]};
 
+/**
+ * Loads the NFT EXCLUSIVE pets owned by the player. `NFT_NOT_FOUND` (or the
+ * legacy single-unit payload with `hasNft:false`) is an EMPTY state, never an
+ * error. If the list route is unavailable we fall back to the single-unit route
+ * so an NFT that already exists in MY PETS is still shown here.
+ */
 export async function fetchMyNftRewards(telegramInitData:string):Promise<NftRewardList>{
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'mine'});
   const payload=await response.json().catch(()=>null) as NftRewardList&{error?:string}|null;
-  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível carregar seus NFTs.'));
-  return {totalSupply:payload.totalSupply??10,items:payload.items??[]};
+  if(response.ok&&payload&&Array.isArray(payload.items))return {totalSupply:payload.totalSupply??10,items:payload.items};
+  const code=payload?.error||'';
+  if(code==='NFT_NOT_FOUND')return {totalSupply:payload?.totalSupply??10,items:[]};
+  console.error('[NFT LIST FAILED]',{status:response.status,error:code||null});
+  // Fallback: reuse the single-unit endpoint (same owner resolution, same data).
+  try{
+    const single=await fetchNftReward(telegramInitData);
+    if(!single.hasNft)return {totalSupply:single.totalSupply??10,items:[]};
+    return {totalSupply:single.totalSupply??10,items:[{
+      positionId:'single',serial:single.serial??1,name:'NFT EXCLUSIVE',rarity:'nft_exclusive',level:1,image:null,
+      tierTon:0,dailyYieldTon:single.dailyYieldTon??0,availableTon:single.availableTon??0,
+      lifetimeEarnedTon:single.lifetimeEarnedTon??0,minClaimTon:single.minClaimTon??0,
+      canClaim:Boolean(single.canClaim),lastClaimAt:single.lastClaimAt??null,
+    }]};
+  }catch(fallbackError){
+    console.error('[NFT FALLBACK FAILED]',fallbackError);
+    throw new Error(nftError(code,'Não foi possível carregar seus NFTs.'));
+  }
 }
 
 export async function claimNftPosition(telegramInitData:string,positionId:string):Promise<NftRewardList&{amountTon:number}>{
+  if(positionId==='single'){
+    const single=await claimNftReward(telegramInitData);
+    const list=await fetchMyNftRewards(telegramInitData);
+    return {...list,amountTon:single.amountTon};
+  }
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim-one',positionId});
   const payload=await response.json().catch(()=>null) as NftRewardList&{amountTon:number;error?:string}|null;
   if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
-  return payload;
+  return {totalSupply:payload.totalSupply??10,items:payload.items??[],amountTon:payload.amountTon??0};
 }

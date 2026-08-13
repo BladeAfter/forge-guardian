@@ -1210,12 +1210,18 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
    */
   nft: async (db, user, body) => {
     const action = String(body.action || 'my');
-    if (action === 'my') return rpc(db, 'nft_my_reward', { p_telegram_id: user.id });
-    if (action === 'claim') return rpc(db, 'nft_claim_reward', { p_telegram_id: user.id });
-    // Player-only list of the NFTs they own (no pool data is ever returned).
-    if (action === 'mine') return rpc(db, 'nft_my_rewards_json', { p_telegram_id: user.id });
-    if (action === 'claim-one') {
-      return rpc(db, 'nft_claim_position', { p_telegram_id: user.id, p_position_id: String(body.positionId ?? '') });
+    try {
+      if (action === 'my') return await rpc(db, 'nft_my_reward', { p_telegram_id: user.id });
+      if (action === 'claim') return await rpc(db, 'nft_claim_reward', { p_telegram_id: user.id });
+      // Player-only list of the NFTs they own (no pool data is ever returned).
+      if (action === 'mine') return await rpc(db, 'nft_my_rewards_json', { p_telegram_id: user.id });
+      if (action === 'claim-one') {
+        return await rpc(db, 'nft_claim_position', { p_telegram_id: user.id, p_position_id: String(body.positionId ?? '') });
+      }
+    } catch (error) {
+      // The real backend reason must be observable; the UI keeps a friendly text.
+      console.error('[NFT]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
     }
     throw new Error('Ação inválida.');
   },
