@@ -53,6 +53,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
+  // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
+  const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
+
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
