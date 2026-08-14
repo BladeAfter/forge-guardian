@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Swords, X } from 'lucide-react';
+import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
