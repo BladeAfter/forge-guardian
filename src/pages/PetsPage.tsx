@@ -414,9 +414,6 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           </div>
         )}
 
-        {tab === 'breeding' && <BreedingSection initData={telegramInitData} />}
-
-        {tab === 'expeditions' && <ExpeditionsSection initData={telegramInitData} />}
 
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
