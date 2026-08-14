@@ -1339,7 +1339,42 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     throw new Error('Ação inválida.');
   },
+
+  /**
+   * NFT EXCLUSIVE HEROES store (1/1 supply each). Same rules as the NFT pets:
+   * every purchase is resolved server-side and atomically, and the daily yield is
+   * paid through the existing hero TON mining (with the same ROI cap).
+   */
+  'nft-hero': async (db, user, body) => {
+    const action = String(body.action || 'shop');
+    try {
+      if (action === 'shop') return await rpc(db, 'nft_hero_shop_json', { p_telegram_id: user.id });
+      if (action === 'mine') return await rpc(db, 'nft_hero_my_json', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_hero_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nfth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_hero_create_order', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nfth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyNftHeroPurchases(db, user);
+    } catch (error) {
+      console.error('[NFT HERO]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
+    }
+    throw new Error('Ação inválida.');
+  },
 };
+
 
 
 async function healthReport() {
