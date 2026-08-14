@@ -35,6 +35,7 @@ export type HeroMiningClaimResult = HeroMiningState & { ok: boolean; claimedTon:
 /** Daily rate of a single hero, taken from the server rate table. */
 export function heroDailyRate(rates: Record<string, number> | undefined, rarity: string | null | undefined): number {
   if (!rates) return 0;
+  if (!isMiningRarity(rarity)) return 0;
   return Number(rates[String(rarity ?? '').toLowerCase()] ?? 0);
 }
 
@@ -65,4 +66,12 @@ export function projectUnclaimed(state: HeroMiningState | undefined, nowMs: numb
 export function miningActive(state: HeroMiningState | undefined): boolean {
   if (!state) return false;
   return state.enabled && Number(state.investedTon || 0) > 0 && Number(state.remainingTon || 0) > 0;
+}
+
+/** Rarities allowed to mine TON (mirrors the server gate `hero_mining_rarity_eligible`). */
+export const MINING_ELIGIBLE_RARITIES = ['rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
+
+/** Common/Uncommon never mine, no matter the configured rate or the player's investment. */
+export function isMiningRarity(rarity: string | null | undefined): boolean {
+  return (MINING_ELIGIBLE_RARITIES as readonly string[]).includes(String(rarity ?? '').toLowerCase());
 }
