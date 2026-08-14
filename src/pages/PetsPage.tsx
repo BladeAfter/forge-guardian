@@ -863,7 +863,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
           </button>
         ) : null}
         <div className="mt-5 inline-flex flex-col rounded-2xl border border-amber-200/25 bg-black/50 px-6 py-3">
-          <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">Limited Collection</span>
+          <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">{t('nft.limitedCollection')}</span>
           <span className="text-lg font-black text-amber-100">{data?.totalSupply ?? 10} NFTs Total</span>
         </div>
       </section>

@@ -3,6 +3,8 @@ import type { LocaleBundle } from './registry';
 /** nft / breeding / expeditions namespaces (NFT shops, breeding lab, pet expeditions). */
 export const nftx: LocaleBundle = {
   en: {
+    'boss.teamDamage': 'TEAM DAMAGE',
+    'heroes.rarityLabel': 'RARITY',
     'expeditions.successMsg': 'SUCCESS! Rewards: {rewards}',
     'expeditions.failMsg': 'FAILED. Consolation reward: {rewards}',
     'expeditions.none': 'none',
@@ -95,6 +97,8 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   pt: {
+    'boss.teamDamage': 'DANO DA EQUIPE',
+    'heroes.rarityLabel': 'RARIDADE',
     'expeditions.successMsg': 'SUCESSO! Recompensas: {rewards}',
     'expeditions.failMsg': 'FALHOU. Recompensa de consolação: {rewards}',
     'expeditions.none': 'nenhuma',
@@ -187,6 +191,8 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   es: {
+    'boss.teamDamage': 'DAÑO DEL EQUIPO',
+    'heroes.rarityLabel': 'RAREZA',
     'expeditions.successMsg': '¡ÉXITO! Recompensas: {rewards}',
     'expeditions.failMsg': 'FALLÓ. Recompensa de consolación: {rewards}',
     'expeditions.none': 'ninguna',
@@ -279,6 +285,8 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   ru: {
+    'boss.teamDamage': 'УРОН ОТРЯДА',
+    'heroes.rarityLabel': 'РЕДКОСТЬ',
     'expeditions.successMsg': 'УСПЕХ! Награды: {rewards}',
     'expeditions.failMsg': 'НЕУДАЧА. Утешительная награда: {rewards}',
     'expeditions.none': 'нет',
@@ -371,6 +379,8 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   tr: {
+    'boss.teamDamage': 'TAKIM HASARI',
+    'heroes.rarityLabel': 'NADİRLİK',
     'expeditions.successMsg': 'BAŞARILI! Ödüller: {rewards}',
     'expeditions.failMsg': 'BAŞARISIZ. Teselli ödülü: {rewards}',
     'expeditions.none': 'yok',

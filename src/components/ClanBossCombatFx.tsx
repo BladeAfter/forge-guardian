@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useT } from '../LanguageContext';
 
 /**
  * Purely presentational combat FX for the Clan Boss screen.
@@ -70,7 +71,7 @@ export function FloatingDamage({ events }: { events: CombatEvent[] }) {
               <b className={event.kind === 'BOSS_ATTACK' ? 'cb-float-boss' : event.critical ? 'cb-float-crit-value' : 'cb-float-player'}>
                 -{event.label ?? formatCompact(event.damage ?? 0)}
               </b>
-              {event.kind === 'BOSS_ATTACK' ? <p className="cb-float-tag text-rose-200/80">TEAM DAMAGE</p> : null}
+              {event.kind === 'BOSS_ATTACK' ? <p className="cb-float-tag text-rose-200/80">{t('boss.teamDamage')}</p> : null}
             </div>
           )}
         </div>
