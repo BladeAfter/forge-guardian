@@ -18,6 +18,8 @@ export type PetCatalogItem = {
   id: string; name: string; slug: string; species: string; category: string; description: string;
   basePassives: PetBuffs; activeSkill: Record<string, unknown> | null;
   images: Record<'baby' | 'young' | 'adult' | 'ancestral', string>;
+  /** Level-based artwork picked by the server (visual evolution). */
+  image?: string | null;
   rarity?: PetRarity | null;
   discovered: boolean; bestRarity: PetRarity | null; bestLevel: number | null; sources?: string[];
 };
@@ -27,6 +29,8 @@ export type PlayerPet = {
   rarity: PetRarity; level: number; maxLevel: number; xp: number; xpRequired: number; isMaxLevel: boolean;
   evolutionTier: number; evolutionLabel: string; evolutionStage: string;
   fragments: number; isActive: boolean; image: string;
+  /** Cosmetic form index (0 = base ... 5 = final), one per 10 levels. */
+  visualStage?: number;
   buffs: PetBuffs; primaryBuffKey: string | null; primaryBuffValue: number;
   secondaryBuffs: PetSecondaryBuff[]; power: number; activeSkill: Record<string, unknown> | null;
   nextEvolution: PetNextEvolution | null; canEvolve: boolean;

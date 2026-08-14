@@ -5841,6 +5841,12 @@ export type Database = {
           image_adult_url: string | null
           image_ancestral_url: string | null
           image_baby_url: string | null
+          image_base_url: string | null
+          image_evo1_url: string | null
+          image_evo2_url: string | null
+          image_evo3_url: string | null
+          image_evo4_url: string | null
+          image_final_url: string | null
           image_young_url: string | null
           is_enabled: boolean
           is_nft_exclusive: boolean
@@ -5872,6 +5878,12 @@ export type Database = {
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
+          image_base_url?: string | null
+          image_evo1_url?: string | null
+          image_evo2_url?: string | null
+          image_evo3_url?: string | null
+          image_evo4_url?: string | null
+          image_final_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
           is_nft_exclusive?: boolean
@@ -5903,6 +5915,12 @@ export type Database = {
           image_adult_url?: string | null
           image_ancestral_url?: string | null
           image_baby_url?: string | null
+          image_base_url?: string | null
+          image_evo1_url?: string | null
+          image_evo2_url?: string | null
+          image_evo3_url?: string | null
+          image_evo4_url?: string | null
+          image_final_url?: string | null
           image_young_url?: string | null
           is_enabled?: boolean
           is_nft_exclusive?: boolean
@@ -10206,6 +10224,10 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
+      admin_pet_stage_images: {
+        Args: { p_admin_id: number; p_pet_id: string }
+        Returns: Json
+      }
       admin_player_channel_claims: {
         Args: { p_admin_id: number; p_player: string }
         Returns: Json
@@ -10531,6 +10553,15 @@ export type Database = {
       admin_set_pet_setting: {
         Args: { p_key: string; p_value: Json }
         Returns: undefined
+      }
+      admin_set_pet_stage_image: {
+        Args: {
+          p_admin_id: number
+          p_pet_id: string
+          p_stage: string
+          p_url: string
+        }
+        Returns: Json
       }
       admin_set_player_active_pet: {
         Args: { p_admin_id: number; p_player_pet_id: string; p_reason?: string }
@@ -12177,6 +12208,11 @@ export type Database = {
       }
       pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
       pet_total_xp: { Args: { p_level: number; p_xp: number }; Returns: number }
+      pet_visual_image: {
+        Args: { p_level: number; p_pet_id: string }
+        Returns: string
+      }
+      pet_visual_index: { Args: { p_level: number }; Returns: number }
       pet_xp_capacity: {
         Args: { p_level: number; p_xp: number }
         Returns: number

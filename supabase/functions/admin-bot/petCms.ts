@@ -225,11 +225,37 @@ export function createPetCms(d: PetCmsDeps) {
     ].join('\n');
     return photoOr(ctx, p.image_baby_url, text, kb([
       [{ t: '🖼 Trocar foto', d: 'pw:pf:image' }, { t: '✏️ Nome', d: 'pw:pf:name' }],
+      [{ t: '🧬 FORMAS VISUAIS (1/10/20/30/40/50)', d: 'pw:pstage' }],
       [{ t: '⭐ Raridade', d: 'pw:pf:rarity' }, { t: '🎲 Novo atributo', d: 'pw:proll' }],
       [{ t: '📦 Fontes', d: 'pw:psrc' }],
       [{ t: `👁 Catálogo ${p.show_in_catalog ? 'ON→OFF' : 'OFF→ON'}`, d: 'pw:ptog:cat' },
         { t: `${p.is_enabled ? '⛔ Desativar' : '✅ Ativar'}`, d: 'pw:ptog:on' }],
       [{ t: '📚 LISTA', d: 'pw:list:0' }],
+      nav('pw:hub'),
+    ]));
+  }
+
+  /** Cosmetic artwork per 10 levels — never touches rarity, buffs or stats. */
+  const STAGES: Array<[string, string, string]> = [
+    ['base', 'Forma Base', 'Nv 1–9'],
+    ['evo1', 'Evolução I', 'Nv 10–19'],
+    ['evo2', 'Evolução II', 'Nv 20–29'],
+    ['evo3', 'Evolução III', 'Nv 30–39'],
+    ['evo4', 'Evolução IV', 'Nv 40–49'],
+    ['final', 'Forma Final', 'Nv 50'],
+  ];
+
+  async function stageMenu(ctx: Ctx, petId: string) {
+    const st = await rpc('admin_pet_stage_images', { p_admin_id: ctx.adminId, p_pet_id: petId });
+    await setSession(ctx, 'petcms', 'pet_stage', { mode: 'pet_edit', petId } as Record<string, unknown>);
+    const lines = STAGES.map(([key, label, range]) => `${st?.[key] ? '✅' : '➖'} <b>${label}</b> · ${range}`);
+    const text = ['🧬 <b>FORMAS VISUAIS</b>', `<b>${esc(st?.name || '')}</b>`, '',
+      ...lines, '',
+      'A arte troca sozinha a cada 10 níveis. Raridade, buffs e poder não mudam.',
+      'Se uma forma ficar vazia, o jogo usa a forma anterior automaticamente.'].join('\n');
+    return send(ctx, text, kb([
+      ...STAGES.map(([key, label]) => [{ t: `🖼 ${label}`, d: `pw:pstg:${key}` }]),
+      [{ t: '📚 LISTA DE PETS', d: 'pw:list:0' }],
       nav('pw:hub'),
     ]));
   }
@@ -406,6 +432,17 @@ export function createPetCms(d: PetCmsDeps) {
       }
       return step(ctx, 'pet_edit_name', d2, '✏️ Envie o novo <b>nome</b>:');
     }
+    if (action === 'pstage') {
+      if (!draft.petId) return petList(ctx, 0);
+      return stageMenu(ctx, draft.petId);
+    }
+    if (action === 'pstg') {
+      if (!draft.petId) return petList(ctx, 0);
+      const stage = STAGES.find(([k]) => k === arg);
+      if (!stage) return stageMenu(ctx, draft.petId);
+      return step(ctx, `pet_stage_image:${arg}`, { mode: 'pet_edit', petId: draft.petId },
+        `🖼 Envie a imagem da <b>${stage[1]}</b> (${stage[2]}) nesta conversa.`);
+    }
     if (action === 'ptog') {
       if (!draft.petId) return petList(ctx, 0);
       const p = await rpc('admin_pet_detail_cms', { p_admin_id: ctx.adminId, p_pet_id: draft.petId });
@@ -528,6 +565,20 @@ export function createPetCms(d: PetCmsDeps) {
       const v = Number(String(value).replace(/[^\d.,-]/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.'));
       return Number.isFinite(v) && v >= 0 ? v : null;
     };
+    if (s.startsWith('pet_stage_image:')) {
+      const stage = s.split(':')[1];
+      if (/^(remover|remove|limpar|-)$/i.test(value.trim()) && draft.petId) {
+        await rpc('admin_set_pet_stage_image', { p_admin_id: ctx.adminId, p_pet_id: draft.petId, p_stage: stage, p_url: null });
+        await send(ctx, '🗑 Forma visual removida (usa a forma anterior).');
+        return stageMenu(ctx, draft.petId);
+      }
+      if (/^https?:\/\//.test(value.trim()) && draft.petId) {
+        await rpc('admin_set_pet_stage_image', { p_admin_id: ctx.adminId, p_pet_id: draft.petId, p_stage: stage, p_url: value.trim() });
+        await send(ctx, '✅ Forma visual atualizada.');
+        return stageMenu(ctx, draft.petId);
+      }
+      return step(ctx, s, draft, '🖼 Envie uma <b>imagem</b>, uma URL https, ou "remover".');
+    }
     switch (s) {
       case 'pet_name':
         if (value.length < 2) return step(ctx, 'pet_name', draft, '⚠️ Nome muito curto. Digite o nome do pet:');
@@ -570,6 +621,12 @@ export function createPetCms(d: PetCmsDeps) {
   async function photo(ctx: Ctx, s: string, draft: PetDraft, fileId: string) {
     const url = await uploadPhoto(fileId, draft.name || 'pet');
     draft.image = url;
+    if (s.startsWith('pet_stage_image:') && draft.petId) {
+      const stage = s.split(':')[1];
+      await rpc('admin_set_pet_stage_image', { p_admin_id: ctx.adminId, p_pet_id: draft.petId, p_stage: stage, p_url: url });
+      await send(ctx, '✅ Forma visual atualizada — já aparece no jogo.');
+      return stageMenu(ctx, draft.petId);
+    }
     if (s === 'pet_edit_image' && draft.petId) {
       await send(ctx, '✅ Foto atualizada — já aparece no jogo.');
       return applyPet(ctx, draft.petId, { image_url: url });
