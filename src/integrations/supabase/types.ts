@@ -6690,6 +6690,7 @@ export type Database = {
         Row: {
           activity_type: string
           created_at: string
+          game_day: string | null
           id: string
           idempotency_key: string
           points: number
@@ -6700,6 +6701,7 @@ export type Database = {
         Insert: {
           activity_type: string
           created_at?: string
+          game_day?: string | null
           id?: string
           idempotency_key: string
           points: number
@@ -6710,6 +6712,7 @@ export type Database = {
         Update: {
           activity_type?: string
           created_at?: string
+          game_day?: string | null
           id?: string
           idempotency_key?: string
           points?: number
@@ -9621,6 +9624,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      activity_daily_progress: { Args: { p_user_id: string }; Returns: Json }
+      activity_rewards_config: { Args: never; Returns: Json }
       ad_reward_begin: { Args: { p_telegram_id: number }; Returns: Json }
       ad_reward_claim: {
         Args: { p_source?: string; p_telegram_id: number; p_view_id?: string }
@@ -10345,6 +10350,15 @@ export type Database = {
           p_quantity: number
           p_ref: string
           p_type: string
+        }
+        Returns: Json
+      }
+      admin_set_activity_reward: {
+        Args: {
+          p_activity: string
+          p_admin_id: number
+          p_field: string
+          p_value: number
         }
         Returns: Json
       }
@@ -12281,6 +12295,10 @@ export type Database = {
           p_event_type: string
           p_purchase_id: string
         }
+        Returns: Json
+      }
+      record_game_activity: {
+        Args: { p_activity: string; p_reference_id?: string; p_user_id: string }
         Returns: Json
       }
       record_global_boss_damage: {
