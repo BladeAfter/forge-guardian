@@ -11894,6 +11894,16 @@ export type Database = {
         }
         Returns: Json
       }
+      register_spending_event_purchase: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_source_transaction_id: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       remove_pvp_team_slot: {
         Args: { p_slot: number; p_team_type: string; p_telegram_id: number }
         Returns: Json
@@ -12008,6 +12018,7 @@ export type Database = {
         Args: { a: Json; b: Json; seed: string }
         Returns: Json
       }
+      spending_event_backfill_nft_purchases: { Args: never; Returns: Json }
       spending_event_pay_rewards: {
         Args: { p_event_id: string }
         Returns: Json
