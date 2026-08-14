@@ -1571,8 +1571,9 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
       return rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
     }
-
+    throw new Error('INVALID_ACTION');
   },
+
 };
 
 
