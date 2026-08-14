@@ -883,7 +883,15 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
     const source = ['calendar', 'shop', 'pass', 'mission', 'event'].includes(String(body.source)) ? String(body.source) : 'calendar';
     return rpc(db, 'open_hero_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId, p_source: source });
   }
+  if (action === 'summon-hero') {
+    // 5 fragments -> 1 random common/uncommon hero. Cost, odds, roll and the new
+    // hero instance are all resolved atomically inside the RPC (idempotent).
+    const key = String(body.idempotencyKey || crypto.randomUUID());
+    if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
+    return rpc(db, 'summon_hero_with_fragments', { p_telegram_id: user.id, p_idempotency_key: `fragment_summon:${user.id}:${key}` });
+  }
   if (action === 'inventory') return rpc(db, 'get_player_inventory', { p_telegram_id: user.id });
+
   if (action !== 'dashboard') throw new Error('Ação inválida.');
   return rpc(db, 'get_calendar_dashboard', { p_telegram_id: user.id });
 }
