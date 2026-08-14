@@ -19,10 +19,12 @@ import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { useT, useLanguage } from '../LanguageContext';
 
 
-type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog' | 'breeding' | 'expeditions';
+type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog', breeding: 'pets.tabBreeding', expeditions: 'pets.tabExpeditions' };
-const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG', breeding: '🧬 BREEDING', expeditions: '🗺️ EXPEDITIONS' };
+type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions';
+
+const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
+const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
