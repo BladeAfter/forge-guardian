@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { realtimeSupabase as supabase } from './realtimeClient';
 
-import type { ChannelRewards, RewardHistory } from './services';
+import type { ActivityProgress, ChannelRewards, RewardHistory } from './services';
 import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, activityProgressRequest,communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
 import type { MarketBrowse, MarketCurrency, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
 
