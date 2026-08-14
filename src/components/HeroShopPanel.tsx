@@ -148,6 +148,15 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
       queryClient.invalidateQueries({ queryKey: ['player-inventory'] }),
       queryClient.invalidateQueries({ queryKey: ['wallet-summary'] }),
       queryClient.invalidateQueries({ queryKey: ['ton-wallet'] }),
+      // Escrow: listed items leave the collection/backpack immediately, everywhere they are shown.
+      queryClient.invalidateQueries({ queryKey: ['hero-mining'] }),
+      queryClient.invalidateQueries({ queryKey: ['hero-equipment'] }),
+      queryClient.invalidateQueries({ queryKey: ['hero-fusion'] }),
+      queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }),
+      queryClient.invalidateQueries({ queryKey: ['boss-combat'] }),
+      queryClient.invalidateQueries({ queryKey: ['tower-dashboard'] }),
+      queryClient.invalidateQueries({ queryKey: ['breeding'] }),
+      queryClient.invalidateQueries({ queryKey: ['expeditions'] }),
     ]);
   };
 
