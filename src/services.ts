@@ -512,11 +512,12 @@ export type NftRewardState={hasNft:boolean;serial?:number;totalSupply:number;dai
 export type NftClaimResult=NftRewardState&{ok:boolean;claimId:string;amountTon:number};
 
 const NFT_ERRORS:Record<string,string>={
-  NFT_NOT_FOUND:'Nenhum NFT EXCLUSIVE ativo nesta conta.',
-  CLAIM_TOO_SMALL:'Valor acumulado ainda muito baixo para resgatar.',
-  POOL_INSUFFICIENT:'Pagamento temporariamente indisponível. Tente novamente mais tarde.',
+  NFT_NOT_FOUND:'Acesso inválido.',
+  CLAIM_TOO_SMALL:'Nenhum TON disponível para resgate ainda.',
+  POOL_INSUFFICIENT:'Nenhum TON disponível para resgate ainda.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
 };
+
 const nftError=(code:string,fallback:string)=>NFT_ERRORS[code]??fallback;
 
 export async function fetchNftReward(telegramInitData:string):Promise<NftRewardState>{
