@@ -416,12 +416,24 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     fn = 'get_hero_fusion_dashboard';
   } else if (action === 'fuse') {
     // Every fusion rule (ownership, same hero_key, copies, FC, locks) is enforced inside the RPC.
+    // `useFragments` pays the step with universal fragments instead of hero copies (never both).
     const materials = Array.isArray(body.materialIds) ? body.materialIds : [];
-    if (!isUuid(body.mainHeroId) || !materials.length || materials.length > 5 || !materials.every((id: unknown) => isUuid(id))) {
+    const useFragments = body.useFragments === true;
+    if (!isUuid(body.mainHeroId)) throw new Error('Seleção de fusão inválida.');
+    if (!useFragments && (!materials.length || materials.length > 5 || !materials.every((id: unknown) => isUuid(id)))) {
       throw new Error('Seleção de fusão inválida.');
     }
+    const fuseKey = String(body.idempotencyKey || crypto.randomUUID());
+    if (fuseKey.length < 8 || fuseKey.length > 100) throw new Error('Chave de requisição inválida.');
     fn = 'fuse_heroes';
-    args = { ...args, p_main_hero_id: body.mainHeroId, p_material_ids: materials };
+    args = {
+      ...args,
+      p_main_hero_id: body.mainHeroId,
+      p_material_ids: useFragments ? [] : materials,
+      p_use_fragments: useFragments,
+      p_idempotency_key: `hero_fusion:${user.id}:${fuseKey}`,
+    };
+
   } else if (action === 'rarity-fusion') {
     // Rarity fusion (5 heroes of the same rarity -> next rarity). Config/odds live in game_settings.
     fn = 'get_rarity_fusion_dashboard';
