@@ -10,6 +10,7 @@ import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
 import { PetCompanion } from './PetCompanion';
 import { activePetBonuses } from '../petBonuses';
+import { useT } from '../LanguageContext';
 
 type Props = {
   balance: number;
@@ -29,6 +30,7 @@ const normalizeRarity = (value?: string): HeroRarity => {
 };
 
 export function TowerOfEternityPanel({ balance, collection, collectionLoading, telegramInitData }: Props) {
+  const t = useT();
   const q = useQueryClient();
   const initData = telegramInitData ?? '';
   const tower = useTowerDashboard(initData || null, Boolean(initData));
@@ -57,32 +59,32 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const equip = useMutation({
     mutationFn: ({ targetSlot, heroId }: { targetSlot: number; heroId: string }) => equipTowerHero(initData, targetSlot, heroId),
     onSuccess: next => { setDashboard(next); setSlot(null); },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao equipar herói'),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.equipFailed')),
   });
   const unequip = useMutation({
     mutationFn: (targetSlot: number) => removeTowerHero(initData, targetSlot),
     onSuccess: next => setDashboard(next),
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao remover herói'),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.unequipFailed')),
   });
   const enter = useMutation({
     mutationFn: () => enterTowerFloor(initData),
     onSuccess: async result => { setBattle(result); setDashboard(result.dashboard); await refresh(); },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : 'Não foi possível entrar na masmorra'),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.enterFailed')),
   });
 
   if (battle) return <TowerBattleArena battle={battle} onContinue={async () => { setBattle(null); await refresh(); }} />;
 
   if (!initData) {
-    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-6 text-center text-xs text-slate-400">Abra o jogo pelo Telegram para acessar a Torre da Eternidade.</section>;
+    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-6 text-center text-xs text-slate-400">{t('tower.telegramOnly')}</section>;
   }
   if (tower.isLoading && !data) {
-    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-8 text-center text-xs text-slate-400">Abrindo a Torre da Eternidade…</section>;
+    return <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-8 text-center text-xs text-slate-400">{t('tower.opening')}</section>;
   }
   if (tower.error || !data) {
     return (
       <section className="rounded-3xl border border-amber-400/25 bg-black/55 p-8 text-center">
-        <p className="text-xs text-slate-300">{tower.error instanceof Error ? tower.error.message : 'Não foi possível carregar a Torre.'}</p>
-        <button type="button" onClick={() => void tower.refetch()} className="mt-4 rounded-xl border border-amber-300/40 px-5 py-3 text-[11px] font-black uppercase tracking-[.12em] text-amber-200">Tentar novamente</button>
+        <p className="text-xs text-slate-300">{tower.error instanceof Error ? tower.error.message : t('tower.loadFailed')}</p>
+        <button type="button" onClick={() => void tower.refetch()} className="mt-4 rounded-xl border border-amber-300/40 px-5 py-3 text-[11px] font-black uppercase tracking-[.12em] text-amber-200">{t('tower.tryAgain')}</button>
       </section>
     );
   }
@@ -96,9 +98,9 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const canEnter = !enter.isPending;
 
   const start = () => {
-    if (!team.length) { toast.error('Selecione sua equipe primeiro'); setIsTeamOpen(true); return; }
-    if (data.attemptsRemaining <= 0) { toast.error('Sem tentativas hoje'); return; }
-    if (fc < data.entryCost) { toast.error('FC insuficiente para entrar na masmorra'); return; }
+    if (!team.length) { toast.error(t('tower.selectTeamFirst')); setIsTeamOpen(true); return; }
+    if (data.attemptsRemaining <= 0) { toast.error(t('tower.noAttemptsToday')); return; }
+    if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
     enter.mutate();
   };
 
@@ -108,10 +110,10 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
         <img src={theme.arena} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30" />
         <div className="pointer-events-none absolute inset-0" style={{ background: theme.stage, opacity: .78 }} />
         <div className="relative text-center">
-          <p className="text-[10px] uppercase tracking-[.32em] text-amber-300/80">Solo Dungeon • {data.totalFloors} Floors</p>
-          <h3 className="mt-1 text-xl font-black uppercase tracking-wide text-amber-200">Tower of Eternity</h3>
+          <p className="text-[10px] uppercase tracking-[.32em] text-amber-300/80">{t('tower.solo')} • {data.totalFloors} {t('tower.floorsSuffix')}</p>
+          <h3 className="mt-1 text-xl font-black uppercase tracking-wide text-amber-200">{t('tower.title')}</h3>
           <p className="mt-2 text-[11px] font-bold text-slate-200">
-            Floor <span className="text-amber-300">{data.floor}</span> / {data.totalFloors}
+            {t('tower.floorLabel')} <span className="text-amber-300">{data.floor}</span> / {data.totalFloors}
           </p>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/70">
             <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-200" style={{ width: `${(data.floor / data.totalFloors) * 100}%` }} />
@@ -120,30 +122,30 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
 
         <div className={`relative mt-4 overflow-hidden rounded-2xl border ${theme.border} bg-black/55 p-3 text-center`}>
           <div className="pointer-events-none absolute inset-0" style={{ background: theme.aura }} />
-          <p className="relative text-[9px] uppercase tracking-[.3em] text-slate-400">Boss do Andar</p>
+          <p className="relative text-[9px] uppercase tracking-[.3em] text-slate-400">{t('tower.floorBoss')}</p>
           <img src={theme.art} alt={boss.name} className="relative mx-auto mt-1 h-[132px] w-auto object-contain" style={{ filter: theme.glow }} loading="lazy" />
           <p className={`relative mt-1 text-base font-bold ${theme.accent}`}>{boss.name}</p>
-          <p className="relative text-[9px] uppercase tracking-[.2em] text-slate-500">Tier {boss.tier} · {boss.role}</p>
+          <p className="relative text-[9px] uppercase tracking-[.2em] text-slate-500">{t('tower.tierRole', { tier: boss.tier, role: boss.role })}</p>
         </div>
 
         {activePet ? (
           <div className="relative">
-            <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label="Pet Buff Active" />
+            <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label={t('tower.petBuffActive')} />
           </div>
         ) : null}
 
         <div className="relative mt-3 grid grid-cols-3 gap-2 text-[10px]">
           <div className="rounded-2xl bg-black/65 p-2.5">
-            <p className="text-slate-400">Recommended Power</p>
+            <p className="text-slate-400">{t('tower.recommendedPower')}</p>
             <p className="mt-1 font-semibold text-amber-300">{compact(boss.recommendedPower)}</p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
-            <p className="text-slate-400">Entry Cost</p>
+            <p className="text-slate-400">{t('tower.entryCost')}</p>
             <p className={`mt-1 font-semibold ${balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300'}`}>{compact(data.entryCost)} FC</p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
-            <p className="text-slate-400">{data.firstClear ? 'First Clear' : 'Replay'}</p>
-            <p className="mt-1 font-semibold text-emerald-300">Fragments x{rewards.fragments}</p>
+            <p className="text-slate-400">{data.firstClear ? t('tower.firstClear') : t('tower.replay')}</p>
+            <p className="mt-1 font-semibold text-emerald-300">{t('tower.fragmentsX', { count: rewards.fragments })}</p>
           </div>
         </div>
 
@@ -153,14 +155,14 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             onClick={() => setIsRankingOpen(true)}
             className="min-h-11 rounded-2xl border border-amber-300/40 bg-amber-400/10 text-xs font-bold uppercase tracking-wide text-amber-300"
           >
-            🏆 Ranking
+            🏆 {t('tower.ranking')}
           </button>
           <button
             type="button"
             onClick={() => setIsTeamOpen(true)}
             className="min-h-11 rounded-2xl border border-amber-400/40 bg-amber-400/10 text-xs font-bold uppercase tracking-wide text-amber-200"
           >
-            Select Team · {team.length}/5{team.length ? ` · ${compact(data.teamPower)}` : ''}
+            {t('tower.selectTeamCount', { count: team.length })}{team.length ? ` · ${compact(data.teamPower)}` : ''}
           </button>
           <button
             type="button"
@@ -168,35 +170,35 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             disabled={!canEnter}
             className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            {enter.isPending ? 'Loading battle…' : `Enter Dungeon • ${compact(data.entryCost)} FC`}
+            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${compact(data.entryCost)} FC`}
           </button>
         </div>
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
-        <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Possible Rewards</p>
+        <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">{t('tower.possibleRewards')}</p>
         <div className="mt-2 grid grid-cols-2 gap-2 text-[10px]">
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Fragments</p><p className="mt-1 font-semibold text-sky-300">x{rewards.fragments}</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Hero XP</p><p className="mt-1 font-semibold text-amber-300">{compact(rewards.heroXp)}</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Pet Food</p><p className="mt-1 font-semibold text-emerald-300">x{rewards.petFood}</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">Gear Chest</p><p className="mt-1 font-semibold text-fuchsia-300">{rewards.heroChest ? `x${rewards.heroChest}` : '—'}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.fragments')}</p><p className="mt-1 font-semibold text-sky-300">x{rewards.fragments}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.heroXp')}</p><p className="mt-1 font-semibold text-amber-300">{compact(rewards.heroXp)}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.petFood')}</p><p className="mt-1 font-semibold text-emerald-300">x{rewards.petFood}</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.gearChest')}</p><p className="mt-1 font-semibold text-fuchsia-300">{rewards.heroChest ? `x${rewards.heroChest}` : '—'}</p></div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-[10px]">
-        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Deepest Floor</p><p className="mt-1 font-semibold text-amber-300">{data.highestFloor}</p></div>
-        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Attempts</p><p className="mt-1 font-semibold">{data.attemptsRemaining} / {data.attemptsLimit}</p></div>
-        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">Replay Reward</p><p className="mt-1 font-semibold text-slate-200">50%</p></div>
+        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">{t('tower.deepestFloor')}</p><p className="mt-1 font-semibold text-amber-300">{data.highestFloor}</p></div>
+        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">{t('tower.attempts')}</p><p className="mt-1 font-semibold">{data.attemptsRemaining} / {data.attemptsLimit}</p></div>
+        <div className="rounded-2xl border border-white/10 bg-black/55 p-2.5"><p className="text-slate-400">{t('tower.replayReward')}</p><p className="mt-1 font-semibold text-slate-200">50%</p></div>
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
-        <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Milestone Rewards</p>
+        <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">{t('tower.milestoneRewards')}</p>
         <div className="mt-2 space-y-1.5">
           {TOWER_MILESTONES.map(item => {
             const done = data.highestFloor >= item.floor;
             return (
               <div key={item.floor} className={`flex items-center justify-between rounded-xl border px-2.5 py-2 text-[10px] ${done ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-white/10 bg-black/60'}`}>
-                <span className="font-bold text-slate-200">Floor {item.floor}</span>
+                <span className="font-bold text-slate-200">{t('tower.floorNumber', { floor: item.floor })}</span>
                 <span className={done ? 'text-emerald-300' : 'text-amber-200'}>{item.reward}</span>
               </div>
             );
@@ -206,13 +208,13 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
 
       {data.history.length ? (
         <div className="rounded-3xl border border-white/10 bg-black/50 p-3">
-          <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">Últimas tentativas</p>
+          <p className="text-[10px] uppercase tracking-[.28em] text-amber-300/80">{t('tower.recentAttempts')}</p>
           <div className="mt-2 space-y-1.5">
             {data.history.map(run => (
               <div key={run.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/60 px-2.5 py-2 text-[10px]">
-                <span className="font-bold text-slate-200">Floor {run.floor}</span>
-                <span className="text-slate-500">{run.turns} turnos</span>
-                <span className={run.result === 'win' ? 'text-emerald-300' : 'text-rose-300'}>{run.result === 'win' ? 'Vitória' : 'Derrota'}</span>
+                <span className="font-bold text-slate-200">{t('tower.floorNumber', { floor: run.floor })}</span>
+                <span className="text-slate-500">{t('tower.turnsCount', { count: run.turns })}</span>
+                <span className={run.result === 'win' ? 'text-emerald-300' : 'text-rose-300'}>{run.result === 'win' ? t('tower.victory') : t('tower.defeat')}</span>
               </div>
             ))}
           </div>
@@ -223,22 +225,22 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
         <div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={() => setIsRankingOpen(false)}>
           <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-amber-300">Tower of Eternity Ranking</h3>
-              <button type="button" aria-label="Fechar" onClick={() => setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
+              <h3 className="text-sm font-bold text-amber-300">{t('tower.rankingTitle')}</h3>
+              <button type="button" aria-label={t('tower.close')} onClick={() => setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
             </div>
             <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]">
-              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Players</p><p className="mt-1 font-semibold">{compact(ranking.data?.totalPlayers ?? 0)}</p></div>
-              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Highest Floor</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.highestFloor ?? 0}</p></div>
-              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Your Rank</p><p className="mt-1 font-semibold">{ranking.data?.you?.rank ? `#${ranking.data.you.rank}` : '—'}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{t('tower.players')}</p><p className="mt-1 font-semibold">{compact(ranking.data?.totalPlayers ?? 0)}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{t('tower.highestFloor')}</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.highestFloor ?? 0}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{t('tower.yourRank')}</p><p className="mt-1 font-semibold">{ranking.data?.you?.rank ? `#${ranking.data.you.rank}` : '—'}</p></div>
             </div>
             <div className="mt-1.5 grid grid-cols-2 gap-1.5 text-[9px]">
-              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Best Floor</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.you?.floor ?? data.highestFloor}</p></div>
-              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">Power</p><p className="mt-1 font-semibold">{compact(ranking.data?.you?.power ?? data.teamPower)}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{t('tower.bestFloor')}</p><p className="mt-1 font-semibold text-amber-300">{ranking.data?.you?.floor ?? data.highestFloor}</p></div>
+              <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{t('tower.power')}</p><p className="mt-1 font-semibold">{compact(ranking.data?.you?.power ?? data.teamPower)}</p></div>
             </div>
             {ranking.isLoading && !ranking.data ? (
-              <p className="py-8 text-center text-xs text-slate-400">Carregando ranking…</p>
+              <p className="py-8 text-center text-xs text-slate-400">{t('tower.loadingRanking')}</p>
             ) : !ranking.data?.top.length ? (
-              <p className="py-8 text-center text-xs text-slate-400">Nenhum jogador no ranking ainda.</p>
+              <p className="py-8 text-center text-xs text-slate-400">{t('tower.noRankedPlayers')}</p>
             ) : (
               <div className="mt-3 max-h-[55vh] space-y-1.5 overflow-y-auto">
                 {ranking.data.top.map(entry => (
@@ -248,10 +250,10 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                       ? <img src={entry.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
                       : <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[10px]">🗼</span>}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] font-bold">{entry.name}{entry.isYou ? <span className="ml-1 text-[8px] text-amber-300">(você)</span> : null}</p>
-                      <p className="text-[9px] text-slate-400">Power {compact(entry.power)}{entry.updatedAt ? ` · ${new Date(entry.updatedAt).toLocaleDateString()}` : ''}</p>
+                      <p className="truncate text-[11px] font-bold">{entry.name}{entry.isYou ? <span className="ml-1 text-[8px] text-amber-300">{t('tower.you')}</span> : null}</p>
+                      <p className="text-[9px] text-slate-400">{t('tower.powerLabel', { power: compact(entry.power) })}{entry.updatedAt ? ` · ${new Date(entry.updatedAt).toLocaleDateString()}` : ''}</p>
                     </div>
-                    <span className="text-[10px] font-bold text-amber-300">Floor {entry.floor}</span>
+                    <span className="text-[10px] font-bold text-amber-300">{t('tower.floorNumber', { floor: entry.floor })}</span>
                   </div>
                 ))}
               </div>
@@ -264,8 +266,8 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/75 p-2" onClick={() => { setIsTeamOpen(false); setSlot(null); }}>
           <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold">Select Team · {team.length}/5</h3>
-              <button type="button" aria-label="Fechar" onClick={() => { setIsTeamOpen(false); setSlot(null); }} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
+              <h3 className="text-sm font-bold">{t('tower.selectTeamCount', { count: team.length })}</h3>
+              <button type="button" aria-label={t('tower.close')} onClick={() => { setIsTeamOpen(false); setSlot(null); }} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button>
             </div>
 
             <div className="mt-3 grid grid-cols-5 gap-1.5">
@@ -279,21 +281,21 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                     className={`overflow-hidden rounded-xl border bg-black/70 text-left ${slot === n ? 'border-amber-300' : 'border-white/10'}`}
                   >
                     {hero?.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" /> : <span className="grid aspect-square w-full place-items-center text-[10px] text-slate-500">+{n}</span>}
-                    <p className="truncate px-1 py-0.5 text-[8px] font-bold text-slate-200">{hero?.name ?? 'Vazio'}</p>
+                    <p className="truncate px-1 py-0.5 text-[8px] font-bold text-slate-200">{hero?.name ?? t('tower.empty')}</p>
                   </button>
                 );
               })}
             </div>
             {slot && team.some(h => Number(h.slot) === slot) ? (
-              <button type="button" onClick={() => unequip.mutate(slot)} className="mt-2 w-full rounded-xl border border-rose-400/40 bg-rose-500/10 py-2 text-[11px] font-bold uppercase tracking-wide text-rose-200">Remover do slot {slot}</button>
+              <button type="button" onClick={() => unequip.mutate(slot)} className="mt-2 w-full rounded-xl border border-rose-400/40 bg-rose-500/10 py-2 text-[11px] font-bold uppercase tracking-wide text-rose-200">{t('tower.removeFromSlot', { slot })}</button>
             ) : null}
 
-            <p className="mt-3 text-[9px] uppercase tracking-[.24em] text-slate-500">{slot ? `Escolha o herói do slot ${slot}` : 'Toque em um slot e escolha o herói'}</p>
+            <p className="mt-3 text-[9px] uppercase tracking-[.24em] text-slate-500">{slot ? t('tower.chooseHeroForSlot', { slot }) : t('tower.tapSlotToChoose')}</p>
 
             {collectionLoading && !heroes.length ? (
-              <p className="py-8 text-center text-xs text-slate-400">Carregando heróis…</p>
+              <p className="py-8 text-center text-xs text-slate-400">{t('tower.loadingHeroes')}</p>
             ) : !heroes.length ? (
-              <p className="py-8 text-center text-xs text-slate-400">Nenhum herói disponível.</p>
+              <p className="py-8 text-center text-xs text-slate-400">{t('tower.noHeroesAvailable')}</p>
             ) : (
               <div className="mt-2 grid max-h-[42vh] grid-cols-3 gap-2 overflow-y-auto">
                 {heroes.map(hero => {
@@ -306,7 +308,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                       key={hero.heroId}
                       disabled={duplicate || equip.isPending}
                       onClick={() => {
-                        if (!slot) { toast.error('Selecione um slot primeiro'); return; }
+                        if (!slot) { toast.error(t('tower.selectSlotFirst')); return; }
                         equip.mutate({ targetSlot: slot, heroId: hero.heroId });
                       }}
                       className={`overflow-hidden rounded-xl border bg-black text-left ${duplicate ? 'opacity-40' : ''}`}
@@ -316,7 +318,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                       <div className="p-1.5">
                         <p className="truncate text-[9px] font-bold">{hero.name}</p>
                         <p className="text-[8px] text-amber-200">{compact(hero.power ?? 0)}</p>
-                        {selected ? <p className="text-[8px] text-amber-300">Na equipe</p> : duplicate ? <p className="text-[8px] text-rose-300">Duplicado</p> : null}
+                        {selected ? <p className="text-[8px] text-amber-300">{t('tower.inTeam')}</p> : duplicate ? <p className="text-[8px] text-rose-300">{t('tower.duplicate')}</p> : null}
                       </div>
                     </button>
                   );

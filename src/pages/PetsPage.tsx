@@ -829,6 +829,7 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
  * backend and is visible exclusively to the master admin through the admin bot.
  */
 function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitData: string; onGoToShop?: () => void }) {
+  const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-rewards-mine'],
@@ -855,16 +856,16 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
       <section className="forge-nft-card mt-2 overflow-hidden rounded-[1.8rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-6 text-center">
         <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
         <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">💎 NFT EXCLUSIVE</p>
-        <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">You don&apos;t own an NFT Exclusive Pet yet.</p>
-        <p className="mx-auto mt-1 max-w-[260px] text-[11px] text-slate-400">Go to BUY NFT to purchase one.</p>
+        <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">{t('nft.noPetYet')}</p>
+        <p className="mx-auto mt-1 max-w-[260px] text-[11px] text-slate-400">{t('nft.goBuyHint')}</p>
         {onGoToShop ? (
           <button type="button" onClick={onGoToShop} className="relative mt-4 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 px-3 py-2.5 text-[11px] font-black uppercase tracking-[.14em] text-black">
-            GO TO BUY NFT
+            {t('nft.goToBuy')}
           </button>
         ) : null}
         <div className="mt-5 inline-flex flex-col rounded-2xl border border-amber-200/25 bg-black/50 px-6 py-3">
-          <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">Limited Collection</span>
-          <span className="text-lg font-black text-amber-100">{data?.totalSupply ?? 10} NFTs Total</span>
+          <span className="text-[8px] uppercase tracking-[.22em] text-slate-400">{t('nft.limitedCollection')}</span>
+          <span className="text-lg font-black text-amber-100">{data?.totalSupply ?? 10} {t('nft.totalSuffix')}</span>
         </div>
       </section>
     );

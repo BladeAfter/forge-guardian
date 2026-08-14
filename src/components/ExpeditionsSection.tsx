@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { claimExpedition, fetchExpeditionState, startExpedition } from '../services';
+import { useT } from '../LanguageContext';
 import { countdown, expeditionChance, type ExpeditionMission, type ExpeditionPet, type ExpeditionReward } from '../breeding';
 
 const RARITY_STYLE: Record<string, string> = {
@@ -12,17 +13,18 @@ const RARITY_STYLE: Record<string, string> = {
   LEGENDARY: 'border-amber-300/40 text-amber-200',
 };
 
-const REWARD_LABEL: Record<string, string> = {
-  PET_FOOD: 'Comida de Pet',
-  FRAGMENT: 'Fragmentos',
-  MATERIAL: 'Materiais',
-  EQUIPMENT: 'Equipamento',
-  PVP_TICKET: 'PvP Tickets',
-  FC: 'FC Coins',
+const REWARD_KEY: Record<string, string> = {
+  PET_FOOD: 'expeditions.petFood',
+  FRAGMENT: 'expeditions.fragments',
+  MATERIAL: 'expeditions.materials',
+  EQUIPMENT: 'expeditions.equipment',
+  PVP_TICKET: 'expeditions.pvpTickets',
+  FC: 'expeditions.fc',
 };
 
-const rewardText = (reward: ExpeditionReward) => {
-  const name = REWARD_LABEL[reward.type] ?? reward.type;
+const rewardText = (reward: ExpeditionReward, t: (key: string) => string) => {
+  const key = REWARD_KEY[reward.type];
+  const name = key ? t(key) : reward.type;
   const range = reward.quantity ? `${reward.quantity}` : reward.min === reward.max ? `${reward.min ?? 1}` : `${reward.min ?? 1}-${reward.max ?? 1}`;
   const chance = reward.chance && reward.chance < 100 ? ` (${reward.chance}%)` : '';
   return `${range}× ${name}${reward.rarity ? ` ${reward.rarity}` : ''}${chance}`;
@@ -33,6 +35,7 @@ const rewardText = (reward: ExpeditionReward) => {
  * The success roll, timers and rewards are all resolved server-side on claim.
  */
 export default function ExpeditionsSection({ initData }: { initData: string }) {
+  const t = useT();
   const client = useQueryClient();
   const [team, setTeam] = useState<string[]>([]);
   const [mission, setMission] = useState<string | null>(null);
@@ -65,8 +68,8 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
       setFeedback({
         tone: result.success ? 'ok' : 'bad',
         text: result.success
-          ? `SUCESSO! Recompensas: ${result.rewards.map(rewardText).join(', ') || 'nenhuma'}`
-          : `FALHOU. Recompensa de consolação: ${result.rewards.map(rewardText).join(', ') || 'nenhuma'}`,
+          ? t('expeditions.successMsg', { rewards: result.rewards.map((reward) => rewardText(reward, t)).join(', ') || t('expeditions.none') })
+          : t('expeditions.failMsg', { rewards: result.rewards.map((reward) => rewardText(reward, t)).join(', ') || t('expeditions.none') }),
       });
       refresh();
     },
@@ -105,19 +108,19 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
 
       {data.active.length ? (
         <section className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[.26em] text-emerald-200">EM ANDAMENTO</p>
+          <p className="text-[10px] font-black uppercase tracking-[.26em] text-emerald-200">{t('expeditions.inProgress')}</p>
           {data.active.map((row) => (
             <div key={row.id} className="rounded-2xl border border-emerald-400/20 bg-black/60 p-3">
               <p className="text-[12px] font-black text-slate-100">{row.missionName}</p>
-              <p className="mt-1 text-[10px] text-slate-400">Poder {row.teamPower} · {row.successChance}% de sucesso</p>
-              <p className="mt-1 text-[10px] font-black uppercase text-amber-200">{row.ready ? 'PRONTO PARA COLETAR' : `TERMINA EM ${countdown(row.finishesAt)}`}</p>
+              <p className="mt-1 text-[10px] text-slate-400">{t('expeditions.powerChance', { power: row.teamPower, chance: row.successChance })}</p>
+              <p className="mt-1 text-[10px] font-black uppercase text-amber-200">{row.ready ? t('expeditions.readyToClaim') : `${t('expeditions.endsIn')} ${countdown(row.finishesAt)}`}</p>
               <button
                 type="button"
                 disabled={!row.ready || claim.isPending}
                 onClick={() => claim.mutate(row.id)}
                 className="mt-2 w-full rounded-xl bg-emerald-500 py-2 text-[10px] font-black uppercase text-black disabled:opacity-40"
               >
-                {claim.isPending ? 'COLETANDO...' : 'CLAIM REWARDS'}
+                {claim.isPending ? t('expeditions.claiming') : t('expeditions.claimRewards')}
               </button>
             </div>
           ))}
@@ -125,9 +128,9 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
       ) : null}
 
       <section className="rounded-2xl border border-sky-400/20 bg-black/60 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[.26em] text-sky-200">🗺️ SELECIONE 3 PETS</p>
-        <p className="mt-1 text-[10px] text-slate-400">Pets normais, NFT ou Sub-NFT adultos. Pets em expedição ficam indisponíveis até o fim.</p>
-        <p className="mt-1 text-[10px] text-slate-300">Equipe: <span className="font-black text-amber-200">{team.length}/3</span> · Poder total <span className="font-black text-amber-200">{teamPower}</span></p>
+        <p className="text-[10px] font-black uppercase tracking-[.26em] text-sky-200">{t('expeditions.selectPets')}</p>
+        <p className="mt-1 text-[10px] text-slate-400">{t('expeditions.petsHint')}</p>
+        <p className="mt-1 text-[10px] text-slate-300">{t('expeditions.team')} <span className="font-black text-amber-200">{team.length}/3</span> · {t('expeditions.totalPower')} <span className="font-black text-amber-200">{teamPower}</span></p>
         <div className="mt-2 grid grid-cols-3 gap-2">
           {data.pets.map((pet) => {
             const active = team.includes(pet.playerPetId);
@@ -141,9 +144,9 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
               >
                 {pet.image ? <img src={pet.image} alt={pet.name} loading="lazy" className="mx-auto h-12 w-12 rounded-lg object-cover" /> : null}
                 <p className="mt-1 truncate text-[10px] font-black text-slate-100">{pet.name}</p>
-                <p className="text-[9px] text-slate-400">Nv {pet.level} · {pet.power}</p>
-                {pet.isSubNft ? <p className="text-[8px] font-black uppercase text-violet-300">{pet.stage === 'ADULT' ? 'SUB-NFT' : 'IMATURO'}</p> : null}
-                {pet.busy ? <p className="text-[8px] font-black uppercase text-rose-300">EM EXPEDIÇÃO</p> : null}
+                <p className="text-[9px] text-slate-400">{t('expeditions.levelShort')} {pet.level} · {pet.power}</p>
+                {pet.isSubNft ? <p className="text-[8px] font-black uppercase text-violet-300">{pet.stage === 'ADULT' ? 'SUB-NFT' : t('expeditions.immature')}</p> : null}
+                {pet.busy ? <p className="text-[8px] font-black uppercase text-rose-300">{t('expeditions.onExpedition')}</p> : null}
               </button>
             );
           })}
@@ -151,7 +154,7 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
       </section>
 
       <section className="space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">MISSÕES</p>
+        <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">{t('expeditions.missions')}</p>
         {data.missions.map((row) => (
           <MissionCard
             key={row.id}
@@ -169,13 +172,14 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
         onClick={() => start.mutate()}
         className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 py-3 text-[11px] font-black uppercase tracking-[.2em] text-black disabled:opacity-40"
       >
-        {start.isPending ? 'ENVIANDO...' : selectedMission ? `ENVIAR · ${expeditionChance(teamPower, selectedMission.requiredPower)}% DE SUCESSO` : 'SELECIONE UMA MISSÃO'}
+        {start.isPending ? t('expeditions.sending') : selectedMission ? t('expeditions.sendWithChance', { chance: expeditionChance(teamPower, selectedMission.requiredPower) }) : t('expeditions.selectMission')}
       </button>
     </div>
   );
 }
 
 function MissionCard({ mission, active, teamPower, onSelect }: { mission: ExpeditionMission; active: boolean; teamPower: number; onSelect: () => void }) {
+  const t = useT();
   const chance = expeditionChance(teamPower, mission.requiredPower);
   return (
     <button
@@ -188,10 +192,10 @@ function MissionCard({ mission, active, teamPower, onSelect }: { mission: Expedi
         <span className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase ${RARITY_STYLE[mission.rarity] ?? ''}`}>{mission.rarity}</span>
       </div>
       <p className="mt-1 text-[10px] text-slate-400">
-        {mission.durationHours}h · Poder recomendado {mission.requiredPower}{mission.element ? ` · Elemento ${mission.element}` : ''}
+        {mission.durationHours}h · {t('expeditions.recommendedPower')} {mission.requiredPower}{mission.element ? ` · ${t('expeditions.element')} ${mission.element}` : ''}
       </p>
-      <p className="mt-1 text-[10px] text-slate-300">Recompensas: {mission.rewards.map(rewardText).join(', ')}</p>
-      {teamPower > 0 ? <p className="mt-1 text-[10px] font-black uppercase text-amber-200">CHANCE ESTIMADA: {chance}%</p> : null}
+      <p className="mt-1 text-[10px] text-slate-300">{t('expeditions.rewards')} {mission.rewards.map((reward) => rewardText(reward, t)).join(', ')}</p>
+      {teamPower > 0 ? <p className="mt-1 text-[10px] font-black uppercase text-amber-200">{t('expeditions.estimatedChance')} {chance}%</p> : null}
     </button>
   );
 }

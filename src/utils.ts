@@ -204,6 +204,7 @@ export const locales: Record<string, LanguageStrings> = {
   pt: LANGUAGES.pt,
   es: LANGUAGES.es,
   ru: LANGUAGES.ru,
+  tr: LANGUAGES.en,
 };
 
 export const TABS = ["village", "missions", "boss", "wallet", "profile"] as const;
@@ -213,6 +214,7 @@ export const getLocale = () => {
   if (language.startsWith("pt")) return "pt";
   if (language.startsWith("es")) return "es";
   if (language.startsWith("ru")) return "ru";
+  if (language.startsWith("tr")) return "tr";
   return "en";
 };
 

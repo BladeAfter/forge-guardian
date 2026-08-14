@@ -830,7 +830,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           {selectedOption ? (
                             <div className="mt-1.5 space-y-0.5 rounded-lg border border-white/10 bg-black/40 p-2 text-[9px]">
                               <div className="flex items-center justify-between"><span className="text-slate-400">{t(sellKind === 'hero' ? 'market.heroes' : sellKind === 'pet' ? 'market.pets' : 'market.itemLabel')}</span><strong className="text-white">{selectedOption.name}</strong></div>
-                              <div className="flex items-center justify-between"><span className="text-slate-400">RARITY</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).replace(/_/g, ' ').toUpperCase()}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{t('heroes.rarityLabel')}</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).replace(/_/g, ' ').toUpperCase()}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">LEVEL</span><strong className="text-white">{selectedOption.level}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">{selectedOption.detail}</span><strong className={isTonSale ? 'text-sky-300' : 'text-amber-300'}>{amountLabel(split.price)} {priceUnit}</strong></div>
                             </div>

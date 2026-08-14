@@ -9,6 +9,7 @@ import {
   respondBreedingRequest,
   searchBreedingPartners,
 } from '../services';
+import { useT } from '../LanguageContext';
 import { STAGE_LABEL, countdown, type BreedingNft, type PartnerNft, type SubNft } from '../breeding';
 
 const fmtTon = (value: number) => `${Number(value ?? 0).toFixed(2)} TON`;
@@ -19,6 +20,7 @@ const fmtTon = (value: number) => `${Number(value ?? 0).toFixed(2)} TON`;
  * the breed counter (owned by the NFT instance) and the block reason for each unit.
  */
 export default function BreedingSection({ initData }: { initData: string }) {
+  const t = useT();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -70,7 +72,7 @@ export default function BreedingSection({ initData }: { initData: string }) {
 
   const claim = useMutation({
     mutationFn: () => claimSubNftMining(initData),
-    onSuccess: (result) => { setFeedback({ tone: 'ok', text: `Coletado ${fmtTon(result.claimedTon)} da mineração dos Sub-NFTs.` }); refresh(); },
+    onSuccess: (result) => { setFeedback({ tone: 'ok', text: t('breeding.claimed', { amount: fmtTon(result.claimedTon) }) }); refresh(); },
     onError: (error: Error) => setFeedback({ tone: 'bad', text: error.message }),
   });
 
@@ -95,18 +97,17 @@ export default function BreedingSection({ initData }: { initData: string }) {
       ) : null}
 
       <section className="rounded-2xl border border-fuchsia-400/20 bg-black/60 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[.26em] text-fuchsia-200">🧬 NFT BREEDING</p>
+        <p className="text-[10px] font-black uppercase tracking-[.26em] text-fuchsia-200">{t('breeding.title')}</p>
         <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-          Somente NFT EXCLUSIVE (UNIQUE NFT) reproduz. Cada NFT tem {data.settings.maxBreeds} reproduções, cooldown de {data.settings.cooldownDays} dias
-          e custos de {data.settings.costs.map((cost) => `${cost}`).join(' / ')} TON por proprietário. Cada dono recebe 1 Sub-NFT Egg.
+          {t('breeding.intro', { max: data.settings.maxBreeds, days: data.settings.cooldownDays, costs: data.settings.costs.map((cost) => `${cost}`).join(' / ') })}
         </p>
-        <p className="mt-2 text-[10px] text-slate-300">Saldo: <span className="font-black text-amber-200">{fmtTon(data.tonBalance)}</span></p>
+        <p className="mt-2 text-[10px] text-slate-300">{t('breeding.balance')} <span className="font-black text-amber-200">{fmtTon(data.tonBalance)}</span></p>
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-black/50 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">SEUS UNIQUE NFTs</p>
+        <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">{t('breeding.yourUniqueNfts')}</p>
         {data.myNfts.length === 0 ? (
-          <p className="mt-2 text-[11px] text-slate-500">Você ainda não possui um NFT EXCLUSIVE. Compre em 🛒 BUY NFT.</p>
+          <p className="mt-2 text-[11px] text-slate-500">{t('breeding.noneOwned')}</p>
         ) : (
           <div className="mt-2 grid grid-cols-2 gap-2">
             {data.myNfts.map((nft) => (
@@ -118,8 +119,8 @@ export default function BreedingSection({ initData }: { initData: string }) {
 
       {chosen && !chosen.blockReason ? (
         <section className="rounded-2xl border border-amber-300/20 bg-black/60 p-3">
-          <p className="text-[10px] font-black uppercase tracking-[.26em] text-amber-200">FIND PARTNER</p>
-          <p className="mt-1 text-[10px] text-slate-400">Busque por Telegram ID, username ou instância do NFT. Você também pode usar outro NFT seu.</p>
+          <p className="text-[10px] font-black uppercase tracking-[.26em] text-amber-200">{t('breeding.findPartner')}</p>
+          <p className="mt-1 text-[10px] text-slate-400">{t('breeding.searchHint')}</p>
           <div className="mt-2 flex gap-2">
             <input
               value={query}
@@ -137,7 +138,7 @@ export default function BreedingSection({ initData }: { initData: string }) {
               <PartnerRow
                 key={nft.nftId}
                 title={`${nft.name} #${nft.serial}`}
-                subtitle={`SEU NFT · breeding ${nft.breedCount}/${nft.maxBreeds}`}
+                subtitle={`${t('breeding.yourNft')} · breeding ${nft.breedCount}/${nft.maxBreeds}`}
                 cost={nft.nextCost}
                 image={nft.image}
                 disabled={busy}
@@ -161,22 +162,22 @@ export default function BreedingSection({ initData }: { initData: string }) {
 
       {data.incoming.length ? (
         <section className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[.26em] text-emerald-200">BREEDING REQUESTS</p>
+          <p className="text-[10px] font-black uppercase tracking-[.26em] text-emerald-200">{t('breeding.requests')}</p>
           {data.incoming.map((row) => (
             <div key={row.requestId} className="rounded-2xl border border-emerald-400/20 bg-black/60 p-3">
               <p className="text-[11px] text-slate-200">
-                <span className="font-black text-emerald-200">@{row.fromUsername || row.fromName || 'Player'}</span> quer cruzar{' '}
-                {row.partnerNft?.name} #{row.partnerNft?.serial} com {row.yourNft?.name} #{row.yourNft?.serial}
+                <span className="font-black text-emerald-200">@{row.fromUsername || row.fromName || 'Player'}</span> {t('breeding.wantsToBreed')}{' '}
+                {row.partnerNft?.name} #{row.partnerNft?.serial} {t('breeding.with')} {row.yourNft?.name} #{row.yourNft?.serial}
               </p>
-              <p className="mt-1 text-[10px] text-slate-400">Seu custo: <span className="font-black text-amber-200">{fmtTon(row.yourCost)}</span> · Recompensa: 1 Sub-NFT Egg · Expira em {countdown(row.expiresAt)}</p>
+              <p className="mt-1 text-[10px] text-slate-400">{t('breeding.yourCost')} <span className="font-black text-amber-200">{fmtTon(row.yourCost)}</span> · {t('breeding.reward')} · {t('breeding.expiresIn')} {countdown(row.expiresAt)}</p>
               {row.status === 'pending' ? (
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button type="button" disabled={busy} onClick={() => respond.mutate({ requestId: row.requestId, accept: true })} className="rounded-xl bg-emerald-500 py-2 text-[10px] font-black uppercase text-black">ACCEPT</button>
-                  <button type="button" disabled={busy} onClick={() => respond.mutate({ requestId: row.requestId, accept: false })} className="rounded-xl bg-white/10 py-2 text-[10px] font-black uppercase text-slate-300">DECLINE</button>
+                  <button type="button" disabled={busy} onClick={() => respond.mutate({ requestId: row.requestId, accept: true })} className="rounded-xl bg-emerald-500 py-2 text-[10px] font-black uppercase text-black">{t('breeding.accept')}</button>
+                  <button type="button" disabled={busy} onClick={() => respond.mutate({ requestId: row.requestId, accept: false })} className="rounded-xl bg-white/10 py-2 text-[10px] font-black uppercase text-slate-300">{t('breeding.decline')}</button>
                 </div>
               ) : (
                 <button type="button" disabled={busy || row.paidYou} onClick={() => pay.mutate(row.requestId)} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[10px] font-black uppercase text-black disabled:opacity-50">
-                  {row.paidYou ? 'PAID — AGUARDANDO PARCEIRO' : `PAGAR ${fmtTon(row.yourCost)}`}
+                  {row.paidYou ? t('breeding.paidWaiting') : `${t('breeding.pay')} ${fmtTon(row.yourCost)}`}
                 </button>
               )}
             </div>
@@ -186,21 +187,21 @@ export default function BreedingSection({ initData }: { initData: string }) {
 
       {data.outgoing.length ? (
         <section className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">SEUS PEDIDOS</p>
+          <p className="text-[10px] font-black uppercase tracking-[.26em] text-slate-300">{t('breeding.yourRequests')}</p>
           {data.outgoing.map((row) => (
             <div key={row.requestId} className="rounded-2xl border border-white/10 bg-black/60 p-3">
               <p className="text-[11px] text-slate-200">
                 {row.yourNft?.name} #{row.yourNft?.serial} + {row.partnerNft?.name} #{row.partnerNft?.serial}
-                {row.selfBreed ? ' · SELF BREED' : ` · ${row.partnerName || 'parceiro'}`}
+                {row.selfBreed ? ` · ${t('breeding.selfBreed')}` : ` · ${row.partnerName || t('breeding.partner')}`}
               </p>
               <p className="mt-1 text-[10px] text-slate-400">
                 {row.selfBreed
-                  ? `Total: ${fmtTon((row.yourCost || 0) + (row.partnerCost || 0))}`
-                  : `Você: ${fmtTon(row.yourCost)} ${row.paidYou ? '(PAID)' : ''} · Parceiro: ${row.paidPartner ? 'PAID' : 'PENDENTE'}`}
-                {' '}· Expira em {countdown(row.expiresAt)}
+                  ? `${t('breeding.total')} ${fmtTon((row.yourCost || 0) + (row.partnerCost || 0))}`
+                  : `${t('breeding.you')} ${fmtTon(row.yourCost)} ${row.paidYou ? `(${t('breeding.paid')})` : ''} · ${t('breeding.partnerLabel')} ${row.paidPartner ? t('breeding.paid') : t('breeding.pending')}`}
+                {' '}· {t('breeding.expiresIn')} {countdown(row.expiresAt)}
               </p>
               <button type="button" disabled={busy || (row.paidYou && !row.selfBreed)} onClick={() => pay.mutate(row.requestId)} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[10px] font-black uppercase text-black disabled:opacity-50">
-                {row.selfBreed ? 'PAGAR AS DUAS PARTES' : row.paidYou ? 'PAID — AGUARDANDO PARCEIRO' : `PAGAR ${fmtTon(row.yourCost)}`}
+                {row.selfBreed ? t('breeding.payBothParts') : row.paidYou ? t('breeding.paidWaiting') : `${t('breeding.pay')} ${fmtTon(row.yourCost)}`}
               </button>
             </div>
           ))}
@@ -209,13 +210,13 @@ export default function BreedingSection({ initData }: { initData: string }) {
 
       <section className="rounded-2xl border border-violet-400/20 bg-black/60 p-3">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[10px] font-black uppercase tracking-[.26em] text-violet-200">SEUS SUB-NFTs</p>
+          <p className="text-[10px] font-black uppercase tracking-[.26em] text-violet-200">{t('breeding.yourSubNfts')}</p>
           <button type="button" disabled={busy || data.unclaimedTon < data.settings.minClaimTon} onClick={() => claim.mutate()} className="rounded-xl bg-violet-500 px-3 py-1.5 text-[9px] font-black uppercase text-black disabled:opacity-40">
-            CLAIM {fmtTon(data.unclaimedTon)}
+            {t('breeding.claimLabel').toUpperCase()} {fmtTon(data.unclaimedTon)}
           </button>
         </div>
         {data.subNfts.length === 0 ? (
-          <p className="mt-2 text-[11px] text-slate-500">Nenhum descendente ainda. Faça um breeding para receber seu Sub-NFT Egg.</p>
+          <p className="mt-2 text-[11px] text-slate-500">{t('breeding.noDescendants')}</p>
         ) : (
           <div className="mt-2 space-y-2">{data.subNfts.map((sub) => <SubNftCard key={sub.id} sub={sub} />)}</div>
         )}
@@ -225,11 +226,12 @@ export default function BreedingSection({ initData }: { initData: string }) {
 }
 
 function ParentCard({ nft, active, onSelect }: { nft: BreedingNft; active: boolean; onSelect: () => void }) {
+  const t = useT();
   const blocked = Boolean(nft.blockReason);
-  const label = nft.blockReason === 'MAX_BREEDING_REACHED' ? 'MAX BREEDING REACHED'
-    : nft.blockReason === 'BREEDING_COOLDOWN' ? `COOLDOWN ${countdown(nft.cooldownUntil)}`
-    : nft.blockReason === 'NFT_IN_BREEDING' ? 'EM BREEDING'
-    : nft.blockReason === 'NFT_LOCKED' ? 'BLOQUEADO' : null;
+  const label = nft.blockReason === 'MAX_BREEDING_REACHED' ? t('breeding.maxReached')
+    : nft.blockReason === 'BREEDING_COOLDOWN' ? `${t('breeding.cooldown')} ${countdown(nft.cooldownUntil)}`
+    : nft.blockReason === 'NFT_IN_BREEDING' ? t('breeding.inBreeding')
+    : nft.blockReason === 'NFT_LOCKED' ? t('breeding.locked') : null;
   return (
     <button
       type="button"
@@ -239,15 +241,16 @@ function ParentCard({ nft, active, onSelect }: { nft: BreedingNft; active: boole
       {nft.image ? <img src={nft.image} alt={nft.name} loading="lazy" className="mx-auto h-16 w-16 rounded-xl object-cover" /> : null}
       <p className="mt-1 truncate text-[11px] font-black text-slate-100">{nft.name} #{nft.serial}</p>
       <p className="text-[9px] uppercase tracking-[.2em] text-slate-500">{nft.element}</p>
-      <p className="mt-1 text-[10px] text-slate-300">Breeding: <span className="font-black text-amber-200">{nft.breedCount} / {nft.maxBreeds}</span></p>
+      <p className="mt-1 text-[10px] text-slate-300">{t('breeding.breedingCount')} <span className="font-black text-amber-200">{nft.breedCount} / {nft.maxBreeds}</span></p>
       <p className={`mt-1 text-[9px] font-black uppercase ${blocked ? 'text-rose-300' : 'text-emerald-300'}`}>
-        {label ?? `NEXT ${fmtTon(nft.nextCost)}`}
+        {label ?? `${t('breeding.next')} ${fmtTon(nft.nextCost)}`}
       </p>
     </button>
   );
 }
 
 function PartnerRow({ title, subtitle, cost, image, disabled, onPick }: { title: string; subtitle: string; cost: number; image: string | null; disabled: boolean; onPick: () => void }) {
+  const t = useT();
   return (
     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 p-2">
       {image ? <img src={image} alt={title} loading="lazy" className="h-10 w-10 rounded-lg object-cover" /> : null}
@@ -256,13 +259,14 @@ function PartnerRow({ title, subtitle, cost, image, disabled, onPick }: { title:
         <p className="truncate text-[9px] text-slate-400">{subtitle}</p>
       </div>
       <button type="button" disabled={disabled} onClick={onPick} className="rounded-lg bg-fuchsia-500 px-2 py-1.5 text-[9px] font-black uppercase text-black disabled:opacity-40">
-        BREED {fmtTon(cost)}
+        {t('breeding.breed').toUpperCase()} {fmtTon(cost)}
       </button>
     </div>
   );
 }
 
 function SubNftCard({ sub }: { sub: SubNft }) {
+  const t = useT();
   const progress = sub.capTon > 0 ? Math.min(100, (sub.minedTon / sub.capTon) * 100) : 0;
   return (
     <div className="rounded-2xl border border-violet-400/20 bg-black/50 p-2">
@@ -272,24 +276,24 @@ function SubNftCard({ sub }: { sub: SubNft }) {
           <p className="text-[9px] font-black uppercase tracking-[.24em] text-violet-200">{STAGE_LABEL[sub.stage]}</p>
           <p className="truncate text-[12px] font-black text-slate-100">{sub.name} · {sub.instance}</p>
           <p className="truncate text-[9px] text-slate-400">
-            Parents: {sub.parents.a ? `${sub.parents.a.name} #${sub.parents.a.serial}` : '—'} × {sub.parents.b ? `${sub.parents.b.name} #${sub.parents.b.serial}` : '—'} · Generation {sub.generation}
+            {t('breeding.parents')} {sub.parents.a ? `${sub.parents.a.name} #${sub.parents.a.serial}` : '—'} × {sub.parents.b ? `${sub.parents.b.name} #${sub.parents.b.serial}` : '—'} · {t('breeding.generation')} {sub.generation}
           </p>
-          {sub.traitName ? <p className="text-[9px] font-black uppercase text-emerald-300">TRAIT: {sub.traitName}</p> : null}
+          {sub.traitName ? <p className="text-[9px] font-black uppercase text-emerald-300">{t('breeding.trait')} {sub.traitName}</p> : null}
         </div>
       </div>
       <p className="mt-2 text-[10px] text-slate-300">
         {sub.stage === 'ADULT'
           ? sub.miningStatus === 'COMPLETE'
-            ? 'MINING COMPLETE · 0 TON/day'
-            : `${sub.rateTonDay.toFixed(3)} TON/day`
-          : `${sub.stage === 'EGG' ? 'HATCHES' : 'MATURES'} IN: ${countdown(sub.maturesAt)} · 0 TON/day`}
+            ? t('breeding.miningComplete')
+            : `${sub.rateTonDay.toFixed(3)} ${t('breeding.perDay')}`
+          : `${sub.stage === 'EGG' ? t('breeding.hatchesIn') : t('breeding.maturesIn')}: ${countdown(sub.maturesAt)} · 0 ${t('breeding.perDay')}`}
       </p>
       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-300" style={{ width: `${progress}%` }} />
       </div>
       <p className="mt-1 flex justify-between text-[9px] text-slate-400">
-        <span>Mined {sub.minedTon.toFixed(3)} / {sub.capTon.toFixed(2)} TON</span>
-        <span className="text-amber-200">Claim {sub.unclaimedTon.toFixed(3)}</span>
+        <span>{t('breeding.mined')} {sub.minedTon.toFixed(3)} / {sub.capTon.toFixed(2)} TON</span>
+        <span className="text-amber-200">{t('breeding.claimLabel')} {sub.unclaimedTon.toFixed(3)}</span>
       </p>
     </div>
   );

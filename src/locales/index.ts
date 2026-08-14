@@ -17,8 +17,11 @@ import { market } from './market';
 import { spending } from './spending';
 import { clanBoss } from './clanBoss';
 import { partners } from './partners';
+import { tower } from './tower';
+import { nftx } from './nftx';
+import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx];
 
 
 function merge(language: LanguageCode): Dict {
@@ -33,6 +36,8 @@ export const DICTIONARIES: Record<LanguageCode, Dict> = {
   pt: merge('pt'),
   es: merge('es'),
   ru: merge('ru'),
+  // Turkish: English base (technical fallback) fully overridden by tr.ts.
+  tr: { ...merge('en'), ...merge('tr'), ...trOverrides },
 };
 
 export type { Dict, LanguageCode, LocaleBundle } from './registry';

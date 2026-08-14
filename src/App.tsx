@@ -1019,7 +1019,7 @@ function App() {
                 </div>
                 <p className="mt-5 text-[10px] uppercase tracking-[0.25em] text-slate-400">{t('language')}</p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  {[['pt', 'Português'], ['en', 'English'], ['es', 'Español'], ['ru', 'Русский']].map(([code, label]) => (
+                  {[['pt', 'Português'], ['en', 'English'], ['es', 'Español'], ['ru', 'Русский'], ['tr', 'Türkçe']].map(([code, label]) => (
                     <button key={code} onClick={() => changeLanguage(code)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white hover:border-amber-300/40 hover:bg-amber-400/10">{label}</button>
                   ))}
                 </div>
