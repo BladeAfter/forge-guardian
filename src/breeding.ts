@@ -155,7 +155,9 @@ export type ActiveExpedition = {
 };
 
 export type ExpeditionState = {
+  limits?: { freeAttemptsPerDay: number; maxAdsPerMissionPerDay: number; maxFcPurchasesPerMissionPerDay: number };
   pets: ExpeditionPet[];
+
   missions: ExpeditionMission[];
   active: ActiveExpedition[];
   history: { id: string; missionName: string; success: boolean | null; rewards: ExpeditionReward[]; claimedAt: string }[];
