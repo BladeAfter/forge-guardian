@@ -244,6 +244,33 @@ export type Database = {
         }
         Relationships: []
       }
+      anti_fake_logs: {
+        Row: {
+          created_at: string
+          device_hash: string | null
+          event: string
+          id: string
+          metadata: Json
+          telegram_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          device_hash?: string | null
+          event: string
+          id?: string
+          metadata?: Json
+          telegram_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string | null
+          event?: string
+          id?: string
+          metadata?: Json
+          telegram_id?: number | null
+        }
+        Relationships: []
+      }
       boss_combats: {
         Row: {
           boss_attack: number
@@ -1674,6 +1701,159 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      device_accounts: {
+        Row: {
+          admin_bypass: boolean
+          created_at: string
+          device_hash: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          player_id: string | null
+          sessions: number
+          slot: number
+          status: string
+          telegram_id: number
+          updated_at: string
+        }
+        Insert: {
+          admin_bypass?: boolean
+          created_at?: string
+          device_hash: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          player_id?: string | null
+          sessions?: number
+          slot?: number
+          status?: string
+          telegram_id: number
+          updated_at?: string
+        }
+        Update: {
+          admin_bypass?: boolean
+          created_at?: string
+          device_hash?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          player_id?: string | null
+          sessions?: number
+          slot?: number
+          status?: string
+          telegram_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      device_allowlist: {
+        Row: {
+          created_at: string
+          created_by: number | null
+          device_hash: string | null
+          id: string
+          reason: string | null
+          telegram_id: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: number | null
+          device_hash?: string | null
+          id?: string
+          reason?: string | null
+          telegram_id?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: number | null
+          device_hash?: string | null
+          id?: string
+          reason?: string | null
+          telegram_id?: number | null
+        }
+        Relationships: []
+      }
+      device_registry: {
+        Row: {
+          created_at: string
+          device_hash: string
+          first_seen_at: string
+          id: string
+          last_ip_hash: string | null
+          last_seen_at: string
+          notes: string | null
+          platform: string | null
+          risk_score: number
+          risk_status: string
+          seen_count: number
+          updated_at: string
+          user_agent_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          first_seen_at?: string
+          id?: string
+          last_ip_hash?: string | null
+          last_seen_at?: string
+          notes?: string | null
+          platform?: string | null
+          risk_score?: number
+          risk_status?: string
+          seen_count?: number
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          first_seen_at?: string
+          id?: string
+          last_ip_hash?: string | null
+          last_seen_at?: string
+          notes?: string | null
+          platform?: string | null
+          risk_score?: number
+          risk_status?: string
+          seen_count?: number
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Relationships: []
+      }
+      device_review_requests: {
+        Row: {
+          created_at: string
+          device_hash: string
+          id: string
+          message: string | null
+          reviewed_at: string | null
+          reviewed_by: number | null
+          status: string
+          telegram_id: number
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: number | null
+          status?: string
+          telegram_id: number
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: number | null
+          status?: string
+          telegram_id?: number
+        }
+        Relationships: []
       }
       economy_settings: {
         Row: {
@@ -9233,6 +9413,10 @@ export type Database = {
       }
     }
     Functions: {
+      accounts_share_device: {
+        Args: { p_a: string; p_b: string }
+        Returns: boolean
+      }
       activate_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
@@ -9357,6 +9541,32 @@ export type Database = {
         Returns: Json
       }
       admin_ads_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_antifake_allowlist: {
+        Args: {
+          p_admin_id: number
+          p_reason?: string
+          p_ref: string
+          p_remove?: boolean
+        }
+        Returns: Json
+      }
+      admin_antifake_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_antifake_reviews: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_antifake_search: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
+      admin_antifake_set_enabled: {
+        Args: { p_admin_id: number; p_enabled: boolean; p_limit?: number }
+        Returns: Json
+      }
+      admin_antifake_unblock: {
+        Args: { p_admin_id: number; p_reason?: string; p_ref: string }
+        Returns: Json
+      }
       admin_assert: { Args: { p_admin_id: number }; Returns: undefined }
       admin_boss_control: {
         Args: {
@@ -10574,6 +10784,16 @@ export type Database = {
         Args: { p_admin_id: number; p_reason?: string; p_withdrawal_id: string }
         Returns: Json
       }
+      anti_fake_log: {
+        Args: {
+          p_device_hash: string
+          p_event: string
+          p_metadata?: Json
+          p_telegram_id: number
+        }
+        Returns: undefined
+      }
+      anti_fake_max_accounts: { Args: never; Returns: number }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
@@ -10652,6 +10872,15 @@ export type Database = {
           p_eligible: boolean
           p_kind: string
           p_user: string
+        }
+        Returns: Json
+      }
+      check_device_access: {
+        Args: {
+          p_device_hash: string
+          p_metadata?: Json
+          p_platform?: string
+          p_telegram_id: number
         }
         Returns: Json
       }
@@ -10906,6 +11135,18 @@ export type Database = {
         Returns: Json
       }
       deliver_pet_egg_order: { Args: { p_order_id: string }; Returns: Json }
+      device_access_blocked: {
+        Args: { p_telegram_id: number }
+        Returns: boolean
+      }
+      device_request_review: {
+        Args: {
+          p_device_hash: string
+          p_message?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       distribute_community_pool: {
         Args: { p_force?: boolean }
         Returns: string

@@ -65,6 +65,7 @@ const MAIN_MENU = kb([
   [{ t: '💎 NFT PETS', d: 'nft:hub' }],
   [{ t: '⛏ MINERAÇÃO TON', d: 'hm:hub' }],
   [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
+  [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
 
 
@@ -2106,6 +2107,10 @@ const PROMPTS: Record<string, string> = {
   fgfusion: '🧩 Envie quantos FRAGMENTOS UNIVERSAIS substituem as cópias em 1 etapa de FUSE.\nEx.: <code>25</code>',
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
+  afsearch: '🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.',
+  afunblock: '🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.',
+  afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
+  aflimit: '🛡 Envie o número máximo de contas por dispositivo (padrão <code>3</code>).',
   hmuser: '⛏ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para ver a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
@@ -3106,6 +3111,130 @@ async function fgPrompt(ctx: Ctx, key: string, text: string) {
   return fgHub({ ...ctx, messageId: undefined }, false);
 }
 
+
+// ---------------------------------------------------------------- 🛡 ANTI-FAKE / ANTI-MULTIACCOUNT
+// Up to 3 distinct Telegram accounts per device. The 4th+ is access-blocked (never banned,
+// nothing deleted, no TON confiscated). Every admin action is audited.
+async function afHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_antifake_overview', { p_admin_id: ctx.adminId }) as any;
+  const blocked = (d.blockedDevices ?? []) as any[];
+  const text = `🛡 <b>ANTI-FAKE / MULTICONTA</b>\n\n`
+    + `Status: ${d.enabled ? '🟢 ATIVO' : '🔴 DESATIVADO'}\n`
+    + `Limite: <b>${fmt(d.limit)} contas por dispositivo</b>\n\n`
+    + `📱 Dispositivos: <b>${fmt(d.devices)}</b>\n`
+    + `🔗 Contas vinculadas: <b>${fmt(d.linkedAccounts)}</b>\n`
+    + `⛔ Contas bloqueadas: <b>${fmt(d.blockedAccounts)}</b>\n`
+    + `📝 Revisões pendentes: <b>${fmt(d.pendingReviews)}</b>\n`
+    + `✅ Allowlist: <b>${fmt(d.allowlisted)}</b>\n\n`
+    + (blocked.length ? `<b>ÚLTIMOS DISPOSITIVOS COM BLOQUEIO</b>\n` + blocked.slice(0, 8).map((x) =>
+        `• <code>…${esc(x.short)}</code> · ${fmt(x.accounts)} contas (${fmt(x.blocked)} bloqueadas) · ${esc(String(x.platform || '—'))}`).join('\n')
+      : '<i>Nenhum dispositivo bloqueado.</i>');
+  const rows = [
+    [{ t: '⛔ BLOCKED DEVICES', d: 'af:blocked' }, { t: '🔎 SEARCH USER', d: 'af:ask:afsearch' }],
+    [{ t: '📝 REVIEW REQUESTS', d: 'af:reviews' }],
+    [{ t: '🔓 UNBLOCK DEVICE', d: 'af:ask:afunblock' }, { t: '✅ ALLOWLIST', d: 'af:ask:afallow' }],
+    [{ t: '🔢 LIMITE DE CONTAS', d: 'af:ask:aflimit' }, { t: d.enabled ? '⏸ DESATIVAR' : '▶️ ATIVAR', d: `af:toggle:${d.enabled ? '0' : '1'}` }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function afBlocked(ctx: Ctx) {
+  const d = await rpc('admin_antifake_overview', { p_admin_id: ctx.adminId }) as any;
+  const blocked = (d.blockedDevices ?? []) as any[];
+  const text = `⛔ <b>DISPOSITIVOS COM CONTAS BLOQUEADAS</b>\n\n`
+    + (blocked.length ? blocked.map((x) =>
+      `• <code>…${esc(x.short)}</code>\n   ${fmt(x.accounts)} contas · ${fmt(x.blocked)} bloqueadas · ${esc(String(x.platform || '—'))}\n   Último acesso: ${String(x.lastSeen).slice(0, 16).replace('T', ' ')}`).join('\n')
+      : '<i>Nenhum dispositivo bloqueado.</i>');
+  return edit(ctx, text, kb([[{ t: '🔓 DESBLOQUEAR', d: 'af:ask:afunblock' }], nav('af:hub')]));
+}
+
+async function afReviews(ctx: Ctx) {
+  const d = await rpc('admin_antifake_reviews', { p_admin_id: ctx.adminId, p_limit: 10 }) as any;
+  const list = (d.requests ?? []) as any[];
+  const text = `📝 <b>PEDIDOS DE REVISÃO</b>\n\n`
+    + (list.length ? list.map((x) =>
+      `• <code>${esc(x.telegramId)}</code>${x.username ? ` (@${esc(x.username)})` : ''}\n   Dispositivo <code>…${esc(x.short)}</code> · ${fmt(x.accountsOnDevice)} contas\n   ${String(x.createdAt).slice(0, 16).replace('T', ' ')}`).join('\n')
+      : '<i>Nenhum pedido pendente.</i>');
+  const rows = list.slice(0, 5).map((x) => [{ t: `🔓 LIBERAR ${x.telegramId}`, d: `af:unblock:${x.telegramId}` }]);
+  return edit(ctx, text, kb([...rows, nav('af:hub')]));
+}
+
+async function afUserCard(ctx: Ctx, ref: string, useEdit = true) {
+  const d = await rpc('admin_antifake_search', { p_admin_id: ctx.adminId, p_ref: ref }) as any;
+  if (!d?.found) {
+    const miss = '🔎 Jogador não encontrado.';
+    return useEdit ? edit(ctx, miss, kb([[{ t: '🔎 BUSCAR', d: 'af:ask:afsearch' }], nav('af:hub')])) : send(ctx, miss, kb([nav('af:hub')]));
+  }
+  const devices = (d.devices ?? []) as any[];
+  const text = `🛡 <b>ANTI-FAKE · JOGADOR</b>\n\n`
+    + `Telegram ID: <code>${esc(d.telegramId)}</code>\n`
+    + `Usuário: ${d.username ? '@' + esc(d.username) : '—'}\n`
+    + `Nome: ${esc(String(d.name || '—'))}\n`
+    + `Dispositivos: <b>${fmt(d.deviceCount)}</b>\n`
+    + `Status: ${d.blocked ? '⛔ BLOQUEADO' : '🟢 LIBERADO'}${d.allowlisted ? ' · ✅ ALLOWLIST' : ''}${d.pendingReview ? ' · 📝 REVISÃO PENDENTE' : ''}\n\n`
+    + (devices.length ? devices.map((x) =>
+      `📱 <code>…${esc(x.short)}</code>\n   Slot ${fmt(x.slot)} · ${x.status === 'blocked' ? '⛔ bloqueada' : '🟢 liberada'}${x.adminBypass ? ' · 👑 admin bypass' : ''}\n   ${fmt(x.accountsOnDevice)} contas neste aparelho\n   Primeiro: ${String(x.firstSeen).slice(0, 16).replace('T', ' ')} · Último: ${String(x.lastSeen).slice(0, 16).replace('T', ' ')}`).join('\n')
+      : '<i>Nenhum dispositivo registrado.</i>');
+  const rows = [
+    [{ t: '🔓 DESBLOQUEAR', d: `af:unblock:${d.telegramId}` }, { t: '✅ ALLOWLIST', d: `af:allow:${d.telegramId}` }],
+    [{ t: '🔎 OUTRO JOGADOR', d: 'af:ask:afsearch' }],
+    nav('af:hub'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function afCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'blocked') return afBlocked(ctx);
+  if (sub === 'reviews') return afReviews(ctx);
+  if (sub === 'toggle') {
+    await rpc('admin_antifake_set_enabled', { p_admin_id: ctx.adminId, p_enabled: a === '1' });
+    await send(ctx, a === '1' ? '🟢 Proteção anti-fake ATIVA.' : '🔴 Proteção anti-fake DESATIVADA. Nenhum jogador fica bloqueado enquanto estiver desligada.');
+    return afHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'unblock') {
+    const r = await rpc('admin_antifake_unblock', { p_admin_id: ctx.adminId, p_ref: a, p_reason: 'liberado pelo painel admin' }) as any;
+    await send(ctx, r?.ok ? `🔓 Acesso liberado (${fmt(r.unblocked)} vínculo(s)). Auditoria registrada.` : 'ℹ️ Não havia bloqueio ativo para este alvo.');
+    return afUserCard({ ...ctx, messageId: undefined }, a, false);
+  }
+  if (sub === 'allow') {
+    await rpc('admin_antifake_allowlist', { p_admin_id: ctx.adminId, p_ref: a, p_reason: 'allowlist pelo painel admin', p_remove: false });
+    await send(ctx, '✅ Adicionado à allowlist. Auditoria registrada.');
+    return afUserCard({ ...ctx, messageId: undefined }, a, false);
+  }
+  return afHub(ctx);
+}
+
+async function afPrompt(ctx: Ctx, key: string, text: string) {
+  const value = text.trim();
+  if (key === 'afsearch') { await clearSession(ctx); return afUserCard({ ...ctx, messageId: undefined }, value, false); }
+  if (key === 'afunblock') {
+    if (!value) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID ou o identificador do dispositivo.');
+    await clearSession(ctx);
+    const r = await rpc('admin_antifake_unblock', { p_admin_id: ctx.adminId, p_ref: value, p_reason: 'liberado pelo painel admin' }) as any;
+    await send(ctx, r?.ok ? `🔓 Desbloqueado (${fmt(r.unblocked)} vínculo(s)). Auditoria registrada.` : 'ℹ️ Nenhum bloqueio ativo encontrado.');
+    return afHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'afallow') {
+    if (!value) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID ou o identificador do dispositivo.');
+    await clearSession(ctx);
+    await rpc('admin_antifake_allowlist', { p_admin_id: ctx.adminId, p_ref: value, p_reason: 'allowlist pelo painel admin', p_remove: false });
+    await send(ctx, '✅ Allowlist atualizada. Auditoria registrada.');
+    return afHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'aflimit') {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 1 || n > 10) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro entre 1 e 10. Ex.: <code>3</code>');
+    await clearSession(ctx);
+    await rpc('admin_antifake_set_enabled', { p_admin_id: ctx.adminId, p_enabled: true, p_limit: n });
+    await send(ctx, `🔢 Limite definido em <b>${fmt(n)} contas por dispositivo</b>.`);
+    return afHub({ ...ctx, messageId: undefined }, false);
+  }
+  return afHub({ ...ctx, messageId: undefined }, false);
+}
+
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
@@ -3126,6 +3255,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hm') { if (rest[0] !== 'ask') await clearSession(ctx); return hmCallback(ctx, rest); }
   // 🧩 Fragment utility (summon cost/odds + universal fragments per fusion step).
   if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
+  if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
@@ -4489,6 +4619,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
+  if (key.startsWith('af')) return afPrompt(ctx, key, text);
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);

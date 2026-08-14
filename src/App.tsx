@@ -38,6 +38,8 @@ import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, cla
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
+import AccessDeniedScreen from './components/AccessDeniedScreen';
+import { checkDeviceAccess, type DeviceAccess, type DeviceIdentity } from './antiFake';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
 import {CALENDAR_REWARDS,CHEST_LABELS,calendarDayStatus,nextResetCountdown,type CalendarClaimResult,type ChestOpenResult} from './calendarRewards';
@@ -117,6 +119,10 @@ function App() {
   const [shopResults, setShopResults] = useState<ShopHero[]>([]);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
   const [outsideTelegram, setOutsideTelegram] = useState(false);
+  // ANTI-FAKE: the backend decides; the client only renders the resulting screen.
+  const [deviceAccess, setDeviceAccess] = useState<DeviceAccess | null>(null);
+  const [deviceIdentity, setDeviceIdentity] = useState<DeviceIdentity | null>(null);
+  const deviceCheckedRef = useRef(false);
   const [telegramBooting, setTelegramBooting] = useState(true);
   const [bootStage, setBootStage] = useState(5);
   const [bootFading, setBootFading] = useState(false);
@@ -388,6 +394,21 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
+  // ANTI-FAKE / ANTI-MULTIACCOUNT: single fast RPC at boot. Up to 3 distinct Telegram
+  // accounts per device are allowed; the 4th+ gets a server-side block (never a ban).
+  useEffect(() => {
+    if (!telegramInitData || deviceCheckedRef.current) return;
+    deviceCheckedRef.current = true;
+    let cancelled = false;
+    checkDeviceAccess(telegramInitData).then(({ result, identity }) => {
+      if (cancelled) return;
+      setDeviceIdentity(identity);
+      setDeviceAccess(result);
+      if (result.access === 'blocked') console.error('[ANTI FAKE] access blocked', { code: result.code });
+    });
+    return () => { cancelled = true; };
+  }, [telegramInitData]);
+
   // Real boot progress: each resolved dependency advances the single Mythreon loading screen.
   const playerProfileReady = Boolean(playerProfile);
   const heroesReady = !backendEnabled || Boolean(heroCollection.data) || Boolean(heroCollection.error);
@@ -641,6 +662,18 @@ function App() {
 
   if (outsideTelegram) {
     return <OpenInTelegramGate />;
+  }
+
+  // Blocked device: no Village, Wallet, PvP or Market is ever rendered/loaded.
+  if (deviceAccess?.access === 'blocked') {
+    return (
+      <AccessDeniedScreen
+        language={languageCode}
+        initData={telegramInitData ?? ''}
+        identity={deviceIdentity}
+        pendingReview={Boolean(deviceAccess.pendingReview)}
+      />
+    );
   }
 
 
