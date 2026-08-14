@@ -13,6 +13,7 @@ import{useT}from'../LanguageContext';
  * (config + once per day/event per user); this component only renders the payload.
  */
 export function SpendingEventPopup({data,onClose,onView}:{data:SpendingEventPopupData;onClose:()=>void;onView:()=>void}){
+  const t=useT();
   const[visible,setVisible]=useState(false);
   useEffect(()=>{const id=window.setTimeout(()=>setVisible(true),40);return()=>window.clearTimeout(id)},[]);
   const featured=Boolean(data.firstTime);

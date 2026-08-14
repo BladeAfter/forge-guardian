@@ -3,6 +3,7 @@ import type { LocaleBundle } from './registry';
 /** spending namespace translations (SPENDING EVENT tab). */
 export const spending: LocaleBundle = {
   en: {
+    'spending.yourRankLabel': 'YOUR RANK',
     'spending.dialogLabel': 'Spending Event',
     'spending.close': 'Close',
     'spending.body': 'Spend FC or TON. Climb the live ranking.\nWin exclusive rewards.',
@@ -42,6 +43,7 @@ export const spending: LocaleBundle = {
     'spending.estimateOnly': 'Estimated only — positions can still change.',
   },
   pt: {
+    'spending.yourRankLabel': 'SUA POSIÇÃO',
     'spending.dialogLabel': 'Evento de Gastos',
     'spending.close': 'Fechar',
     'spending.body': 'Gaste FC ou TON. Suba no ranking ao vivo.\nGanhe recompensas exclusivas.',
@@ -81,6 +83,7 @@ export const spending: LocaleBundle = {
     'spending.estimateOnly': 'Apenas estimativa — a posição ainda pode mudar.',
   },
   es: {
+    'spending.yourRankLabel': 'TU POSICIÓN',
     'spending.dialogLabel': 'Evento de Gasto',
     'spending.close': 'Cerrar',
     'spending.body': 'Gasta FC o TON. Sube en la clasificación en vivo.\nGana recompensas exclusivas.',
@@ -120,6 +123,7 @@ export const spending: LocaleBundle = {
     'spending.estimateOnly': 'Solo estimación — la posición puede cambiar.',
   },
   ru: {
+    'spending.yourRankLabel': 'ВАШЕ МЕСТО',
     'spending.dialogLabel': 'Событие трат',
     'spending.close': 'Закрыть',
     'spending.body': 'Тратьте FC или TON. Поднимайтесь в живом рейтинге.\nВыигрывайте эксклюзивные награды.',
@@ -157,5 +161,20 @@ export const spending: LocaleBundle = {
     'spending.finished': 'ИТОГОВЫЙ РЕЙТИНГ',
     'spending.rateInfo': '1 FC = 1 очко · 1 TON = {rate} очков',
     'spending.estimateOnly': 'Только оценка — место может измениться.',
+  },
+  tr: {
+    'spending.dialogLabel': 'Harcama Etkinliği',
+    'spending.close': 'Kapat',
+    'spending.body': 'FC veya TON harca. Canlı sıralamada yüksel.\nÖzel ödüller kazan.',
+    'spending.liveRankingBadge': 'CANLI SIRALAMA',
+    'spending.fcTonCount': 'FC + TON SAYILIR',
+    'spending.yourScore': 'PUANIN',
+    'spending.yourRankLabel': 'SIRAN',
+    'spending.startClimbing': 'SIRALAMADA YÜKSELMEYE BAŞLA',
+    'spending.endsInLabel': 'BİTİŞE',
+    'spending.viewEvent': 'ETKİNLİĞİ GÖR',
+    'spending.title': 'HARCAMA ETKİNLİĞİ',
+    'spending.subtitle': 'HARCA. YÜKSEL. KAZAN.',
+    'spending.estReward': 'TAHMİNİ ÖDÜL',
   },
 };
