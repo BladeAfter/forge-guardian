@@ -19,6 +19,8 @@ import {
 import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMinPriceTon, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSellCategory, type MarketSort } from '../market';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
+import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
+
 
 type Props = {
   telegramInitData: string | null;
