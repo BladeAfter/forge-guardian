@@ -675,3 +675,83 @@ export async function miningRequest<T=HeroMiningState>(initData:string,action:'s
 }
 export const fetchHeroMining=(initData:string)=>miningRequest<HeroMiningState>(initData,'status');
 export const claimHeroMining=(initData:string)=>miningRequest<HeroMiningClaimResult>(initData,'claim');
+
+
+/**
+ * NFT BREEDING / SUB-NFT. Costs, breed counters, cooldowns and egg minting are all
+ * server-side; the client only sends the chosen NFTs and confirms its own payment.
+ */
+const BREEDING_ERRORS: Record<string, string> = {
+  BREEDING_DISABLED: 'O breeding está temporariamente desativado.',
+  SAME_NFT_NOT_ALLOWED: 'Você não pode cruzar o mesmo NFT com ele mesmo.',
+  NOT_YOUR_NFT: 'Este NFT não é seu.',
+  NFT_NOT_OWNED: 'Este NFT não tem proprietário válido.',
+  NFT_LOCKED: 'Este NFT está bloqueado pelo administrador.',
+  MAX_BREEDING_REACHED: 'MAX BREEDING REACHED — este NFT já reproduziu 3 vezes.',
+  BREEDING_COOLDOWN: 'Este NFT ainda está em cooldown de breeding.',
+  NFT_IN_BREEDING: 'Este NFT já está em outro breeding.',
+  REQUEST_NOT_FOUND: 'Pedido de breeding não encontrado.',
+  REQUEST_NOT_OPEN: 'Este pedido não está mais aberto.',
+  REQUEST_NOT_PENDING: 'Este pedido já foi respondido.',
+  NOT_YOUR_REQUEST: 'Este pedido não é seu.',
+  BREEDING_EXPIRED: 'BREEDING EXPIRED — o pedido venceu.',
+  INSUFFICIENT_TON_BALANCE: 'Saldo TON insuficiente. Deposite TON para pagar sua parte.',
+  CLAIM_BELOW_MINIMUM: 'Valor abaixo do mínimo para coletar.',
+  QUERY_TOO_SHORT: 'Digite ao menos 2 caracteres para buscar.',
+  NO_SUB_NFT_TEMPLATE: 'Nenhum modelo de Sub-NFT disponível.',
+  PLAYER_NOT_FOUND: 'Jogador não encontrado.',
+};
+
+async function breedingCall<T>(initData: string, body: Record<string, unknown>): Promise<T> {
+  const response = await forgeFetch('breeding', { initData, ...body });
+  if (response.status === 404) throw new Error('Backend indisponível: não foi possível contatar o breeding.');
+  const payload = await response.json().catch(() => null) as (T & { error?: string }) | null;
+  if (!response.ok || !payload) {
+    const raw = payload?.error || '';
+    throw new Error(BREEDING_ERRORS[raw] || raw || 'Não foi possível processar o breeding.');
+  }
+  return payload;
+}
+
+export const fetchBreedingState = (initData: string) => breedingCall<import('./breeding').BreedingState>(initData, { action: 'state' });
+export const searchBreedingPartners = (initData: string, query: string) =>
+  breedingCall<import('./breeding').PartnerNft[]>(initData, { action: 'search', query });
+export const createBreedingRequest = (initData: string, myNftId: string, partnerNftId: string) =>
+  breedingCall<{ requestId: string; status: string; costA: number; costB: number; selfBreed: boolean }>(initData, { action: 'request', myNftId, partnerNftId });
+export const respondBreedingRequest = (initData: string, requestId: string, accept: boolean) =>
+  breedingCall<{ ok: boolean; status: string }>(initData, { action: 'respond', requestId, accept });
+export const payBreedingShare = (initData: string, requestId: string, idempotencyKey: string) =>
+  breedingCall<{ ok: boolean; status: string; eggA?: string; eggB?: string }>(initData, { action: 'pay', requestId, idempotencyKey });
+export const claimSubNftMining = (initData: string) =>
+  breedingCall<{ ok: boolean; claimedTon: number }>(initData, { action: 'claim-mining' });
+
+/** PET EXPEDITIONS (AFK). Timers live on the server; the client only reads timestamps. */
+const EXPEDITION_ERRORS: Record<string, string> = {
+  MISSION_NOT_FOUND: 'Missão indisponível.',
+  TEAM_MUST_HAVE_3_PETS: 'Selecione exatamente 3 pets.',
+  DUPLICATED_PET: 'Não repita o mesmo pet na equipe.',
+  PET_NOT_YOURS: 'Este pet não é seu.',
+  PET_ON_EXPEDITION: 'Este pet já está em expedição.',
+  SUB_NFT_NOT_ADULT: 'Sub-NFTs só podem ir em expedição quando adultos.',
+  EXPEDITION_NOT_FOUND: 'Expedição não encontrada.',
+  EXPEDITION_IN_PROGRESS: 'A expedição ainda está em andamento.',
+  ALREADY_CLAIMED: 'Recompensa já coletada.',
+  PLAYER_NOT_FOUND: 'Jogador não encontrado.',
+};
+
+async function expeditionCall<T>(initData: string, body: Record<string, unknown>): Promise<T> {
+  const response = await forgeFetch('expeditions', { initData, ...body });
+  if (response.status === 404) throw new Error('Backend indisponível: não foi possível contatar as expedições.');
+  const payload = await response.json().catch(() => null) as (T & { error?: string }) | null;
+  if (!response.ok || !payload) {
+    const raw = payload?.error || '';
+    throw new Error(EXPEDITION_ERRORS[raw] || raw || 'Não foi possível processar a expedição.');
+  }
+  return payload;
+}
+
+export const fetchExpeditionState = (initData: string) => expeditionCall<import('./breeding').ExpeditionState>(initData, { action: 'state' });
+export const startExpedition = (initData: string, missionId: string, petIds: string[]) =>
+  expeditionCall<{ ok: boolean; expeditionId: string; teamPower: number; successChance: number; finishesAt: string }>(initData, { action: 'start', missionId, petIds });
+export const claimExpedition = (initData: string, expeditionId: string) =>
+  expeditionCall<{ ok: boolean; success: boolean; rewards: import('./breeding').ExpeditionReward[] }>(initData, { action: 'claim', expeditionId });
