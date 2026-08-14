@@ -70,7 +70,10 @@ export async function telegramIsChatMember(chatId: string, telegramUserId: numbe
 
 
 
-const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 86_400));
+// Telegram clients (specially Desktop/Web) keep the same signed initData for the whole
+// session, so a short TTL breaks long-running Mini App sessions even though the HMAC
+// signature is still valid. 30 days keeps replay risk low while avoiding false expirations.
+const AUTH_MAX_AGE_SECONDS = Math.max(300, Number(Deno.env.get('TELEGRAM_AUTH_MAX_AGE_SECONDS') || 2_592_000));
 
 export class TelegramAuthError extends Error {
   constructor(public reason: string, message: string) {
