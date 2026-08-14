@@ -1552,11 +1552,26 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
       return rpc(db, 'expedition_start', { p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds });
     }
+    // Extra attempts are per (player, mission, game day): 5 via rewarded ads + 5 via FC, independent.
+    if (action === 'ad-begin') {
+      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
+      return rpc(db, 'expedition_extra_ad_begin', { p_telegram_id: user.id, p_mission_id: body.missionId });
+    }
+    if (action === 'ad-claim') {
+      if (!isUuid(body.viewId)) throw new Error('EXPEDITION_AD_VIEW_NOT_FOUND');
+      return rpc(db, 'expedition_extra_ad_claim', { p_telegram_id: user.id, p_view_id: body.viewId });
+    }
+    if (action === 'buy-extra') {
+      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
+      const key = String(body.idempotencyKey || '').slice(0, 80);
+      if (key.length < 8) throw new Error('INVALID_REQUEST_KEY');
+      return rpc(db, 'expedition_extra_buy_fc', { p_telegram_id: user.id, p_mission_id: body.missionId, p_idempotency_key: key });
+    }
     if (action === 'claim') {
       if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
       return rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
     }
-    throw new Error('INVALID_ACTION');
+
   },
 };
 
