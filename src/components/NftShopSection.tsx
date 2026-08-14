@@ -16,6 +16,7 @@ import { useT } from '../LanguageContext';
  * sold twice, and a double tap can never create two owners.
  */
 export function NftShopSection({ telegramInitData }: { telegramInitData: string }) {
+  const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftShopItem | null>(null);
   const [waiting, setWaiting] = useState(false);
