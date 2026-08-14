@@ -723,6 +723,66 @@ async function verifyNftPurchases(db: Db, user: TelegramUser) {
   return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, results };
 }
 
+/**
+ * Reconciler for NFT EXCLUSIVE HERO purchases paid with TON Connect.
+ * Identical guarantees as the pet flow: the database delivers confirmed orders
+ * (atomic + idempotent) and only genuinely pending orders are looked up on-chain
+ * through their unique payment comment.
+ */
+async function verifyNftHeroPurchases(db: Db, user: TelegramUser) {
+  const state = await rpc(db, 'nft_hero_reconcile_orders', { p_telegram_id: user.id }) as any;
+  const completed: string[] = [...(state?.delivered ?? [])].map(String);
+  const alreadyDelivered: string[] = [...(state?.alreadyDelivered ?? [])].map(String);
+  const results: any[] = Array.isArray(state?.results) ? [...state.results] : [];
+  const orders: any[] = Array.isArray(state?.awaitingPayment) ? state.awaitingPayment : [];
+  const stillPending: string[] = [];
+
+  if (orders.length) {
+    const hotWallet = await hotWalletAddress(db);
+    const transactions = await fetchHotWalletIncoming(hotWallet);
+    for (const order of orders) {
+      const comment = String(order.paymentComment || '').trim();
+      const expectedNano = BigInt(String(order.amountNano || '0'));
+      const logRow: Record<string, unknown> = {
+        order_kind: 'nft_hero',
+        order_id: order.id,
+        telegram_id: user.id,
+        product_id: String(order.heroName ?? ''),
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
+      });
+      if (!match) {
+        stillPending.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
+        continue;
+      }
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      try {
+        const outcome = await rpc(db, 'nft_hero_confirm_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano }) as any;
+        results.push({ ...outcome, heroName: order.heroName, priceTon: order.priceTon });
+        if (outcome?.status === 'already_delivered') alreadyDelivered.push(order.id);
+        else completed.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: String(outcome?.status ?? 'completed') });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        console.error('[FORGE ERROR] nft-hero-purchase-confirm', { orderId: order.id, txHash, receivedNano, reason });
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: reason });
+        stillPending.push(order.id);
+      }
+    }
+  }
+
+  return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, results };
+}
+
+
 
 
 
