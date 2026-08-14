@@ -1510,6 +1510,38 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /** PET EXPEDITIONS (AFK missions). Timers and rolls are server-side only. */
+  /**
+   * ANTI-FAKE / ANTI-MULTIACCOUNT. The device identity is a client-generated opaque
+   * hash (no personal data). The decision (allowed/blocked) is ALWAYS taken here +
+   * in the database, so patching the client JS can never grant access.
+   */
+  device: async (db, user, body) => {
+    const action = String(body.action || 'check');
+    const deviceHash = String(body.deviceHash || '').trim().slice(0, 128);
+    if (deviceHash && !/^[a-f0-9]{32,128}$/i.test(deviceHash)) throw new Error('INVALID_DEVICE');
+    if (action === 'review') {
+      return await rpc(db, 'device_request_review', {
+        p_telegram_id: user.id,
+        p_device_hash: deviceHash,
+        p_message: String(body.message || '').slice(0, 500),
+      });
+    }
+    if (action !== 'check') throw new Error('INVALID_ACTION');
+    // Only technical signals are persisted, and IP is stored hashed as a risk signal only —
+    // it can never block a player by itself.
+    const metadata: Record<string, unknown> = {
+      uaHash: typeof body.uaHash === 'string' ? body.uaHash.slice(0, 64) : null,
+      ipHash: typeof body.ipHash === 'string' ? body.ipHash.slice(0, 64) : null,
+      tzOffset: Number.isFinite(Number(body.tzOffset)) ? Number(body.tzOffset) : null,
+    };
+    return await rpc(db, 'check_device_access', {
+      p_telegram_id: user.id,
+      p_device_hash: deviceHash,
+      p_platform: String(body.platform || '').slice(0, 40) || null,
+      p_metadata: metadata,
+    });
+  },
+
   expeditions: async (db, user, body) => {
     const action = String(body.action || 'state');
     if (action === 'state') return rpc(db, 'expedition_state', { p_telegram_id: user.id });
@@ -1610,6 +1642,15 @@ Deno.serve(async (req) => {
 
   try {
     const db = serviceClient();
+    // ANTI-FAKE gate: a device that already reached the account limit can only talk to
+    // the `device` route (status + review request). Every other feature is server-blocked.
+    if (feature !== 'device') {
+      const blocked = await db.rpc('device_access_blocked', { p_telegram_id: user.id });
+      if (!blocked.error && blocked.data === true) {
+        console.error('[ANTI FAKE BLOCKED]', { feature, telegramId: user.id });
+        return json({ access: 'blocked', reason: 'MULTIPLE_ACCOUNTS_DETECTED', code: 'MULTI_ACCOUNT_LIMIT', error: 'MULTIPLE_ACCOUNTS_DETECTED' }, 403);
+      }
+    }
     const data = await handler(db, user, body);
     return json(data ?? null);
   } catch (error) {
