@@ -227,7 +227,8 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
             const selectedCount = list.filter((h) => selected.includes(h.heroId)).length;
             const available = list.filter((h) => !selected.includes(h.heroId) && getHeroUsageStatus(h).canFuse).length;
             const blocked = list.every((h) => !getHeroUsageStatus(h).canFuse) || !tiers[head.rarity];
-            const lockLabel = heroLockLabel(getHeroUsageStatus(list[0]).reason)?.replace('🔒 ', '');
+            const headUsage = getHeroUsageStatus(list[0]);
+            const lockLabel = (heroLockLabel(headUsage.reason) ?? (headUsage.isNft ? '💎 NFT EXCLUSIVE' : null))?.replace('🔒 ', '');
             return (
               <FusionHeroCard
                 key={head.heroKey}
