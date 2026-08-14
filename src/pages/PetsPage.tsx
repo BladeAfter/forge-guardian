@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Egg, Info, Minus, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
+import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, Plus, ShoppingCart, Sparkles, Star, Swords, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
@@ -19,10 +19,12 @@ import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { useT, useLanguage } from '../LanguageContext';
 
 
-type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog' | 'breeding' | 'expeditions';
+type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog', breeding: 'pets.tabBreeding', expeditions: 'pets.tabExpeditions' };
-const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG', breeding: '🧬 BREEDING', expeditions: '🗺️ EXPEDITIONS' };
+type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions';
+
+const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
+const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
@@ -198,6 +200,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     );
   }
 
+  if (section === 'breeding') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <BreedingSection initData={telegramInitData} />
+      </Shell>
+    );
+  }
+
+  if (section === 'expeditions') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <ExpeditionsSection initData={telegramInitData} />
+      </Shell>
+    );
+  }
+
 
   return (
     <Shell onClose={onClose} section={section} onSection={setSection}>
@@ -242,7 +260,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
       {/* NFT EXCLUSIVE lives in its own main section (header selector), never here. */}
 
-      <nav className="mt-3 flex gap-1 overflow-x-auto pb-1">
+      <nav className="mt-3 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
         {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
           <button
             key={key}
@@ -412,9 +430,6 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           </div>
         )}
 
-        {tab === 'breeding' && <BreedingSection initData={telegramInitData} />}
-
-        {tab === 'expeditions' && <ExpeditionsSection initData={telegramInitData} />}
 
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
@@ -501,14 +516,17 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   }
 }
 
-/**
- * PETS and NFT EXCLUSIVE are two MAIN sections of this screen, selected in the
- * header (never as a sub-tab next to Eggs/Food/Evolution/Catalog).
- */
-type Section = 'pets' | 'nft' | 'shop';
-
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
+  const primary: [Section, string, React.ReactNode][] = [
+    ['pets', 'PETS', null],
+    ['nft', 'NFT EXCLUSIVE', <Gem key="nft" className="mr-1 h-3.5 w-3.5 text-sky-400" />],
+    ['shop', 'BUY NFT', <ShoppingCart key="shop" className="mr-1 h-3.5 w-3.5 text-amber-300" />],
+  ];
+  const secondary: [Section, string, React.ReactNode][] = [
+    ['breeding', 'BREEDING', <Dna key="breeding" className="mr-1 h-3 w-3" />],
+    ['expeditions', 'EXPEDITIONS', <Swords key="expeditions" className="mr-1 h-3 w-3" />],
+  ];
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
@@ -519,24 +537,48 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
             <button type="button" onClick={onClose} aria-label={t('pets.close')} className="-mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-5 w-5" /></button>
           </div>
           {section && onSection ? (
-            <div className="mt-1 flex items-end gap-4">
-              {([['pets', 'PETS'], ['nft', 'NFT EXCLUSIVE'], ['shop', 'BUY NFT']] as [Section, string][]).map(([key, label]) => {
-                const on = section === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => onSection(key)}
-                    className={`relative shrink-0 pb-1.5 text-left text-[13px] font-black uppercase tracking-[.04em] transition ${
-                      on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
-                    }`}
-                  >
-                    {key === 'pets' ? null : <span className="mr-1">{key === 'nft' ? '💎' : '🛒'}</span>}
-                    {label}
-                    <span className={`absolute inset-x-0 bottom-0 h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
-                  </button>
-                );
-              })}
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-end justify-start gap-x-3 gap-y-1">
+                {primary.map(([key, label, icon]) => {
+                  const on = section === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onSection(key)}
+                      className={`relative shrink-0 whitespace-nowrap pb-1.5 text-left text-[12px] font-black uppercase tracking-[.04em] transition ${
+                        on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
+                      }`}
+                    >
+                      {icon}
+                      {label}
+                      <span className={`absolute inset-x-0 -bottom-px h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                {secondary.map(([key, label, icon]) => {
+                  const on = section === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onSection(key)}
+                      className={`relative flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-[.04em] transition ${
+                        on
+                          ? 'text-amber-200 shadow-[0_0_10px_rgba(251,191,36,.25)] ring-1 ring-amber-300/40'
+                          : key === 'breeding'
+                            ? 'text-violet-300 hover:bg-white/5'
+                            : 'text-slate-300 hover:bg-white/5'
+                      }`}
+                    >
+                      {icon}
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <h1 className="text-xl font-black">PETS</h1>
