@@ -896,13 +896,27 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   box-shadow:0 0 12px rgba(192,132,252,.6);
 }
 .nft-hero-badge{
-  position:absolute;top:2px;left:2px;z-index:3;
+  position:relative;z-index:3;
   display:inline-flex;align-items:center;gap:2px;
   border-radius:999px;padding:1px 5px;
   font-size:6px;line-height:1.4;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
-  white-space:nowrap;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
 }
-.nft-hero-badge--lg{font-size:8px;padding:2px 7px;top:4px;left:4px}
+.nft-hero-badge--lg{font-size:8px;padding:2px 7px}
+/* Dedicated NFT header strip: keeps badges off the hero artwork. */
+.nft-hero-head{
+  position:relative;z-index:3;
+  display:flex;align-items:center;justify-content:space-between;gap:4px;
+  padding:3px 5px 2px;
+  background:linear-gradient(90deg,rgba(88,28,135,.6) 0%,rgba(24,10,44,.35) 60%,rgba(88,28,135,.55) 100%);
+  border-bottom:1px solid rgba(192,132,252,.35);
+}
+.nft-hero-serial{
+  font-size:6px;font-weight:900;letter-spacing:.1em;color:#fde68a;
+  text-shadow:0 0 8px rgba(250,204,21,.5);white-space:nowrap;
+}
+.nft-hero-head--lg{padding:4px 6px 3px}
+.nft-hero-head--lg .nft-hero-serial{font-size:8px}
 .nft-hero-name{
   color:#fef3c7;
   text-shadow:0 0 8px rgba(250,204,21,.55),0 0 14px rgba(168,85,247,.4);
