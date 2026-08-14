@@ -6,8 +6,8 @@ import{useT}from'../LanguageContext';
 const rarityColor:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',ancestral:'#f472b6'};
 const archetypeFx:Record<string,{icon:string;color:string}>={warrior:{icon:'⚔',color:'#fbbf24'},assassin:{icon:'✦',color:'#f472b6'},tank:{icon:'🛡',color:'#60a5fa'},mage:{icon:'✷',color:'#c084fc'},archer:{icon:'➤',color:'#34d399'},support:{icon:'✚',color:'#4ade80'}};
 
-type Fighter={heroId:string;name:string;imageUrl:string;rarity:string;archetype?:string;maxHp:number;hp:number};
-const toFighter=(h:PvpHero&{currentHp?:number}):Fighter=>({heroId:h.heroId,name:h.name,imageUrl:h.imageUrl,rarity:String(h.rarity),archetype:h.archetype,maxHp:Math.max(1,h.finalHp),hp:Math.max(1,h.finalHp)});
+type Fighter={heroId:string;name:string;imageUrl:string;rarity:string;archetype?:string;maxHp:number;hp:number;isNft?:boolean};
+const toFighter=(h:PvpHero&{currentHp?:number}):Fighter=>({heroId:h.heroId,name:h.name,imageUrl:h.imageUrl,rarity:String(h.rarity),archetype:h.archetype,isNft:Boolean(h.isNft),maxHp:Math.max(1,h.finalHp),hp:Math.max(1,h.finalHp)});
 
 export function PvpBattleArena({battle,attackTeam,defenseTeam,opponentName,pet,onContinue}:{battle:PvpBattleResult;attackTeam:PvpHero[];defenseTeam:PvpHero[];opponentName:string;pet?:{name:string;image:string}|null;onContinue:()=>void}){
  const t=useT();
@@ -84,13 +84,13 @@ function TeamRow({label,team,fx,sideKey,dim,pet}:{label:string;team:Fighter[];fx
 function FighterCard({fighter:h,attacking,hit,down}:{fighter:Fighter;attacking:boolean;hit:{damage:number;key:number}|null;down:boolean}){
  const t=useT();const defeatedLabel=t('pvp.defeatedTag');
  const pct=Math.max(0,Math.min(100,Math.round((h.hp/h.maxHp)*100))),dead=h.hp<=0,fxInfo=archetypeFx[String(h.archetype)]??archetypeFx.warrior;
- return<div className={`relative overflow-hidden rounded-lg border bg-black/70 transition-all duration-200 ${dead?'opacity-40 grayscale':''} ${attacking?(down?'-translate-y-1.5':'translate-y-1.5')+' shadow-[0_0_18px_rgba(251,191,36,.45)]':''} ${hit?'animate-[pulse_.3s_ease-in-out]':''}`} style={{borderColor:rarityColor[h.rarity]??'#475569'}}>
+ return<div className={`relative overflow-hidden rounded-lg border bg-black/70 transition-all duration-200 ${h.isNft?'nft-hero-card':''} ${dead?(h.isNft?'opacity-70':'opacity-40 grayscale'):''} ${attacking?(down?'-translate-y-1.5':'translate-y-1.5')+' shadow-[0_0_18px_rgba(251,191,36,.45)]':''} ${hit?'animate-[pulse_.3s_ease-in-out]':''}`} style={{borderColor:h.isNft?undefined:(rarityColor[h.rarity]??'#475569')}}>{h.isNft?<span className="nft-hero-badge">💎</span>:null}
   <div className="relative"><img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover"/>
    {attacking&&<span className="absolute inset-0 grid place-items-center text-lg" style={{color:fxInfo.color,textShadow:`0 0 12px ${fxInfo.color}`}}>{fxInfo.icon}</span>}
    {hit&&<span key={hit.key} className="absolute inset-x-0 top-1 animate-fade-in text-center text-[11px] font-black text-rose-300 drop-shadow-[0_2px_6px_rgba(0,0,0,.8)]">-{hit.damage}</span>}
    {dead&&<span className="absolute inset-0 grid place-items-center bg-black/60 text-[7px] font-black tracking-widest text-rose-300">{defeatedLabel}</span>}
   </div>
-  <p className="truncate px-1 pt-0.5 text-[7px] font-bold text-slate-200">{h.name}</p>
+  <p className={`truncate px-1 pt-0.5 text-[7px] font-bold ${h.isNft?'nft-hero-name':'text-slate-200'}`}>{h.name}</p>
   <p className="px-1 text-[6px] text-slate-400">{h.hp}/{h.maxHp}</p>
   <div className="mx-1 mb-1 mt-0.5 h-1 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full transition-all duration-500" style={{width:`${pct}%`,background:pct>50?'#34d399':pct>22?'#fbbf24':'#f87171'}}/></div>
  </div>
