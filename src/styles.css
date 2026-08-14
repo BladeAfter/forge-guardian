@@ -860,23 +860,59 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 .forge-nft-tag{box-shadow:0 0 12px rgba(251,191,36,.45)}
 
-/* ===== NFT EXCLUSIVE hero cards (tier above ANCESTRAL) ===== */
+/* ===== NFT EXCLUSIVE hero cards (tier above ANCESTRAL) =====
+   Cosmic purple + gold premium treatment. Purely visual — no gameplay impact.
+   Stays visible on KO/cooldown states because grayscale/opacity is applied by
+   the parent card while the ring/badge keep their own saturated colors. */
 .nft-hero-card{
-  border-color:rgba(34,211,238,.75)!important;
-  background-image:linear-gradient(180deg,#04202c 0%,#071227 55%,#03040c 100%);
-  box-shadow:0 0 0 1px rgba(34,211,238,.4),0 16px 32px rgba(8,145,178,.4),inset 0 0 22px rgba(56,189,248,.18);
+  position:relative;
+  border-color:rgba(250,204,21,.85)!important;
+  background-image:
+    radial-gradient(120% 80% at 50% 0%,rgba(168,85,247,.35) 0%,rgba(88,28,135,.18) 45%,transparent 70%),
+    linear-gradient(180deg,#1b0b33 0%,#120a24 55%,#05040b 100%);
+  box-shadow:0 0 0 1px rgba(192,132,252,.55),0 14px 30px rgba(126,34,206,.45),inset 0 0 24px rgba(168,85,247,.22);
   animation:nft-hero-glow 3.2s ease-in-out infinite;
 }
-@keyframes nft-hero-glow{
-  0%,100%{box-shadow:0 0 0 1px rgba(34,211,238,.4),0 16px 32px rgba(8,145,178,.4),inset 0 0 22px rgba(56,189,248,.18)}
-  50%{box-shadow:0 0 0 1px rgba(165,243,252,.85),0 20px 40px rgba(14,116,144,.6),inset 0 0 30px rgba(34,211,238,.3)}
+.nft-hero-card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+  padding:1px;
+  background:linear-gradient(135deg,#facc15 0%,#a855f7 35%,#22d3ee 60%,#fde68a 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:.9;
 }
-.nft-hero-tag{
-  color:#062c33;
-  background-image:linear-gradient(120deg,#67e8f9 0%,#a5f3fc 45%,#fde68a 100%);
-  box-shadow:0 0 12px rgba(34,211,238,.55);
+.nft-hero-card::after{
+  content:'';position:absolute;top:-18%;right:-18%;width:56%;height:56%;pointer-events:none;z-index:1;
+  background:radial-gradient(circle,rgba(253,230,138,.55) 0%,rgba(168,85,247,.25) 40%,transparent 70%);
+}
+@keyframes nft-hero-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(192,132,252,.55),0 14px 30px rgba(126,34,206,.45),inset 0 0 24px rgba(168,85,247,.22)}
+  50%{box-shadow:0 0 0 1px rgba(253,224,71,.9),0 18px 38px rgba(147,51,234,.6),inset 0 0 32px rgba(216,180,254,.32)}
+}
+/* Legacy tag (kept) + new premium badge for team/mini cards. */
+.nft-hero-tag,.nft-hero-badge{
+  color:#1a0733;
+  background-image:linear-gradient(120deg,#fde68a 0%,#facc15 40%,#c084fc 100%);
+  box-shadow:0 0 12px rgba(192,132,252,.6);
+}
+.nft-hero-badge{
+  position:absolute;top:2px;left:2px;z-index:3;
+  display:inline-flex;align-items:center;gap:2px;
+  border-radius:999px;padding:1px 5px;
+  font-size:6px;line-height:1.4;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  white-space:nowrap;
+}
+.nft-hero-badge--lg{font-size:8px;padding:2px 7px;top:4px;left:4px}
+.nft-hero-name{
+  color:#fef3c7;
+  text-shadow:0 0 8px rgba(250,204,21,.55),0 0 14px rgba(168,85,247,.4);
+}
+.nft-hero-rarity{
+  color:#f0abfc!important;
+  text-shadow:0 0 8px rgba(192,132,252,.5);
 }
 @media (prefers-reduced-motion:reduce){.nft-hero-card{animation:none}}
+
 
 /* MYTHIC egg name: official mythic rarity tint (magenta/violet) with a soft glow. */
 .egg-name-mythic{
