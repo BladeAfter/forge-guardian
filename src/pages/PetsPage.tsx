@@ -15,6 +15,7 @@ import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
 import BreedingSection from '../components/BreedingSection';
 import ExpeditionsSection from '../components/ExpeditionsSection';
+import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { useT, useLanguage } from '../LanguageContext';
 
 
@@ -60,6 +61,9 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const [tab, setTab] = useState<Tab>('pets');
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string; pet?: PlayerPet } | null>(null);
   const [feedTarget, setFeedTarget] = useState<PlayerPet | null>(null);
+  // Level/XP recycling lives inside the pet details sheet — never as an extra tab.
+  const [detailsTarget, setDetailsTarget] = useState<PlayerPet | null>(null);
+  const [xpTarget, setXpTarget] = useState<PlayerPet | null>(null);
   const [evolution, setEvolution] = useState<PetEvolveResult | null>(null);
   const [eggTarget, setEggTarget] = useState<PetEgg | null>(null);
   const [foodTarget, setFoodTarget] = useState<PetFood | null>(null);
@@ -175,6 +179,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   }
 
   const active = data.activePet;
+  const liveDetails = detailsTarget ? data.playerPets.find((pet) => pet.id === detailsTarget.id) ?? null : null;
   const liveFeedTarget = feedTarget ? data.playerPets.find((pet) => pet.id === feedTarget.id) ?? null : null;
 
   if (section === 'nft') {
@@ -259,6 +264,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 pet={pet}
                 onFeed={() => setFeedTarget(pet)}
                 onActivate={pet.isActive ? undefined : () => mutation.mutate({ action: 'activate', playerPetId: pet.id })}
+                onDetails={() => setDetailsTarget(pet)}
                 pending={pending}
               />
             ))}
@@ -443,6 +449,19 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           </div>
         )}
       </main>
+
+      {liveDetails && (
+        <PetDetailsModal
+          pet={liveDetails}
+          onClose={() => setDetailsTarget(null)}
+          onFeed={() => { setFeedTarget(liveDetails); setDetailsTarget(null); }}
+          onResetTransfer={() => { setXpTarget(liveDetails); setDetailsTarget(null); }}
+        />
+      )}
+
+      {xpTarget && (
+        <PetXpTransferModal pet={xpTarget} telegramInitData={telegramInitData} onClose={() => setXpTarget(null)} />
+      )}
 
       {liveFeedTarget && (
         <FeedModal
@@ -866,7 +885,7 @@ function NftPetTag({ serial, className = '' }: { serial?: string | number | null
   );
 }
 
-function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
+function PetCard({ pet, onFeed, onActivate, onDetails, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; onDetails?: () => void; pending: boolean }) {
   const t = useT();
   const isNft = isNftExclusivePet(pet);
   const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
@@ -894,12 +913,12 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
       </div>
 
 
-      <div className="relative z-10 mt-1 grid h-[124px] place-items-center">
+      <button type="button" onClick={onDetails} className="relative z-10 mt-1 grid h-[124px] w-full place-items-center">
         <img src={pet.image} alt={pet.name} className="h-[118px] w-full object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]" />
-      </div>
+      </button>
 
       <div className="relative z-10">
-        <h3 className="truncate text-base font-black uppercase tracking-wide">{pet.name}</h3>
+        <button type="button" onClick={onDetails} className="block w-full truncate text-base font-black uppercase tracking-wide">{pet.name}</button>
         <p className="mt-1 text-[9px] font-bold text-slate-300">{t('pets.cardLevelPower', { level: pet.level, max: pet.maxLevel, power: fmt(pet.power) })}</p>
         <p className="text-[8px] text-slate-500">{petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}</p>
       </div>
@@ -1106,6 +1125,57 @@ function Row({ label, value, strong, danger }: { label: string; value: string; s
     <div className="flex items-center justify-between gap-2 py-0.5">
       <span className="text-slate-400">{label}</span>
       <b className={danger ? 'text-rose-300' : strong ? 'text-amber-200' : 'text-slate-200'}>{value}</b>
+    </div>
+  );
+}
+
+/**
+ * Pet details sheet. Opened by tapping the pet image/name, it hosts the
+ * PET MANAGEMENT actions (level/XP recycling) so no new tab is required.
+ */
+function PetDetailsModal({ pet, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
+  const t = useT();
+  return (
+    <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
+      <div className="forge-safe-page max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-400/30 bg-[#080b11] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.details')}</p>
+            <h2 className="truncate text-lg font-black uppercase">{pet.name}</h2>
+            <p className="text-[10px]" style={{ color: rarityColor[petDisplayRarity(pet)] }}>
+              {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(pet), level: pet.level, max: pet.maxLevel })}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <img src={pet.image} alt={pet.name} className="mx-auto h-40 w-40 object-contain" />
+        <LevelBar pet={pet} />
+        <BuffGrid pet={pet} />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-white/15 bg-white/5 py-2.5 text-[9px] font-black uppercase text-slate-200"
+          >
+            {t('pets.back')}
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+          <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{t('pets.petManagement')}</p>
+          <button
+            type="button"
+            onClick={onResetTransfer}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-300/40 bg-violet-500/15 py-2.5 text-[9px] font-black uppercase text-violet-100"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {t('pets.resetTransfer')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

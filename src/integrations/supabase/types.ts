@@ -5425,6 +5425,63 @@ export type Database = {
           },
         ]
       }
+      pet_xp_transfers: {
+        Row: {
+          balance_after: number | null
+          balance_before: number | null
+          created_at: string
+          fc_cost: number
+          id: string
+          source_level_before: number
+          source_pet_name: string | null
+          source_player_pet_id: string
+          target_level_after: number
+          target_level_before: number
+          target_pet_name: string | null
+          target_player_pet_id: string
+          telegram_id: number | null
+          updated_at: string
+          user_id: string
+          xp_transferred: number
+        }
+        Insert: {
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          fc_cost?: number
+          id?: string
+          source_level_before: number
+          source_pet_name?: string | null
+          source_player_pet_id: string
+          target_level_after: number
+          target_level_before: number
+          target_pet_name?: string | null
+          target_player_pet_id: string
+          telegram_id?: number | null
+          updated_at?: string
+          user_id: string
+          xp_transferred: number
+        }
+        Update: {
+          balance_after?: number | null
+          balance_before?: number | null
+          created_at?: string
+          fc_cost?: number
+          id?: string
+          source_level_before?: number
+          source_pet_name?: string | null
+          source_player_pet_id?: string
+          target_level_after?: number
+          target_level_before?: number
+          target_pet_name?: string | null
+          target_player_pet_id?: string
+          telegram_id?: number | null
+          updated_at?: string
+          user_id?: string
+          xp_transferred?: number
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           active_skill: Json | null
@@ -11585,8 +11642,27 @@ export type Database = {
       pet_max_level: { Args: never; Returns: number }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
       pet_rarity_order: { Args: { v: string }; Returns: number }
+      pet_reset_transfer_xp: {
+        Args: {
+          p_idempotency_key: string
+          p_source_player_pet_id: string
+          p_target_player_pet_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
+      pet_total_xp: { Args: { p_level: number; p_xp: number }; Returns: number }
+      pet_xp_capacity: {
+        Args: { p_level: number; p_xp: number }
+        Returns: number
+      }
       pet_xp_required: { Args: { v: number }; Returns: number }
+      pet_xp_transfer_cost: { Args: { p_level: number }; Returns: number }
+      pet_xp_transfer_preview: {
+        Args: { p_player_pet_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       pick_pet_for_source: {
         Args: {
           p_rarity: string
