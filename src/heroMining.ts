@@ -69,9 +69,9 @@ export function miningActive(state: HeroMiningState | undefined): boolean {
 }
 
 /** Rarities allowed to mine TON (mirrors the server gate `hero_mining_rarity_eligible`). */
-export const MINING_ELIGIBLE_RARITIES = ['rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
+export const MINING_ELIGIBLE_RARITIES = ['rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'] as const;
 
-/** Common/Uncommon never mine, no matter the configured rate or the player's investment. */
+/** Common/Uncommon never mine. NFT Exclusive sits above the ladder and always passes. */
 export function isMiningRarity(rarity: string | null | undefined): boolean {
   return (MINING_ELIGIBLE_RARITIES as readonly string[]).includes(String(rarity ?? '').toLowerCase());
 }
