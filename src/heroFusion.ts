@@ -17,6 +17,47 @@ export type FusionNext = {
   finalHp: number;
 };
 
+/** Per-instance usage status returned by the backend (single source of truth). */
+export type HeroUsage = {
+  manuallyLocked: boolean;
+  pvpAttack: boolean;
+  pvpDefense: boolean;
+  globalBoss: boolean;
+  clanBoss: boolean;
+  tower: boolean;
+  marketplace: boolean;
+  isNft?: boolean;
+  canFuse: boolean;
+  reason: HeroLockReason | null;
+};
+
+export type HeroLockReason = 'MANUAL' | 'PVP_ATTACK' | 'PVP_DEFENSE' | 'BOSS' | 'TOWER' | 'MARKET' | 'NFT';
+
+export const HERO_LOCK_LABEL: Record<HeroLockReason, string> = {
+  MANUAL: '🔒 MANUALLY LOCKED',
+  PVP_ATTACK: '🔒 PVP ATTACK',
+  PVP_DEFENSE: '🔒 PVP DEFENSE',
+  BOSS: '🔒 GLOBAL BOSS',
+  TOWER: '🔒 TOWER',
+  MARKET: '🔒 MARKET',
+  NFT: '🔒 NFT',
+};
+
+/** Central helper: a hero instance is free for fusion only when nothing is using it right now. */
+export const getHeroUsageStatus = (hero: { usage?: HeroUsage | null; locked?: boolean; inTeam?: boolean; equipped?: boolean; isNft?: boolean }): HeroUsage => {
+  if (hero.usage) return hero.usage;
+  const manuallyLocked = Boolean(hero.locked);
+  const busy = Boolean(hero.inTeam || hero.equipped);
+  return {
+    manuallyLocked, pvpAttack: busy, pvpDefense: false, globalBoss: false, clanBoss: false,
+    tower: false, marketplace: false, isNft: Boolean(hero.isNft),
+    canFuse: !manuallyLocked && !busy && !hero.isNft,
+    reason: manuallyLocked ? 'MANUAL' : busy ? 'PVP_ATTACK' : hero.isNft ? 'NFT' : null,
+  };
+};
+
+export const heroLockLabel = (reason: HeroLockReason | null | undefined) => (reason ? HERO_LOCK_LABEL[reason] ?? '🔒 IN USE' : null);
+
 export type FusionHero = {
   heroId: string;
   heroKey: string;
@@ -32,6 +73,8 @@ export type FusionHero = {
   power: number;
   maxLevel: number;
   inTeam: boolean;
+  usage?: HeroUsage | null;
+  lockReason?: HeroLockReason | null;
   isNft?: boolean;
   duplicates: number;
 
@@ -64,7 +107,7 @@ export const pickMaterials = (hero: FusionHero, pool: FusionHero[]): string[] =>
   // Send every valid candidate: the backend re-validates and consumes only the
   // exact amount required for the current star step (1★→2★ = 1, 2★→3★ = 2, ...).
   pool
-    .filter((h) => h.heroKey === hero.heroKey && h.heroId !== hero.heroId && !h.locked && !h.inTeam && !h.isNft)
+    .filter((h) => h.heroKey === hero.heroKey && h.heroId !== hero.heroId && getHeroUsageStatus(h).canFuse)
     .sort((a, b) => a.stars - b.stars || a.level - b.level)
     .map((h) => h.heroId);
 
@@ -92,6 +135,7 @@ export type RarityFusionHero = {
   heroId: string; heroKey: string; name: string; rarity: string; level: number;
   imageUrl: string | null; stars: number; finalAtk: number; finalHp: number; power: number;
   locked: boolean; equipped: boolean; exclusive: boolean;
+  usage?: HeroUsage | null; lockReason?: HeroLockReason | null;
 };
 
 export type RarityFusionHistoryEntry = {
@@ -118,4 +162,4 @@ export type RarityFusionResult = {
 
 /** A hero can be sacrificed only when it is free: unlocked and not deployed in PvP/Boss teams. */
 export const isFusionEligible = (hero: RarityFusionHero, tiers: Record<string, RarityFusionTier>) =>
-  !hero.locked && !hero.equipped && Boolean(tiers?.[hero.rarity]);
+  getHeroUsageStatus(hero).canFuse && Boolean(tiers?.[hero.rarity]);
