@@ -12,6 +12,7 @@ import {
   type NftHeroShopItem,
 } from '../services';
 import { encodeCommentPayload } from '../tonComment';
+import { useT } from '../LanguageContext';
 
 /**
  * BUY NFT (heroes): store for the 10 unique NFT EXCLUSIVE heroes (1/1 each).
@@ -77,13 +78,13 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
     onError: async (purchaseError: unknown) => {
       setWaiting(false);
       await refresh();
-      const message = purchaseError instanceof Error ? purchaseError.message : 'Erro';
+      const message = purchaseError instanceof Error ? purchaseError.message : t('common.error');
       toast.error(message === 'CONNECT_TON_WALLET' ? 'Conecte sua carteira TON para comprar.' : message);
     },
   });
 
   if (isLoading) return <p className="py-24 text-center text-sm text-amber-200">...</p>;
-  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : 'Erro'}</p>;
+  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : t('common.error')}</p>;
 
   const items = data?.items ?? [];
   const total = data?.totalSupply ?? items.length;
@@ -97,11 +98,11 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
         <p className="relative text-[9px] uppercase tracking-[.22em] text-slate-400">Limited Supply • 1/1 each</p>
         <div className="relative mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-amber-200/20 bg-black/45 px-2 py-2">
-            <p className="text-[7px] uppercase tracking-[.16em] text-slate-400">Available</p>
+            <p className="text-[7px] uppercase tracking-[.16em] text-slate-400">{t('nft.available')}</p>
             <p className="text-sm font-black text-emerald-300">{data?.available ?? 0} / {total}</p>
           </div>
           <div className="rounded-xl border border-amber-200/20 bg-black/45 px-2 py-2">
-            <p className="text-[7px] uppercase tracking-[.16em] text-slate-400">Sold</p>
+            <p className="text-[7px] uppercase tracking-[.16em] text-slate-400">{t('nft.sold')}</p>
             <p className="text-sm font-black text-amber-100">{data?.sold ?? 0} / {total}</p>
           </div>
         </div>
@@ -128,17 +129,17 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                   <h3 className="truncate text-base font-black text-white">{item.name.toUpperCase()}</h3>
                   <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">Supply 1/1 • Tier {formatTon(item.tierTon)} TON</p>
                   <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[8px] font-black tracking-[.16em] ${sold ? 'border-white/15 bg-white/5 text-slate-400' : 'border-emerald-300/50 bg-emerald-500/15 text-emerald-200'}`}>
-                    {sold ? (item.ownedByMe ? 'OWNED BY YOU' : 'SOLD OUT') : 'AVAILABLE'}
+                    {sold ? (item.ownedByMe ? t('nft.ownedByYou') : t('nft.soldOut')) : t('nft.availableTag')}
                   </span>
                 </div>
               </div>
               <div className="relative mt-3 grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">Price</p>
+                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.price')}</p>
                   <p className="text-[13px] font-black text-amber-100">{formatTon(item.priceTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
                 </div>
                 <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">Daily Mining</p>
+                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
                   <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
                 </div>
               </div>
@@ -148,7 +149,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                 onClick={() => setTarget(item)}
                 className={`relative mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.14em] ${sold ? 'bg-white/5 text-slate-500' : 'bg-gradient-to-b from-amber-300 to-orange-500 text-black'}`}
               >
-                {sold ? 'SOLD OUT' : 'BUY NFT'}
+                {sold ? t('nft.soldOut') : t('nft.buyNft')}
               </button>
             </section>
           );
@@ -158,13 +159,13 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
       {target ? (
         <div className="fixed inset-0 z-[90] flex items-end bg-black/80 p-3" onClick={() => (purchase.isPending ? undefined : setTarget(null))}>
           <div className="forge-nft-card relative w-full overflow-hidden rounded-[1.8rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/60 to-black/95 p-4" onClick={(event) => event.stopPropagation()}>
-            <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">Confirm purchase</p>
+            <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{t('nft.confirmPurchase')}</p>
             <h3 className="mt-1 text-lg font-black text-white">{target.name.toUpperCase()}</h3>
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
-              <p className="flex justify-between"><span>Price</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              <p className="flex justify-between"><span>Daily Mining</span><span className="font-black text-emerald-300">{formatTon(target.dailyYieldTon)} TON</span></p>
-              <p className="flex justify-between"><span>Internal TON balance</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
+              <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
+              <p className="flex justify-between"><span>{t('nft.dailyMining')}</span><span className="font-black text-emerald-300">{formatTon(target.dailyYieldTon)} TON</span></p>
+              <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
                 {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
               </p>
@@ -202,7 +203,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
   });
 
   if (isLoading) return <p className="py-24 text-center text-sm text-amber-200">...</p>;
-  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : 'Erro'}</p>;
+  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : t('common.error')}</p>;
 
   const items = data?.items ?? [];
   const totalDaily = items.reduce((sum, item) => sum + Number(item.dailyYieldTon || 0), 0);
@@ -241,11 +242,11 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-center">
             <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-              <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">Tier</p>
+              <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.tier')}</p>
               <p className="text-[13px] font-black text-amber-100">{formatTon(item.tierTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
             </div>
             <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-              <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">Daily Mining</p>
+              <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
               <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
             </div>
           </div>
