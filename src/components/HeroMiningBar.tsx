@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pickaxe } from 'lucide-react';
 import { claimHeroMining } from '../services';
-import { formatMiningTon, projectUnclaimed, type HeroMiningState } from '../heroMining';
+import { formatMiningTon, miningActive, projectUnclaimed, type HeroMiningState } from '../heroMining';
 import { useT } from '../LanguageContext';
 
 /**
@@ -17,10 +17,10 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state?.enabled || !state.dailyRateTon) return;
+    if (!state?.enabled || !state.dailyRateTon || !miningActive(state)) return;
     const timer = window.setInterval(() => setTick(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [state?.enabled, state?.dailyRateTon]);
+  }, [state?.enabled, state?.dailyRateTon, state?.remainingTon, state?.investedTon]);
 
   const claim = useMutation({
     mutationFn: () => claimHeroMining(telegramInitData),
@@ -41,7 +41,9 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
 
   if (!state) return null;
   const unclaimed = projectUnclaimed(state, tick);
-  const canClaim = state.enabled && unclaimed >= Math.max(state.minClaimTon, 0.000001) && !claim.isPending;
+  const active = miningActive(state);
+  const claimable = Math.min(unclaimed, Math.max(0, state.investedTon - state.returnedTon));
+  const canClaim = state.enabled && state.investedTon > 0 && claimable >= Math.max(state.minClaimTon, 0.000001) && !claim.isPending;
 
   return (
     <section className="mt-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-2.5">
@@ -65,6 +67,21 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         </div>
       </div>
 
+      <div className="mt-2 grid grid-cols-3 gap-1.5">
+        <div className="rounded-xl border border-white/10 bg-black/40 px-1.5 py-1 text-center">
+          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.investment')}</p>
+          <p className="text-[10px] font-black text-white">{formatMiningTon(state.investedTon, 3)}</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-black/40 px-1.5 py-1 text-center">
+          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.returned')}</p>
+          <p className="text-[10px] font-black text-white">{formatMiningTon(state.returnedTon, 3)}</p>
+        </div>
+        <div className={`rounded-xl border px-1.5 py-1 text-center ${state.remainingTon > 0 ? 'border-emerald-300/30 bg-emerald-400/5' : 'border-amber-300/30 bg-amber-400/5'}`}>
+          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.remaining')}</p>
+          <p className={`text-[10px] font-black ${state.remainingTon > 0 ? 'text-emerald-200' : 'text-amber-300'}`}>{formatMiningTon(state.remainingTon, 3)}</p>
+        </div>
+      </div>
+
       <button
         onClick={() => { if (canClaim) claim.mutate(); }}
         disabled={!canClaim}
@@ -73,6 +90,14 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         {claim.isPending ? t('mining.claiming') : t('mining.claimAll')}
       </button>
 
+      {state.investedTon <= 0 ? (
+        <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.1em] text-amber-300">{t('mining.noInvestment')}</p>
+      ) : !active ? (
+        <>
+          <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.roiReached')}</p>
+          <p className="mt-0.5 text-center text-[8px] text-slate-400">{t('mining.reactivate')}</p>
+        </>
+      ) : null}
       {!state.enabled ? <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.1em] text-amber-300">{t('mining.paused')}</p> : null}
       {state.minClaimTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min', { amount: formatMiningTon(state.minClaimTon, 6) })}</p> : null}
       {state.lifetimeTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: formatMiningTon(state.lifetimeTon, 6) })}</p> : null}

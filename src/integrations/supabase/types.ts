@@ -1873,7 +1873,9 @@ export type Database = {
           first_name: string | null
           forge_coins: number
           hero_mining_claimed_at: string | null
+          hero_mining_invested_ton: number
           hero_mining_lifetime_ton: number
+          hero_mining_returned_ton: number
           hero_mining_unclaimed_ton: number
           id: string
           language: string
@@ -1914,7 +1916,9 @@ export type Database = {
           first_name?: string | null
           forge_coins?: number
           hero_mining_claimed_at?: string | null
+          hero_mining_invested_ton?: number
           hero_mining_lifetime_ton?: number
+          hero_mining_returned_ton?: number
           hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
@@ -1955,7 +1959,9 @@ export type Database = {
           first_name?: string | null
           forge_coins?: number
           hero_mining_claimed_at?: string | null
+          hero_mining_invested_ton?: number
           hero_mining_lifetime_ton?: number
+          hero_mining_returned_ton?: number
           hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
@@ -2669,6 +2675,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "hero_mining_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hero_mining_investments: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          id: string
+          reference: string
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          created_at?: string
+          id?: string
+          reference: string
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          id?: string
+          reference?: string
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_mining_investments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -10447,6 +10488,24 @@ export type Database = {
       hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
       hero_mining_enabled: { Args: never; Returns: boolean }
       hero_mining_rate: { Args: { p_rarity: string }; Returns: number }
+      hero_mining_register_investment: {
+        Args: {
+          p_amount_ton: number
+          p_reference: string
+          p_source_type: string
+          p_user_id: string
+        }
+        Returns: number
+      }
+      hero_mining_remaining: { Args: { p_user_id: string }; Returns: number }
+      hero_mining_revoke_investment: {
+        Args: { p_reference: string }
+        Returns: undefined
+      }
+      hero_mining_sync_invested: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       hero_nft_class_mult: {
         Args: { p_archetype: string }
         Returns: {
