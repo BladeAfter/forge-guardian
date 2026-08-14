@@ -308,7 +308,20 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_food_code = foodCode;
     args.p_quantity = quantity;
     args.p_idempotency_key = requestKey('pet_food_buy');
+  } else if (action === 'xp-transfer-preview') {
+    // Level/XP recycling: preview only (recoverable XP, FC cost and eligible target pets).
+    if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
+    return await rpc(db, 'pet_xp_transfer_preview', { p_telegram_id: user.id, p_player_pet_id: body.playerPetId });
+  } else if (action === 'xp-transfer') {
+    // Atomic reset + transfer. Only level/XP change: NFT, mining, breeding and identity stay untouched.
+    if (!isUuid(body.playerPetId) || !isUuid(body.targetPlayerPetId)) throw new Error('Pet inválido.');
+    if (body.playerPetId === body.targetPlayerPetId) throw new Error('PET_XP_SAME_PET');
+    fn = 'pet_reset_transfer_xp';
+    args.p_source_player_pet_id = body.playerPetId;
+    args.p_target_player_pet_id = body.targetPlayerPetId;
+    args.p_idempotency_key = requestKey('pet_xp_transfer');
   } else if (action !== 'dashboard') throw new Error('Ação inválida.');
+
 
 
   const data = await rpc(db, fn, args) as any;
