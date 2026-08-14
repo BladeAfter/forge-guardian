@@ -57,6 +57,7 @@ export function useCombatFx() {
 
 /** Small floating damage / status numbers stacked over the boss art. */
 export function FloatingDamage({ events }: { events: CombatEvent[] }) {
+  const t = useT();
   return (
     <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
       {events.map((event, index) => (
