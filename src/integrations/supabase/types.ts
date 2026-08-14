@@ -4494,6 +4494,7 @@ export type Database = {
       nft_reward_pool: {
         Row: {
           balance_ton: number
+          debt_ton: number
           id: boolean
           lifetime_funded_ton: number
           lifetime_paid_ton: number
@@ -4502,6 +4503,7 @@ export type Database = {
         }
         Insert: {
           balance_ton?: number
+          debt_ton?: number
           id?: boolean
           lifetime_funded_ton?: number
           lifetime_paid_ton?: number
@@ -4510,6 +4512,7 @@ export type Database = {
         }
         Update: {
           balance_ton?: number
+          debt_ton?: number
           id?: boolean
           lifetime_funded_ton?: number
           lifetime_paid_ton?: number
@@ -11885,6 +11888,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      nft_pool_settle_payment: { Args: { p_amount: number }; Returns: number }
       nft_pool_sync_positions: { Args: never; Returns: number }
       nft_reconcile_orders: { Args: { p_telegram_id: number }; Returns: Json }
       nft_shop_json: { Args: { p_telegram_id: number }; Returns: Json }

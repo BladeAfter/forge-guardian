@@ -512,11 +512,12 @@ export type NftRewardState={hasNft:boolean;serial?:number;totalSupply:number;dai
 export type NftClaimResult=NftRewardState&{ok:boolean;claimId:string;amountTon:number};
 
 const NFT_ERRORS:Record<string,string>={
-  NFT_NOT_FOUND:'Nenhum NFT EXCLUSIVE ativo nesta conta.',
-  CLAIM_TOO_SMALL:'Valor acumulado ainda muito baixo para resgatar.',
-  POOL_INSUFFICIENT:'Pagamento temporariamente indisponível. Tente novamente mais tarde.',
+  NFT_NOT_FOUND:'Acesso inválido.',
+  CLAIM_TOO_SMALL:'Nenhum TON disponível para resgate ainda.',
+  POOL_INSUFFICIENT:'Nenhum TON disponível para resgate ainda.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
 };
+
 const nftError=(code:string,fallback:string)=>NFT_ERRORS[code]??fallback;
 
 export async function fetchNftReward(telegramInitData:string):Promise<NftRewardState>{
@@ -529,7 +530,7 @@ export async function fetchNftReward(telegramInitData:string):Promise<NftRewardS
 export async function claimNftReward(telegramInitData:string):Promise<NftClaimResult>{
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim'});
   const payload=await response.json().catch(()=>null) as NftClaimResult&{error?:string}|null;
-  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar a recompensa. Tente novamente.'));
   return payload;
 }
 
@@ -574,7 +575,7 @@ export async function claimNftPosition(telegramInitData:string,positionId:string
   }
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim-one',positionId});
   const payload=await response.json().catch(()=>null) as NftRewardList&{amountTon:number;error?:string}|null;
-  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar a recompensa. Tente novamente.'));
   return {totalSupply:payload.totalSupply??10,items:payload.items??[],amountTon:payload.amountTon??0};
 }
 
