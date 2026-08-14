@@ -187,7 +187,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
               ) : null}
             </div>
             <div className={`w-1/3 shrink-0 pl-1 ${tab !== 'inventory' ? 'pointer-events-none' : ''}`}>
-              <InventoryPanel telegramInitData={telegramInitData} active={tab === 'inventory'} />
+              <InventoryPanel telegramInitData={telegramInitData} active={tab === 'inventory'} onViewFusion={() => setTab('fusion')} />
             </div>
 
           </div>

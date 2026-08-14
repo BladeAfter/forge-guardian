@@ -61,6 +61,14 @@ export type InventoryItem={
  bonusAttack?:number;bonusDefense?:number;bonusHp?:number;power?:number;
  /** Equipment usage state: an equipped item is locked for trading. */
  equipped?:boolean;equippedHeroId?:string|null;equippedHeroName?:string|null;listed?:boolean;
+ /** Fragment-only metadata: how many units one use costs and the summon odds (server-owned). */
+ costPerUse?:number|null;summonRates?:Record<string,number>|null;
+};
+
+/** 5 fragments -> 1 random common/uncommon hero (server resolves cost, odds and roll). */
+export type FragmentSummonResult={
+ fragmentsSpent:number;fragmentsLeft:number;rarity:string;
+ hero:{heroId:string;heroKey:string;name:string;rarity:string;level:number;imageUrl:string|null;finalAtk:number;finalHp:number;power:number};
 };
 export type PlayerInventory={chests:InventoryChest[];eggs:InventoryEgg[];items:InventoryItem[]};
 

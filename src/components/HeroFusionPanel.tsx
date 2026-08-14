@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Lock, LockOpen, Sparkles, X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fuseHeroes, setHeroLock } from '../services';
-import { canFuse, pickMaterials, starRow, type FusionDashboard, type FusionHero, type FusionResult } from '../heroFusion';
+import { fuseHeroWithFragments, fuseHeroes, setHeroLock } from '../services';
+import { canFuse, canFuseWithFragments, pickMaterials, starRow, type FusionDashboard, type FusionHero, type FusionResult } from '../heroFusion';
 import { useT, useLanguage } from '../LanguageContext';
 
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
@@ -41,6 +41,10 @@ export function HeroFusionPanel({
   const next = current.next;
   const materials = useMemo(() => pickMaterials(current, dashboard.heroes), [current, dashboard.heroes]);
   const ready = Boolean(next) && canFuse(current, dashboard.balance);
+  // Option 2: universal fragments replace the required copies for the SAME step (never both).
+  const universalFragments = dashboard.universalFragments ?? 0;
+  const fragmentsPerFusion = next?.fragmentsRequired ?? dashboard.fragmentsPerFusion ?? 25;
+  const readyWithFragments = canFuseWithFragments(current, dashboard.balance, universalFragments, fragmentsPerFusion);
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['hero-fusion'] });
@@ -53,8 +57,11 @@ export function HeroFusionPanel({
   };
 
   const fusion = useMutation({
-    mutationFn: () => fuseHeroes(telegramInitData, current.heroId, materials),
-    onSuccess: (payload) => { setError(null); setResult(payload); refresh(); },
+    mutationFn: (mode: 'copies' | 'fragments') =>
+      mode === 'fragments'
+        ? fuseHeroWithFragments(telegramInitData, current.heroId)
+        : fuseHeroes(telegramInitData, current.heroId, materials),
+    onSuccess: (payload) => { setError(null); setResult(payload); refresh(); queryClient.invalidateQueries({ queryKey: ['player-inventory'] }); queryClient.invalidateQueries({ queryKey: ['pet-dashboard'] }); },
     onError: (err) => setError(tError(err) || t('fusion.defaultError')),
   });
 
@@ -103,9 +110,17 @@ export function HeroFusionPanel({
             <Stat label={t('fusion.statPower')} before={current.power} after={Math.round(next.finalAtk * 2 + next.finalHp)} />
             <Stat label={t('fusion.statMaxLevel')} before={current.maxLevel} after={next.maxLevel} />
             <p className="mt-2 text-[10px] uppercase tracking-[.18em] text-slate-400">{t('fusion.requires')}</p>
-            <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
-              {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
-            </p>
+            <div className="mt-1 space-y-1 rounded-lg border border-white/10 bg-black/40 p-2">
+              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option1')}</p>
+              <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
+                {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
+              </p>
+              <p className="text-center text-[9px] font-black uppercase tracking-[.24em] text-slate-500">{t('fusion.or')}</p>
+              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option2')}</p>
+              <p className={`text-[11px] font-black ${universalFragments >= fragmentsPerFusion ? 'text-emerald-300' : 'text-rose-300'}`}>
+                {t('fusion.fragmentsRequired', { count: fragmentsPerFusion })} ({t('fusion.available', { count: universalFragments })})
+              </p>
+            </div>
             <p className={`text-[11px] font-black ${dashboard.balance >= next.costFc ? 'text-emerald-300' : 'text-rose-300'}`}>
               {t('fusion.costBalance', { cost: fmt(next.costFc), balance: fmt(dashboard.balance) })}
             </p>
@@ -128,14 +143,24 @@ export function HeroFusionPanel({
             {current.locked ? t('fusion.unlockHero') : t('fusion.lockHero')}
           </button>
           <button
-            onClick={() => fusion.mutate()}
+            onClick={() => fusion.mutate('copies')}
             disabled={!ready || fusion.isPending}
             className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
           >
             <Sparkles size={16} />
-            {fusion.isPending ? t('fusion.fusing') : t('fusion.fuse')}
+            {fusion.isPending ? t('fusion.fusing') : t('fusion.fuseWithCopies')}
           </button>
         </div>
+        {next ? (
+          <button
+            onClick={() => fusion.mutate('fragments')}
+            disabled={!readyWithFragments || fusion.isPending}
+            className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 text-[11px] font-black uppercase tracking-[.14em] text-cyan-200 disabled:opacity-40"
+          >
+            <Sparkles size={16} />
+            {t('fusion.fuseWithFragments', { count: fragmentsPerFusion })}
+          </button>
+        ) : null}
         <p className="mt-2 text-center text-[9px] text-slate-500">{t('fusion.lockedNote')}</p>
       </div>
     </div>

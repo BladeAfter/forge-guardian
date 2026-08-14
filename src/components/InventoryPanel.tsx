@@ -4,9 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
-import { openCalendarChest, petRequest } from '../services';
+import { openCalendarChest, petRequest, summonHeroWithFragments } from '../services';
 import { getInventoryItemVisual } from '../inventoryVisuals';
-import type { InventoryCategory, InventoryItem } from '../calendarRewards';
+import type { FragmentSummonResult, InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
 
 /** Discreet rarity borders — the inventory must stay readable, so no heavy glow. */
@@ -61,12 +61,13 @@ const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryIte
   );
 });
 
-export function InventoryPanel({ telegramInitData, active }: { telegramInitData: string; active: boolean }) {
+export function InventoryPanel({ telegramInitData, active, onViewFusion }: { telegramInitData: string; active: boolean; onViewFusion?: () => void }) {
   const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, error, refetch, isFetching } = usePlayerInventory(telegramInitData, active);
   const [filter, setFilter] = useState<InventoryCategory | 'all'>('all');
   const [selected, setSelected] = useState<InventoryItem | null>(null);
+  const [summoned, setSummoned] = useState<FragmentSummonResult | null>(null);
 
   const items = data?.items ?? [];
   const visible = useMemo(() => (filter === 'all' ? items : items.filter((i) => i.category === filter)), [items, filter]);
@@ -95,7 +96,18 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
     onError: (hatchError) => toast.error(hatchError instanceof Error ? hatchError.message : t('inventory.hatchError')),
   });
 
-  const busy = openChest.isPending || hatchEgg.isPending;
+  // Fragments -> random common/uncommon hero. Cost, odds and the roll are server-side and idempotent.
+  const summon = useMutation({
+    mutationFn: () => summonHeroWithFragments(telegramInitData),
+    onSuccess: async (payload) => {
+      setSelected(null);
+      setSummoned(payload);
+      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'game-state']);
+    },
+    onError: (summonError) => toast.error(summonError instanceof Error ? summonError.message : t('inventory.summonError')),
+  });
+
+  const busy = openChest.isPending || hatchEgg.isPending || summon.isPending;
 
   return (
     <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
@@ -166,6 +178,33 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
                   >
                     {hatchEgg.isPending ? t('inventory.hatching') : t('inventory.hatch')}
                   </button>
+                ) : selected.action === 'summon-hero' ? (
+                  <>
+                    <p className="mt-2 rounded-xl border border-white/10 bg-black/40 p-2 text-center text-[10px] font-black uppercase tracking-[.12em] text-amber-200">
+                      {t('inventory.fragmentSummonHint', { count: selected.costPerUse ?? 5 })}
+                    </p>
+                    <button
+                      disabled={busy || selected.quantity < (selected.costPerUse ?? 5)}
+                      onClick={() => summon.mutate()}
+                      className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
+                    >
+                      {summon.isPending ? t('inventory.summoning') : t('inventory.use')}
+                    </button>
+                  </>
+                ) : selected.itemType === 'universal_fragment' ? (
+                  <>
+                    <p className="mt-2 rounded-xl border border-cyan-300/25 bg-cyan-300/5 p-2 text-center text-[10px] font-black uppercase tracking-[.12em] text-cyan-200">
+                      {t('inventory.universalFragmentHint', { count: selected.costPerUse ?? 25 })}
+                    </p>
+                    {onViewFusion ? (
+                      <button
+                        onClick={() => { setSelected(null); onViewFusion(); }}
+                        className="mt-3 min-h-[38px] w-full rounded-xl border border-cyan-300/40 bg-cyan-300/10 text-[10px] font-black uppercase tracking-[.14em] text-cyan-200"
+                      >
+                        {t('inventory.viewFusion')}
+                      </button>
+                    ) : null}
+                  </>
                 ) : selected.itemType === 'food' ? (
                   <p className="mt-3 text-[10px] text-slate-400">{t('inventory.useInFeed')}</p>
                 ) : selected.itemType === 'equipment' ? (
@@ -186,6 +225,28 @@ export function InventoryPanel({ telegramInitData, active }: { telegramInitData:
                   className="mt-2 min-h-[34px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300 disabled:opacity-50"
                 >
                   {t('inventory.cancel')}
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {/* Recruit-style reveal: the hero already exists server-side, this is presentation only. */}
+      {summoned
+        ? createPortal(
+            <div className="fixed inset-0 z-[130] grid place-items-center bg-black/85 p-4" onClick={() => setSummoned(null)}>
+              <div className="w-full max-w-[300px] rounded-2xl border border-amber-300/30 bg-[#080c14] p-4 text-center" onClick={(event) => event.stopPropagation()}>
+                <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-400">{t('inventory.fragmentsUsed', { count: summoned.fragmentsSpent })}</p>
+                {summoned.hero.imageUrl ? (
+                  <img src={summoned.hero.imageUrl} alt={summoned.hero.name} className="mx-auto my-3 h-28 w-28 animate-[pulse_1.2s_ease-in-out_2] rounded-xl border border-amber-300/30 object-cover" />
+                ) : null}
+                <p className="text-[10px] font-black uppercase tracking-[.2em]" style={{ color: RARITY_BORDER[summoned.hero.rarity] ?? '#94a3b8' }}>{summoned.hero.rarity}</p>
+                <b className="block text-sm font-black text-amber-200">{summoned.hero.name}</b>
+                <p className="mt-1 text-[10px] text-slate-300">ATK {summoned.hero.finalAtk} · HP {summoned.hero.finalHp}</p>
+                <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">{t('inventory.addedToCollection')}</p>
+                <button onClick={() => setSummoned(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
+                  {t('inventory.close')}
                 </button>
               </div>
             </div>,

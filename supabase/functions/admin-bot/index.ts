@@ -64,6 +64,7 @@ const MAIN_MENU = kb([
   [{ t: '🤝 PARTNERS', d: 'm:partners' }],
   [{ t: '💎 NFT PETS', d: 'nft:hub' }],
   [{ t: '⛏ MINERAÇÃO TON', d: 'hm:hub' }],
+  [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
 
 
 
@@ -2100,6 +2101,9 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  fgper: '🧩 Envie quantos FRAGMENTOS valem 1 herói aleatório.\nEx.: <code>5</code>',
+  fgrates: '🧩 Envie <code>common uncommon</code> em % para o resgate.\nEx.: <code>70 30</code>',
+  fgfusion: '🧩 Envie quantos FRAGMENTOS UNIVERSAIS substituem as cópias em 1 etapa de FUSE.\nEx.: <code>25</code>',
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
   hmuser: '⛏ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para ver a mineração dele.',
@@ -3046,6 +3050,53 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
+// ---------------------------------------------------------------- 🧩 FRAGMENT UTILITY (master admin only)
+// FRAGMENTS -> random common/uncommon hero. UNIVERSAL FRAGMENTS -> replace the copies
+// required by one star-fusion step. Costs and odds live in game_settings.
+async function fgHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_set_fragment_utility', { p_admin_id: ctx.adminId }) as any;
+  const summon = d.summon ?? {};
+  const rates = summon.rates ?? {};
+  const text = `🧩 <b>UTILIDADE DOS FRAGMENTOS</b>\n\n`
+    + `<b>FRAGMENTS → HERÓI</b>\n`
+    + `• Custo por resgate: <b>${fmt(summon.fragments_per_hero ?? 5)} fragmentos</b>\n`
+    + `• COMMON: <b>${Number(rates.common ?? 70)}%</b> · UNCOMMON: <b>${Number(rates.uncommon ?? 30)}%</b>\n\n`
+    + `<b>UNIVERSAL FRAGMENTS → FUSE</b>\n`
+    + `• Substituem as cópias de 1 etapa: <b>${fmt(d.fragmentsPerFusion ?? 25)} fragmentos</b>`;
+  const rows = [
+    [{ t: '🧩 FRAGMENTOS POR HERÓI', d: 'fg:ask:fgper' }],
+    [{ t: '🎲 CHANCES COMMON/UNCOMMON', d: 'fg:ask:fgrates' }],
+    [{ t: '⭐ FRAGMENTOS POR FUSÃO', d: 'fg:ask:fgfusion' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function fgCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  return fgHub(ctx);
+}
+
+async function fgPrompt(ctx: Ctx, key: string, text: string) {
+  const args: Record<string, unknown> = { p_admin_id: ctx.adminId };
+  if (key === 'fgper' || key === 'fgfusion') {
+    const value = Number(text.trim());
+    if (!Number.isInteger(value) || value < 1) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro maior que zero. Ex.: <code>5</code>');
+    args[key === 'fgper' ? 'p_fragments_per_hero' : 'p_fragments_per_fusion'] = value;
+  } else if (key === 'fgrates') {
+    const [c, u] = text.trim().split(/\s+/).map((v) => Number(String(v).replace(',', '.')));
+    if (!Number.isFinite(c) || !Number.isFinite(u) || c < 0 || u < 0 || c + u <= 0) {
+      throw new Error('KEEP_SESSION::⚠️ Envie <code>common uncommon</code>. Ex.: <code>70 30</code>');
+    }
+    args.p_common_chance = c; args.p_uncommon_chance = u;
+  }
+  await rpc('admin_set_fragment_utility', args);
+  await clearSession(ctx);
+  await send(ctx, '🧩 Configuração de fragmentos atualizada.');
+  return fgHub({ ...ctx, messageId: undefined }, false);
+}
+
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
@@ -3064,6 +3115,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'nfth') { if (rest[0] !== 'ask') await clearSession(ctx); return nfthCallback(ctx, rest); }
   // ⛏ Hero TON mining (rates, global pause, per-player audit).
   if (head === 'hm') { if (rest[0] !== 'ask') await clearSession(ctx); return hmCallback(ctx, rest); }
+  // 🧩 Fragment utility (summon cost/odds + universal fragments per fusion step).
+  if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
@@ -4427,6 +4480,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
+  if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
   if (key.startsWith('nfth')) return nfthPrompt(ctx, key, args, text);
