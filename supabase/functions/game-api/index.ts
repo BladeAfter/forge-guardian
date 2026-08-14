@@ -1369,7 +1369,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
 
-  pool: async (db, user) => {
+  pool: async (db, user, body) => {
+    // Daily activity scoring progress (PvP / bosses / pet feed / expeditions).
+    // Read-only: points and XP are granted by DB triggers, never by the client.
+    if (String(body?.action || '') === 'activity') {
+      return rpc(db, 'get_activity_progress', { p_telegram_id: user.id });
+    }
     return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
   },
 

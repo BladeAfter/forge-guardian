@@ -67,6 +67,7 @@ const MAIN_MENU = kb([
   [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
   [{ t: '🗺 EXPEDIÇÕES', d: 'xe:hub' }],
   [{ t: '🎁 GIVEAWAY POPUP', d: 'gw:hub' }],
+  [{ t: '⚙ POOL / PASS ACTIVITY', d: 'ar:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
 
@@ -2974,6 +2975,81 @@ async function hotWalletHub(ctx: Ctx, editing = true) {
 
 
 
+// ---------------------------------------------------------------- ⚙ POOL / PASS ACTIVITY
+// Points/XP and daily caps per real gameplay activity. Pool requirements
+// (500 points + 5 heroes) and pass tiers/rewards are NOT touched here.
+const AR_LABELS: Record<string, string> = {
+  PVP_COMPLETE: '⚔ PvP',
+  GLOBAL_BOSS_ATTACK: '🌎 Global Boss',
+  CLAN_BOSS_ATTACK: '🏰 Clan Boss',
+  PET_FEED: '🐾 Feed Pet',
+  EXPEDITION_COMPLETE: '🚀 Expeditions',
+};
+
+async function arConfig(): Promise<Record<string, any>> {
+  const { data } = await db.from('game_settings').select('value').eq('key', 'activity_rewards').maybeSingle();
+  return (data?.value ?? {}) as Record<string, any>;
+}
+
+async function arHub(ctx: Ctx, useEdit = true) {
+  const cfg = await arConfig();
+  let text = '⚙ <b>POOL / PASS ACTIVITY</b>\nPontos da Pool e XP do Passe por atividade real.\n';
+  let poolMax = 0, xpMax = 0;
+  const rows: any[] = [];
+  for (const key of Object.keys(AR_LABELS)) {
+    const c = cfg[key] ?? {};
+    const pts = Number(c.poolPoints ?? 0), cap = Number(c.poolDailyCap ?? 0), xp = Number(c.passXp ?? 0);
+    poolMax += pts * cap; xpMax += xp * cap;
+    text += `\n${AR_LABELS[key]}\n<code>+${pts} pool · +${xp} xp · ${cap}/dia</code>`;
+    rows.push([{ t: AR_LABELS[key], d: `ar:item:${key}` }]);
+  }
+  text += `\n\nMáximo diário: <b>${fmt(poolMax)} Pool Points</b> · <b>${fmt(xpMax)} base Pass XP</b>`;
+  text += `\n<i>Bônus do Passe (+20% / +40%) só se aplica ao XP, nunca aos Pool Points.</i>`;
+  rows.push(nav());
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function arItem(ctx: Ctx, key: string) {
+  const cfg = await arConfig();
+  const c = cfg[key] ?? {};
+  const text = `${AR_LABELS[key] ?? key}\n\n`
+    + `Pool Points por ação: <b>${fmt(Number(c.poolPoints ?? 0))}</b>\n`
+    + `Pass XP por ação: <b>${fmt(Number(c.passXp ?? 0))}</b>\n`
+    + `Limite diário pontuado: <b>${fmt(Number(c.poolDailyCap ?? 0))}</b>\n\n`
+    + `A atividade continua funcionando normalmente após o limite — apenas deixa de gerar pontos/XP no dia.`;
+  return edit(ctx, text, kb([
+    [{ t: '🪙 POOL POINTS', d: `ar:ask:arpts_${key}` }],
+    [{ t: '✨ PASS XP', d: `ar:ask:arxp_${key}` }],
+    [{ t: '📅 LIMITE DIÁRIO', d: `ar:ask:arcap_${key}` }],
+    [{ t: '⬅️ VOLTAR', d: 'ar:hub' }],
+  ]));
+}
+
+async function arCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') {
+    const [field, key] = [a.split('_')[0], a.split('_').slice(1).join('_')];
+    const label = field === 'arpts' ? 'Pool Points por ação' : field === 'arxp' ? 'Pass XP por ação' : 'limite diário pontuado';
+    return ask(ctx, a, `⚙ ${AR_LABELS[key] ?? key}\nEnvie o novo valor para <b>${label}</b> (número inteiro ≥ 0).`);
+  }
+  if (sub === 'item') return arItem(ctx, a);
+  return arHub(ctx);
+}
+
+async function arPrompt(ctx: Ctx, sessionKey: string, text: string) {
+  const field = sessionKey.split('_')[0];
+  const key = sessionKey.split('_').slice(1).join('_');
+  const n = Number(text.trim().replace(',', '.'));
+  if (!Number.isFinite(n) || n < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro ≥ 0.');
+  const map: Record<string, string> = { arpts: 'poolPoints', arxp: 'passXp', arcap: 'poolDailyCap' };
+  await rpc('admin_set_activity_reward', {
+    p_admin_id: ctx.adminId, p_activity: key, p_field: map[field], p_value: Math.floor(n),
+  });
+  await clearSession(ctx);
+  await send(ctx, `✅ ${AR_LABELS[key] ?? key} atualizado.`);
+  return arHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🎁 GIVEAWAY POPUP
 // Promotional popup shown ONCE per (player, campaign_id). Changing the campaign id
 // releases a brand new popup for everyone; history in user_campaign_popup is kept.
@@ -3404,6 +3480,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'xe') { if (rest[0] !== 'ask') await clearSession(ctx); return xeCallback(ctx, rest); }
   // 🎁 Promotional giveaway popup (campaign id + group link + on/off).
   if (head === 'gw') { if (rest[0] !== 'ask') await clearSession(ctx); return gwCallback(ctx, rest); }
+  // ⚙ Daily activity scoring (Community Pool points + Season Pass XP per activity).
+  if (head === 'ar') { if (rest[0] !== 'ask') await clearSession(ctx); return arCallback(ctx, rest); }
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
@@ -4769,6 +4847,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
   if (key.startsWith('af')) return afPrompt(ctx, key, text);
+  if (key.startsWith('arpts_') || key.startsWith('arxp_') || key.startsWith('arcap_')) return arPrompt(ctx, key, text);
   if (key.startsWith('gw')) return gwPrompt(ctx, key, text);
   if (key.startsWith('xe')) return xePrompt(ctx, key, text);
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
