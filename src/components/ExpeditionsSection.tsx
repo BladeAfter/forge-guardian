@@ -35,6 +35,7 @@ const rewardText = (reward: ExpeditionReward, t: (key: string) => string) => {
  * The success roll, timers and rewards are all resolved server-side on claim.
  */
 export default function ExpeditionsSection({ initData }: { initData: string }) {
+  const t = useT();
   const client = useQueryClient();
   const [team, setTeam] = useState<string[]>([]);
   const [mission, setMission] = useState<string | null>(null);
