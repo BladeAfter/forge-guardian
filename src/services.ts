@@ -530,7 +530,7 @@ export async function fetchNftReward(telegramInitData:string):Promise<NftRewardS
 export async function claimNftReward(telegramInitData:string):Promise<NftClaimResult>{
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim'});
   const payload=await response.json().catch(()=>null) as NftClaimResult&{error?:string}|null;
-  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar a recompensa. Tente novamente.'));
   return payload;
 }
 
@@ -575,7 +575,7 @@ export async function claimNftPosition(telegramInitData:string,positionId:string
   }
   const response=await forgeFetch('nft',{initData:telegramInitData,action:'claim-one',positionId});
   const payload=await response.json().catch(()=>null) as NftRewardList&{amountTon:number;error?:string}|null;
-  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar agora.'));
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível resgatar a recompensa. Tente novamente.'));
   return {totalSupply:payload.totalSupply??10,items:payload.items??[],amountTon:payload.amountTon??0};
 }
 
