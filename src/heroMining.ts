@@ -12,6 +12,14 @@ export type HeroMiningState = {
   dailyRateTon: number;
   unclaimedTon: number;
   lifetimeTon: number;
+  /** Total eligible TON the player really invested (deposits + TON purchases). */
+  investedTon: number;
+  /** TON already returned to the player through hero mining (lifetime, never reset). */
+  returnedTon: number;
+  /** Remaining ROI capacity: invested - returned - pending unclaimed. */
+  remainingTon: number;
+  roiLimitReached: boolean;
+  hasInvestment: boolean;
   eligibleHeroes: number;
   availableTon: number;
   minClaimTon: number;
@@ -45,6 +53,16 @@ export function formatMiningTon(value: number, digits = 4): string {
 export function projectUnclaimed(state: HeroMiningState | undefined, nowMs: number): number {
   if (!state || !state.enabled) return Number(state?.unclaimedTon ?? 0);
   const base = Number(state.unclaimedTon || 0);
+  // No eligible TON invested (or ROI cap reached): heroes generate nothing.
+  const room = Math.max(0, Number(state.remainingTon ?? 0));
+  if (room <= 0) return base;
   const since = Math.max(0, (nowMs - new Date(state.updatedAt).getTime()) / 1000);
-  return base + (Number(state.dailyRateTon || 0) * since) / 86400;
+  const produced = (Number(state.dailyRateTon || 0) * since) / 86400;
+  return base + Math.min(produced, room);
+}
+
+/** Mining only runs for players with remaining ROI capacity. */
+export function miningActive(state: HeroMiningState | undefined): boolean {
+  if (!state) return false;
+  return state.enabled && Number(state.investedTon || 0) > 0 && Number(state.remainingTon || 0) > 0;
 }
