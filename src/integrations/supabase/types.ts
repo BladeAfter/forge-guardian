@@ -1990,6 +1990,111 @@ export type Database = {
           },
         ]
       }
+      expedition_attempts: {
+        Row: {
+          created_at: string
+          extra_available: number
+          fc_extra_purchases_used: number
+          free_used: number
+          mission_id: string
+          period: string
+          rewarded_ads_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extra_available?: number
+          fc_extra_purchases_used?: number
+          free_used?: number
+          mission_id: string
+          period: string
+          rewarded_ads_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extra_available?: number
+          fc_extra_purchases_used?: number
+          free_used?: number
+          mission_id?: string
+          period?: string
+          rewarded_ads_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedition_attempts_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "expedition_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedition_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expedition_extra_grants: {
+        Row: {
+          cost_fc: number
+          created_at: string
+          granted_at: string | null
+          id: string
+          idempotency_key: string | null
+          mission_id: string
+          period: string
+          source: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cost_fc?: number
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          mission_id: string
+          period: string
+          source: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cost_fc?: number
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          mission_id?: string
+          period?: string
+          source?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedition_extra_grants_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "expedition_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedition_extra_grants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expedition_missions: {
         Row: {
           base_success: number
@@ -11261,8 +11366,50 @@ export type Database = {
         }
         Returns: Json
       }
+      expedition_attempt_row: {
+        Args: { p_lock?: boolean; p_mission_id: string; p_user_id: string }
+        Returns: {
+          created_at: string
+          extra_available: number
+          fc_extra_purchases_used: number
+          free_used: number
+          mission_id: string
+          period: string
+          rewarded_ads_used: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "expedition_attempts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       expedition_claim: {
         Args: { p_expedition_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      expedition_extra_ad_begin: {
+        Args: { p_mission_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      expedition_extra_ad_claim: {
+        Args: { p_telegram_id: number; p_view_id: string }
+        Returns: Json
+      }
+      expedition_extra_buy_fc: {
+        Args: {
+          p_idempotency_key: string
+          p_mission_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      expedition_extra_price_fc: { Args: { p_rarity: string }; Returns: number }
+      expedition_limits: { Args: never; Returns: Json }
+      expedition_mission_attempts: {
+        Args: { p_mission_id: string; p_user_id: string }
         Returns: Json
       }
       expedition_start: {
