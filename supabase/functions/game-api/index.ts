@@ -1203,6 +1203,22 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * Promotional campaign popup (e.g. MYTHREON GIVEAWAY). Shown ONCE per player per
+   * campaign_id: switching the campaign id in settings starts a new campaign for everyone.
+   * It never grants rewards — it is promotional only.
+   */
+  'campaign-popup': async (db, user, body) => {
+    const action = String(body.action || 'status');
+    if (action === 'status') return rpc(db, 'get_campaign_popup', { p_telegram_id: user.id });
+    if (action === 'dismiss' || action === 'join' || action === 'shown') {
+      const campaignId = String(body.campaignId || '').slice(0, 120);
+      if (!campaignId) throw new Error('INVALID_REQUEST');
+      return rpc(db, 'mark_campaign_popup', { p_telegram_id: user.id, p_campaign_id: campaignId, p_action: action });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
   /** Special events (EVENTS tab). Ranking and prizes are computed server-side only. */
   events: async (db, user) => {
     return rpc(db, 'get_special_events_dashboard', { p_telegram_id: user.id });
