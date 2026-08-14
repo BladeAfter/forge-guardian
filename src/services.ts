@@ -609,6 +609,56 @@ export async function verifyNftPurchases(telegramInitData:string):Promise<NftPur
 }
 
 /**
+ * NFT EXCLUSIVE HEROES — same structure as the NFT pets store.
+ * Sale data only (price, daily yield through hero mining, supply, status).
+ */
+export type NftHeroShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;atk?:number;hp?:number};
+export type NftHeroShop={totalSupply:number;sold:number;available:number;items:NftHeroShopItem[];balanceTon:number};
+export type NftHeroOwned={nftId:string;playerHeroId:string|null;serial:number;instance:string;name:string;image?:string|null;rarity:string;level:number;stars:number;atk:number;hp:number;tierTon:number;dailyYieldTon:number};
+
+export async function fetchNftHeroShop(telegramInitData:string):Promise<NftHeroShop>{
+  const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'shop'});
+  const payload=await response.json().catch(()=>null) as NftHeroShop&{error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload.items))throw new Error(nftError(payload?.error||'','Não foi possível carregar a loja de heróis NFT.'));
+  return payload;
+}
+
+export async function fetchMyNftHeroes(telegramInitData:string):Promise<{totalSupply:number;items:NftHeroOwned[]}>{
+  const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'mine'});
+  const payload=await response.json().catch(()=>null) as {totalSupply?:number;items?:NftHeroOwned[];error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload.items)){
+    if(payload?.error==='NFT_HERO_NOT_FOUND')return {totalSupply:10,items:[]};
+    throw new Error(nftError(payload?.error||'','Não foi possível carregar seus heróis NFT.'));
+  }
+  return {totalSupply:payload.totalSupply??10,items:payload.items};
+}
+
+/** Buys with the internal withdrawable TON balance (atomic; the server owns every rule). */
+export async function buyNftHeroWithBalance(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'buy-balance',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {status?:string;playerHeroId?:string;serial?:number;heroName?:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível concluir a compra.'));
+  return payload;
+}
+
+/** Creates the on-chain order for TON Connect (unique comment binds payment ↔ NFT hero). */
+export async function createNftHeroTonOrder(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'order',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {id:string;paymentAddress:string;amountNano:string;amountTon:number;paymentComment:string;expiresAt:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível iniciar o pagamento.'));
+  return payload;
+}
+
+export async function verifyNftHeroPurchases(telegramInitData:string):Promise<NftPurchaseVerification>{
+  const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'verify-purchases'});
+  const payload=await response.json().catch(()=>null) as NftPurchaseVerification&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível verificar o pagamento.'));
+  return {checked:payload.checked??0,completed:payload.completed??[],alreadyDelivered:payload.alreadyDelivered??[],pending:payload.pending??[],results:payload.results??[]};
+}
+
+
+
+/**
  * Hero TON mining. Rates, elapsed time and claimable amount are ALL server-side;
  * the client only reads the state and asks for a claim.
  */
