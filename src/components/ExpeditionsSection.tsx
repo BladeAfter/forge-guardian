@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { claimExpedition, fetchExpeditionState, startExpedition } from '../services';
+import { beginExpeditionAd, buyExpeditionExtra, claimExpedition, claimExpeditionAd, fetchExpeditionState, startExpedition } from '../services';
+import { showAd } from '../adsgram';
 import { useT } from '../LanguageContext';
-import { countdown, expeditionChance, type ExpeditionMission, type ExpeditionPet, type ExpeditionReward } from '../breeding';
+import { countdown, expeditionChance, type ExpeditionAttempts, type ExpeditionMission, type ExpeditionPet, type ExpeditionReward } from '../breeding';
 
 const RARITY_STYLE: Record<string, string> = {
   COMMON: 'border-slate-400/30 text-slate-200',
@@ -40,6 +41,8 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
   const [team, setTeam] = useState<string[]>([]);
   const [mission, setMission] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+  // Extra-attempt modal is ALWAYS bound to one mission: its ads/FC counters are per mission.
+  const [extraFor, setExtraFor] = useState<string | null>(null);
 
   const state = useQuery({
     queryKey: ['expeditions'],
