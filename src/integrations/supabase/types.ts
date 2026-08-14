@@ -11301,6 +11301,10 @@ export type Database = {
       }
       market_account_days: { Args: { p_user: string }; Returns: number }
       market_active_days: { Args: { p_user: string }; Returns: number }
+      market_assert_hero_sellable: {
+        Args: { p_hero_id: string }
+        Returns: undefined
+      }
       market_audit_unpaid_fc_sales: { Args: never; Returns: Json }
       market_browse: {
         Args: {

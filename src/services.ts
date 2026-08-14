@@ -403,7 +403,11 @@ export async function marketRequest<T>(initData:string,input:MarketAction):Promi
     // signatures, SQL states) stays in the logs and never reaches the player.
     const known=MARKET_ERRORS[raw];
     if(!known)console.error('[MARKET]',raw);
-    throw new Error(known||'Não foi possível processar o mercado. Tente novamente.');
+    // Unknown but clearly a business code (SCREAMING_SNAKE, no SQL noise): show it
+    // readable instead of a generic message. Raw SQL text still stays hidden.
+    const isBusinessCode=/^[A-Z][A-Z0-9_]{2,48}$/.test(raw);
+    throw new Error(known||(isBusinessCode?`Mercado: ${raw.replace(/_/g,' ').toLowerCase()}.`:'Não foi possível processar o mercado. Tente novamente.'));
+
   }
   return payload;
 }
