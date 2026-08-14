@@ -110,6 +110,25 @@ export type ExpeditionPet = {
 
 export type ExpeditionReward = { type: string; code?: string; rarity?: string; min?: number; max?: number; chance?: number; quantity?: number };
 
+/** Per (player, mission, game day) attempt counters. Ads and FC are independent limits. */
+export type ExpeditionAttempts = {
+  missionId: string;
+  period: string;
+  resetsAt: string;
+  freeLimit: number;
+  freeUsed: number;
+  freeRemaining: number;
+  adsUsed: number;
+  adsLimit: number;
+  adsRemaining: number;
+  fcUsed: number;
+  fcLimit: number;
+  fcRemaining: number;
+  extraAvailable: number;
+  priceFc: number;
+  canStart: boolean;
+};
+
 export type ExpeditionMission = {
   id: string;
   code: string;
@@ -119,7 +138,9 @@ export type ExpeditionMission = {
   requiredPower: number;
   element: string | null;
   rewards: ExpeditionReward[];
+  attempts: ExpeditionAttempts;
 };
+
 
 export type ActiveExpedition = {
   id: string;
