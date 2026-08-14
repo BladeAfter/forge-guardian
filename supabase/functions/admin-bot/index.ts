@@ -65,6 +65,7 @@ const MAIN_MENU = kb([
   [{ t: '💎 NFT PETS', d: 'nft:hub' }],
   [{ t: '⛏ MINERAÇÃO TON', d: 'hm:hub' }],
   [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
+  [{ t: '🗺 EXPEDIÇÕES', d: 'xe:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
 
@@ -2102,6 +2103,10 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  xeads: '🗺 Envie o máximo de <b>ANÚNCIOS por missão por dia</b> (padrão <code>5</code>).',
+  xefc: '🗺 Envie o máximo de <b>COMPRAS COM FC por missão por dia</b> (padrão <code>5</code>).',
+  xefree: '🗺 Envie quantas <b>tentativas gratuitas por missão por dia</b> cada jogador recebe.\nEx.: <code>1</code>',
+  xeprice: '🗺 Envie <code>raridade preço_fc</code> da tentativa extra.\nEx.: <code>epic 100000</code>',
   fgper: '🧩 Envie quantos FRAGMENTOS valem 1 herói aleatório.\nEx.: <code>5</code>',
   fgrates: '🧩 Envie <code>common uncommon</code> em % para o resgate.\nEx.: <code>70 30</code>',
   fgfusion: '🧩 Envie quantos FRAGMENTOS UNIVERSAIS substituem as cópias em 1 etapa de FUSE.\nEx.: <code>25</code>',
@@ -2966,6 +2971,85 @@ async function hotWalletHub(ctx: Ctx, editing = true) {
 
 
 
+// ---------------------------------------------------------------- 🗺 PET EXPEDITIONS (extra attempts)
+// Every counter is per (player, MISSION, game day): the ads limit and the FC-purchase limit
+// are independent and NEVER global. Values below are editable without a deploy.
+const XE_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+
+async function xeSetting(key: string, fallback: number) {
+  const { data } = await db.from('game_settings').select('value').eq('key', key).maybeSingle();
+  const value = Number((data as { value?: unknown } | null)?.value ?? NaN);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+async function xeHub(ctx: Ctx, useEdit = true) {
+  const [ads, fc, free] = await Promise.all([
+    xeSetting('expedition_max_ads_per_day', 5),
+    xeSetting('expedition_max_fc_purchases_per_day', 5),
+    xeSetting('expedition_free_attempts_per_day', 1),
+  ]);
+  const defaults: Record<string, number> = { common: 10000, uncommon: 10000, rare: 50000, epic: 100000, legendary: 200000 };
+  const prices: string[] = [];
+  for (const rarity of XE_RARITIES) {
+    const price = await xeSetting(`expedition_extra_price_fc_${rarity}`, defaults[rarity]);
+    prices.push(`• <b>${rarity.toUpperCase()}</b> ${fmt(price)} FC`);
+  }
+  const text = `🗺 <b>PET EXPEDITIONS · TENTATIVAS EXTRAS</b>\n`
+    + `Os limites são <b>por missão</b> (não globais) e zeram no reset diário oficial.\n\n`
+    + `Tentativas gratuitas por missão/dia: <b>${fmt(free)}</b>\n`
+    + `Máx. ANÚNCIOS por missão/dia: <b>${fmt(ads)}</b>\n`
+    + `Máx. COMPRAS FC por missão/dia: <b>${fmt(fc)}</b>\n\n`
+    + `<b>PREÇO DA TENTATIVA EXTRA (FC)</b>\n${prices.join('\n')}`;
+  const rows = [
+    [{ t: '📺 MÁX. ADS/MISSÃO', d: 'xe:ask:xeads' }, { t: '🪙 MÁX. FC/MISSÃO', d: 'xe:ask:xefc' }],
+    [{ t: '🎟 TENTATIVAS GRATUITAS', d: 'xe:ask:xefree' }, { t: '💲 PREÇO FC', d: 'xe:ask:xeprice' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function xeCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  return xeHub(ctx);
+}
+
+async function xePrompt(ctx: Ctx, key: string, text: string) {
+  const setNum = async (settingKey: string, value: number, label: string) => {
+    await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: settingKey, p_value: value, p_reason: 'painel admin' });
+    await clearSession(ctx);
+    await send(ctx, `🗺 ${label}: <b>${fmt(value)}</b>`);
+    return xeHub({ ...ctx, messageId: undefined }, false);
+  };
+  switch (key) {
+    case 'xeads': {
+      const value = Math.trunc(Number(text.replace(/[^\d]/g, '')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro. Ex.: <code>5</code>');
+      return setNum('expedition_max_ads_per_day', value, 'Máx. anúncios por missão/dia');
+    }
+    case 'xefc': {
+      const value = Math.trunc(Number(text.replace(/[^\d]/g, '')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro. Ex.: <code>5</code>');
+      return setNum('expedition_max_fc_purchases_per_day', value, 'Máx. compras FC por missão/dia');
+    }
+    case 'xefree': {
+      const value = Math.trunc(Number(text.replace(/[^\d]/g, '')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro. Ex.: <code>1</code>');
+      return setNum('expedition_free_attempts_per_day', value, 'Tentativas gratuitas por missão/dia');
+    }
+    case 'xeprice': {
+      const [rarityRaw, priceRaw] = text.trim().split(/\s+/);
+      const rarity = String(rarityRaw ?? '').toLowerCase();
+      const value = Math.trunc(Number(String(priceRaw ?? '').replace(/[^\d]/g, '')));
+      if (!XE_RARITIES.includes(rarity as typeof XE_RARITIES[number]) || !Number.isFinite(value) || value < 0) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>raridade preço_fc</code>. Ex.: <code>epic 100000</code>');
+      }
+      return setNum(`expedition_extra_price_fc_${rarity}`, value, `Preço extra ${rarity.toUpperCase()}`);
+    }
+    default: return xeHub(ctx);
+  }
+}
+
 // ---------------------------------------------------------------- ⛏ HERO TON MINING (master admin only)
 // Passive TON generation driven by hero RARITY. Rates, global pause and the minimum
 // claim live in the database; every RPC below asserts the master admin id.
@@ -3255,6 +3339,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'hm') { if (rest[0] !== 'ask') await clearSession(ctx); return hmCallback(ctx, rest); }
   // 🧩 Fragment utility (summon cost/odds + universal fragments per fusion step).
   if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
+  // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
+  if (head === 'xe') { if (rest[0] !== 'ask') await clearSession(ctx); return xeCallback(ctx, rest); }
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
