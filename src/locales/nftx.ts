@@ -3,6 +3,10 @@ import type { LocaleBundle } from './registry';
 /** nft / breeding / expeditions namespaces (NFT shops, breeding lab, pet expeditions). */
 export const nftx: LocaleBundle = {
   en: {
+    'nft.noPetYet': 'You don’t own an NFT Exclusive Pet yet.',
+    'nft.goBuyHint': 'Go to BUY NFT to purchase one.',
+    'nft.goToBuy': 'GO TO BUY NFT',
+    'nft.totalSuffix': 'NFTs Total',
     'boss.teamDamage': 'TEAM DAMAGE',
     'heroes.rarityLabel': 'RARITY',
     'expeditions.successMsg': 'SUCCESS! Rewards: {rewards}',
@@ -97,6 +101,10 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   pt: {
+    'nft.noPetYet': 'Você ainda não possui um Pet NFT Exclusive.',
+    'nft.goBuyHint': 'Vá em BUY NFT para comprar um.',
+    'nft.goToBuy': 'IR PARA BUY NFT',
+    'nft.totalSuffix': 'NFTs no total',
     'boss.teamDamage': 'DANO DA EQUIPE',
     'heroes.rarityLabel': 'RARIDADE',
     'expeditions.successMsg': 'SUCESSO! Recompensas: {rewards}',
@@ -191,6 +199,10 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   es: {
+    'nft.noPetYet': 'Aún no tienes una Mascota NFT Exclusive.',
+    'nft.goBuyHint': 'Ve a BUY NFT para comprar una.',
+    'nft.goToBuy': 'IR A BUY NFT',
+    'nft.totalSuffix': 'NFTs en total',
     'boss.teamDamage': 'DAÑO DEL EQUIPO',
     'heroes.rarityLabel': 'RAREZA',
     'expeditions.successMsg': '¡ÉXITO! Recompensas: {rewards}',
@@ -285,6 +297,10 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   ru: {
+    'nft.noPetYet': 'У вас пока нет NFT Exclusive питомца.',
+    'nft.goBuyHint': 'Перейдите в BUY NFT, чтобы купить.',
+    'nft.goToBuy': 'ПЕРЕЙТИ В BUY NFT',
+    'nft.totalSuffix': 'NFT всего',
     'boss.teamDamage': 'УРОН ОТРЯДА',
     'heroes.rarityLabel': 'РЕДКОСТЬ',
     'expeditions.successMsg': 'УСПЕХ! Награды: {rewards}',
@@ -379,6 +395,10 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   tr: {
+    'nft.noPetYet': 'Henüz bir NFT Exclusive evcil hayvanın yok.',
+    'nft.goBuyHint': 'Satın almak için BUY NFT bölümüne git.',
+    'nft.goToBuy': 'BUY NFT’YE GİT',
+    'nft.totalSuffix': 'toplam NFT',
     'boss.teamDamage': 'TAKIM HASARI',
     'heroes.rarityLabel': 'NADİRLİK',
     'expeditions.successMsg': 'BAŞARILI! Ödüller: {rewards}',
