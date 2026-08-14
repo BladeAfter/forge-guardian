@@ -3010,9 +3010,18 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
   switch (sub) {
     case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
     case 'toggle': {
-      await rpc('admin_hero_mining_toggle', { p_admin_id: ctx.adminId, p_enabled: a === '1' });
-      return hmHub(ctx);
+      const next = a === '1';
+      try {
+        await rpc('admin_hero_mining_toggle', { p_admin_id: ctx.adminId, p_enabled: next });
+      } catch (err) {
+        console.error('[admin-bot] hero_mining_toggle failed', err);
+        await send(ctx, '⚠️ Não foi possível alterar o status da mineração.');
+        return hmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next ? '✅ Mineração de heróis ativada.\n🟢 <b>MINERAÇÃO ATIVA</b>' : '✅ Mineração de heróis pausada.\n🔴 <b>MINERAÇÃO PAUSADA</b>');
+      return hmHub({ ...ctx, messageId: undefined }, false);
     }
+
     default: return hmHub(ctx);
   }
 }
