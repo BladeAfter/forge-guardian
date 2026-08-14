@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, Plus, ShoppingCart, Sparkles, Star, Swords, X } from 'lucide-react';
+import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePetDashboard } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
@@ -519,26 +519,34 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
   const primary: [Section, string, React.ReactNode][] = [
-    ['pets', 'PETS', null],
-    ['nft', 'NFT EXCLUSIVE', <Gem key="nft" className="mr-1 h-3.5 w-3.5 text-sky-400" />],
-    ['shop', 'BUY NFT', <ShoppingCart key="shop" className="mr-1 h-3.5 w-3.5 text-amber-300" />],
+    ['pets', 'PETS', <PawPrint key="pets" className="h-4 w-4" />],
+    ['nft', 'NFT EXCLUSIVE', <Gem key="nft" className="h-4 w-4 text-sky-300 drop-shadow-[0_0_6px_rgba(56,189,248,.8)]" />],
+    ['shop', 'BUY NFT', <ShoppingCart key="shop" className="h-4 w-4 text-amber-300" />],
   ];
-  const secondary: [Section, string, React.ReactNode][] = [
-    ['breeding', 'BREEDING', <Dna key="breeding" className="mr-1 h-3 w-3" />],
-    ['expeditions', 'EXPEDITIONS', <Swords key="expeditions" className="mr-1 h-3 w-3" />],
+  const secondary: [Section, string, React.ReactNode, string][] = [
+    ['breeding', 'BREEDING', <Dna key="breeding" className="h-3.5 w-3.5" />, 'violet'],
+    ['expeditions', 'EXPEDITIONS', <Map key="expeditions" className="h-3.5 w-3.5" />, 'sky'],
   ];
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
       <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3">
-        <header className="mb-3 rounded-2xl border border-amber-300/20 bg-black/70 p-3">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-[9px] uppercase tracking-[.3em] text-amber-300">MYTHREON</p>
-            <button type="button" onClick={onClose} aria-label={t('pets.close')} className="-mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-5 w-5" /></button>
+        <header className="relative mb-4 overflow-hidden rounded-[22px] border border-amber-300/35 bg-[linear-gradient(160deg,rgba(19,34,60,.95)_0%,rgba(6,10,18,.98)_55%,rgba(12,20,36,.95)_100%)] px-3 pb-3 pt-2.5 shadow-[0_0_0_1px_rgba(0,0,0,.6),0_18px_40px_-18px_rgba(0,0,0,.9),inset_0_1px_0_rgba(255,255,255,.06)]">
+          <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-56 -translate-x-1/2 rounded-full bg-amber-300/10 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-2">
+            <p className="text-[9px] font-black uppercase tracking-[.34em] text-amber-300/90">MYTHREON</p>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t('pets.close')}
+              className="-mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-amber-300/35 bg-black/60 text-amber-100/80 transition hover:border-amber-300/70 hover:text-amber-200 hover:shadow-[0_0_14px_rgba(251,191,36,.45)] active:scale-95"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
           {section && onSection ? (
-            <div className="mt-2 flex flex-col gap-2">
-              <div className="flex flex-wrap items-end justify-start gap-x-3 gap-y-1">
+            <div className="relative mt-2.5 flex flex-col gap-2.5">
+              <div className="flex items-stretch justify-between gap-1.5">
                 {primary.map(([key, label, icon]) => {
                   const on = section === key;
                   return (
@@ -546,31 +554,43 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
                       key={key}
                       type="button"
                       onClick={() => onSection(key)}
-                      className={`relative shrink-0 whitespace-nowrap pb-1.5 text-left text-[12px] font-black uppercase tracking-[.04em] transition ${
-                        on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
+                      className={`group relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1.5 pb-2 pt-1.5 text-center transition ${
+                        on
+                          ? 'bg-[linear-gradient(180deg,rgba(251,191,36,.14),rgba(251,191,36,0))] ring-1 ring-amber-300/40'
+                          : 'ring-1 ring-white/5 hover:bg-white/[.04]'
                       }`}
                     >
-                      {icon}
-                      {label}
-                      <span className={`absolute inset-x-0 -bottom-px h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
+                      <span className={on ? 'text-amber-200' : 'text-slate-400 transition group-hover:text-slate-200'}>{icon}</span>
+                      <span
+                        className={`w-full truncate text-[10px] font-black uppercase leading-none tracking-[.06em] ${
+                          on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.5)]' : 'text-slate-400'
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      <span
+                        className={`absolute inset-x-3 bottom-0 h-[3px] rounded-full transition ${
+                          on ? 'bg-gradient-to-r from-transparent via-amber-300 to-transparent shadow-[0_0_12px_rgba(251,191,36,.8)]' : 'bg-transparent'
+                        }`}
+                      />
                     </button>
                   );
                 })}
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-                {secondary.map(([key, label, icon]) => {
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/25 to-transparent" />
+              <div className="flex items-center justify-center gap-3">
+                {secondary.map(([key, label, icon, tone]) => {
                   const on = section === key;
+                  const idle = tone === 'violet' ? 'border-violet-400/25 text-violet-200/80' : 'border-sky-400/25 text-sky-200/80';
                   return (
                     <button
                       key={key}
                       type="button"
                       onClick={() => onSection(key)}
-                      className={`relative flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-[.04em] transition ${
+                      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-[.12em] transition active:scale-95 ${
                         on
-                          ? 'text-amber-200 shadow-[0_0_10px_rgba(251,191,36,.25)] ring-1 ring-amber-300/40'
-                          : key === 'breeding'
-                            ? 'text-violet-300 hover:bg-white/5'
-                            : 'text-slate-300 hover:bg-white/5'
+                          ? 'border-amber-300/60 bg-amber-300/10 text-amber-200 shadow-[0_0_14px_rgba(251,191,36,.35)]'
+                          : `${idle} bg-white/[.03] hover:bg-white/[.07]`
                       }`}
                     >
                       {icon}
@@ -581,7 +601,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
               </div>
             </div>
           ) : (
-            <h1 className="text-xl font-black">PETS</h1>
+            <h1 className="mt-1 text-xl font-black tracking-wide">PETS</h1>
           )}
         </header>
         {children}
@@ -589,6 +609,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
     </div>
   );
 }
+
 
 function LevelBar({ pet }: { pet: PlayerPet }) {
   const t = useT();
