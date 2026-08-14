@@ -3,8 +3,10 @@ import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
 export const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
 
 
+// Wallets fetch this URL from their own servers, so it must always be the public
+// production manifest (name: MYTHREON, official icon), never a preview/dev origin.
 export const TONCONNECT_MANIFEST_URL =
-  import.meta.env.VITE_TONCONNECT_MANIFEST_URL || `${APP_URL}/tonconnect-manifest.json`;
+  import.meta.env.VITE_TONCONNECT_MANIFEST_URL || 'https://mythreon.lovable.app/tonconnect-manifest.json';
 
 export const missingPublicConfig = [
   !supabaseUrl && 'VITE_SUPABASE_URL',
