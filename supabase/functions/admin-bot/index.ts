@@ -2972,7 +2972,9 @@ async function hmHub(ctx: Ctx, useEdit = true) {
     + `Heróis minerando: <b>${fmt(d.eligibleHeroes)}</b> · pausados (mercado): ${fmt(d.pausedHeroes)}\n`
     + `Produção da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n`
     + `Acumulado não coletado: ${hmTon(d.unclaimedTon)} TON\n`
-    + `Coletado 24h: ${hmTon(d.claimedTon24h)} TON · total ${hmTon(d.claimedTon)} TON\n\n`
+    + `Coletado 24h: ${hmTon(d.claimedTon24h)} TON · total ${hmTon(d.claimedTon)} TON\n`
+    + `<b>LIMITE ROI</b> · investido ${hmTon(d.investedTon)} TON · devolvido ${hmTon(d.returnedTon)} TON\n`
+    + `Investidores: <b>${fmt(d.investorsCount)}</b> · no limite: ${fmt(d.capReachedPlayers)}\n\n`
     + `<b>ÚLTIMAS COLETAS</b>\n${claims}`;
   const rows = [
     [{ t: '⚙️ ALTERAR TAXA', d: 'hm:ask:hmrate' }, { t: '💠 RESGATE MÍNIMO', d: 'hm:ask:hmmin' }],
@@ -2990,6 +2992,9 @@ async function hmUserCard(ctx: Ctx, ref: string, useEdit = true) {
     + `Taxa: <b>${hmTon(d.dailyRateTon)} TON/dia</b> (${fmt(d.eligibleHeroes)} heróis, ${fmt(d.pausedHeroes)} pausados)\n`
     + `Não coletado: <b>${hmTon(d.unclaimedTon)} TON</b>\n`
     + `Total minerado: ${hmTon(d.lifetimeTon)} TON\n`
+    + `Investido (TON elegível): <b>${hmTon(d.investedTon)} TON</b>\n`
+    + `Devolvido pela mineração: ${hmTon(d.returnedTon)} TON\n`
+    + `Capacidade restante: <b>${hmTon(d.remainingTon)} TON</b>${Number(d.investedTon ?? 0) > 0 && Number(d.remainingTon ?? 0) <= 0 ? ' ⛔ LIMITE ATINGIDO' : ''}\n`
     + `Saldo TON sacável: ${hmTon(d.availableTon)} TON\n`
     + `Última coleta: ${d.lastClaimAt ? String(d.lastClaimAt).slice(0, 16).replace('T', ' ') : '—'}\n\n${byRarity}`;
   const rows = [[{ t: '👤 OUTRO JOGADOR', d: 'hm:ask:hmuser' }], nav('hm:hub')];
