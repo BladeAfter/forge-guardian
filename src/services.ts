@@ -618,7 +618,7 @@ export async function miningRequest<T=HeroMiningState>(initData:string,action:'s
   const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;
   if(!response.ok||!payload){
     const raw=payload?.error||'';
-    const friendly:Record<string,string>={MINING_DISABLED:'A mineração está temporariamente pausada.',NOTHING_TO_CLAIM:'Nada para coletar ainda.',PLAYER_NOT_FOUND:'Jogador não encontrado.'};
+    const friendly:Record<string,string>={MINING_DISABLED:'A mineração está temporariamente pausada.',NOTHING_TO_CLAIM:'Nada para coletar ainda.',NO_TON_INVESTMENT:'Invista TON no Mythreon para ativar a mineração dos heróis.',ROI_LIMIT_REACHED:'Limite de ROI atingido: invista mais TON para reativar a mineração.',PLAYER_NOT_FOUND:'Jogador não encontrado.'};
     throw new Error(friendly[raw]||raw||'Não foi possível processar a mineração.');
   }
   return payload;
