@@ -11,6 +11,8 @@ export type FusionNext = {
   stars: number;
   costFc: number;
   duplicatesRequired: number;
+  /** Universal fragments that replace the required copies for this same step. */
+  fragmentsRequired?: number;
   bonusPercent: number;
   maxLevel: number;
   finalAtk: number;
@@ -81,7 +83,13 @@ export type FusionHero = {
   next: FusionNext | null;
 };
 
-export type FusionDashboard = { config: FusionConfig; balance: number; heroes: FusionHero[] };
+export type FusionDashboard = {
+  config: FusionConfig; balance: number; heroes: FusionHero[];
+  /** Universal fragments owned and the cost of paying one fusion step with them. */
+  universalFragments?: number; fragmentsPerFusion?: number;
+  /** Normal hero fragments (summon currency) and its server config. */
+  fragments?: number; summonConfig?: { fragments_per_hero?: number; rates?: Record<string, number> } | null;
+};
 
 export type FusionResult = {
   heroId: string;
@@ -97,6 +105,9 @@ export type FusionResult = {
   costFc: number;
   consumed: number;
   balance: number;
+  usedFragments?: boolean;
+  fragmentsSpent?: number;
+  universalFragments?: number;
   dashboard: FusionDashboard;
 };
 
@@ -114,6 +125,14 @@ export const pickMaterials = (hero: FusionHero, pool: FusionHero[]): string[] =>
 
 export const canFuse = (hero: FusionHero, balance: number) =>
   Boolean(hero.next) && hero.duplicates >= (hero.next?.duplicatesRequired ?? 0) && balance >= (hero.next?.costFc ?? 0);
+
+/**
+ * Option 2: pay the SAME step with universal fragments instead of hero copies.
+ * NFT exclusive heroes never enter the star fusion system.
+ */
+export const canFuseWithFragments = (hero: FusionHero, balance: number, universalFragments: number, fragmentsPerFusion: number) =>
+  Boolean(hero.next) && !hero.isNft && fragmentsPerFusion > 0
+  && universalFragments >= fragmentsPerFusion && balance >= (hero.next?.costFc ?? 0);
 
 // ------------------------------------------------------------------ rarity fusion (5 heroes -> next rarity)
 export const FUSION_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as const;
