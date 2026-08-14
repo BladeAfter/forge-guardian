@@ -3552,22 +3552,98 @@ export type Database = {
           },
         ]
       }
+      nft_hero_orders: {
+        Row: {
+          amount_nano: string
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string
+          nft_hero_id: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          nft_hero_id: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          nft_hero_id?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_hero_orders_nft_hero_id_fkey"
+            columns: ["nft_hero_id"]
+            isOneToOne: false
+            referencedRelation: "nft_heroes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_hero_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nft_heroes: {
         Row: {
           assigned_at: string | null
           created_at: string
           created_by_admin: number | null
+          for_sale: boolean
           hero_template_id: string
           id: string
           level: number
           metadata: Json
+          mining_daily_ton: number
           minted: boolean
           nft_serial: number
           owner_user_id: string | null
           player_hero_id: string | null
+          price_ton: number | null
           revoked_at: string | null
           stars: number
           status: string
+          tier_ton: number | null
           unique_instance_id: string
           updated_at: string
           xp: number
@@ -3576,17 +3652,21 @@ export type Database = {
           assigned_at?: string | null
           created_at?: string
           created_by_admin?: number | null
+          for_sale?: boolean
           hero_template_id: string
           id?: string
           level?: number
           metadata?: Json
+          mining_daily_ton?: number
           minted?: boolean
           nft_serial: number
           owner_user_id?: string | null
           player_hero_id?: string | null
+          price_ton?: number | null
           revoked_at?: string | null
           stars?: number
           status?: string
+          tier_ton?: number | null
           unique_instance_id: string
           updated_at?: string
           xp?: number
@@ -3595,17 +3675,21 @@ export type Database = {
           assigned_at?: string | null
           created_at?: string
           created_by_admin?: number | null
+          for_sale?: boolean
           hero_template_id?: string
           id?: string
           level?: number
           metadata?: Json
+          mining_daily_ton?: number
           minted?: boolean
           nft_serial?: number
           owner_user_id?: string | null
           player_hero_id?: string | null
+          price_ton?: number | null
           revoked_at?: string | null
           stars?: number
           status?: string
+          tier_ton?: number | null
           unique_instance_id?: string
           updated_at?: string
           xp?: number
@@ -10487,6 +10571,10 @@ export type Database = {
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
       hero_mining_enabled: { Args: never; Returns: boolean }
+      hero_mining_hero_rate: {
+        Args: { p_nft_hero_id: string; p_rarity: string }
+        Returns: number
+      }
       hero_mining_rarity_eligible: {
         Args: { p_rarity: string }
         Returns: boolean
@@ -10762,6 +10850,37 @@ export type Database = {
         }
         Returns: number
       }
+      nft_hero_assign_unit: {
+        Args: { p_nft_id: string; p_source: string; p_user_id: string }
+        Returns: Json
+      }
+      nft_hero_buy_with_balance: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_hero_confirm_purchase: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      nft_hero_create_order: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_hero_deliver_order: { Args: { p_order_id: string }; Returns: Json }
+      nft_hero_my_json: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_hero_reconcile_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      nft_hero_shop_json: { Args: { p_telegram_id: number }; Returns: Json }
       nft_my_reward: { Args: { p_telegram_id: number }; Returns: Json }
       nft_my_rewards_json: { Args: { p_telegram_id: number }; Returns: Json }
       nft_pool_accrue: { Args: never; Returns: Json }

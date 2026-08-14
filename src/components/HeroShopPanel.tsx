@@ -19,6 +19,8 @@ import {
 import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMinPriceTon, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSellCategory, type MarketSort } from '../market';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
+import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
+
 
 type Props = {
   telegramInitData: string | null;
@@ -51,6 +53,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
+  // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
+  const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
+
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
@@ -294,9 +299,33 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         </div>
 
 
+        {tab === 'recruit' ? (
+          <div className="mt-3 grid grid-cols-3 gap-1.5 px-4">
+            {([
+              ['recruit', 'RECRUIT'],
+              ['nft', '💎 NFT'],
+              ['buy-nft', '🛒 BUY NFT'],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setHeroTab(key)}
+                className={`rounded-xl px-1 py-2 text-[9px] font-black uppercase tracking-[.12em] ${heroTab === key ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'border border-white/10 bg-white/[.03] text-slate-300'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
-          {tab === 'recruit' ? (
+          {tab === 'recruit' && heroTab === 'nft' ? (
+            telegramInitData ? <NftHeroCollectionSection telegramInitData={telegramInitData} /> : null
+          ) : tab === 'recruit' && heroTab === 'buy-nft' ? (
+            telegramInitData ? <NftHeroShopSection telegramInitData={telegramInitData} /> : null
+          ) : tab === 'recruit' ? (
             <div>
+
               <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
                 <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
                 <p className="mt-0.5 text-[8px] uppercase tracking-[0.2em] text-slate-400">{t('market.recruitSubtitle')}</p>
