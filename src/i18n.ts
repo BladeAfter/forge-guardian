@@ -1,6 +1,6 @@
 import { DICTIONARIES } from './locales';
 
-export type LanguageCode = "pt" | "en" | "es" | "ru";
+export type LanguageCode = "pt" | "en" | "es" | "ru" | "tr";
 export type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
 const en: Record<string, string> = {
@@ -494,6 +494,7 @@ export const UI_TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
   en: { ...en, ...DICTIONARIES.en },
   es: { ...es, ...DICTIONARIES.es },
   ru: { ...ru, ...DICTIONARIES.ru },
+  tr: { ...en, ...DICTIONARIES.tr },
 };
 
 /**
