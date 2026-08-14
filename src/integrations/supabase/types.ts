@@ -1855,6 +1855,53 @@ export type Database = {
         }
         Relationships: []
       }
+      fragment_summon_history: {
+        Row: {
+          created_at: string
+          fragments_spent: number
+          hero_id: string | null
+          hero_key: string | null
+          hero_name: string | null
+          id: string
+          idempotency_key: string | null
+          result: Json
+          rolled_rarity: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fragments_spent: number
+          hero_id?: string | null
+          hero_key?: string | null
+          hero_name?: string | null
+          id?: string
+          idempotency_key?: string | null
+          result?: Json
+          rolled_rarity: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fragments_spent?: number
+          hero_id?: string | null
+          hero_key?: string | null
+          hero_name?: string | null
+          id?: string
+          idempotency_key?: string | null
+          result?: Json
+          rolled_rarity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fragment_summon_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_missions: {
         Row: {
           code: string
@@ -2642,9 +2689,11 @@ export type Database = {
           hp_after: number
           hp_before: number
           id: string
+          idempotency_key: string | null
           material_ids: string[]
           materials_consumed: number
           to_stars: number
+          universal_fragments_spent: number
           user_id: string
         }
         Insert: {
@@ -2658,9 +2707,11 @@ export type Database = {
           hp_after: number
           hp_before: number
           id?: string
+          idempotency_key?: string | null
           material_ids?: string[]
           materials_consumed: number
           to_stars: number
+          universal_fragments_spent?: number
           user_id: string
         }
         Update: {
@@ -2674,9 +2725,11 @@ export type Database = {
           hp_after?: number
           hp_before?: number
           id?: string
+          idempotency_key?: string | null
           material_ids?: string[]
           materials_consumed?: number
           to_stars?: number
+          universal_fragments_spent?: number
           user_id?: string
         }
         Relationships: [
@@ -9985,6 +10038,16 @@ export type Database = {
         Args: { p_admin_id: number; p_quantity?: number; p_rates?: Json }
         Returns: Json
       }
+      admin_set_fragment_utility: {
+        Args: {
+          p_admin_id: number
+          p_common_chance?: number
+          p_fragments_per_fusion?: number
+          p_fragments_per_hero?: number
+          p_uncommon_chance?: number
+        }
+        Returns: Json
+      }
       admin_set_fusion_config: {
         Args: { p_admin_id: number; p_patch: Json; p_reason?: string }
         Returns: Json
@@ -11003,11 +11066,14 @@ export type Database = {
         Returns: undefined
       }
       forge_random_seed: { Args: { p_salt?: string }; Returns: string }
+      fragment_summon_config: { Args: never; Returns: Json }
       fuse_heroes: {
         Args: {
+          p_idempotency_key?: string
           p_main_hero_id: string
-          p_material_ids: string[]
+          p_material_ids?: string[]
           p_telegram_id: number
+          p_use_fragments?: boolean
         }
         Returns: Json
       }
@@ -11971,6 +12037,10 @@ export type Database = {
         Returns: string
       }
       sub_nft_sync: { Args: { p_user_id: string }; Returns: undefined }
+      summon_hero_with_fragments: {
+        Args: { p_idempotency_key?: string; p_telegram_id: number }
+        Returns: Json
+      }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
@@ -12052,6 +12122,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      universal_fusion_fragment_cost: { Args: never; Returns: number }
       upgrade_pet: {
         Args: { p_player_pet_id: string; p_telegram_id: number }
         Returns: Json
