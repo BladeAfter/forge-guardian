@@ -5,6 +5,7 @@ import type { TowerBattle, TowerEquipmentDrop } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { PetCompanion } from './PetCompanion';
 import { activePetBonuses } from '../petBonuses';
+import { useT } from '../LanguageContext';
 
 const GEAR_TONES: Record<string, { border: string; bg: string; text: string }> = {
   common: { border: 'border-slate-500/40', bg: 'bg-slate-500/10', text: 'text-slate-300' },
@@ -14,7 +15,7 @@ const GEAR_TONES: Record<string, { border: string; bg: string; text: string }> =
   legendary: { border: 'border-amber-300/50', bg: 'bg-amber-400/10', text: 'text-amber-300' },
 };
 
-const GEAR_SLOTS: Record<string, string> = { weapon: 'Arma', armor: 'Armadura', ring: 'Anel' };
+const GEAR_SLOT_KEYS: Record<string, string> = { weapon: 'tower.gearWeapon', armor: 'tower.gearArmor', ring: 'tower.gearRing' };
 
 /**
  * Tower of Eternity battle screen: 5 heroes vs 1 floor boss.
@@ -72,6 +73,7 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
     return () => { if (timer.current) window.clearTimeout(timer.current); };
   }, [index, events, speed, done]);
 
+  const t = useT();
   const win = battle.result === 'win';
   const bossPct = Math.max(0, Math.min(100, Math.round((bossHp / bossMaxHp) * 100)));
   const turn = Math.min(battle.totalTurns, events[Math.min(index, Math.max(0, events.length - 1))]?.turn ?? battle.totalTurns);
@@ -79,7 +81,8 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
   // Equipment dropped by the floor rule (category first, then a random item of that pool).
   const gear = ((battle.rewards ?? {}) as { equipment?: TowerEquipmentDrop | null }).equipment ?? null;
   const gearTone = GEAR_TONES[String(gear?.rarity ?? '').toLowerCase()] ?? GEAR_TONES.common;
-  const gearSlotLabel = gear ? (GEAR_SLOTS[String(gear.slot)] ?? String(gear.slot)) : '';
+  const gearSlotKey = gear ? GEAR_SLOT_KEYS[String(gear.slot)] : null;
+  const gearSlotLabel = gear ? (gearSlotKey ? t(gearSlotKey) : String(gear.slot)) : '';
   // The active pet and its buffs come from the same server-side pet system used by the Boss.
   const activePet = battle.petSummary?.activePet ?? null;
   const petBonuses = battle.petSummary?.bonuses ?? null;
@@ -91,8 +94,8 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
       <img src={theme.arena} alt="" aria-hidden className="pointer-events-none fixed inset-0 h-full w-full object-cover opacity-45" />
       <div className="forge-safe-page relative mx-auto flex min-h-full w-full max-w-[480px] flex-col px-3 pb-6 pt-4">
         <header className="text-center">
-          <p className="text-[9px] font-black uppercase tracking-[.3em] text-amber-300">Tower of Eternity</p>
-          <p className={`mt-1 text-[11px] font-bold ${theme.accent}`}>Floor {battle.floor} / 100 · {done ? 'Batalha encerrada' : `Turno ${turn} / ${battle.totalTurns}`}</p>
+          <p className="text-[9px] font-black uppercase tracking-[.3em] text-amber-300">{t('tower.title')}</p>
+          <p className={`mt-1 text-[11px] font-bold ${theme.accent}`}>{t('tower.floorLabel')} {battle.floor} / 100 · {done ? t('tower.battleEnded') : t('tower.turnOf', { turn, total: battle.totalTurns })}</p>
           <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
             <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-500 transition-all duration-300" style={{ width: `${Math.round((Math.min(index, events.length) / Math.max(1, events.length)) * 100)}%` }} />
           </div>
@@ -129,8 +132,8 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
         </div>
 
         <section>
-          <p className="mb-2 text-[9px] font-black uppercase tracking-[.2em] text-slate-400">Sua equipe</p>
-          {activePet ? <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label="Pet Buff Active" /> : null}
+          <p className="mb-2 text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{t('tower.yourTeam')}</p>
+          {activePet ? <PetCompanion pet={activePet} buffs={petBuffs} size="sm" label={t('tower.petBuffActive')} /> : null}
           <div className="grid grid-cols-5 gap-1.5">
             {heroes.map(h => {
               const pct = Math.max(0, Math.min(100, Math.round((h.hp / h.maxHp) * 100)));
@@ -159,26 +162,26 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
             {[1, 2, 3].map(s => (
               <button key={s} type="button" onClick={() => setSpeed(s)} className={`h-9 min-w-[52px] rounded-xl border px-3 text-[11px] font-black ${speed === s ? 'border-amber-300 bg-amber-400 text-black' : 'border-white/10 bg-black/50 text-white'}`}>x{s}</button>
             ))}
-            <button type="button" onClick={finish} className="h-9 rounded-xl border border-white/10 bg-black/50 px-4 text-[11px] font-black text-slate-200">Skip</button>
+            <button type="button" onClick={finish} className="h-9 rounded-xl border border-white/10 bg-black/50 px-4 text-[11px] font-black text-slate-200">{t('tower.skip')}</button>
           </div>
         ) : null}
 
         {done ? (
           <div className="mt-6 rounded-[1.75rem] border border-amber-300/25 bg-black/70 p-5 text-center">
             <Zap className={`mx-auto h-10 w-10 ${win ? 'text-emerald-300' : 'text-rose-300'}`} />
-            <h2 className={`mt-2 text-4xl font-black ${win ? 'text-emerald-300' : 'text-rose-300'}`}>{win ? 'VITÓRIA' : 'DERROTA'}</h2>
-            <p className="mt-1 text-[11px] text-slate-400">{battle.totalTurns} turnos · {win ? `Andar ${battle.floor} concluído` : `Andar ${battle.floor} não superado`}</p>
+            <h2 className={`mt-2 text-4xl font-black ${win ? 'text-emerald-300' : 'text-rose-300'}`}>{win ? t('tower.victory') : t('tower.defeat')}</h2>
+            <p className="mt-1 text-[11px] text-slate-400">{t('tower.turnsCount', { count: battle.totalTurns })} · {win ? t('tower.floorCleared', { floor: battle.floor }) : t('tower.floorFailed', { floor: battle.floor })}</p>
             {win ? (
               <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
-                {battle.firstClear ? <p className="col-span-2 font-black uppercase tracking-[.2em] text-amber-300">First Clear</p> : null}
-                {rewards.fragments ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Fragments</p><p className="font-bold text-sky-300">x{rewards.fragments}</p></div> : null}
-                {rewards.heroXp ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Hero XP</p><p className="font-bold text-amber-200">{compact(rewards.heroXp)}</p></div> : null}
-                {rewards.petFood ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Pet Food</p><p className="font-bold text-emerald-300">x{rewards.petFood}</p></div> : null}
-                {rewards.heroChest ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Gear Chest</p><p className="font-bold text-fuchsia-300">x{rewards.heroChest}</p></div> : null}
-                {rewards.towerKey ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">Eternity Key</p><p className="font-bold text-fuchsia-300">x{rewards.towerKey}</p></div> : null}
+                {battle.firstClear ? <p className="col-span-2 font-black uppercase tracking-[.2em] text-amber-300">{t('tower.firstClear')}</p> : null}
+                {rewards.fragments ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.fragments')}</p><p className="font-bold text-sky-300">x{rewards.fragments}</p></div> : null}
+                {rewards.heroXp ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.heroXp')}</p><p className="font-bold text-amber-200">{compact(rewards.heroXp)}</p></div> : null}
+                {rewards.petFood ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.petFood')}</p><p className="font-bold text-emerald-300">x{rewards.petFood}</p></div> : null}
+                {rewards.heroChest ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.gearChest')}</p><p className="font-bold text-fuchsia-300">x{rewards.heroChest}</p></div> : null}
+                {rewards.towerKey ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.eternityKey')}</p><p className="font-bold text-fuchsia-300">x{rewards.towerKey}</p></div> : null}
                 {gear ? (
                   <div className={`col-span-2 mt-1 rounded-2xl border ${gearTone.border} ${gearTone.bg} p-3 text-left`}>
-                    <p className={`text-center text-[9px] font-black uppercase tracking-[.28em] ${gearTone.text}`}>Equipamento dropado</p>
+                    <p className={`text-center text-[9px] font-black uppercase tracking-[.28em] ${gearTone.text}`}>{t('tower.gearDropped')}</p>
                     <div className="mt-2 flex items-center gap-3">
                       <div className={`grid h-14 w-14 shrink-0 place-items-center rounded-xl border ${gearTone.border} bg-black/60`}>
                         {gear.imageUrl
@@ -200,17 +203,17 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                       <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">DEF</p><p className="font-bold text-sky-300">+{gear.bonusDefense ?? 0}</p></div>
                       <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">HP</p><p className="font-bold text-emerald-300">+{gear.bonusHp ?? 0}</p></div>
                     </div>
-                    <p className="mt-2 text-center text-[9px] uppercase tracking-[.18em] text-slate-500">Salvo no inventário · Andar {gear.floor ?? battle.floor}</p>
+                    <p className="mt-2 text-center text-[9px] uppercase tracking-[.18em] text-slate-500">{t('tower.savedInInventory', { floor: gear.floor ?? battle.floor })}</p>
                   </div>
                 ) : (
-                  <p className="col-span-2 mt-1 rounded-xl bg-black/50 p-2 text-[10px] text-slate-500">Nenhum equipamento dropado neste andar. Cada andar concede no máximo 1 peça (garantida a cada 10 andares).</p>
+                  <p className="col-span-2 mt-1 rounded-xl bg-black/50 p-2 text-[10px] text-slate-500">{t('tower.noGearDropped')}</p>
                 )}
 
               </div>
             ) : (
-              <p className="mt-3 text-[11px] text-slate-400">Tentativa consumida. Reforce sua equipe e tente novamente.</p>
+              <p className="mt-3 text-[11px] text-slate-400">{t('tower.attemptConsumed')}</p>
             )}
-            <button type="button" onClick={onContinue} className="mt-5 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3.5 text-sm font-black text-black">Continuar</button>
+            <button type="button" onClick={onContinue} className="mt-5 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3.5 text-sm font-black text-black">{t('tower.continue')}</button>
           </div>
         ) : null}
       </div>
