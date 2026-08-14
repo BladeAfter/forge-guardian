@@ -28,7 +28,11 @@ export type HeroUsage = {
   clanBoss: boolean;
   tower: boolean;
   marketplace: boolean;
+  /** NFT Exclusive is only a category: it blocks marketplace + fusion, never gameplay. */
   isNft?: boolean;
+  notTradeable?: boolean;
+  /** True only when the instance is really busy in an activity right now. */
+  inUse?: boolean;
   canFuse: boolean;
   reason: HeroLockReason | null;
 };
@@ -42,21 +46,27 @@ export const HERO_LOCK_LABEL: Record<HeroLockReason, string> = {
   BOSS: '🔒 GLOBAL BOSS',
   TOWER: '🔒 TOWER',
   MARKET: '🔒 MARKET',
-  NFT: '🔒 NFT',
+  NFT: '💎 NFT EXCLUSIVE',
 };
 
-/** Central helper: a hero instance is free for fusion only when nothing is using it right now. */
+/**
+ * Central helper: a hero instance is free for fusion only when nothing is using it right now.
+ * NFT Exclusive heroes stay fully playable (PvP, Boss, Tower, Equipment); they are just
+ * unique (no fusion) and never tradeable on the player market.
+ */
 export const getHeroUsageStatus = (hero: { usage?: HeroUsage | null; locked?: boolean; inTeam?: boolean; equipped?: boolean; isNft?: boolean }): HeroUsage => {
-  if (hero.usage) return hero.usage;
+  if (hero.usage) return { ...hero.usage, inUse: hero.usage.inUse ?? (hero.usage.manuallyLocked || hero.usage.pvpAttack || hero.usage.pvpDefense || hero.usage.globalBoss || hero.usage.tower || hero.usage.marketplace) };
   const manuallyLocked = Boolean(hero.locked);
   const busy = Boolean(hero.inTeam || hero.equipped);
   return {
     manuallyLocked, pvpAttack: busy, pvpDefense: false, globalBoss: false, clanBoss: false,
-    tower: false, marketplace: false, isNft: Boolean(hero.isNft),
+    tower: false, marketplace: false, isNft: Boolean(hero.isNft), notTradeable: Boolean(hero.isNft),
+    inUse: manuallyLocked || busy,
     canFuse: !manuallyLocked && !busy && !hero.isNft,
-    reason: manuallyLocked ? 'MANUAL' : busy ? 'PVP_ATTACK' : hero.isNft ? 'NFT' : null,
+    reason: manuallyLocked ? 'MANUAL' : busy ? 'PVP_ATTACK' : null,
   };
 };
+
 
 export const heroLockLabel = (reason: HeroLockReason | null | undefined) => (reason ? HERO_LOCK_LABEL[reason] ?? '🔒 IN USE' : null);
 
