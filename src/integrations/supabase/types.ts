@@ -8287,6 +8287,7 @@ export type Database = {
           id: string
           image_url: string
           name: string
+          pet_template_id: string | null
           secondary_element: string | null
           updated_at: string
         }
@@ -8300,6 +8301,7 @@ export type Database = {
           id?: string
           image_url: string
           name: string
+          pet_template_id?: string | null
           secondary_element?: string | null
           updated_at?: string
         }
@@ -8313,10 +8315,19 @@ export type Database = {
           id?: string
           image_url?: string
           name?: string
+          pet_template_id?: string | null
           secondary_element?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sub_nft_templates_pet_template_id_fkey"
+            columns: ["pet_template_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sub_nft_traits: {
         Row: {
