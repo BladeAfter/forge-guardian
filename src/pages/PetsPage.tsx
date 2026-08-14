@@ -4,6 +4,7 @@ import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
 import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
@@ -133,7 +134,11 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         return;
       }
       if (payload.feedResult) {
-        const { xpGained, levelsGained, foodName, quantity } = payload.feedResult;
+        const { xpGained, levelsGained, foodName, quantity, level } = payload.feedResult;
+        // Visual-only feedback when the new level crosses into a new form.
+        if (levelsGained > 0 && petVisualStage(level) > petVisualStage(level - levelsGained)) {
+          toast.success(`${t('pets.visualEvolved')} ${t('pets.visualEvolvedForm', { form: t(petVisualFormKey(level)) })}`);
+        }
         toast.success(
           levelsGained > 0
             ? t('pets.feedSuccessLevels', { quantity, foodName, xp: fmt(xpGained), levels: levelsGained })
@@ -232,6 +237,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 </p>
                 <p className="text-[10px] text-slate-400">
                   {t('pets.levelProgress', { stage: petStageLabel(active.evolutionStage), label: active.evolutionLabel, power: fmt(active.power) })}
+                </p>
+                {/* Cosmetic form driven purely by level (one per 10 levels). */}
+                <p className="text-[10px] font-black uppercase tracking-[.16em] text-cyan-200">
+                  {t(petVisualFormKey(active.level, active.visualStage))}
                 </p>
               </div>
             </div>
@@ -437,7 +446,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               const buff = pet.discovered ? Object.entries(pet.basePassives)[0] : null;
               return (
                 <div key={pet.id} className={`rounded-2xl border p-3 text-center ${pet.discovered ? 'border-amber-300/20 bg-black/55' : 'border-white/5 bg-black/30'}`}>
-                  <img src={pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
+                  <img src={pet.image || pet.images.baby} alt={pet.name} className={`mx-auto h-24 w-24 object-contain ${pet.discovered ? '' : 'brightness-0 opacity-70'}`} />
                   <b className="block truncate text-xs">{pet.name}</b>
                   <p className="text-[9px] text-slate-400">
                     {pet.discovered
