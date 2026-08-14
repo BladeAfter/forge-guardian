@@ -88,6 +88,8 @@ export type FusionHero = {
   usage?: HeroUsage | null;
   lockReason?: HeroLockReason | null;
   isNft?: boolean;
+  /** Server-computed daily TON mining rate for this hero instance (0 = not eligible). */
+  miningDailyTon?: number;
   duplicates: number;
 
   next: FusionNext | null;
