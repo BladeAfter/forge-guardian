@@ -1128,3 +1128,54 @@ function Row({ label, value, strong, danger }: { label: string; value: string; s
     </div>
   );
 }
+
+/**
+ * Pet details sheet. Opened by tapping the pet image/name, it hosts the
+ * PET MANAGEMENT actions (level/XP recycling) so no new tab is required.
+ */
+function PetDetailsModal({ pet, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
+  const t = useT();
+  return (
+    <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
+      <div className="forge-safe-page max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-400/30 bg-[#080b11] p-4" onClick={(event) => event.stopPropagation()}>
+        <header className="mb-3 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.details')}</p>
+            <h2 className="truncate text-lg font-black uppercase">{pet.name}</h2>
+            <p className="text-[10px]" style={{ color: rarityColor[petDisplayRarity(pet)] }}>
+              {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(pet), level: pet.level, max: pet.maxLevel })}
+            </p>
+          </div>
+          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+        </header>
+
+        <img src={pet.image} alt={pet.name} className="mx-auto h-40 w-40 object-contain" />
+        <LevelBar pet={pet} />
+        <BuffGrid pet={pet} />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-white/15 bg-white/5 py-2.5 text-[9px] font-black uppercase text-slate-200"
+          >
+            {t('pets.back')}
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+          <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{t('pets.petManagement')}</p>
+          <button
+            type="button"
+            onClick={onResetTransfer}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-violet-300/40 bg-violet-500/15 py-2.5 text-[9px] font-black uppercase text-violet-100"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {t('pets.resetTransfer')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
