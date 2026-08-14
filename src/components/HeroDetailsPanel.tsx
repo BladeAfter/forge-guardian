@@ -6,7 +6,7 @@ import { starRow } from '../heroFusion';
 import { HeroEquipmentSlots } from './HeroEquipmentSlots';
 import type { HeroEquipmentState } from '../heroEquipment';
 import { useT } from '../LanguageContext';
-import { formatMiningTon, heroDailyRate } from '../heroMining';
+import { formatMiningTon, heroDailyRate, isMiningRarity } from '../heroMining';
 
 const RARITY_COLOR: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
@@ -60,12 +60,21 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
                 </p>
               ) : null}
             </div>
-            {miningRate > 0 ? (
-              <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
-                <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                <p className="text-[13px] font-black text-cyan-100">{formatMiningTon(miningRate, 6)} {t('mining.perDay')}</p>
+            {isMiningRarity(hero.rarity) ? (
+              miningRate > 0 ? (
+                <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
+                  <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
+                  <p className="text-[13px] font-black text-cyan-100">{formatMiningTon(miningRate, 6)} {t('mining.perDay')}</p>
+                </div>
+              ) : null
+            ) : (
+              /* Common/Uncommon: discreet note so the player understands why it never mines. */
+              <div className="mt-2 rounded-xl border border-white/10 bg-white/5 py-2">
+                <p className="text-[8px] uppercase tracking-[.24em] text-white/40">{t('mining.heroRate')}</p>
+                <p className="text-[10px] font-black uppercase tracking-[.12em] text-white/50">{t('mining.unavailable')}</p>
+                <p className="mt-0.5 text-[8px] text-white/35">{t('mining.requiresRare')}</p>
               </div>
-            ) : null}
+            )}
             <div className="mt-2 grid grid-cols-2 gap-2">
               {stat('ATK', (equipment?.stats.atk ?? Number(hero.finalAtk ?? 0)).toLocaleString(), equipment?.stats.equipAtk)}
               {stat('HP', (equipment?.stats.hp ?? Number(hero.finalHp ?? 0)).toLocaleString(), equipment?.stats.equipHp)}
