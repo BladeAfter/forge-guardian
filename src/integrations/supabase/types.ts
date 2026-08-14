@@ -10487,6 +10487,10 @@ export type Database = {
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
       hero_mining_enabled: { Args: never; Returns: boolean }
+      hero_mining_rarity_eligible: {
+        Args: { p_rarity: string }
+        Returns: boolean
+      }
       hero_mining_rate: { Args: { p_rarity: string }; Returns: number }
       hero_mining_register_investment: {
         Args: {
