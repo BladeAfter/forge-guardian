@@ -1433,6 +1433,64 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     throw new Error('Ação inválida.');
   },
+
+  /**
+   * NFT BREEDING (UNIQUE NFT x UNIQUE NFT -> SUB-NFT). Every rule (breed count owned by
+   * the NFT instance, cooldown, cost tier, expiry/refund, egg minting) is enforced
+   * server-side inside a single transaction per RPC.
+   */
+  breeding: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'nft_breeding_state', { p_telegram_id: user.id });
+    if (action === 'search') {
+      return rpc(db, 'nft_breeding_search_partner', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 40) });
+    }
+    if (action === 'request') {
+      if (!isUuid(body.myNftId) || !isUuid(body.partnerNftId)) throw new Error('INVALID_NFT');
+      if (body.myNftId === body.partnerNftId) throw new Error('SAME_NFT_NOT_ALLOWED');
+      return rpc(db, 'nft_breeding_request_create', {
+        p_telegram_id: user.id,
+        p_my_nft_id: body.myNftId,
+        p_partner_nft_id: body.partnerNftId,
+      });
+    }
+    if (action === 'respond') {
+      if (!isUuid(body.requestId)) throw new Error('INVALID_REQUEST');
+      return rpc(db, 'nft_breeding_respond', {
+        p_telegram_id: user.id,
+        p_request_id: body.requestId,
+        p_accept: Boolean(body.accept),
+      });
+    }
+    if (action === 'pay') {
+      if (!isUuid(body.requestId)) throw new Error('INVALID_REQUEST');
+      return rpc(db, 'nft_breeding_pay', {
+        p_telegram_id: user.id,
+        p_request_id: body.requestId,
+        p_idempotency_key: `breed:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+      });
+    }
+    if (action === 'claim-mining') return rpc(db, 'sub_nft_claim', { p_telegram_id: user.id });
+    throw new Error('INVALID_ACTION');
+  },
+
+  /** PET EXPEDITIONS (AFK missions). Timers and rolls are server-side only. */
+  expeditions: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'expedition_state', { p_telegram_id: user.id });
+    if (action === 'start') {
+      const petIds = Array.isArray(body.petIds) ? body.petIds.map(String) : [];
+      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
+      if (petIds.length !== 3 || petIds.some((id) => !isUuid(id))) throw new Error('TEAM_MUST_HAVE_3_PETS');
+      if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
+      return rpc(db, 'expedition_start', { p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds });
+    }
+    if (action === 'claim') {
+      if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
+      return rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
+    }
+    throw new Error('INVALID_ACTION');
+  },
 };
 
 

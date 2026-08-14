@@ -1810,6 +1810,51 @@ export type Database = {
           },
         ]
       }
+      expedition_missions: {
+        Row: {
+          base_success: number
+          code: string
+          duration_hours: number
+          enabled: boolean
+          id: string
+          name: string
+          rarity: string
+          recommended_element: string | null
+          required_power: number
+          reward_pool: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          base_success?: number
+          code: string
+          duration_hours: number
+          enabled?: boolean
+          id?: string
+          name: string
+          rarity?: string
+          recommended_element?: string | null
+          required_power: number
+          reward_pool?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          base_success?: number
+          code?: string
+          duration_hours?: number
+          enabled?: boolean
+          id?: string
+          name?: string
+          rarity?: string
+          recommended_element?: string | null
+          required_power?: number
+          reward_pool?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_missions: {
         Row: {
           code: string
@@ -3508,6 +3553,205 @@ export type Database = {
         }
         Relationships: []
       }
+      nft_breeding_history: {
+        Row: {
+          breed_number_a: number | null
+          breed_number_b: number | null
+          breeding_id: string | null
+          cost_a: number
+          cost_b: number
+          created_at: string
+          egg_a_sub_nft_id: string | null
+          egg_b_sub_nft_id: string | null
+          id: string
+          owner_a_user_id: string | null
+          owner_b_user_id: string | null
+          parent_a_nft_id: string | null
+          parent_b_nft_id: string | null
+        }
+        Insert: {
+          breed_number_a?: number | null
+          breed_number_b?: number | null
+          breeding_id?: string | null
+          cost_a?: number
+          cost_b?: number
+          created_at?: string
+          egg_a_sub_nft_id?: string | null
+          egg_b_sub_nft_id?: string | null
+          id?: string
+          owner_a_user_id?: string | null
+          owner_b_user_id?: string | null
+          parent_a_nft_id?: string | null
+          parent_b_nft_id?: string | null
+        }
+        Update: {
+          breed_number_a?: number | null
+          breed_number_b?: number | null
+          breeding_id?: string | null
+          cost_a?: number
+          cost_b?: number
+          created_at?: string
+          egg_a_sub_nft_id?: string | null
+          egg_b_sub_nft_id?: string | null
+          id?: string
+          owner_a_user_id?: string | null
+          owner_b_user_id?: string | null
+          parent_a_nft_id?: string | null
+          parent_b_nft_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_breeding_history_breeding_id_fkey"
+            columns: ["breeding_id"]
+            isOneToOne: false
+            referencedRelation: "nft_breeding_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_breeding_requests: {
+        Row: {
+          breed_number_a: number
+          breed_number_b: number
+          completed_at: string | null
+          cost_a: number
+          cost_b: number
+          created_at: string
+          expires_at: string
+          id: string
+          initiator_user_id: string
+          nft_a_id: string
+          nft_b_id: string
+          paid_a: boolean
+          paid_b: boolean
+          partner_user_id: string
+          self_breed: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          breed_number_a: number
+          breed_number_b: number
+          completed_at?: string | null
+          cost_a: number
+          cost_b: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          initiator_user_id: string
+          nft_a_id: string
+          nft_b_id: string
+          paid_a?: boolean
+          paid_b?: boolean
+          partner_user_id: string
+          self_breed?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          breed_number_a?: number
+          breed_number_b?: number
+          completed_at?: string | null
+          cost_a?: number
+          cost_b?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          initiator_user_id?: string
+          nft_a_id?: string
+          nft_b_id?: string
+          paid_a?: boolean
+          paid_b?: boolean
+          partner_user_id?: string
+          self_breed?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_breeding_requests_initiator_user_id_fkey"
+            columns: ["initiator_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_breeding_requests_nft_a_id_fkey"
+            columns: ["nft_a_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_breeding_requests_nft_b_id_fkey"
+            columns: ["nft_b_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_breeding_requests_partner_user_id_fkey"
+            columns: ["partner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_breeding_settings: {
+        Row: {
+          adult_hours: number
+          baby_hours: number
+          cooldown_days: number
+          cost_breed_1: number
+          cost_breed_2: number
+          cost_breed_3: number
+          enabled: boolean
+          id: boolean
+          juvenile_hours: number
+          max_breeds: number
+          min_claim_ton: number
+          request_ttl_minutes: number
+          sub_breeding_enabled: boolean
+          sub_rate_per_ton: number
+          updated_at: string
+        }
+        Insert: {
+          adult_hours?: number
+          baby_hours?: number
+          cooldown_days?: number
+          cost_breed_1?: number
+          cost_breed_2?: number
+          cost_breed_3?: number
+          enabled?: boolean
+          id?: boolean
+          juvenile_hours?: number
+          max_breeds?: number
+          min_claim_ton?: number
+          request_ttl_minutes?: number
+          sub_breeding_enabled?: boolean
+          sub_rate_per_ton?: number
+          updated_at?: string
+        }
+        Update: {
+          adult_hours?: number
+          baby_hours?: number
+          cooldown_days?: number
+          cost_breed_1?: number
+          cost_breed_2?: number
+          cost_breed_3?: number
+          enabled?: boolean
+          id?: boolean
+          juvenile_hours?: number
+          max_breeds?: number
+          min_claim_ton?: number
+          request_ttl_minutes?: number
+          sub_breeding_enabled?: boolean
+          sub_rate_per_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nft_hero_history: {
         Row: {
           action: string
@@ -3829,11 +4073,16 @@ export type Database = {
       }
       nft_pets: {
         Row: {
+          appearance_family: string | null
           assigned_at: string | null
           blockchain: string | null
+          breed_count: number
+          breeding_cooldown_until: string | null
+          breeding_locked: boolean
           contract_address: string | null
           created_at: string
           created_by_admin: number | null
+          element: string | null
           for_sale: boolean
           id: string
           metadata: Json
@@ -3852,11 +4101,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          appearance_family?: string | null
           assigned_at?: string | null
           blockchain?: string | null
+          breed_count?: number
+          breeding_cooldown_until?: string | null
+          breeding_locked?: boolean
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          element?: string | null
           for_sale?: boolean
           id?: string
           metadata?: Json
@@ -3875,11 +4129,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          appearance_family?: string | null
           assigned_at?: string | null
           blockchain?: string | null
+          breed_count?: number
+          breeding_cooldown_until?: string | null
+          breeding_locked?: boolean
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          element?: string | null
           for_sale?: boolean
           id?: string
           metadata?: Json
@@ -4731,6 +4990,69 @@ export type Database = {
           },
           {
             foreignKeyName: "pet_evolutions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_expeditions: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          finishes_at: string
+          id: string
+          mission_id: string
+          pet_ids: string[]
+          rewards: Json
+          started_at: string
+          status: string
+          success: boolean | null
+          success_chance: number
+          team_power: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          finishes_at: string
+          id?: string
+          mission_id: string
+          pet_ids: string[]
+          rewards?: Json
+          started_at?: string
+          status?: string
+          success?: boolean | null
+          success_chance?: number
+          team_power?: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          finishes_at?: string
+          id?: string
+          mission_id?: string
+          pet_ids?: string[]
+          rewards?: Json
+          started_at?: string
+          status?: string
+          success?: boolean | null
+          success_chance?: number
+          team_power?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_expeditions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "expedition_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_expeditions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -5665,6 +5987,7 @@ export type Database = {
           pet_id: string
           rarity: string
           secondary_buffs: Json
+          sub_nft_id: string | null
           tradable: boolean
           updated_at: string
           user_id: string
@@ -5687,6 +6010,7 @@ export type Database = {
           pet_id: string
           rarity: string
           secondary_buffs?: Json
+          sub_nft_id?: string | null
           tradable?: boolean
           updated_at?: string
           user_id: string
@@ -5709,6 +6033,7 @@ export type Database = {
           pet_id?: string
           rarity?: string
           secondary_buffs?: Json
+          sub_nft_id?: string | null
           tradable?: boolean
           updated_at?: string
           user_id?: string
@@ -5734,6 +6059,13 @@ export type Database = {
             columns: ["pet_id"]
             isOneToOne: false
             referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_pets_sub_nft_id_fkey"
+            columns: ["sub_nft_id"]
+            isOneToOne: false
+            referencedRelation: "sub_nfts"
             referencedColumns: ["id"]
           },
           {
@@ -7944,6 +8276,214 @@ export type Database = {
         }
         Relationships: []
       }
+      sub_nft_templates: {
+        Row: {
+          appearance_family: string | null
+          code: string
+          created_at: string
+          description: string | null
+          element: string
+          enabled: boolean
+          id: string
+          image_url: string
+          name: string
+          pet_template_id: string | null
+          secondary_element: string | null
+          updated_at: string
+        }
+        Insert: {
+          appearance_family?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          element: string
+          enabled?: boolean
+          id?: string
+          image_url: string
+          name: string
+          pet_template_id?: string | null
+          secondary_element?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appearance_family?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          element?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string
+          name?: string
+          pet_template_id?: string | null
+          secondary_element?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_nft_templates_pet_template_id_fkey"
+            columns: ["pet_template_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_nft_traits: {
+        Row: {
+          code: string
+          effect_key: string
+          effect_value: number
+          enabled: boolean
+          name: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          code: string
+          effect_key: string
+          effect_value: number
+          enabled?: boolean
+          name: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          code?: string
+          effect_key?: string
+          effect_value?: number
+          enabled?: boolean
+          name?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      sub_nfts: {
+        Row: {
+          accrued_at: string
+          birth_time: string
+          breeding_id: string | null
+          created_at: string
+          generation: number
+          id: string
+          lifetime_mined_ton: number
+          matures_at: string
+          maturity_stage: string
+          mining_cap_ton: number
+          mining_rate_ton_day: number
+          mining_status: string
+          owner_user_id: string | null
+          parent_a_nft_id: string | null
+          parent_b_nft_id: string | null
+          player_pet_id: string | null
+          serial: number
+          template_id: string
+          trait_code: string | null
+          unclaimed_ton: number
+          unique_instance_id: string
+          updated_at: string
+        }
+        Insert: {
+          accrued_at?: string
+          birth_time?: string
+          breeding_id?: string | null
+          created_at?: string
+          generation?: number
+          id?: string
+          lifetime_mined_ton?: number
+          matures_at: string
+          maturity_stage?: string
+          mining_cap_ton?: number
+          mining_rate_ton_day?: number
+          mining_status?: string
+          owner_user_id?: string | null
+          parent_a_nft_id?: string | null
+          parent_b_nft_id?: string | null
+          player_pet_id?: string | null
+          serial?: number
+          template_id: string
+          trait_code?: string | null
+          unclaimed_ton?: number
+          unique_instance_id: string
+          updated_at?: string
+        }
+        Update: {
+          accrued_at?: string
+          birth_time?: string
+          breeding_id?: string | null
+          created_at?: string
+          generation?: number
+          id?: string
+          lifetime_mined_ton?: number
+          matures_at?: string
+          maturity_stage?: string
+          mining_cap_ton?: number
+          mining_rate_ton_day?: number
+          mining_status?: string
+          owner_user_id?: string | null
+          parent_a_nft_id?: string | null
+          parent_b_nft_id?: string | null
+          player_pet_id?: string | null
+          serial?: number
+          template_id?: string
+          trait_code?: string | null
+          unclaimed_ton?: number
+          unique_instance_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_nfts_breeding_id_fkey"
+            columns: ["breeding_id"]
+            isOneToOne: false
+            referencedRelation: "nft_breeding_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_parent_a_nft_id_fkey"
+            columns: ["parent_a_nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_parent_b_nft_id_fkey"
+            columns: ["parent_b_nft_id"]
+            isOneToOne: false
+            referencedRelation: "nft_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_player_pet_id_fkey"
+            columns: ["player_pet_id"]
+            isOneToOne: false
+            referencedRelation: "player_pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "sub_nft_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_nfts_trait_code_fkey"
+            columns: ["trait_code"]
+            isOneToOne: false
+            referencedRelation: "sub_nft_traits"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       ton_payment_logs: {
         Row: {
           blockchain_status: string | null
@@ -9925,6 +10465,33 @@ export type Database = {
         Returns: Json
       }
       boss_team_json: { Args: { p_user: string }; Returns: Json }
+      breeding_cost: { Args: { p_breed_number: number }; Returns: number }
+      breeding_settings: {
+        Args: never
+        Returns: {
+          adult_hours: number
+          baby_hours: number
+          cooldown_days: number
+          cost_breed_1: number
+          cost_breed_2: number
+          cost_breed_3: number
+          enabled: boolean
+          id: boolean
+          juvenile_hours: number
+          max_breeds: number
+          min_claim_ton: number
+          request_ttl_minutes: number
+          sub_breeding_enabled: boolean
+          sub_rate_per_ton: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "nft_breeding_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       buy_pet_egg: {
         Args: {
           p_egg_id: string
@@ -10329,6 +10896,23 @@ export type Database = {
           p_telegram_id: number
         }
         Returns: Json
+      }
+      expedition_claim: {
+        Args: { p_expedition_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      expedition_start: {
+        Args: {
+          p_mission_id: string
+          p_pet_ids: string[]
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      expedition_state: { Args: { p_telegram_id: number }; Returns: Json }
+      expedition_success_chance: {
+        Args: { p_bonus: number; p_power: number; p_required: number }
+        Returns: number
       }
       expire_stale_pet_egg_orders: {
         Args: { p_user_id?: string }
@@ -10818,6 +11402,33 @@ export type Database = {
         Args: { p_nft_id: string; p_source: string; p_user_id: string }
         Returns: Json
       }
+      nft_breeding_block_reason: { Args: { p_nft_id: string }; Returns: string }
+      nft_breeding_expire_stale: { Args: never; Returns: number }
+      nft_breeding_pay: {
+        Args: {
+          p_idempotency_key: string
+          p_request_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_breeding_request_create: {
+        Args: {
+          p_my_nft_id: string
+          p_partner_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_breeding_respond: {
+        Args: { p_accept: boolean; p_request_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      nft_breeding_search_partner: {
+        Args: { p_query: string; p_telegram_id: number }
+        Returns: Json
+      }
+      nft_breeding_state: { Args: { p_telegram_id: number }; Returns: Json }
       nft_buy_with_balance: {
         Args: {
           p_idempotency_key: string
@@ -10969,6 +11580,7 @@ export type Database = {
         }
         Returns: Json
       }
+      pet_instance_power: { Args: { p_player_pet_id: string }; Returns: number }
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
@@ -11267,6 +11879,17 @@ export type Database = {
         Returns: Json
       }
       starter_pack_cutoff: { Args: never; Returns: string }
+      sub_nft_claim: { Args: { p_telegram_id: number }; Returns: Json }
+      sub_nft_mint: {
+        Args: {
+          p_cost: number
+          p_owner: string
+          p_req: Database["public"]["Tables"]["nft_breeding_requests"]["Row"]
+          p_side: string
+        }
+        Returns: string
+      }
+      sub_nft_sync: { Args: { p_user_id: string }; Returns: undefined }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
