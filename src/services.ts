@@ -465,6 +465,27 @@ export async function markSpendingEventPopupSeen(initData:string):Promise<void>{
   try{await forgeFetch('spending-event',{initData,action:'popup-seen'})}catch{/* silent: cosmetic only */}
 }
 
+/* ---------------- Promotional campaign popup (MYTHREON GIVEAWAY) ---------------- */
+export type CampaignPopup={show:boolean;campaignId?:string;groupUrl?:string;reason?:string};
+
+/**
+ * Shown ONCE per player per campaignId (server-owned). Failure-tolerant: any error
+ * resolves as `{show:false}` so the boot is never blocked.
+ */
+export async function campaignPopupRequest(initData:string):Promise<CampaignPopup>{
+  try{
+    const response=await forgeFetch('campaign-popup',{initData,action:'status'});
+    if(!response.ok)return{show:false};
+    const payload=await response.json().catch(()=>null) as CampaignPopup|null;
+    return payload&&payload.show?payload:{show:false};
+  }catch{return{show:false}}
+}
+
+/** Records shown/dismiss/join for the campaign; never grants any reward. */
+export async function markCampaignPopup(initData:string,campaignId:string,action:'shown'|'dismiss'|'join'):Promise<void>{
+  try{await forgeFetch('campaign-popup',{initData,action,campaignId})}catch{/* silent: cosmetic only */}
+}
+
 /* ---------------- Starter Pack (new accounts from 2026-08-13, UTC-3) ---------------- */
 export type StarterPackStatus={show:boolean;eligible?:boolean;claimed?:boolean;claimedAt?:string|null;
  rewards?:{fc:number;eggCode:string;eggQuantity:number;chestCode:string;chestQuantity:number}};
