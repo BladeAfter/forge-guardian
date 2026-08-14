@@ -20,6 +20,7 @@ const fmtTon = (value: number) => `${Number(value ?? 0).toFixed(2)} TON`;
  * the breed counter (owned by the NFT instance) and the block reason for each unit.
  */
 export default function BreedingSection({ initData }: { initData: string }) {
+  const t = useT();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
