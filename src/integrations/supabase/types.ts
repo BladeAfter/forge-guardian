@@ -9213,6 +9213,47 @@ export type Database = {
           },
         ]
       }
+      user_campaign_popup: {
+        Row: {
+          campaign_id: string
+          clicked_join_at: string | null
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          shown_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          clicked_join_at?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          shown_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          clicked_join_at?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          shown_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_campaign_popup_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_channel_rewards: {
         Row: {
           channel_key: string
@@ -11488,6 +11529,7 @@ export type Database = {
       get_ad_rewards: { Args: { p_telegram_id: number }; Returns: Json }
       get_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       get_calendar_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      get_campaign_popup: { Args: { p_telegram_id: number }; Returns: Json }
       get_channel_rewards: { Args: { p_telegram_id: number }; Returns: Json }
       get_clan_boss: { Args: { p_telegram_id: number }; Returns: Json }
       get_clan_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
@@ -11747,6 +11789,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      mark_campaign_popup: {
+        Args: { p_action: string; p_campaign_id: string; p_telegram_id: number }
+        Returns: Json
       }
       mark_notifications_read: {
         Args: { p_ids?: string[]; p_telegram_id: number }
