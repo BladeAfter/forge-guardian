@@ -520,8 +520,8 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
   const t = useT();
   const primary: [Section, string, React.ReactNode][] = [
     ['pets', 'PETS', null],
-    ['nft', 'NFT EXCLUSIVE', <span key="nft" className="mr-1">💎</span>],
-    ['shop', 'BUY NFT', <span key="shop" className="mr-1">🛒</span>],
+    ['nft', 'NFT EXCLUSIVE', <Gem key="nft" className="mr-1 h-3.5 w-3.5 text-sky-400" />],
+    ['shop', 'BUY NFT', <ShoppingCart key="shop" className="mr-1 h-3.5 w-3.5 text-amber-300" />],
   ];
   const secondary: [Section, string, React.ReactNode][] = [
     ['breeding', 'BREEDING', <Dna key="breeding" className="mr-1 h-3 w-3" />],
