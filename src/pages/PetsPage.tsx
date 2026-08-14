@@ -500,14 +500,17 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   }
 }
 
-/**
- * PETS and NFT EXCLUSIVE are two MAIN sections of this screen, selected in the
- * header (never as a sub-tab next to Eggs/Food/Evolution/Catalog).
- */
-type Section = 'pets' | 'nft' | 'shop';
-
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
+  const primary: [Section, string, React.ReactNode][] = [
+    ['pets', 'PETS', null],
+    ['nft', 'NFT EXCLUSIVE', <span key="nft" className="mr-1">💎</span>],
+    ['shop', 'BUY NFT', <span key="shop" className="mr-1">🛒</span>],
+  ];
+  const secondary: [Section, string, React.ReactNode][] = [
+    ['breeding', 'BREEDING', <Dna key="breeding" className="mr-1 h-3 w-3" />],
+    ['expeditions', 'EXPEDITIONS', <Swords key="expeditions" className="mr-1 h-3 w-3" />],
+  ];
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
@@ -518,24 +521,48 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
             <button type="button" onClick={onClose} aria-label={t('pets.close')} className="-mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-5 w-5" /></button>
           </div>
           {section && onSection ? (
-            <div className="mt-1 flex items-end gap-4">
-              {([['pets', 'PETS'], ['nft', 'NFT EXCLUSIVE'], ['shop', 'BUY NFT']] as [Section, string][]).map(([key, label]) => {
-                const on = section === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => onSection(key)}
-                    className={`relative shrink-0 pb-1.5 text-left text-[13px] font-black uppercase tracking-[.04em] transition ${
-                      on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
-                    }`}
-                  >
-                    {key === 'pets' ? null : <span className="mr-1">{key === 'nft' ? '💎' : '🛒'}</span>}
-                    {label}
-                    <span className={`absolute inset-x-0 bottom-0 h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
-                  </button>
-                );
-              })}
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-end justify-start gap-x-3 gap-y-1">
+                {primary.map(([key, label, icon]) => {
+                  const on = section === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onSection(key)}
+                      className={`relative shrink-0 whitespace-nowrap pb-1.5 text-left text-[12px] font-black uppercase tracking-[.04em] transition ${
+                        on ? 'text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,.45)]' : 'text-slate-500'
+                      }`}
+                    >
+                      {icon}
+                      {label}
+                      <span className={`absolute inset-x-0 -bottom-px h-[3px] rounded-full ${on ? 'bg-gradient-to-r from-amber-300 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,.7)]' : 'bg-transparent'}`} />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                {secondary.map(([key, label, icon]) => {
+                  const on = section === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onSection(key)}
+                      className={`relative flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-[.04em] transition ${
+                        on
+                          ? 'text-amber-200 shadow-[0_0_10px_rgba(251,191,36,.25)] ring-1 ring-amber-300/40'
+                          : key === 'breeding'
+                            ? 'text-violet-300 hover:bg-white/5'
+                            : 'text-slate-300 hover:bg-white/5'
+                      }`}
+                    >
+                      {icon}
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <h1 className="text-xl font-black">PETS</h1>
