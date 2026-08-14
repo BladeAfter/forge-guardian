@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { realtimeSupabase as supabase } from './realtimeClient';
 
 import type { ChannelRewards, RewardHistory } from './services';
-import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
+import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, activityProgressRequest,communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
 import type { MarketBrowse, MarketCurrency, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
 
 import type { GameState } from './types';
@@ -64,6 +64,7 @@ export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>
 export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:5_000,refetchOnMount:'always',refetchOnWindowFocus:true});
 export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<CalendarDashboard>({queryKey:['calendar-dashboard',telegramInitData],queryFn:()=>calendarRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
+export const useActivityProgress=(telegramInitData:string|null,enabled:boolean)=>useQuery<ActivityProgress>({queryKey:['activity-progress',telegramInitData],queryFn:()=>activityProgressRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
 
 /** Special events tab: short refetch keeps the referral ranking live without a reload. */
