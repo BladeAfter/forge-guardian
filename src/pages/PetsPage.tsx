@@ -13,12 +13,15 @@ import { isNftExclusivePet, petBuffLabel, petBuffShortLabel, petDisplayRarity, p
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
+import BreedingSection from '../components/BreedingSection';
+import ExpeditionsSection from '../components/ExpeditionsSection';
 import { useT, useLanguage } from '../LanguageContext';
 
 
-type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
+type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog' | 'breeding' | 'expeditions';
 
-const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
+const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog', breeding: 'pets.tabBreeding', expeditions: 'pets.tabExpeditions' };
+const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG', breeding: '🧬 BREEDING', expeditions: '🗺️ EXPEDITIONS' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
@@ -234,15 +237,15 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
       {/* NFT EXCLUSIVE lives in its own main section (header selector), never here. */}
 
-      <nav className="mt-3 grid grid-cols-5 gap-1">
+      <nav className="mt-3 flex gap-1 overflow-x-auto pb-1">
         {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
           <button
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`rounded-xl px-1 py-2 text-[8px] font-black uppercase ${tab === key ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
+            className={`shrink-0 whitespace-nowrap rounded-xl px-2.5 py-2 text-[8px] font-black uppercase ${tab === key ? 'bg-amber-400 text-black' : 'bg-white/5 text-slate-300'}`}
           >
-            {t(TAB_KEYS[key])}
+            {t(TAB_KEYS[key]) === TAB_KEYS[key] ? TAB_FALLBACK[key] : t(TAB_KEYS[key])}
           </button>
         ))}
       </nav>
@@ -402,6 +405,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             ))}
           </div>
         )}
+
+        {tab === 'breeding' && <BreedingSection initData={telegramInitData} />}
+
+        {tab === 'expeditions' && <ExpeditionsSection initData={telegramInitData} />}
 
         {tab === 'catalog' && (
           <div className="grid grid-cols-2 gap-2">
