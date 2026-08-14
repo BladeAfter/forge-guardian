@@ -66,6 +66,7 @@ const MAIN_MENU = kb([
   [{ t: '⛏ MINERAÇÃO TON', d: 'hm:hub' }],
   [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
   [{ t: '🗺 EXPEDIÇÕES', d: 'xe:hub' }],
+  [{ t: '🎁 GIVEAWAY POPUP', d: 'gw:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
 
@@ -2103,6 +2104,8 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  gwcamp: '🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>',
+  gwurl: '🎁 Envie o <b>link do grupo</b> do Telegram.\nEx.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>',
   xeads: '🗺 Envie o máximo de <b>ANÚNCIOS por missão por dia</b> (padrão <code>5</code>).',
   xefc: '🗺 Envie o máximo de <b>COMPRAS COM FC por missão por dia</b> (padrão <code>5</code>).',
   xefree: '🗺 Envie quantas <b>tentativas gratuitas por missão por dia</b> cada jogador recebe.\nEx.: <code>1</code>',
@@ -2971,6 +2974,64 @@ async function hotWalletHub(ctx: Ctx, editing = true) {
 
 
 
+// ---------------------------------------------------------------- 🎁 GIVEAWAY POPUP
+// Promotional popup shown ONCE per (player, campaign_id). Changing the campaign id
+// releases a brand new popup for everyone; history in user_campaign_popup is kept.
+async function gwHub(ctx: Ctx, useEdit = true) {
+  const { data: rows } = await db.from('game_settings').select('key,value')
+    .in('key', ['giveaway_popup_enabled', 'giveaway_popup_campaign_id', 'giveaway_popup_group_url']);
+  const map = new Map((rows ?? []).map((r: any) => [r.key, r.value]));
+  const enabled = map.get('giveaway_popup_enabled') !== false;
+  const campaign = String(map.get('giveaway_popup_campaign_id') ?? 'mythreon_giveaway_aug2026');
+  const url = String(map.get('giveaway_popup_group_url') ?? 'https://t.me/+sy4Y6cd7cuIyNmEx');
+  const { count: shown } = await db.from('user_campaign_popup').select('id', { count: 'exact', head: true }).eq('campaign_id', campaign);
+  const { count: joined } = await db.from('user_campaign_popup').select('id', { count: 'exact', head: true }).eq('campaign_id', campaign).not('clicked_join_at', 'is', null);
+  const text = `🎁 <b>GIVEAWAY POPUP</b>\n`
+    + `Estado: <b>${enabled ? '🟢 ATIVO' : '🔴 DESATIVADO'}</b>\n`
+    + `Campanha: <code>${esc(campaign)}</code>\n`
+    + `Grupo: <code>${esc(url)}</code>\n\n`
+    + `Jogadores que viram: <b>${fmt(shown ?? 0)}</b>\n`
+    + `Clicaram em ENTRAR NO GRUPO: <b>${fmt(joined ?? 0)}</b>\n\n`
+    + `Ao trocar o <b>campaign_id</b> o popup reaparece 1× para todos (o histórico é mantido).`;
+  const rows2 = [
+    [{ t: enabled ? '⏸ DESATIVAR POPUP' : '▶️ ATIVAR POPUP', d: `gw:toggle:${enabled ? '0' : '1'}` }],
+    [{ t: '🆕 NOVA CAMPANHA', d: 'gw:ask:gwcamp' }, { t: '🔗 LINK DO GRUPO', d: 'gw:ask:gwurl' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows2)) : send(ctx, text, kb(rows2));
+}
+
+async function gwCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'toggle') {
+    await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'giveaway_popup_enabled', p_value: a === '1', p_reason: 'painel admin' });
+    await send(ctx, a === '1' ? '✅ Popup de giveaway ativado.' : '✅ Popup de giveaway desativado.');
+    return gwHub({ ...ctx, messageId: undefined }, false);
+  }
+  return gwHub(ctx);
+}
+
+async function gwPrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'gwcamp') {
+    const value = text.trim().toLowerCase().replace(/\s+/g, '_');
+    if (!/^[a-z0-9_\-]{4,120}$/.test(value)) throw new Error('KEEP_SESSION::⚠️ Use apenas letras, números, <code>_</code> e <code>-</code>. Ex.: <code>mythreon_giveaway_sep2026</code>');
+    await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'giveaway_popup_campaign_id', p_value: value, p_reason: 'painel admin' });
+    await clearSession(ctx);
+    await send(ctx, `🎁 Nova campanha: <code>${esc(value)}</code>\nTodos os jogadores verão o popup uma vez.`);
+    return gwHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'gwurl') {
+    const value = text.trim();
+    if (!/^https:\/\/t\.me\/\S+$/.test(value)) throw new Error('KEEP_SESSION::⚠️ Envie um link válido do Telegram. Ex.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>');
+    await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'giveaway_popup_group_url', p_value: value, p_reason: 'painel admin' });
+    await clearSession(ctx);
+    await send(ctx, `🎁 Link do grupo atualizado.`);
+    return gwHub({ ...ctx, messageId: undefined }, false);
+  }
+  return gwHub(ctx);
+}
+
 // ---------------------------------------------------------------- 🗺 PET EXPEDITIONS (extra attempts)
 // Every counter is per (player, MISSION, game day): the ads limit and the FC-purchase limit
 // are independent and NEVER global. Values below are editable without a deploy.
@@ -3341,6 +3402,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
   // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
   if (head === 'xe') { if (rest[0] !== 'ask') await clearSession(ctx); return xeCallback(ctx, rest); }
+  // 🎁 Promotional giveaway popup (campaign id + group link + on/off).
+  if (head === 'gw') { if (rest[0] !== 'ask') await clearSession(ctx); return gwCallback(ctx, rest); }
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
@@ -4706,6 +4769,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
   if (key.startsWith('af')) return afPrompt(ctx, key, text);
+  if (key.startsWith('gw')) return gwPrompt(ctx, key, text);
   if (key.startsWith('xe')) return xePrompt(ctx, key, text);
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
