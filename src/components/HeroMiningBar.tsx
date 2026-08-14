@@ -67,20 +67,11 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-3 gap-1.5">
-        <div className="rounded-xl border border-white/10 bg-black/40 px-1.5 py-1 text-center">
-          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.investment')}</p>
-          <p className="text-[10px] font-black text-white">{formatMiningTon(state.investedTon, 3)}</p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-black/40 px-1.5 py-1 text-center">
-          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.returned')}</p>
-          <p className="text-[10px] font-black text-white">{formatMiningTon(state.returnedTon, 3)}</p>
-        </div>
-        <div className={`rounded-xl border px-1.5 py-1 text-center ${state.remainingTon > 0 ? 'border-emerald-300/30 bg-emerald-400/5' : 'border-amber-300/30 bg-amber-400/5'}`}>
-          <p className="text-[7px] uppercase tracking-[.12em] text-slate-400">{t('mining.remaining')}</p>
-          <p className={`text-[10px] font-black ${state.remainingTon > 0 ? 'text-emerald-200' : 'text-amber-300'}`}>{formatMiningTon(state.remainingTon, 3)}</p>
-        </div>
-      </div>
+      {/*
+        The ROI rule stays fully enforced server-side (eligible invested TON, returned TON and
+        remaining capacity). Those values are intentionally NOT rendered for players — only the
+        admin panel exposes them. Never re-add invested/returned/remaining cards or an ROI bar.
+      */}
 
       <button
         onClick={() => { if (canClaim) claim.mutate(); }}
@@ -90,15 +81,10 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         {claim.isPending ? t('mining.claiming') : t('mining.claimAll')}
       </button>
 
-      {state.investedTon <= 0 ? (
-        <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.1em] text-amber-300">{t('mining.noInvestment')}</p>
-      ) : !active ? (
-        <>
-          <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.roiReached')}</p>
-          <p className="mt-0.5 text-center text-[8px] text-slate-400">{t('mining.reactivate')}</p>
-        </>
+      {/* Discreet status only: no amounts, no explanation of the internal cap. */}
+      {!state.enabled || !active ? (
+        <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.inactive')}</p>
       ) : null}
-      {!state.enabled ? <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.1em] text-amber-300">{t('mining.paused')}</p> : null}
       {state.minClaimTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min', { amount: formatMiningTon(state.minClaimTon, 6) })}</p> : null}
       {state.lifetimeTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: formatMiningTon(state.lifetimeTon, 6) })}</p> : null}
       {feedback ? <p className="mt-1 text-center text-[9px] font-black text-cyan-200">{feedback}</p> : null}
