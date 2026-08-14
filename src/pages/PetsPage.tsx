@@ -200,6 +200,22 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     );
   }
 
+  if (section === 'breeding') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <BreedingSection initData={telegramInitData} />
+      </Shell>
+    );
+  }
+
+  if (section === 'expeditions') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <ExpeditionsSection initData={telegramInitData} />
+      </Shell>
+    );
+  }
+
 
   return (
     <Shell onClose={onClose} section={section} onSection={setSection}>
