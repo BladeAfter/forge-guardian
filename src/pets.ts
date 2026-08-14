@@ -66,10 +66,15 @@ export type PetEvolveResult = {
 };
 export type PetHatchResult = { openingId?: string; historyId?: string; resultType?: 'new_pet' | 'duplicate'; isNew?: boolean; playerPetId?: string; fragmentsReceived?: number; status?: 'processing' | 'completed' | 'failed' | 'not_found'; name: string; rarity: string; image: string; duplicateFragments: number; petId?: string };
 
+export type PetXpTransferTarget={id:string;name:string;image:string|null;rarity:PetRarity;level:number;xp:number;capacity:number;canReceive:boolean};
+export type PetXpTransferPreview={sourceId:string;level:number;xp:number;totalXp:number;costFc:number;balance:number;targets:PetXpTransferTarget[]};
+export type PetXpTransferResult={sourceName:string;targetName:string;sourceLevelBefore:number;targetLevelBefore:number;targetLevelAfter:number;xpTransferred:number;costFc:number};
+
 /** Envelope returned by every pet action. Mutating actions wrap the fresh dashboard. */
 export type PetActionResponse = Partial<PetDashboard> & {
   dashboard?: PetDashboard;
   result?: PetHatchResult;
   feedResult?: PetFeedResult;
   evolveResult?: PetEvolveResult;
+  xpTransferResult?: PetXpTransferResult;
 };
