@@ -368,7 +368,7 @@ const MARKET_ERRORS:Record<string,string>={PRICE_BELOW_MINIMUM_LEGENDARY:'Herói
   ITEM_NOT_OWNED:'Este item não pertence a você.',
   ALREADY_LISTED:'Este item já está anunciado.',
   HERO_LOCKED:'Remova o bloqueio do herói antes de vender.',
-  HERO_NOT_TRADABLE:'Este herói não pode ser vendido.',
+  HERO_NOT_TRADABLE:'Este herói não pode ser vendido.',NFT_EXCLUSIVE_NOT_TRADEABLE:'NFT Exclusive não pode ser vendido no mercado.',
   HERO_IN_PVP_TEAM:'Retire o herói da equipe de PvP antes de vender.',
   HERO_IN_BOSS_TEAM:'Retire o herói da equipe do Chefe antes de vender.',
   HERO_LISTED_IN_MARKET:'Este herói está anunciado no mercado.',
