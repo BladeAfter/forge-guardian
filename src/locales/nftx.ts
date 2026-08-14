@@ -3,6 +3,9 @@ import type { LocaleBundle } from './registry';
 /** nft / breeding / expeditions namespaces (NFT shops, breeding lab, pet expeditions). */
 export const nftx: LocaleBundle = {
   en: {
+    'expeditions.successMsg': 'SUCCESS! Rewards: {rewards}',
+    'expeditions.failMsg': 'FAILED. Consolation reward: {rewards}',
+    'expeditions.none': 'none',
     'expeditions.powerChance': 'Power {power} · {chance}% success',
     'expeditions.selectPets': '🗺️ SELECT 3 PETS',
     'expeditions.petsHint': 'Normal, NFT or adult Sub-NFT pets. Pets on an expedition stay unavailable until it ends.',
@@ -92,6 +95,9 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   pt: {
+    'expeditions.successMsg': 'SUCESSO! Recompensas: {rewards}',
+    'expeditions.failMsg': 'FALHOU. Recompensa de consolação: {rewards}',
+    'expeditions.none': 'nenhuma',
     'expeditions.powerChance': 'Poder {power} · {chance}% de sucesso',
     'expeditions.selectPets': '🗺️ SELECIONE 3 PETS',
     'expeditions.petsHint': 'Pets normais, NFT ou Sub-NFT adultos. Pets em expedição ficam indisponíveis até o fim.',
@@ -181,6 +187,9 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   es: {
+    'expeditions.successMsg': '¡ÉXITO! Recompensas: {rewards}',
+    'expeditions.failMsg': 'FALLÓ. Recompensa de consolación: {rewards}',
+    'expeditions.none': 'ninguna',
     'expeditions.powerChance': 'Poder {power} · {chance}% de éxito',
     'expeditions.selectPets': '🗺️ SELECCIONA 3 MASCOTAS',
     'expeditions.petsHint': 'Mascotas normales, NFT o Sub-NFT adultas. Las mascotas en expedición no están disponibles hasta el final.',
@@ -270,6 +279,9 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   ru: {
+    'expeditions.successMsg': 'УСПЕХ! Награды: {rewards}',
+    'expeditions.failMsg': 'НЕУДАЧА. Утешительная награда: {rewards}',
+    'expeditions.none': 'нет',
     'expeditions.powerChance': 'Сила {power} · успех {chance}%',
     'expeditions.selectPets': '🗺️ ВЫБЕРИТЕ 3 ПИТОМЦЕВ',
     'expeditions.petsHint': 'Обычные питомцы, NFT или взрослые Sub-NFT. Питомцы в экспедиции недоступны до её конца.',
@@ -359,6 +371,9 @@ export const nftx: LocaleBundle = {
     'expeditions.fc': 'FC Coins',
   },
   tr: {
+    'expeditions.successMsg': 'BAŞARILI! Ödüller: {rewards}',
+    'expeditions.failMsg': 'BAŞARISIZ. Teselli ödülü: {rewards}',
+    'expeditions.none': 'yok',
     'expeditions.powerChance': 'Güç {power} · %{chance} başarı',
     'expeditions.selectPets': '🗺️ 3 EVCİL HAYVAN SEÇ',
     'expeditions.petsHint': 'Normal, NFT veya yetişkin Sub-NFT evcil hayvanlar. Seferdeki evcil hayvanlar bitene kadar kullanılamaz.',

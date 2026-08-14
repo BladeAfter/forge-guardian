@@ -68,8 +68,8 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
       setFeedback({
         tone: result.success ? 'ok' : 'bad',
         text: result.success
-          ? `SUCESSO! Recompensas: ${result.rewards.map(rewardText).join(', ') || 'nenhuma'}`
-          : `FALHOU. Recompensa de consolação: ${result.rewards.map(rewardText).join(', ') || 'nenhuma'}`,
+          ? t('expeditions.successMsg', { rewards: result.rewards.map((reward) => rewardText(reward, t)).join(', ') || t('expeditions.none') })
+          : t('expeditions.failMsg', { rewards: result.rewards.map((reward) => rewardText(reward, t)).join(', ') || t('expeditions.none') }),
       });
       refresh();
     },
