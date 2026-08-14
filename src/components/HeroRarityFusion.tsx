@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Lock, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { fuseHeroesByRarity } from '../services';
-import { RARITY_COLOR, type RarityFusionDashboard, type RarityFusionHero, type RarityFusionResult } from '../heroFusion';
+import { RARITY_COLOR, getHeroUsageStatus, heroLockLabel, type RarityFusionDashboard, type RarityFusionHero, type RarityFusionResult } from '../heroFusion';
 import { useT, useLanguage } from '../LanguageContext';
 
 const fmt = (value: number) => new Intl.NumberFormat('pt-BR').format(Math.round(value || 0));
@@ -36,13 +36,14 @@ function SlotChip({ hero, index, onClear }: { hero: RarityFusionHero | null; ind
 
 /** Compact selection card: image + name + rarity + level + copies. Nothing else. */
 function FusionHeroCard({
-  hero, copies, selectedCount, available, blocked, onToggle,
+  hero, copies, selectedCount, available, blocked, lockLabel, onToggle,
 }: {
   hero: RarityFusionHero;
   copies: number;
   selectedCount: number;
   available: number;
   blocked: boolean;
+  lockLabel?: string | null;
   onToggle: () => void;
 }) {
   const t = useT();
@@ -61,7 +62,11 @@ function FusionHeroCard({
             <span className="grid h-6 w-6 place-items-center rounded-full bg-amber-300 text-black"><Check size={14} /></span>
           </span>
         ) : null}
-        {blocked ? <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded bg-black/75 text-amber-300"><Lock size={9} /></span> : null}
+        {blocked ? (
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/80 px-1 py-0.5 text-[7px] font-black uppercase tracking-[.04em] text-amber-300">
+            <Lock size={8} />{lockLabel ?? 'IN USE'}
+          </span>
+        ) : null}
         {copies > 1 ? <span className="absolute left-1 top-1 rounded bg-black/80 px-1 text-[8px] font-black text-amber-200">x{copies}</span> : null}
       </div>
       <div className="flex-1 px-1 py-1 leading-tight">
@@ -128,7 +133,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
 
   function toggleGroup(list: RarityFusionHero[]) {
     const picked = list.filter((h) => selected.includes(h.heroId));
-    const free = list.filter((h) => !selected.includes(h.heroId) && !h.locked && !h.equipped);
+    const free = list.filter((h) => !selected.includes(h.heroId) && getHeroUsageStatus(h).canFuse);
     setSelected((prev) => {
       if (free.length === 0 || prev.length >= required) {
         // nothing free -> remove the last selected copy
@@ -220,8 +225,9 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
           {groups.map((list) => {
             const head = list[0];
             const selectedCount = list.filter((h) => selected.includes(h.heroId)).length;
-            const available = list.filter((h) => !selected.includes(h.heroId) && !h.locked && !h.equipped).length;
-            const blocked = list.every((h) => h.locked || h.equipped) || !tiers[head.rarity];
+            const available = list.filter((h) => !selected.includes(h.heroId) && getHeroUsageStatus(h).canFuse).length;
+            const blocked = list.every((h) => !getHeroUsageStatus(h).canFuse) || !tiers[head.rarity];
+            const lockLabel = heroLockLabel(getHeroUsageStatus(list[0]).reason)?.replace('🔒 ', '');
             return (
               <FusionHeroCard
                 key={head.heroKey}
@@ -230,6 +236,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
                 selectedCount={selectedCount}
                 available={available}
                 blocked={blocked}
+                lockLabel={lockLabel}
                 onToggle={() => toggleGroup(list)}
               />
             );

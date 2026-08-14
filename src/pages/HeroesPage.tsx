@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Lock, RefreshCw, Sparkles, X } from 'lucide-react';
 import { useHeroFusion, useHeroMining, usePlayerHeroes, usePvpDashboard, useRarityFusion } from '../hooks';
-import { starRow } from '../heroFusion';
+import { starRow, getHeroUsageStatus, heroLockLabel } from '../heroFusion';
 import { HeroFusionPanel } from '../components/HeroFusionPanel';
 import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
@@ -141,7 +141,17 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                         <span className="absolute bottom-1 left-1 rounded-md bg-black/75 px-1.5 py-0.5 text-[7px] font-black tracking-[.1em] text-cyan-200">#{String(hero.nftSerial ?? 0).padStart(3, '0')}</span>
                       </>
                     ) : null}
-                    {state?.locked && !hero.isNft ? <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-md bg-black/70 text-amber-300"><Lock size={11} /></span> : null}
+                    {(() => {
+                      if (hero.isNft) return null;
+                      const usage = state ? getHeroUsageStatus(state) : null;
+                      const label = heroLockLabel(usage?.reason);
+                      if (!usage || usage.canFuse || !label) return null;
+                      return (
+                        <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/80 px-1 py-0.5 text-[7px] font-black uppercase tracking-[.06em] text-amber-300">
+                          <Lock size={9} />{label.replace('🔒 ', '')}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="p-2 text-left">
                     <b className="block truncate text-[9px]">{hero.name}</b>

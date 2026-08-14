@@ -50,6 +50,8 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
     q.invalidateQueries({ queryKey: ['game-state', initData] }),
     q.invalidateQueries({ queryKey: ['player-inventory'] }),
     q.invalidateQueries({ queryKey: ['player-heroes'] }),
+    q.invalidateQueries({ queryKey: ['hero-fusion'] }),
+    q.invalidateQueries({ queryKey: ['rarity-fusion'] }),
   ]);
 
   const equip = useMutation({
