@@ -255,7 +255,7 @@ export function createPetCms(d: PetCmsDeps) {
       'Se uma forma ficar vazia, o jogo usa a forma anterior automaticamente.'].join('\n');
     return send(ctx, text, kb([
       ...STAGES.map(([key, label]) => [{ t: `🖼 ${label}`, d: `pw:pstg:${key}` }]),
-      [{ t: '✏️ EDITAR PET', d: `pw:p:sel` }],
+      [{ t: '📚 LISTA DE PETS', d: 'pw:list:0' }],
       nav('pw:hub'),
     ]));
   }
