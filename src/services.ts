@@ -773,3 +773,15 @@ export const startExpedition = (initData: string, missionId: string, petIds: str
   expeditionCall<{ ok: boolean; expeditionId: string; teamPower: number; successChance: number; finishesAt: string }>(initData, { action: 'start', missionId, petIds });
 export const claimExpedition = (initData: string, expeditionId: string) =>
   expeditionCall<{ ok: boolean; success: boolean; rewards: import('./breeding').ExpeditionReward[] }>(initData, { action: 'claim', expeditionId });
+
+/**
+ * Extra attempts are ALWAYS scoped to one mission and one game day: 5 via rewarded ads
+ * and 5 via FC, counted separately per mission (never a global expedition limit).
+ */
+export const beginExpeditionAd = (initData: string, missionId: string) =>
+  expeditionCall<{ viewId: string; blockId: string | null; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'ad-begin', missionId });
+export const claimExpeditionAd = (initData: string, viewId: string) =>
+  expeditionCall<{ granted: boolean; reason?: string; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'ad-claim', viewId });
+export const buyExpeditionExtra = (initData: string, missionId: string, idempotencyKey: string) =>
+  expeditionCall<{ ok: boolean; duplicate?: boolean; spentFc?: number; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'buy-extra', missionId, idempotencyKey });
+
