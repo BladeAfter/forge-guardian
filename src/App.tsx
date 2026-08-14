@@ -28,8 +28,8 @@ import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
 import {CommunityPoolPage}from'./pages/CommunityPoolPage';
-import {SpendingEventPopup}from'./components/SpendingEventPopup';
 import {StarterPackPopup}from'./components/StarterPackPopup';
+import {GiveawayPopup}from'./components/GiveawayPopup';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
@@ -96,7 +96,6 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
 
 
 /** In-memory only: resets on every real app launch (Mini App reopen). */
-let spendingPopupAutoOpened=false;
 
 function App() {
   const [tab, setTab] = useState<TabKey>(tabFromPath);
@@ -190,36 +189,30 @@ function App() {
   const openChest=(id:string)=>{if(openingChestRef.current||calendarChestMutation.isPending)return;openingChestRef.current=true;calendarChestMutation.mutate(id)};
 
   /**
-   * SPENDING EVENT entry highlight.
-   * Fetched only AFTER the boot finished and only while the Village is quiet (no
-   * internal page, no reward/chest/shop/settings modal open). The request is
-   * failure-tolerant by design: any error resolves as "don't show" and the game
-   * keeps running exactly as before. It never gates rendering.
+   * SPENDING EVENT: the automatic entry popup was REMOVED on purpose. The event,
+   * its ranking, points and rewards stay untouched inside the EVENTS tab.
+   * The single automatic popup is now the MYTHREON GIVEAWAY campaign below.
    */
-  const [spendingPopupDismissed,setSpendingPopupDismissed]=useState(false);
-  const [spendingPopupOpen,setSpendingPopupOpen]=useState(false);
   const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
   const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
-  const {data:spendingPopupData}=useQuery({
-    queryKey:['spending-event-popup',telegramInitData],
-    enabled:backendEnabled&&homeQuiet&&!spendingPopupDismissed,
-    queryFn:()=>spendingEventPopupRequest(telegramInitData??''),
+
+  /**
+   * MYTHREON GIVEAWAY popup. The backend decides visibility once per
+   * (player, campaign_id), so it never reappears after a dismiss/join, on page
+   * changes, refreshes or on another device. It never grants rewards.
+   */
+  const [giveawayClosed,setGiveawayClosed]=useState(false);
+  const {data:giveawayCampaign}=useQuery({
+    queryKey:['campaign-popup',telegramInitData],
+    enabled:backendEnabled&&homeQuiet&&!giveawayClosed,
+    queryFn:()=>campaignPopupRequest(telegramInitData??''),
     staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
   });
-  /**
-   * Auto-open exactly once per app launch (in-memory flag only, never persisted):
-   * closing the Mini App and reopening it shows the highlight again while the event is active.
-   */
+  const showGiveaway=Boolean(homeQuiet&&!giveawayClosed&&giveawayCampaign?.show);
   useEffect(()=>{
-    if(spendingPopupAutoOpened)return;
-    if(!homeQuiet||spendingPopupDismissed)return;
-    if(!spendingPopupData?.show)return;
-    spendingPopupAutoOpened=true;
-    setSpendingPopupOpen(true);
-  },[homeQuiet,spendingPopupDismissed,spendingPopupData]);
-  const spendingPopup=spendingPopupOpen&&homeQuiet&&!spendingPopupDismissed&&spendingPopupData?.show?spendingPopupData:null;
-  /** Closing only affects the current launch: nothing is stored client- or server-side. */
-  const dismissSpendingPopup=()=>{setSpendingPopupOpen(false);setSpendingPopupDismissed(true)};
+    if(!showGiveaway||!giveawayCampaign?.campaignId)return;
+    void markCampaignPopup(telegramInitData??'',giveawayCampaign.campaignId,'shown');
+  },[showGiveaway,giveawayCampaign?.campaignId,telegramInitData]);
 
   /**
    * Starter Pack: the backend decides who is eligible (accounts created on/after
@@ -864,10 +857,16 @@ function App() {
         }}
         onDone={()=>setStarterPackClosed(true)}
       />:null}
-      {spendingPopup?<SpendingEventPopup
-        data={spendingPopup}
-        onClose={dismissSpendingPopup}
-        onView={()=>{dismissSpendingPopup();setPoolInitialTab('spending');openInternal('pool')}}
+      {showGiveaway?<GiveawayPopup
+        onClose={()=>{setGiveawayClosed(true);void markCampaignPopup(telegramInitData??'',giveawayCampaign?.campaignId??'','dismiss')}}
+        onJoin={()=>{
+          const url=giveawayCampaign?.groupUrl??'https://t.me/+sy4Y6cd7cuIyNmEx';
+          setGiveawayClosed(true);
+          void markCampaignPopup(telegramInitData??'',giveawayCampaign?.campaignId??'','join');
+          const webApp=window.Telegram?.WebApp;
+          if(webApp?.openTelegramLink)webApp.openTelegramLink(url);
+          else window.open(url,'_blank','noopener,noreferrer');
+        }}
       />:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
