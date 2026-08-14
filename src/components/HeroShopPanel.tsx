@@ -311,9 +311,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         {tab === 'recruit' ? (
           <div className="mt-3 grid grid-cols-3 gap-1.5 px-4">
             {([
-              ['recruit', 'RECRUIT'],
-              ['nft', '💎 NFT'],
-              ['buy-nft', '🛒 BUY NFT'],
+              ['recruit', t('shop.tabRecruit')],
+              ['nft', t('shop.tabNft')],
+              ['buy-nft', t('shop.tabBuyNft')],
             ] as const).map(([key, label]) => (
               <button
                 key={key}
@@ -831,7 +831,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                             <div className="mt-1.5 space-y-0.5 rounded-lg border border-white/10 bg-black/40 p-2 text-[9px]">
                               <div className="flex items-center justify-between"><span className="text-slate-400">{t(sellKind === 'hero' ? 'market.heroes' : sellKind === 'pet' ? 'market.pets' : 'market.itemLabel')}</span><strong className="text-white">{selectedOption.name}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">{t('heroes.rarityLabel')}</span><strong style={{ color: rarityColor(selectedOption.rarity) }}>{String(selectedOption.rarity).replace(/_/g, ' ').toUpperCase()}</strong></div>
-                              <div className="flex items-center justify-between"><span className="text-slate-400">LEVEL</span><strong className="text-white">{selectedOption.level}</strong></div>
+                              <div className="flex items-center justify-between"><span className="text-slate-400">{t('shop.level')}</span><strong className="text-white">{selectedOption.level}</strong></div>
                               <div className="flex items-center justify-between"><span className="text-slate-400">{selectedOption.detail}</span><strong className={isTonSale ? 'text-sky-300' : 'text-amber-300'}>{amountLabel(split.price)} {priceUnit}</strong></div>
                             </div>
                           ) : null}

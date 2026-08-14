@@ -639,7 +639,7 @@ function App() {
   // Bottom nav: MARKET took over the old MISSIONS slot (Missions now lives on the Village home).
   const navItems = [
     { key: 'village', label: lang.tabs.village },
-    { key: 'market', label: 'MARKET' },
+    { key: 'market', label: t('nav.market') },
     { key: 'boss', label: lang.tabs.boss },
     { key: 'wallet', label: lang.tabs.wallet },
     { key: 'profile', label: lang.tabs.profile }

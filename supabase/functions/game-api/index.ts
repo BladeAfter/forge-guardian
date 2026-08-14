@@ -1386,7 +1386,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   /** Persists the player's manual interface language (pt, en, es, ru). */
   language: async (db, user, body) => {
     const language = String(body.language || '').toLowerCase();
-    if (!['pt', 'en', 'es', 'ru'].includes(language)) throw new Error('INVALID_LANGUAGE');
+    if (!['pt', 'en', 'es', 'ru', 'tr'].includes(language)) throw new Error('INVALID_LANGUAGE');
     const result = await rpc(db, 'set_player_language', { p_telegram_id: user.id, p_language: language });
     console.log('[LANGUAGE]', { telegramId: user.id, language });
     return result;
