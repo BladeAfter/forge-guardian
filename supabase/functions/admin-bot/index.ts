@@ -2971,7 +2971,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
   const rates = arr<any>(d.rates).map((r) => `• <b>${esc(String(r.rarity).toUpperCase())}</b> ${hmTon(r.tonPerDay)} TON/dia`).join('\n') || 'sem taxas';
   const claims = arr<any>(d.claims).slice(0, 8).map((c) => `• ${String(c.createdAt).slice(0, 16).replace('T', ' ')} · ${hmTon(c.amountTon)} TON · ${esc(String(c.name ?? '—'))} <code>${c.telegramId}</code>`).join('\n') || 'sem coletas';
   const text = `⛏ <b>MINERAÇÃO DE TON POR HERÓIS</b>\n`
-    + `Estado: <b>${d.enabled ? '🟢 ATIVA' : '⏸ PAUSADA'}</b> · resgate mínimo ${hmTon(d.minClaimTon)} TON\n\n`
+    + `Estado: <b>${d.enabled ? '🟢 MINERAÇÃO ATIVA' : '🔴 MINERAÇÃO PAUSADA'}</b> · resgate mínimo ${hmTon(d.minClaimTon)} TON\n\n`
     + `<b>TAXAS</b>\n${rates}\n\n`
     + `Heróis minerando: <b>${fmt(d.eligibleHeroes)}</b> · pausados (mercado): ${fmt(d.pausedHeroes)}\n`
     + `Produção da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n`
