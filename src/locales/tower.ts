@@ -3,6 +3,8 @@ import type { LocaleBundle } from './registry';
 /** tower namespace translations (Tower of Eternity panel + battle arena). */
 export const tower: LocaleBundle = {
   en: {
+    'tower.floorCleared': 'Floor {floor} cleared',
+    'tower.floorFailed': 'Floor {floor} not cleared',
     'tower.equipFailed': 'Failed to equip hero',
     'tower.unequipFailed': 'Failed to remove hero',
     'tower.enterFailed': 'Could not enter the dungeon',
@@ -79,6 +81,8 @@ export const tower: LocaleBundle = {
     'tower.gearRing': 'Ring',
   },
   pt: {
+    'tower.floorCleared': 'Andar {floor} concluído',
+    'tower.floorFailed': 'Andar {floor} não superado',
     'tower.equipFailed': 'Falha ao equipar herói',
     'tower.unequipFailed': 'Falha ao remover herói',
     'tower.enterFailed': 'Não foi possível entrar na masmorra',
@@ -155,6 +159,8 @@ export const tower: LocaleBundle = {
     'tower.gearRing': 'Anel',
   },
   es: {
+    'tower.floorCleared': 'Piso {floor} completado',
+    'tower.floorFailed': 'Piso {floor} no superado',
     'tower.equipFailed': 'Error al equipar héroe',
     'tower.unequipFailed': 'Error al quitar héroe',
     'tower.enterFailed': 'No se pudo entrar en la mazmorra',
@@ -231,6 +237,8 @@ export const tower: LocaleBundle = {
     'tower.gearRing': 'Anillo',
   },
   ru: {
+    'tower.floorCleared': 'Этаж {floor} пройден',
+    'tower.floorFailed': 'Этаж {floor} не пройден',
     'tower.equipFailed': 'Не удалось экипировать героя',
     'tower.unequipFailed': 'Не удалось снять героя',
     'tower.enterFailed': 'Не удалось войти в подземелье',
@@ -307,6 +315,8 @@ export const tower: LocaleBundle = {
     'tower.gearRing': 'Кольцо',
   },
   tr: {
+    'tower.floorCleared': '{floor}. kat tamamlandı',
+    'tower.floorFailed': '{floor}. kat geçilemedi',
     'tower.equipFailed': 'Kahraman ekipmanı başarısız oldu',
     'tower.unequipFailed': 'Kahraman çıkarma başarısız oldu',
     'tower.enterFailed': 'Zindana girilemedi',

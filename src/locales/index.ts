@@ -18,9 +18,10 @@ import { spending } from './spending';
 import { clanBoss } from './clanBoss';
 import { partners } from './partners';
 import { tower } from './tower';
+import { nftx } from './nftx';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx];
 
 
 function merge(language: LanguageCode): Dict {
