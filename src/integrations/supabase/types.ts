@@ -11269,6 +11269,7 @@ export type Database = {
         }[]
       }
       hero_summon_rates: { Args: never; Returns: Json }
+      hero_usage_status: { Args: { p_hero_id: string }; Returns: Json }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
       join_clan: {
         Args: { p_clan_id: string; p_telegram_id: number }
