@@ -3019,6 +3019,10 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
       const [rarity, raw] = text.trim().split(/\s+/);
       const value = Number(String(raw ?? '').replace(',', '.'));
       if (!rarity || !Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>raridade ton_por_dia</code>. Ex.: <code>mythic 0.5</code>');
+      // Common/Uncommon are permanently out of hero mining (server-side gate).
+      if (['common', 'uncommon'].includes(rarity.toLowerCase())) {
+        throw new Error('KEEP_SESSION::🚫 COMMON e UNCOMMON não mineram TON. Apenas RARE, EPIC, LEGENDARY, MYTHIC e ANCESTRAL.');
+      }
       await rpc('admin_hero_mining_set_rate', { p_admin_id: ctx.adminId, p_rarity: rarity.toLowerCase(), p_ton_per_day: value });
       await clearSession(ctx);
       await send(ctx, `⛏ Taxa de <b>${esc(rarity.toUpperCase())}</b> definida em <b>${hmTon(value)} TON/dia</b>.`);
