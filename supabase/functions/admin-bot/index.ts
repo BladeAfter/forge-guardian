@@ -2971,7 +2971,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
   const rates = arr<any>(d.rates).map((r) => `• <b>${esc(String(r.rarity).toUpperCase())}</b> ${hmTon(r.tonPerDay)} TON/dia`).join('\n') || 'sem taxas';
   const claims = arr<any>(d.claims).slice(0, 8).map((c) => `• ${String(c.createdAt).slice(0, 16).replace('T', ' ')} · ${hmTon(c.amountTon)} TON · ${esc(String(c.name ?? '—'))} <code>${c.telegramId}</code>`).join('\n') || 'sem coletas';
   const text = `⛏ <b>MINERAÇÃO DE TON POR HERÓIS</b>\n`
-    + `Estado: <b>${d.enabled ? '🟢 ATIVA' : '⏸ PAUSADA'}</b> · resgate mínimo ${hmTon(d.minClaimTon)} TON\n\n`
+    + `Estado: <b>${d.enabled ? '🟢 MINERAÇÃO ATIVA' : '🔴 MINERAÇÃO PAUSADA'}</b> · resgate mínimo ${hmTon(d.minClaimTon)} TON\n\n`
     + `<b>TAXAS</b>\n${rates}\n\n`
     + `Heróis minerando: <b>${fmt(d.eligibleHeroes)}</b> · pausados (mercado): ${fmt(d.pausedHeroes)}\n`
     + `Produção da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n`
@@ -3010,9 +3010,18 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
   switch (sub) {
     case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
     case 'toggle': {
-      await rpc('admin_hero_mining_toggle', { p_admin_id: ctx.adminId, p_enabled: a === '1' });
-      return hmHub(ctx);
+      const next = a === '1';
+      try {
+        await rpc('admin_hero_mining_toggle', { p_admin_id: ctx.adminId, p_enabled: next });
+      } catch (err) {
+        console.error('[admin-bot] hero_mining_toggle failed', err);
+        await send(ctx, '⚠️ Não foi possível alterar o status da mineração.');
+        return hmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next ? '✅ Mineração de heróis ativada.\n🟢 <b>MINERAÇÃO ATIVA</b>' : '✅ Mineração de heróis pausada.\n🔴 <b>MINERAÇÃO PAUSADA</b>');
+      return hmHub({ ...ctx, messageId: undefined }, false);
     }
+
     default: return hmHub(ctx);
   }
 }
