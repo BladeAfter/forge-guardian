@@ -784,7 +784,7 @@ function App() {
           return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
         }).filter((hero): hero is ShopHero => Boolean(hero)));
 
-        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }), queryClient.invalidateQueries({ queryKey: ['market-sellable'] })]);
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }), queryClient.invalidateQueries({ queryKey: ['market-sellable'] }), queryClient.invalidateQueries({ queryKey: ['hero-fusion'] }), queryClient.invalidateQueries({ queryKey: ['rarity-fusion'] })]);
       } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
       return;
     }
