@@ -302,7 +302,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         {tab === 'recruit' ? (
           <div className="mt-3 grid grid-cols-3 gap-1.5 px-4">
             {([
-              ['recruit', t('market.tabMarket') === '' ? 'RECRUIT' : 'RECRUIT'],
+              ['recruit', 'RECRUIT'],
               ['nft', '💎 NFT'],
               ['buy-nft', '🛒 BUY NFT'],
             ] as const).map(([key, label]) => (
