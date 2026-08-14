@@ -260,7 +260,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
       {/* NFT EXCLUSIVE lives in its own main section (header selector), never here. */}
 
-      <nav className="mt-3 flex gap-1 overflow-x-auto pb-1">
+      <nav className="mt-3 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
         {(Object.keys(TAB_KEYS) as Tab[]).map((key) => (
           <button
             key={key}
