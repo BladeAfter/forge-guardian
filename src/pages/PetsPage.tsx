@@ -15,6 +15,7 @@ import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
 import BreedingSection from '../components/BreedingSection';
 import ExpeditionsSection from '../components/ExpeditionsSection';
+import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { useT, useLanguage } from '../LanguageContext';
 
 
@@ -60,6 +61,9 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const [tab, setTab] = useState<Tab>('pets');
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string; pet?: PlayerPet } | null>(null);
   const [feedTarget, setFeedTarget] = useState<PlayerPet | null>(null);
+  // Level/XP recycling lives inside the pet details sheet — never as an extra tab.
+  const [detailsTarget, setDetailsTarget] = useState<PlayerPet | null>(null);
+  const [xpTarget, setXpTarget] = useState<PlayerPet | null>(null);
   const [evolution, setEvolution] = useState<PetEvolveResult | null>(null);
   const [eggTarget, setEggTarget] = useState<PetEgg | null>(null);
   const [foodTarget, setFoodTarget] = useState<PetFood | null>(null);
@@ -175,6 +179,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   }
 
   const active = data.activePet;
+  const liveDetails = detailsTarget ? data.playerPets.find((pet) => pet.id === detailsTarget.id) ?? null : null;
   const liveFeedTarget = feedTarget ? data.playerPets.find((pet) => pet.id === feedTarget.id) ?? null : null;
 
   if (section === 'nft') {
@@ -259,6 +264,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
                 pet={pet}
                 onFeed={() => setFeedTarget(pet)}
                 onActivate={pet.isActive ? undefined : () => mutation.mutate({ action: 'activate', playerPetId: pet.id })}
+                onDetails={() => setDetailsTarget(pet)}
                 pending={pending}
               />
             ))}
@@ -443,6 +449,19 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           </div>
         )}
       </main>
+
+      {liveDetails && (
+        <PetDetailsModal
+          pet={liveDetails}
+          onClose={() => setDetailsTarget(null)}
+          onFeed={() => { setFeedTarget(liveDetails); setDetailsTarget(null); }}
+          onResetTransfer={() => { setXpTarget(liveDetails); setDetailsTarget(null); }}
+        />
+      )}
+
+      {xpTarget && (
+        <PetXpTransferModal pet={xpTarget} telegramInitData={telegramInitData} onClose={() => setXpTarget(null)} />
+      )}
 
       {liveFeedTarget && (
         <FeedModal
@@ -866,7 +885,7 @@ function NftPetTag({ serial, className = '' }: { serial?: string | number | null
   );
 }
 
-function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; pending: boolean }) {
+function PetCard({ pet, onFeed, onActivate, onDetails, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; onDetails?: () => void; pending: boolean }) {
   const t = useT();
   const isNft = isNftExclusivePet(pet);
   const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
@@ -894,12 +913,12 @@ function PetCard({ pet, onFeed, onActivate, pending }: { pet: PlayerPet; onFeed:
       </div>
 
 
-      <div className="relative z-10 mt-1 grid h-[124px] place-items-center">
+      <button type="button" onClick={onDetails} className="relative z-10 mt-1 grid h-[124px] w-full place-items-center">
         <img src={pet.image} alt={pet.name} className="h-[118px] w-full object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]" />
-      </div>
+      </button>
 
       <div className="relative z-10">
-        <h3 className="truncate text-base font-black uppercase tracking-wide">{pet.name}</h3>
+        <button type="button" onClick={onDetails} className="block w-full truncate text-base font-black uppercase tracking-wide">{pet.name}</button>
         <p className="mt-1 text-[9px] font-bold text-slate-300">{t('pets.cardLevelPower', { level: pet.level, max: pet.maxLevel, power: fmt(pet.power) })}</p>
         <p className="text-[8px] text-slate-500">{petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}</p>
       </div>
