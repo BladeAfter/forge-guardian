@@ -4454,6 +4454,58 @@ async function nftStockCallback(ctx: Ctx, rest: string[]) {
   return nftStockHub(ctx);
 }
 
+// ---------------------------------------------------------------- ⚔️ NFT EXCLUSIVE equipment (1/1)
+// Supply 1/1: uma unidade vendida nunca volta para AVAILABLE.
+async function nftEquipHub(ctx: Ctx, slot: string | null = null, useEdit = true) {
+  const d = await rpc('admin_nft_equipment_overview', { p_admin_id: ctx.adminId, p_slot: slot }) as any;
+  const items = (d.items ?? []) as any[];
+  const available = items.filter((x) => x.status === 'AVAILABLE');
+  const sold = items.filter((x) => x.status !== 'AVAILABLE');
+  const line = (x: any) => `• ${esc(x.name)} ${nftSerial(x.serial)} · ${esc(String(x.slot).toUpperCase())}${x.heroClass ? `/${esc(String(x.heroClass).toUpperCase())}` : ''} · ${x.priceTon} TON\n  ⚔️ ${fmt(x.atk)} · 🛡 ${fmt(x.def)} · ❤️ ${fmt(x.hp)}${x.ownerName ? `\n  👤 ${esc(x.ownerName)} (<code>${x.ownerTelegramId}</code>)` : ''}`;
+  const text = [
+    `⚔️ <b>NFT EXCLUSIVE EQUIPMENT</b>${slot ? ` — ${slot.toUpperCase()}` : ''}`,
+    `Unidades ${fmt(items.length)} · 🟢 estoque ${fmt(available.length)} · 👤 vendidos ${fmt(sold.length)}`,
+    '',
+    `<b>🟢 EM ESTOQUE</b>\n${available.slice(0, 12).map(line).join('\n') || 'nenhuma unidade disponível'}`,
+    '',
+    `<b>👤 VENDIDOS</b>\n${sold.slice(0, 10).map(line).join('\n') || 'nenhuma venda ainda'}`,
+    '',
+    'Supply 1/1: cada peça pertence permanentemente ao comprador e nunca retorna à loja.',
+  ].join('\n').slice(0, 3800);
+  const rows = [
+    [{ t: '➕ CRIAR NFT', d: 'neq:ask:neqnew' }],
+    [{ t: '⚔ WEAPONS', d: 'neq:slot:weapon' }, { t: '🛡 ARMORS', d: 'neq:slot:armor' }, { t: '💍 RINGS', d: 'neq:slot:ring' }],
+    [{ t: '🔄 TODOS', d: 'neq:hub' }],
+    nav('m:heroes'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftEquipCallback(ctx: Ctx, rest: string[]) {
+  const [sub, arg] = rest;
+  if (sub === 'slot') return nftEquipHub(ctx, arg);
+  return nftEquipHub(ctx, null);
+}
+
+async function nftEquipPrompt(ctx: Ctx, key: string, _args: string[], text: string) {
+  if (key === 'neqnew') {
+    const parts = text.split('|').map((p) => p.trim());
+    if (parts.length < 6) throw new Error('KEEP_SESSION::⚠️ Formato: <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>');
+    const [slot, name, cls, atk, def, hp, price, image] = parts;
+    const r = await rpc('admin_nft_equipment_create', {
+      p_admin_id: ctx.adminId, p_slot: slot, p_name: name,
+      p_hero_class: cls && cls !== '-' ? cls : null, p_image: image || null,
+      p_atk: Number(atk || 0), p_def: Number(def || 0), p_hp: Number(hp || 0),
+      p_price_ton: Number(price || 15),
+    }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>NFT criado</b>\n${esc(r.name)} ${nftSerial(r.serial)} · ${esc(String(r.slot).toUpperCase())}${r.heroClass ? `/${esc(String(r.heroClass).toUpperCase())}` : ''} · ${r.priceTon} TON`);
+    return nftEquipHub({ ...ctx, messageId: undefined }, null, false);
+  }
+  return nftEquipHub({ ...ctx, messageId: undefined }, null, false);
+}
+
+
 
 async function nftTemplateMenu(ctx: Ctx) {
   const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
