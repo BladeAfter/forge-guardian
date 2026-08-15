@@ -4692,6 +4692,31 @@ async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: strin
 
 // 🛡 HERO PROGRESSION — Lv. 1 → 20, XP curve, per-activity XP and per-hero daily cap.
 // Everything is stored in game_settings.hero_progression: no deploy needed to tune it.
+// ⚖️ GAME BALANCE — read-only audit of the official rarity scales.
+// Hero combat stats and pet power both come from single server-side sources;
+// this hub only reports them so nobody tunes balance blindly.
+async function gameBalanceHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_game_balance_overview', { p_admin_id: ctx.adminId }) as any;
+  const heroes = (d?.heroRarities ?? []) as any[];
+  const pets = (d?.petRarities ?? []) as any[];
+  const text = [
+    '⚖️ <b>GAME BALANCE</b>',
+    '',
+    '<b>HERÓIS — ESCALA POR RARIDADE</b>',
+    heroes.map((r) => `• <b>${esc(r.rarity)}</b> — boss ATK ${r.bossAtk} · boss HP ${fmt(r.bossHp)}\n   instâncias ${fmt(r.instances)} · ATK ${fmt(r.minAtk)}–${fmt(r.maxAtk)} (méd. ${fmt(r.avgAtk)}) · HP méd. ${fmt(r.avgHp)}`).join('\n'),
+    '',
+    '<b>PETS — POWER BASE POR RARIDADE</b>',
+    pets.map((r) => `• <b>${esc(r.rarity)}</b> — base ${fmt(r.basePower)} · instâncias ${fmt(r.instances)}`).join('\n'),
+    '',
+    `<b>Fórmula do Power do pet:</b> <code>${esc(d?.petFormula ?? '')}</code>`,
+    `<b>Fórmula dos stats do herói:</b> <code>${esc(d?.heroFormula ?? '')}</code>`,
+    '',
+    'ℹ️ Somente leitura. As escalas são centralizadas no servidor e usadas por Coleção, PvP, Boss, Clã e Expedições.',
+  ].join('\n').slice(0, 3800);
+  const rows = [[{ t: '🔄 ATUALIZAR', d: 'gbal:hub' }], nav('m:heroes')];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
 async function heroProgressionHub(ctx: Ctx, useEdit = true) {
   const d = await rpc('admin_hero_progression_overview', { p_admin_id: ctx.adminId }) as any;
   const acts = (d?.activities ?? {}) as Record<string, any>;
