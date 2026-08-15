@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
 import { openCalendarChest, petRequest, summonHeroWithFragments } from '../services';
 import { getInventoryItemVisual } from '../inventoryVisuals';
+import { ArsenalPanel } from './ArsenalPanel';
+
 import type { FragmentSummonResult, InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
 
@@ -68,6 +70,8 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   const [filter, setFilter] = useState<InventoryCategory | 'all'>('all');
   const [selected, setSelected] = useState<InventoryItem | null>(null);
   const [summoned, setSummoned] = useState<FragmentSummonResult | null>(null);
+  const [arsenalOpen, setArsenalOpen] = useState(false);
+
 
   const items = data?.items ?? [];
   const visible = useMemo(() => (filter === 'all' ? items : items.filter((i) => i.category === filter)), [items, filter]);
