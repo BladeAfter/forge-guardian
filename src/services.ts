@@ -866,3 +866,39 @@ export const claimExpeditionBoostAd = (initData: string, viewId: string) =>
 export const buyExpeditionExtra = (initData: string, missionId: string, idempotencyKey: string) =>
   expeditionCall<{ ok: boolean; duplicate?: boolean; spentFc?: number; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'buy-extra', missionId, idempotencyKey });
 
+
+/* ===================== TACTICAL ARENA (PVP 3V3) ===================== */
+export type TacticalAction=
+ |{action:'dashboard'}
+ |{action:'save-team';slot:number;heroId:string}
+ |{action:'remove-team';slot:number}
+ |{action:'save-deck';skillKeys:string[]}
+ |{action:'queue-join';practice?:boolean}
+ |{action:'queue-cancel'}
+ |{action:'queue-status'}
+ |{action:'match';matchId:string}
+ |{action:'action';matchId:string;skillKey:string;targetUid?:string|null;clientKey?:string}
+ |{action:'history';limit?:number}
+ |{action:'ranking';limit?:number};
+/**
+ * Single bridge to the tactical engine. Errors keep their backend code so
+ * `tError` can localize them (TACTICAL_*, SKILL_*, DUPLICATED_HERO_TEMPLATE...).
+ */
+export async function tacticalRequest<T>(telegramInitData:string,input:TacticalAction):Promise<T>{
+  const response=await forgeFetch('tactical',{initData:telegramInitData,...input});
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Arena Tática.');
+  const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+  if(!response.ok||!payload){const raw=(payload as {error?:string}|null)?.error||'';if(raw)console.error('[MYTHREON TACTICAL]',input.action,raw);throw new Error(raw||'TACTICAL_ERROR')}
+  return payload;
+}
+export const fetchTacticalDashboard=(initData:string)=>tacticalRequest<import('./tactical').TacticalDashboard>(initData,{action:'dashboard'});
+export const saveTacticalTeamSlot=(initData:string,slot:number,heroId:string)=>tacticalRequest<import('./tactical').TacticalDashboard>(initData,{action:'save-team',slot,heroId});
+export const removeTacticalTeamSlot=(initData:string,slot:number)=>tacticalRequest<import('./tactical').TacticalDashboard>(initData,{action:'remove-team',slot});
+export const saveTacticalDeck=(initData:string,skillKeys:string[])=>tacticalRequest<import('./tactical').TacticalDashboard>(initData,{action:'save-deck',skillKeys});
+export const joinTacticalQueue=(initData:string,practice=false)=>tacticalRequest<import('./tactical').TacticalQueueState>(initData,{action:'queue-join',practice});
+export const cancelTacticalQueue=(initData:string)=>tacticalRequest<import('./tactical').TacticalQueueState>(initData,{action:'queue-cancel'});
+export const pollTacticalQueue=(initData:string)=>tacticalRequest<import('./tactical').TacticalQueueState>(initData,{action:'queue-status'});
+export const fetchTacticalMatch=(initData:string,matchId:string)=>tacticalRequest<import('./tactical').TacticalMatch>(initData,{action:'match',matchId});
+export const submitTacticalAction=(initData:string,matchId:string,skillKey:string,targetUid?:string|null,clientKey?:string)=>tacticalRequest<import('./tactical').TacticalMatch>(initData,{action:'action',matchId,skillKey,targetUid,clientKey});
+export const fetchTacticalHistory=(initData:string,limit=20)=>tacticalRequest<import('./tactical').TacticalHistoryEntry[]>(initData,{action:'history',limit});
+export const fetchTacticalRanking=(initData:string,limit=50)=>tacticalRequest<import('./tactical').TacticalRanking>(initData,{action:'ranking',limit});
