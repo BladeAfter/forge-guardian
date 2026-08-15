@@ -76,7 +76,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
               type="button"
               disabled={busy || isLoading}
               onClick={() => { setError(null); setOpen(slot.key); }}
-              className="rounded-xl border bg-black/50 p-2 text-center transition active:scale-[.98] disabled:opacity-60"
+              className={`rounded-xl border bg-black/50 p-2 text-center transition active:scale-[.98] disabled:opacity-60 ${item?.isNft ? 'nft-hero-card' : ''}`}
               style={{ borderColor: item ? accent : 'rgba(252,211,77,.28)' }}
             >
               <p className="text-[8px] font-black uppercase tracking-[.14em] text-slate-300">
@@ -84,14 +84,14 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
               </p>
               <div className="mt-2 grid aspect-square w-full place-items-center overflow-hidden rounded-lg border border-white/10 bg-black/60">
                 {isLoading ? <Loader2 size={14} className="animate-spin text-amber-300" />
-                  : item?.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                  : item?.image ? <img src={item.image} alt={item.name} className={`h-full w-full object-cover ${item.isNft ? 'drop-shadow-[0_0_10px_rgba(251,191,36,.55)]' : ''}`} />
                   : <span className="text-[16px] opacity-40">{slot.glyph}</span>}
               </div>
               {item ? (
                 <>
-                  <p className="mt-1 truncate text-[8px] font-black uppercase text-white">{item.name}</p>
+                  <p className={`mt-1 truncate text-[8px] font-black uppercase ${item.isNft ? 'nft-hero-name' : 'text-white'}`}>{item.name}</p>
                   <p className="text-[7px] font-black uppercase tracking-[.1em]" style={{ color: accent }}>
-                    {item.rarity ? t(`rarity.${item.rarity}`) : ''} · {t('common.levelShort')} {item.level}
+                    {item.isNft ? '💎 NFT EXCLUSIVE' : `${item.rarity ? t(`rarity.${item.rarity}`) : ''} · ${t('common.levelShort')} ${item.level}`}
                   </p>
                   <p className="text-[7px] font-black text-emerald-300">{equipmentBonusLabel(item)}</p>
                 </>
@@ -101,6 +101,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
             </button>
           );
         })}
+
       </div>
 
       {data ? (
