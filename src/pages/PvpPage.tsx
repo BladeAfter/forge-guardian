@@ -134,7 +134,7 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
      if(hard||pending)return;
      if(inSlot){onRemove();return}
      if(dupe){toast.error(t('pvp.sel.block.DUPLICATE'));return}
-     if(otherSlotHero){toast.info(t('pvp.sel.alreadyInSlot',{name:h.name,slot:Number(otherSlotHero.slot)}));return}
+     if(otherSlotHero){toast(t('pvp.sel.alreadyInSlot',{name:h.name,slot:Number(otherSlotHero.slot)}));return}
      onEquip(h.heroId);
     };
     return <div key={h.heroId} className={`relative overflow-hidden rounded-xl border bg-black/70 ${hard?'opacity-40':''} ${h.isNft?'nft-hero-card':''}`} style={{borderColor:inSlot?'#fbbf24':(h.isNft?undefined:color[h.rarity])}}>
