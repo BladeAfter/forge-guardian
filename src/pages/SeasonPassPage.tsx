@@ -56,7 +56,8 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
     <div className="border-l border-amber-300/15 text-center"><b className="block text-[10px] font-black uppercase leading-tight tracking-[.1em] text-violet-300">{t('pass.legendaryPassLine1')}<br/>{t('pass.legendaryPassLine2')}</b><span className="mx-auto mt-1 block h-px w-10 bg-violet-300/50"/></div>
    </div>
    <div className="divide-y divide-white/5">
-    {Array.from({length:30},(_,i)=>{const level=i+1;const reached=data.player.level>=level;return<div key={level} className={`grid grid-cols-[68px_1fr_1fr] items-stretch gap-1 px-2 py-2 ${reached?'bg-amber-400/[.04]':''}`}>
+     {/* Track length always follows the server (V2 pass = 50 levels), never a hardcoded number. */}
+     {Array.from({length:Math.max(data.season.levels||0,...data.rewards.map(r=>r.level))},(_,i)=>{const level=i+1;const reached=data.player.level>=level;return<div key={level} className={`grid grid-cols-[68px_1fr_1fr] items-stretch gap-1 px-2 py-2 ${reached?'bg-amber-400/[.04]':''}`}>
      <div className="grid place-items-center text-center"><span className={`grid h-9 w-9 place-items-center rounded-full border text-[11px] font-black ${reached?'border-amber-300/70 bg-amber-400/15 text-amber-200':'border-white/10 bg-black/40 text-slate-500'}`}>{level}</span></div>
      {(['adventurer','legendary'] as PassTier[]).map(tier=><Reward key={tier} reward={data.rewards.find(x=>x.level===level&&x.tier===tier)} pending={claim.isPending} onClaim={id=>claim.mutate(id)}/>)}
     </div>})}
