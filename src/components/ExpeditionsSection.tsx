@@ -1,10 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
-import { beginExpeditionAd, buyExpeditionExtra, claimExpedition, claimExpeditionAd, fetchExpeditionState, startExpedition } from '../services';
+import { Loader2, PlayCircle } from 'lucide-react';
+import { beginExpeditionAd, beginExpeditionBoostAd, buyExpeditionExtra, claimExpedition, claimExpeditionAd, claimExpeditionBoostAd, fetchExpeditionState, startExpedition } from '../services';
 import { showAd } from '../adsgram';
 import { useT } from '../LanguageContext';
-import { countdown, expeditionChance, type ExpeditionAttempts, type ExpeditionMission, type ExpeditionPet, type ExpeditionReward } from '../breeding';
+import { countdown, expeditionChance, type ActiveExpedition, type ExpeditionAttempts, type ExpeditionMission, type ExpeditionPet, type ExpeditionReward } from '../breeding';
 
 const RARITY_STYLE: Record<string, string> = {
   COMMON: 'border-slate-400/30 text-slate-200',
@@ -126,8 +126,10 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
               >
                 {claim.isPending ? t('expeditions.claiming') : t('expeditions.claimRewards')}
               </button>
+              {!row.ready ? <AdBoostCard initData={initData} expedition={row} onChanged={refresh} /> : null}
             </div>
           ))}
+
         </section>
       ) : null}
 
@@ -343,6 +345,75 @@ function ExtraAttemptModal({ mission, initData, onClose, onChanged }: {
           {t('expeditions.extra.cancel')}
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * AD BOOST — accelerates ONE active expedition with the rewarded-ad system that already
+ * exists in the game (AdsGram). Each validated ad cuts 20% of the CURRENT remaining time,
+ * up to 5 ads per expedition; the counter lives on the expedition row, so a new expedition
+ * always starts at 0/5. Nothing else about the mission (team, chance, rewards) is touched.
+ */
+function AdBoostCard({ initData, expedition, onChanged }: { initData: string; expedition: ActiveExpedition; onChanged: () => void }) {
+  const t = useT();
+  const busy = useRef(false);
+  const [phase, setPhase] = useState<'idle' | 'ad-loading' | 'ad-watching'>('idle');
+  const [message, setMessage] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+
+  const max = expedition.maxAdBoosts ?? 5;
+  const used = Math.min(max, expedition.adBoostsUsed ?? 0);
+  const maxed = used >= max;
+  const working = phase !== 'idle';
+
+  const watch = async () => {
+    if (busy.current || maxed) return;
+    busy.current = true; setMessage(null); setPhase('ad-loading');
+    try {
+      const begin = await beginExpeditionBoostAd(initData, expedition.id);
+      setPhase('ad-watching');
+      const outcome = await showAd(begin.blockId || '');
+      if (outcome !== 'completed') {
+        setMessage({ tone: 'bad', text: outcome === 'no-ads' ? t('expeditions.extra.noAds') : t('expeditions.boost.failed') });
+        return;
+      }
+      const result = await claimExpeditionBoostAd(initData, begin.viewId);
+      if (!result.granted) { setMessage({ tone: 'bad', text: t('expeditions.boost.failed') }); return; }
+      setMessage({ tone: 'ok', text: t('expeditions.boost.success') });
+      onChanged();
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : '';
+      setMessage({
+        tone: 'bad',
+        text: raw.includes('BOOST_LIMIT') ? t('expeditions.boost.limit', { max }) : t('expeditions.boost.failed'),
+      });
+    } finally { busy.current = false; setPhase('idle'); }
+  };
+
+  return (
+    <div className="mt-2 rounded-2xl border border-sky-400/25 bg-gradient-to-br from-sky-950/50 to-black/60 p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[.2em] text-sky-200">
+          <PlayCircle className="h-3.5 w-3.5" /> {t('expeditions.boost.title')}
+        </p>
+        <span className={`rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-[.14em] ${maxed ? 'border-white/15 bg-white/5 text-slate-400' : 'border-sky-300/40 bg-sky-500/10 text-sky-200'}`}>
+          {t('expeditions.boost.used', { used, max })}
+        </span>
+      </div>
+      <p className="mt-1 text-[9px] leading-snug text-slate-400">{t('expeditions.boost.desc')}</p>
+      <button
+        type="button"
+        onClick={watch}
+        disabled={maxed || working}
+        className={`mt-2 w-full rounded-xl py-2 text-[10px] font-black uppercase tracking-[.14em] disabled:opacity-60 ${maxed ? 'bg-white/5 text-slate-500' : 'bg-gradient-to-b from-sky-300 to-sky-600 text-black'}`}
+      >
+        {phase === 'ad-loading' ? t('expeditions.boost.loading')
+          : phase === 'ad-watching' ? t('expeditions.boost.processing')
+          : maxed ? t('expeditions.boost.maxShort', { max })
+          : `${t('expeditions.boost.watchAd')} • ${t('expeditions.boost.reduce')}`}
+      </button>
+      {maxed ? <p className="mt-1 text-center text-[9px] font-black uppercase tracking-[.14em] text-rose-300">{t('expeditions.boost.maxReached')}</p> : null}
+      {message ? <p className={`mt-1 text-center text-[9px] font-bold ${message.tone === 'ok' ? 'text-emerald-300' : 'text-rose-300'}`}>{message.text}</p> : null}
     </div>
   );
 }

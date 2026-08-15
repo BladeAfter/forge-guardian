@@ -1588,7 +1588,17 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (key.length < 8) throw new Error('INVALID_REQUEST_KEY');
       return rpc(db, 'expedition_extra_buy_fc', { p_telegram_id: user.id, p_mission_id: body.missionId, p_idempotency_key: key });
     }
+    // AD BOOST: rewarded ad that cuts 20% of the ACTIVE expedition remaining time (max 5 per expedition).
+    if (action === 'boost-ad-begin') {
+      if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
+      return rpc(db, 'expedition_boost_ad_begin', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
+    }
+    if (action === 'boost-ad-claim') {
+      if (!isUuid(body.viewId)) throw new Error('EXPEDITION_AD_VIEW_NOT_FOUND');
+      return rpc(db, 'expedition_boost_ad_claim', { p_telegram_id: user.id, p_view_id: body.viewId });
+    }
     if (action === 'claim') {
+
       if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
       return rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
     }

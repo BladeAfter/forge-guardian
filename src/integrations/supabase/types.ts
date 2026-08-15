@@ -2041,6 +2041,44 @@ export type Database = {
           },
         ]
       }
+      expedition_boost_ad_views: {
+        Row: {
+          created_at: string
+          expedition_id: string
+          granted_at: string | null
+          id: string
+          seconds_saved: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expedition_id: string
+          granted_at?: string | null
+          id?: string
+          seconds_saved?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expedition_id?: string
+          granted_at?: string | null
+          id?: string
+          seconds_saved?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedition_boost_ad_views_expedition_id_fkey"
+            columns: ["expedition_id"]
+            isOneToOne: false
+            referencedRelation: "pet_expeditions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expedition_extra_grants: {
         Row: {
           cost_fc: number
@@ -5418,6 +5456,7 @@ export type Database = {
       }
       pet_expeditions: {
         Row: {
+          ad_boosts_used: number
           claimed_at: string | null
           created_at: string
           finishes_at: string
@@ -5433,6 +5472,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ad_boosts_used?: number
           claimed_at?: string | null
           created_at?: string
           finishes_at: string
@@ -5448,6 +5488,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ad_boosts_used?: number
           claimed_at?: string | null
           created_at?: string
           finishes_at?: string
@@ -11555,6 +11596,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      expedition_boost_ad_begin: {
+        Args: { p_expedition_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      expedition_boost_ad_claim: {
+        Args: { p_telegram_id: number; p_view_id: string }
+        Returns: Json
+      }
+      expedition_boost_limit: { Args: never; Returns: number }
       expedition_claim: {
         Args: { p_expedition_id: string; p_telegram_id: number }
         Returns: Json

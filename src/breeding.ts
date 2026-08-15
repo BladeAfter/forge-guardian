@@ -151,6 +151,9 @@ export type ActiveExpedition = {
   teamPower: number;
   successChance: number;
   ready: boolean;
+  /** AD BOOST counters: rewarded ads already used on this expedition and the cap. */
+  adBoostsUsed?: number;
+  maxAdBoosts?: number;
   pets: { name: string; image: string | null }[] | null;
 };
 
