@@ -144,6 +144,15 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
     } catch {
       payload = null;
     }
+    // Hero XP is granted by the backend only. Any payload carrying a `heroXp` award is
+    // broadcast once here so the UI can show the "+XP / LEVEL UP" feedback and refresh
+    // the collection, without every feature having to wire it individually.
+    if (ok && payload && typeof payload === 'object' && (payload as { heroXp?: unknown }).heroXp) {
+      try {
+        window.dispatchEvent(new CustomEvent('mythreon:hero-xp', { detail: (payload as { heroXp: unknown }).heroXp }));
+      } catch { /* feedback must never break a request */ }
+    }
+
     if (!ok) {
       console.error('[FORGE API ERROR]', {
         feature,
