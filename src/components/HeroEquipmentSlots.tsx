@@ -29,7 +29,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
   const [open, setOpen] = useState<SlotKey | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery<HeroEquipmentState>({
+  const { data, isLoading, error: loadError } = useQuery<HeroEquipmentState>({
     queryKey: ['hero-equipment', heroId],
     queryFn: async () => {
       const state = await fetchHeroEquipment(telegramInitData, heroId);
