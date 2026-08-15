@@ -4212,6 +4212,7 @@ export type Database = {
           created_at: string
           created_by_admin: number | null
           for_sale: boolean
+          generation: number
           hero_template_id: string
           id: string
           level: number
@@ -4223,6 +4224,7 @@ export type Database = {
           player_hero_id: string | null
           price_ton: number | null
           revoked_at: string | null
+          rotation_retired_at: string | null
           stars: number
           status: string
           tier_ton: number | null
@@ -4235,6 +4237,7 @@ export type Database = {
           created_at?: string
           created_by_admin?: number | null
           for_sale?: boolean
+          generation?: number
           hero_template_id: string
           id?: string
           level?: number
@@ -4246,6 +4249,7 @@ export type Database = {
           player_hero_id?: string | null
           price_ton?: number | null
           revoked_at?: string | null
+          rotation_retired_at?: string | null
           stars?: number
           status?: string
           tier_ton?: number | null
@@ -4258,6 +4262,7 @@ export type Database = {
           created_at?: string
           created_by_admin?: number | null
           for_sale?: boolean
+          generation?: number
           hero_template_id?: string
           id?: string
           level?: number
@@ -4269,6 +4274,7 @@ export type Database = {
           player_hero_id?: string | null
           price_ton?: number | null
           revoked_at?: string | null
+          rotation_retired_at?: string | null
           stars?: number
           status?: string
           tier_ton?: number | null
@@ -4422,6 +4428,7 @@ export type Database = {
           created_by_admin: number | null
           element: string | null
           for_sale: boolean
+          generation: number
           id: string
           metadata: Json
           minted: boolean
@@ -4432,6 +4439,7 @@ export type Database = {
           player_pet_id: string | null
           price_ton: number | null
           revoked_at: string | null
+          rotation_retired_at: string | null
           status: string
           tier_ton: number | null
           token_id: string | null
@@ -4450,6 +4458,7 @@ export type Database = {
           created_by_admin?: number | null
           element?: string | null
           for_sale?: boolean
+          generation?: number
           id?: string
           metadata?: Json
           minted?: boolean
@@ -4460,6 +4469,7 @@ export type Database = {
           player_pet_id?: string | null
           price_ton?: number | null
           revoked_at?: string | null
+          rotation_retired_at?: string | null
           status?: string
           tier_ton?: number | null
           token_id?: string | null
@@ -4478,6 +4488,7 @@ export type Database = {
           created_by_admin?: number | null
           element?: string | null
           for_sale?: boolean
+          generation?: number
           id?: string
           metadata?: Json
           minted?: boolean
@@ -4488,6 +4499,7 @@ export type Database = {
           player_pet_id?: string | null
           price_ton?: number | null
           revoked_at?: string | null
+          rotation_retired_at?: string | null
           status?: string
           tier_ton?: number | null
           token_id?: string | null
@@ -4623,6 +4635,72 @@ export type Database = {
           lifetime_paid_ton?: number
           reserved_ton?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      nft_rotation_targets: {
+        Row: {
+          active_slots: number
+          daily_yield_ton: number | null
+          kind: string
+          tier_ton: number
+          updated_at: string
+        }
+        Insert: {
+          active_slots: number
+          daily_yield_ton?: number | null
+          kind: string
+          tier_ton: number
+          updated_at?: string
+        }
+        Update: {
+          active_slots?: number
+          daily_yield_ton?: number | null
+          kind?: string
+          tier_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nft_stock_pool: {
+        Row: {
+          asset_key: string
+          created_at: string
+          display_name: string
+          element: string | null
+          id: string
+          kind: string
+          name_norm: string
+          released_at: string | null
+          released_nft_id: string | null
+          template_ref: string
+          tier_ton: number
+        }
+        Insert: {
+          asset_key: string
+          created_at?: string
+          display_name: string
+          element?: string | null
+          id?: string
+          kind: string
+          name_norm: string
+          released_at?: string | null
+          released_nft_id?: string | null
+          template_ref: string
+          tier_ton: number
+        }
+        Update: {
+          asset_key?: string
+          created_at?: string
+          display_name?: string
+          element?: string | null
+          id?: string
+          kind?: string
+          name_norm?: string
+          released_at?: string | null
+          released_nft_id?: string | null
+          template_ref?: string
+          tier_ton?: number
         }
         Relationships: []
       }
@@ -10163,6 +10241,11 @@ export type Database = {
         Args: { p_admin_id: number; p_query: string }
         Returns: Json
       }
+      admin_nft_stock_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_stock_refill: {
+        Args: { p_admin_id: number; p_kind: string }
+        Returns: Json
+      }
       admin_partners: {
         Args: {
           p_action?: string
@@ -12130,7 +12213,13 @@ export type Database = {
       nft_pool_settle_payment: { Args: { p_amount: number }; Returns: number }
       nft_pool_sync_positions: { Args: never; Returns: number }
       nft_reconcile_orders: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_refill_stock: {
+        Args: { p_admin_id?: number; p_kind: string }
+        Returns: Json
+      }
+      nft_rotation_after_sale: { Args: { p_kind: string }; Returns: undefined }
       nft_shop_json: { Args: { p_telegram_id: number }; Returns: Json }
+      nft_stock_json: { Args: { p_kind?: string }; Returns: Json }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
