@@ -3349,6 +3349,53 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_xp_events: {
+        Row: {
+          activity_type: string
+          created_at: string
+          daily_period: string
+          id: string
+          level_after: number
+          level_before: number
+          player_hero_id: string
+          reference_id: string
+          user_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          daily_period?: string
+          id?: string
+          level_after?: number
+          level_before?: number
+          player_hero_id: string
+          reference_id: string
+          user_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          daily_period?: string
+          id?: string
+          level_after?: number
+          level_before?: number
+          player_hero_id?: string
+          reference_id?: string
+          user_id?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hero_xp_events_player_hero_id_fkey"
+            columns: ["player_hero_id"]
+            isOneToOne: false
+            referencedRelation: "player_heroes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_item_ownership_history: {
         Row: {
           created_at: string
@@ -5665,6 +5712,7 @@ export type Database = {
           claimed_at: string | null
           created_at: string
           finishes_at: string
+          hero_ids: string[]
           id: string
           mission_id: string
           pet_ids: string[]
@@ -5681,6 +5729,7 @@ export type Database = {
           claimed_at?: string | null
           created_at?: string
           finishes_at: string
+          hero_ids?: string[]
           id?: string
           mission_id: string
           pet_ids: string[]
@@ -5697,6 +5746,7 @@ export type Database = {
           claimed_at?: string | null
           created_at?: string
           finishes_at?: string
+          hero_ids?: string[]
           id?: string
           mission_id?: string
           pet_ids?: string[]
@@ -6371,6 +6421,7 @@ export type Database = {
           tradable: boolean
           updated_at: string
           user_id: string
+          xp: number
         }
         Insert: {
           archetype: string
@@ -6416,6 +6467,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id: string
+          xp?: number
         }
         Update: {
           archetype?: string
@@ -6461,6 +6513,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id?: string
+          xp?: number
         }
         Relationships: [
           {
@@ -7970,6 +8023,7 @@ export type Database = {
           event_key: string
           icon: string | null
           reward_fc: number
+          reward_hero_xp: boolean
           reward_item_code: string | null
           reward_item_quantity: number
           reward_item_type: string | null
@@ -7985,6 +8039,7 @@ export type Database = {
           event_key: string
           icon?: string | null
           reward_fc?: number
+          reward_hero_xp?: boolean
           reward_item_code?: string | null
           reward_item_quantity?: number
           reward_item_type?: string | null
@@ -8000,6 +8055,7 @@ export type Database = {
           event_key?: string
           icon?: string | null
           reward_fc?: number
+          reward_hero_xp?: boolean
           reward_item_code?: string | null
           reward_item_quantity?: number
           reward_item_type?: string | null
@@ -10450,6 +10506,19 @@ export type Database = {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json
       }
+      admin_hero_progression_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_hero_progression_set: {
+        Args: {
+          p_admin_id: number
+          p_field: string
+          p_target: string
+          p_value: number
+        }
+        Returns: Json
+      }
       admin_hero_rarity_flags: { Args: { p_admin_id: number }; Returns: Json }
       admin_hero_shop_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_list_audit: {
@@ -12313,6 +12382,15 @@ export type Database = {
         Args: { p_amount?: number; p_source: string; p_user_id: string }
         Returns: undefined
       }
+      grant_hero_xp: {
+        Args: {
+          p_activity: string
+          p_hero_ids?: string[]
+          p_reference_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       grant_referral_milestones: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -12334,6 +12412,10 @@ export type Database = {
           p_telegram_id: number
         }
         Returns: Json
+      }
+      hero_activity_team_ids: {
+        Args: { p_activity: string; p_user_id: string }
+        Returns: string[]
       }
       hero_effective_summon_odds: { Args: never; Returns: Json }
       hero_equipment_json: {
@@ -12391,6 +12473,8 @@ export type Database = {
           speed_bonus: number
         }[]
       }
+      hero_progression_config: { Args: never; Returns: Json }
+      hero_progression_json: { Args: { p_user_id: string }; Returns: Json }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
       hero_recalc_equipment: { Args: { p_hero: string }; Returns: undefined }
@@ -12411,6 +12495,11 @@ export type Database = {
       }
       hero_summon_rates: { Args: never; Returns: Json }
       hero_usage_status: { Args: { p_hero_id: string }; Returns: Json }
+      hero_xp_last_award: {
+        Args: { p_activity?: string; p_user_id: string }
+        Returns: Json
+      }
+      hero_xp_to_next: { Args: { p_level: number }; Returns: number }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
       join_clan: {
         Args: { p_clan_id: string; p_telegram_id: number }
