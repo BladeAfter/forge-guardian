@@ -699,6 +699,54 @@ export async function verifyNftHeroPurchases(telegramInitData:string):Promise<Nf
   return {checked:payload.checked??0,completed:payload.completed??[],alreadyDelivered:payload.alreadyDelivered??[],pending:payload.pending??[],results:payload.results??[]};
 }
 
+/**
+ * MYTHREON ARSENAL — the player's full equipment collection (normal + NFT 1/1)
+ * and the primary store for NFT EXCLUSIVE EQUIPMENT. Every rule (supply 1/1,
+ * weapon class, ownership, payment) is enforced server-side.
+ */
+export type ArsenalItem={instanceId:string;code:string;name:string;slot:'weapon'|'armor'|'ring';kind:string|null;rarity:string|null;image:string|null;level:number;power:number;heroClass:string|null;bonusAttack:number;bonusDefense:number;bonusHp:number;listed:boolean;tradable:boolean;isNft:boolean;serial:number|null;instance:string|null;equippedHeroId:string|null;equippedHeroName:string|null};
+export type NftEquipShopItem={id:string;code:string;name:string;slot:'weapon'|'armor'|'ring';kind:string|null;rarity:string;image:string|null;power:number;serial:number;instance:string;supply:number;status:'AVAILABLE'|'SOLD_OUT';priceTon:number;heroClass:string|null;bonusAttack:number;bonusDefense:number;bonusHp:number;description:string|null;ownedByMe:boolean|null};
+export type NftEquipShop={totalSupply:number;sold:number;available:number;balanceTon:number;items:NftEquipShopItem[]};
+
+export async function fetchArsenal(telegramInitData:string):Promise<{items:ArsenalItem[]}>{
+  const response=await forgeFetch('arsenal',{initData:telegramInitData});
+  const payload=await response.json().catch(()=>null) as {items?:ArsenalItem[];error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload.items))throw new Error(nftError(payload?.error||'','Não foi possível carregar o arsenal.'));
+  return {items:payload.items};
+}
+
+export async function fetchNftEquipmentShop(telegramInitData:string):Promise<NftEquipShop>{
+  const response=await forgeFetch('nft-equip',{initData:telegramInitData,action:'shop'});
+  const payload=await response.json().catch(()=>null) as NftEquipShop&{error?:string}|null;
+  if(!response.ok||!payload||!Array.isArray(payload.items))throw new Error(nftError(payload?.error||'','Não foi possível carregar a loja de equipamentos NFT.'));
+  return payload;
+}
+
+/** Buys with the internal withdrawable TON balance (atomic; 1/1 supply guaranteed server-side). */
+export async function buyNftEquipmentWithBalance(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft-equip',{initData:telegramInitData,action:'buy-balance',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {status?:string;instanceId?:string;serial?:number;itemName?:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível concluir a compra.'));
+  return payload;
+}
+
+/** Creates the on-chain order for TON Connect (unique comment binds payment ↔ NFT equipment). */
+export async function createNftEquipmentTonOrder(telegramInitData:string,nftId:string,idempotencyKey:string){
+  const response=await forgeFetch('nft-equip',{initData:telegramInitData,action:'order',nftId,idempotencyKey});
+  const payload=await response.json().catch(()=>null) as {id:string;paymentAddress:string;amountNano:string;amountTon:number;paymentComment:string;expiresAt:string;error?:string}|null;
+  if(!response.ok||!payload)throw new Error(NFT_SHOP_ERRORS[payload?.error||'']??nftError(payload?.error||'','Não foi possível iniciar o pagamento.'));
+  return payload;
+}
+
+export async function verifyNftEquipmentPurchases(telegramInitData:string):Promise<NftPurchaseVerification>{
+  const response=await forgeFetch('nft-equip',{initData:telegramInitData,action:'verify-purchases'});
+  const payload=await response.json().catch(()=>null) as NftPurchaseVerification&{error?:string}|null;
+  if(!response.ok||!payload)throw new Error(nftError(payload?.error||'','Não foi possível verificar o pagamento.'));
+  return {checked:payload.checked??0,completed:payload.completed??[],alreadyDelivered:payload.alreadyDelivered??[],pending:payload.pending??[],results:payload.results??[]};
+}
+
+
+
 
 
 /**
