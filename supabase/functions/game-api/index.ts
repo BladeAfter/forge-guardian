@@ -987,6 +987,11 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
     const source = ['calendar', 'shop', 'pass', 'mission', 'event'].includes(String(body.source)) ? String(body.source) : 'calendar';
     return rpc(db, 'open_hero_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId, p_source: source });
   }
+  if (action === 'open-exclusive-chest') {
+    // Mythic exclusive chest: the pool roll and duplicate protection live in the RPC.
+    if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
+    return rpc(db, 'open_exclusive_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
+  }
   if (action === 'summon-hero') {
     // 5 fragments -> 1 random common/uncommon hero. Cost, odds, roll and the new
     // hero instance are all resolved atomically inside the RPC (idempotent).
