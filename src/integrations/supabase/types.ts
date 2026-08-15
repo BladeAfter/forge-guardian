@@ -10445,6 +10445,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_game_balance_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
       admin_game_day_state: { Args: { p_admin_id: number }; Returns: Json }
       admin_get_settings: {
         Args: { p_admin_id: number; p_category?: string }
@@ -12438,6 +12442,15 @@ export type Database = {
         Args: { p_activity: string; p_user_id: string }
         Returns: string[]
       }
+      hero_boss_stats: {
+        Args: { p_player_hero_id: string }
+        Returns: {
+          base_atk: number
+          base_hp: number
+          final_atk: number
+          max_hp: number
+        }[]
+      }
       hero_effective_summon_odds: { Args: never; Returns: Json }
       hero_equipment_json: {
         Args: { p_hero_id: string; p_telegram_id: number }
@@ -12497,6 +12510,8 @@ export type Database = {
       hero_progression_config: { Args: never; Returns: Json }
       hero_progression_json: { Args: { p_user_id: string }; Returns: Json }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
+      hero_rarity_mid_atk: { Args: { r: string }; Returns: number }
+      hero_rarity_mid_hp: { Args: { r: string }; Returns: number }
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
       hero_recalc_equipment: { Args: { p_hero: string }; Returns: undefined }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
@@ -12948,6 +12963,10 @@ export type Database = {
       pet_instance_power: { Args: { p_player_pet_id: string }; Returns: number }
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
+      pet_rarity_base_power: {
+        Args: { p_is_nft?: boolean; p_rarity: string }
+        Returns: number
+      }
       pet_rarity_multiplier: { Args: { v: string }; Returns: number }
       pet_rarity_order: { Args: { v: string }; Returns: number }
       pet_reset_transfer_xp: {
