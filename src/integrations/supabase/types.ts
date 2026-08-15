@@ -1885,6 +1885,7 @@ export type Database = {
           id: string
           image_url: string
           is_active: boolean
+          is_nft: boolean
           kind: string
           name: string
           power: number
@@ -1904,6 +1905,7 @@ export type Database = {
           id?: string
           image_url: string
           is_active?: boolean
+          is_nft?: boolean
           kind: string
           name: string
           power?: number
@@ -1923,6 +1925,7 @@ export type Database = {
           id?: string
           image_url?: string
           is_active?: boolean
+          is_nft?: boolean
           kind?: string
           name?: string
           power?: number
@@ -4127,6 +4130,151 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      nft_equipment: {
+        Row: {
+          assigned_at: string | null
+          created_at: string
+          created_by_admin: number | null
+          for_sale: boolean
+          id: string
+          metadata: Json
+          nft_serial: number
+          owner_user_id: string | null
+          player_equipment_id: string | null
+          price_ton: number
+          status: string
+          template_id: string
+          unique_instance_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          for_sale?: boolean
+          id?: string
+          metadata?: Json
+          nft_serial: number
+          owner_user_id?: string | null
+          player_equipment_id?: string | null
+          price_ton?: number
+          status?: string
+          template_id: string
+          unique_instance_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          for_sale?: boolean
+          id?: string
+          metadata?: Json
+          nft_serial?: number
+          owner_user_id?: string | null
+          player_equipment_id?: string | null
+          price_ton?: number
+          status?: string
+          template_id?: string
+          unique_instance_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_equipment_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_equipment_player_equipment_id_fkey"
+            columns: ["player_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "player_equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_equipment_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_equipment_orders: {
+        Row: {
+          amount_nano: string
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string
+          nft_equipment_id: string
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          nft_equipment_id: string
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          nft_equipment_id?: string
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_equipment_orders_nft_equipment_id_fkey"
+            columns: ["nft_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "nft_equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nft_equipment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nft_hero_history: {
         Row: {
@@ -10185,6 +10333,24 @@ export type Database = {
         Args: { p_admin_id: number; p_quantity?: number; p_slug: string }
         Returns: Json
       }
+      admin_nft_equipment_create: {
+        Args: {
+          p_admin_id: number
+          p_atk: number
+          p_def: number
+          p_hero_class: string
+          p_hp: number
+          p_image: string
+          p_name: string
+          p_price_ton: number
+          p_slot: string
+        }
+        Returns: Json
+      }
+      admin_nft_equipment_overview: {
+        Args: { p_admin_id: number; p_slot?: string }
+        Returns: Json
+      }
       admin_nft_give: {
         Args: {
           p_admin_id: number
@@ -11112,6 +11278,7 @@ export type Database = {
         Returns: undefined
       }
       anti_fake_max_accounts: { Args: never; Returns: number }
+      arsenal_json: { Args: { p_telegram_id: number }; Returns: Json }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
@@ -12204,6 +12371,42 @@ export type Database = {
           p_position: Database["public"]["Tables"]["nft_yield_positions"]["Row"]
         }
         Returns: number
+      }
+      nft_equipment_assign_unit: {
+        Args: { p_nft_id: string; p_source?: string; p_user_id: string }
+        Returns: Json
+      }
+      nft_equipment_buy_with_balance: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_equipment_confirm_purchase: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      nft_equipment_create_order: {
+        Args: {
+          p_idempotency_key: string
+          p_nft_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      nft_equipment_deliver_order: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
+      nft_equipment_reconcile_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      nft_equipment_shop_json: {
+        Args: { p_telegram_id: number }
+        Returns: Json
       }
       nft_hero_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }
