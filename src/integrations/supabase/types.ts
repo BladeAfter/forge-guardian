@@ -11678,6 +11678,29 @@ export type Database = {
       }
       admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_super_id: { Args: never; Returns: number }
+      admin_tactical_matches: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_tactical_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_tactical_ranking: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_tactical_reset: { Args: { p_admin_id: number }; Returns: Json }
+      admin_tactical_set: {
+        Args: { p_admin_id: number; p_key: string; p_value: Json }
+        Returns: Json
+      }
+      admin_tactical_skill_set: {
+        Args: {
+          p_admin_id: number
+          p_field: string
+          p_skill_key: string
+          p_value: number
+        }
+        Returns: Json
+      }
       admin_toggle_egg_pet: {
         Args: {
           p_admin_id: number
@@ -13669,9 +13692,17 @@ export type Database = {
       tactical_deck_json: { Args: { p_user: string }; Returns: Json }
       tactical_eff_atk: { Args: { u: Json }; Returns: number }
       tactical_eff_def: { Args: { u: Json }; Returns: number }
+      tactical_finish: {
+        Args: { p_match: string; p_winner_side: string }
+        Returns: undefined
+      }
       tactical_has_status: {
         Args: { p_type: string; u: Json }
         Returns: boolean
+      }
+      tactical_history: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
       }
       tactical_hit: {
         Args: { p_dmg: number; p_uid: string; p_units: Json }
@@ -13683,6 +13714,10 @@ export type Database = {
         Args: { p_match: string; p_user: string }
         Returns: Json
       }
+      tactical_match_tick: {
+        Args: { p_match_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       tactical_queue_cancel: { Args: { p_telegram_id: number }; Returns: Json }
       tactical_queue_join: {
         Args: { p_practice?: boolean; p_telegram_id: number }
@@ -13690,10 +13725,15 @@ export type Database = {
       }
       tactical_queue_status: { Args: { p_telegram_id: number }; Returns: Json }
       tactical_rand: { Args: { p_seed: string }; Returns: number }
+      tactical_ranking: {
+        Args: { p_limit?: number; p_telegram_id: number }
+        Returns: Json
+      }
       tactical_remove_team: {
         Args: { p_slot: number; p_telegram_id: number }
         Returns: Json
       }
+      tactical_resolve_turn: { Args: { p_match: string }; Returns: boolean }
       tactical_save_deck: {
         Args: { p_skill_keys: string[]; p_telegram_id: number }
         Returns: Json
@@ -13709,6 +13749,16 @@ export type Database = {
       tactical_status_sum: {
         Args: { p_types: string[]; u: Json }
         Returns: number
+      }
+      tactical_submit_action: {
+        Args: {
+          p_client_key?: string
+          p_match_id: string
+          p_skill_key: string
+          p_target_uid: string
+          p_telegram_id: number
+        }
+        Returns: Json
       }
       tactical_team_json: { Args: { p_user: string }; Returns: Json }
       tactical_user_id: { Args: { p_telegram_id: number }; Returns: string }
