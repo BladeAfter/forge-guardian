@@ -9507,6 +9507,322 @@ export type Database = {
           },
         ]
       }
+      tactical_actions: {
+        Row: {
+          auto: boolean
+          client_key: string | null
+          created_at: string
+          id: string
+          match_id: string
+          side: string
+          skill_key: string
+          target_uid: string | null
+          turn: number
+          user_id: string | null
+        }
+        Insert: {
+          auto?: boolean
+          client_key?: string | null
+          created_at?: string
+          id?: string
+          match_id: string
+          side: string
+          skill_key: string
+          target_uid?: string | null
+          turn: number
+          user_id?: string | null
+        }
+        Update: {
+          auto?: boolean
+          client_key?: string | null
+          created_at?: string
+          id?: string
+          match_id?: string
+          side?: string
+          skill_key?: string
+          target_uid?: string | null
+          turn?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tactical_actions_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "tactical_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tactical_battle_log: {
+        Row: {
+          created_at: string
+          entries: Json
+          id: number
+          match_id: string
+          turn: number
+        }
+        Insert: {
+          created_at?: string
+          entries?: Json
+          id?: number
+          match_id: string
+          turn: number
+        }
+        Update: {
+          created_at?: string
+          entries?: Json
+          id?: number
+          match_id?: string
+          turn?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tactical_battle_log_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "tactical_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tactical_decks: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          skill_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position: number
+          skill_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          skill_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tactical_matches: {
+        Row: {
+          a_seen_at: string
+          b_seen_at: string
+          created_at: string
+          damage_scale: number
+          finished_at: string | null
+          id: string
+          is_practice: boolean
+          player_a: string
+          player_b: string | null
+          rating_a: number | null
+          rating_a_delta: number | null
+          rating_b: number | null
+          rating_b_delta: number | null
+          seed: string
+          stagnant_turns: number
+          state: Json
+          status: string
+          turn: number
+          turn_started_at: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          a_seen_at?: string
+          b_seen_at?: string
+          created_at?: string
+          damage_scale?: number
+          finished_at?: string | null
+          id?: string
+          is_practice?: boolean
+          player_a: string
+          player_b?: string | null
+          rating_a?: number | null
+          rating_a_delta?: number | null
+          rating_b?: number | null
+          rating_b_delta?: number | null
+          seed: string
+          stagnant_turns?: number
+          state?: Json
+          status?: string
+          turn?: number
+          turn_started_at?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          a_seen_at?: string
+          b_seen_at?: string
+          created_at?: string
+          damage_scale?: number
+          finished_at?: string | null
+          id?: string
+          is_practice?: boolean
+          player_a?: string
+          player_b?: string | null
+          rating_a?: number | null
+          rating_a_delta?: number | null
+          rating_b?: number | null
+          rating_b_delta?: number | null
+          seed?: string
+          stagnant_turns?: number
+          state?: Json
+          status?: string
+          turn?: number
+          turn_started_at?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      tactical_queue: {
+        Row: {
+          enqueued_at: string
+          match_id: string | null
+          rating: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          enqueued_at?: string
+          match_id?: string | null
+          rating?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          enqueued_at?: string
+          match_id?: string | null
+          rating?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tactical_ratings: {
+        Row: {
+          best_rating: number
+          created_at: string
+          last_match_at: string | null
+          losses: number
+          matches: number
+          rating: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          best_rating?: number
+          created_at?: string
+          last_match_at?: string | null
+          losses?: number
+          matches?: number
+          rating?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          best_rating?: number
+          created_at?: string
+          last_match_at?: string | null
+          losses?: number
+          matches?: number
+          rating?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: []
+      }
+      tactical_skills: {
+        Row: {
+          cooldown: number
+          created_at: string
+          duration: number
+          effect_config: Json
+          enabled: boolean
+          hero_class: string
+          id: string
+          name_key: string
+          power_multiplier: number
+          skill_key: string
+          skill_type: string
+          sort_order: number
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          cooldown?: number
+          created_at?: string
+          duration?: number
+          effect_config?: Json
+          enabled?: boolean
+          hero_class: string
+          id?: string
+          name_key: string
+          power_multiplier?: number
+          skill_key: string
+          skill_type: string
+          sort_order?: number
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          cooldown?: number
+          created_at?: string
+          duration?: number
+          effect_config?: Json
+          enabled?: boolean
+          hero_class?: string
+          id?: string
+          name_key?: string
+          power_multiplier?: number
+          skill_key?: string
+          skill_type?: string
+          sort_order?: number
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tactical_teams: {
+        Row: {
+          created_at: string
+          id: string
+          player_hero_id: string
+          slot: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_hero_id: string
+          slot: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_hero_id?: string
+          slot?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ton_payment_logs: {
         Row: {
           blockchain_status: string | null
@@ -13344,6 +13660,10 @@ export type Database = {
         Returns: Json
       }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
+      tactical_config: { Args: never; Returns: Json }
+      tactical_is_admin: { Args: { p_telegram_id: number }; Returns: boolean }
+      tactical_league: { Args: { p_rating: number }; Returns: string }
+      tactical_rand: { Args: { p_seed: string }; Returns: number }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
         Returns: {
