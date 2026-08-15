@@ -3485,6 +3485,12 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nstk') { if (rest[0] !== 'ask') await clearSession(ctx); return nftStockCallback(ctx, rest); }
+  if (head === 'neq') {
+    if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] ?? 'Envie o valor.');
+    await clearSession(ctx);
+    return nftEquipCallback(ctx, rest);
+  }
+
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
