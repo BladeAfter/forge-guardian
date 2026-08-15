@@ -1128,6 +1128,51 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   pets: handlePets,
   pvp: handlePvp,
   /**
+   * TACTICAL ARENA (3v3, turn based). Completely separate from the Classic Arena:
+   * own team, deck, rating, leagues, queue and matches. The client only sends
+   * skill + target + matchId — damage, order, crit, cooldowns, timer, winner,
+   * rating and ticket consumption are all resolved inside the RPCs.
+   */
+  tactical: async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    const id = user.id;
+    if (action === 'dashboard') return rpc(db, 'tactical_dashboard', { p_telegram_id: id });
+    if (action === 'save-team') {
+      const slot = Number(body.slot);
+      if (!Number.isInteger(slot) || slot < 1 || slot > 3 || !isUuid(body.heroId)) throw new Error('INVALID_SLOT');
+      return rpc(db, 'tactical_save_team', { p_telegram_id: id, p_slot: slot, p_hero_id: body.heroId });
+    }
+    if (action === 'remove-team') {
+      const slot = Number(body.slot);
+      if (!Number.isInteger(slot) || slot < 1 || slot > 3) throw new Error('INVALID_SLOT');
+      return rpc(db, 'tactical_remove_team', { p_telegram_id: id, p_slot: slot });
+    }
+    if (action === 'save-deck') {
+      const keys = Array.isArray(body.skillKeys) ? body.skillKeys.map((k: unknown) => String(k).slice(0, 40)) : [];
+      return rpc(db, 'tactical_save_deck', { p_telegram_id: id, p_skill_keys: keys });
+    }
+    if (action === 'queue-join') return rpc(db, 'tactical_queue_join', { p_telegram_id: id, p_practice: body.practice === true });
+    if (action === 'queue-cancel') return rpc(db, 'tactical_queue_cancel', { p_telegram_id: id });
+    if (action === 'queue-status') return rpc(db, 'tactical_queue_status', { p_telegram_id: id });
+    if (action === 'match') {
+      if (!isUuid(body.matchId)) throw new Error('TACTICAL_MATCH_NOT_FOUND');
+      return rpc(db, 'tactical_match_tick', { p_telegram_id: id, p_match_id: body.matchId });
+    }
+    if (action === 'action') {
+      if (!isUuid(body.matchId)) throw new Error('TACTICAL_MATCH_NOT_FOUND');
+      return rpc(db, 'tactical_submit_action', {
+        p_telegram_id: id,
+        p_match_id: body.matchId,
+        p_skill_key: String(body.skillKey || 'basic_attack').slice(0, 40),
+        p_target_uid: body.targetUid ? String(body.targetUid).slice(0, 8) : null,
+        p_client_key: body.clientKey ? String(body.clientKey).slice(0, 80) : null,
+      });
+    }
+    if (action === 'history') return rpc(db, 'tactical_history', { p_telegram_id: id, p_limit: Number(body.limit) || 20 });
+    if (action === 'ranking') return rpc(db, 'tactical_ranking', { p_telegram_id: id, p_limit: Number(body.limit) || 50 });
+    throw new Error('INVALID_ACTION');
+  },
+  /**
    * Tower of Eternity (solo dungeon, 100 floors). Fully isolated from the Global Boss
    * and from the Clan Boss: progress, attempts, FC cost, boss scaling, the turn-based
    * simulation and the rewards all live inside the RPCs.
