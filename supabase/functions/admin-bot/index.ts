@@ -2126,7 +2126,9 @@ const PROMPTS: Record<string, string> = {
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
-  nprcset: '💰 Envie o <b>novo valor em TON</b>.\nPreço: ex. <code>50</code>. Rendimento diário: ex. <code>1.25</code>.',
+  nprcset: '💰 Envie o <b>novo valor em TON</b>.\nPreço: ex. <code>50</code>. Rendimento diário: ex. <code>1.25</code>.\n\n⚠️ <b>Rendimento vale SOMENTE para NFTs novos</b> — unidades já adquiridas mantêm o rendimento congelado.',
+  nprcforce: '☢️ <b>AÇÃO PERIGOSA — APLICAR EM NFTS EXISTENTES</b>\nIsto altera o rendimento de unidades JÁ VENDIDAS.\n\nEnvie <code>valor|motivo|CONFIRMAR</code>\nEx.: <code>0.5|correcao de erro de mint|CONFIRMAR</code>',
+
   neqnew: '⚔️ Envie <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>.\nSlot: <code>weapon</code>, <code>armor</code> ou <code>ring</code>. Classe é obrigatória para armas (<code>warrior/archer/tank/mage</code>), use <code>-</code> nos demais.\nEx.: <code>weapon|Nightfall Edge|assassin|330|40|200|18|/assets/game/equipment/nft/nightfall.png</code>',
   nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
 
