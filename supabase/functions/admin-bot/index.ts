@@ -2125,6 +2125,7 @@ const PROMPTS: Record<string, string> = {
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
+  nprcset: '💰 Envie o <b>novo valor em TON</b>.\nPreço: ex. <code>50</code>. Rendimento diário: ex. <code>1.25</code>.',
   neqnew: '⚔️ Envie <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>.\nSlot: <code>weapon</code>, <code>armor</code> ou <code>ring</code>. Classe é obrigatória para armas (<code>warrior/archer/tank/mage</code>), use <code>-</code> nos demais.\nEx.: <code>weapon|Nightfall Edge|assassin|330|40|200|18|/assets/game/equipment/nft/nightfall.png</code>',
   nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
 
@@ -3487,6 +3488,11 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nstk') { if (rest[0] !== 'ask') await clearSession(ctx); return nftStockCallback(ctx, rest); }
+  if (head === 'nprc') {
+    if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
+    await clearSession(ctx);
+    return nftPriceHub(ctx);
+  }
   if (head === 'neq') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] ?? 'Envie o valor.');
     await clearSession(ctx);
@@ -4484,6 +4490,7 @@ async function nftEquipHub(ctx: Ctx, slot: string | null = null, useEdit = true)
     [{ t: '➕ CRIAR NFT', d: 'neq:ask:neqnew' }],
     [{ t: '⚔ WEAPONS', d: 'neq:slot:weapon' }, { t: '🛡 ARMORS', d: 'neq:slot:armor' }, { t: '💍 RINGS', d: 'neq:slot:ring' }],
     [{ t: '🔄 TODOS', d: 'neq:hub' }],
+    [{ t: '💰 PREÇOS & RENDIMENTOS', d: 'nprc:hub' }],
     nav('m:heroes'),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -4512,6 +4519,86 @@ async function nftEquipPrompt(ctx: Ctx, key: string, _args: string[], text: stri
   }
   return nftEquipHub({ ...ctx, messageId: undefined }, null, false);
 }
+
+// ------------------------------------------------- 💰 NFT PREÇOS & RENDIMENTOS (sem deploy)
+// Um único painel para: preço/rendimento dos Heróis NFT, preço/rendimento dos Pets NFT
+// e preço dos Equipamentos NFT. Só afeta unidades AINDA DISPONÍVEIS (1/1 vendido nunca muda de preço).
+const NPRC_TARGETS: Record<string, string> = {
+  hero_price: '💰 Preço Herói NFT',
+  hero_yield: '⛏ Rendimento Herói NFT',
+  pet_price: '💰 Preço Pet NFT',
+  pet_yield: '💧 Rendimento Pet NFT',
+  equip_price: '⚔️ Preço Equipamento NFT',
+};
+
+async function nftPriceHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_pricing_overview', { p_admin_id: ctx.adminId }) as any;
+  const heroes = (d.heroes ?? []) as any[];
+  const pets = (d.pets ?? []) as any[];
+  const equips = (d.equipment ?? []) as any[];
+  const py = d.petYield ?? {};
+  const range = (a: any, b: any, unit: string) =>
+    Number(a ?? 0) === Number(b ?? 0) ? `${Number(a ?? 0)} ${unit}` : `${Number(a ?? 0)}–${Number(b ?? 0)} ${unit}`;
+
+  const text = [
+    '💰 <b>NFT — PREÇOS & RENDIMENTOS</b>',
+    '<i>Alterações valem imediatamente, sem publicar o app.</i>',
+    '',
+    '<b>⚔️ HERÓIS NFT</b>',
+    heroes.map((h) => `• Tier ${Number(h.tier)} TON · 🟢 ${fmt(h.available)} · 👤 ${fmt(h.sold)}\n  preço ${range(h.priceMin, h.priceMax, 'TON')} · mineração ${range(h.yieldMin, h.yieldMax, 'TON/dia')}`).join('\n') || 'nenhum herói NFT',
+    '',
+    '<b>🐾 PETS NFT</b>',
+    pets.map((p) => `• Tier ${Number(p.tier)} TON · 🟢 ${fmt(p.available)} · 👤 ${fmt(p.sold)}\n  preço ${range(p.priceMin, p.priceMax, 'TON')}`).join('\n') || 'nenhum pet NFT',
+    `  rendimento tier 20 = ${Number(py.tier20 ?? 0)} TON/dia · tier 30 = ${Number(py.tier30 ?? 0)} TON/dia`,
+    '',
+    '<b>🛡 EQUIPAMENTOS NFT</b>',
+    equips.map((e) => `• ${esc(String(e.slot).toUpperCase())} · 🟢 ${fmt(e.available)} · 👤 ${fmt(e.sold)} · preço ${range(e.priceMin, e.priceMax, 'TON')}`).join('\n') || 'nenhum equipamento NFT',
+    '',
+    'Preço só muda nas unidades em estoque. Rendimento de herói vale para todas as unidades do tier.',
+  ].join('\n').slice(0, 3800);
+
+  const rows: { t: string; d: string }[][] = [];
+  for (const h of heroes) {
+    const tier = Number(h.tier);
+    rows.push([
+      { t: `💰 HERÓI ${tier}T`, d: `nprc:ask:nprcset|hero_price|${tier}` },
+      { t: `⛏ MINER. ${tier}T`, d: `nprc:ask:nprcset|hero_yield|${tier}` },
+    ]);
+  }
+  for (const p of pets) {
+    const tier = Number(p.tier);
+    const row = [{ t: `💰 PET ${tier}T`, d: `nprc:ask:nprcset|pet_price|${tier}` }];
+    if (tier === 20 || tier === 30) row.push({ t: `💧 REND. ${tier}T`, d: `nprc:ask:nprcset|pet_yield|${tier}` });
+    rows.push(row);
+  }
+  rows.push([
+    { t: '⚔ ARMAS', d: 'nprc:ask:nprcset|equip_price|weapon' },
+    { t: '🛡 ARMADURAS', d: 'nprc:ask:nprcset|equip_price|armor' },
+    { t: '💍 ANÉIS', d: 'nprc:ask:nprcset|equip_price|ring' },
+  ]);
+  rows.push([{ t: '🔄 ATUALIZAR', d: 'nprc:hub' }]);
+  rows.push(nav('m:heroes'));
+
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  if (key === 'nprcset') {
+    const [target, filter] = args;
+    if (!target || !NPRC_TARGETS[target]) throw new Error('KEEP_SESSION::⚠️ Alvo inválido. Volte ao painel e escolha novamente.');
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido (ex.: <code>50</code> ou <code>1.25</code>).');
+    const r = await rpc('admin_nft_pricing_set', {
+      p_admin_id: ctx.adminId, p_target: target, p_key: filter || 'all', p_value: value,
+    }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>${NPRC_TARGETS[target]}</b> atualizado\nFiltro: <code>${esc(filter || 'all')}</code> · novo valor: <b>${value}</b>\nUnidades afetadas: ${fmt(r?.affected ?? 0)}`);
+    return nftPriceHub({ ...ctx, messageId: undefined }, false);
+  }
+  return nftPriceHub({ ...ctx, messageId: undefined }, false);
+}
+
+
 
 
 
@@ -4767,6 +4854,7 @@ async function nfthHub(ctx: Ctx, useEdit = true) {
     [{ t: '⚙️ EDITOR DE POWER', d: 'nfth:bal' }, { t: '📊 ESTATÍSTICAS', d: 'nfth:stats' }],
     [{ t: '↩️ REVOGAR', d: 'nfth:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nfth:hist' }],
     [{ t: '📦 NFT STOCK', d: 'nstk:hub' }, { t: '⚔️ NFT EQUIPMENT', d: 'neq:hub' }],
+    [{ t: '💰 PREÇOS & RENDIMENTOS', d: 'nprc:hub' }],
     nav('m:heroes'),
 
   ];
@@ -4958,6 +5046,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
+  if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
 
