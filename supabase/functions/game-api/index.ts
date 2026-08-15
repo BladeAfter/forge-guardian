@@ -1551,6 +1551,43 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
+  /** MYTHREON ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
+  arsenal: async (db, user) => await rpc(db, 'arsenal_json', { p_telegram_id: user.id }),
+
+  /**
+   * NFT EXCLUSIVE EQUIPMENT store (1/1 supply each). Class validation for weapons,
+   * supply and payment are all resolved server-side; a sold unit never returns to sale.
+   */
+  'nft-equip': async (db, user, body) => {
+    const action = String(body.action || 'shop');
+    try {
+      if (action === 'shop') return await rpc(db, 'nft_equipment_shop_json', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_equipment_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nfteq:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.nftId)) throw new Error('INVALID_NFT');
+        return await rpc(db, 'nft_equipment_create_order', {
+          p_telegram_id: user.id,
+          p_nft_id: body.nftId,
+          p_idempotency_key: `nfteq:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyNftEquipmentPurchases(db, user);
+    } catch (error) {
+      console.error('[NFT EQUIP]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
+    }
+    throw new Error('Ação inválida.');
+  },
+
+
+
   /**
    * NFT BREEDING (UNIQUE NFT x UNIQUE NFT -> SUB-NFT). Every rule (breed count owned by
    * the NFT instance, cooldown, cost tier, expiry/refund, egg minting) is enforced
