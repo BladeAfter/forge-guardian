@@ -3496,6 +3496,8 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'nprc') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
     await clearSession(ctx);
+    if (rest[0] === 'review') return nftYieldReview(ctx);
+    if (rest[0] === 'force') return nftYieldForceMenu(ctx);
     return nftPriceHub(ctx);
   }
   if (head === 'neq') {
