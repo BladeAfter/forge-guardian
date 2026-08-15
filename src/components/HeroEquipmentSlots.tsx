@@ -139,17 +139,18 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
                 const blocked = item.classOk === false || item.listed;
                 const accent = RARITY[String(item.rarity)] ?? '#94a3b8';
                 return (
-                  <div key={item.instanceId} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 p-2">
+                  <div key={item.instanceId} className={`flex items-center gap-2 rounded-xl border bg-black/50 p-2 ${item.isNft ? 'nft-hero-card border-amber-200/60' : 'border-white/10'}`}>
                     <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border" style={{ borderColor: accent }}>
-                      {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" /> : <span className="text-[14px] opacity-50">⚔</span>}
+                      {item.image ? <img src={item.image} alt={item.name} className={`h-full w-full object-cover ${item.isNft ? 'drop-shadow-[0_0_10px_rgba(251,191,36,.5)]' : ''}`} /> : <span className="text-[14px] opacity-50">⚔</span>}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] font-black uppercase text-white">{item.name}</p>
+                      <p className={`truncate text-[11px] font-black uppercase ${item.isNft ? 'nft-hero-name' : 'text-white'}`}>{item.name}</p>
                       <p className="text-[8px] font-black uppercase tracking-[.1em]" style={{ color: accent }}>
-                        {item.rarity ? t(`rarity.${item.rarity}`) : ''}{item.heroClass ? ` · ${item.heroClass.toUpperCase()}` : ''}
+                        {item.isNft ? `💎 NFT EXCLUSIVE${item.serial ? ` #${String(item.serial).padStart(3, '0')}` : ''}` : (item.rarity ? t(`rarity.${item.rarity}`) : '')}{item.heroClass ? ` · ${item.heroClass.toUpperCase()}` : ''}
                       </p>
                       <p className="text-[9px] font-bold text-emerald-300">{equipmentBonusLabel(item)}</p>
                     </div>
+
                     {blocked ? (
                       <span className="rounded-lg border border-rose-400/40 px-2 py-1 text-[8px] font-black uppercase text-rose-300">
                         {item.listed ? t('heroes.itemListed') : t('heroes.wrongClass')}
