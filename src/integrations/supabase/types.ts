@@ -10436,6 +10436,19 @@ export type Database = {
         Returns: Json
       }
       admin_nft_pool_units: { Args: { p_admin_id: number }; Returns: Json }
+      admin_nft_pricing_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_nft_pricing_set: {
+        Args: {
+          p_admin_id: number
+          p_key: string
+          p_target: string
+          p_value: number
+        }
+        Returns: Json
+      }
       admin_nft_registry: {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
         Returns: Json
