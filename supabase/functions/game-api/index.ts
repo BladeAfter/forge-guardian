@@ -1436,7 +1436,13 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (String(body?.action || '') === 'activity') {
       return rpc(db, 'get_activity_progress', { p_telegram_id: user.id });
     }
-    return rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id });
+    // The main event slot: while PVP LEAGUE ARENA is DRAFT the Community Pool keeps rendering.
+    const [dashboard, league] = await Promise.all([
+      rpc(db, 'get_community_pool_dashboard', { p_telegram_id: user.id }),
+      rpc(db, 'pvp_league_dashboard', { p_telegram_id: user.id }).catch(() => null),
+    ]);
+    const active = league && (league as { active?: boolean }).active === true;
+    return { ...(dashboard as Record<string, unknown>), pvpLeague: active ? league : null };
   },
 
   /**

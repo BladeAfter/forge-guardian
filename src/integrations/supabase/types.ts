@@ -7482,6 +7482,209 @@ export type Database = {
           },
         ]
       }
+      pvp_league_events: {
+        Row: {
+          created_at: string
+          duration_days: number
+          enabled: boolean
+          ends_at: string | null
+          finished_at: string | null
+          id: string
+          min_matches: number
+          name: string
+          prize_pool_ton: number
+          started_at: string | null
+          status: string
+          top_limit: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          enabled?: boolean
+          ends_at?: string | null
+          finished_at?: string | null
+          id?: string
+          min_matches?: number
+          name?: string
+          prize_pool_ton?: number
+          started_at?: string | null
+          status?: string
+          top_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          enabled?: boolean
+          ends_at?: string | null
+          finished_at?: string | null
+          id?: string
+          min_matches?: number
+          name?: string
+          prize_pool_ton?: number
+          started_at?: string | null
+          status?: string
+          top_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pvp_league_payouts: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          paid_at: string | null
+          rank: number
+          reward_ton: number
+          score: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          paid_at?: string | null
+          rank: number
+          reward_ton: number
+          score?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          paid_at?: string | null
+          rank?: number
+          reward_ton?: number
+          score?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_league_payouts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "pvp_league_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_league_rewards: {
+        Row: {
+          event_id: string
+          rank: number
+          reward_ton: number
+        }
+        Insert: {
+          event_id: string
+          rank: number
+          reward_ton: number
+        }
+        Update: {
+          event_id?: string
+          rank?: number
+          reward_ton?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_league_rewards_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "pvp_league_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_league_score_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          match_id: string
+          role: string
+          score_delta: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          match_id: string
+          role?: string
+          score_delta: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          match_id?: string
+          role?: string
+          score_delta?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_league_score_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "pvp_league_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pvp_league_scores: {
+        Row: {
+          best_score: number
+          best_score_at: string | null
+          created_at: string
+          event_id: string
+          losses: number
+          matches: number
+          score: number
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          best_score?: number
+          best_score_at?: string | null
+          created_at?: string
+          event_id: string
+          losses?: number
+          matches?: number
+          score?: number
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          best_score?: number
+          best_score_at?: string | null
+          created_at?: string
+          event_id?: string
+          losses?: number
+          matches?: number
+          score?: number
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pvp_league_scores_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "pvp_league_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pvp_leagues: {
         Row: {
           code: string
@@ -10566,6 +10769,18 @@ export type Database = {
         Returns: Json
       }
       admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_league_activate: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_league_cancel: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_league_configure: {
+        Args: { p_admin_id: number; p_patch: Json }
+        Returns: Json
+      }
+      admin_pvp_league_end: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_league_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pvp_league_ranking: {
+        Args: { p_admin_id: number; p_limit?: number; p_query?: string }
+        Returns: Json
+      }
       admin_pvp_overview: {
         Args: { p_admin_id: number; p_top?: number }
         Returns: Json
@@ -12650,6 +12865,24 @@ export type Database = {
         Returns: string
       }
       pvp_league: { Args: { t: number }; Returns: string }
+      pvp_league_apply_delta: {
+        Args: {
+          p_delta: number
+          p_event: string
+          p_match: string
+          p_role: string
+          p_user: string
+          p_win: boolean
+        }
+        Returns: undefined
+      }
+      pvp_league_build_rewards: {
+        Args: { p_event_id: string }
+        Returns: number
+      }
+      pvp_league_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      pvp_league_finalize: { Args: { p_event_id: string }; Returns: Json }
+      pvp_league_maybe_finalize: { Args: never; Returns: undefined }
       pvp_repair_unpaid_rewards: { Args: { p_hours?: number }; Returns: Json }
       pvp_reset_daily_tickets_all: { Args: never; Returns: number }
       pvp_stat_unit: { Args: { v: string }; Returns: number }
