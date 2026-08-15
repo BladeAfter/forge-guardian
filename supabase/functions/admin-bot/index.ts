@@ -3484,7 +3484,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'ar') { if (rest[0] !== 'ask') await clearSession(ctx); return arCallback(ctx, rest); }
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
+  if (head === 'nstk') { if (rest[0] !== 'ask') await clearSession(ctx); return nftStockCallback(ctx, rest); }
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
+
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
   if (head === 'pr') return prCallback(ctx, rest);
 
@@ -4406,11 +4408,52 @@ async function nftHub(ctx: Ctx, useEdit = true) {
     [{ t: '➕ CRIAR UNIDADE', d: 'nft:new' }, { t: '🎁 ENTREGAR', d: 'nft:ask:nftgive' }],
     [{ t: '📋 LISTAR REGISTRO', d: 'nft:list:0' }, { t: '🔎 PESQUISAR', d: 'nft:ask:nftsearch' }],
     [{ t: '↩️ REVOGAR', d: 'nft:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nft:hist' }],
-    [{ t: '💎 NFT POOL', d: 'np:hub' }],
+    [{ t: '💎 NFT POOL', d: 'np:hub' }, { t: '📦 NFT STOCK', d: 'nstk:hub' }],
     nav('m:pets'),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
+
+/**
+ * NFT STOCK: rotação infinita 1/1. Nunca recoloca um NFT vendido à venda —
+ * cada vaga vendida é substituída por uma unidade totalmente nova (nome, arte e
+ * serial inéditos) na mesma faixa de preço/rendimento.
+ */
+function nftStockLines(stock: any): string {
+  const tiers = (stock?.tiers ?? []) as any[];
+  if (!tiers.length) return 'sem faixas configuradas';
+  return tiers.map((x) =>
+    `• ${fmt(x.tierTon)} TON (${x.dailyYieldTon}/dia) — 🟢 ${fmt(x.available)}/${fmt(x.slots)} · 👤 vendidos ${fmt(x.soldTotal)} · 📦 reserva ${fmt(x.poolLeft)}${Number(x.missing) > 0 ? ` · ⚠️ faltam ${fmt(x.missing)}` : ''}`).join('\n');
+}
+
+async function nftStockHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_stock_overview', { p_admin_id: ctx.adminId }) as any;
+  const text = `📦 <b>NFT STOCK (ROTAÇÃO 1/1)</b>\n\n⚔️ <b>HEROES</b>\n${nftStockLines(d.hero)}\n\n💎 <b>PETS</b>\n${nftStockLines(d.pet)}\n\nNFT vendido nunca volta para AVAILABLE: permanece com o dono e a vaga recebe uma unidade inédita.`;
+  const rows = [
+    [{ t: '♻️ REFILL HEROES', d: 'nstk:refill:hero' }, { t: '♻️ REFILL PETS', d: 'nstk:refill:pet' }],
+    [{ t: '♻️ REFILL TUDO', d: 'nstk:refill:all' }],
+    nav('nft:hub'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftStockCallback(ctx: Ctx, rest: string[]) {
+  const [sub, kind] = rest;
+  if (sub === 'refill') {
+    const kinds = kind === 'all' ? ['hero', 'pet'] : [kind];
+    const parts: string[] = [];
+    for (const k of kinds) {
+      const r = await rpc('admin_nft_stock_refill', { p_admin_id: ctx.adminId, p_kind: k }) as any;
+      const created = (r?.created ?? []) as any[];
+      const short = (r?.shortages ?? []) as any[];
+      parts.push(`<b>${k === 'hero' ? 'HEROES' : 'PETS'}</b>: ${fmt(created.length)} nova(s)\n${created.map((c) => `• ${esc(c.name)} ${nftSerial(c.serial)} · ${fmt(c.tierTon)} TON · ${c.dailyYieldTon}/dia\n  <code>${esc(c.instance)}</code>`).join('\n') || '• nada a repor'}${short.length ? `\n⚠️ reserva insuficiente: ${short.map((s) => `${fmt(s.tierTon)} TON (${fmt(s.missing)})`).join(', ')}` : ''}`);
+    }
+    await send(ctx, `♻️ <b>REFILL CONCLUÍDO</b>\n\n${parts.join('\n\n')}`);
+    return nftStockHub({ ...ctx, messageId: undefined }, false);
+  }
+  return nftStockHub(ctx);
+}
+
 
 async function nftTemplateMenu(ctx: Ctx) {
   const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
@@ -4663,7 +4706,9 @@ async function nfthHub(ctx: Ctx, useEdit = true) {
     [{ t: '📋 LISTAR REGISTRO', d: 'nfth:list:0' }, { t: '🔎 PESQUISAR', d: 'nfth:ask:nfthsearch' }],
     [{ t: '⚙️ EDITOR DE POWER', d: 'nfth:bal' }, { t: '📊 ESTATÍSTICAS', d: 'nfth:stats' }],
     [{ t: '↩️ REVOGAR', d: 'nfth:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nfth:hist' }],
+    [{ t: '📦 NFT STOCK', d: 'nstk:hub' }],
     nav('m:heroes'),
+
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
