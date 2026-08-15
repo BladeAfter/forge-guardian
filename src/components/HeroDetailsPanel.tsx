@@ -19,7 +19,15 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
   const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
 
   const stars = state?.stars ?? hero.stars ?? 0;
-  const maxLevel = state?.maxLevel ?? null;
+  const maxLevel = state?.maxLevel ?? hero.maxLevel ?? null;
+  // XP progress: totals come from the server so the bar can never disagree with the backend.
+  const xpCurrent = Math.max(0, Number(hero.xp ?? 0));
+  const xpNeed = Math.max(0, Number(hero.xpToNext ?? 0));
+  const xpMaxed = maxLevel != null && hero.level >= maxLevel;
+  const xpPercent = xpNeed > 0 ? Math.min(100, Math.round((xpCurrent / xpNeed) * 100)) : 0;
+  const dailyXp = Math.max(0, Number(hero.dailyXp ?? 0));
+  const dailyCap = Math.max(0, Number(hero.dailyXpCap ?? 0));
+
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
   // Mining depends ONLY on rarity: level and equipment never change it.
   // NFT Exclusive heroes have their own server rate (nft_heroes.mining_daily_ton).
