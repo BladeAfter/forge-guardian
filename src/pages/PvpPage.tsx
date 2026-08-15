@@ -6,6 +6,7 @@ import{usePetDashboard,usePvpDashboard}from'../hooks';
 import{useT,useLanguage}from'../LanguageContext';
 import{PetCompanion}from'../components/PetCompanion';
 import{PvpBattleArena}from'../components/PvpBattleArena';
+import{TacticalArenaPanel}from'../components/TacticalArenaPanel';
 import{beginPvpAdView,buyPvpTickets,claimPvpAdReward,pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
 import{showAd}from'../adsgram';
 import type{PvpAdsState,PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'../pvp';
@@ -13,11 +14,11 @@ import type{PvpAdsState,PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'.
 
 
 const templateOf=(h:{templateId?:string;heroKey?:string;name:string;heroId:string})=>String(h.templateId||h.heroKey||h.name||h.heroId).toLowerCase();
-type Team='attack'|'defense';type View='teams'|'history'|'ranking';
+type Team='attack'|'defense';type View='teams'|'history'|'ranking';type Mode='classic'|'tactical';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f472b6',ancestral:'#f97316',nft_exclusive:'#22d3ee'};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
- const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false);
+ const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false),[mode,setMode]=useState<Mode>('classic');
  useEffect(()=>{console.log('[PVP] start')},[]);
  useEffect(()=>{if(data)console.log('[PVP] profile + teams loaded',{attack:data.attackTeam.length,defense:data.defenseTeam.length,tickets:data.tickets})},[data]);
  useEffect(()=>{if(error)console.error('[SCREEN ERROR]',{screen:'pvp',step:'dashboard',message:error instanceof Error?error.message:String(error)})},[error]);
@@ -32,8 +33,10 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
  const buy=useMutation({mutationFn:(quantity:number)=>buyPvpTickets(telegramInitData,quantity,`${quantity}:${Date.now()}`),onSuccess:async(d,quantity)=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);await refresh();toast.success(t('pvp.ticketsPurchased',{count:quantity}))},onError:e=>toast.error(tError(e))});
 
  if(arena)return<PvpBattleArena battle={arena.battle} attackTeam={data?.attackTeam??[]} defenseTeam={arena.opponent.defenseTeam} opponentName={arena.opponent.name} pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image}:null} onContinue={async()=>{setArena(null);await refresh()}}/>;
- if(isLoading&&!stalled)return<Shell onClose={onClose}><Center text={t('pvp.arenaLoading')}/></Shell>;
- if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p className="text-sm text-slate-300">{error?tError(error):t('pvp.genericError')}</p><button onClick={()=>void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-amber-200">{t('events.retry')}</button></div></Shell>;
+ // TACTICAL ARENA (3v3) is a fully separate mode: own team, deck, rating and engine.
+ if(mode==='tactical')return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><TacticalArenaPanel initData={telegramInitData}/></Shell>;
+ if(isLoading&&!stalled)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><Center text={t('pvp.arenaLoading')}/></Shell>;
+ if(error||stalled||!data)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><div className="py-24 text-center"><p className="text-sm text-slate-300">{error?tError(error):t('pvp.genericError')}</p><button onClick={()=>void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-amber-200">{t('events.retry')}</button></div></Shell>;
  const current=team==='attack'?data.attackTeam:data.defenseTeam;
  const dupIn=(list:typeof current)=>new Set(list.map(templateOf)).size!==list.length;
  const attackInvalid=Boolean(data.attackTeamHasDuplicates)||dupIn(data.attackTeam);
@@ -41,6 +44,7 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
  const currentInvalid=team==='attack'?attackInvalid:defenseInvalid;
 
  return <Shell onClose={onClose}>
+  <ModeTabs mode={mode} onChange={setMode} t={t}/>
   <section className="overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-b from-[#111b2d]/95 to-black/75 px-6 py-7 shadow-[0_18px_50px_rgba(0,0,0,.45)]">
    <div className="flex flex-col items-center justify-center text-center">
     <div className="grid h-[72px] w-[72px] place-items-center rounded-full border border-amber-300/35 bg-amber-500/10 shadow-[0_0_30px_rgba(251,191,36,.22)]"><Trophy className="h-16 w-16 text-amber-300 drop-shadow-[0_4px_12px_rgba(245,158,11,.45)]" strokeWidth={1.45}/></div>
@@ -233,3 +237,12 @@ function Nav({active,onClick,icon,text}:{active:boolean;onClick:()=>void;icon:Re
 function Avatar({src,name,color}:{src:string|null;name:string;color?:string}){return src?<img src={src} className="h-10 w-10 rounded-full object-cover"/>:<div className="grid h-10 w-10 place-items-center rounded-full font-black text-white" style={{background:color??'#7d3a12'}}>{(name[0]??'?').toUpperCase()}</div>}
 function Center({text}:{text:string}){return<p className="py-20 text-center text-sm text-slate-300">{text}</p>}
 const teamButton=(active:boolean)=>`h-12 rounded-xl border px-2 text-center text-[10px] font-black uppercase ${active?'border-amber-300 bg-amber-400 text-black':'border-white/10 bg-[#101a2a] text-white'}`;
+
+/** Mode switch between the untouched Classic Arena (5v5) and the Tactical Arena (3v3). */
+function ModeTabs({mode,onChange,t}:{mode:Mode;onChange:(m:Mode)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const tab=(active:boolean,accent:string)=>`rounded-xl border px-2 py-2.5 text-[10px] font-black uppercase tracking-[.1em] transition ${active?accent:'border-white/10 bg-black/40 text-slate-400'}`;
+ return<div className="mb-3 grid grid-cols-2 gap-2">
+  <button type="button" onClick={()=>onChange('classic')} className={tab(mode==='classic','border-amber-300/60 bg-amber-500/15 text-amber-100')}>{t('tactical.tabClassic')}</button>
+  <button type="button" onClick={()=>onChange('tactical')} className={tab(mode==='tactical','border-cyan-300/60 bg-cyan-500/15 text-cyan-100')}>{t('tactical.tabTactical')}</button>
+ </div>;
+}

@@ -68,6 +68,7 @@ const MAIN_MENU = kb([
   [{ t: '🗺 EXPEDIÇÕES', d: 'xe:hub' }],
   [{ t: '🎁 GIVEAWAY POPUP', d: 'gw:hub' }],
   [{ t: '⚔️ PVP LEAGUE ARENA', d: 'pl:hub' }],
+  [{ t: '⚔️ TACTICAL PVP (3V3)', d: 'tp:hub' }],
   [{ t: '⚙ POOL / PASS ACTIVITY', d: 'ar:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
@@ -2261,6 +2262,8 @@ const PROMPTS: Record<string, string> = {
   poolset: 'Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days',
   plset: 'Envie: <code>chave valor</code> — <code>name</code>, <code>prize_pool_ton</code>, <code>duration_days</code>, <code>top_limit</code>, <code>min_matches</code>, <code>enabled</code> (ex.: <code>prize_pool_ton 40</code>). Só funciona enquanto o evento está em DRAFT.',
   plfind: 'Envie o telegram_id, @username ou nome do jogador para ver a posição dele no evento.',
+  tpset: 'Envie: <code>chave valor</code> — <code>turnTimerSeconds</code>, <code>ticketCost</code>, <code>reconnectSeconds</code>, <code>stalemateTurns</code>, <code>stalemateEscalation</code>, <code>ratingK</code>, <code>deckSize</code>, <code>tournamentEnabled</code>, <code>eventMode</code> (ex.: <code>turnTimerSeconds 20</code>).',
+  tpskill: 'Envie: <code>skill_key campo valor</code> — campos: <code>multiplier</code>, <code>cooldown</code>, <code>duration</code>, <code>enabled</code> (ex.: <code>heavy_strike multiplier 1.6</code> ou <code>silence enabled 0</code>).',
   poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
 
   tree: 'Envie o usuário para ver a árvore de convites.',
@@ -3525,6 +3528,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ⚔️ PVP LEAGUE ARENA — main event slot (draft until the admin activates it).
   if (head === 'pl') { if (rest[0] !== 'ask') await clearSession(ctx); return plCallback(ctx, rest); }
+
+  // ⚔️ TACTICAL PVP (3v3) — feature flag, turn timer, ticket cost and skill balance.
+  if (head === 'tp') { if (rest[0] !== 'ask') await clearSession(ctx); return tpCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5246,6 +5252,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
+  if (key === 'tpset' || key === 'tpskill') return tpPrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key === 'hpset' || key === 'hpcurve' || key === 'hpquest') return heroProgressionPrompt(ctx, key, args, text);
@@ -6403,4 +6410,117 @@ async function plPrompt(ctx: Ctx, key: string, _args: string[], text: string) {
   await clearSession(ctx);
   await send(ctx, `✅ <b>${esc(field)}</b> atualizado para <code>${esc(String(patch[field]))}</code>.\nStatus: ${PL_STATUS[String(ev.status)] ?? esc(ev.status)}`);
   return plHub({ ...ctx, messageId: undefined }, false);
+}
+
+
+// ---------------------------------------------------------------- ⚔️ TACTICAL PVP (3V3)
+// Global control of the Tactical Arena: feature flag, turn timer, ticket cost, skill
+// balance and ranking. While the flag is OFF only the Super Admin can play it (test mode).
+async function tpHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_tactical_overview', { p_admin_id: ctx.adminId }) as any;
+  const c = d?.config ?? {};
+  const on = c.enabled === true;
+  const lines = [
+    '⚔️ <b>TACTICAL PVP (3V3)</b>',
+    `Status: <b>${on ? '🟢 ATIVO PARA TODOS' : '🔴 DESATIVADO (somente admin em teste)'}</b>`,
+    `Equipe: <b>${c.teamSize ?? 3} heróis</b> · Deck: <b>${c.deckSize ?? 6} habilidades</b>`,
+    `Turno: <b>${c.turnTimerSeconds ?? 15}s</b> · Reconexão: <b>${c.reconnectSeconds ?? 30}s</b>`,
+    `Custo: <b>${c.ticketCost ?? 1} ticket</b> · Rating K: <b>${c.ratingK ?? 32}</b>`,
+    `Anti-stalemate: <b>${c.stalemateTurns ?? 5} turnos</b> · +${Math.round(Number(c.stalemateEscalation ?? 0.1) * 100)}%/turno`,
+    `Torneio: <b>${c.tournamentEnabled === true ? 'ON' : 'OFF'}</b> · Evento: <b>${esc(String(c.eventMode ?? 'CLASSIC'))}</b>`,
+    '',
+    `Na fila: <b>${fmt(d.queue)}</b> · Partidas ativas: <b>${fmt(d.activeMatches)}</b>`,
+    `Concluídas: <b>${fmt(d.finishedMatches)}</b> · Jogadores ranqueados: <b>${fmt(d.players)}</b>`,
+    `Equipes montadas: <b>${fmt(d.teams)}</b>`,
+  ];
+  const rows = [
+    [{ t: on ? '🔴 DESATIVAR MODO' : '🟢 ATIVAR MODO', d: `tp:toggle:${on ? '0' : '1'}` }],
+    [{ t: '⚙️ CONFIGURAR', d: 'tp:ask:tpset' }, { t: '✨ HABILIDADES', d: 'tp:skills' }],
+    [{ t: '🏆 RANKING', d: 'tp:rank' }, { t: '📜 PARTIDAS', d: 'tp:matches' }],
+    [{ t: '♻️ RESETAR RATINGS', d: 'tp:confirm:reset' }],
+    nav(),
+  ];
+  const text = lines.join('\n');
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function tpSkills(ctx: Ctx) {
+  const d = await rpc('admin_tactical_overview', { p_admin_id: ctx.adminId }) as any;
+  const skills = (d?.skills ?? []) as any[];
+  const body = skills
+    .map((s) => `${s.enabled ? '🟢' : '🔴'} <code>${esc(s.key)}</code> · ${esc(s.class)} · ${esc(s.type)}\n   x${fmt(s.mult)} · CD ${s.cd} · dur ${s.dur} · ${esc(s.target)}`)
+    .join('\n');
+  return edit(ctx, `✨ <b>HABILIDADES TÁTICAS</b>\n\n${body || 'Nenhuma habilidade cadastrada.'}`,
+    kb([[{ t: '✏️ EDITAR HABILIDADE', d: 'tp:ask:tpskill' }], [{ t: '⬅️ Voltar', d: 'tp:hub' }], nav()]));
+}
+
+async function tpRanking(ctx: Ctx) {
+  const rows = await rpc('admin_tactical_ranking', { p_admin_id: ctx.adminId, p_limit: 20 }) as any[];
+  const body = (rows ?? []).length
+    ? (rows as any[]).map((r, i) => `#${i + 1} · <code>${esc(r.telegramId)}</code> ${esc(r.name)}\n   ${fmt(r.rating)} · ${esc(r.league)} · ${fmt(r.wins)}W/${fmt(r.losses)}L`).join('\n')
+    : 'Nenhum jogador ranqueado ainda.';
+  return edit(ctx, `🏆 <b>RANKING TÁTICO</b>\n\n${body}`, kb([[{ t: '🔄 Atualizar', d: 'tp:rank' }], [{ t: '⬅️ Voltar', d: 'tp:hub' }], nav()]));
+}
+
+async function tpMatches(ctx: Ctx) {
+  const rows = await rpc('admin_tactical_matches', { p_admin_id: ctx.adminId, p_limit: 15 }) as any[];
+  const body = (rows ?? []).length
+    ? (rows as any[]).map((m) => `${m.status === 'active' ? '🟢' : m.winner ? '🏁' : '⚫'} ${esc(m.a)} vs ${esc(m.b)}${m.practice ? ' (treino)' : ''}\n   turno ${m.turn} · ${m.winner ? `vencedor ${esc(m.winner)}` : esc(String(m.status))} · ${String(m.createdAt).slice(0, 16).replace('T', ' ')}`).join('\n')
+    : 'Nenhuma partida registrada.';
+  return edit(ctx, `📜 <b>PARTIDAS TÁTICAS</b>\n\n${body}`, kb([[{ t: '🔄 Atualizar', d: 'tp:matches' }], [{ t: '⬅️ Voltar', d: 'tp:hub' }], nav()]));
+}
+
+async function tpCallback(ctx: Ctx, rest: string[]) {
+  const sub = rest[0] || 'hub';
+  if (sub === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] || 'Envie o valor.');
+  if (sub === 'skills') return tpSkills(ctx);
+  if (sub === 'rank') return tpRanking(ctx);
+  if (sub === 'matches') return tpMatches(ctx);
+  if (sub === 'toggle') {
+    await rpc('admin_tactical_set', { p_admin_id: ctx.adminId, p_key: 'enabled', p_value: rest[1] === '1' });
+    await send(ctx, rest[1] === '1'
+      ? '🟢 <b>TACTICAL PVP ATIVADO</b> para todos os jogadores.'
+      : '🔴 <b>TACTICAL PVP DESATIVADO</b>. Apenas o Super Admin continua acessando (modo de teste).');
+    return tpHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'confirm') {
+    return send(ctx, '⚠️ <b>RESETAR TODOS OS RATINGS TÁTICOS?</b>\n\nPartidas ativas serão abandonadas, a fila é limpa e todos voltam ao rating inicial. A Arena Clássica (5v5) não é afetada.',
+      kb([[{ t: '✅ CONFIRMAR', d: 'tp:run:reset' }, { t: '❌ CANCELAR', d: 'tp:hub' }]]));
+  }
+  if (sub === 'run') {
+    await rpc('admin_tactical_reset', { p_admin_id: ctx.adminId });
+    await send(ctx, '♻️ <b>Ratings táticos resetados.</b>');
+    return tpHub({ ...ctx, messageId: undefined }, false);
+  }
+  return tpHub(ctx);
+}
+
+async function tpPrompt(ctx: Ctx, key: string, text: string) {
+  const parts = text.trim().split(/\s+/);
+  if (key === 'tpset') {
+    const [field, raw] = [parts[0], parts.slice(1).join(' ')];
+    const allowed = ['turnTimerSeconds', 'ticketCost', 'reconnectSeconds', 'stalemateTurns', 'stalemateEscalation', 'ratingK', 'deckSize', 'tournamentEnabled', 'eventMode'];
+    if (!allowed.includes(field) || !raw) throw new Error(`KEEP_SESSION::⚠️ Formato inválido. Use: <code>chave valor</code> (${allowed.join(', ')}).`);
+    let value: unknown;
+    if (field === 'tournamentEnabled') value = ['1', 'on', 'true', 'sim', 'yes'].includes(raw.toLowerCase());
+    else if (field === 'eventMode') value = raw.toUpperCase();
+    else {
+      const num = Number(String(raw).replace(',', '.'));
+      if (!Number.isFinite(num) || num <= 0) throw new Error('KEEP_SESSION::⚠️ Valor numérico inválido.');
+      value = num;
+    }
+    await rpc('admin_tactical_set', { p_admin_id: ctx.adminId, p_key: field, p_value: value });
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>${esc(field)}</b> = <code>${esc(String(value))}</code>.`);
+    return tpHub({ ...ctx, messageId: undefined }, false);
+  }
+  const [skillKey, field, raw] = parts;
+  if (!skillKey || !field || raw === undefined) throw new Error('KEEP_SESSION::⚠️ Use: <code>skill_key campo valor</code>.');
+  if (!['multiplier', 'cooldown', 'duration', 'enabled'].includes(field)) throw new Error('KEEP_SESSION::⚠️ Campo inválido (multiplier, cooldown, duration, enabled).');
+  const num = field === 'enabled' ? (['1', 'on', 'true', 'sim', 'yes'].includes(raw.toLowerCase()) ? 1 : 0) : Number(String(raw).replace(',', '.'));
+  if (!Number.isFinite(num)) throw new Error('KEEP_SESSION::⚠️ Valor numérico inválido.');
+  await rpc('admin_tactical_skill_set', { p_admin_id: ctx.adminId, p_skill_key: skillKey, p_field: field, p_value: num });
+  await clearSession(ctx);
+  await send(ctx, `✅ <code>${esc(skillKey)}</code> · <b>${esc(field)}</b> = <code>${esc(String(num))}</code>.`);
+  return tpSkills({ ...ctx, messageId: undefined });
 }
