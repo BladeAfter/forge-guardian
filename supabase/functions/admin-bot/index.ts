@@ -4673,9 +4673,91 @@ async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: strin
   return nftPriceHub({ ...ctx, messageId: undefined }, false);
 }
 
+// 🛡 HERO PROGRESSION — Lv. 1 → 20, XP curve, per-activity XP and per-hero daily cap.
+// Everything is stored in game_settings.hero_progression: no deploy needed to tune it.
+async function heroProgressionHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_hero_progression_overview', { p_admin_id: ctx.adminId }) as any;
+  const acts = (d?.activities ?? {}) as Record<string, any>;
+  const curve = Array.isArray(d?.curve) ? d.curve as number[] : [];
+  const quests = (d?.questsWithHeroXp ?? []) as any[];
 
+  const actLine = (code: string) => {
+    const a = acts[code] ?? {};
+    return `• <b>${esc(code)}</b> — ${fmt(a.xp)} XP/evento · até ${fmt(a.dailyEvents)} eventos/dia · cap ${fmt(a.dailyXpCap)} XP/dia`;
+  };
+  const text = [
+    '🛡 <b>PROGRESSÃO DE HERÓIS</b>',
+    `Nível máximo: <b>Lv. ${fmt(d?.maxLevel)}</b> · limite diário: <b>${fmt(d?.dailyXpCapPerHero)} XP por herói</b>`,
+    '',
+    '<b>XP POR ATIVIDADE</b>',
+    Object.keys(acts).length ? Object.keys(acts).map(actLine).join('\n') : 'nenhuma atividade configurada',
+    '',
+    '<b>CURVA DE XP</b> (XP para subir de nível)',
+    curve.length ? curve.map((xp, i) => `Lv. ${i + 1}→${i + 2}: ${fmt(xp)}`).join(' · ').slice(0, 900) : 'curva padrão',
+    '',
+    `<b>HOJE (${esc(d?.gameDay)})</b>`,
+    `XP concedido: <b>${fmt(d?.xpToday)}</b> · heróis: ${fmt(d?.heroesToday)} · level ups: ${fmt(d?.levelUpsToday)}`,
+    `Heróis no nível máximo: <b>${fmt(d?.maxedHeroes)}</b>`,
+    '',
+    '<b>MISSÕES QUE DÃO XP DE HERÓI</b>',
+    quests.length ? quests.map((q) => `${q.enabled ? '✅' : '⛔'} <code>${esc(q.code)}</code> ${esc(q.title)}`).join('\n').slice(0, 900) : 'nenhuma missão ativa',
+    '',
+    'ℹ️ O XP é concedido apenas pelo servidor, após a atividade ser validada e persistida.',
+  ].join('\n').slice(0, 3800);
 
+  const rows: { t: string; d: string }[][] = [
+    [{ t: '🎚 NÍVEL MÁXIMO', d: 'hp:ask:hpset|maxlevel|-' }, { t: '⏱ CAP DIÁRIO/HERÓI', d: 'hp:ask:hpset|dailycap|-' }],
+  ];
+  for (const code of Object.keys(acts)) {
+    rows.push([
+      { t: `⚡ XP ${code}`, d: `hp:ask:hpset|activity_xp|${code}` },
+      { t: `🔢 EVENTOS ${code}`, d: `hp:ask:hpset|activity_events|${code}` },
+      { t: `🚧 CAP ${code}`, d: `hp:ask:hpset|activity_cap|${code}` },
+    ]);
+  }
+  rows.push([{ t: '📈 EDITAR CURVA DE XP', d: 'hp:ask:hpcurve|curve|-' }]);
+  rows.push([{ t: '🎯 XP EM MISSÃO (ON/OFF)', d: 'hp:ask:hpquest|quest_hero_xp|-' }]);
+  rows.push([{ t: '🔄 ATUALIZAR', d: 'hp:hub' }]);
+  rows.push(nav('m:heroes'));
 
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function heroProgressionPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  const [field, target] = args;
+  if (key === 'hpset') {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número inteiro válido (ex.: <code>40</code>).');
+    await rpc('admin_hero_progression_set', { p_admin_id: ctx.adminId, p_field: field, p_target: target === '-' ? null : target, p_value: Math.round(value) });
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>${esc(field)}</b>${target && target !== '-' ? ` · <code>${esc(target)}</code>` : ''} atualizado para <b>${Math.round(value)}</b>.\nAplicado na Mythreon imediatamente (sem deploy).`);
+    return heroProgressionHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'hpcurve') {
+    // Format: "<level>|<xp>" — level is the origin level (1..19).
+    const [lvlRaw, xpRaw] = String(text).split('|').map((s) => s.trim());
+    const level = Number(lvlRaw);
+    const xp = parseAmount(xpRaw ?? '');
+    if (!Number.isInteger(level) || level < 1 || level > 19) throw new Error('KEEP_SESSION::⚠️ Nível inválido. Use <code>nível|xp</code> com nível entre 1 e 19.');
+    if (!Number.isFinite(xp) || xp < 1) throw new Error('KEEP_SESSION::⚠️ XP inválido. Ex.: <code>5|1200</code>.');
+    await rpc('admin_hero_progression_set', { p_admin_id: ctx.adminId, p_field: 'curve', p_target: String(level), p_value: Math.round(xp) });
+    await clearSession(ctx);
+    await send(ctx, `✅ Curva atualizada: <b>Lv. ${level} → ${level + 1}</b> agora exige <b>${fmt(Math.round(xp))} XP</b>.`);
+    return heroProgressionHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'hpquest') {
+    // Format: "<quest_code>|on" or "<quest_code>|off".
+    const [codeRaw, stateRaw] = String(text).split('|').map((s) => s.trim());
+    const code = (codeRaw ?? '').toLowerCase();
+    const on = ['on', '1', 'sim', 'true', 'ativar'].includes((stateRaw ?? '').toLowerCase());
+    if (!code) throw new Error('KEEP_SESSION::⚠️ Envie <code>código_da_missão|on</code> ou <code>código_da_missão|off</code>.');
+    await rpc('admin_hero_progression_set', { p_admin_id: ctx.adminId, p_field: 'quest_hero_xp', p_target: code, p_value: on ? 1 : 0 });
+    await clearSession(ctx);
+    await send(ctx, `✅ Missão <code>${esc(code)}</code>: XP de herói <b>${on ? 'ATIVADO' : 'DESATIVADO'}</b>.`);
+    return heroProgressionHub({ ...ctx, messageId: undefined }, false);
+  }
+  return heroProgressionHub({ ...ctx, messageId: undefined }, false);
+}
 
 
 async function nftTemplateMenu(ctx: Ctx) {
