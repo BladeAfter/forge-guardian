@@ -15,9 +15,14 @@ export type HeroEquipmentItem = {
   bonusDefense: number;
   bonusHp: number;
   listed?: boolean;
+  /** NFT EXCLUSIVE 1/1 piece: premium visuals and never tradable. */
+  isNft?: boolean;
+  serial?: number | null;
+  tradable?: boolean;
   /** Server-side verdict: weapons only fit the class they were created for. */
   classOk?: boolean;
 };
+
 
 export type HeroEquipmentState = {
   heroId: string;
