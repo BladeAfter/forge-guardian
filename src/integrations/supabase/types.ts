@@ -12010,7 +12010,7 @@ export type Database = {
       }
       min_withdraw_ton: { Args: never; Returns: number }
       nft_assign_unit: {
-        Args: { p_nft_id: string; p_source: string; p_user_id: string }
+        Args: { p_nft_id: string; p_source?: string; p_user_id: string }
         Returns: Json
       }
       nft_breeding_block_reason: { Args: { p_nft_id: string }; Returns: string }
@@ -12073,7 +12073,7 @@ export type Database = {
         Returns: number
       }
       nft_hero_assign_unit: {
-        Args: { p_nft_id: string; p_source: string; p_user_id: string }
+        Args: { p_nft_id: string; p_source?: string; p_user_id: string }
         Returns: Json
       }
       nft_hero_buy_with_balance: {
