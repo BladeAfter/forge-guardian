@@ -25,9 +25,10 @@ import { pvpSelect } from './pvpSelect';
 import { giveaway } from './giveaway';
 import { activity } from './activity';
 import { arsenal } from './arsenal';
+import { pvpLeague } from './pvpLeague';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague];
 
 
 
