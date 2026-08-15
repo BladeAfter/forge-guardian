@@ -4417,6 +4417,7 @@ export type Database = {
           unique_instance_id: string
           updated_at: string
           xp: number
+          yield_locked_at: string | null
         }
         Insert: {
           assigned_at?: string | null
@@ -4442,6 +4443,7 @@ export type Database = {
           unique_instance_id: string
           updated_at?: string
           xp?: number
+          yield_locked_at?: string | null
         }
         Update: {
           assigned_at?: string | null
@@ -4467,6 +4469,7 @@ export type Database = {
           unique_instance_id?: string
           updated_at?: string
           xp?: number
+          yield_locked_at?: string | null
         }
         Relationships: [
           {
@@ -4612,6 +4615,7 @@ export type Database = {
           contract_address: string | null
           created_at: string
           created_by_admin: number | null
+          daily_yield_ton: number | null
           element: string | null
           for_sale: boolean
           generation: number
@@ -4631,6 +4635,7 @@ export type Database = {
           token_id: string | null
           unique_instance_id: string
           updated_at: string
+          yield_locked_at: string | null
         }
         Insert: {
           appearance_family?: string | null
@@ -4642,6 +4647,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          daily_yield_ton?: number | null
           element?: string | null
           for_sale?: boolean
           generation?: number
@@ -4661,6 +4667,7 @@ export type Database = {
           token_id?: string | null
           unique_instance_id: string
           updated_at?: string
+          yield_locked_at?: string | null
         }
         Update: {
           appearance_family?: string | null
@@ -4672,6 +4679,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          daily_yield_ton?: number | null
           element?: string | null
           for_sale?: boolean
           generation?: number
@@ -4691,6 +4699,7 @@ export type Database = {
           token_id?: string | null
           unique_instance_id?: string
           updated_at?: string
+          yield_locked_at?: string | null
         }
         Relationships: [
           {
@@ -4907,6 +4916,7 @@ export type Database = {
           status: string
           tier_ton: number
           updated_at: string
+          yield_locked_at: string | null
         }
         Insert: {
           accrued_ton?: number
@@ -4924,6 +4934,7 @@ export type Database = {
           status?: string
           tier_ton?: number
           updated_at?: string
+          yield_locked_at?: string | null
         }
         Update: {
           accrued_ton?: number
@@ -4941,6 +4952,7 @@ export type Database = {
           status?: string
           tier_ton?: number
           updated_at?: string
+          yield_locked_at?: string | null
         }
         Relationships: [
           {
@@ -4951,6 +4963,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nft_yield_review: {
+        Row: {
+          created_at: string
+          id: string
+          instance_yield: number | null
+          kind: string
+          nft_id: string | null
+          nft_serial: number | null
+          note: string | null
+          owner_user_id: string | null
+          status: string
+          suggested_yield: number | null
+          template_yield: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_yield?: number | null
+          kind: string
+          nft_id?: string | null
+          nft_serial?: number | null
+          note?: string | null
+          owner_user_id?: string | null
+          status?: string
+          suggested_yield?: number | null
+          template_yield?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_yield?: number | null
+          kind?: string
+          nft_id?: string | null
+          nft_serial?: number | null
+          note?: string | null
+          owner_user_id?: string | null
+          status?: string
+          suggested_yield?: number | null
+          template_yield?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       partner_channels: {
         Row: {
@@ -10669,6 +10726,17 @@ export type Database = {
         Args: { p_admin_id: number; p_kind: string }
         Returns: Json
       }
+      admin_nft_yield_apply_existing: {
+        Args: {
+          p_admin_id: number
+          p_key: string
+          p_reason: string
+          p_target: string
+          p_value: number
+        }
+        Returns: Json
+      }
+      admin_nft_yield_review: { Args: { p_admin_id: number }; Returns: Json }
       admin_partners: {
         Args: {
           p_action?: string
@@ -12701,6 +12769,7 @@ export type Database = {
       nft_rotation_after_sale: { Args: { p_kind: string }; Returns: undefined }
       nft_shop_json: { Args: { p_telegram_id: number }; Returns: Json }
       nft_stock_json: { Args: { p_kind?: string }; Returns: Json }
+      nft_yield_override_allowed: { Args: never; Returns: boolean }
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
