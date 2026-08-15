@@ -2125,7 +2125,9 @@ const PROMPTS: Record<string, string> = {
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
+  neqnew: '⚔️ Envie <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>.\nSlot: <code>weapon</code>, <code>armor</code> ou <code>ring</code>. Classe é obrigatória para armas (<code>warrior/archer/tank/mage</code>), use <code>-</code> nos demais.\nEx.: <code>weapon|Nightfall Edge|assassin|330|40|200|18|/assets/game/equipment/nft/nightfall.png</code>',
   nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
+
   nftsearch: '🔎 Envie o nome do pet NFT, o <b>serial/instância</b> (<code>NFT-IGNARION-0001</code>), o nome do dono ou o Telegram ID.',
   npfund: '💎 Envie o valor em <b>TON</b> para <b>aportar</b> no NFT Reward Pool.\nEx.: <code>50</code>',
   npadjust: '⚙️ Envie o ajuste em <b>TON</b> (use <code>-</code> para debitar).\nEx.: <code>-10</code>',
