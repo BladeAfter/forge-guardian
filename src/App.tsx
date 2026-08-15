@@ -38,6 +38,7 @@ import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, cla
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
+import { HeroXpToasts } from './HeroXpToasts';
 import AccessDeniedScreen from './components/AccessDeniedScreen';
 import { checkDeviceAccess, type DeviceAccess, type DeviceIdentity } from './antiFake';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
@@ -834,17 +835,17 @@ function App() {
     setShopResults(results);
   };
 
-  if(activePage==='invites'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><ReferralPage telegramInitData={telegramInitData} languageCode={languageCode} onClose={closeInternal}/></>;
-  if(activePage==='pets'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><PetsPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='pvp'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
-  if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
-  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} initialTab={poolInitialTab}/></>;
+  if(activePage==='invites'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ReferralPage telegramInitData={telegramInitData} languageCode={languageCode} onClose={closeInternal}/></>;
+  if(activePage==='pets'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><PetsPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='pvp'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
+  if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} initialTab={poolInitialTab}/></>;
 
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
-      <PassXpToasts telegramInitData={telegramInitData}/>
+      <PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/>
       {showStarterPack?<StarterPackPopup
         onClaim={async()=>{
           await claimStarterPackRequest(telegramInitData??'');

@@ -19,7 +19,15 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
   const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
 
   const stars = state?.stars ?? hero.stars ?? 0;
-  const maxLevel = state?.maxLevel ?? null;
+  const maxLevel = state?.maxLevel ?? hero.maxLevel ?? null;
+  // XP progress: totals come from the server so the bar can never disagree with the backend.
+  const xpCurrent = Math.max(0, Number(hero.xp ?? 0));
+  const xpNeed = Math.max(0, Number(hero.xpToNext ?? 0));
+  const xpMaxed = maxLevel != null && hero.level >= maxLevel;
+  const xpPercent = xpNeed > 0 ? Math.min(100, Math.round((xpCurrent / xpNeed) * 100)) : 0;
+  const dailyXp = Math.max(0, Number(hero.dailyXp ?? 0));
+  const dailyCap = Math.max(0, Number(hero.dailyXpCap ?? 0));
+
   const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
   // Mining depends ONLY on rarity: level and equipment never change it.
   // NFT Exclusive heroes have their own server rate (nft_heroes.mining_daily_ton).
@@ -52,7 +60,25 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
             <p className="mt-1 text-[10px] text-slate-300">
               {t('common.levelShort')} {hero.level}{maxLevel ? ` / ${maxLevel}` : ''}
             </p>
+            {/* Level progression: the XP curve and the daily cap are enforced server-side. */}
+            <div className="mt-3 rounded-xl border border-sky-300/25 bg-sky-400/5 p-2 text-left">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[8px] font-black uppercase tracking-[.2em] text-sky-200">{t('heroXp.title')}</p>
+                <p className="text-[9px] font-black text-sky-100">
+                  {xpMaxed ? t('heroXp.maxed') : t('heroXp.toNext', { xp: xpCurrent.toLocaleString(), need: xpNeed.toLocaleString(), next: hero.level + 1 })}
+                </p>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full border border-white/10 bg-black/60">
+                <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 transition-[width] duration-500" style={{ width: `${xpMaxed ? 100 : xpPercent}%` }} />
+              </div>
+              {dailyCap > 0 ? (
+                <p className={`mt-1 text-[8px] font-black uppercase tracking-[.14em] ${dailyXp >= dailyCap ? 'text-rose-300' : 'text-slate-400'}`}>
+                  {dailyXp >= dailyCap ? t('heroXp.dailyFull') : t('heroXp.daily', { used: dailyXp.toLocaleString(), cap: dailyCap.toLocaleString() })}
+                </p>
+              ) : null}
+            </div>
             <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
+
               <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('common.power')}</p>
               <p className="text-xl font-black text-amber-200">
                 {(equipment?.stats.power ?? Number(hero.power ?? 0)).toLocaleString()}

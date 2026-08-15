@@ -242,7 +242,15 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
   if (action === 'team') args.p_hero_ids = Array.isArray(body.heroIds) ? body.heroIds : [];
   if (action === 'recruit') args.p_count = Number(body.count);
   const data = await rpc(db, fn, args);
-  if (action !== 'recruit' && data && typeof data === 'object') {
+  if (action === 'recruit') return data;
+  if (action === 'attack') return await attachHeroXp(db, user.id, 'GLOBAL_BOSS', await withBossPet(db, user, data));
+  return await withBossPet(db, user, data);
+}
+
+
+/** Pet summary is appended to every boss payload except recruit (kept as before). */
+async function withBossPet(db: Db, user: TelegramUser, data: unknown) {
+  if (data && typeof data === 'object') {
     const pets = await db.rpc('get_pet_dashboard', { p_telegram_id: user.id });
     if (!pets.error) {
       return { ...(data as Record<string, unknown>), petSummary: { activePet: pets.data?.activePet ?? null, bonuses: pets.data?.bonuses ?? {} } };
@@ -250,6 +258,23 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
   }
   return data;
 }
+
+/**
+ * Hero XP is granted server-side by triggers (only after the activity is validated and persisted).
+ * Here we just read back the last award so the client can show "+XP" / "LEVEL UP" feedback.
+ */
+async function attachHeroXp(db: Db, telegramId: number, activity: string, data: unknown) {
+  if (!data || typeof data !== 'object') return data;
+  try {
+    const player = await db.from('game_players').select('id').eq('telegram_id', telegramId).maybeSingle();
+    if (player.error || !player.data?.id) return data;
+    const heroXp = await rpc(db, 'hero_xp_last_award', { p_user_id: player.data.id, p_activity: activity });
+    return { ...(data as Record<string, unknown>), heroXp: heroXp ?? null };
+  } catch (_) {
+    return data;
+  }
+}
+
 
 async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'dashboard');
@@ -351,19 +376,35 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!player.data?.id) return { heroes: [] };
     const heroes = await db
       .from('player_heroes')
-      .select('id,hero_key,name,rarity,level,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id')
+      .select('id,hero_key,name,rarity,level,xp,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id')
       .eq('user_id', player.data.id)
       // Heroes listed on the marketplace are held in escrow: they must not appear in the collection.
       .or('market_locked.is.null,market_locked.eq.false')
       .order('created_at', { ascending: false });
     if (heroes.error) throw new Error(heroes.error.message);
+    // Level progression (XP curve, per-hero daily cap) is owned by the server.
+    const progression = await rpc(db, 'hero_progression_json', { p_user_id: player.data.id }).catch(() => null) as
+      | { maxLevel?: number; dailyXpCapPerHero?: number; heroes?: Array<{ heroId: string; xp: number; xpToNext: number; dailyXp: number }> }
+      | null;
+    const maxLevel = Number(progression?.maxLevel ?? 20);
+    const dailyXpCap = Number(progression?.dailyXpCapPerHero ?? 800);
+    const xpByHero = new Map((progression?.heroes ?? []).map((row) => [String(row.heroId), row]));
     return {
-      heroes: (heroes.data ?? []).map((hero) => ({
+      progression: { maxLevel, dailyXpCapPerHero: dailyXpCap },
+      heroes: (heroes.data ?? []).map((hero) => {
+        const xpRow = xpByHero.get(String(hero.id));
+        const level = Number(hero.level) || 1;
+        return {
         heroId: hero.id,
         heroKey: hero.hero_key,
         name: hero.name,
         rarity: hero.rarity,
-        level: hero.level,
+        level,
+        maxLevel,
+        xp: Number(xpRow?.xp ?? hero.xp ?? 0),
+        xpToNext: Number(xpRow?.xpToNext ?? 0),
+        dailyXp: Number(xpRow?.dailyXp ?? 0),
+        dailyXpCap,
         imageUrl: hero.image,
         archetype: hero.archetype,
         stars: Number(hero.fusion_level) || 0,
@@ -371,14 +412,16 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
         finalAtk: Math.round(Number(hero.final_atk) || 0),
         finalHp: Math.round(Number(hero.final_hp) || 0),
         defense: Math.round((Number(hero.final_hp) || 0) * 0.09),
-        speed: 90 + (Number(hero.level) || 1),
+        speed: 90 + level,
         power: Math.round((Number(hero.final_atk) || 0) * 2 + (Number(hero.final_hp) || 0)),
         exclusiveBadge: hero.is_season_exclusive ? hero.exclusive_badge : null,
         isNft: Boolean(hero.is_nft_exclusive),
         nftSerial: hero.nft_serial ?? null,
         nftInstance: hero.nft_instance_id ?? null,
-      })),
+        };
+      }),
     };
+
 
   }
 
@@ -1110,7 +1153,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
       return withPet(await rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot }));
     }
-    if (action === 'enter') return withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id }));
+    if (action === 'enter') return attachHeroXp(db, user.id, 'DUNGEON', await withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id })));
     // Tower ranking: read-only leaderboard (highest floor, then team power, then who got there first).
     if (action === 'ranking') {
       const limit = Math.min(Math.max(Number(body.limit) || 50, 1), 100);
@@ -1181,11 +1224,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     // only a staleness hint — the RPC re-resolves the caller's clan and refuses anything else.
     if (action === 'boss-state') return rpc(db, 'get_clan_boss', { p_telegram_id: user.id });
     if (action === 'boss-strike') {
-      return rpc(db, 'clan_boss_strike', {
+      return attachHeroXp(db, user.id, 'CLAN_BOSS', await rpc(db, 'clan_boss_strike', {
         p_telegram_id: user.id,
         p_instance_id: isUuid(body.instanceId) ? body.instanceId : null,
-      });
+      }));
     }
+
     if (action === 'boss-attack') return rpc(db, 'clan_boss_attack', { p_telegram_id: user.id });
     // Season Pass benefit: offline Auto ATK preference for the CLAN boss only.
     // Independent from the global boss toggle (set_global_boss_auto_attack).
@@ -1208,7 +1252,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'claim') {
       const code = String(body.code || '');
       if (!/^[a-z0-9_]{3,40}$/.test(code)) throw new Error('QUEST_NOT_FOUND');
-      return rpc(db, 'claim_daily_quest', { p_telegram_id: user.id, p_quest_code: code });
+      return attachHeroXp(db, user.id, 'MISSION', await rpc(db, 'claim_daily_quest', { p_telegram_id: user.id, p_quest_code: code }));
     }
     throw new Error('Ação inválida.');
   },
@@ -1704,7 +1748,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'claim') {
 
       if (!isUuid(body.expeditionId)) throw new Error('EXPEDITION_NOT_FOUND');
-      return rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId });
+      return attachHeroXp(db, user.id, 'EXPEDITION', await rpc(db, 'expedition_claim', { p_telegram_id: user.id, p_expedition_id: body.expeditionId }));
     }
     throw new Error('INVALID_ACTION');
   },

@@ -1,5 +1,10 @@
 import type{HeroRarity}from'./combat';import type{HeroArchetype}from'./pvpRules';
-export type PvpHero={heroId:string;templateId?:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;stars?:number;locked?:boolean;heroKey?:string;slot?:number;isNft?:boolean;nftSerial?:number|null;nftInstance?:string|null;exclusiveBadge?:string|null;marketLocked?:boolean;blockReason?:'MARKET'|'LOCKED'|'GLOBAL_BOSS'|'CLAN_BOSS'|'TOWER'|'EXPEDITION'|null};
+export type PvpHero={heroId:string;templateId?:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;stars?:number;locked?:boolean;heroKey?:string;slot?:number;isNft?:boolean;nftSerial?:number|null;nftInstance?:string|null;exclusiveBadge?:string|null;marketLocked?:boolean;blockReason?:'MARKET'|'LOCKED'|'GLOBAL_BOSS'|'CLAN_BOSS'|'TOWER'|'EXPEDITION'|null;
+  /** Level progression (Lv. 1 → maxLevel). The server owns the XP curve and the per-hero daily cap. */
+  maxLevel?:number;xp?:number;xpToNext?:number;dailyXp?:number;dailyXpCap?:number};
+/** Hero XP feedback returned by the server after a validated activity (dungeon, boss, mission, expedition). */
+export type HeroXpAward={activity:string;xpEach:number;heroes:Array<{heroId:string;name:string;image:string|null;xpAwarded:number;levelBefore:number;level:number;leveledUp:boolean;xp:number;xpToNext:number;maxLevel:number;maxed:boolean;finalAtk:number;finalHp:number}>};
+
 export type PvpHistory={id:string;opponentName:string;isBot?:boolean;result:'win'|'loss';turns:number;trophyChange:number;rewardFc:number;createdAt:string};
 export type PvpRank={position:number;id:string;name:string;username?:string|null;avatarUrl:string|null;trophies:number;league:string;wins:number};
 export type PvpTicketPack={tickets:number;priceFc:number};

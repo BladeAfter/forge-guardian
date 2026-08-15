@@ -8,6 +8,14 @@ import type { Dict } from "./registry";
  * key stays visible (never blank) until translated here.
  */
 export const tr: Dict = {
+  "heroXp.title": "DENEYİM",
+  "heroXp.toNext": "Sv. {next} için {xp} / {need} XP",
+  "heroXp.maxed": "MAKSİMUM SEVİYE",
+  "heroXp.daily": "Günlük XP {used} / {cap}",
+  "heroXp.dailyFull": "Günlük XP sınırına ulaşıldı",
+  "heroXp.gained": "+{xp} Kahraman XP",
+  "heroXp.levelUp": "{name} Sv. {level} oldu!",
+  "heroXp.hint": "Kahramanlar zindanlarda, patronlarda, görevlerde ve seferlerde XP kazanır.",
   "adRewards.button": "ÖDÜLLER",
   "adRewards.earnedToday": "Bugün kazanıldı",
   "adRewards.errorAlready": "Bu reklam için zaten ödül verildi.",
