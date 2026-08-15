@@ -1252,7 +1252,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'claim') {
       const code = String(body.code || '');
       if (!/^[a-z0-9_]{3,40}$/.test(code)) throw new Error('QUEST_NOT_FOUND');
-      return rpc(db, 'claim_daily_quest', { p_telegram_id: user.id, p_quest_code: code });
+      return attachHeroXp(db, user.id, 'MISSION', await rpc(db, 'claim_daily_quest', { p_telegram_id: user.id, p_quest_code: code }));
     }
     throw new Error('Ação inválida.');
   },
