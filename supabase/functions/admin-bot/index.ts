@@ -531,7 +531,7 @@ async function heroManagementHub(ctx: Ctx) {
       [{ t: '⚡ QUICK CREATE', d: 'hw:quick' }],
       [{ t: '✏️ EDIT HERO', d: 'hw:edit' }],
       [{ t: '📋 DUPLICATE HERO', d: 'hw:dup' }],
-      [{ t: '🛡 PROGRESSÃO (XP / NÍVEL)', d: 'hp:hub' }],
+      [{ t: '🛡 PROGRESSÃO (XP / NÍVEL)', d: 'hprog:hub' }],
       [{ t: '⚔️ NFT HEROES (EXCLUSIVOS)', d: 'nfth:hub' }],
       [{ t: '🛒 HERO SHOP', d: 'm:shop' }],
       [{ t: '📚 ALL HEROES', d: 'm:herolist' }],
@@ -3505,7 +3505,8 @@ async function handleCallback(ctx: Ctx, data: string) {
     return nftPriceHub(ctx);
   }
   // 🛡 Hero level progression (XP curve, per-activity XP, daily caps).
-  if (head === 'hp') {
+  // NOTE: prefix is 'hprog' — 'hp' is already taken by the hero recruit price flow.
+  if (head === 'hprog') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
     await clearSession(ctx);
     return heroProgressionHub(ctx);
@@ -4716,7 +4717,7 @@ async function heroProgressionHub(ctx: Ctx, useEdit = true) {
   ].join('\n').slice(0, 3800);
 
   const rows: { t: string; d: string }[][] = [
-    [{ t: '🎚 NÍVEL MÁXIMO', d: 'hp:ask:hpset|maxlevel|-' }, { t: '⏱ CAP DIÁRIO/HERÓI', d: 'hp:ask:hpset|dailycap|-' }],
+    [{ t: '🎚 NÍVEL MÁXIMO', d: 'hprog:ask:hpset|maxlevel|-' }, { t: '⏱ CAP DIÁRIO/HERÓI', d: 'hprog:ask:hpset|dailycap|-' }],
   ];
   for (const code of Object.keys(acts)) {
     rows.push([
@@ -4725,9 +4726,9 @@ async function heroProgressionHub(ctx: Ctx, useEdit = true) {
       { t: `🚧 CAP ${code}`, d: `hp:ask:hpset|activity_cap|${code}` },
     ]);
   }
-  rows.push([{ t: '📈 EDITAR CURVA DE XP', d: 'hp:ask:hpcurve|curve|-' }]);
-  rows.push([{ t: '🎯 XP EM MISSÃO (ON/OFF)', d: 'hp:ask:hpquest|quest_hero_xp|-' }]);
-  rows.push([{ t: '🔄 ATUALIZAR', d: 'hp:hub' }]);
+  rows.push([{ t: '📈 EDITAR CURVA DE XP', d: 'hprog:ask:hpcurve|curve|-' }]);
+  rows.push([{ t: '🎯 XP EM MISSÃO (ON/OFF)', d: 'hprog:ask:hpquest|quest_hero_xp|-' }]);
+  rows.push([{ t: '🔄 ATUALIZAR', d: 'hprog:hub' }]);
   rows.push(nav('m:heroes'));
 
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -5216,7 +5217,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
-  if (key.startsWith('hp')) return heroProgressionPrompt(ctx, key, args, text);
+  if (key === 'hpset' || key === 'hpcurve' || key === 'hpquest') return heroProgressionPrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
 
