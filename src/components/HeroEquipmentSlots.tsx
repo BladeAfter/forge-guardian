@@ -29,7 +29,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
   const [open, setOpen] = useState<SlotKey | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery<HeroEquipmentState>({
+  const { data, isLoading, error: loadError } = useQuery<HeroEquipmentState>({
     queryKey: ['hero-equipment', heroId],
     queryFn: async () => {
       const state = await fetchHeroEquipment(telegramInitData, heroId);
@@ -111,7 +111,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
             : t('heroes.equipHint')}
         </p>
       ) : null}
-      {error ? <p className="mt-2 rounded-lg border border-rose-400/30 bg-rose-500/10 p-2 text-[9px] font-bold text-rose-300">{error}</p> : null}
+      {error || loadError ? <p className="mt-2 rounded-lg border border-rose-400/30 bg-rose-500/10 p-2 text-[9px] font-bold text-rose-300">{error || (loadError instanceof Error ? loadError.message : '')}</p> : null}
 
       {open ? (
         <div className="fixed inset-0 z-[120] flex items-end bg-black/80 p-3 backdrop-blur-sm" onClick={() => setOpen(null)}>
