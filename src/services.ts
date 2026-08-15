@@ -807,6 +807,14 @@ export const beginExpeditionAd = (initData: string, missionId: string) =>
   expeditionCall<{ viewId: string; blockId: string | null; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'ad-begin', missionId });
 export const claimExpeditionAd = (initData: string, viewId: string) =>
   expeditionCall<{ granted: boolean; reason?: string; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'ad-claim', viewId });
+/**
+ * AD BOOST: rewarded ad that cuts 20% of the remaining time of ONE active expedition
+ * (max 5 per expedition, resolved and persisted server-side).
+ */
+export const beginExpeditionBoostAd = (initData: string, expeditionId: string) =>
+  expeditionCall<{ viewId: string; blockId: string | null; adBoostsUsed: number; maxAdBoosts: number }>(initData, { action: 'boost-ad-begin', expeditionId });
+export const claimExpeditionBoostAd = (initData: string, viewId: string) =>
+  expeditionCall<{ granted: boolean; reason?: string; finishesAt: string; secondsSaved: number; adBoostsUsed: number; maxAdBoosts: number }>(initData, { action: 'boost-ad-claim', viewId });
 export const buyExpeditionExtra = (initData: string, missionId: string, idempotencyKey: string) =>
   expeditionCall<{ ok: boolean; duplicate?: boolean; spentFc?: number; attempts: import('./breeding').ExpeditionAttempts }>(initData, { action: 'buy-extra', missionId, idempotencyKey });
 
