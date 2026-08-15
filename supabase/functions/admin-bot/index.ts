@@ -532,6 +532,7 @@ async function heroManagementHub(ctx: Ctx) {
       [{ t: '✏️ EDIT HERO', d: 'hw:edit' }],
       [{ t: '📋 DUPLICATE HERO', d: 'hw:dup' }],
       [{ t: '🛡 PROGRESSÃO (XP / NÍVEL)', d: 'hprog:hub' }],
+      [{ t: '⚖️ GAME BALANCE (RARIDADES)', d: 'gbal:hub' }],
       [{ t: '⚔️ NFT HEROES (EXCLUSIVOS)', d: 'nfth:hub' }],
       [{ t: '🛒 HERO SHOP', d: 'm:shop' }],
       [{ t: '📚 ALL HEROES', d: 'm:herolist' }],
@@ -3510,6 +3511,11 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
     await clearSession(ctx);
     return heroProgressionHub(ctx);
+  }
+  // ⚖️ Read-only balance audit: hero rarity ranges + pet power formula.
+  if (head === 'gbal') {
+    await clearSession(ctx);
+    return gameBalanceHub(ctx);
   }
   if (head === 'neq') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] ?? 'Envie o valor.');
