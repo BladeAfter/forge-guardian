@@ -126,8 +126,10 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
               >
                 {claim.isPending ? t('expeditions.claiming') : t('expeditions.claimRewards')}
               </button>
+              {!row.ready ? <AdBoostCard initData={initData} expedition={row} onChanged={refresh} /> : null}
             </div>
           ))}
+
         </section>
       ) : null}
 
