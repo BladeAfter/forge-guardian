@@ -5051,7 +5051,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('xe')) return xePrompt(ctx, key, text);
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
-  if (key.startsWith('plset')) return plPrompt(ctx, key, args, text);
+  if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
