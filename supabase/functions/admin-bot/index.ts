@@ -67,6 +67,7 @@ const MAIN_MENU = kb([
   [{ t: '🧩 FRAGMENTOS', d: 'fg:hub' }],
   [{ t: '🗺 EXPEDIÇÕES', d: 'xe:hub' }],
   [{ t: '🎁 GIVEAWAY POPUP', d: 'gw:hub' }],
+  [{ t: '⚔️ PVP LEAGUE ARENA', d: 'pl:hub' }],
   [{ t: '⚙ POOL / PASS ACTIVITY', d: 'ar:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
 
@@ -2251,6 +2252,8 @@ const PROMPTS: Record<string, string> = {
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward: 'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
   poolset: 'Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days',
+  plset: 'Envie: <code>chave valor</code> — <code>name</code>, <code>prize_pool_ton</code>, <code>duration_days</code>, <code>top_limit</code>, <code>min_matches</code>, <code>enabled</code> (ex.: <code>prize_pool_ton 40</code>). Só funciona enquanto o evento está em DRAFT.',
+  plfind: 'Envie o telegram_id, @username ou nome do jogador para ver a posição dele no evento.',
   poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
 
   tree: 'Envie o usuário para ver a árvore de convites.',
@@ -3498,6 +3501,9 @@ async function handleCallback(ctx: Ctx, data: string) {
     await clearSession(ctx);
     return nftEquipCallback(ctx, rest);
   }
+
+  // ⚔️ PVP LEAGUE ARENA — main event slot (draft until the admin activates it).
+  if (head === 'pl') { if (rest[0] !== 'ask') await clearSession(ctx); return plCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5045,6 +5051,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('xe')) return xePrompt(ctx, key, text);
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
+  if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
@@ -6074,3 +6081,131 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ ok: true }));
 });
 
+
+
+// ---------------------------------------------------------------- ⚔️ PVP LEAGUE ARENA
+// Main event slot: while the event is DRAFT the Community Pool keeps rendering in the app.
+// Activation is manual, sets started_at server-side and freezes the prize table.
+const PL_STATUS: Record<string, string> = { draft: '🟡 DRAFT', active: '🟢 ACTIVE', finished: '⚫ FINISHED', cancelled: '🚫 CANCELLED' };
+const plDate = (v: unknown) => (v ? String(v).slice(0, 16).replace('T', ' ') : 'NOT STARTED');
+
+async function plHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_pvp_league_overview', { p_admin_id: ctx.adminId }) as any;
+  const ev = d?.event ?? null;
+  if (!ev) return send(ctx, '⚠️ Nenhum evento PVP LEAGUE encontrado.', kb([nav()]));
+  const status = String(ev.status);
+  const lines = [
+    '⚔️ <b>PVP LEAGUE ARENA</b>',
+    `Status: <b>${PL_STATUS[status] ?? esc(status)}</b>`,
+    `Nome: <b>${esc(ev.name)}</b>`,
+    `Prize Pool: <b>${fmt(ev.prize_pool_ton)} TON</b> (tabela ${fmt(d.rewardTotal)} TON)`,
+    `Premiados: <b>TOP ${ev.top_limit}</b> · duração <b>${ev.duration_days} dias</b> · mín. ${ev.min_matches} partida(s)`,
+    `Participants: <b>${fmt(d.participants)}</b> · partidas contadas <b>${fmt(d.matches)}</b>`,
+    `Start: <code>${plDate(ev.started_at)}</code>`,
+    `Ends: <code>${plDate(ev.ends_at)}</code>`,
+    status === 'draft'
+      ? '\n🕒 A Community Pool continua ativa no app até você ativar este evento.'
+      : status === 'active'
+        ? '\n🟢 O evento ocupa o slot principal da Pool no app. Premiação e datas estão congeladas.'
+        : `\n💸 Pago: <b>${fmt(d.paidTotal)} TON</b>`,
+  ];
+  const rows = status === 'draft'
+    ? [[{ t: '⚔️ ATIVAR / TROCAR EVENTO', d: 'pl:confirm:activate' }],
+       [{ t: '⚙️ CONFIGURAR', d: 'pl:ask:plset' }, { t: '🏆 PRÊMIOS', d: 'pl:prizes' }],
+       [{ t: '❌ CANCELAR', d: 'pl:confirm:cancel' }], nav()]
+    : status === 'active'
+      ? [[{ t: '🏆 LIVE RANKING', d: 'pl:rank' }], [{ t: '🔎 SEARCH PLAYER', d: 'pl:ask:plfind' }],
+         [{ t: '📊 STATUS', d: 'pl:hub' }, { t: '🏆 PRÊMIOS', d: 'pl:prizes' }],
+         [{ t: '⏹ END EVENT', d: 'pl:confirm:end' }], nav()]
+      : [[{ t: '🏆 RANKING FINAL', d: 'pl:rank' }, { t: '🏆 PRÊMIOS', d: 'pl:prizes' }],
+         [{ t: '🆕 NOVO RASCUNHO', d: 'pl:confirm:cancel' }], nav()];
+  const text = lines.join('\n');
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function plPrizes(ctx: Ctx) {
+  const d = await rpc('admin_pvp_league_overview', { p_admin_id: ctx.adminId }) as any;
+  const rewards = (d?.rewards ?? []) as { rank: number; ton: number }[];
+  if (!rewards.length) {
+    return edit(ctx, '🏆 <b>PRÊMIOS</b>\n\nA tabela é gerada no momento da ativação.\n\n'
+      + `Modelo: TOP 1–3 = 40% · TOP 4–10 = 30% · TOP 11–${d?.event?.top_limit ?? 50} = 30% do total de <b>${fmt(d?.event?.prize_pool_ton ?? 40)} TON</b>.`,
+      kb([[{ t: '⬅️ Voltar', d: 'pl:hub' }], nav()]));
+  }
+  const line = (r: { rank: number; ton: number }) => `#${r.rank} — <b>${fmt(r.ton)} TON</b>`;
+  const head = rewards.filter((r) => r.rank <= 10).map(line).join('\n');
+  const tail = rewards.filter((r) => r.rank > 10);
+  const total = rewards.reduce((sum, r) => sum + Number(r.ton || 0), 0);
+  return edit(ctx, `🏆 <b>PRÊMIOS — PVP LEAGUE ARENA</b>\n\n${head}\n\n`
+    + (tail.length ? `#11–#${tail[tail.length - 1].rank}: <b>${fmt(tail.reduce((s, r) => s + Number(r.ton || 0), 0))} TON</b> (linear, ${fmt(tail[0].ton)} → ${fmt(tail[tail.length - 1].ton)} TON)\n\n` : '')
+    + `TOTAL: <b>${fmt(total)} TON</b>`,
+    kb([[{ t: '⬅️ Voltar', d: 'pl:hub' }], nav()]));
+}
+
+async function plRanking(ctx: Ctx, query: string | null = null) {
+  const d = await rpc('admin_pvp_league_ranking', { p_admin_id: ctx.adminId, p_limit: 20, p_query: query }) as any;
+  const rows = (d?.rows ?? []) as any[];
+  const body = rows.length
+    ? rows.map((r) => `#${r.position} · <code>${esc(r.telegramId)}</code> ${esc(r.name)}\n   ${fmt(r.score)} pts · ${fmt(r.wins)}W/${fmt(r.matches)} · ${fmt(r.rewardTon)} TON`).join('\n')
+    : 'Nenhum jogador pontuou ainda.';
+  return edit(ctx, `🏆 <b>${query ? 'BUSCA' : 'LIVE RANKING'} — PVP LEAGUE</b>\n\n${body}`,
+    kb([[{ t: '🔄 Atualizar', d: 'pl:rank' }, { t: '🔎 BUSCAR', d: 'pl:ask:plfind' }], [{ t: '⬅️ Voltar', d: 'pl:hub' }], nav()]));
+}
+
+async function plCallback(ctx: Ctx, rest: string[]) {
+  const sub = rest[0] || 'hub';
+  if (sub === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] || 'Envie o valor.');
+  if (sub === 'prizes') return plPrizes(ctx);
+  if (sub === 'rank') return plRanking(ctx);
+  if (sub === 'confirm') {
+    const action = rest[1];
+    if (action === 'activate') {
+      const d = await rpc('admin_pvp_league_overview', { p_admin_id: ctx.adminId }) as any;
+      const ev = d?.event ?? {};
+      return send(ctx, ['⚠️ <b>ACTIVATE PVP LEAGUE ARENA?</b>', '', 'Current: <b>Community Pool</b>',
+        `New: <b>${esc(ev.name)}</b>`, `Prize Pool: <b>${fmt(ev.prize_pool_ton)} TON</b> · TOP ${ev.top_limit}`,
+        `Duração: <b>${ev.duration_days} dias</b>`, '',
+        'O novo evento PvP começa a contar no momento exato da ativação (ranking do zero).',
+        'O histórico e pagamentos da Community Pool são preservados.'].join('\n'),
+        kb([[{ t: '✅ CONFIRMAR', d: 'pl:run:activate' }, { t: '❌ CANCELAR', d: 'pl:hub' }]]));
+    }
+    if (action === 'end') {
+      return send(ctx, '⚠️ <b>ENCERRAR O EVENTO AGORA?</b>\n\nO ranking será congelado e os prêmios creditados no saldo TON sacável dos vencedores.',
+        kb([[{ t: '✅ CONFIRMAR', d: 'pl:run:end' }, { t: '❌ CANCELAR', d: 'pl:hub' }]]));
+    }
+    return send(ctx, '⚠️ <b>CANCELAR ESTE EVENTO?</b>\n\nNenhum prêmio é pago e um novo rascunho é criado com a mesma configuração.',
+      kb([[{ t: '✅ CONFIRMAR', d: 'pl:run:cancel' }, { t: '❌ CANCELAR', d: 'pl:hub' }]]));
+  }
+  if (sub === 'run') {
+    const action = rest[1];
+    const fn = action === 'activate' ? 'admin_pvp_league_activate' : action === 'end' ? 'admin_pvp_league_end' : 'admin_pvp_league_cancel';
+    const r = await rpc(fn, { p_admin_id: ctx.adminId }) as any;
+    await send(ctx, `✅ <b>${esc(action.toUpperCase())}</b> concluído.\n<code>${esc(JSON.stringify(r)).slice(0, 600)}</code>`);
+    return plHub({ ...ctx, messageId: undefined }, false);
+  }
+  return plHub(ctx);
+}
+
+async function plPrompt(ctx: Ctx, key: string, _args: string[], text: string) {
+  if (key === 'plfind') {
+    await clearSession(ctx);
+    return plRanking({ ...ctx, messageId: undefined }, text.trim());
+  }
+  const [field, ...valueParts] = text.trim().split(/\s+/);
+  const raw = valueParts.join(' ');
+  const allowed = ['name', 'prize_pool_ton', 'duration_days', 'top_limit', 'min_matches', 'enabled'];
+  if (!allowed.includes(field) || !raw) {
+    throw new Error(`KEEP_SESSION::⚠️ Formato inválido. Use: <code>chave valor</code> (${allowed.join(', ')}).`);
+  }
+  const patch: Record<string, unknown> = {};
+  if (field === 'name') patch.name = raw;
+  else if (field === 'enabled') patch.enabled = ['1', 'on', 'true', 'sim', 'yes'].includes(raw.toLowerCase());
+  else {
+    const num = parseAmount(raw);
+    if (!Number.isFinite(num) || num <= 0) throw new Error('KEEP_SESSION::⚠️ Valor numérico inválido.');
+    patch[field] = num;
+  }
+  const ev = await rpc('admin_pvp_league_configure', { p_admin_id: ctx.adminId, p_patch: patch }) as any;
+  await clearSession(ctx);
+  await send(ctx, `✅ <b>${esc(field)}</b> atualizado para <code>${esc(String(patch[field]))}</code>.\nStatus: ${PL_STATUS[String(ev.status)] ?? esc(ev.status)}`);
+  return plHub({ ...ctx, messageId: undefined }, false);
+}
