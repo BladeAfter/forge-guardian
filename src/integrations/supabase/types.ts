@@ -12421,6 +12421,10 @@ export type Database = {
       }
       pvp_dedupe_team: { Args: { p_team: Json }; Returns: Json }
       pvp_generate_bot: { Args: { p_user: string }; Returns: Json }
+      pvp_hero_block_reason: {
+        Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
+        Returns: string
+      }
       pvp_hero_json: {
         Args: { h: Database["public"]["Tables"]["player_heroes"]["Row"] }
         Returns: Json

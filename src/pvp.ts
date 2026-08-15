@@ -1,5 +1,5 @@
 import type{HeroRarity}from'./combat';import type{HeroArchetype}from'./pvpRules';
-export type PvpHero={heroId:string;templateId?:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;stars?:number;locked?:boolean;heroKey?:string;slot?:number;isNft?:boolean;nftSerial?:number|null;nftInstance?:string|null;exclusiveBadge?:string|null};
+export type PvpHero={heroId:string;templateId?:string;name:string;imageUrl:string;rarity:HeroRarity;level:number;archetype:HeroArchetype;finalAtk:number;finalHp:number;defense:number;speed:number;power:number;stars?:number;locked?:boolean;heroKey?:string;slot?:number;isNft?:boolean;nftSerial?:number|null;nftInstance?:string|null;exclusiveBadge?:string|null;marketLocked?:boolean;blockReason?:'MARKET'|'LOCKED'|'GLOBAL_BOSS'|'CLAN_BOSS'|'TOWER'|'EXPEDITION'|null};
 export type PvpHistory={id:string;opponentName:string;isBot?:boolean;result:'win'|'loss';turns:number;trophyChange:number;rewardFc:number;createdAt:string};
 export type PvpRank={position:number;id:string;name:string;username?:string|null;avatarUrl:string|null;trophies:number;league:string;wins:number};
 export type PvpTicketPack={tickets:number;priceFc:number};
