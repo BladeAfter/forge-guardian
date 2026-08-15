@@ -4562,7 +4562,8 @@ async function nftPriceHub(ctx: Ctx, useEdit = true) {
     '<b>🛡 EQUIPAMENTOS NFT</b>',
     equips.map((e) => `• ${esc(String(e.slot).toUpperCase())} · 🟢 ${fmt(e.available)} · 👤 ${fmt(e.sold)} · preço ${range(e.priceMin, e.priceMax, 'TON')}`).join('\n') || 'nenhum equipamento NFT',
     '',
-    'Preço só muda nas unidades em estoque. Rendimento de herói vale para todas as unidades do tier.',
+    '🔒 <b>YIELD CONGELADO</b>: alterações de rendimento valem <b>SOMENTE PARA NOVOS NFTs</b>.',
+    'NFTs já adquiridos mantêm para sempre o rendimento do momento da aquisição (venda/transferência não altera).',
   ].join('\n').slice(0, 3800);
 
   const rows: { t: string; d: string }[][] = [];
@@ -4584,10 +4585,56 @@ async function nftPriceHub(ctx: Ctx, useEdit = true) {
     { t: '🛡 ARMADURAS', d: 'nprc:ask:nprcset|equip_price|armor' },
     { t: '💍 ANÉIS', d: 'nprc:ask:nprcset|equip_price|ring' },
   ]);
+  rows.push([{ t: '🧾 REVISÃO DE YIELD', d: 'nprc:review' }]);
+  rows.push([{ t: '☢️ APLICAR EM NFTS EXISTENTES', d: 'nprc:force' }]);
   rows.push([{ t: '🔄 ATUALIZAR', d: 'nprc:hub' }]);
   rows.push(nav('m:heroes'));
 
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+// Lista de auditoria: rendimento congelado por unidade x rendimento atual do template.
+async function nftYieldReview(ctx: Ctx) {
+  const d = await rpc('admin_nft_yield_review', { p_admin_id: ctx.adminId }) as any;
+  const line = (x: any, unit: string) => {
+    const inst = Number(x.instanceYield ?? 0);
+    const tpl = Number(x.templateYield ?? 0);
+    const flag = inst === tpl ? '✅' : '🔒';
+    return `${flag} ${nftSerial(x.serial)} · tier ${Number(x.tierTon ?? 0)} · <b>${inst}</b> ${unit} (template ${tpl})`;
+  };
+  const heroes = (d.heroes ?? []) as any[];
+  const pets = (d.pets ?? []) as any[];
+  const div = [...heroes, ...pets].filter((x) => Number(x.instanceYield ?? 0) !== Number(x.templateYield ?? 0)).length;
+  const text = [
+    '🧾 <b>REVISÃO DE YIELD POR UNIDADE</b>',
+    '<i>🔒 = rendimento congelado diferente do template atual (correto, é o valor prometido na aquisição).</i>',
+    '',
+    '<b>⚔️ HERÓIS NFT ADQUIRIDOS</b>',
+    heroes.map((h) => line(h, 'TON/dia')).join('\n') || 'nenhum',
+    '',
+    '<b>🐾 PETS NFT ATIVOS</b>',
+    pets.map((p) => line(p, 'TON/dia')).join('\n') || 'nenhum',
+    '',
+    `Unidades com rendimento diferente do template: <b>${fmt(div)}</b>`,
+  ].join('\n').slice(0, 3800);
+  return edit(ctx, text, kb([[{ t: '🔄 ATUALIZAR', d: 'nprc:review' }], nav('nprc:hub')]));
+}
+
+async function nftYieldForceMenu(ctx: Ctx) {
+  const text = [
+    '☢️ <b>APLICAR EM NFTS EXISTENTES</b>',
+    '',
+    'Esta ação altera o rendimento de unidades <b>JÁ VENDIDAS</b> — quebra a promessa de yield congelado.',
+    'Exige motivo obrigatório e fica registrada na auditoria.',
+    '',
+    'Escolha o alvo:',
+  ].join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '⚔️ HERÓIS TIER 20', d: 'nprc:ask:nprcforce|hero_yield|20' }, { t: '⚔️ TIER 30', d: 'nprc:ask:nprcforce|hero_yield|30' }],
+    [{ t: '⚔️ HERÓIS TIER 50', d: 'nprc:ask:nprcforce|hero_yield|50' }, { t: '⚔️ TODOS', d: 'nprc:ask:nprcforce|hero_yield|all' }],
+    [{ t: '🐾 PETS TIER 20', d: 'nprc:ask:nprcforce|pet_yield|20' }, { t: '🐾 PETS TIER 30', d: 'nprc:ask:nprcforce|pet_yield|30' }],
+    nav('nprc:hub'),
+  ]));
 }
 
 async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: string) {
@@ -4600,11 +4647,30 @@ async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: strin
       p_admin_id: ctx.adminId, p_target: target, p_key: filter || 'all', p_value: value,
     }) as any;
     await clearSession(ctx);
-    await send(ctx, `✅ <b>${NPRC_TARGETS[target]}</b> atualizado\nFiltro: <code>${esc(filter || 'all')}</code> · novo valor: <b>${value}</b>\nUnidades afetadas: ${fmt(r?.affected ?? 0)}`);
+    const scope = target.endsWith('_yield') ? '\n🔒 Aplicado <b>SOMENTE A NOVOS NFTs</b> — unidades já adquiridas seguem com o rendimento congelado.' : '';
+    await send(ctx, `✅ <b>${NPRC_TARGETS[target]}</b> atualizado\nFiltro: <code>${esc(filter || 'all')}</code> · novo valor: <b>${value}</b>\nUnidades afetadas: ${fmt(r?.affected ?? 0)}${scope}`);
+    return nftPriceHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'nprcforce') {
+    const [target, filter] = args;
+    if (target !== 'hero_yield' && target !== 'pet_yield') throw new Error('KEEP_SESSION::⚠️ Alvo inválido.');
+    const parts = String(text).split('|').map((s) => s.trim());
+    const value = parseAmount(parts[0] ?? '');
+    const reason = parts[1] ?? '';
+    const confirm = (parts[2] ?? '').toUpperCase();
+    if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido. Use <code>valor|motivo|CONFIRMAR</code>.');
+    if (reason.length < 5) throw new Error('KEEP_SESSION::⚠️ Motivo obrigatório (mín. 5 caracteres).');
+    if (confirm !== 'CONFIRMAR') throw new Error('KEEP_SESSION::⚠️ Confirmação ausente. Termine a mensagem com <code>|CONFIRMAR</code>.');
+    const r = await rpc('admin_nft_yield_apply_existing', {
+      p_admin_id: ctx.adminId, p_target: target, p_key: filter || 'all', p_value: value, p_reason: reason,
+    }) as any;
+    await clearSession(ctx);
+    await send(ctx, `☢️ <b>Rendimento alterado em NFTs existentes</b>\nAlvo: <code>${esc(target)}</code> · filtro <code>${esc(filter || 'all')}</code>\nNovo valor: <b>${value}</b> TON/dia\nUnidades afetadas: <b>${fmt(r?.affected ?? 0)}</b>\nMotivo: ${esc(reason)}\n<i>Registrado na auditoria.</i>`);
     return nftPriceHub({ ...ctx, messageId: undefined }, false);
   }
   return nftPriceHub({ ...ctx, messageId: undefined }, false);
 }
+
 
 
 
