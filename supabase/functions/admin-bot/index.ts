@@ -531,6 +531,7 @@ async function heroManagementHub(ctx: Ctx) {
       [{ t: '⚡ QUICK CREATE', d: 'hw:quick' }],
       [{ t: '✏️ EDIT HERO', d: 'hw:edit' }],
       [{ t: '📋 DUPLICATE HERO', d: 'hw:dup' }],
+      [{ t: '🛡 PROGRESSÃO (XP / NÍVEL)', d: 'hp:hub' }],
       [{ t: '⚔️ NFT HEROES (EXCLUSIVOS)', d: 'nfth:hub' }],
       [{ t: '🛒 HERO SHOP', d: 'm:shop' }],
       [{ t: '📚 ALL HEROES', d: 'm:herolist' }],
@@ -2127,6 +2128,9 @@ const PROMPTS: Record<string, string> = {
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
   nprcset: '💰 Envie o <b>novo valor em TON</b>.\nPreço: ex. <code>50</code>. Rendimento diário: ex. <code>1.25</code>.\n\n⚠️ <b>Rendimento vale SOMENTE para NFTs novos</b> — unidades já adquiridas mantêm o rendimento congelado.',
+  hpset: '🎚 Envie o <b>novo valor inteiro</b>.\nEx.: XP por evento <code>40</code> · cap diário <code>800</code> · nível máximo <code>20</code>.',
+  hpcurve: '📈 Envie <code>nível|xp</code> para redefinir a curva.\nEx.: <code>5|1200</code> = subir do Lv. 5 para o Lv. 6 exige 1.200 XP.',
+  hpquest: '🎯 Envie <code>código_da_missão|on</code> ou <code>código_da_missão|off</code>.\nEx.: <code>daily_pvp|on</code>.',
   nprcforce: '☢️ <b>AÇÃO PERIGOSA — APLICAR EM NFTS EXISTENTES</b>\nIsto altera o rendimento de unidades JÁ VENDIDAS.\n\nEnvie <code>valor|motivo|CONFIRMAR</code>\nEx.: <code>0.5|correcao de erro de mint|CONFIRMAR</code>',
 
   neqnew: '⚔️ Envie <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>.\nSlot: <code>weapon</code>, <code>armor</code> ou <code>ring</code>. Classe é obrigatória para armas (<code>warrior/archer/tank/mage</code>), use <code>-</code> nos demais.\nEx.: <code>weapon|Nightfall Edge|assassin|330|40|200|18|/assets/game/equipment/nft/nightfall.png</code>',
@@ -3499,6 +3503,12 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] === 'review') return nftYieldReview(ctx);
     if (rest[0] === 'force') return nftYieldForceMenu(ctx);
     return nftPriceHub(ctx);
+  }
+  // 🛡 Hero level progression (XP curve, per-activity XP, daily caps).
+  if (head === 'hp') {
+    if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
+    await clearSession(ctx);
+    return heroProgressionHub(ctx);
   }
   if (head === 'neq') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] ?? 'Envie o valor.');
@@ -5206,6 +5216,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
+  if (key.startsWith('hp')) return heroProgressionPrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
 
