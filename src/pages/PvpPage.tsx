@@ -32,8 +32,10 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
  const buy=useMutation({mutationFn:(quantity:number)=>buyPvpTickets(telegramInitData,quantity,`${quantity}:${Date.now()}`),onSuccess:async(d,quantity)=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);await refresh();toast.success(t('pvp.ticketsPurchased',{count:quantity}))},onError:e=>toast.error(tError(e))});
 
  if(arena)return<PvpBattleArena battle={arena.battle} attackTeam={data?.attackTeam??[]} defenseTeam={arena.opponent.defenseTeam} opponentName={arena.opponent.name} pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image}:null} onContinue={async()=>{setArena(null);await refresh()}}/>;
- if(isLoading&&!stalled)return<Shell onClose={onClose}><Center text={t('pvp.arenaLoading')}/></Shell>;
- if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p className="text-sm text-slate-300">{error?tError(error):t('pvp.genericError')}</p><button onClick={()=>void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-amber-200">{t('events.retry')}</button></div></Shell>;
+ // TACTICAL ARENA (3v3) is a fully separate mode: own team, deck, rating and engine.
+ if(mode==='tactical')return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><TacticalArenaPanel initData={telegramInitData}/></Shell>;
+ if(isLoading&&!stalled)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><Center text={t('pvp.arenaLoading')}/></Shell>;
+ if(error||stalled||!data)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><div className="py-24 text-center"><p className="text-sm text-slate-300">{error?tError(error):t('pvp.genericError')}</p><button onClick={()=>void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-amber-200">{t('events.retry')}</button></div></Shell>;
  const current=team==='attack'?data.attackTeam:data.defenseTeam;
  const dupIn=(list:typeof current)=>new Set(list.map(templateOf)).size!==list.length;
  const attackInvalid=Boolean(data.attackTeamHasDuplicates)||dupIn(data.attackTeam);
