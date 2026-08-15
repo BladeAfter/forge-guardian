@@ -13660,10 +13660,62 @@ export type Database = {
         Returns: Json
       }
       sync_boss_team_state: { Args: { p_user: string }; Returns: undefined }
+      tactical_build_units: {
+        Args: { p_side: string; p_user: string }
+        Returns: Json
+      }
       tactical_config: { Args: never; Returns: Json }
+      tactical_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      tactical_deck_json: { Args: { p_user: string }; Returns: Json }
+      tactical_eff_atk: { Args: { u: Json }; Returns: number }
+      tactical_eff_def: { Args: { u: Json }; Returns: number }
+      tactical_has_status: {
+        Args: { p_type: string; u: Json }
+        Returns: boolean
+      }
+      tactical_hit: {
+        Args: { p_dmg: number; p_uid: string; p_units: Json }
+        Returns: Json
+      }
       tactical_is_admin: { Args: { p_telegram_id: number }; Returns: boolean }
       tactical_league: { Args: { p_rating: number }; Returns: string }
+      tactical_match_json: {
+        Args: { p_match: string; p_user: string }
+        Returns: Json
+      }
+      tactical_queue_cancel: { Args: { p_telegram_id: number }; Returns: Json }
+      tactical_queue_join: {
+        Args: { p_practice?: boolean; p_telegram_id: number }
+        Returns: Json
+      }
+      tactical_queue_status: { Args: { p_telegram_id: number }; Returns: Json }
       tactical_rand: { Args: { p_seed: string }; Returns: number }
+      tactical_remove_team: {
+        Args: { p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
+      tactical_save_deck: {
+        Args: { p_skill_keys: string[]; p_telegram_id: number }
+        Returns: Json
+      }
+      tactical_save_team: {
+        Args: { p_hero_id: string; p_slot: number; p_telegram_id: number }
+        Returns: Json
+      }
+      tactical_start_match: {
+        Args: { p_a: string; p_b: string; p_practice?: boolean }
+        Returns: string
+      }
+      tactical_status_sum: {
+        Args: { p_types: string[]; u: Json }
+        Returns: number
+      }
+      tactical_team_json: { Args: { p_user: string }; Returns: Json }
+      tactical_user_id: { Args: { p_telegram_id: number }; Returns: string }
+      tactical_validate_entry: {
+        Args: { p_require_ticket: boolean; p_user: string }
+        Returns: undefined
+      }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
         Returns: {
