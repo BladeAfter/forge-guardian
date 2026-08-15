@@ -27,18 +27,41 @@ export type ClanMember = {
   userId: string;
   role: ClanRole;
   contribution: number;
+  clanPoints?: number;
   name: string;
   username: string | null;
   avatar: string | null;
   trophies: number;
+  /** Official player power (same formula used in the collection/profile), computed server-side. */
   power: number;
-  lastActive: string;
+  heroes?: number;
+  accountLevel?: number;
+  league?: string;
+  lastActive: string | null;
+  online?: boolean;
+  joinedAt?: string;
   isMe: boolean;
+};
+
+/** Compact leader summary; every counter is produced by the backend. */
+export type ClanAdminStats = {
+  members: number;
+  memberLimit: number;
+  onlineNow: number;
+  active24h: number;
+  inactive3d: number;
+  inactive7d: number;
+  inactive14d: number;
+  pendingRequests: number;
 };
 
 export type ClanMission = { code: string; title: string; target: number; progress: number; rewardPoints: number; completed: boolean };
 export type ClanMessage = { id: string; name: string; avatar: string | null; body: string; createdAt: string; isMe: boolean };
-export type ClanJoinRequest = { id: string; userId: string; name: string; avatar: string | null; trophies: number };
+export type ClanJoinRequest = {
+  id: string; userId: string; name: string; username?: string | null; avatar: string | null; trophies: number;
+  power?: number; heroes?: number; accountLevel?: number; league?: string;
+  lastActive?: string | null; online?: boolean; createdAt?: string;
+};
 export type ClanBoss = {
   id: string; name: string; maxHealth: number; currentHealth: number; status: string; endsAt: string;
   rewardPoints: number; myDamage: number; top: { name: string; avatar: string | null; damage: number }[];
@@ -57,7 +80,20 @@ export type ClanDashboard = {
   recommended?: ClanSummary[];
   createCostFc?: number;
   balance?: number;
+  canManageMembers?: boolean;
+  onlineThresholdMinutes?: number;
+  stats?: ClanAdminStats;
 };
+
+/** Friendly "8m / 3h / 2d" label plus a tone bucket used for the activity dot. */
+export function activityAge(lastActive?: string | null): { minutes: number | null; short: string; tone: 'online' | 'fresh' | 'warm' | 'stale' | 'cold' } {
+  if (!lastActive) return { minutes: null, short: '—', tone: 'cold' };
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(lastActive).getTime()) / 60000));
+  const days = Math.floor(minutes / 1440);
+  const short = minutes < 60 ? `${Math.max(1, minutes)}m` : minutes < 1440 ? `${Math.floor(minutes / 60)}h` : `${days}d`;
+  const tone = minutes < 1440 ? 'fresh' : days < 3 ? 'warm' : days < 7 ? 'stale' : 'cold';
+  return { minutes, short, tone };
+}
 
 const CLAN_ERRORS: Record<string, string> = {
   ALREADY_IN_CLAN: 'clan.error.alreadyInClan',

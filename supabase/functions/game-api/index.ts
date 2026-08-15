@@ -1896,6 +1896,9 @@ Deno.serve(async (req) => {
         return json({ access: 'blocked', reason: 'MULTIPLE_ACCOUNTS_DETECTED', code: 'MULTI_ACCOUNT_LIMIT', error: 'MULTIPLE_ACCOUNTS_DETECTED' }, 403);
       }
     }
+    // Real activity only: every authenticated call refreshes last_seen_at, throttled server-side
+    // to once per minute. The client never sends a timestamp.
+    void db.rpc('touch_player_activity', { p_telegram_id: user.id });
     const data = await handler(db, user, body);
     return json(data ?? null);
   } catch (error) {

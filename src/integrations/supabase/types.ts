@@ -12262,6 +12262,7 @@ export type Database = {
         Returns: Json
       }
       clan_member_limit: { Args: { p_level: number }; Returns: number }
+      clan_online_minutes: { Args: never; Returns: number }
       clan_player_power: { Args: { p_user_id: string }; Returns: number }
       clan_public: {
         Args: { p_clan: Database["public"]["Tables"]["clans"]["Row"] }
@@ -13779,6 +13780,10 @@ export type Database = {
           telegram_id: number
           user_id: string
         }[]
+      }
+      touch_player_activity: {
+        Args: { p_telegram_id: number }
+        Returns: undefined
       }
       touch_referral_player: {
         Args: {
