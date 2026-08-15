@@ -69,7 +69,96 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
 }
 
 function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>void}){return<button type="button" onClick={onClick} className={`relative min-h-28 overflow-hidden rounded-xl border bg-black/70 ${hero?.isNft?'nft-hero-card':''}`} style={{borderColor:hero?(hero.isNft?undefined:color[hero.rarity]):'#475569'}}>{hero?<>{hero.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span>{hero.nftSerial?<span className="nft-hero-serial">#{String(hero.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={hero.imageUrl} className="aspect-square w-full object-cover"/><p className={`truncate px-1 text-[8px] font-bold ${hero.isNft?'nft-hero-name':''}`}>{hero.name}</p>{hero.isNft?<p className="nft-hero-rarity px-1 text-[6px] font-black tracking-widest">EXCLUSIVE</p>:null}<p className="text-[7px]">ATK {hero.finalAtk}</p><p className="pb-1 text-[7px]">HP {hero.finalHp}</p></>:<span className="text-xl text-slate-500">＋</span>}</button>}
-function HeroSelector({slot,heroes,current,pending,onClose,onEquip,t}:{slot:number;heroes:PvpHero[];current:PvpHero[];pending:boolean;onClose:()=>void;onEquip:(id:string)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){return<div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/80 p-3" onClick={onClose}><div className="max-h-[75dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}><div className="flex justify-between"><b>{t('pvp.selectHeroSlot',{slot})}</b><button onClick={onClose}><X/></button></div><div className="mt-3 grid grid-cols-3 gap-2">{heroes.map(h=>{const used=current.some(x=>x.heroId===h.heroId&&Number(x.slot)!==slot);const dupe=current.some(x=>Number(x.slot)!==slot&&templateOf(x)===templateOf(h));return<button type="button" title={dupe?t('pvp.duplicateHero'):undefined} disabled={used||dupe||pending} onClick={()=>onEquip(h.heroId)} key={h.heroId} className={`relative overflow-hidden rounded-xl border bg-black/70 disabled:opacity-35 ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:color[h.rarity]}}>{h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">💎 NFT EXCLUSIVE</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={h.imageUrl} className="aspect-square w-full object-cover"/><div className="p-2 text-left"><b className={`block truncate text-[9px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</b>{h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}<p className="text-[8px]">{h.archetype}</p><p className="text-[8px]">ATK {h.finalAtk} · HP {h.finalHp}</p><p className="text-[8px] text-amber-200">{t('boss.power')} {h.power}</p></div></button>})}</div></div></div>}
+/**
+ * PvP hero selection sheet.
+ * Interaction contract (battle rules, stats and Power math untouched):
+ *  - tap a free hero            -> equip in this slot
+ *  - tap the hero of THIS slot  -> remove it (slot may stay EMPTY)
+ *  - tap a hero of ANOTHER slot -> "already in Slot N" + optional MOVE (single atomic op)
+ * Compact filters: rarity dropdown, power sort, expandable search. Unavailable heroes
+ * always state WHY (market / locked / global boss / tower / other PvP team).
+ */
+const RARITIES=['common','uncommon','rare','epic','legendary','mythic','ancestral','nft_exclusive'] as const;
+function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEquip,onRemove,t}:{slot:number;heroes:PvpHero[];current:PvpHero[];other:PvpHero[];otherTeam:'ATTACK'|'DEFENSE';pending:boolean;onClose:()=>void;onEquip:(id:string,moved?:boolean)=>void;onRemove:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const equipped=current.find(x=>Number(x.slot)===slot)||null;
+ const [rarity,setRarity]=useState<string>('all');
+ const [sort,setSort]=useState<'default'|'high'|'low'>('default');
+ const [rarityOpen,setRarityOpen]=useState(false);
+ const [searchOpen,setSearchOpen]=useState(false);
+ const [term,setTerm]=useState('');
+ const rarityOf=(h:PvpHero)=>h.isNft?'nft_exclusive':String(h.rarity||'').toLowerCase();
+ const needle=term.trim().toLowerCase();
+ const list=heroes
+  .filter(h=>rarity==='all'||rarityOf(h)===rarity)
+  .filter(h=>!needle||[h.name,h.archetype,rarityOf(h)].some(v=>String(v||'').toLowerCase().includes(needle)));
+ const rows=sort==='default'?list:[...list].sort((a,b)=>sort==='high'?b.power-a.power:a.power-b.power);
+ const chip='inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[.1em]';
+ const rarityLabel=rarity==='all'?t('pvp.sel.all'):(rarity==='nft_exclusive'?'NFT':rarity.toUpperCase());
+ return <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+  <div className="max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}>
+   <div className="flex items-center justify-between gap-2">
+    <b className="truncate text-[12px]">{t('pvp.selectHeroSlot',{slot})}</b>
+    <div className="flex shrink-0 items-center gap-2">
+     {equipped?<button type="button" disabled={pending} onClick={onRemove} className="rounded-full border border-rose-400/45 bg-rose-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-rose-200 disabled:opacity-50">{t('pvp.sel.remove')}</button>:null}
+     <button type="button" onClick={onClose} aria-label="close"><X className="h-4 w-4"/></button>
+    </div>
+   </div>
+   <div className="mt-2 flex flex-wrap items-center gap-2">
+    <div className="relative">
+     <button type="button" onClick={()=>setRarityOpen(v=>!v)} className={`${chip} border-white/15 bg-white/5 text-slate-200`}>{rarityLabel} ▾</button>
+     {rarityOpen?<div className="absolute left-0 z-20 mt-1 w-40 overflow-hidden rounded-xl border border-white/15 bg-[#0b1220] shadow-xl">
+      {['all',...RARITIES].map(r=><button key={r} type="button" onClick={()=>{setRarity(r);setRarityOpen(false)}} className={`block w-full px-3 py-2 text-left text-[9px] font-black uppercase tracking-[.1em] ${rarity===r?'bg-amber-500/15 text-amber-200':'text-slate-300'}`}>{r==='all'?t('pvp.sel.allRarities'):r==='nft_exclusive'?'NFT EXCLUSIVE':r.toUpperCase()}</button>)}
+     </div>:null}
+    </div>
+    <button type="button" onClick={()=>setSort(s=>s==='default'?'high':s==='high'?'low':'default')} className={`${chip} ${sort==='default'?'border-white/15 bg-white/5 text-slate-200':'border-amber-300/45 bg-amber-500/10 text-amber-200'}`}>{t('pvp.sel.power')} {sort==='default'?'↕':sort==='high'?'↓':'↑'}</button>
+    {searchOpen
+     ?<div className="flex min-w-[140px] flex-1 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2.5 py-1">
+       <Search className="h-3 w-3 text-slate-400"/>
+       <input autoFocus value={term} onChange={e=>setTerm(e.target.value)} placeholder={t('pvp.sel.search')} className="w-full bg-transparent text-[10px] text-slate-100 outline-none placeholder:text-slate-500"/>
+       <button type="button" onClick={()=>{setSearchOpen(false);setTerm('')}} aria-label="close search"><X className="h-3 w-3 text-slate-400"/></button>
+      </div>
+     :<button type="button" onClick={()=>setSearchOpen(true)} className={`${chip} border-white/15 bg-white/5 text-slate-200`} aria-label="search"><Search className="h-3 w-3"/></button>}
+   </div>
+   <div className="mt-3 grid grid-cols-3 gap-2">{rows.map(h=>{
+    const inSlot=equipped?.heroId===h.heroId;
+    const otherSlotHero=current.find(x=>x.heroId===h.heroId&&Number(x.slot)!==slot);
+    const dupe=!inSlot&&!otherSlotHero&&current.some(x=>Number(x.slot)!==slot&&templateOf(x)===templateOf(h));
+    const inOther=other.some(x=>x.heroId===h.heroId);
+    const hard=h.blockReason==='MARKET'||h.blockReason==='LOCKED';
+    const reason=hard?t(`pvp.sel.block.${h.blockReason}`)
+     :otherSlotHero?t('pvp.sel.inSlot',{slot:Number(otherSlotHero.slot)})
+     :dupe?t('pvp.sel.block.DUPLICATE')
+     :h.blockReason?t(`pvp.sel.block.${h.blockReason}`)
+     :inOther?t(`pvp.sel.block.${otherTeam}`):null;
+    const act=()=>{
+     if(hard||pending)return;
+     if(inSlot){onRemove();return}
+     if(dupe){toast.error(t('pvp.sel.block.DUPLICATE'));return}
+     if(otherSlotHero){toast.info(t('pvp.sel.alreadyInSlot',{name:h.name,slot:Number(otherSlotHero.slot)}));return}
+     onEquip(h.heroId);
+    };
+    return <div key={h.heroId} className={`relative overflow-hidden rounded-xl border bg-black/70 ${hard?'opacity-40':''} ${h.isNft?'nft-hero-card':''}`} style={{borderColor:inSlot?'#fbbf24':(h.isNft?undefined:color[h.rarity])}}>
+     <button type="button" disabled={hard||pending} onClick={act} className="block w-full text-left disabled:cursor-not-allowed">
+      {h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">💎 NFT EXCLUSIVE</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}
+      <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover"/>
+      {inSlot?<span className="absolute left-1 top-1 rounded-full bg-amber-400 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.1em] text-black">✓ {t('pvp.sel.equipped')}</span>:null}
+      {!inSlot&&reason?<span className="absolute left-1 top-1 rounded-full bg-black/80 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.08em] text-slate-200">{reason}</span>:null}
+      <div className="p-2 text-left">
+       <b className={`block truncate text-[9px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</b>
+       {h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}
+       <p className="text-[8px] text-slate-400">{h.archetype}</p>
+       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} · HP {h.finalHp}</p>
+       <p className="text-[9px] font-black text-amber-200">{t('boss.power')} {h.power}</p>
+       {inSlot?<p className="text-[7px] font-bold uppercase tracking-[.08em] text-rose-300">{t('pvp.sel.tapToRemove')}</p>:null}
+      </div>
+     </button>
+     {otherSlotHero&&!hard?<button type="button" disabled={pending} onClick={()=>onEquip(h.heroId,true)} className="w-full bg-amber-400/15 py-1 text-[7px] font-black uppercase tracking-[.08em] text-amber-200 disabled:opacity-50">{t('pvp.sel.moveHere',{slot})}</button>:null}
+    </div>})}
+   </div>
+   {!rows.length?<p className="py-8 text-center text-[10px] font-bold uppercase tracking-[.1em] text-slate-500">{t('pvp.sel.noResults')}</p>:null}
+  </div>
+ </div>
+}
 
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]"/><div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10"><header className="mb-4 flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p><h1 className="text-xl font-black">{t('pvp.subtitle')}</h1></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X/></button></header>{children}</div></div>}
