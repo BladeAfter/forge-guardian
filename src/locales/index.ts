@@ -21,11 +21,12 @@ import { tower } from './tower';
 import { nftx } from './nftx';
 import { expeditionExtra } from './expeditionExtra';
 import { expeditionBoost } from './expeditionBoost';
+import { pvpSelect } from './pvpSelect';
 import { giveaway } from './giveaway';
 import { activity } from './activity';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, giveaway, activity];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity];
 
 
 function merge(language: LanguageCode): Dict {
