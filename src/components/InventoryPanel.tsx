@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
 import { openCalendarChest, petRequest, summonHeroWithFragments } from '../services';
 import { getInventoryItemVisual } from '../inventoryVisuals';
+import { ArsenalPanel } from './ArsenalPanel';
+
 import type { FragmentSummonResult, InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
 
@@ -68,6 +70,8 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   const [filter, setFilter] = useState<InventoryCategory | 'all'>('all');
   const [selected, setSelected] = useState<InventoryItem | null>(null);
   const [summoned, setSummoned] = useState<FragmentSummonResult | null>(null);
+  const [arsenalOpen, setArsenalOpen] = useState(false);
+
 
   const items = data?.items ?? [];
   const visible = useMemo(() => (filter === 'all' ? items : items.filter((i) => i.category === filter)), [items, filter]);
@@ -109,6 +113,8 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
 
   const busy = openChest.isPending || hatchEgg.isPending || summon.isPending;
 
+  if (arsenalOpen) return <ArsenalPanel telegramInitData={telegramInitData} onBack={() => setArsenalOpen(false)} />;
+
   return (
     <section className="rounded-2xl border border-white/10 bg-black/45 p-3">
       <header className="mb-2 flex items-center justify-between gap-2">
@@ -116,10 +122,19 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
           <p className="text-[10px] uppercase tracking-[.2em] text-slate-400">{t('inventory.subtitle')}</p>
           <p className="text-sm font-black text-amber-200">{t('inventory.count', { count: items.length })}</p>
         </div>
-        <button onClick={() => void refetch()} aria-label={t('inventory.refresh')} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/25 bg-black/60 text-amber-200">
-          <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
-        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            onClick={() => setArsenalOpen(true)}
+            className="rounded-xl border border-amber-300/40 bg-amber-300/10 px-2.5 py-2 text-[9px] font-black uppercase tracking-[.14em] text-amber-200"
+          >
+            ⚔ {t('arsenal.button')}
+          </button>
+          <button onClick={() => void refetch()} aria-label={t('inventory.refresh')} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/25 bg-black/60 text-amber-200">
+            <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </header>
+
 
       <div className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {CATEGORIES.map((key) => (

@@ -24,9 +24,11 @@ import { expeditionBoost } from './expeditionBoost';
 import { pvpSelect } from './pvpSelect';
 import { giveaway } from './giveaway';
 import { activity } from './activity';
+import { arsenal } from './arsenal';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal];
+
 
 
 function merge(language: LanguageCode): Dict {

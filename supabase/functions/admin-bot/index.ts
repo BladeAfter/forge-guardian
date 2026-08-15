@@ -2125,7 +2125,9 @@ const PROMPTS: Record<string, string> = {
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
   nfthstat: '⚙️ Envie o <b>novo valor</b> numérico do atributo escolhido.',
+  neqnew: '⚔️ Envie <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>.\nSlot: <code>weapon</code>, <code>armor</code> ou <code>ring</code>. Classe é obrigatória para armas (<code>warrior/archer/tank/mage</code>), use <code>-</code> nos demais.\nEx.: <code>weapon|Nightfall Edge|assassin|330|40|200|18|/assets/game/equipment/nft/nightfall.png</code>',
   nftgive: '💎 Envie <code>ID_ou_@usuario</code> para escolher a unidade NFT que será entregue.\nEx.: <code>8118569391</code>',
+
   nftsearch: '🔎 Envie o nome do pet NFT, o <b>serial/instância</b> (<code>NFT-IGNARION-0001</code>), o nome do dono ou o Telegram ID.',
   npfund: '💎 Envie o valor em <b>TON</b> para <b>aportar</b> no NFT Reward Pool.\nEx.: <code>50</code>',
   npadjust: '⚙️ Envie o ajuste em <b>TON</b> (use <code>-</code> para debitar).\nEx.: <code>-10</code>',
@@ -3485,6 +3487,12 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'af') { if (rest[0] !== 'ask') await clearSession(ctx); return afCallback(ctx, rest); }
   if (head === 'np') { if (rest[0] !== 'ask') await clearSession(ctx); return nftPoolCallback(ctx, rest); }
   if (head === 'nstk') { if (rest[0] !== 'ask') await clearSession(ctx); return nftStockCallback(ctx, rest); }
+  if (head === 'neq') {
+    if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] ?? 'Envie o valor.');
+    await clearSession(ctx);
+    return nftEquipCallback(ctx, rest);
+  }
+
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
   // 💳 Payment recovery keeps its own session (reason + confirmation), so it must not be cleared here.
@@ -4454,6 +4462,58 @@ async function nftStockCallback(ctx: Ctx, rest: string[]) {
   return nftStockHub(ctx);
 }
 
+// ---------------------------------------------------------------- ⚔️ NFT EXCLUSIVE equipment (1/1)
+// Supply 1/1: uma unidade vendida nunca volta para AVAILABLE.
+async function nftEquipHub(ctx: Ctx, slot: string | null = null, useEdit = true) {
+  const d = await rpc('admin_nft_equipment_overview', { p_admin_id: ctx.adminId, p_slot: slot }) as any;
+  const items = (d.items ?? []) as any[];
+  const available = items.filter((x) => x.status === 'AVAILABLE');
+  const sold = items.filter((x) => x.status !== 'AVAILABLE');
+  const line = (x: any) => `• ${esc(x.name)} ${nftSerial(x.serial)} · ${esc(String(x.slot).toUpperCase())}${x.heroClass ? `/${esc(String(x.heroClass).toUpperCase())}` : ''} · ${x.priceTon} TON\n  ⚔️ ${fmt(x.atk)} · 🛡 ${fmt(x.def)} · ❤️ ${fmt(x.hp)}${x.ownerName ? `\n  👤 ${esc(x.ownerName)} (<code>${x.ownerTelegramId}</code>)` : ''}`;
+  const text = [
+    `⚔️ <b>NFT EXCLUSIVE EQUIPMENT</b>${slot ? ` — ${slot.toUpperCase()}` : ''}`,
+    `Unidades ${fmt(items.length)} · 🟢 estoque ${fmt(available.length)} · 👤 vendidos ${fmt(sold.length)}`,
+    '',
+    `<b>🟢 EM ESTOQUE</b>\n${available.slice(0, 12).map(line).join('\n') || 'nenhuma unidade disponível'}`,
+    '',
+    `<b>👤 VENDIDOS</b>\n${sold.slice(0, 10).map(line).join('\n') || 'nenhuma venda ainda'}`,
+    '',
+    'Supply 1/1: cada peça pertence permanentemente ao comprador e nunca retorna à loja.',
+  ].join('\n').slice(0, 3800);
+  const rows = [
+    [{ t: '➕ CRIAR NFT', d: 'neq:ask:neqnew' }],
+    [{ t: '⚔ WEAPONS', d: 'neq:slot:weapon' }, { t: '🛡 ARMORS', d: 'neq:slot:armor' }, { t: '💍 RINGS', d: 'neq:slot:ring' }],
+    [{ t: '🔄 TODOS', d: 'neq:hub' }],
+    nav('m:heroes'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nftEquipCallback(ctx: Ctx, rest: string[]) {
+  const [sub, arg] = rest;
+  if (sub === 'slot') return nftEquipHub(ctx, arg);
+  return nftEquipHub(ctx, null);
+}
+
+async function nftEquipPrompt(ctx: Ctx, key: string, _args: string[], text: string) {
+  if (key === 'neqnew') {
+    const parts = text.split('|').map((p) => p.trim());
+    if (parts.length < 6) throw new Error('KEEP_SESSION::⚠️ Formato: <code>slot|nome|classe|atk|def|hp|preco_ton|url_imagem</code>');
+    const [slot, name, cls, atk, def, hp, price, image] = parts;
+    const r = await rpc('admin_nft_equipment_create', {
+      p_admin_id: ctx.adminId, p_slot: slot, p_name: name,
+      p_hero_class: cls && cls !== '-' ? cls : null, p_image: image || null,
+      p_atk: Number(atk || 0), p_def: Number(def || 0), p_hp: Number(hp || 0),
+      p_price_ton: Number(price || 15),
+    }) as any;
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>NFT criado</b>\n${esc(r.name)} ${nftSerial(r.serial)} · ${esc(String(r.slot).toUpperCase())}${r.heroClass ? `/${esc(String(r.heroClass).toUpperCase())}` : ''} · ${r.priceTon} TON`);
+    return nftEquipHub({ ...ctx, messageId: undefined }, null, false);
+  }
+  return nftEquipHub({ ...ctx, messageId: undefined }, null, false);
+}
+
+
 
 async function nftTemplateMenu(ctx: Ctx) {
   const d = await rpc('admin_nft_overview', { p_admin_id: ctx.adminId }) as any;
@@ -4706,7 +4766,7 @@ async function nfthHub(ctx: Ctx, useEdit = true) {
     [{ t: '📋 LISTAR REGISTRO', d: 'nfth:list:0' }, { t: '🔎 PESQUISAR', d: 'nfth:ask:nfthsearch' }],
     [{ t: '⚙️ EDITOR DE POWER', d: 'nfth:bal' }, { t: '📊 ESTATÍSTICAS', d: 'nfth:stats' }],
     [{ t: '↩️ REVOGAR', d: 'nfth:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nfth:hist' }],
-    [{ t: '📦 NFT STOCK', d: 'nstk:hub' }],
+    [{ t: '📦 NFT STOCK', d: 'nstk:hub' }, { t: '⚔️ NFT EQUIPMENT', d: 'neq:hub' }],
     nav('m:heroes'),
 
   ];
@@ -4898,7 +4958,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('fg')) return fgPrompt(ctx, key, text);
 
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
+  if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
   if (key.startsWith('np')) return nftPoolPrompt(ctx, key, args, text);
+
   if (key.startsWith('nfth')) return nfthPrompt(ctx, key, args, text);
   if (key.startsWith('nft')) return nftPrompt(ctx, key, args, text);
   if (key === 'wlhot') {
