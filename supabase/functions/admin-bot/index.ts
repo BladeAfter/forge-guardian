@@ -4766,7 +4766,7 @@ async function nfthHub(ctx: Ctx, useEdit = true) {
     [{ t: '📋 LISTAR REGISTRO', d: 'nfth:list:0' }, { t: '🔎 PESQUISAR', d: 'nfth:ask:nfthsearch' }],
     [{ t: '⚙️ EDITOR DE POWER', d: 'nfth:bal' }, { t: '📊 ESTATÍSTICAS', d: 'nfth:stats' }],
     [{ t: '↩️ REVOGAR', d: 'nfth:revlist:0' }, { t: '📜 HISTÓRICO', d: 'nfth:hist' }],
-    [{ t: '📦 NFT STOCK', d: 'nstk:hub' }],
+    [{ t: '📦 NFT STOCK', d: 'nstk:hub' }, { t: '⚔️ NFT EQUIPMENT', d: 'neq:hub' }],
     nav('m:heroes'),
 
   ];
