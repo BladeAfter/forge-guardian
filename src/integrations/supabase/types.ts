@@ -2810,6 +2810,7 @@ export type Database = {
           image: string
           in_shop: boolean
           is_nft_exclusive: boolean
+          is_pass_exclusive: boolean
           max_level: number
           name: string
           nft_class_label: string | null
@@ -2853,6 +2854,7 @@ export type Database = {
           image: string
           in_shop?: boolean
           is_nft_exclusive?: boolean
+          is_pass_exclusive?: boolean
           max_level?: number
           name: string
           nft_class_label?: string | null
@@ -2896,6 +2898,7 @@ export type Database = {
           image?: string
           in_shop?: boolean
           is_nft_exclusive?: boolean
+          is_pass_exclusive?: boolean
           max_level?: number
           name?: string
           nft_class_label?: string | null
@@ -6224,6 +6227,7 @@ export type Database = {
           image_young_url: string | null
           is_enabled: boolean
           is_nft_exclusive: boolean
+          is_pass_exclusive: boolean
           is_season_exclusive: boolean
           name: string
           obtainable_from: Json
@@ -6261,6 +6265,7 @@ export type Database = {
           image_young_url?: string | null
           is_enabled?: boolean
           is_nft_exclusive?: boolean
+          is_pass_exclusive?: boolean
           is_season_exclusive?: boolean
           name: string
           obtainable_from?: Json
@@ -6298,6 +6303,7 @@ export type Database = {
           image_young_url?: string | null
           is_enabled?: boolean
           is_nft_exclusive?: boolean
+          is_pass_exclusive?: boolean
           is_season_exclusive?: boolean
           name?: string
           obtainable_from?: Json
@@ -6413,6 +6419,7 @@ export type Database = {
           nft_hero_id: string | null
           nft_instance_id: string | null
           nft_serial: number | null
+          pass_exclusive: boolean
           rarity: string
           skill_power: number | null
           speed: number | null
@@ -6459,6 +6466,7 @@ export type Database = {
           nft_hero_id?: string | null
           nft_instance_id?: string | null
           nft_serial?: number | null
+          pass_exclusive?: boolean
           rarity: string
           skill_power?: number | null
           speed?: number | null
@@ -6505,6 +6513,7 @@ export type Database = {
           nft_hero_id?: string | null
           nft_instance_id?: string | null
           nft_serial?: number | null
+          pass_exclusive?: boolean
           rarity?: string
           skill_power?: number | null
           speed?: number | null
@@ -6777,6 +6786,7 @@ export type Database = {
           market_locked: boolean
           nft_pet_id: string | null
           obtained_at: string
+          pass_exclusive: boolean
           pet_id: string
           rarity: string
           secondary_buffs: Json
@@ -6800,6 +6810,7 @@ export type Database = {
           market_locked?: boolean
           nft_pet_id?: string | null
           obtained_at?: string
+          pass_exclusive?: boolean
           pet_id: string
           rarity: string
           secondary_buffs?: Json
@@ -6823,6 +6834,7 @@ export type Database = {
           market_locked?: boolean
           nft_pet_id?: string | null
           obtained_at?: string
+          pass_exclusive?: boolean
           pet_id?: string
           rarity?: string
           secondary_buffs?: Json
@@ -6959,7 +6971,9 @@ export type Database = {
       player_season_pass: {
         Row: {
           adventurer_owned: boolean
+          expires_at: string | null
           legendary_owned: boolean
+          pass_version: number
           purchased_at: string | null
           season_id: string
           tier: string
@@ -6970,7 +6984,9 @@ export type Database = {
         }
         Insert: {
           adventurer_owned?: boolean
+          expires_at?: string | null
           legendary_owned?: boolean
+          pass_version?: number
           purchased_at?: string | null
           season_id: string
           tier?: string
@@ -6981,7 +6997,9 @@ export type Database = {
         }
         Update: {
           adventurer_owned?: boolean
+          expires_at?: string | null
           legendary_owned?: boolean
+          pass_version?: number
           purchased_at?: string | null
           season_id?: string
           tier?: string
@@ -8825,6 +8843,7 @@ export type Database = {
           enabled: boolean
           id: string
           level: number
+          min_pass_version: number
           reward_code: string | null
           reward_type: string
           season_id: string
@@ -8838,6 +8857,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           level: number
+          min_pass_version?: number
           reward_code?: string | null
           reward_type: string
           season_id: string
@@ -8851,6 +8871,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           level?: number
+          min_pass_version?: number
           reward_code?: string | null
           reward_type?: string
           season_id?: string
@@ -12866,6 +12887,10 @@ export type Database = {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json
       }
+      open_exclusive_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       open_hero_chest: {
         Args: {
           p_inventory_item_id: string
@@ -13216,6 +13241,10 @@ export type Database = {
       }
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
       season_pass_level_purchase_config: { Args: never; Returns: Json }
+      season_pass_levels_for: {
+        Args: { p_pass_version: number; p_season_levels: number }
+        Returns: number
+      }
       season_pass_tier_multiplier: { Args: { p_tier: string }; Returns: number }
       season_pass_xp_caps: { Args: never; Returns: Json }
       season_pass_xp_config: { Args: never; Returns: Json }
