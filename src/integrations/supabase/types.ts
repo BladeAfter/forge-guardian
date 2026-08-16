@@ -14415,12 +14415,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      tower_enter_floor:
-        | { Args: { p_telegram_id: number }; Returns: Json }
-        | {
-            Args: { p_pay_currency?: string; p_telegram_id: number }
-            Returns: Json
-          }
+      tower_enter_floor: {
+        Args: { p_pay_currency?: string; p_telegram_id: number }
+        Returns: Json
+      }
       tower_entry_cost: { Args: { p_floor: number }; Returns: number }
       tower_entry_cost_ton: { Args: never; Returns: number }
       tower_equipment_drop_audit: { Args: never; Returns: Json }
