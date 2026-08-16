@@ -11014,6 +11014,18 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_global_boss_roster: { Args: { p_admin_id: number }; Returns: Json }
+      admin_global_boss_template_set: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_field: string
+          p_reason?: string
+          p_text?: string
+          p_value?: number
+        }
+        Returns: Json
+      }
       admin_grant_hero: {
         Args: {
           p_admin_id: number
