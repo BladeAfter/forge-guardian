@@ -2305,6 +2305,9 @@ const PROMPTS: Record<string, string> = {
   gbtdur: '⏱ Envie a duração do ciclo em horas (1 a 168) — ex.: <code>24</code>',
   gbtname: '✏️ Envie o novo nome do chefe global.',
   gbtsub: '📖 Envie a nova lore/subtítulo do chefe global.',
+  gbmulhp: '❤️ Envie o <b>HP MULTIPLIER</b> do Global Boss (aplicado sobre o HP-base de todos os chefes) — ex.: <code>4</code>',
+  gbmuldef: '🛡 Envie o <b>DEFENSE MULTIPLIER</b> do Global Boss (aplicado sobre a defesa-base) — ex.: <code>3</code>',
+  gbmulatk: '⚔️ Envie o <b>ATK MULTIPLIER</b> do Global Boss (1.25 = +25%) — ex.: <code>1.25</code>',
 
   bossdur: 'Envie: <code>code horas</code> — ex.: <code>golem_ancestral 24</code>',
   bossreward: '⚙️ <b>CHANGE DEFAULT REWARD</b> (próximos ciclos)\nEnvie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>\n\nIsto <b>não</b> altera o ciclo ativo. Para o ciclo atual use <b>✏️ CHANGE CURRENT REWARD</b>.',
@@ -2338,8 +2341,24 @@ const PROMPTS: Record<string, string> = {
 /** Every list coming from the database is normalized before rendering — the panel must open even with no active cycle. */
 const arr = <T,>(value: unknown): T[] => (Array.isArray(value) ? value as T[] : []);
 
+/** Difficulty block shown in every Global Boss screen — base stats are never mutated, only the multipliers. */
+function difficultyLines(diff: any, extra?: any): string[] {
+  const x = (v: unknown, d = 2) => Number(v ?? 0).toFixed(d).replace(/\.0+$/, '');
+  return [
+    '<b>⚙️ DIFICULDADE OFICIAL</b>',
+    `HP MULTIPLIER: <b>${x(diff?.hpMultiplier)}x</b> · DEFENSE: <b>${x(diff?.defenseMultiplier)}x</b> · ATK: <b>${x(diff?.atkMultiplier)}x</b>`,
+    ...(extra ? [`Boss atual: DEF <b>${fmt(extra.defense)}</b> (−${((1 - Number(extra.damageFactor ?? 1)) * 100).toFixed(1)}% de dano recebido) · ATK <b>${fmt(extra.attack)}</b>`] : []),
+  ];
+}
+
+async function bossDifficulty(ctx: Ctx) {
+  return await rpc('admin_global_boss_difficulty', { p_admin_id: ctx.adminId }) as any;
+}
+
 async function bossPanel(ctx: Ctx, editing = true) {
   const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
+  const diffData = await bossDifficulty(ctx);
+  const diff = diffData?.difficulty ?? null;
   const cycle = d?.cycle ?? null;
   const template = d?.template ?? null;
   const templates = arr<any>(d?.templates);
@@ -2351,11 +2370,18 @@ async function bossPanel(ctx: Ctx, editing = true) {
   const when = (v: unknown) => (v ? esc(new Date(String(v)).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })) : '—');
   const list = templates.map((t) => `• <code>${esc(t.code)}</code> ${esc(t.name)} NV${t.level ?? 1} — ${fmt(t.maxHp)} HP ${t.active ? '🟢' : '⚪'}`).join('\n') || '—';
   const rank = top.map((t) => `#${t.rank} ${esc(t.name)} — ${fmt(Math.round(Number(t.damage ?? 0)))} (${Number(t.sharePercent ?? 0).toFixed(2)}%)`).join('\n') || '—';
+  const multiplierRows = [
+    [{ t: '❤️ SET HP MULTIPLIER', d: 'ask:gbmulhp' }],
+    [{ t: '🛡 SET DEF MULTIPLIER', d: 'ask:gbmuldef' }, { t: '⚔️ SET ATK MULTIPLIER', d: 'ask:gbmulatk' }],
+    [{ t: '♻️ RESTART ROTATION', d: 'gbrot:ask' }],
+  ];
 
   if (!cycle) {
     return (editing ? edit : send)(ctx, [
       '👹 <b>GLOBAL BOSS</b>',
       'Status: 🔴 <b>NO ACTIVE BOSS</b>',
+      '',
+      ...difficultyLines(diff),
       '',
       `Modelo padrão: <b>${template ? esc(template.name) : '—'}</b>${template ? ` — ${fmt(template.maxHp)} HP · ${fmt(template.reward)} FC` : ''}`,
       '',
@@ -2363,7 +2389,7 @@ async function bossPanel(ctx: Ctx, editing = true) {
     ].join('\n'), kb([
       [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
       [{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }],
-
+      ...multiplierRows,
       [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }],
       [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }],
       [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
@@ -2374,7 +2400,7 @@ async function bossPanel(ctx: Ctx, editing = true) {
 
   const text = [
     '👹 <b>GLOBAL BOSS</b>',
-    `Boss: <b>${esc(cycle.name)}</b> · ciclo #${cycle.cycleNumber ?? 1}`,
+    `Boss: <b>${esc(cycle.name)}</b> · ciclo #${cycle.cycleNumber ?? 1}${diffData?.cycle?.bossNumber ? ` · boss ${diffData.cycle.bossNumber}/${diffData?.bossCount ?? 20}` : ''}`,
     `Status: ${cycle.status === 'active' ? '🟢 ACTIVE' : `⚪ ${esc(String(cycle.status || '').toUpperCase())}`}`,
     `HP: <b>${fmt(Math.round(Number(cycle.currentHp ?? 0)))}</b> / ${fmt(cycle.maxHp)}`,
     `🎁 <b>CURRENT REWARD:</b> <b>${fmt(cycle.rewardPoolFc)} FC</b>${cycle.distributedAt ? ' (distribuído)' : ''}`,
@@ -2382,6 +2408,8 @@ async function bossPanel(ctx: Ctx, editing = true) {
     `👥 Participantes: ${fmt(cycle.participants ?? 0)} · Dano total: ${fmt(Math.round(Number(cycle.totalDamage ?? 0)))}`,
     `Dano mínimo: ${Number(cycle.minimumDamagePercent ?? 0)}% · bônus de pódio: ${cycle.rankBonusEnabled ? 'ON' : 'off'}`,
     `Início: ${when(cycle.startsAt)}\nFim: ${when(cycle.endsAt)}`,
+    '',
+    ...difficultyLines(diff, diffData?.cycle),
     '',
     `<b>Top dano</b>\n${rank}`,
     '',
@@ -2391,7 +2419,7 @@ async function bossPanel(ctx: Ctx, editing = true) {
   return (editing ? edit : send)(ctx, text, kb([
     [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
     [{ t: '🏆 VER RANKING', d: 'boss:rank' }, { t: '🔴 ENCERRAR', d: 'confirm:bossend' }],
-
+    ...multiplierRows,
     [{ t: '✏️ CHANGE CURRENT REWARD', d: 'boss:curreward' }],
     [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
     [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
@@ -2400,6 +2428,54 @@ async function bossPanel(ctx: Ctx, editing = true) {
     nav(),
   ]));
 }
+
+/** RESTART ROTATION: confirmation card + execution. History, rankings and payouts are preserved. */
+async function bossRotationFlow(ctx: Ctx, step: string) {
+  const d = await bossDifficulty(ctx);
+  const diff = d?.difficulty ?? null;
+  const count = d?.bossCount ?? 20;
+  if (step !== 'go') {
+    return send(ctx, [
+      '⚠️ <b>RESTART GLOBAL BOSS ROTATION?</b>',
+      '',
+      `Current: <b>Boss ${d?.cycle?.bossNumber ?? '—'}/${count}</b>`,
+      `New: <b>Boss 1/${count}</b>`,
+      '',
+      `HP Multiplier: <b>${Number(diff?.hpMultiplier ?? 0)}x</b>`,
+      `Defense Multiplier: <b>${Number(diff?.defenseMultiplier ?? 0)}x</b>`,
+      `Attack Multiplier: <b>${Number(diff?.atkMultiplier ?? 0)}x</b>`,
+      '',
+      'Previous history and rewards will be preserved.',
+    ].join('\n'), kb([[{ t: '✅ CONFIRM', d: 'gbrot:go' }, { t: '❌ CANCEL', d: 'm:boss' }]]));
+  }
+  const r = await rpc('admin_global_boss_restart_rotation', { p_admin_id: ctx.adminId, p_reason: 'restart de rotação pelo admin' }) as any;
+  return send(ctx, [
+    '✅ <b>NOVA ROTAÇÃO INICIADA</b>',
+    `Ciclo: <code>${esc(r.newCycleId)}</code> (#${r.cycleNumber} · rotação ${r.rotationNumber})`,
+    `👹 Boss <b>${r.bossNumber}/${count} — ${esc(r.name)}</b>`,
+    `❤️ HP efetivo: <b>${fmt(r.maxHp)}</b>`,
+    `🛡 Defesa efetiva: <b>${fmt(r.defense)}</b>`,
+    `⚔️ ATK efetivo: <b>${fmt(r.attack)}</b>`,
+    `🎁 Prêmio: ${fmt(r.rewardPoolFc)} FC`,
+  ].join('\n'), kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+}
+
+/** Multiplier setter — always applied over BASE stats, never cumulative. */
+async function bossSetMultiplier(ctx: Ctx, kind: string, raw: string) {
+  const value = Number(String(raw).replace(',', '.').trim());
+  if (!Number.isFinite(value) || value < 0.1 || value > 100) {
+    return send(ctx, '⚠️ Valor inválido. Envie um multiplicador entre <code>0.1</code> e <code>100</code>. Ex.: <code>4</code>', kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+  }
+  const r = await rpc('admin_global_boss_multiplier', { p_admin_id: ctx.adminId, p_kind: kind, p_value: value, p_reason: `multiplicador ${kind} = ${value}` }) as any;
+  const label = kind === 'hp' ? 'HP' : kind === 'def' ? 'DEFENSE' : 'ATK';
+  return send(ctx, [
+    `✅ <b>${label} MULTIPLIER = ${value}x</b>`,
+    `Antes: ${r.oldValue ?? '—'}x`,
+    r.cycle ? `\nBoss atual: <b>${esc(r.cycle.name)}</b>\n❤️ ${fmt(r.cycle.currentHp)} / ${fmt(r.cycle.maxHp)}\n🛡 DEF ${fmt(r.cycle.defense)} · ⚔️ ATK ${fmt(r.cycle.attack)}` : '\nNenhum ciclo ativo — vale para o próximo boss.',
+    '\nOs multiplicadores sempre partem do valor-base (nunca acumulam entre ciclos).',
+  ].join('\n'), kb([[{ t: '👹 Boss', d: 'm:boss' }], nav()]));
+}
+
 
 // ---------------------------------------------------------------- global boss roster (20 bosses)
 /** Lists every Global Boss template so each one can be toggled/edited without spawning it first. */
@@ -2411,7 +2487,8 @@ async function bossRoster(ctx: Ctx, page = 0) {
   const body = slice.map((b) => [
     `${b.current ? '🔥' : b.enabled ? '🟢' : '⚪'} <b>#${b.bossNumber} ${esc(b.name)}</b>`,
     `   <i>${esc(b.subtitle ?? '—')}</i>`,
-    `   ❤️ ${fmt(b.maxHp)} HP · 🎁 ${fmt(b.rewardFc)} FC · ⏱ ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
+    `   ❤️ base ${fmt(b.maxHp)} → efetivo <b>${fmt(b.effective?.maxHp)}</b> HP`,
+    `   🛡 DEF ${fmt(b.effective?.defense)} · ⚔️ ATK ${fmt(b.effective?.attack)} · 🎁 ${fmt(b.rewardFc)} FC · ⏱ ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
   ].join('\n')).join('\n\n') || '—';
   const rows = slice.map((b) => [{ t: `${b.enabled ? '🟢' : '⚪'} #${b.bossNumber} ${b.name}`, d: `gbt:${b.code}` }]);
   const pager: { t: string; d: string }[] = [];
@@ -2420,6 +2497,7 @@ async function bossRoster(ctx: Ctx, page = 0) {
   return edit(ctx, [
     '🗺 <b>GLOBAL BOSS ROSTER</b>',
     `Total: <b>${bosses.length}</b> chefes · ciclo atual: ${d?.activeBossNumber ? `#${d.activeBossNumber}` : '—'}`,
+    ...difficultyLines(d?.difficulty),
     '',
     body,
   ].join('\n'), kb([...rows, ...(pager.length ? [pager] : []), nav('m:boss')]));
@@ -3693,6 +3771,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
   if (head === 'boss' && rest[0] === 'roster') { await clearSession(ctx); return bossRoster(ctx, Number(rest[1] || 0) || 0); }
+  if (head === 'gbrot') { await clearSession(ctx); return bossRotationFlow(ctx, rest[0] || 'ask'); }
   if (head === 'gbt') { await clearSession(ctx); return bossTemplateMenu(ctx, rest.join(':')); }
   if (head === 'gbtset') {
     await clearSession(ctx);
@@ -5992,6 +6071,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     case 'questtz': { const r = await rpc('admin_set_quest_timezone', { p_admin_id: ctx.adminId, p_timezone: text }); return send(ctx, `✅ Reset diário no fuso <b>${esc(r.timezone)}</b>.`, kb([[{ t: '🎯 DAILY QUESTS', d: 'm:quests' }], nav()])); }
     case 'mission': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_mission', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Missão salva: ${esc(r.title)}`, MAIN_MENU); }
     case 'boss': { const i = text.indexOf(' '); const r = await rpc('admin_upsert_boss', { p_admin_id: ctx.adminId, p_code: text.slice(0, i), p_patch: JSON.parse(text.slice(i + 1)), p_reason: 'painel admin' }); return send(ctx, `✅ Chefe salvo: ${esc(r.name)} — ${fmt(r.max_hp)} HP`, MAIN_MENU); }
+    case 'gbmulhp': return bossSetMultiplier(ctx, 'hp', text);
+    case 'gbmuldef': return bossSetMultiplier(ctx, 'def', text);
+    case 'gbmulatk': return bossSetMultiplier(ctx, 'atk', text);
     case 'bossspawn': {
       const r = await rpc('admin_boss_control', { p_admin_id: ctx.adminId, p_action: 'activate', p_code: text.trim(), p_reason: 'ativação manual' });
       const ends = r.endsAt ? new Date(r.endsAt).toLocaleString('pt-BR') : '—';

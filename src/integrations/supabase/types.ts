@@ -2733,7 +2733,10 @@ export type Database = {
       }
       global_boss_cycles: {
         Row: {
+          atk_multiplier: number
+          boss_attack: number
           boss_background: string | null
+          boss_defense: number
           boss_image: string | null
           boss_key: string
           boss_level: number
@@ -2745,9 +2748,11 @@ export type Database = {
           current_hp: number
           cycle_number: number
           defeated_at: string | null
+          defense_multiplier: number
           distributed_at: string | null
           ended_reason: string | null
           ends_at: string | null
+          hp_multiplier: number
           id: string
           max_hp: number
           minimum_damage_fixed: number
@@ -2757,6 +2762,7 @@ export type Database = {
           rank_bonus: Json
           rank_bonus_enabled: boolean
           reward_pool_fc: number
+          rotation_number: number
           starts_at: string
           status: string
           template_id: string | null
@@ -2764,7 +2770,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          atk_multiplier?: number
+          boss_attack?: number
           boss_background?: string | null
+          boss_defense?: number
           boss_image?: string | null
           boss_key: string
           boss_level?: number
@@ -2776,9 +2785,11 @@ export type Database = {
           current_hp: number
           cycle_number: number
           defeated_at?: string | null
+          defense_multiplier?: number
           distributed_at?: string | null
           ended_reason?: string | null
           ends_at?: string | null
+          hp_multiplier?: number
           id?: string
           max_hp: number
           minimum_damage_fixed?: number
@@ -2788,6 +2799,7 @@ export type Database = {
           rank_bonus?: Json
           rank_bonus_enabled?: boolean
           reward_pool_fc?: number
+          rotation_number?: number
           starts_at?: string
           status?: string
           template_id?: string | null
@@ -2795,7 +2807,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          atk_multiplier?: number
+          boss_attack?: number
           boss_background?: string | null
+          boss_defense?: number
           boss_image?: string | null
           boss_key?: string
           boss_level?: number
@@ -2807,9 +2822,11 @@ export type Database = {
           current_hp?: number
           cycle_number?: number
           defeated_at?: string | null
+          defense_multiplier?: number
           distributed_at?: string | null
           ended_reason?: string | null
           ends_at?: string | null
+          hp_multiplier?: number
           id?: string
           max_hp?: number
           minimum_damage_fixed?: number
@@ -2819,6 +2836,7 @@ export type Database = {
           rank_bonus?: Json
           rank_bonus_enabled?: boolean
           reward_pool_fc?: number
+          rotation_number?: number
           starts_at?: string
           status?: string
           template_id?: string | null
@@ -2946,6 +2964,8 @@ export type Database = {
       global_boss_templates: {
         Row: {
           background_url: string | null
+          base_attack: number
+          base_defense: number
           boss_level: number
           boss_number: number
           code: string
@@ -2964,6 +2984,8 @@ export type Database = {
         }
         Insert: {
           background_url?: string | null
+          base_attack?: number
+          base_defense?: number
           boss_level?: number
           boss_number: number
           code: string
@@ -2982,6 +3004,8 @@ export type Database = {
         }
         Update: {
           background_url?: string | null
+          base_attack?: number
+          base_defense?: number
           boss_level?: number
           boss_number?: number
           code?: string
@@ -11014,6 +11038,23 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_global_boss_difficulty: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_global_boss_multiplier: {
+        Args: {
+          p_admin_id: number
+          p_kind: string
+          p_reason?: string
+          p_value: number
+        }
+        Returns: Json
+      }
+      admin_global_boss_restart_rotation: {
+        Args: { p_admin_id: number; p_reason?: string }
+        Returns: Json
+      }
       admin_global_boss_roster: { Args: { p_admin_id: number }; Returns: Json }
       admin_global_boss_template_set: {
         Args: {
@@ -12714,7 +12755,10 @@ export type Database = {
       ensure_global_boss_cycle: {
         Args: never
         Returns: {
+          atk_multiplier: number
+          boss_attack: number
           boss_background: string | null
+          boss_defense: number
           boss_image: string | null
           boss_key: string
           boss_level: number
@@ -12726,9 +12770,11 @@ export type Database = {
           current_hp: number
           cycle_number: number
           defeated_at: string | null
+          defense_multiplier: number
           distributed_at: string | null
           ended_reason: string | null
           ends_at: string | null
+          hp_multiplier: number
           id: string
           max_hp: number
           minimum_damage_fixed: number
@@ -12738,6 +12784,7 @@ export type Database = {
           rank_bonus: Json
           rank_bonus_enabled: boolean
           reward_pool_fc: number
+          rotation_number: number
           starts_at: string
           status: string
           template_id: string | null
@@ -13042,11 +13089,23 @@ export type Database = {
         Returns: Json
       }
       global_boss_auto_pass_tier: { Args: { p_user: string }; Returns: string }
+      global_boss_damage_factor: {
+        Args: { p_defense: number }
+        Returns: number
+      }
+      global_boss_difficulty: { Args: never; Returns: Json }
+      global_boss_effective_stats: { Args: { p_number: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
+      global_boss_setting_num: {
+        Args: { p_default: number; p_key: string }
+        Returns: number
+      }
       global_boss_template_for_number: {
         Args: { p_number: number }
         Returns: {
           background_url: string | null
+          base_attack: number
+          base_defense: number
           boss_level: number
           boss_number: number
           code: string
