@@ -14179,6 +14179,29 @@ export type Database = {
         Returns: Json
       }
       search_pvp_opponents: { Args: { p_telegram_id: number }; Returns: Json }
+      season_pass_apply_entitlement: {
+        Args: { p_season_id: string; p_tier: string; p_user_id: string }
+        Returns: {
+          adventurer_owned: boolean
+          expires_at: string | null
+          legendary_owned: boolean
+          pass_version: number
+          purchased_at: string | null
+          season_id: string
+          tier: string
+          updated_at: string
+          upgraded_at: string | null
+          user_id: string
+          xp: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "player_season_pass"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      season_pass_claim_version_guard: { Args: never; Returns: undefined }
       season_pass_level_purchase_config: { Args: never; Returns: Json }
       season_pass_levels_for: {
         Args: { p_pass_version: number; p_season_levels: number }
