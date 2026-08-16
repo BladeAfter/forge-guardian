@@ -75,8 +75,9 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   :mystery?'border-violet-300/60 bg-gradient-to-b from-violet-950/70 to-black/70 shadow-[0_0_16px_rgba(167,139,250,.25)]'
   :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
   :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
- return<button disabled={!r?.unlocked||r.claimed||pending} onClick={()=>r&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
-  {premium?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
+ const versionLocked=Boolean(r?.versionLocked);
+ return<button disabled={!r?.unlocked||r.claimed||pending||versionLocked} onClick={()=>r&&!versionLocked&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
+  {premium||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
   {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
    {mystery
@@ -87,7 +88,8 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
    {!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}
   </>:null}
   <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
-  {r&&!r.unlocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
+  {r&&!r.unlocked&&!versionLocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
+  {versionLocked?<span className="absolute inset-0 z-10 grid place-items-center bg-black/70 px-1 text-center"><span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span></span>:null}
  </button>}
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
