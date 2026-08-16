@@ -141,8 +141,8 @@ export type TowerRanking = {
 /** Milestone rewards shown on the tower screen (presentational only). */
 export const TOWER_MILESTONES = [
   { floor: 10, reward: '50,000 FC + Eternity Key x1' },
-  { floor: 25, reward: 'Rare Fragments x15' },
-  { floor: 50, reward: 'Legendary Fragments x10' },
-  { floor: 75, reward: 'Mythic Egg x1' },
-  { floor: 100, reward: 'Ancestral Fragments x25' },
+  { floor: 25, reward: '100,000 FC + Universal Frag. x15 + Void Key x1' },
+  { floor: 50, reward: '150,000 FC + Epic Gear Chest + Void Key x1' },
+  { floor: 75, reward: '250,000 FC + Universal Frag. x25 + Celestial Key x1' },
+  { floor: 100, reward: '500,000 FC + Legendary Gear Chest + Celestial Key x1' },
 ] as const;
