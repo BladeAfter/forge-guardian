@@ -645,14 +645,12 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   // Per-deposit credit detail so the client can show the right message (FC vs TON balance).
   const credits: Array<{ id: string; depositType: string; amountTon: number; amountFc: number }> = [];
 
-  for (const deposit of deposits) {
+  const findMatch = (deposit: any, byComment: boolean) => {
     const comment = String(deposit.paymentComment || '').trim();
     const expectedNano = BigInt(String(deposit.amountNano || '0'));
     const minNano = (expectedNano * 97n) / 100n; // wallet fee rounding tolerance
     const createdAt = new Date(String(deposit.createdAt)).getTime();
-    console.log('[DEPOSIT VERIFY]', JSON.stringify({ orderId: deposit.id, userId: state?.userId, expectedNano: expectedNano.toString(), createdAt: deposit.createdAt }));
-
-    const candidate = (byComment: boolean) => transactions.find((tx: any) => {
+    return transactions.find((tx: any) => {
       const inMsg = tx?.in_msg;
       if (!inMsg) return false;
       const hash = txHashOf(tx);
@@ -665,17 +663,17 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       // Fallback: no comment on chain -> same sender, right value, sent after the order was created.
       if (txComment) return false;
       const utime = Number(tx?.now ?? inMsg?.created_at ?? 0) * 1000;
-      if (utime && utime < createdAt - 300_000) return false;
+      // An unknown timestamp is never trusted: it could be an old transfer of the same value.
+      if (!utime || utime < createdAt - 300_000) return false;
       return sameTonAddress(inMsg.source, deposit.fromWallet);
     });
+  };
 
-    const match = candidate(true) ?? candidate(false);
-    if (!match) { stillPending.push(deposit.id); console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, matched: false, reason: 'no_onchain_transfer_yet' })); continue; }
-
+  const settle = async (deposit: any, match: any) => {
     const txHash = txHashOf(match);
     const receivedNano = BigInt(String(match.in_msg?.value ?? '0'));
     console.log('[TON TX]', JSON.stringify({ hash: txHash, amountNano: receivedNano.toString(), destination: hotWallet, timestamp: match?.now }));
-    console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, matched: true, reason: msgComment(match.in_msg) ? 'comment' : 'sender_amount' }));
+    console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, depositType: deposit.depositType, matched: true, reason: msgComment(match.in_msg) ? 'comment' : 'sender_amount' }));
     try {
       const result = await rpc(db, 'confirm_wallet_deposit', { p_deposit_id: deposit.id, p_tx_hash: txHash, p_amount_nano: receivedNano.toString() }) as any;
       used.add(txHash);
@@ -697,6 +695,26 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       stillPending.push(deposit.id);
       if (reason.includes('TX_ALREADY_USED')) used.add(txHash);
     }
+  };
+
+  // PHASE 1 — exact payment comment. This is the only match that proves WHICH intent
+  // (TON → FC or TON → internal TON balance) the player actually paid for.
+  const unmatched: any[] = [];
+  for (const deposit of deposits) {
+    console.log('[DEPOSIT VERIFY]', JSON.stringify({ orderId: deposit.id, depositType: deposit.depositType, userId: state?.userId, expectedNano: String(deposit.amountNano), createdAt: deposit.createdAt }));
+    const match = findMatch(deposit, true);
+    if (match) await settle(deposit, match);
+    else unmatched.push(deposit);
+  }
+
+  // PHASE 2 — wallet stripped the comment: sender + amount + time window. Runs only AFTER every
+  // comment match is settled, and never for superseded intents (commentOnly), so a payment made to
+  // the internal TON balance can no longer be credited as FC by an older/other-type intent.
+  for (const deposit of unmatched) {
+    if (deposit.commentOnly) { stillPending.push(deposit.id); continue; }
+    const match = findMatch(deposit, false);
+    if (!match) { stillPending.push(deposit.id); console.log('[MATCH RESULT]', JSON.stringify({ orderId: deposit.id, depositType: deposit.depositType, matched: false, reason: 'no_onchain_transfer_yet' })); continue; }
+    await settle(deposit, match);
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
