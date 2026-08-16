@@ -45,11 +45,11 @@ export function NameMissionCard({ telegramInitData }: { telegramInitData: string
         void queryClient.invalidateQueries({ queryKey: ['game-state'] });
         void queryClient.invalidateQueries({ queryKey: ['wallet-summary'] });
       } else if (result.status === 'already_claimed') {
-        toast.info(t('nameMission.alreadyClaimed'));
+        toast(t('nameMission.alreadyClaimed'));
       } else {
         toast.error(t('nameMission.failure', { hashtag: result.hashtag ?? hashtag }));
         // Session data can predate the rename: never validate an old cache silently.
-        if (result.stale) toast.info(t('nameMission.stale'));
+        if (result.stale) toast(t('nameMission.stale'));
       }
     },
     onError: (error: unknown) => {
