@@ -47,9 +47,26 @@ export type TowerRewards = {
   petFood: number;
   heroChest: number;
   towerKey: number;
+  /** Chest rarity granted on this floor (server-side). */
+  chestCode?: string | null;
+  /** Straight FC bonus paid on a clear. */
+  forgeCoins?: number;
+  /** Universal fragments (hero fusion currency). */
+  universalFragments?: number;
+  /** Drop chance in % for each tower key, per floor band (display only). */
+  keyChances?: Record<string, number>;
+  /** Keys actually granted on this clear (code -> quantity). */
+  keys?: Record<string, number>;
   /** Equipment instance dropped on this clear (null when nothing dropped). */
   equipment?: TowerEquipmentDrop | null;
 };
+
+/** The 3 collectible tower keys. They have NO function yet — inventory display only. */
+export const TOWER_KEYS = [
+  { code: 'eternity_key', name: 'Eternity Key', rarity: 'rare', image: '/assets/game/ui/eternity-key.png', color: '#60a5fa' },
+  { code: 'void_key', name: 'Void Key', rarity: 'epic', image: '/assets/game/ui/void-key.png', color: '#c084fc' },
+  { code: 'celestial_key', name: 'Celestial Key', rarity: 'legendary', image: '/assets/game/ui/celestial-key.png', color: '#fbbf24' },
+] as const;
 
 export type PetSummary = {
   activePet: { name: string; image: string; level?: number; rarity?: string } | null;
