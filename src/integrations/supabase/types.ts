@@ -11440,6 +11440,20 @@ export type Database = {
         Args: { p_admin_id: number; p_pet_id: string }
         Returns: Json
       }
+      admin_pet_power_audit: {
+        Args: never
+        Returns: {
+          buff_sum: number
+          evolution_stage: number
+          has_zero_buff: boolean
+          level: number
+          pet_name: string
+          player_pet_id: string
+          power: number
+          rarity: string
+          rarity_order: number
+        }[]
+      }
       admin_pet_rarities: { Args: { p_admin_id: number }; Returns: Json }
       admin_pet_rarity_audit: {
         Args: { p_admin_id: number; p_limit?: number }
@@ -12386,6 +12400,10 @@ export type Database = {
           p_levels: number
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      calculate_pet_combat_stats: {
+        Args: { p_player_pet_id: string }
         Returns: Json
       }
       calculate_pet_reward: {
@@ -13601,6 +13619,17 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      pet_buff_cap: { Args: { p_key: string }; Returns: number }
+      pet_effective_buff: {
+        Args: {
+          p_base: number
+          p_key: string
+          p_level: number
+          p_rarity: string
+          p_stage: number
+        }
+        Returns: number
+      }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_hatch_result_json: {
@@ -13627,6 +13656,12 @@ export type Database = {
         }
         Returns: Json
       }
+      pet_stage_buff_multiplier: { Args: { p_stage: number }; Returns: number }
+      pet_stage_index: {
+        Args: { p_level: number; p_tier?: number }
+        Returns: number
+      }
+      pet_stage_power_multiplier: { Args: { p_stage: number }; Returns: number }
       pet_tier_multiplier: { Args: { p_tier: number }; Returns: number }
       pet_total_xp: { Args: { p_level: number; p_xp: number }; Returns: number }
       pet_visual_image: {
