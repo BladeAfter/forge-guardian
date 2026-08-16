@@ -1,5 +1,5 @@
 /**
- * Visual identity for the 10 Clan Boss cycles.
+ * Visual identity for the 15 Clan Boss cycles.
  *
  * Pure presentation: art + themed arena/background/glow per boss key. The
  * backend decides which boss is active (cycle -> template); this map only
@@ -16,6 +16,11 @@ import voidExecutioner from './assets/clan-boss/void-executioner.png';
 import crimsonBehemoth from './assets/clan-boss/crimson-behemoth.png';
 import soulbreakerKing from './assets/clan-boss/soulbreaker-king.png';
 import eternalOverlord from './assets/clan-boss/eternal-overlord.png';
+import obsidianLeviathan from './assets/clan-boss/obsidian-leviathan.png';
+import sunkenOracle from './assets/clan-boss/sunken-oracle.png';
+import ashenWarbringer from './assets/clan-boss/ashen-warbringer.png';
+import celestialInquisitor from './assets/clan-boss/celestial-inquisitor.png';
+import nightmareSovereign from './assets/clan-boss/nightmare-sovereign.png';
 
 /** Ambient particle layer rendered over the arena art. */
 export type ClanBossFx = 'ember' | 'snow' | 'mist' | 'spore' | 'spark' | 'gold';
@@ -180,6 +185,71 @@ const THEMES: Record<string, ClanBossTheme> = {
     border: 'border-amber-300/40',
     bar: 'linear-gradient(90deg,#78350f,#f59e0b,#fde68a)',
     accent: 'text-amber-200',
+  },
+  obsidian_leviathan: {
+    art: obsidianLeviathan,
+    arena: arena('obsidian-leviathan'),
+    stage: 'radial-gradient(circle at 50% 8%, rgba(168,85,247,.42), rgba(46,16,101,.68) 45%, rgba(4,2,9,.97) 78%)',
+    page: 'radial-gradient(circle at 50% 0%, rgba(88,28,135,.55), #050310 70%)',
+    aura: aura('192,132,252'),
+    base: base('192,132,252'),
+    fx: 'spark',
+    glow: 'drop-shadow(0 0 36px rgba(192,132,252,.62))',
+    border: 'border-purple-400/30',
+    bar: 'linear-gradient(90deg,#4c1d95,#9333ea,#d8b4fe)',
+    accent: 'text-purple-200',
+  },
+  sunken_oracle: {
+    art: sunkenOracle,
+    arena: arena('sunken-oracle'),
+    stage: 'radial-gradient(circle at 50% 8%, rgba(45,212,191,.4), rgba(8,51,68,.7) 45%, rgba(2,8,12,.97) 78%)',
+    page: 'radial-gradient(circle at 50% 0%, rgba(12,74,90,.55), #02080d 70%)',
+    aura: aura('34,211,238'),
+    base: base('34,211,238'),
+    fx: 'mist',
+    glow: 'drop-shadow(0 0 34px rgba(34,211,238,.6))',
+    border: 'border-cyan-400/30',
+    bar: 'linear-gradient(90deg,#083344,#06b6d4,#67e8f9)',
+    accent: 'text-cyan-200',
+  },
+  ashen_warbringer: {
+    art: ashenWarbringer,
+    arena: arena('ashen-warbringer'),
+    stage: 'radial-gradient(circle at 50% 8%, rgba(234,88,12,.4), rgba(68,64,60,.7) 45%, rgba(8,6,5,.97) 78%)',
+    page: 'radial-gradient(circle at 50% 0%, rgba(120,53,15,.5), #0a0807 70%)',
+    aura: aura('251,113,36'),
+    base: base('251,113,36'),
+    fx: 'ember',
+    glow: 'drop-shadow(0 0 34px rgba(251,113,36,.6))',
+    border: 'border-stone-400/30',
+    bar: 'linear-gradient(90deg,#44403c,#ea580c,#fdba74)',
+    accent: 'text-orange-200',
+  },
+  celestial_inquisitor: {
+    art: celestialInquisitor,
+    arena: arena('celestial-inquisitor'),
+    stage: 'radial-gradient(circle at 50% 8%, rgba(253,230,138,.4), rgba(120,113,108,.55) 45%, rgba(12,10,6,.95) 78%)',
+    page: 'radial-gradient(circle at 50% 0%, rgba(146,110,20,.5), #0b0904 70%)',
+    aura: aura('254,240,138',0.5),
+    base: base('254,240,138'),
+    fx: 'gold',
+    glow: 'drop-shadow(0 0 42px rgba(254,243,199,.7))',
+    border: 'border-yellow-200/40',
+    bar: 'linear-gradient(90deg,#a16207,#facc15,#fef9c3)',
+    accent: 'text-yellow-100',
+  },
+  nightmare_sovereign: {
+    art: nightmareSovereign,
+    arena: arena('nightmare-sovereign'),
+    stage: 'radial-gradient(circle at 50% 8%, rgba(217,70,239,.4), rgba(59,7,100,.72) 45%, rgba(5,2,8,.98) 78%)',
+    page: 'radial-gradient(circle at 50% 0%, rgba(112,26,117,.55), #06030a 70%)',
+    aura: aura('232,121,249'),
+    base: base('232,121,249'),
+    fx: 'mist',
+    glow: 'drop-shadow(0 0 40px rgba(232,121,249,.65))',
+    border: 'border-fuchsia-400/35',
+    bar: 'linear-gradient(90deg,#4a044e,#d946ef,#f5d0fe)',
+    accent: 'text-fuchsia-200',
   },
 };
 
