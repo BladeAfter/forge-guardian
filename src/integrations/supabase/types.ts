@@ -4279,6 +4279,59 @@ export type Database = {
         }
         Relationships: []
       }
+      name_mission_claims: {
+        Row: {
+          created_at: string
+          hashtag: string
+          id: string
+          mission_code: string
+          reward_amount: number
+          reward_type: string
+          telegram_auth_date: number | null
+          telegram_id: number
+          user_id: string
+          verified_at: string
+          verified_display_name: string
+          verified_source: string
+        }
+        Insert: {
+          created_at?: string
+          hashtag: string
+          id?: string
+          mission_code?: string
+          reward_amount?: number
+          reward_type?: string
+          telegram_auth_date?: number | null
+          telegram_id: number
+          user_id: string
+          verified_at?: string
+          verified_display_name: string
+          verified_source?: string
+        }
+        Update: {
+          created_at?: string
+          hashtag?: string
+          id?: string
+          mission_code?: string
+          reward_amount?: number
+          reward_type?: string
+          telegram_auth_date?: number | null
+          telegram_id?: number
+          user_id?: string
+          verified_at?: string
+          verified_display_name?: string
+          verified_source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "name_mission_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nft_breeding_history: {
         Row: {
           breed_number_a: number | null
@@ -11329,6 +11382,10 @@ export type Database = {
         Returns: Json
       }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_name_mission: {
+        Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
+        Returns: Json
+      }
       admin_next_hero_key: {
         Args: { p_admin_id: number; p_name: string }
         Returns: string
@@ -12548,6 +12605,15 @@ export type Database = {
         Returns: Json
       }
       claim_hero_mining: { Args: { p_telegram_id: number }; Returns: Json }
+      claim_name_mission: {
+        Args: {
+          p_auth_date?: number
+          p_display_name: string
+          p_source?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       claim_partner_reward:
         | {
             Args: { p_partner_id: string; p_telegram_id: number }
@@ -13075,6 +13141,7 @@ export type Database = {
       }
       get_hero_mining_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_hero_shop_config: { Args: never; Returns: Json }
+      get_name_mission_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }
       get_pet_bonuses: { Args: { p_user: string }; Returns: Json }
@@ -13517,6 +13584,11 @@ export type Database = {
         }[]
       }
       min_withdraw_ton: { Args: never; Returns: number }
+      name_mission_config: { Args: never; Returns: Json }
+      name_mission_matches: {
+        Args: { p_display_name: string; p_hashtag: string }
+        Returns: boolean
+      }
       nft_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }
         Returns: Json
