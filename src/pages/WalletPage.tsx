@@ -17,6 +17,7 @@ import type { PetRarity } from '../petRules';
 import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
+import { sendTonPayment } from '../tonPayment';
 
 
 type Props = {
@@ -177,11 +178,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
       const walletAddress = await ensureWalletAddress();
       const intent = await createDepositIntent(telegramInitData, depositTon, walletAddress, crypto.randomUUID(), depositMode);
-      await tonConnectUI.sendTransaction({
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        // The comment is the on-chain marker the backend matches against the hot wallet transactions.
-        messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }]
-      });
+      await sendTonPayment(intent, (tx) => tonConnectUI.sendTransaction(tx));
       return intent;
     },
     onSuccess: async () => {

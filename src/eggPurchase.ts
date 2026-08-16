@@ -3,6 +3,7 @@ import type { PetDashboard, PetHatchResult } from './pets';
 import { createEggTonOrder, verifyEggPurchases } from './services';
 import { encodeCommentPayload } from './tonComment';
 import type { TonPaymentIntent } from './wallet';
+import { sendTonPayment } from './tonPayment';
 
 /** Where the purchase started. The pipeline below is identical for both screens. */
 export type EggPurchaseSource = 'pet_shop' | 'wallet';
@@ -53,11 +54,7 @@ export async function purchasePremiumEgg(input: {
 }): Promise<TonPaymentIntent> {
   if (!input.telegramInitData) throw new Error('Abra o jogo pelo Telegram para comprar.');
   const order = await createEggTonOrder(input.telegramInitData, input.eggId, `${input.source}:${crypto.randomUUID()}`);
-  await input.sendTransaction({
-    validUntil: Math.floor(Date.now() / 1000) + 300,
-    // The comment ties this exact payment to this exact order (no value-only guessing).
-    messages: [{ address: order.paymentAddress, amount: order.amountNano, payload: encodeCommentPayload(order.paymentComment) }],
-  });
+  await sendTonPayment(order, (tx) => input.sendTransaction(tx));
   return order;
 }
 

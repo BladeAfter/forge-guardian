@@ -13,6 +13,7 @@ import {
 } from '../services';
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
+import { sendTonPayment } from '../tonPayment';
 
 /**
  * BUY NFT (heroes): store for the 10 unique NFT EXCLUSIVE heroes (1/1 each).
@@ -53,10 +54,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
         throw new Error('CONNECT_TON_WALLET');
       }
       const order = await createNftHeroTonOrder(telegramInitData, item.id, key);
-      await tonUI.sendTransaction({
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages: [{ address: order.paymentAddress, amount: order.amountNano, payload: encodeCommentPayload(order.paymentComment) }],
-      });
+      await sendTonPayment(order, (tx) => tonUI.sendTransaction(tx));
       setWaiting(true);
       for (let attempt = 1; attempt <= 10; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, attempt === 1 ? 6000 : 7000));

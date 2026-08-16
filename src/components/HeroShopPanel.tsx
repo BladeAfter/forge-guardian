@@ -21,6 +21,7 @@ import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
 import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
 import { AuctionPanel } from './AuctionPanel';
+import { sendTonPayment } from '../tonPayment';
 
 
 type Props = {
@@ -172,11 +173,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     if (!wallet) { await tonUI.openModal(); throw new Error(t('market.connectWallet')); }
     const address = String(wallet.account?.address ?? '');
     const intent = await createMarketPaymentIntent(telegramInitData ?? '', listingId, address);
-    await tonUI.sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 600,
-      // The comment is what links this transfer to the reservation.
-      messages: [{ address: intent.paymentAddress, amount: intent.amountNano, payload: encodeCommentPayload(intent.paymentComment) }],
-    });
+    await sendTonPayment(intent, (tx) => tonUI.sendTransaction(tx));
 
     toast.message(t('market.paymentSent', { minutes: 10 }));
     const result = await waitForMarketPayment(telegramInitData ?? '', intent.paymentId);
