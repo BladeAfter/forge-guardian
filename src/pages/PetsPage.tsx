@@ -371,10 +371,12 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               <BuyEggModal
                 egg={eggTarget}
                 balance={data.balance}
+                tonBalance={data.tonBalance ?? 0}
                 pending={pending || tonPurchase.isPending}
                 onClose={() => setEggTarget(null)}
                 onBuyFc={(quantity) => mutation.mutate({ action: 'buy-egg', eggId: eggTarget.id, quantity, idempotencyKey: crypto.randomUUID() })}
                 onBuyTon={() => tonPurchase.mutate(eggTarget)}
+                onBuyTonBalance={() => mutation.mutate({ action: 'buy-egg-balance', eggId: eggTarget.id, idempotencyKey: crypto.randomUUID() })}
               />
             )}
           </>
