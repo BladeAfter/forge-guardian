@@ -5,7 +5,7 @@ import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import type { PvpHero } from '../pvp';
 import { useTowerDashboard, useTowerRanking } from '../hooks';
 import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
-import { TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
+import { TOWER_KEYS, TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
 import { PetCompanion } from './PetCompanion';
