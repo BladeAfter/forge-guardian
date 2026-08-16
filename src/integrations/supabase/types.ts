@@ -14369,6 +14369,10 @@ export type Database = {
         Args: { p_require_ticket: boolean; p_user: string }
         Returns: undefined
       }
+      ton_absorb_duplicate_payment: {
+        Args: { p_amount_nano: string; p_comment: string; p_tx_hash: string }
+        Returns: Json
+      }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
         Returns: {
