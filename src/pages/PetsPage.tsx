@@ -1106,6 +1106,9 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
             <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
               {t('pets.premiumNote')}
             </p>
+            <p className="mt-2 text-[9px] font-bold uppercase tracking-wide text-sky-100">
+              {t('pets.tonBalanceLabel')}: {formatTon(tonBalance)} TON
+            </p>
           </div>
         ) : (
           <>
@@ -1118,6 +1121,21 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
               <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
             </div>
           </>
+        )}
+
+        {/* Premium eggs: internal TON balance is offered alongside the wallet payment. */}
+        {isTon && (
+          <button
+            type="button"
+            disabled={pending || !canUseTonBalance}
+            onClick={onBuyTonBalance}
+            className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl border border-sky-300/40 bg-sky-500/15 py-2 text-[9px] font-black uppercase text-sky-100 disabled:grayscale disabled:opacity-40"
+          >
+            <Wallet className="h-3 w-3" />
+            {canUseTonBalance
+              ? t('pets.payWithTonBalance', { price: `${formatTon(tonPrice)} TON` })
+              : t('pets.insufficientTonBalance')}
+          </button>
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
