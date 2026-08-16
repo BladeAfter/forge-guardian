@@ -44,6 +44,11 @@ export type ClanBossAutoAttackState = {
   intervalSeconds: number;
   lastAttackAt?: string | null;
   nextAttackAt?: string | null;
+  /** Official revive moment of the dead team (server). */
+  revivesAt?: string | null;
+  /** True when the revive timer — not the cooldown — is what blocks the next attack. */
+  waitingRevive?: boolean;
+  blockedBy?: 'revive' | 'cooldown' | null;
   attacksTotal?: number;
   reason?: 'no_pass' | 'disabled' | 'no_team' | 'no_clan' | 'no_boss' | null;
 };
