@@ -575,6 +575,7 @@ export const tr: Dict = {
   "market.chooseItem": "ENVANTERDEN SEÇ",
   "market.confirm": "ONAYLA",
   "market.confirmSaleBody": "{name} öğesini {price} karşılığında listeleyelim mi? Satıştan {hours} saat sonra serbest bırakılacak şekilde (dolandırıcılık önleme beklemesi) {receives} alacaksınız.",
+  "market.confirmSaleBodyInstant": "{name} öğesini {price} karşılığında listeleyelim mi? Ödeme onaylandıktan hemen sonra FC bakiyenize {receives} alacaksınız.",
   "market.confirmSaleBodyTon": "{name} öğesini {price} karşılığında listeleyelim mi? Ödeme onaylandıktan hemen sonra çekilebilir TON bakiyenize {receives} alacaksınız.",
   "market.confirmSaleTitle": "SATIŞI ONAYLA",
   "market.connectWallet": "Devam etmek için TON cüzdanınızı bağlayın.",
