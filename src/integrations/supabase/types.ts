@@ -12018,6 +12018,11 @@ export type Database = {
         Args: { p_inviter_telegram_id: number; p_telegram_id: number }
         Returns: Json
       }
+      boss_auto_next_attack_at: {
+        Args: { p_cooldown_end: string; p_user: string }
+        Returns: string
+      }
+      boss_heroes_revive_at: { Args: { p_user: string }; Returns: string }
       boss_team_json: { Args: { p_user: string }; Returns: Json }
       breeding_cost: { Args: { p_breed_number: number }; Returns: number }
       breeding_settings: {
