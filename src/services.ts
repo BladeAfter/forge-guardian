@@ -263,6 +263,15 @@ export async function summonHeroWithFragments(initData:string,idempotencyKey=cry
 export async function openCalendarChest(initData:string,inventoryItemId:string,source:'calendar'|'shop'|'pass'|'mission'|'event'='calendar'):Promise<ChestOpenResult>{const response=await forgeFetch('calendar',({initData,action:'open-chest',inventoryItemId,source}));const payload=await response.json().catch(()=>null)as(ChestOpenResult&{error?:string})|null;if(!response.ok||!payload?.hero){const raw=payload?.error||'';if(raw)console.error('[open-chest]',raw);
   // Never surface SQL/technical text to the player: only mapped codes are shown.
   throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o baú. Tente novamente.')}return payload}
+/** Mythic chest (Battle Pass): the roll, duplicate protection and inventory update are server-side. */
+export type ExclusiveChestReward={kind:'hero'|'pet'|'fallback';exclusive?:boolean;title?:string;name?:string;image?:string|null;rarity?:string;fragments?:number;forgeCoins?:number};
+export async function openExclusiveChest(initData:string,inventoryItemId:string):Promise<{reward:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory}>{
+  const response=await forgeFetch('calendar',({initData,action:'open-exclusive-chest',inventoryItemId}));
+  const payload=await response.json().catch(()=>null)as{reward?:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory;error?:string}|null;
+  if(!response.ok||!payload?.reward){const raw=payload?.error||'';if(raw)console.error('[open-exclusive-chest]',raw);
+    throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o baú mítico. Tente novamente.')}
+  return payload as {reward:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory};
+}
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'|'recent-xp'|'buy-level'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
 export const buySeasonPassLevels=(initData:string,levels:number)=>seasonPassRequest(initData,'buy-level',{levels,idempotencyKey:crypto.randomUUID()});
