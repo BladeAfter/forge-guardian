@@ -47,6 +47,7 @@ export const tr: Dict = {
   "boss.autoAtk": "OTO SALDIRI",
   "boss.autoAtkError": "Oto Saldırı güncellenemedi.",
   "boss.autoAtkNext": "Sıradaki saldırı:",
+  "boss.autoAtkRevive": "Kahramanların dirilmesi bekleniyor… diriliş sonrası hemen saldırır",
   "boss.autoAtkNoTeam": "Geçerli bir Boss takımı seç",
   "boss.autoAtkOff": "Oto Saldırı kapalı",
   "boss.autoAtkOffLabel": "KAPALI",
