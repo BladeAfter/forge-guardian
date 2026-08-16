@@ -371,6 +371,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
+/** Destination selector shown before the payment: buy FC, or top up the internal TON balance. */
+function DepositModeCard({ active, disabled, title, hint, icon, onClick }: { active: boolean; disabled?: boolean; title: string; hint: string; icon: React.ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active}
+      className={`flex flex-col items-start gap-1 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${active ? 'border-amber-300/70 bg-amber-400/10 shadow-[0_0_18px_-6px_rgba(251,191,36,.7)]' : 'border-white/10 bg-black/35 hover:border-white/25'}`}>
+      <span className="flex items-center gap-1.5">{icon}<strong className={`text-[9px] font-black tracking-[.14em] ${active ? 'text-amber-200' : 'text-slate-200'}`}>{title}</strong></span>
+      <span className="text-[8px] leading-tight text-slate-400">{hint}</span>
+    </button>
+  );
+}
 function Result({ label, value }: { label: string; value: string }) { return <div className="my-2 flex items-center justify-between rounded-xl bg-black/30 px-3 py-2"><span className="text-[9px] text-slate-400">{label}</span><strong className="text-xs text-emerald-300">{value}</strong></div>; }
 /** Linha de detalhamento sempre visível (nunca truncada) do saque. */
 function Line({ label, value, tone }: { label: string; value: string; tone?: 'fee' | 'net' }) {
