@@ -1467,6 +1467,15 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
+   * POOL MARKETING tab: read-only project expense transparency. Totals, expenses and
+   * the tab toggle are written exclusively by the admin bot — players can only read.
+   */
+  'marketing-pool': async (db, _user, body) => {
+    const limit = Math.min(200, Math.max(5, Number(body.limit) || 50));
+    return rpc(db, 'marketing_pool_dashboard', { p_limit: limit });
+  },
+
+  /**
    * Player market (FC or TON). Eligibility, fees, market locks, reservations and the
    * atomic purchase all live inside the RPCs — the client can only ask.
    * TON purchases first use the internal available TON balance; an external wallet
