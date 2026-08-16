@@ -13400,6 +13400,10 @@ export type Database = {
           speed_bonus: number
         }[]
       }
+      hero_power_value: {
+        Args: { p_atk: number; p_def: number; p_hp: number; p_level: number }
+        Returns: number
+      }
       hero_progression_config: { Args: never; Returns: Json }
       hero_progression_json: { Args: { p_user_id: string }; Returns: Json }
       hero_rarity_fusion_config: { Args: never; Returns: Json }
