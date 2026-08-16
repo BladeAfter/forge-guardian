@@ -7,7 +7,8 @@ import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
-import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote, validDeposit } from '../economy';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote } from '../economy';
+import type { DepositType, WalletDepositConfig } from '../wallet';
 import { createDepositIntent, requestTonWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
@@ -47,6 +48,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   const [depositTon, setDepositTon] = useState(1);
+  // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
+  const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
   const [withdrawTon, setWithdrawTon] = useState(0);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
@@ -56,6 +59,18 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
   const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+  // Minimums and toggles are server-side settings; the client only mirrors them.
+  const depositConfig = useMemo<WalletDepositConfig>(() => ({
+    fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
+    directEnabled: summary?.depositConfig?.directEnabled ?? true,
+    minFcTon: summary?.depositConfig?.minFcTon ?? MIN_DEPOSIT_TON,
+    minDirectTon: summary?.depositConfig?.minDirectTon ?? 0.1,
+    fcPerTon: summary?.depositConfig?.fcPerTon ?? FC_PER_TON
+  }), [summary?.depositConfig]);
+  const minDepositTon = depositMode === 'ton_balance' ? depositConfig.minDirectTon : depositConfig.minFcTon;
+  const depositModeEnabled = depositMode === 'ton_balance' ? depositConfig.directEnabled : depositConfig.fcEnabled;
+  const depositAmountValid = Number.isFinite(depositTon) && depositTon >= minDepositTon;
+  const depositPresets = depositMode === 'ton_balance' ? [0.5, 1, 5, 10] : [1, 3, 5, 10];
 
 
   const invalidateWallet = async () => {
@@ -73,6 +88,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     ]);
   };
 
+  /** One message per reconciliation: direct top-ups report TON, FC purchases report the credited count. */
+  const creditMessage = (result: { confirmed: string[]; credits?: Array<{ depositType: string; amountTon: number }> }) => {
+    const direct = (result.credits ?? []).filter(entry => entry.depositType === 'ton_balance');
+    if (direct.length && direct.length === result.confirmed.length) {
+      const total = direct.reduce((sum, entry) => sum + Number(entry.amountTon || 0), 0);
+      return t('wallet.toast.tonBalanceCredited', { ton: formatTon(total) });
+    }
+    return t('wallet.toast.depositsCredited', { count: result.confirmed.length });
+  };
+
   const verify = useMutation({
     mutationFn: async () => {
       if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
@@ -80,7 +105,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     },
     onSuccess: async result => {
       await invalidateWallet();
-      if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+      if (result.confirmed.length) toast.success(creditMessage(result));
       else if (result.alreadyCredited?.length) toast(t('wallet.toast.alreadyCredited'));
       else if (result.checked) toast(t('wallet.toast.notFoundYet'));
       else toast(t('wallet.toast.noPending'));
@@ -102,7 +127,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       const result = await verifyPendingDeposits(telegramInitData);
       if (result.confirmed.length || result.alreadyCredited?.length) {
         await invalidateWallet();
-        if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+        if (result.confirmed.length) toast.success(creditMessage(result));
         return true;
       }
       return false;
@@ -131,8 +156,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const deposit = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
-      if (!validDeposit(depositTon)) throw new Error(t('wallet.errors.minDeposit'));
-      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
+      if (!depositModeEnabled) throw new Error(t('wallet.errors.depositModeDisabled'));
+      if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
+      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID(), depositMode);
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
         // The comment is the on-chain marker the backend matches against the hot wallet transactions.
@@ -252,12 +278,39 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 
       <Panel title={t('wallet.deposit')} icon={<ArrowDownToLine />}>
-        <div className="grid grid-cols-4 gap-1">{[1,3,5,10].map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{value} TON</Quick>)}</div>
-        <input type="number" min={MIN_DEPOSIT_TON} step="0.5" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
-        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minimumDepositNote', { ton: MIN_DEPOSIT_TON, fc: FC_PER_TON.toLocaleString('pt-BR') })}</p>
-        {!validDeposit(depositTon) ? <p className="mt-1 text-[9px] font-bold text-rose-300">{t('wallet.errors.minDeposit')}</p> : null}
-        <Result label={t('wallet.youWillReceive')} value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
-        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !validDeposit(depositTon)}>{deposit.isPending ? t('wallet.openingWallet') : t('wallet.depositButton')}</Primary>
+        {/* The destination is chosen BEFORE paying and is frozen in the order by the backend. */}
+        <div className="grid grid-cols-2 gap-2">
+          <DepositModeCard
+            active={depositMode === 'ton_to_fc'}
+            disabled={!depositConfig.fcEnabled}
+            title={t('wallet.depositModeFc')}
+            hint={t('wallet.depositModeFcHint', { fc: FC_PER_TON.toLocaleString('pt-BR') })}
+            icon={<img src={coin} alt="FC" className="h-5 w-5 object-contain" />}
+            onClick={() => { setDepositMode('ton_to_fc'); setDepositTon(Math.max(depositTon, depositConfig.minFcTon)); }}
+          />
+          <DepositModeCard
+            active={depositMode === 'ton_balance'}
+            disabled={!depositConfig.directEnabled}
+            title={t('wallet.depositModeTon')}
+            hint={t('wallet.depositModeTonHint')}
+            icon={<img src={tonIcon} alt="TON" className="h-5 w-5 object-contain" />}
+            onClick={() => setDepositMode('ton_balance')}
+          />
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-1">{depositPresets.map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{formatTon(value)} TON</Quick>)}</div>
+        <input type="number" min={minDepositTon} step={depositMode === 'ton_balance' ? '0.1' : '0.5'} value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">
+          {depositMode === 'ton_balance'
+            ? t('wallet.minimumDirectDepositNote', { ton: formatTon(minDepositTon) })
+            : t('wallet.minimumDepositNote', { ton: formatTon(minDepositTon), fc: FC_PER_TON.toLocaleString('pt-BR') })}
+        </p>
+        {!depositAmountValid ? <p className="mt-1 text-[9px] font-bold text-rose-300">{depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit')}</p> : null}
+        <Result
+          label={t('wallet.youWillReceive')}
+          value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
+        />
+        {depositMode === 'ton_balance' ? <p className="mt-1 text-[9px] leading-relaxed text-sky-300/80">{t('wallet.depositDirectNote')}</p> : null}
+        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
         <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
           {verify.isPending ? t('wallet.verifying') : t('wallet.alreadyPaid')}
         </button>
@@ -318,6 +371,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
+/** Destination selector shown before the payment: buy FC, or top up the internal TON balance. */
+function DepositModeCard({ active, disabled, title, hint, icon, onClick }: { active: boolean; disabled?: boolean; title: string; hint: string; icon: React.ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active}
+      className={`flex flex-col items-start gap-1 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${active ? 'border-amber-300/70 bg-amber-400/10 shadow-[0_0_18px_-6px_rgba(251,191,36,.7)]' : 'border-white/10 bg-black/35 hover:border-white/25'}`}>
+      <span className="flex items-center gap-1.5">{icon}<strong className={`text-[9px] font-black tracking-[.14em] ${active ? 'text-amber-200' : 'text-slate-200'}`}>{title}</strong></span>
+      <span className="text-[8px] leading-tight text-slate-400">{hint}</span>
+    </button>
+  );
+}
 function Result({ label, value }: { label: string; value: string }) { return <div className="my-2 flex items-center justify-between rounded-xl bg-black/30 px-3 py-2"><span className="text-[9px] text-slate-400">{label}</span><strong className="text-xs text-emerald-300">{value}</strong></div>; }
 /** Linha de detalhamento sempre visível (nunca truncada) do saque. */
 function Line({ label, value, tone }: { label: string; value: string; tone?: 'fee' | 'net' }) {

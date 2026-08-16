@@ -137,6 +137,19 @@ const petCms = createPetCms({
 
 
 
+/** Deposit methods hub: the player picks the destination before paying, admin controls both here. */
+async function depositSettingsHub(ctx: Ctx) {
+  const cfg = await rpc('admin_deposit_settings', { p_admin_id: ctx.adminId, p_key: null, p_value: null });
+  const on = (v: unknown) => (v ? '✅ ATIVO' : '⛔ DESATIVADO');
+  return edit(ctx, `💠 <b>MÉTODOS DE DEPÓSITO</b>\n\n🪙 <b>TON → FC</b>: ${on(cfg.fcEnabled)}\nMínimo <b>${fmt(cfg.minFcTon)} TON</b> · 1 TON = <b>${fmt(cfg.fcPerTon)} FC</b>\n\n💎 <b>TON → SALDO TON</b>: ${on(cfg.directEnabled)}\nMínimo <b>${cfg.minDirectTon} TON</b> · creditado 1:1 no TON sacável (nunca vira FC)`,
+    kb([
+      [{ t: cfg.fcEnabled ? '⛔ DESATIVAR TON → FC' : '✅ ATIVAR TON → FC', d: `dp:toggle:ton_to_fc_deposit_enabled:${cfg.fcEnabled ? 0 : 1}` }],
+      [{ t: cfg.directEnabled ? '⛔ DESATIVAR TON → TON' : '✅ ATIVAR TON → TON', d: `dp:toggle:direct_ton_deposit_enabled:${cfg.directEnabled ? 0 : 1}` }],
+      [{ t: `💠 MÍNIMO DIRETO (${cfg.minDirectTon} TON)`, d: 'dp:ask:depmin' }],
+      nav('m:wallet'),
+    ]));
+}
+
 /** Prompt: persists the pending action so the next plain text reply is executed. */
 async function ask(ctx: Ctx, cmd: string, question: string) {
   await setSession(ctx, cmd, 'awaiting_input');
@@ -1744,6 +1757,7 @@ async function module(ctx: Ctx, name: string) {
             [{ t: '🟡 PENDENTES', d: 'wdlist:pending' }, { t: '✅ PAGOS', d: 'wdlist:paid' }],
             [{ t: '💳 CONNECTED WALLETS', d: 'm:wallets' }],
             [{ t: '🔥 HOT WALLET', d: 'm:hotwallet' }],
+            [{ t: '💠 MÉTODOS DE DEPÓSITO', d: 'dp:hub' }],
             [{ t: '📢 PAYOUT ANNOUNCEMENTS', d: 'pa:menu' }],
             [{ t: '💱 TON → FC RATE', d: 'ask:tonrate' }, { t: `💸 WITHDRAWAL FEE (${feePercent}%)`, d: 'ask:wdfee' }],
             [{ t: '🪙 AJUSTAR FC', d: 'ask:find' }, { t: '💎 AJUSTAR TON', d: 'ask:tonadj' }],
@@ -2119,6 +2133,7 @@ const PROMPTS: Record<string, string> = {
   fgrates: '🧩 Envie <code>common uncommon</code> em % para o resgate.\nEx.: <code>70 30</code>',
   fgfusion: '🧩 Envie quantos FRAGMENTOS UNIVERSAIS substituem as cópias em 1 etapa de FUSE.\nEx.: <code>25</code>',
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
+  depmin: '💠 Envie o valor mínimo do DEPÓSITO DIRETO DE TON (vai para o saldo TON sacável).\nEx.: <code>0.1</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
   afsearch: '🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.',
   afunblock: '🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.',
@@ -3490,6 +3505,15 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'nfth') { if (rest[0] !== 'ask') await clearSession(ctx); return nfthCallback(ctx, rest); }
   // ⛏ Hero TON mining (rates, global pause, per-player audit).
   if (head === 'hm') { if (rest[0] !== 'ask') await clearSession(ctx); return hmCallback(ctx, rest); }
+  // 💠 Deposit methods: TON -> FC purchase and TON -> internal TON balance (toggles + minimum).
+  if (head === 'dp') {
+    if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
+    await clearSession(ctx);
+    if (rest[0] === 'toggle') {
+      await rpc('admin_deposit_settings', { p_admin_id: ctx.adminId, p_key: rest[1], p_value: Number(rest[2]) });
+    }
+    return depositSettingsHub(ctx);
+  }
   // 🧩 Fragment utility (summon cost/odds + universal fragments per fusion step).
   if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
   // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
@@ -5253,6 +5277,14 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key === 'tpset' || key === 'tpskill') return tpPrompt(ctx, key, text);
+  if (key === 'depmin') {
+    const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
+    if (!Number.isFinite(value) || value <= 0 || value > 1000) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON entre 0 e 1000 (ex.: <code>0.1</code>).');
+    await rpc('admin_deposit_settings', { p_admin_id: ctx.adminId, p_key: 'min_direct_ton_deposit', p_value: value });
+    await clearSession(ctx);
+    await send(ctx, `✅ Depósito direto mínimo: <b>${value} TON</b>.`);
+    return depositSettingsHub({ ...ctx, messageId: undefined });
+  }
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key === 'hpset' || key === 'hpcurve' || key === 'hpquest') return heroProgressionPrompt(ctx, key, args, text);

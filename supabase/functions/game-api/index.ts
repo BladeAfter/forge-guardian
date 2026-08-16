@@ -598,7 +598,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const deposits: any[] = Array.isArray(state?.deposits) ? state.deposits : [];
   if (!deposits.length) {
     const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
-    return { checked: 0, confirmed: [], alreadyCredited: [], pending: [], summary };
+    return { checked: 0, confirmed: [], credits: [], alreadyCredited: [], pending: [], summary };
   }
 
   const transactions = await fetchHotWalletIncoming(hotWallet);
@@ -606,6 +606,8 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const confirmed: string[] = [];
   const stillPending: string[] = [];
   const alreadyCredited: string[] = [];
+  // Per-deposit credit detail so the client can show the right message (FC vs TON balance).
+  const credits: Array<{ id: string; depositType: string; amountTon: number; amountFc: number }> = [];
 
   for (const deposit of deposits) {
     const comment = String(deposit.paymentComment || '').trim();
@@ -620,7 +622,8 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       const hash = txHashOf(tx);
       if (!hash || used.has(hash)) return false;
       const value = BigInt(String(inMsg.value ?? '0'));
-      if (value < minNano || value < 1_000_000_000n) return false;
+      // Only the order's own amount matters: direct TON top-ups can be smaller than 1 TON.
+      if (value < minNano) return false;
       const txComment = msgComment(inMsg);
       if (byComment) return Boolean(comment) && txComment === comment;
       // Fallback: no comment on chain -> same sender, right value, sent after the order was created.
@@ -643,7 +646,13 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       if (result?.status === 'already_processed') alreadyCredited.push(deposit.id);
       else {
         confirmed.push(deposit.id);
-        console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, fcAmount: result?.amountFc, poolContribution: result?.poolContribution?.poolAmountTon ?? null }));
+        credits.push({
+          id: String(deposit.id),
+          depositType: String(result?.depositType || deposit.depositType || 'ton_to_fc'),
+          amountTon: Number(result?.amountTon ?? 0),
+          amountFc: Number(result?.amountFc ?? 0),
+        });
+        console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, depositType: result?.depositType, fcAmount: result?.amountFc, tonAmount: result?.amountTon, poolContribution: result?.poolContribution?.poolAmountTon ?? null }));
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
@@ -655,7 +664,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
-  return { checked: deposits.length, confirmed, alreadyCredited, pending: stillPending, summary };
+  return { checked: deposits.length, confirmed, credits, alreadyCredited, pending: stillPending, summary };
 }
 
 
@@ -932,10 +941,11 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     const amount = Number(body.amountTon);
     const address = String(body.walletAddress || '');
     if (!Number.isFinite(amount) || amount <= 0 || !address) throw new Error('Valor de depósito inválido.');
-    // Minimum deposit is 1 TON (= 100,000 FC); never trust the client.
-    if (amount < 1) throw new Error('Minimum deposit is 1 TON');
+    // The deposit destination (FC purchase or direct internal TON) is frozen here, at intent
+    // creation, and can never be changed by the client afterwards. Minimums live in the DB config.
+    const depositType = String(body.depositType || 'ton_to_fc') === 'ton_balance' ? 'ton_balance' : 'ton_to_fc';
     fn = 'create_wallet_deposit';
-    args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+    args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_deposit_type: depositType, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'ton-wallet') {
     // Withdrawable TON balance (rewards only) — never derived from FC.
     fn = 'get_ton_wallet';
