@@ -271,6 +271,219 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_bids: {
+        Row: {
+          amount_ton: number
+          auction_id: string
+          bidder_user_id: string
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          status: string
+        }
+        Insert: {
+          amount_ton: number
+          auction_id: string
+          bidder_user_id: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          status?: string
+        }
+        Update: {
+          amount_ton?: number
+          auction_id?: string
+          bidder_user_id?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_bids_bidder_user_id_fkey"
+            columns: ["bidder_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_ledger: {
+        Row: {
+          auction_id: string | null
+          balance_after: number | null
+          balance_before: number | null
+          bid_id: string | null
+          counterparty_user_id: string | null
+          created_at: string
+          details: Json
+          event: string
+          fee_ton: number | null
+          gross_ton: number | null
+          id: string
+          net_ton: number | null
+          user_id: string | null
+        }
+        Insert: {
+          auction_id?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          bid_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          details?: Json
+          event: string
+          fee_ton?: number | null
+          gross_ton?: number | null
+          id?: string
+          net_ton?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          auction_id?: string | null
+          balance_after?: number | null
+          balance_before?: number | null
+          bid_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          details?: Json
+          event?: string
+          fee_ton?: number | null
+          gross_ton?: number | null
+          id?: string
+          net_ton?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_ledger_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_ledger_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "auction_bids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_ledger_counterparty_user_id_fkey"
+            columns: ["counterparty_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auctions: {
+        Row: {
+          bid_count: number
+          created_at: string
+          current_bid_ton: number | null
+          ends_at: string
+          fee_percent: number
+          fee_ton: number | null
+          final_price_ton: number | null
+          finished_at: string | null
+          highest_bidder_id: string | null
+          id: string
+          item_instance_id: string
+          item_type: string
+          min_increment_ton: number
+          seller_net_ton: number | null
+          seller_user_id: string
+          snapshot: Json
+          starting_bid_ton: number
+          status: string
+          updated_at: string
+          winner_user_id: string | null
+        }
+        Insert: {
+          bid_count?: number
+          created_at?: string
+          current_bid_ton?: number | null
+          ends_at: string
+          fee_percent?: number
+          fee_ton?: number | null
+          final_price_ton?: number | null
+          finished_at?: string | null
+          highest_bidder_id?: string | null
+          id?: string
+          item_instance_id: string
+          item_type: string
+          min_increment_ton?: number
+          seller_net_ton?: number | null
+          seller_user_id: string
+          snapshot?: Json
+          starting_bid_ton: number
+          status?: string
+          updated_at?: string
+          winner_user_id?: string | null
+        }
+        Update: {
+          bid_count?: number
+          created_at?: string
+          current_bid_ton?: number | null
+          ends_at?: string
+          fee_percent?: number
+          fee_ton?: number | null
+          final_price_ton?: number | null
+          finished_at?: string | null
+          highest_bidder_id?: string | null
+          id?: string
+          item_instance_id?: string
+          item_type?: string
+          min_increment_ton?: number
+          seller_net_ton?: number | null
+          seller_user_id?: string
+          snapshot?: Json
+          starting_bid_ton?: number
+          status?: string
+          updated_at?: string
+          winner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auctions_highest_bidder_id_fkey"
+            columns: ["highest_bidder_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auctions_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auctions_winner_user_id_fkey"
+            columns: ["winner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boss_combats: {
         Row: {
           boss_attack: number
@@ -10663,6 +10876,11 @@ export type Database = {
         Returns: Json
       }
       admin_assert: { Args: { p_admin_id: number }; Returns: undefined }
+      admin_auction_overview: { Args: { p_telegram_id: number }; Returns: Json }
+      admin_auction_set: {
+        Args: { p_key: string; p_telegram_id: number; p_value: Json }
+        Returns: Json
+      }
       admin_boss_control: {
         Args: {
           p_action: string
@@ -12016,6 +12234,72 @@ export type Database = {
       anti_fake_max_accounts: { Args: never; Returns: number }
       arsenal_json: { Args: { p_telegram_id: number }; Returns: Json }
       attack_boss: { Args: { p_telegram_id: number }; Returns: Json }
+      auction_browse: {
+        Args: {
+          p_item_type?: string
+          p_limit?: number
+          p_offset?: number
+          p_sort?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      auction_can_access: { Args: { p_telegram_id: number }; Returns: boolean }
+      auction_cancel: {
+        Args: { p_auction_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      auction_create: {
+        Args: {
+          p_duration_hours: number
+          p_item_instance_id: string
+          p_item_type: string
+          p_starting_bid_ton: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      auction_finalize_due: { Args: never; Returns: number }
+      auction_finalize_one: { Args: { p_auction_id: string }; Returns: Json }
+      auction_item_lock: {
+        Args: { p_instance: string; p_item_type: string; p_locked: boolean }
+        Returns: undefined
+      }
+      auction_item_snapshot: {
+        Args: { p_instance: string; p_item_type: string; p_user: string }
+        Returns: Json
+      }
+      auction_item_transfer: {
+        Args: { p_buyer: string; p_instance: string; p_item_type: string }
+        Returns: undefined
+      }
+      auction_mine: { Args: { p_telegram_id: number }; Returns: Json }
+      auction_only_item: {
+        Args: { p_item_type: string; p_rarity: string }
+        Returns: boolean
+      }
+      auction_place_bid: {
+        Args: {
+          p_amount_ton: number
+          p_auction_id: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      auction_sellable: { Args: { p_telegram_id: number }; Returns: Json }
+      auction_settings_json: { Args: never; Returns: Json }
+      auction_ton_move: {
+        Args: {
+          p_amount: number
+          p_auction: string
+          p_bid: string
+          p_details?: Json
+          p_event: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
