@@ -294,6 +294,18 @@ function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
+  // Lets nested panels jump to a main tab (e.g. Tower -> Wallet for a TON deposit).
+  useEffect(() => {
+    const onNavigate = (event: Event) => {
+      const target = String((event as CustomEvent<string>).detail ?? '') as TabKey;
+      if (!tabs.includes(target)) return;
+      setActivePage(null);
+      setTab(target);
+    };
+    window.addEventListener('mythreon:navigate', onNavigate);
+    return () => window.removeEventListener('mythreon:navigate', onNavigate);
+  }, []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
