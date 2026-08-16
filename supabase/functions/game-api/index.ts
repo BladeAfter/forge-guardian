@@ -1501,6 +1501,65 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * AUCTION — trading exclusively with the INTERNAL TON balance.
+   * No FC, no TonConnect during a bid: `auction_place_bid` reserves the player's
+   * available TON (and releases the previous highest bidder). Eligibility
+   * (Legendary+ heroes, NFT Exclusive heroes/pets/equipment), fee, anti-snipe
+   * extension and settlement all live in the RPCs — the client only renders.
+   */
+  auction: async (db, user, body) => {
+    const action = String(body.action || 'browse');
+    if (action === 'browse') {
+      const itemType = ['all', 'hero', 'pet', 'equipment'].includes(String(body.itemType)) ? String(body.itemType) : 'all';
+      const sort = ['ending', 'newest', 'price_low', 'price_high'].includes(String(body.sort)) ? String(body.sort) : 'ending';
+      return rpc(db, 'auction_browse', {
+        p_telegram_id: user.id,
+        p_item_type: itemType,
+        p_sort: sort,
+        p_limit: Math.min(100, Math.max(1, Number(body.limit) || 60)),
+        p_offset: Math.max(0, Number(body.offset) || 0),
+      });
+    }
+    if (action === 'sellable') return rpc(db, 'auction_sellable', { p_telegram_id: user.id });
+    if (action === 'mine') return rpc(db, 'auction_mine', { p_telegram_id: user.id });
+    if (action === 'create') {
+      const itemType = String(body.itemType || '');
+      if (!['hero', 'pet', 'equipment'].includes(itemType)) throw new Error('INVALID_ITEM_TYPE');
+      if (!isUuid(body.itemInstanceId)) throw new Error('INVALID_ITEM');
+      const startingBid = Math.round(Number(body.startingBidTon) * 1e6) / 1e6;
+      if (!Number.isFinite(startingBid) || startingBid <= 0) throw new Error('INVALID_PRICE');
+      const duration = Math.trunc(Number(body.durationHours));
+      if (!Number.isFinite(duration) || duration <= 0 || duration > 168) throw new Error('INVALID_DURATION');
+      return rpc(db, 'auction_create', {
+        p_telegram_id: user.id,
+        p_item_type: itemType,
+        p_item_instance_id: body.itemInstanceId,
+        p_starting_bid_ton: startingBid,
+        p_duration_hours: duration,
+      });
+    }
+    if (action === 'bid') {
+      if (!isUuid(body.auctionId)) throw new Error('AUCTION_NOT_FOUND');
+      const amount = Math.round(Number(body.amountTon) * 1e6) / 1e6;
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error('INVALID_BID');
+      const key = String(body.idempotencyKey || crypto.randomUUID()).slice(0, 80);
+      return rpc(db, 'auction_place_bid', {
+        p_telegram_id: user.id,
+        p_auction_id: body.auctionId,
+        p_amount_ton: amount,
+        p_idempotency_key: key,
+      });
+    }
+    if (action === 'cancel') {
+      if (!isUuid(body.auctionId)) throw new Error('AUCTION_NOT_FOUND');
+      return rpc(db, 'auction_cancel', { p_telegram_id: user.id, p_auction_id: body.auctionId });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
+
+
 
   /**
    * Partner channels. The Mini App only ever receives NAME + REWARD + claimed flag;
