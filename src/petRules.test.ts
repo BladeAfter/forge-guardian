@@ -7,8 +7,10 @@ describe('pet rules',()=>{
  it('increases team hp correctly',()=>expect(applyEligibleBonus(100,5,true)).toBe(105));
  it('does not affect ineligible farm rewards',()=>expect(applyEligibleBonus(1000,15,false)).toBe(1000));
  it('applies xp bonus once',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
- it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(20));
- it('caps critical chance',()=>expect(calculatePetBonus(20,'legendary',30,'critical_chance_percent')).toBe(10));
+ it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(5.72));
+ it('caps critical chance',()=>expect(calculatePetBonus(100,'legendary',30,'critical_chance_percent')).toBe(30));
+ it('grows buffs gradually per evolution stage',()=>expect([0,1,2].map(st=>calculatePetBonus(20,'mythic',10,'boss_damage_percent',st))).toEqual([20.9,22.99,25.08]));
+ it('keeps a superior rarity stronger at the same level',()=>{const p=(r:string)=>petPower(r,10,{boss_damage_percent:20});expect(p('mythic')).toBeGreaterThan(p('rare'));expect(p('nft_exclusive')).toBeGreaterThan(p('ancestral'))});
  it('does not exceed max level stage',()=>expect(evolutionStage(99)).toBe('ancestral'));
  it('has visual evolution thresholds',()=>expect([1,10,20,30].map(evolutionStage)).toEqual(['baby','young','adult','ancestral']));
  it('skill respects cooldown',()=>{expect(canTriggerPetSkill(5,5,0)).toBe(true);expect(canTriggerPetSkill(4,5,0)).toBe(false)});
@@ -19,6 +21,6 @@ describe('pet rules',()=>{
  it('never returns NaN for bad bonuses',()=>expect(calculatePetBonus(Number.NaN,'unknown',Number.NaN)).toBe(0));
  it('power is display-only and finite',()=>expect(Number.isFinite(petPower('legendary',30,{boss_damage_percent:20}))).toBe(true));
  it('does not produce negative reward',()=>expect(applyEligibleBonus(-1,5,true)).toBe(0));
- it('requires XP before evolution',()=>{expect(canPetEvolve(1,249)).toBe(false);expect(canPetEvolve(1,250)).toBe(true);expect(canPetEvolve(30,999999)).toBe(false)});
+ it('requires XP before evolution',()=>{expect(canPetEvolve(1,249)).toBe(false);expect(canPetEvolve(1,250)).toBe(true);expect(canPetEvolve(50,999999)).toBe(false)});
  it('evolution cost grows by level and rarity',()=>{expect(calculatePetEvolutionCostFc(1,'common')).toBe(2500);expect(calculatePetEvolutionCostFc(1,'legendary')).toBe(8000);expect(calculatePetEvolutionCostFc(10,'rare')).toBeGreaterThan(calculatePetEvolutionCostFc(5,'rare'))});
 });

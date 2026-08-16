@@ -1,16 +1,30 @@
-export type PetRarity='common'|'uncommon'|'rare'|'epic'|'legendary'|'mythic'|'ancestral'|'nft_exclusive';
+export type PetRarity='common'|'uncommon'|'rare'|'epic'|'legendary'|'mythic'|'ancestral'|'exclusive'|'nft_exclusive';
 export type PetBonusKey='boss_damage_percent'|'pvp_attack_percent'|'team_hp_percent'|'pvp_defense_percent'|'critical_chance_percent'|'pvp_speed_percent'|'reward_percent'|'revive_speed_percent'|'boss_damage_reduction_percent'|'defense_percent'|'farm_fc_percent'|'offline_production_percent'|'mission_reward_percent'|'drop_chance_percent'|'egg_luck_percent'|'random_reward_percent'|'hero_xp_percent'|'account_xp_percent'|'mission_progress_percent';
-export const PET_RARITY_MULTIPLIER:Record<PetRarity,number>={common:1,uncommon:1.25,rare:1.6,epic:2.1,legendary:2.8,mythic:3.2,ancestral:3.6,nft_exclusive:4.2};
-export const PET_RARITY_POWER:Record<PetRarity,number>={common:500,uncommon:1000,rare:2000,epic:4000,legendary:8000,mythic:12000,ancestral:16000,nft_exclusive:22000};
-export const PET_EVOLUTION_RARITY_MULTIPLIER:Record<PetRarity,number>={common:1,uncommon:1.25,rare:1.6,epic:2.2,legendary:3.2,mythic:3.8,ancestral:4.5,nft_exclusive:5.2};
-export const PET_BONUS_CAPS:Partial<Record<PetBonusKey,number>>={boss_damage_percent:20,farm_fc_percent:15,critical_chance_percent:10,pvp_speed_percent:10,team_hp_percent:20,pvp_defense_percent:20,defense_percent:20,reward_percent:10,mission_reward_percent:10,random_reward_percent:10,drop_chance_percent:10,egg_luck_percent:10,hero_xp_percent:15,account_xp_percent:15};
-export function normalizePetRarity(rarity?:string|null):PetRarity{const value=String(rarity??'common').trim().toLowerCase();return ({common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',rara:'rare',epic:'epic',epico:'epic','épico':'epic',epica:'epic','épica':'epic',legendary:'legendary',mythic:'mythic',mitico:'mythic','mítico':'mythic',lendario:'legendary','lendário':'legendary',lendaria:'legendary','lendária':'legendary',ancestral:'ancestral',nft_exclusive:'nft_exclusive','nft-exclusive':'nft_exclusive','nft exclusive':'nft_exclusive',nft:'nft_exclusive',nft_exclusivo:'nft_exclusive','nft exclusivo':'nft_exclusive'} as Record<string,PetRarity>)[value]??'common'}
-export function petLevelMultiplier(level:number){return 1+(Math.min(30,Math.max(1,Math.floor(Number.isFinite(level)?level:1)))-1)*.02}
-export function calculatePetBonus(base:number,rarity:string,level:number,key?:PetBonusKey){if(!Number.isFinite(base)||base<0)return 0;const raw=base*PET_RARITY_MULTIPLIER[normalizePetRarity(rarity)]*petLevelMultiplier(level);const cap=key?PET_BONUS_CAPS[key]:undefined;return Number(Math.min(raw,cap??raw).toFixed(2))}
-export function petPower(rarity:string,level:number,passives:Record<string,number>){const safe=Math.min(30,Math.max(1,Math.floor(level)));const total=Object.values(passives).filter(Number.isFinite).reduce((a,b)=>a+b,0);return Math.round(PET_RARITY_POWER[normalizePetRarity(rarity)]+safe*100+total*250)}
+/** Official rarity hierarchy — mirrors public.pet_rarity_config (single source of truth is the backend). */
+export const PET_RARITY_ORDER:Record<PetRarity,number>={common:1,uncommon:2,rare:3,epic:4,legendary:5,mythic:6,ancestral:7,exclusive:8,nft_exclusive:9};
+export const PET_RARITY_MULTIPLIER:Record<PetRarity,number>={common:1,uncommon:1.25,rare:1.6,epic:2.1,legendary:2.8,mythic:3.2,ancestral:3.6,exclusive:3.9,nft_exclusive:4.2};
+/** Official base power per rarity: a superior rarity is ALWAYS stronger at the same level/stage. */
+export const PET_RARITY_POWER:Record<PetRarity,number>={common:10000,uncommon:11500,rare:13500,epic:16000,legendary:19000,mythic:22500,ancestral:27000,exclusive:31000,nft_exclusive:35000};
+export const PET_EVOLUTION_RARITY_MULTIPLIER:Record<PetRarity,number>={common:1,uncommon:1.25,rare:1.6,epic:2.2,legendary:3.2,mythic:3.8,ancestral:4.5,exclusive:4.9,nft_exclusive:5.2};
+export const PET_BONUS_CAPS:Partial<Record<PetBonusKey,number>>={boss_damage_percent:60,boss_damage_reduction_percent:45,team_hp_percent:60,pvp_attack_percent:60,pvp_defense_percent:60,pvp_speed_percent:30,defense_percent:60,critical_chance_percent:30,reward_percent:40,mission_reward_percent:30,random_reward_percent:30,drop_chance_percent:30,egg_luck_percent:30,farm_fc_percent:45,offline_production_percent:45,hero_xp_percent:45,account_xp_percent:45,revive_speed_percent:80,mission_progress_percent:30};
+export const PET_MAX_LEVEL=50;
+export function normalizePetRarity(rarity?:string|null):PetRarity{const value=String(rarity??'common').trim().toLowerCase();return ({common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',rara:'rare',epic:'epic',epico:'epic','épico':'epic',epica:'epic','épica':'epic',legendary:'legendary',mythic:'mythic',mitico:'mythic','mítico':'mythic',lendario:'legendary','lendário':'legendary',lendaria:'legendary','lendária':'legendary',ancestral:'ancestral',exclusive:'exclusive',exclusivo:'exclusive',exclusiva:'exclusive',nft_exclusive:'nft_exclusive','nft-exclusive':'nft_exclusive','nft exclusive':'nft_exclusive',nft:'nft_exclusive',nft_exclusivo:'nft_exclusive','nft exclusivo':'nft_exclusive'} as Record<string,PetRarity>)[value]??'common'}
+const clampLevel=(level:number)=>Math.min(PET_MAX_LEVEL,Math.max(1,Math.floor(Number.isFinite(level)?level:1)));
+/** One visual/structural stage every 10 levels: 0 = base form … 5 = final form. */
+export function petStageIndex(level:number,tier=0){return Math.min(5,Math.max(0,Math.max(Math.floor(clampLevel(level)/10),Math.floor(Number.isFinite(tier)?tier:0))))}
+export function petStagePowerMultiplier(stage:number){return 1+.08*Math.min(5,Math.max(0,Math.floor(stage)))}
+export function petStageBuffMultiplier(stage:number){return 1+.10*Math.min(5,Math.max(0,Math.floor(stage)))}
+export function petLevelMultiplier(level:number){return 1+(clampLevel(level)-1)*.02}
+/**
+ * Official buff formula: ALWAYS derived from the original base value (never compounded on the
+ * current value) and capped per buff type, so evolutions grow gradually (20 → 22 → 24 …).
+ */
+export function calculatePetBonus(base:number,rarity:string,level:number,key?:PetBonusKey,stage=0){if(!Number.isFinite(base)||base<=0)return 0;const raw=base*petStageBuffMultiplier(stage)*(1+(clampLevel(level)-1)*.005);const cap=key?PET_BONUS_CAPS[key]:undefined;return Number(Math.min(raw,cap??raw,150).toFixed(2))}
+/** Official power formula, mirroring public.pet_instance_power. */
+export function petPower(rarity:string,level:number,passives:Record<string,number>,tier=0){const lvl=clampLevel(level),stage=petStageIndex(lvl,tier),total=Object.values(passives).filter(Number.isFinite).reduce((a,b)=>a+b,0);return Math.round(PET_RARITY_POWER[normalizePetRarity(rarity)]*(1+(lvl-1)*.05)*petStagePowerMultiplier(stage)+Math.min(total,200)*2)}
 export function levelCostFc(level:number){return Math.round(1000*Math.pow(Math.max(1,level),1.45))}
 export function calculatePetEvolutionCostFc(currentLevel:number,rarity:string){const level=Math.max(1,Math.floor(Number.isFinite(currentLevel)?currentLevel:1)),multiplier=PET_EVOLUTION_RARITY_MULTIPLIER[normalizePetRarity(rarity)];return Math.ceil(2500*Math.pow(level,1.45)*multiplier/100)*100}
-export function canPetEvolve(level:number,currentXp:number){return level<30&&Number.isFinite(currentXp)&&currentXp>=xpRequired(level)}
+export function canPetEvolve(level:number,currentXp:number){return level<PET_MAX_LEVEL&&Number.isFinite(currentXp)&&currentXp>=xpRequired(level)}
 export function foodCost(level:number){return Math.ceil(Math.max(1,level)/3)}
 export function fragmentCost(level:number){return level>=10?Math.ceil(level/5):0}
 export function xpRequired(level:number){return Math.round(250*Math.pow(Math.max(1,level),1.35))}

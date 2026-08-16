@@ -26,7 +26,7 @@ type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'exclusive', 'nft_exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
 const cleanEggName = (name: string) => name.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
@@ -35,7 +35,7 @@ const rarityRank = (key: string) => { const i = RARITY_ORDER.indexOf(String(key)
 const sortedRates = (rates: Record<string, number>) =>
   Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => rarityRank(a[0]) - rarityRank(b[0]));
 
-const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#e879f9', ancestral: '#f472b6', nft_exclusive: '#fbbf24' };
+const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#e879f9', ancestral: '#f472b6', exclusive: '#f0abfc', nft_exclusive: '#fbbf24' };
 
 const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: string; badgeClass: string }> = {
   common: { borderClass: 'border-slate-400/55', glowClass: 'from-slate-400/20', badgeClass: 'border-slate-300/40 bg-slate-500/15 text-slate-200' },
@@ -46,6 +46,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   mythic: { borderClass: 'border-rose-400/80', glowClass: 'from-rose-500/40', badgeClass: 'border-rose-200/60 bg-rose-600/20 text-rose-100' },
   ancestral: { borderClass: 'border-pink-300/80', glowClass: 'from-pink-400/40', badgeClass: 'border-pink-200/60 bg-pink-500/20 text-pink-100' },
   // NFT EXCLUSIVE never uses a colored rarity chip — the single premium gold/dark tag replaces it.
+  exclusive: { borderClass: 'border-fuchsia-300/70', glowClass: 'from-fuchsia-300/35', badgeClass: 'border-fuchsia-300/70 bg-[#160b16] text-fuchsia-200' },
   nft_exclusive: { borderClass: 'border-amber-200/70', glowClass: 'from-amber-300/35', badgeClass: 'forge-nft-tag border-amber-200/80 bg-[#120c04] text-amber-200' },
 };
 
