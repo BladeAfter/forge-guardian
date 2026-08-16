@@ -13224,6 +13224,7 @@ export type Database = {
       global_boss_difficulty: { Args: never; Returns: Json }
       global_boss_effective_stats: { Args: { p_number: number }; Returns: Json }
       global_boss_overlay: { Args: { p_user: string }; Returns: Json }
+      global_boss_reapply_difficulty: { Args: never; Returns: Json }
       global_boss_setting_num: {
         Args: { p_default: number; p_key: string }
         Returns: number
