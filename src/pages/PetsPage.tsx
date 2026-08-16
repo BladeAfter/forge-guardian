@@ -907,6 +907,14 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
       {items.map((item) => {
         const available = Number(item.availableTon ?? 0);
         const canClaim = Boolean(item.canClaim) && !claim.isPending;
+        // Effective yield rule: a 0/NULL yield NFT hides every mining block and action.
+        const hasYield = Number(item.dailyYieldTon ?? 0) > 0;
+        const showMining = hasYield || available > 0 || Number(item.lifetimeEarnedTon ?? 0) > 0;
+        const stats = [
+          ...(hasYield ? [{ label: 'Daily Yield', value: item.dailyYieldTon }] : []),
+          { label: 'Available to Claim', value: available },
+          { label: 'Lifetime Earned', value: item.lifetimeEarnedTon },
+        ];
         return (
           <section key={item.positionId} className="forge-nft-card relative overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
             <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
@@ -923,26 +931,26 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
                 </p>
               </div>
             </div>
-            <div className="relative mt-3 grid grid-cols-3 gap-2 text-center">
-              {[
-                { label: 'Daily Yield', value: item.dailyYieldTon },
-                { label: 'Available to Claim', value: available },
-                { label: 'Lifetime Earned', value: item.lifetimeEarnedTon },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-                  <p className="text-[7px] uppercase leading-tight tracking-[.12em] text-slate-400">{stat.label}</p>
-                  <p className="text-[13px] font-black text-amber-100">{formatTon(stat.value ?? 0)} <span className="text-[8px] text-amber-300/80">TON</span></p>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              disabled={!canClaim}
-              onClick={() => claim.mutate(item.positionId)}
-              className={`relative mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'bg-white/5 text-slate-500'}`}
-            >
-              {available > 0 ? `CLAIM ${formatTon(available)} TON` : 'NOTHING TO CLAIM'}
-            </button>
+            {showMining ? (
+              <div className={`relative mt-3 grid gap-2 text-center ${stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {stats.map((stat) => (
+                  <div key={stat.label} className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
+                    <p className="text-[7px] uppercase leading-tight tracking-[.12em] text-slate-400">{stat.label}</p>
+                    <p className="text-[13px] font-black text-amber-100">{formatTon(stat.value ?? 0)} <span className="text-[8px] text-amber-300/80">TON</span></p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {showMining ? (
+              <button
+                type="button"
+                disabled={!canClaim}
+                onClick={() => claim.mutate(item.positionId)}
+                className={`relative mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'bg-white/5 text-slate-500'}`}
+              >
+                {available > 0 ? `CLAIM ${formatTon(available)} TON` : 'NOTHING TO CLAIM'}
+              </button>
+            ) : null}
           </section>
         );
       })}

@@ -258,7 +258,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
               </div>
             ) : null}
           </div>
-          <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p>
+          {Number(item.dailyYieldTon || 0) > 0 ? <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p> : null}
         </section>
       ))}
     </div>
