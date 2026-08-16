@@ -328,7 +328,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
         />
         {depositMode === 'ton_balance' ? <p className="mt-1 text-[9px] leading-relaxed text-sky-300/80">{t('wallet.depositDirectNote')}</p> : null}
-        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
+        <Primary onClick={() => deposit.mutate()} disabled={deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
         <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
           {verify.isPending ? t('wallet.verifying') : t('wallet.alreadyPaid')}
         </button>
