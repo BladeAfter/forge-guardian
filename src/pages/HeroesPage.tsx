@@ -134,7 +134,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                 <div key={hero.heroId} role="button" tabIndex={0} onClick={() => setDetailsId(hero.heroId)} onKeyDown={(e) => { if (e.key === 'Enter') setDetailsId(hero.heroId); }} className={`cursor-pointer overflow-hidden rounded-xl border bg-black/70 text-left ${hero.isNft ? 'nft-hero-card' : ''}`} style={{ borderColor: color[hero.rarity] }}>
 
                   <div className="relative">
-                    <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover" />
+                    <img src={hero.imageUrl} alt={hero.name} loading="lazy" className="aspect-square w-full object-cover object-top" />
                     {hero.isNft ? (
                       <>
                         <span className="nft-hero-tag absolute left-1 top-1 rounded-md px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[.14em]">NFT Exclusive</span>

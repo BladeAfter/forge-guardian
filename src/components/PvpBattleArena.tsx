@@ -85,7 +85,7 @@ function FighterCard({fighter:h,attacking,hit,down}:{fighter:Fighter;attacking:b
  const t=useT();const defeatedLabel=t('pvp.defeatedTag');
  const pct=Math.max(0,Math.min(100,Math.round((h.hp/h.maxHp)*100))),dead=h.hp<=0,fxInfo=archetypeFx[String(h.archetype)]??archetypeFx.warrior;
  return<div className={`relative overflow-hidden rounded-lg border bg-black/70 transition-all duration-200 ${h.isNft?'nft-hero-card':''} ${dead?(h.isNft?'opacity-70':'opacity-40 grayscale'):''} ${attacking?(down?'-translate-y-1.5':'translate-y-1.5')+' shadow-[0_0_18px_rgba(251,191,36,.45)]':''} ${hit?'animate-[pulse_.3s_ease-in-out]':''}`} style={{borderColor:h.isNft?undefined:(rarityColor[h.rarity]??'#475569')}}>{h.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span></div>:null}
-  <div className="relative"><img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover"/>
+  <div className="relative"><img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover object-top"/>
    {attacking&&<span className="absolute inset-0 grid place-items-center text-lg" style={{color:fxInfo.color,textShadow:`0 0 12px ${fxInfo.color}`}}>{fxInfo.icon}</span>}
    {hit&&<span key={hit.key} className="absolute inset-x-0 top-1 animate-fade-in text-center text-[11px] font-black text-rose-300 drop-shadow-[0_2px_6px_rgba(0,0,0,.8)]">-{hit.damage}</span>}
    {dead&&<span className="absolute inset-0 grid place-items-center bg-black/60 text-[7px] font-black tracking-widest text-rose-300">{defeatedLabel}</span>}
