@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, X } from 'lucide-react';
+import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard } from '../hooks';
@@ -129,8 +129,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       if (payload.result) {
         const hatched = dashboard.playerPets.find((pet) => pet.id === payload.result?.playerPetId)
           ?? dashboard.playerPets.find((pet) => pet.petId === payload.result?.petId);
-        const eggImage = (variables?.action === 'hatch' ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
+        const eggImage = ((variables?.action === 'hatch' || variables?.action === 'buy-egg-balance')
+          ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
           || '/assets/game/pet-eggs/common-egg.webp';
+        setEggTarget(null);
         setReveal({ result: { ...payload.result, rarity: String(payload.result.rarity).toLowerCase() as PetRarity }, eggImage, pet: hatched });
         return;
       }
@@ -369,10 +371,12 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
               <BuyEggModal
                 egg={eggTarget}
                 balance={data.balance}
+                tonBalance={data.tonBalance ?? 0}
                 pending={pending || tonPurchase.isPending}
                 onClose={() => setEggTarget(null)}
                 onBuyFc={(quantity) => mutation.mutate({ action: 'buy-egg', eggId: eggTarget.id, quantity, idempotencyKey: crypto.randomUUID() })}
                 onBuyTon={() => tonPurchase.mutate(eggTarget)}
+                onBuyTonBalance={() => mutation.mutate({ action: 'buy-egg-balance', eggId: eggTarget.id, idempotencyKey: crypto.randomUUID() })}
               />
             )}
           </>
@@ -1066,13 +1070,16 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 }
 
 /** Purchase confirmation: prices come from the server payload, never from the client. */
-function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { egg: PetEgg; balance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void }) {
+function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBuyTon, onBuyTonBalance }: { egg: PetEgg; balance: number; tonBalance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void; onBuyTonBalance: () => void }) {
   const t = useT();
   const [quantity, setQuantity] = useState(1);
   const isTon = !egg.priceFc && !!egg.priceTon;
   const unit = egg.priceFc ?? 0;
   const total = unit * quantity;
   const missing = !isTon && total > balance;
+  // Premium eggs accept the internal TON balance whenever it covers the price.
+  const tonPrice = egg.priceTon ?? 0;
+  const canUseTonBalance = isTon && tonBalance >= tonPrice;
   return (
     <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
       <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
@@ -1099,6 +1106,9 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
             <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
               {t('pets.premiumNote')}
             </p>
+            <p className="mt-2 text-[9px] font-bold uppercase tracking-wide text-sky-100">
+              {t('pets.tonBalanceLabel')}: {formatTon(tonBalance)} TON
+            </p>
           </div>
         ) : (
           <>
@@ -1111,6 +1121,21 @@ function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { eg
               <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
             </div>
           </>
+        )}
+
+        {/* Premium eggs: internal TON balance is offered alongside the wallet payment. */}
+        {isTon && (
+          <button
+            type="button"
+            disabled={pending || !canUseTonBalance}
+            onClick={onBuyTonBalance}
+            className="mt-3 flex w-full items-center justify-center gap-1 rounded-xl border border-sky-300/40 bg-sky-500/15 py-2 text-[9px] font-black uppercase text-sky-100 disabled:grayscale disabled:opacity-40"
+          >
+            <Wallet className="h-3 w-3" />
+            {canUseTonBalance
+              ? t('pets.payWithTonBalance', { price: `${formatTon(tonPrice)} TON` })
+              : t('pets.insufficientTonBalance')}
+          </button>
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">

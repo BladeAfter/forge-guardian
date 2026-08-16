@@ -360,6 +360,12 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_egg_id = body.eggId;
     args.p_quantity = quantity;
     args.p_idempotency_key = requestKey('pet_egg_buy');
+  } else if (action === 'buy-egg-balance') {
+    // Premium (TON) egg paid with the player's internal TON balance: debit + delivery are atomic server-side.
+    if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
+    fn = 'pet_egg_buy_with_balance';
+    args.p_egg_id = body.eggId;
+    args.p_idempotency_key = requestKey('pet_egg_balance');
   } else if (action === 'buy-food') {
     const quantity = Number(body.quantity ?? 1);
     const foodCode = String(body.foodCode || '');

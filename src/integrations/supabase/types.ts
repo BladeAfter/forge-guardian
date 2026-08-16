@@ -13866,6 +13866,14 @@ export type Database = {
         }
         Returns: number
       }
+      pet_egg_buy_with_balance: {
+        Args: {
+          p_egg_id: string
+          p_idempotency_key: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_hatch_result_json: {
