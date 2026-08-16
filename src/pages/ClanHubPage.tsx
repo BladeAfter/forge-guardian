@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { ArrowLeft, Crown, MessageSquare, Send, Shield, Swords, Target, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
 import { useClanDashboard } from '../hooks';
 import { clanErrorKey, clanRequest, type ClanMessage, type ClanSummary } from '../clans';
 import { ClanCrest } from '../components/ClanHall';
+import { ClanMembersList, ClanRequestCard } from '../components/ClanMembersPanel';
 import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
 import { formatCurrency } from '../utils';
 
-type Tab = 'members' | 'chat' | 'missions' | 'ranking' | 'boss';
+type Tab = 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'boss';
 
 /**
  * ClanHub: the single clan surface. Both the Clan Hall building and the compact
@@ -173,7 +174,9 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   }
 
   const clan = data.clan!;
-  const canManage = ['leader', 'co-leader'].includes(data.role ?? 'member');
+  // The backend is the source of truth for management rights (rank >= 2); the legacy check is only a fallback.
+  const canManage = data.canManageMembers ?? ['leader', 'co-leader'].includes(data.role ?? 'member');
+  const requests = data.requests ?? [];
 
   return (
     <Shell onClose={onClose}>
@@ -199,48 +202,42 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         <TabButton active={tab === 'missions'} onClick={() => setTab('missions')} icon={<Target className="h-4 w-4" />} label={t('clan.missions')} />
         <TabButton active={tab === 'ranking'} onClick={() => setTab('ranking')} icon={<Trophy className="h-4 w-4" />} label={t('clan.ranking')} />
         <TabButton active={tab === 'boss'} onClick={() => setTab('boss')} icon={<Swords className="h-4 w-4" />} label={t('clan.boss')} />
+        {canManage ? (
+          <div className="relative">
+            <TabButton active={tab === 'requests'} onClick={() => setTab('requests')} icon={<UserPlus className="h-4 w-4" />} label={t('clanx.tabRequests')} />
+            {requests.length ? <span className="pointer-events-none absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[8px] font-black text-white">{requests.length}</span> : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-3 space-y-2 pb-12">
         {tab === 'members' ? (
           <>
-            {canManage && (data.requests ?? []).length ? (
-              <>
-                <h3 className="text-[10px] font-black tracking-[.2em] text-amber-200">{t('clan.requests')}</h3>
-                {(data.requests ?? []).map((request) => (
-                  <div key={request.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-3">
-                    <b className="min-w-0 flex-1 truncate text-xs">{request.name}</b>
-                    <button onClick={() => void run({ action: 'manage', manageAction: 'accept', targetId: request.userId })} className="rounded-lg bg-emerald-500/20 px-2 py-1 text-[9px] font-black text-emerald-300">{t('clan.accept')}</button>
-                    <button onClick={() => void run({ action: 'manage', manageAction: 'reject', targetId: request.userId })} className="rounded-lg bg-rose-500/20 px-2 py-1 text-[9px] font-black text-rose-300">{t('clan.reject')}</button>
-                  </div>
-                ))}
-              </>
-            ) : null}
-            {(data.members ?? []).map((member) => (
-              <div key={member.userId} className="rounded-2xl border border-white/10 bg-black/55 p-3">
-                <div className="flex items-center gap-2">
-                  {member.avatar ? <img src={member.avatar} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[10px]">{member.name.slice(0, 2)}</span>}
-                  <div className="min-w-0 flex-1">
-                    <b className="block truncate text-xs">{member.role === 'leader' ? '👑 ' : ''}{member.name}</b>
-                    <span className="text-[9px] text-amber-300">{t(`clan.role.${member.role}`)}</span>
-                  </div>
-                  <div className="text-right text-[9px] text-slate-400">
-                    <p>{t('clan.power')} {member.power.toLocaleString()}</p>
-                    <p>{t('clan.trophies')} {member.trophies.toLocaleString()}</p>
-                    <p>{t('clan.contribution')} {member.contribution.toLocaleString()}</p>
-                  </div>
-                </div>
-                {canManage && !member.isMe ? (
-                  <div className="mt-2 flex gap-2">
-                    <button onClick={() => void run({ action: 'manage', manageAction: 'promote', targetId: member.userId })} className="flex-1 rounded-lg bg-white/5 py-1 text-[9px] font-black text-emerald-300">{t('clan.promote')}</button>
-                    <button onClick={() => void run({ action: 'manage', manageAction: 'demote', targetId: member.userId })} className="flex-1 rounded-lg bg-white/5 py-1 text-[9px] font-black text-slate-300">{t('clan.demote')}</button>
-                    <button onClick={() => void run({ action: 'manage', manageAction: 'kick', targetId: member.userId })} className="flex-1 rounded-lg bg-white/5 py-1 text-[9px] font-black text-rose-300">{t('clan.kick')}</button>
-                    {data.role === 'leader' ? <button onClick={() => void run({ action: 'manage', manageAction: 'transfer', targetId: member.userId })} className="flex-1 rounded-lg bg-white/5 py-1 text-[9px] font-black text-amber-300"><Crown className="mx-auto h-3 w-3" /></button> : null}
-                  </div>
-                ) : null}
-              </div>
-            ))}
+            <ClanMembersList
+              members={data.members ?? []}
+              stats={data.stats}
+              canManage={canManage}
+              myRole={data.role ?? 'member'}
+              busy={busy}
+              onAction={(action, targetId) => void run({ action: 'manage', manageAction: action, targetId })}
+            />
             <button onClick={() => void run({ action: 'leave' }, 'clan.left')} className="mt-2 w-full rounded-xl border border-rose-400/30 py-3 text-[10px] font-black text-rose-300">{t('clan.leave')}</button>
+          </>
+        ) : null}
+
+        {tab === 'requests' && canManage ? (
+          <>
+            <h3 className="text-[10px] font-black tracking-[.2em] text-amber-200">{t('clan.requests')}</h3>
+            {!requests.length ? <p className="py-6 text-center text-[10px] text-slate-500">{t('clanx.noRequests')}</p> : null}
+            {requests.map((request) => (
+              <ClanRequestCard
+                key={request.id}
+                request={request}
+                busy={busy}
+                onAccept={() => void run({ action: 'manage', manageAction: 'accept', targetId: request.userId })}
+                onReject={() => void run({ action: 'manage', manageAction: 'reject', targetId: request.userId })}
+              />
+            ))}
           </>
         ) : null}
 
