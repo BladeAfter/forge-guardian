@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils';
 import { claimDailyQuest, claimDailyQuestChest } from '../services';
 import type { DailyQuest, DailyQuestsDashboard } from '../quests';
 import { useT, useLanguage } from '../LanguageContext';
+import { NameMissionCard } from '../components/NameMissionCard';
 
 
 type QuestsPageProps = {
@@ -128,6 +129,9 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
       {/* Never surface raw backend/SQL errors to players — the details stay in the console log above. */}
       {error ? <p className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-200">{t('quests.errorLoad')}</p> : null}
       {loading && !dashboard ? <p className="p-3 text-xs text-slate-400">{t('quests.loading')}</p> : null}
+
+      {/* Promo mission validated against the real Telegram display name (server-side). */}
+      {telegramInitData ? <NameMissionCard telegramInitData={telegramInitData} /> : null}
 
       <div className="space-y-2">
         {(dashboard?.quests ?? []).map((quest) => (

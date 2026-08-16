@@ -68,6 +68,42 @@ export async function telegramIsChatMember(chatId: string, telegramUserId: numbe
 }
 
 
+/**
+ * Current Telegram display name straight from the Bot API (first_name + last_name).
+ * Returns null when the bot cannot see the user (never started the bot / API error),
+ * so the caller can fall back to the signed initData instead of failing the mission.
+ */
+export async function telegramLiveDisplayName(telegramUserId: number): Promise<string | null> {
+  const token = gameBotToken();
+  if (!token) return null;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getChat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: telegramUserId }),
+    });
+    const payload = await response.json().catch(() => null) as
+      | { ok?: boolean; result?: { first_name?: string; last_name?: string } }
+      | null;
+    if (!payload?.ok) {
+      console.error('[NAME MISSION] getChat failed', response.status, JSON.stringify(payload));
+      return null;
+    }
+    const name = [payload.result?.first_name ?? '', payload.result?.last_name ?? ''].join(' ').replace(/\s+/g, ' ').trim();
+    return name || null;
+  } catch (error) {
+    console.error('[NAME MISSION] getChat error', error);
+    return null;
+  }
+}
+
+/** Exact hashtag token match, case-insensitive. "#MythreonFake" and "Mythreon" never match. */
+export function hashtagPresent(displayName: string, hashtag: string): boolean {
+  const tag = String(hashtag || '').replace(/^#+/, '').trim().toLowerCase();
+  if (!tag) return false;
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^\\p{L}\\p{N}_])#${escaped}([^\\p{L}\\p{N}_]|$)`, 'iu').test(String(displayName || '').normalize('NFC'));
+}
 
 
 // Telegram clients (specially Desktop/Web) keep the same signed initData for the whole
@@ -1591,6 +1627,56 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     throw new Error('INVALID_ACTION');
   },
+
+  /**
+   * MISSION: ADD #MYTHREON TO YOUR TELEGRAM NAME.
+   * The display name is NEVER read from the client. On VERIFY the server asks the
+   * Telegram Bot API for the current profile (getChat) and falls back to the signed
+   * initData only when the Bot API cannot answer for that user. The RPC re-validates
+   * the hashtag and pays at most once per Telegram ID, atomically.
+   */
+  namemission: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'get_name_mission_state', { p_telegram_id: user.id });
+    if (action !== 'verify') throw new Error('INVALID_ACTION');
+
+    const state = (await rpc(db, 'get_name_mission_state', { p_telegram_id: user.id })) as
+      | { enabled?: boolean; hashtag?: string; claimed?: boolean }
+      | null;
+    if (state?.claimed) return { ...(state as object), status: 'already_claimed', verified: true, creditedFc: 0 };
+    if (state?.enabled !== true) throw new Error('NAME_MISSION_DISABLED');
+
+    const hashtag = String(state?.hashtag || '#Mythreon');
+    const live = await telegramLiveDisplayName(user.id);
+    const fallback = [user.first_name ?? '', user.last_name ?? ''].join(' ').replace(/\s+/g, ' ').trim();
+    const displayName = live ?? fallback;
+    const source = live !== null ? 'bot_api' : 'init_data';
+
+    if (!hashtagPresent(displayName, hashtag)) {
+      return {
+        ...(state as object),
+        status: 'not_verified',
+        verified: false,
+        reason: 'HASHTAG_NOT_FOUND',
+        // The client uses this to ask for a reopen when only the cached session was available.
+        stale: source === 'init_data',
+        source,
+        displayName,
+      };
+    }
+
+    const rawInitData = typeof body.initData === 'string' ? body.initData : '';
+    const authDate = rawInitData ? Number(new URLSearchParams(rawInitData).get('auth_date')) || null : null;
+    const claim = (await rpc(db, 'claim_name_mission', {
+      p_telegram_id: user.id,
+      p_display_name: displayName,
+      p_source: source,
+      p_auth_date: authDate,
+    })) as Record<string, unknown>;
+    return { ...claim, verified: true, source, displayName };
+  },
+
+
 
 
   pool: async (db, user, body) => {

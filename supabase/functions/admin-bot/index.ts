@@ -71,6 +71,7 @@ const MAIN_MENU = kb([
   [{ t: '⚔️ TACTICAL PVP (3V3)', d: 'tp:hub' }],
   [{ t: '⚙ POOL / PASS ACTIVITY', d: 'ar:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
+  [{ t: '#️⃣ MISSÃO #MYTHREON', d: 'nm:hub' }],
 
 
 
@@ -2163,6 +2164,9 @@ const PROMPTS: Record<string, string> = {
   fgper: '🧩 Envie quantos FRAGMENTOS valem 1 herói aleatório.\nEx.: <code>5</code>',
   fgrates: '🧩 Envie <code>common uncommon</code> em % para o resgate.\nEx.: <code>70 30</code>',
   fgfusion: '🧩 Envie quantos FRAGMENTOS UNIVERSAIS substituem as cópias em 1 etapa de FUSE.\nEx.: <code>25</code>',
+  nmreward: '#️⃣ Envie a <b>recompensa em FC</b> da missão #Mythreon.\nEx.: <code>50000</code>',
+  nmtag: '#️⃣ Envie a <b>hashtag</b> exigida no nome do Telegram.\nEx.: <code>#Mythreon</code>',
+  nmuser: '#️⃣ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar o nome atual no Telegram.',
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
   depmin: '💠 Envie o valor mínimo do DEPÓSITO DIRETO DE TON (vai para o saldo TON sacável).\nEx.: <code>0.1</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
@@ -3386,6 +3390,105 @@ async function xePrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
+
+// ---------------------------------------------------------------- #️⃣ MISSION: ADD #MYTHREON TO YOUR TELEGRAM NAME
+// The reward is only paid by the game API after the server itself reads the player's
+// current Telegram display name (Bot API getChat, fallback: signed initData).
+// Here the admin controls ON/OFF, the hashtag, the reward and can audit any player.
+const nmRpc = (ctx: Ctx, action: string, payload: Record<string, unknown> = {}) =>
+  rpc('admin_name_mission', { p_admin_id: ctx.adminId, p_action: action, p_payload: payload });
+
+const nmTagFound = (name: string, hashtag: string) => {
+  const tag = String(hashtag || '#Mythreon').replace(/^#+/, '').toLowerCase();
+  if (!tag) return false;
+  return new RegExp(`(^|[^\\p{L}\\p{N}_])#${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^\\p{L}\\p{N}_]|$)`, 'iu').test(String(name || ''));
+};
+
+async function nmHub(ctx: Ctx, useEdit = true) {
+  const d = await nmRpc(ctx, 'overview') as any;
+  const claims = arr<any>(d.claims).map((c) => `• ${String(c.verifiedAt).slice(5, 16).replace('T', ' ')} · <code>${c.telegramId}</code> ${esc(c.name)} · ${fmt(c.rewardAmount)} FC ${c.source === 'bot_api' ? '🤖' : '🔐'}`).join('\n') || '— nenhum resgate ainda —';
+  const text = `#️⃣ <b>MISSÃO #MYTHREON NO NOME</b>\n`
+    + `Estado: <b>${d.enabled ? '🟢 ATIVA' : '🔴 DESATIVADA'}</b>\n`
+    + `Hashtag exigida: <b>${esc(d.hashtag)}</b> (case-insensitive, token exato)\n`
+    + `Recompensa: <b>${fmt(d.rewardFc)} FC</b> · limite <b>1 resgate por jogador</b>\n`
+    + `Resgates: <b>${fmt(d.totalClaims)}</b> · pago ${fmt(d.totalPaidFc)} FC\n\n`
+    + `A validação é feita no servidor com o nome REAL do Telegram (first_name + last_name). O nome do perfil do jogo nunca é aceito como prova.\n\n`
+    + `<b>ÚLTIMOS RESGATES</b>\n${claims}`;
+  const rows = [
+    [{ t: d.enabled ? '⛔ DESATIVAR' : '✅ ATIVAR', d: `nm:toggle:${d.enabled ? '0' : '1'}` }],
+    [{ t: '💰 DEFINIR RECOMPENSA', d: 'nm:ask:nmreward' }, { t: '#️⃣ HASHTAG', d: 'nm:ask:nmtag' }],
+    [{ t: '📜 RESGATES', d: 'nm:claims' }, { t: '👤 VERIFICAR USUÁRIO', d: 'nm:ask:nmuser' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nmClaims(ctx: Ctx) {
+  const d = await nmRpc(ctx, 'overview') as any;
+  const lines = arr<any>(d.claims).map((c) => `• <code>${c.telegramId}</code> ${esc(c.name)}\n   ${String(c.verifiedAt).slice(0, 16).replace('T', ' ')} · ${fmt(c.rewardAmount)} FC · fonte ${c.source === 'bot_api' ? 'Bot API' : 'initData'}`).join('\n') || '— nenhum resgate ainda —';
+  return edit(ctx, `📜 <b>RESGATES DA MISSÃO #MYTHREON</b> (${fmt(d.totalClaims)})\n${lines.slice(0, 3500)}`, kb([[{ t: '🔄 ATUALIZAR', d: 'nm:claims' }], nav('nm:hub')]));
+}
+
+/** Read-only audit: shows the CURRENT Telegram name and the claim status. Never pays. */
+async function nmVerifyUser(ctx: Ctx, ref: string, useEdit = true) {
+  const d = await nmRpc(ctx, 'lookup', { ref }) as any;
+  const chat = await tgAs(GAME_BOT_TOKEN, 'getChat', { chat_id: d.telegramId ?? ref.replace(/^@/, '') });
+  const result = (chat as any)?.result ?? null;
+  const liveName = result ? [result.first_name ?? '', result.last_name ?? ''].join(' ').replace(/\s+/g, ' ').trim() : '';
+  const found = liveName ? nmTagFound(liveName, d.hashtag) : null;
+  const text = `#️⃣ <b>VERIFICAR USUÁRIO</b>\n`
+    + `Telegram ID: <code>${d.telegramId ?? '—'}</code>\n`
+    + `Jogador: <b>${esc(d.playerName ?? '—')}</b>${d.username ? ` (@${esc(d.username)})` : ''}\n`
+    + `Nome atual no Telegram: <b>${esc(liveName || '— indisponível (bot não vê este usuário) —')}</b>\n`
+    + `${esc(d.hashtag)}: <b>${found === null ? '— não foi possível consultar —' : found ? 'YES ✅' : 'NO ❌'}</b>\n`
+    + `Missão: <b>${d.claimed ? 'CLAIMED ✅' : 'NOT CLAIMED'}</b>${d.claimed ? `\nNome no resgate: ${esc(d.verifiedName)}\nRecompensa: ${fmt(d.rewardAmount)} FC · ${String(d.claimedAt).slice(0, 16).replace('T', ' ')}` : ''}\n\n`
+    + `Consulta somente leitura — nenhuma recompensa é paga aqui.`;
+  const rows = [[{ t: '👤 OUTRO USUÁRIO', d: 'nm:ask:nmuser' }], nav('nm:hub')];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function nmCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  switch (sub) {
+    case 'ask': return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+    case 'claims': return nmClaims(ctx);
+    case 'toggle': {
+      await nmRpc(ctx, a === '1' ? 'enable' : 'disable');
+      await send(ctx, a === '1' ? '✅ Missão #Mythreon <b>ATIVADA</b>.' : '⛔ Missão #Mythreon <b>DESATIVADA</b>.');
+      return nmHub({ ...ctx, messageId: undefined }, false);
+    }
+    default: return nmHub(ctx);
+  }
+}
+
+async function nmPrompt(ctx: Ctx, key: string, text: string) {
+  switch (key) {
+    case 'nmreward': {
+      const value = Math.round(Number(text.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.')));
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie a recompensa em FC. Ex.: <code>50000</code>');
+      await nmRpc(ctx, 'set_reward', { rewardFc: value });
+      await clearSession(ctx);
+      await send(ctx, `#️⃣ Recompensa da missão definida em <b>${fmt(value)} FC</b>.`);
+      return nmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'nmtag': {
+      const tag = text.trim().replace(/\s+/g, '');
+      if (!/^#?[\p{L}\p{N}_]{3,24}$/u.test(tag)) throw new Error('KEEP_SESSION::⚠️ Envie uma hashtag válida. Ex.: <code>#Mythreon</code>');
+      await nmRpc(ctx, 'set_hashtag', { hashtag: tag });
+      await clearSession(ctx);
+      await send(ctx, `#️⃣ Hashtag exigida agora é <b>${esc(tag.startsWith('#') ? tag : '#' + tag)}</b>.`);
+      return nmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'nmuser': {
+      const ref = text.trim();
+      if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');
+      await clearSession(ctx);
+      return nmVerifyUser({ ...ctx, messageId: undefined }, ref, false);
+    }
+    default: return nmHub({ ...ctx, messageId: undefined }, false);
+  }
+}
+
 // ---------------------------------------------------------------- ⛏ HERO TON MINING (master admin only)
 // Passive TON generation driven by hero RARITY. Rates, global pause and the minimum
 // claim live in the database; every RPC below asserts the master admin id.
@@ -3673,6 +3776,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'nfth') { if (rest[0] !== 'ask') await clearSession(ctx); return nfthCallback(ctx, rest); }
   // ⛏ Hero TON mining (rates, global pause, per-player audit).
   if (head === 'hm') { if (rest[0] !== 'ask') await clearSession(ctx); return hmCallback(ctx, rest); }
+
+  // #️⃣ Mission "ADD #MYTHREON TO YOUR TELEGRAM NAME" (ON/OFF, hashtag, reward, claims, audit).
+  if (head === 'nm') { if (rest[0] !== 'ask') await clearSession(ctx); return nmCallback(ctx, rest); }
   // 💠 Deposit methods: TON -> FC purchase and TON -> internal TON balance (toggles + minimum).
   if (head === 'dp') {
     if (rest[0] === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1].split('|')[0]] ?? 'Envie o valor.');
@@ -5501,6 +5607,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     return depositSettingsHub({ ...ctx, messageId: undefined });
   }
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
+  if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
 
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
