@@ -20,10 +20,13 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    // Fail closed: without a configured secret nobody can trigger a payout.
     const expected = String(Deno.env.get('ADSGRAM_REWARD_SECRET') || '').trim();
-    if (expected && String(url.searchParams.get('secret') || '') !== expected) {
-      return json({ ok: false, error: 'FORBIDDEN' }, 403);
-    }
+    const provided = String(url.searchParams.get('secret') || '');
+    if (!expected || provided.length !== expected.length) return json({ ok: false, error: 'FORBIDDEN' }, 403);
+    let diff = 0;
+    for (let i = 0; i < provided.length; i++) diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
+    if (diff !== 0) return json({ ok: false, error: 'FORBIDDEN' }, 403);
 
     const telegramId = Number(url.searchParams.get('userId') || url.searchParams.get('user_id') || '');
     if (!Number.isFinite(telegramId) || telegramId <= 0) return json({ ok: false, error: 'INVALID_USER' }, 400);
