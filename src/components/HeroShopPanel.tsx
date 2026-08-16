@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { petDisplayRarity } from '../petLabels';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
@@ -20,6 +20,7 @@ import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMi
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
 import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
+import { AuctionPanel } from './AuctionPanel';
 
 
 type Props = {
@@ -56,6 +57,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
   const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
 
+  // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
+  const [section, setSection] = useState<'market' | 'auction'>('market');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
