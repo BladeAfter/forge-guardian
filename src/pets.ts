@@ -58,6 +58,8 @@ export type PetDashboard = {
   history: PetHistory[];
   bonuses: PetBuffs;
   balance: number;
+  /** Internal TON balance (premium eggs can be paid with it). */
+  tonBalance?: number;
 };
 
 export type PetFeedResult = { xpGained: number; levelsGained: number; level: number; xp: number; foodName: string; quantity: number };
