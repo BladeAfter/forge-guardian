@@ -903,3 +903,64 @@ export const fetchTacticalMatch=(initData:string,matchId:string)=>tacticalReques
 export const submitTacticalAction=(initData:string,matchId:string,skillKey:string,targetUid?:string|null,clientKey?:string)=>tacticalRequest<import('./tactical').TacticalMatch>(initData,{action:'action',matchId,skillKey,targetUid,clientKey});
 export const fetchTacticalHistory=(initData:string,limit=20)=>tacticalRequest<import('./tactical').TacticalHistoryEntry[]>(initData,{action:'history',limit});
 export const fetchTacticalRanking=(initData:string,limit=50)=>tacticalRequest<import('./tactical').TacticalRanking>(initData,{action:'ranking',limit});
+
+// ------------------------------------------------------------- auction (TON interno apenas)
+/**
+ * Leilão: nunca envolve FC nem TonConnect. Os lances reservam o saldo TON interno
+ * do jogador; o backend é a única autoridade sobre reserva, liberação, taxa e entrega.
+ */
+const AUCTION_ERRORS:Record<string,string>={
+  AUCTION_DISABLED:'O Leilão está temporariamente desativado.',
+  AUCTION_NOT_FOUND:'Leilão não encontrado.',
+  AUCTION_NOT_ACTIVE:'Este leilão não está mais ativo.',
+  AUCTION_ENDED:'Este leilão já terminou.',
+  AUCTION_HAS_BIDS:'Não é possível cancelar um leilão que já recebeu lances.',
+  NOT_AUCTION_OWNER:'Este leilão não é seu.',
+  CANNOT_BID_OWN_AUCTION:'Você não pode dar lance no seu próprio leilão.',
+  BID_TOO_LOW:'Lance abaixo do mínimo permitido.',
+  INVALID_BID:'Lance inválido.',
+  INVALID_DURATION:'Duração inválida.',
+  INVALID_PRICE:'Lance inicial inválido.',
+  PRICE_BELOW_MINIMUM:'Lance inicial abaixo do mínimo.',
+  PRICE_ABOVE_MAXIMUM:'Lance inicial acima do máximo.',
+  INSUFFICIENT_TON_BALANCE:'Saldo TON interno insuficiente. Deposite TON antes de dar o lance.',
+  NOT_AUCTION_ITEM:'Este item não é elegível ao leilão.',
+  AUCTION_ONLY_ITEM:'Este item só pode ser negociado no Leilão.',
+  ITEM_NOT_OWNED:'Este item não pertence a você.',
+  ALREADY_LISTED:'Este item já está anunciado.',
+  ITEM_EQUIPPED:'Desequipe o item antes de leiloar.',
+  ITEM_LOCKED:'Remova o bloqueio do item antes de leiloar.',
+  HERO_LOCKED:'Remova o bloqueio do herói antes de leiloar.',
+  HERO_NOT_TRADABLE:'Este herói não pode ser negociado.',
+  HERO_IN_PVP_TEAM:'Retire o herói da equipe de PvP antes de leiloar.',
+  HERO_IN_BOSS_TEAM:'Retire o herói da equipe do Chefe antes de leiloar.',
+  PET_IS_ACTIVE:'Desative o pet antes de leiloar.',
+  PET_NOT_TRADABLE:'Este pet não pode ser negociado.',
+  PLAYER_NOT_FOUND:'Jogador não encontrado.',
+};
+export type AuctionApiAction=
+  |{action:'browse';itemType?:string;sort?:string;limit?:number;offset?:number}
+  |{action:'sellable'}
+  |{action:'mine'}
+  |{action:'create';itemType:string;itemInstanceId:string;startingBidTon:number;durationHours:number}
+  |{action:'bid';auctionId:string;amountTon:number;idempotencyKey?:string}
+  |{action:'cancel';auctionId:string};
+export async function auctionRequest<T>(initData:string,input:AuctionApiAction):Promise<T>{
+  const response=await forgeFetch('auction',{initData,...input});
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o leilão.');
+  const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+  if(!response.ok||!payload){
+    const raw=payload?.error||'';
+    const known=AUCTION_ERRORS[raw];
+    if(!known)console.error('[AUCTION]',raw);
+    const isBusinessCode=/^[A-Z][A-Z0-9_]{2,48}$/.test(raw);
+    throw new Error(known||(isBusinessCode?`Leilão: ${raw.replace(/_/g,' ').toLowerCase()}.`:'Não foi possível processar o leilão. Tente novamente.'));
+  }
+  return payload;
+}
+export const fetchAuctionBrowse=(initData:string,itemType:string='all',sort:string='ending')=>auctionRequest<import('./auction').AuctionBrowse>(initData,{action:'browse',itemType,sort,limit:60});
+export const fetchAuctionSellable=(initData:string)=>auctionRequest<import('./auction').AuctionSellable>(initData,{action:'sellable'});
+export const fetchAuctionMine=(initData:string)=>auctionRequest<import('./auction').AuctionMine>(initData,{action:'mine'});
+export const createAuction=(initData:string,input:{itemType:string;itemInstanceId:string;startingBidTon:number;durationHours:number})=>auctionRequest<{ok:boolean;auctionId:string}>(initData,{action:'create',...input});
+export const placeAuctionBid=(initData:string,auctionId:string,amountTon:number,idempotencyKey?:string)=>auctionRequest<{ok:boolean;bidTon:number;availableTon?:number}>(initData,{action:'bid',auctionId,amountTon,idempotencyKey});
+export const cancelAuction=(initData:string,auctionId:string)=>auctionRequest<{ok:boolean}>(initData,{action:'cancel',auctionId});
