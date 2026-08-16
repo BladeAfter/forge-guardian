@@ -1070,13 +1070,16 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 }
 
 /** Purchase confirmation: prices come from the server payload, never from the client. */
-function BuyEggModal({ egg, balance, pending, onClose, onBuyFc, onBuyTon }: { egg: PetEgg; balance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void }) {
+function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBuyTon, onBuyTonBalance }: { egg: PetEgg; balance: number; tonBalance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void; onBuyTonBalance: () => void }) {
   const t = useT();
   const [quantity, setQuantity] = useState(1);
   const isTon = !egg.priceFc && !!egg.priceTon;
   const unit = egg.priceFc ?? 0;
   const total = unit * quantity;
   const missing = !isTon && total > balance;
+  // Premium eggs accept the internal TON balance whenever it covers the price.
+  const tonPrice = egg.priceTon ?? 0;
+  const canUseTonBalance = isTon && tonBalance >= tonPrice;
   return (
     <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
       <div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-4" onClick={(event) => event.stopPropagation()}>
