@@ -278,8 +278,10 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
         </>
       )}
 
-      {target ? (
-        <div className="fixed inset-0 z-[120] flex items-end bg-black/80 p-3" onClick={() => (purchase.isPending ? undefined : setTarget(null))}>
+      {/* Portal: the HEROES tab slider uses a CSS transform, which would trap a
+          `fixed` overlay inside it and push the dialog off-screen. */}
+      {target ? createPortal(
+        <div className="fixed inset-0 z-[200] flex items-end bg-black/80 p-3" onClick={() => (purchase.isPending ? undefined : setTarget(null))}>
           <div className="forge-nft-card relative mx-auto w-full max-w-[420px] overflow-hidden rounded-[1.8rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/60 to-black/95 p-4" onClick={(event) => event.stopPropagation()}>
             <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{t('nft.confirmPurchase')}</p>
             <h3 className="mt-1 text-lg font-black text-white">{target.name.toUpperCase()}</h3>
