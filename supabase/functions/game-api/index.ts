@@ -932,10 +932,11 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     const amount = Number(body.amountTon);
     const address = String(body.walletAddress || '');
     if (!Number.isFinite(amount) || amount <= 0 || !address) throw new Error('Valor de depósito inválido.');
-    // Minimum deposit is 1 TON (= 100,000 FC); never trust the client.
-    if (amount < 1) throw new Error('Minimum deposit is 1 TON');
+    // The deposit destination (FC purchase or direct internal TON) is frozen here, at intent
+    // creation, and can never be changed by the client afterwards. Minimums live in the DB config.
+    const depositType = String(body.depositType || 'ton_to_fc') === 'ton_balance' ? 'ton_balance' : 'ton_to_fc';
     fn = 'create_wallet_deposit';
-    args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+    args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_deposit_type: depositType, p_idempotency_key: `deposit:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'ton-wallet') {
     // Withdrawable TON balance (rewards only) — never derived from FC.
     fn = 'get_ton_wallet';
