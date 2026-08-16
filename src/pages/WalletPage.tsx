@@ -7,7 +7,8 @@ import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
 import { coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
-import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote, validDeposit } from '../economy';
+import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote } from '../economy';
+import type { DepositType, WalletDepositConfig } from '../wallet';
 import { createDepositIntent, requestTonWithdrawal, verifyPendingDeposits } from '../services';
 import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurchase, purchasePremiumEgg, reconcilePendingEggPurchases, waitForEggPurchase } from '../eggPurchase';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
@@ -47,6 +48,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   const [depositTon, setDepositTon] = useState(1);
+  // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
+  const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
   const [withdrawTon, setWithdrawTon] = useState(0);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
@@ -56,6 +59,18 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
   const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+  // Minimums and toggles are server-side settings; the client only mirrors them.
+  const depositConfig = useMemo<WalletDepositConfig>(() => ({
+    fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
+    directEnabled: summary?.depositConfig?.directEnabled ?? true,
+    minFcTon: summary?.depositConfig?.minFcTon ?? MIN_DEPOSIT_TON,
+    minDirectTon: summary?.depositConfig?.minDirectTon ?? 0.1,
+    fcPerTon: summary?.depositConfig?.fcPerTon ?? FC_PER_TON
+  }), [summary?.depositConfig]);
+  const minDepositTon = depositMode === 'ton_balance' ? depositConfig.minDirectTon : depositConfig.minFcTon;
+  const depositModeEnabled = depositMode === 'ton_balance' ? depositConfig.directEnabled : depositConfig.fcEnabled;
+  const depositAmountValid = Number.isFinite(depositTon) && depositTon >= minDepositTon;
+  const depositPresets = depositMode === 'ton_balance' ? [0.5, 1, 5, 10] : [1, 3, 5, 10];
 
 
   const invalidateWallet = async () => {
@@ -73,6 +88,16 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     ]);
   };
 
+  /** One message per reconciliation: direct top-ups report TON, FC purchases report the credited count. */
+  const creditMessage = (result: { confirmed: string[]; credits?: Array<{ depositType: string; amountTon: number }> }) => {
+    const direct = (result.credits ?? []).filter(entry => entry.depositType === 'ton_balance');
+    if (direct.length && direct.length === result.confirmed.length) {
+      const total = direct.reduce((sum, entry) => sum + Number(entry.amountTon || 0), 0);
+      return t('wallet.toast.tonBalanceCredited', { ton: formatTon(total) });
+    }
+    return t('wallet.toast.depositsCredited', { count: result.confirmed.length });
+  };
+
   const verify = useMutation({
     mutationFn: async () => {
       if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
@@ -80,7 +105,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     },
     onSuccess: async result => {
       await invalidateWallet();
-      if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+      if (result.confirmed.length) toast.success(creditMessage(result));
       else if (result.alreadyCredited?.length) toast(t('wallet.toast.alreadyCredited'));
       else if (result.checked) toast(t('wallet.toast.notFoundYet'));
       else toast(t('wallet.toast.noPending'));
@@ -102,7 +127,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       const result = await verifyPendingDeposits(telegramInitData);
       if (result.confirmed.length || result.alreadyCredited?.length) {
         await invalidateWallet();
-        if (result.confirmed.length) toast.success(t('wallet.toast.depositsCredited', { count: result.confirmed.length }));
+        if (result.confirmed.length) toast.success(creditMessage(result));
         return true;
       }
       return false;
@@ -131,8 +156,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const deposit = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
-      if (!validDeposit(depositTon)) throw new Error(t('wallet.errors.minDeposit'));
-      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID());
+      if (!depositModeEnabled) throw new Error(t('wallet.errors.depositModeDisabled'));
+      if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
+      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID(), depositMode);
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
         // The comment is the on-chain marker the backend matches against the hot wallet transactions.
