@@ -1032,6 +1032,37 @@ async function marketHub(ctx: Ctx, status = 'active') {
     [{ t: '🏷 PREÇO MÍNIMO', d: 'ask:mkmin' }, { t: '🗑 CANCELAR ANÚNCIO', d: 'ask:mkcancel' }],
     [{ t: '🏪 MARKET FEES', d: 'mk:revenue' }],
     [{ t: '📜 AUDITORIA DE VENDAS', d: 'mk:audit' }, { t: '🛡 MARKET SECURITY', d: 'mk:sec' }],
+    [{ t: '🔨 LEILÃO (TON)', d: 'auc:hub' }],
+    nav(),
+  ]));
+}
+
+/**
+ * AUCTION hub — the auction trades ONLY internal TON (never FC, never TonConnect).
+ * Every value here is applied instantly by `admin_auction_set`; no deploy needed.
+ */
+async function auctionHub(ctx: Ctx) {
+  const o = await rpc('admin_auction_overview', { p_telegram_id: ctx.adminId }) as any;
+  const s = o.settings || {};
+  const on = s.enabled !== false;
+  return edit(ctx, [
+    '🔨 <b>LEILÃO (TON INTERNO)</b>',
+    `Status: ${on ? '🟢 <b>ATIVO</b>' : '🔴 <b>DESATIVADO</b>'}`,
+    `Taxa: <b>${Number(s.feePercent ?? 5)}%</b> em TON`,
+    `Lance inicial mínimo: <b>${Number(s.minStartingBidTon ?? 0.1)} TON</b>`,
+    `Incremento mínimo: <b>${Number(s.minIncrementTon ?? 0.1)} TON</b>`,
+    `Anti-snipe: ${s.antiSnipeEnabled === false ? '🔴 off' : `🟢 janela <b>${Number(s.antiSnipeWindowMinutes ?? 2)}min</b> · extensão <b>${Number(s.antiSnipeExtensionMinutes ?? 2)}min</b>`}`,
+    `Durações: <b>${(s.durations || []).join('h · ')}h</b>`,
+    '',
+    `Ativos <b>${fmt(o.active)}</b> · vendidos ${fmt(o.sold)} · expirados ${fmt(o.expired)}`,
+    `Volume: <b>${Number(o.volumeTon ?? 0)} TON</b> · taxa arrecadada <b>${Number(o.feeTon ?? 0)} TON</b>`,
+  ].join('\n'), kb([
+    [on ? { t: '🔴 DESATIVAR LEILÃO', d: 'auc:toggle|off' } : { t: '🟢 ATIVAR LEILÃO', d: 'auc:toggle|on' }],
+    [{ t: '💸 TAXA (%)', d: 'ask:aucfee' }, { t: '🏷 LANCE MÍNIMO', d: 'ask:aucmin' }],
+    [{ t: '➕ INCREMENTO MÍNIMO', d: 'ask:aucinc' }, { t: '⏱ DURAÇÕES', d: 'ask:aucdur' }],
+    [s.antiSnipeEnabled === false ? { t: '🟢 ATIVAR ANTI-SNIPE', d: 'auc:snipe|on' } : { t: '🔴 DESATIVAR ANTI-SNIPE', d: 'auc:snipe|off' }],
+    [{ t: '⏳ JANELA ANTI-SNIPE', d: 'ask:aucwin' }, { t: '⏩ EXTENSÃO', d: 'ask:aucext' }],
+    [{ t: '🛒 MARKETPLACE', d: 'm:market' }],
     nav(),
   ]));
 }
@@ -3938,6 +3969,12 @@ async function handleCallback(ctx: Ctx, data: string) {
     return send(ctx, `✅ <b>${RARITY_LABEL[rarity]}</b>: ${pct(cfg.config.odds[rarity])}% → <b>${pct(r.odds[rarity])}%</b>\n\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]} ${pct(r.odds[k])}%`).join(' · ')}`,
       kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
   }
+  if (head === 'auc') {
+    const [sub, arg] = String(rest[0] || '').split('|');
+    if (sub === 'toggle') { await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'enabled', p_value: arg === 'on' }); return auctionHub(ctx); }
+    if (sub === 'snipe') { await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'antiSnipeEnabled', p_value: arg === 'on' }); return auctionHub(ctx); }
+    return auctionHub(ctx);
+  }
   if (head === 'mk') {
     const [sub, arg] = String(rest[0] || '').split('|');
     if (sub === 'audit') return marketAudit(ctx);
@@ -5471,6 +5508,43 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       await mkSecSet(ctx, 'market_dynamic_range', { minPercent, maxPercent, minSamples, days });
       return send(ctx, `✅ Faixa dinâmica: <b>${fmt(minPercent)}%</b>–<b>${fmt(maxPercent)}%</b> da mediana · min amostras <b>${fmt(minSamples)}</b> · janela <b>${fmt(days)}d</b>.`,
         kb([[{ t: '🛡 MARKET SECURITY', d: 'mk:sec' }], nav()]));
+    }
+    // ---- 🔨 auction prompts (internal TON only; the RPC validates every bound)
+    case 'aucfee': {
+      const value = parseAmount(text.replace('%', ''));
+      if (!Number.isFinite(value) || value < 5 || value > 10) throw new Error('KEEP_SESSION::⚠️ Envie uma taxa entre 5 e 10 (ex.: <code>7</code>).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'feePercent', p_value: value }) as any;
+      return send(ctx, `✅ Taxa do leilão agora é <b>${Number(s.feePercent)}%</b> em TON.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
+    }
+    case 'aucmin': {
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value < 0.01) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON (mínimo <code>0.01</code>).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'minStartingBidTon', p_value: value }) as any;
+      return send(ctx, `✅ Lance inicial mínimo: <b>${Number(s.minStartingBidTon)} TON</b>.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
+    }
+    case 'aucinc': {
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value < 0.001) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON (mínimo <code>0.001</code>).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'minIncrementTon', p_value: value }) as any;
+      return send(ctx, `✅ Incremento mínimo por lance: <b>${Number(s.minIncrementTon)} TON</b>.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
+    }
+    case 'aucwin': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 0 || value > 60) throw new Error('KEEP_SESSION::⚠️ Envie os minutos da janela (0 a 60).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'antiSnipeWindowMinutes', p_value: value }) as any;
+      return send(ctx, `✅ Janela anti-snipe: <b>${Number(s.antiSnipeWindowMinutes)} min</b>.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
+    }
+    case 'aucext': {
+      const value = Math.round(parseAmount(text));
+      if (!Number.isFinite(value) || value < 0 || value > 60) throw new Error('KEEP_SESSION::⚠️ Envie os minutos de extensão (0 a 60).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'antiSnipeExtensionMinutes', p_value: value }) as any;
+      return send(ctx, `✅ Extensão anti-snipe: <b>${Number(s.antiSnipeExtensionMinutes)} min</b>.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
+    }
+    case 'aucdur': {
+      const hours = text.split(/[^0-9]+/).map((v) => Math.round(Number(v))).filter((v) => Number.isFinite(v) && v > 0 && v <= 168);
+      if (hours.length < 1 || hours.length > 6) throw new Error('KEEP_SESSION::⚠️ Envie de 1 a 6 durações em horas, separadas por espaço (ex.: <code>6 12 24 48</code>).');
+      const s = await rpc('admin_auction_set', { p_telegram_id: ctx.adminId, p_key: 'durations', p_value: hours }) as any;
+      return send(ctx, `✅ Durações disponíveis: <b>${(s.durations || []).join('h · ')}h</b>.`, kb([[{ t: '🔨 LEILÃO', d: 'auc:hub' }], nav()]));
     }
     // ---- 🛒 marketplace prompts (every rule is enforced inside the RPCs)
     case 'mksearch': {
