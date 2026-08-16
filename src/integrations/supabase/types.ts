@@ -11344,19 +11344,29 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number; p_status?: string }
         Returns: Json
       }
-      admin_log: {
-        Args: {
-          p_action: string
-          p_admin_id: number
-          p_context?: Json
-          p_new?: Json
-          p_old?: Json
-          p_reason?: string
-          p_target_id: string
-          p_target_type: string
-        }
-        Returns: string
-      }
+      admin_log:
+        | {
+            Args: {
+              p_action: string
+              p_admin_id: number
+              p_context: Json
+              p_target_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_action: string
+              p_admin_id: number
+              p_context?: Json
+              p_new?: Json
+              p_old?: Json
+              p_reason?: string
+              p_target_id: string
+              p_target_type: string
+            }
+            Returns: string
+          }
       admin_market_approve_trade: {
         Args: { p_admin_id: number; p_transaction_id: string }
         Returns: Json
