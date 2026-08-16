@@ -153,12 +153,30 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendEnabled, telegramInitData]);
 
+  /**
+   * Pressing "deposit" must always end up inside the TON wallet. When no wallet is linked yet we open
+   * the TonConnect modal right here and wait for the connection instead of failing with an error.
+   */
+  const ensureWalletAddress = async (): Promise<string> => {
+    const current = tonConnectUI.account?.address ?? address;
+    if (current) return current;
+    const linked = new Promise<string>((resolve, reject) => {
+      const unsubscribe = tonConnectUI.onStatusChange(wallet => {
+        if (wallet?.account?.address) { unsubscribe(); resolve(wallet.account.address); }
+      });
+      window.setTimeout(() => { unsubscribe(); reject(new Error(t('wallet.errors.connectWallet'))); }, 180_000);
+    });
+    await tonConnectUI.openModal();
+    return linked;
+  };
+
   const deposit = useMutation({
     mutationFn: async () => {
-      if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
       if (!depositModeEnabled) throw new Error(t('wallet.errors.depositModeDisabled'));
       if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
-      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID(), depositMode);
+      const walletAddress = await ensureWalletAddress();
+      const intent = await createDepositIntent(telegramInitData, depositTon, walletAddress, crypto.randomUUID(), depositMode);
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
         // The comment is the on-chain marker the backend matches against the hot wallet transactions.
@@ -310,7 +328,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
         />
         {depositMode === 'ton_balance' ? <p className="mt-1 text-[9px] leading-relaxed text-sky-300/80">{t('wallet.depositDirectNote')}</p> : null}
-        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
+        <Primary onClick={() => deposit.mutate()} disabled={deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
         <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
           {verify.isPending ? t('wallet.verifying') : t('wallet.alreadyPaid')}
         </button>
