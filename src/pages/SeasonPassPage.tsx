@@ -75,8 +75,9 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   :mystery?'border-violet-300/60 bg-gradient-to-b from-violet-950/70 to-black/70 shadow-[0_0_16px_rgba(167,139,250,.25)]'
   :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
   :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
- return<button disabled={!r?.unlocked||r.claimed||pending} onClick={()=>r&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
-  {premium?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
+ const versionLocked=Boolean(r?.versionLocked);
+ return<button disabled={!r?.unlocked||r.claimed||pending||versionLocked} onClick={()=>r&&!versionLocked&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
+  {premium||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
   {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
    {mystery
