@@ -2853,6 +2853,66 @@ export type Database = {
           },
         ]
       }
+      global_boss_damage_outliers: {
+        Row: {
+          boss_defense: number
+          combat_id: string | null
+          created_at: string
+          cycle_id: string | null
+          damage_credited: number
+          damage_factor: number
+          details: Json
+          expected_max: number
+          gap_seconds: number
+          id: string
+          kind: string
+          pass_tier: string | null
+          team_damage_per_tick: number
+          telegram_id: number | null
+          ticks_allowed: number
+          user_id: string | null
+          window_seconds: number
+        }
+        Insert: {
+          boss_defense?: number
+          combat_id?: string | null
+          created_at?: string
+          cycle_id?: string | null
+          damage_credited?: number
+          damage_factor?: number
+          details?: Json
+          expected_max?: number
+          gap_seconds?: number
+          id?: string
+          kind?: string
+          pass_tier?: string | null
+          team_damage_per_tick?: number
+          telegram_id?: number | null
+          ticks_allowed?: number
+          user_id?: string | null
+          window_seconds?: number
+        }
+        Update: {
+          boss_defense?: number
+          combat_id?: string | null
+          created_at?: string
+          cycle_id?: string | null
+          damage_credited?: number
+          damage_factor?: number
+          details?: Json
+          expected_max?: number
+          gap_seconds?: number
+          id?: string
+          kind?: string
+          pass_tier?: string | null
+          team_damage_per_tick?: number
+          telegram_id?: number | null
+          ticks_allowed?: number
+          user_id?: string | null
+          window_seconds?: number
+        }
+        Relationships: []
+      }
       global_boss_participants: {
         Row: {
           attacks: number
@@ -13089,6 +13149,7 @@ export type Database = {
         Returns: Json
       }
       global_boss_auto_pass_tier: { Args: { p_user: string }; Returns: string }
+      global_boss_catchup_seconds: { Args: { p_user: string }; Returns: number }
       global_boss_damage_factor: {
         Args: { p_defense: number }
         Returns: number
