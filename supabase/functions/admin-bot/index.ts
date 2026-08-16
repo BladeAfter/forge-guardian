@@ -2300,6 +2300,12 @@ const PROMPTS: Record<string, string> = {
   boss: 'Envie: <code>code {json}</code> — ex.: <code>golem_ancestral {"name":"Golem","max_hp":50000,"attack":300,"reward_amount":9000}</code>',
   bossspawn: 'Envie o <code>code</code> do chefe para ativar (ex.: <code>golem_ancestral</code>).',
   bosshpval: 'Envie: <code>code hp</code> — ex.: <code>golem_ancestral 50000</code>',
+  gbthp: '❤️ Envie o HP total deste chefe global — ex.: <code>2500000</code>',
+  gbtrw: '🎁 Envie o prêmio total em FC deste chefe global — ex.: <code>600000</code>',
+  gbtdur: '⏱ Envie a duração do ciclo em horas (1 a 168) — ex.: <code>24</code>',
+  gbtname: '✏️ Envie o novo nome do chefe global.',
+  gbtsub: '📖 Envie a nova lore/subtítulo do chefe global.',
+
   bossdur: 'Envie: <code>code horas</code> — ex.: <code>golem_ancestral 24</code>',
   bossreward: '⚙️ <b>CHANGE DEFAULT REWARD</b> (próximos ciclos)\nEnvie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>\n\nIsto <b>não</b> altera o ciclo ativo. Para o ciclo atual use <b>✏️ CHANGE CURRENT REWARD</b>.',
   ads: 'Envie: <code>code {json}</code> — ex.: <code>adsgram {"enabled":true,"daily_limit":15,"reward_fc":800}</code>',
