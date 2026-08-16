@@ -6,7 +6,7 @@ import type { PassTier, SeasonPassDashboard } from './seasonPass';
 export type PassPurchaseOutcome = { status: 'completed' | 'already_processed' | string; orderId?: string; tier?: PassTier; priceTon?: number };
 export type PassPurchaseVerification = { checked: number; completed: string[]; pending: string[]; results: PassPurchaseOutcome[]; dashboard?: SeasonPassDashboard };
 
-type SendTon = (tx: { validUntil: number; messages: Array<{ address: string; amount: string; payload?: string }> }) => Promise<unknown>;
+type SendTon = SendTonTransaction;
 
 /**
  * The ONE battle pass purchase pipeline: create order → pay with TonConnect (carrying the order
