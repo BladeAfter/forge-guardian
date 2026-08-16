@@ -4793,12 +4793,34 @@ function nftStockLines(stock: any): string {
     `• ${fmt(x.tierTon)} TON (${x.dailyYieldTon}/dia) — 🟢 ${fmt(x.available)}/${fmt(x.slots)} · 👤 vendidos ${fmt(x.soldTotal)} · 📦 reserva ${fmt(x.poolLeft)}${Number(x.missing) > 0 ? ` · ⚠️ faltam ${fmt(x.missing)}` : ''}`).join('\n');
 }
 
+const NFT_RESERVE_LABEL: Record<string, string> = { hero: '⚔️ HEROES', pet: '💎 PETS', weapon: '🗡 WEAPONS' };
+
+function nftReserveLines(stock: any): string {
+  return (['hero', 'pet', 'weapon'] as const).map((k) => {
+    const s = stock?.[k] ?? {};
+    return `${NFT_RESERVE_LABEL[k]}\nAvailable: ${fmt(s.available ?? 0)}\nReserve: ${fmt(s.reserve ?? 0)}\nSold: ${fmt(s.sold ?? 0)}`;
+  }).join('\n\n');
+}
+
 async function nftStockHub(ctx: Ctx, useEdit = true) {
-  const d = await rpc('admin_nft_stock_overview', { p_admin_id: ctx.adminId }) as any;
-  const text = `📦 <b>NFT STOCK (ROTAÇÃO 1/1)</b>\n\n⚔️ <b>HEROES</b>\n${nftStockLines(d.hero)}\n\n💎 <b>PETS</b>\n${nftStockLines(d.pet)}\n\nNFT vendido nunca volta para AVAILABLE: permanece com o dono e a vaga recebe uma unidade inédita.`;
+  const [rot, reserve] = await Promise.all([
+    rpc('admin_nft_stock_overview', { p_admin_id: ctx.adminId }) as Promise<any>,
+    rpc('admin_nft_reserve_overview', { p_admin_id: ctx.adminId }) as Promise<any>,
+  ]);
+  const text = [
+    '📦 <b>NFT STOCK (ROTAÇÃO 1/1)</b>',
+    '',
+    nftReserveLines(reserve),
+    '',
+    `<b>FAIXAS — HEROES</b>\n${nftStockLines(rot.hero)}`,
+    `<b>FAIXAS — PETS</b>\n${nftStockLines(rot.pet)}`,
+    '',
+    'REFILL publica até 2 unidades inéditas por categoria (RESERVE → AVAILABLE). NFT vendido nunca volta para AVAILABLE.',
+  ].join('\n');
   const rows = [
     [{ t: '♻️ REFILL HEROES', d: 'nstk:refill:hero' }, { t: '♻️ REFILL PETS', d: 'nstk:refill:pet' }],
-    [{ t: '♻️ REFILL TUDO', d: 'nstk:refill:all' }],
+    [{ t: '♻️ REFILL WEAPONS', d: 'nstk:refill:weapon' }, { t: '♻️ REFILL ALL', d: 'nstk:refill:all' }],
+    [{ t: '🔁 ROTAÇÃO POR FAIXA', d: 'nstk:rot:all' }],
     nav('nft:hub'),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -4806,16 +4828,33 @@ async function nftStockHub(ctx: Ctx, useEdit = true) {
 
 async function nftStockCallback(ctx: Ctx, rest: string[]) {
   const [sub, kind] = rest;
+  // REFILL da reserva: publica unidades já preparadas (RESERVE -> AVAILABLE), sem deploy.
   if (sub === 'refill') {
+    const kinds = kind === 'all' ? ['hero', 'pet', 'weapon'] : [kind];
+    const parts: string[] = [];
+    for (const k of kinds) {
+      const r = await rpc('admin_nft_reserve_refill', { p_admin_id: ctx.adminId, p_kind: k, p_limit: 2 }) as any;
+      const published = (r?.published ?? []) as any[];
+      if (!published.length) {
+        parts.push(`<b>${NFT_RESERVE_LABEL[k]}</b>\n⚠️ Nenhum NFT ${k === 'hero' ? 'Hero' : k === 'pet' ? 'Pet' : 'Weapon'} disponível na reserva.\nCrie/adicione novas unidades antes de realizar outro refill.`);
+        continue;
+      }
+      parts.push(`<b>${NFT_RESERVE_LABEL[k]}</b>: ${fmt(published.length)} publicada(s) · 🟢 ${fmt(r.beforeAvailable)} → ${fmt(r.afterAvailable)} · 📦 reserva ${fmt(r.reserveLeft)}\n${published.map((c) => `• ${esc(c.name)} ${nftSerial(c.serial)} · ${fmt(c.priceTon)} TON${Number(c.dailyYieldTon) > 0 ? ` · ${c.dailyYieldTon}/dia` : ''}\n  <code>${esc(c.instance)}</code>`).join('\n')}`);
+    }
+    await send(ctx, `♻️ <b>REFILL CONCLUÍDO</b>\n\n${parts.join('\n\n')}`);
+    return nftStockHub({ ...ctx, messageId: undefined }, false);
+  }
+  // Rotação clássica por faixa de preço (gera unidades novas do stock pool).
+  if (sub === 'rot') {
     const kinds = kind === 'all' ? ['hero', 'pet'] : [kind];
     const parts: string[] = [];
     for (const k of kinds) {
       const r = await rpc('admin_nft_stock_refill', { p_admin_id: ctx.adminId, p_kind: k }) as any;
       const created = (r?.created ?? []) as any[];
       const short = (r?.shortages ?? []) as any[];
-      parts.push(`<b>${k === 'hero' ? 'HEROES' : 'PETS'}</b>: ${fmt(created.length)} nova(s)\n${created.map((c) => `• ${esc(c.name)} ${nftSerial(c.serial)} · ${fmt(c.tierTon)} TON · ${c.dailyYieldTon}/dia\n  <code>${esc(c.instance)}</code>`).join('\n') || '• nada a repor'}${short.length ? `\n⚠️ reserva insuficiente: ${short.map((s) => `${fmt(s.tierTon)} TON (${fmt(s.missing)})`).join(', ')}` : ''}`);
+      parts.push(`<b>${NFT_RESERVE_LABEL[k]}</b>: ${fmt(created.length)} nova(s)\n${created.map((c) => `• ${esc(c.name)} ${nftSerial(c.serial)} · ${fmt(c.tierTon)} TON · ${c.dailyYieldTon}/dia\n  <code>${esc(c.instance)}</code>`).join('\n') || '• nada a repor'}${short.length ? `\n⚠️ reserva insuficiente: ${short.map((s) => `${fmt(s.tierTon)} TON (${fmt(s.missing)})`).join(', ')}` : ''}`);
     }
-    await send(ctx, `♻️ <b>REFILL CONCLUÍDO</b>\n\n${parts.join('\n\n')}`);
+    await send(ctx, `🔁 <b>ROTAÇÃO CONCLUÍDA</b>\n\n${parts.join('\n\n')}`);
     return nftStockHub({ ...ctx, messageId: undefined }, false);
   }
   return nftStockHub(ctx);
