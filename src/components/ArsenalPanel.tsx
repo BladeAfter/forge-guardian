@@ -281,10 +281,17 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
       {/* Portal: the HEROES tab slider uses a CSS transform, which would trap a
           `fixed` overlay inside it and push the dialog off-screen. */}
       {target ? createPortal(
-        <div className="fixed inset-0 z-[200] flex items-end bg-black/80 p-3" onClick={() => (purchase.isPending ? undefined : setTarget(null))}>
-          <div className="forge-nft-card relative mx-auto w-full max-w-[420px] overflow-hidden rounded-[1.8rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/60 to-black/95 p-4" onClick={(event) => event.stopPropagation()}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="arsenal-purchase-title"
+          className="fixed left-0 top-0 z-[99999] grid h-[100dvh] w-screen place-items-center overflow-y-auto overscroll-contain bg-black/80 px-3 py-6 [isolation:isolate]"
+          style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+          onClick={() => (purchase.isPending ? undefined : setTarget(null))}
+        >
+          <div className="forge-nft-card relative z-[1] mx-auto max-h-full w-full max-w-[420px] overflow-y-auto rounded-[1.8rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/60 to-black/95 p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{t('nft.confirmPurchase')}</p>
-            <h3 className="mt-1 text-lg font-black text-white">{target.name.toUpperCase()}</h3>
+            <h3 id="arsenal-purchase-title" className="mt-1 text-lg font-black text-white">{target.name.toUpperCase()}</h3>
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
