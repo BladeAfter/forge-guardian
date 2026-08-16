@@ -38,6 +38,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const [slot, setSlot] = useState<number | null>(null);
   const [battle, setBattle] = useState<TowerBattle | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
+  const [payWith, setPayWith] = useState<'fc' | 'ton'>('fc');
   const ranking = useTowerRanking(initData || null, Boolean(initData) && isRankingOpen);
 
   const data = tower.data;
@@ -67,7 +68,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.unequipFailed')),
   });
   const enter = useMutation({
-    mutationFn: () => enterTowerFloor(initData),
+    mutationFn: (currency: 'fc' | 'ton') => enterTowerFloor(initData, currency),
     onSuccess: async result => { setBattle(result); setDashboard(result.dashboard); await refresh(); },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.enterFailed')),
   });
@@ -96,12 +97,17 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   // The server-side FC balance is authoritative; the prop is only a fallback.
   const fc = Number.isFinite(Number(data.balanceFc)) ? Number(data.balanceFc) : Number(balance) || 0;
   const canEnter = !enter.isPending;
+  // Second entry option: pay with the internal TON balance (no TonConnect, no conversion).
+  const entryTon = Number(data.entryCostTon ?? 0.5);
+  const tonBalance = Number(data.balanceTon ?? 0);
 
   const start = () => {
     if (!team.length) { toast.error(t('tower.selectTeamFirst')); setIsTeamOpen(true); return; }
     if (data.attemptsRemaining <= 0) { toast.error(t('tower.noAttemptsToday')); return; }
-    if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
-    enter.mutate();
+    if (payWith === 'ton') {
+      if (tonBalance < entryTon) { toast.error(t('tower.insufficientTon')); return; }
+    } else if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
+    enter.mutate(payWith);
   };
 
   return (
@@ -141,13 +147,45 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">{t('tower.entryCost')}</p>
-            <p className={`mt-1 font-semibold ${balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300'}`}>{compact(data.entryCost)} FC</p>
+            <p className={`mt-1 font-semibold ${payWith === 'ton' ? (tonBalance >= entryTon ? 'text-sky-300' : 'text-rose-300') : (balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300')}`}>
+              {payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}
+            </p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">{data.firstClear ? t('tower.firstClear') : t('tower.replay')}</p>
             <p className="mt-1 font-semibold text-emerald-300">{t('tower.fragmentsX', { count: rewards.fragments })}</p>
           </div>
         </div>
+
+        {/* Payment choice for the entry: current 100k FC option OR internal TON balance. */}
+        <div className="relative mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setPayWith('fc')}
+            className={`min-h-10 rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'fc' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
+          >
+            {compact(data.entryCost)} FC
+          </button>
+          <button
+            type="button"
+            onClick={() => setPayWith('ton')}
+            className={`min-h-10 rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'ton' ? 'border-sky-300/70 bg-sky-400/20 text-sky-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
+          >
+            {entryTon.toFixed(2)} TON
+          </button>
+        </div>
+        {payWith === 'ton' && tonBalance < entryTon ? (
+          <div className="relative mt-2 rounded-2xl border border-rose-400/40 bg-rose-500/10 p-2.5 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-rose-200">{t('tower.insufficientTon')}</p>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('mythreon:navigate', { detail: 'wallet' }))}
+              className="mt-2 min-h-10 w-full rounded-xl border border-sky-300/50 bg-sky-400/15 text-[10px] font-black uppercase tracking-wide text-sky-200"
+            >
+              {t('tower.depositTon')}
+            </button>
+          </div>
+        ) : null}
 
         <div className="relative mt-3 grid gap-2">
           <button
@@ -170,7 +208,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             disabled={!canEnter}
             className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${compact(data.entryCost)} FC`}
+            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}`}
           </button>
         </div>
       </div>

@@ -91,7 +91,11 @@ export type TowerDashboard = {
   attemptsLimit: number;
   attemptsRemaining: number;
   entryCost: number;
+  /** Second entry option: internal TON price per attempt. */
+  entryCostTon?: number;
   balanceFc: number;
+  /** Internal (available) TON balance, server-side. */
+  balanceTon?: number;
   boss: TowerBoss;
   firstClear: boolean;
   rewards: TowerRewards;
@@ -108,6 +112,8 @@ export type TowerBattle = {
   floor: number;
   boss: TowerBoss;
   costFc: number;
+  costTon?: number;
+  paidWith?: 'fc' | 'ton';
   firstClear: boolean;
   rewards: TowerRewards | Record<string, never>;
   totalTurns: number;

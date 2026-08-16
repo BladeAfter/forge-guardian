@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.tower_enter_floor(bigint);
