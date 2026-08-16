@@ -212,10 +212,12 @@ async function playerCard(ctx: Ctx, ref: string) {
 
     nav('m:users'),
   ]);
-  // Avatar URLs can expire/404 (Telegram answers 400 "failed to get HTTP URL content").
-  // Never leave the admin without a reply: fall back to the text card.
-  const sent = p.avatar_url
-    ? await tg('sendPhoto', { chat_id: ctx.chatId, photo: p.avatar_url, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup })
+  // Avatar URLs can expire/404 and Telegram cannot render .svg userpics
+  // (answers 400 "failed to get HTTP URL content"). Never leave the admin
+  // without a reply: fall back to the text card.
+  const photo = p.avatar_url && !/\.svg(\?|$)/i.test(String(p.avatar_url)) ? String(p.avatar_url) : null;
+  const sent = photo
+    ? await tg('sendPhoto', { chat_id: ctx.chatId, photo, caption: lines.join('\n'), parse_mode: 'HTML', reply_markup: markup })
     : null;
   if (!sent) await send(ctx, lines.join('\n'), markup);
 }
