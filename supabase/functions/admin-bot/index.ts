@@ -2391,7 +2391,54 @@ async function bossPanel(ctx: Ctx, editing = true) {
   ]));
 }
 
+// ---------------------------------------------------------------- global boss roster (20 bosses)
+/** Lists every Global Boss template so each one can be toggled/edited without spawning it first. */
+async function bossRoster(ctx: Ctx, page = 0) {
+  const d = await rpc('admin_global_boss_roster', { p_admin_id: ctx.adminId }) as any;
+  const bosses = arr<any>(d?.bosses);
+  const perPage = 10;
+  const slice = bosses.slice(page * perPage, page * perPage + perPage);
+  const body = slice.map((b) => [
+    `${b.current ? '🔥' : b.enabled ? '🟢' : '⚪'} <b>#${b.bossNumber} ${esc(b.name)}</b>`,
+    `   <i>${esc(b.subtitle ?? '—')}</i>`,
+    `   ❤️ ${fmt(b.maxHp)} HP · 🎁 ${fmt(b.rewardFc)} FC · ⏱ ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
+  ].join('\n')).join('\n\n') || '—';
+  const rows = slice.map((b) => [{ t: `${b.enabled ? '🟢' : '⚪'} #${b.bossNumber} ${b.name}`, d: `gbt:${b.code}` }]);
+  const pager: { t: string; d: string }[] = [];
+  if (page > 0) pager.push({ t: '⬅️', d: `boss:roster:${page - 1}` });
+  if ((page + 1) * perPage < bosses.length) pager.push({ t: '➡️', d: `boss:roster:${page + 1}` });
+  return edit(ctx, [
+    '🗺 <b>GLOBAL BOSS ROSTER</b>',
+    `Total: <b>${bosses.length}</b> chefes · ciclo atual: ${d?.activeBossNumber ? `#${d.activeBossNumber}` : '—'}`,
+    '',
+    body,
+  ].join('\n'), kb([...rows, ...(pager.length ? [pager] : []), nav('m:boss')]));
+}
+
+async function bossTemplateMenu(ctx: Ctx, code: string) {
+  const d = await rpc('admin_global_boss_roster', { p_admin_id: ctx.adminId }) as any;
+  const b = arr<any>(d?.bosses).find((x) => x.code === code);
+  if (!b) return send(ctx, '⚠️ Chefe não encontrado.', kb([[{ t: '🗺 ROSTER', d: 'boss:roster:0' }], nav()]));
+  return edit(ctx, [
+    `👹 <b>#${b.bossNumber} ${esc(b.name)}</b>`,
+    `<code>${esc(b.code)}</code> · tema ${esc(b.theme ?? '—')}`,
+    `<i>${esc(b.subtitle ?? '—')}</i>`,
+    '',
+    `❤️ HP: <b>${fmt(b.maxHp)}</b>`,
+    `🎁 Prêmio: <b>${fmt(b.rewardFc)} FC</b>`,
+    `⏱ Duração: ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
+    `Status: ${b.enabled ? '🟢 ATIVO no ciclo' : '⚪ DESATIVADO'}${b.current ? ' · 🔥 EM COMBATE' : ''}`,
+  ].join('\n'), kb([
+    [{ t: b.enabled ? '⚪ DESATIVAR' : '🟢 ATIVAR', d: `gbtset:${b.code}:toggle` }],
+    [{ t: '❤️ HP', d: `ask:gbthp|${b.code}` }, { t: '🎁 PRÊMIO', d: `ask:gbtrw|${b.code}` }],
+    [{ t: '⏱ DURAÇÃO (h)', d: `ask:gbtdur|${b.code}` }],
+    [{ t: '✏️ NOME', d: `ask:gbtname|${b.code}` }, { t: '📖 LORE', d: `ask:gbtsub|${b.code}` }],
+    nav('boss:roster:0'),
+  ]));
+}
+
 async function bossRanking(ctx: Ctx) {
+
   const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
   const top = arr<any>(d?.top);
   const cycle = d?.cycle ?? null;
