@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { petDisplayRarity } from '../petLabels';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
 import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
@@ -20,6 +20,7 @@ import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMi
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
 import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
+import { AuctionPanel } from './AuctionPanel';
 
 
 type Props = {
@@ -56,6 +57,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
   const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
 
+  // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
+  const [section, setSection] = useState<'market' | 'auction'>('market');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
@@ -405,6 +408,24 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             </div>
           ) : (
             <div>
+              {/* MARKET ↔ AUCTION switch. The auction is a separate trading floor: internal TON only. */}
+              <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-black/40 p-1">
+                {([['market', t('market.tabMarket')], ['auction', t('auction.tab')]] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSection(key)}
+                    className={`rounded-xl px-1 py-2 text-[10px] font-black uppercase tracking-[.12em] ${section === key
+                      ? key === 'auction' ? 'bg-gradient-to-b from-sky-300 to-cyan-500 text-black' : 'bg-gradient-to-b from-amber-300 to-orange-500 text-black'
+                      : 'text-slate-300'}`}
+                  >
+                    {key === 'auction' ? <Gavel className="-mt-0.5 mr-1 inline h-3 w-3" /> : <Store className="-mt-0.5 mr-1 inline h-3 w-3" />}{label}
+                  </button>
+                ))}
+              </div>
+
+              {section === 'auction' ? <AuctionPanel telegramInitData={telegramInitData} /> : (<>
+
               {status.data && !status.data.enabled ? (
                 <div className="mb-2 flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1.5">
                   <span className="text-[10px]">🧪</span>
@@ -726,6 +747,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   ) : null}
                 </div>
               ) : null}
+              </>)}
             </div>
           )}
         </div>
