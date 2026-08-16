@@ -129,8 +129,10 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       if (payload.result) {
         const hatched = dashboard.playerPets.find((pet) => pet.id === payload.result?.playerPetId)
           ?? dashboard.playerPets.find((pet) => pet.petId === payload.result?.petId);
-        const eggImage = (variables?.action === 'hatch' ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
+        const eggImage = ((variables?.action === 'hatch' || variables?.action === 'buy-egg-balance')
+          ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
           || '/assets/game/pet-eggs/common-egg.webp';
+        setEggTarget(null);
         setReveal({ result: { ...payload.result, rarity: String(payload.result.rarity).toLowerCase() as PetRarity }, eggImage, pet: hatched });
         return;
       }
