@@ -52,7 +52,7 @@ export type InventoryEgg={id:string;slug:string;name:string;image:string|null;qu
  * Consolidated read-only view of everything the player owns. Quantities come
  * straight from the tables that own them (no mirrored balances anywhere).
  */
-export type InventoryCategory='chests'|'eggs'|'food'|'fragments'|'equipment'|'other';
+export type InventoryCategory='chests'|'eggs'|'food'|'fragments'|'equipment'|'keys'|'other';
 export type InventoryItem={
  key:string;itemId:string;instanceId:string|null;itemType:string;category:InventoryCategory;
  name:string;description:string;image:string|null;rarity:string|null;quantity:number;usable:boolean;action:string|null;
