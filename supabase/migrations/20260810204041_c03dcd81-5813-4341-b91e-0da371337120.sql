@@ -41,7 +41,7 @@ CREATE POLICY "no direct client access to channel rewards" ON public.user_channe
 
 INSERT INTO public.channel_reward_config (channel_key,title,subtitle,url,chat_ref,reward_fc,enabled,sort_order) VALUES
   ('news','NEWS CHANNEL','Stay updated with the latest news','https://t.me/+h5n08oLrHIlmOWQx',NULL,5000,true,1),
-  ('community','COMMUNITY CHAT','Chat with other players','https://t.me/+-AwJOf0a7nhjM2Ux',NULL,5000,true,2),
+  ('community','COMMUNITY CHAT','Chat with other players','https://t.me/+sy4Y6cd7cuIyNmEx',NULL,5000,true,2),
   ('payments','PAYMENTS CHANNEL','Deposits, withdrawals and payments','https://t.me/+M_ZLb9QUod0zZjcx',NULL,5000,true,3)
 ON CONFLICT (channel_key) DO UPDATE SET url = EXCLUDED.url, updated_at = now();
 
