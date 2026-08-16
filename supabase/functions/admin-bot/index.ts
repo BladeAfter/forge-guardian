@@ -97,6 +97,7 @@ const MAIN_MENU = kb([
   [{ t: '⚙ POOL / PASS ACTIVITY', d: 'ar:hub' }],
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
   [{ t: '#️⃣ MISSÃO #MYTHREON', d: 'nm:hub' }],
+  [{ t: '📣 POOL MARKETING', d: 'mp:hub' }],
 
 
 
@@ -2371,6 +2372,10 @@ const PROMPTS: Record<string, string> = {
   wdfee: 'Envie a nova <b>WITHDRAWAL FEE</b> em % (0 a 50). Ex.: <code>10</code>. Vale só para saques criados depois da alteração.',
   auditdep: 'Envie o Telegram ID (ou @usuário) para auditar os depósitos.',
   maintmsg: 'Envie a nova mensagem de manutenção.',
+  mptotal: '💰 Envie o novo <b>TOTAL POOL</b> em TON — ex.: <code>700</code> ou <code>1000,5</code>.',
+  mpadd: '➕ <b>ADD EXPENSE</b>\nEnvie: <code>CATEGORIA | descrição | valor | data | nota</code>\nEx.: <code>MARKETING | Telegram Ads | 120 | 16/08/2026 | Campanha de onboarding</code>\nData e nota são opcionais (use <code>-</code> para vazio).\nCategorias: MARKETING, DEVELOPMENT, INFLUENCERS, DESIGN, COMMUNITY, MODERATION, SERVER, OTHER.',
+  mpedit: '✏️ <b>EDIT EXPENSE</b>\nEnvie: <code>ID | CATEGORIA | descrição | valor | data | nota</code>\nUse <code>-</code> em qualquer campo que deve permanecer igual.\nEx.: <code>3f2a9c | - | Telegram Ads Q3 | 150 | - | -</code>',
+  mpdel: '🗑 Envie o <b>ID do lançamento</b> (ou os primeiros caracteres) para remover.',
   prsearch: '🔎 Pesquise o pagamento por <b>Telegram ID</b>, <b>@usuário</b>, nome, <b>ID do pedido</b> (prefixo aceito) ou <b>hash da transação</b>.',
 
 };
@@ -3792,6 +3797,128 @@ async function afPrompt(ctx: Ctx, key: string, text: string) {
   return afHub({ ...ctx, messageId: undefined }, false);
 }
 
+
+// ---------------------------------------------------------------- 📣 POOL MARKETING (transparência de gastos)
+// Total do pool, lançamentos e visibilidade da aba vivem no banco: tudo muda em
+// tempo real no Mini App, sem deploy.
+const MP_CATEGORIES = ['MARKETING', 'DEVELOPMENT', 'INFLUENCERS', 'DESIGN', 'COMMUNITY', 'MODERATION', 'SERVER', 'OTHER'];
+
+const mpTon = (n: unknown) => `${Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 })} TON`;
+
+function mpExpenseLine(e: any, index?: number) {
+  return `${index !== undefined ? `${index}. ` : '• '}<b>${esc(e.category)}</b> — ${esc(e.description)}\n  −${mpTon(e.amountTon)} · ${esc(String(e.spentAt))}${e.note ? ` · ${esc(e.note)}` : ''}\n  <code>${esc(String(e.id))}</code>`;
+}
+
+async function mpHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_marketing_pool_overview', { p_admin_id: ctx.adminId, p_limit: 5 }) as any;
+  const text = [
+    '📣 <b>POOL MARKETING</b>',
+    '',
+    `Total Pool: <b>${mpTon(d.totalTon)}</b>`,
+    `Spent: <b>${mpTon(d.spentTon)}</b>`,
+    `Remaining: <b>${mpTon(d.remainingTon)}</b>`,
+    `Entries: <b>${fmt(d.entries)}</b>`,
+    `Aba no Mini App: ${d.enabled ? '✅ ATIVA' : '⛔ OCULTA'}`,
+    `Última atualização: ${d.updatedAt ? esc(String(d.updatedAt).slice(0, 16).replace('T', ' ')) : '—'}`,
+    '',
+    '<b>ÚLTIMOS LANÇAMENTOS</b>',
+    ((d.expenses ?? []) as any[]).map((e) => mpExpenseLine(e)).join('\n') || 'nenhum lançamento registrado',
+  ].join('\n');
+  const rows = [
+    [{ t: '💰 SET TOTAL POOL', d: 'mp:ask:mptotal' }, { t: '➕ ADD EXPENSE', d: 'mp:ask:mpadd' }],
+    [{ t: '✏️ EDIT EXPENSE', d: 'mp:ask:mpedit' }, { t: '🗑 DELETE EXPENSE', d: 'mp:ask:mpdel' }],
+    [{ t: '📋 VIEW HISTORY', d: 'mp:list:0' }, { t: '📤 EXPORT SUMMARY', d: 'mp:export' }],
+    [{ t: d.enabled ? '⛔ DESATIVAR ABA' : '✅ ATIVAR ABA', d: `mp:toggle:${d.enabled ? 0 : 1}` }],
+    [{ t: '♻️ RESET (GASTOS)', d: 'mp:reset:expenses' }, { t: '🧹 RESET TOTAL', d: 'mp:reset:all' }],
+    nav('m:pool'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+const MP_PAGE = 10;
+
+async function mpHistory(ctx: Ctx, page = 0) {
+  const d = await rpc('admin_marketing_pool_overview', { p_admin_id: ctx.adminId, p_limit: 200 }) as any;
+  const all = (d.expenses ?? []) as any[];
+  const pages = Math.max(1, Math.ceil(all.length / MP_PAGE));
+  const p = Math.min(Math.max(0, page), pages - 1);
+  const slice = all.slice(p * MP_PAGE, p * MP_PAGE + MP_PAGE);
+  const text = [
+    `📋 <b>HISTÓRICO — POOL MARKETING</b> (${fmt(all.length)} lançamentos · página ${p + 1}/${pages})`,
+    '',
+    slice.map((e, i) => mpExpenseLine(e, p * MP_PAGE + i + 1)).join('\n\n') || 'nenhum lançamento registrado',
+    '',
+    `Spent <b>${mpTon(d.spentTon)}</b> · Remaining <b>${mpTon(d.remainingTon)}</b>`,
+  ].join('\n').slice(0, 3800);
+  const pager: { t: string; d: string }[] = [];
+  if (p > 0) pager.push({ t: '⬅️ Anterior', d: `mp:list:${p - 1}` });
+  if (p < pages - 1) pager.push({ t: 'Próxima ➡️', d: `mp:list:${p + 1}` });
+  const rows = pager.length ? [pager, nav('mp:hub')] : [nav('mp:hub')];
+  return edit(ctx, text, kb(rows));
+}
+
+async function mpExport(ctx: Ctx) {
+  const d = await rpc('admin_marketing_pool_overview', { p_admin_id: ctx.adminId, p_limit: 200 }) as any;
+  const byCat = new Map<string, number>();
+  for (const e of (d.expenses ?? []) as any[]) byCat.set(e.category, (byCat.get(e.category) ?? 0) + Number(e.amountTon || 0));
+  const lines = [...byCat.entries()].sort((a, b) => b[1] - a[1]).map(([c, v]) => `• ${esc(c)}: <b>${mpTon(v)}</b>`).join('\n') || 'nenhum lançamento';
+  return send(ctx, [
+    '📤 <b>EXPORT SUMMARY — POOL MARKETING</b>',
+    '',
+    `Total Pool: <b>${mpTon(d.totalTon)}</b>`,
+    `Spent: <b>${mpTon(d.spentTon)}</b>`,
+    `Remaining: <b>${mpTon(d.remainingTon)}</b>`,
+    `Entries: <b>${fmt(d.entries)}</b>`,
+    '',
+    '<b>POR CATEGORIA</b>',
+    lines,
+  ].join('\n'), kb([nav('mp:hub')]));
+}
+
+async function mpCallback(ctx: Ctx, rest: string[]) {
+  const [sub, arg] = rest;
+  if (sub === 'ask') return ask(ctx, arg, PROMPTS[arg] ?? 'Envie o valor.');
+  await clearSession(ctx);
+  if (sub === 'list') return mpHistory(ctx, Number(arg) || 0);
+  if (sub === 'export') return mpExport(ctx);
+  if (sub === 'toggle') {
+    await rpc('admin_marketing_pool_toggle', { p_admin_id: ctx.adminId, p_enabled: arg === '1' });
+    return mpHub(ctx);
+  }
+  if (sub === 'reset') {
+    const mode = arg === 'all' ? 'all' : 'expenses';
+    return edit(ctx, `⚠️ <b>RESET POOL MARKETING</b>\n${mode === 'all' ? 'Apaga todos os lançamentos <b>e zera o total do pool</b>.' : 'Apaga todos os lançamentos e <b>mantém o total do pool</b>.'}\n\nConfirmar?`,
+      kb([[{ t: '✅ CONFIRMAR', d: `mpgo:${mode}` }, { t: '❌ CANCELAR', d: 'mp:hub' }]]));
+  }
+  if (sub === 'go') {
+    const r = await rpc('admin_marketing_pool_reset', { p_admin_id: ctx.adminId, p_mode: arg === 'all' ? 'all' : 'expenses' }) as any;
+    await send(ctx, `♻️ Reset concluído.\nTotal <b>${mpTon(r.totalTon)}</b> · Spent <b>${mpTon(r.spentTon)}</b>`);
+    return mpHub({ ...ctx, messageId: undefined }, false);
+  }
+  return mpHub(ctx);
+}
+
+/** Resolve um lançamento por UUID completo ou prefixo (mínimo 6 caracteres). */
+async function mpResolveExpense(prefix: string): Promise<string> {
+  const raw = String(prefix || '').trim().toLowerCase();
+  if (raw.length < 6) throw new Error('KEEP_SESSION::⚠️ Envie ao menos 6 caracteres do ID do lançamento.');
+  const { data, error } = await db.from('marketing_pool_expenses').select('id').ilike('id', `${raw}%`).limit(2);
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error('KEEP_SESSION::⚠️ Lançamento não encontrado.');
+  if (data.length > 1) throw new Error('KEEP_SESSION::⚠️ ID ambíguo — envie mais caracteres.');
+  return String(data[0].id);
+}
+
+/** Converte 16/08/2026, 2026-08-16 ou vazio (hoje) em YYYY-MM-DD. */
+function mpParseDate(raw: string | undefined): string | null {
+  const v = String(raw || '').trim();
+  if (!v || v === '-') return null;
+  const br = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  throw new Error('KEEP_SESSION::⚠️ Data inválida. Use <code>16/08/2026</code> ou <code>2026-08-16</code>.');
+}
+
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(':');
 
@@ -3822,6 +3949,9 @@ async function handleCallback(ctx: Ctx, data: string) {
     }
     return depositSettingsHub(ctx);
   }
+  // 📣 POOL MARKETING: total, lançamentos e visibilidade da aba (tempo real, sem deploy).
+  if (head === 'mp') return mpCallback(ctx, rest);
+  if (head === 'mpgo') { await clearSession(ctx); return mpCallback(ctx, ['go', rest[0]]); }
   // 🧩 Fragment utility (summon cost/odds + universal fragments per fusion step).
   if (head === 'fg') { if (rest[0] !== 'ask') await clearSession(ctx); return fgCallback(ctx, rest); }
   // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
@@ -6318,6 +6448,52 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
         kb([[{ t: '✅ CONFIRMAR', d: `poolgo:${mode}:${value}` }, { t: '❌ CANCELAR', d: 'cancel' }]]));
     }
 
+    case 'mptotal': {
+      const value = parseAmount(text);
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número maior ou igual a 0 (ex.: <code>700</code>).');
+      const r = await rpc('admin_marketing_pool_set_total', { p_admin_id: ctx.adminId, p_total: value }) as any;
+      return send(ctx, `✅ <b>TOTAL POOL</b> atualizado: <b>${mpTon(r.totalTon)}</b>\nSpent ${mpTon(r.spentTon)} · Remaining <b>${mpTon(r.remainingTon)}</b>`, kb([[{ t: '📣 POOL MARKETING', d: 'mp:hub' }], nav()]));
+    }
+    case 'mpadd': {
+      const parts = text.split('|').map((x) => x.trim());
+      const [cat, desc, amountRaw, dateRaw, noteRaw] = parts;
+      const category = String(cat || '').toUpperCase();
+      if (!MP_CATEGORIES.includes(category)) throw new Error(`KEEP_SESSION::⚠️ Categoria inválida. Use: ${MP_CATEGORIES.join(', ')}`);
+      if (!desc) throw new Error('KEEP_SESSION::⚠️ Descrição obrigatória.');
+      const amount = parseAmount(amountRaw ?? '');
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido (ex.: <code>120</code> ou <code>12,5</code>).');
+      const r = await rpc('admin_marketing_pool_add_expense', {
+        p_admin_id: ctx.adminId, p_category: category, p_description: desc, p_amount: amount,
+        p_spent_at: mpParseDate(dateRaw), p_note: noteRaw && noteRaw !== '-' ? noteRaw : null,
+      }) as any;
+      return send(ctx, `✅ Lançamento registrado.\n<b>${esc(category)}</b> — ${esc(desc)} · −${mpTon(amount)}\n\nSpent <b>${mpTon(r.spentTon)}</b> · Remaining <b>${mpTon(r.remainingTon)}</b> · Entries ${fmt(r.entries)}`,
+        kb([[{ t: '📣 POOL MARKETING', d: 'mp:hub' }], nav()]));
+    }
+    case 'mpedit': {
+      const parts = text.split('|').map((x) => x.trim());
+      const [idRaw, cat, desc, amountRaw, dateRaw, noteRaw] = parts;
+      const id = await mpResolveExpense(idRaw ?? '');
+      const category = cat && cat !== '-' ? String(cat).toUpperCase() : null;
+      if (category && !MP_CATEGORIES.includes(category)) throw new Error(`KEEP_SESSION::⚠️ Categoria inválida. Use: ${MP_CATEGORIES.join(', ')}`);
+      let amount: number | null = null;
+      if (amountRaw && amountRaw !== '-') {
+        amount = parseAmount(amountRaw);
+        if (!Number.isFinite(amount) || amount <= 0) throw new Error('KEEP_SESSION::⚠️ Valor inválido.');
+      }
+      const r = await rpc('admin_marketing_pool_update_expense', {
+        p_admin_id: ctx.adminId, p_id: id, p_category: category,
+        p_description: desc && desc !== '-' ? desc : null, p_amount: amount,
+        p_spent_at: mpParseDate(dateRaw), p_note: noteRaw && noteRaw !== '-' ? noteRaw : null,
+      }) as any;
+      return send(ctx, `✅ Lançamento atualizado.\nSpent <b>${mpTon(r.spentTon)}</b> · Remaining <b>${mpTon(r.remainingTon)}</b>`,
+        kb([[{ t: '📋 VIEW HISTORY', d: 'mp:list:0' }], [{ t: '📣 POOL MARKETING', d: 'mp:hub' }], nav()]));
+    }
+    case 'mpdel': {
+      const id = await mpResolveExpense(text);
+      const r = await rpc('admin_marketing_pool_delete_expense', { p_admin_id: ctx.adminId, p_id: id }) as any;
+      return send(ctx, `🗑 Lançamento removido.\nSpent <b>${mpTon(r.spentTon)}</b> · Remaining <b>${mpTon(r.remainingTon)}</b> · Entries ${fmt(r.entries)}`,
+        kb([[{ t: '📣 POOL MARKETING', d: 'mp:hub' }], nav()]));
+    }
     case 'poolset': { const [k, v] = text.split(/\s+/); await rpc('admin_set_setting', { p_admin_id: ctx.adminId, p_key: 'pool_' + k, p_value: parseValue(v), p_reason: 'painel admin' }); return send(ctx, `✅ Configuração da pool <code>${esc(k)}</code> = ${esc(v)}`, MAIN_MENU); }
     case 'poolrate': {
       // Aceita "0", "0%", "5", "5%", "10,5" e normaliza para número puro.
