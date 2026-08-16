@@ -78,13 +78,22 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
 
   const invalidate = (keys: string[]) => Promise.all(keys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
 
-  // Chests reuse the SAME server action used by the calendar screen; no second opening function exists.
+  // Chests reuse the SAME server actions used by the calendar/pass screens.
+  // Mythic (exclusive) chests have their own server action — opening them as a
+  // regular hero chest is what used to fail.
   const openChest = useMutation({
-    mutationFn: (item: InventoryItem) => openCalendarChest(telegramInitData, String(item.instanceId), 'shop'),
-    onSuccess: async (result) => {
+    mutationFn: async (item: InventoryItem) => {
+      if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
+        const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
+        return payload.reward?.name ?? payload.reward?.title ?? null;
+      }
+      const result = await openCalendarChest(telegramInitData, String(item.instanceId), 'shop');
+      return result.hero?.name ?? null;
+    },
+    onSuccess: async (name) => {
       setSelected(null);
-      toast.success(result.hero?.name ?? t('inventory.opened'));
-      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'game-state']);
+      toast.success(name ?? t('inventory.opened'));
+      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
     },
     onError: (openError) => toast.error(openError instanceof Error ? openError.message : t('inventory.openError')),
   });
