@@ -598,7 +598,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const deposits: any[] = Array.isArray(state?.deposits) ? state.deposits : [];
   if (!deposits.length) {
     const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
-    return { checked: 0, confirmed: [], alreadyCredited: [], pending: [], summary };
+    return { checked: 0, confirmed: [], credits: [], alreadyCredited: [], pending: [], summary };
   }
 
   const transactions = await fetchHotWalletIncoming(hotWallet);
@@ -664,7 +664,7 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   }
 
   const summary = await rpc(db, 'get_wallet_summary', { p_telegram_id: user.id });
-  return { checked: deposits.length, confirmed, alreadyCredited, pending: stillPending, summary };
+  return { checked: deposits.length, confirmed, credits, alreadyCredited, pending: stillPending, summary };
 }
 
 
