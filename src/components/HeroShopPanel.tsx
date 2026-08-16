@@ -405,6 +405,24 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             </div>
           ) : (
             <div>
+              {/* MARKET ↔ AUCTION switch. The auction is a separate trading floor: internal TON only. */}
+              <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-black/40 p-1">
+                {([['market', t('market.tabMarket')], ['auction', t('auction.tab')]] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSection(key)}
+                    className={`rounded-xl px-1 py-2 text-[10px] font-black uppercase tracking-[.12em] ${section === key
+                      ? key === 'auction' ? 'bg-gradient-to-b from-sky-300 to-cyan-500 text-black' : 'bg-gradient-to-b from-amber-300 to-orange-500 text-black'
+                      : 'text-slate-300'}`}
+                  >
+                    {key === 'auction' ? <Gavel className="-mt-0.5 mr-1 inline h-3 w-3" /> : <Store className="-mt-0.5 mr-1 inline h-3 w-3" />}{label}
+                  </button>
+                ))}
+              </div>
+
+              {section === 'auction' ? <AuctionPanel telegramInitData={telegramInitData} /> : (<>
+
               {status.data && !status.data.enabled ? (
                 <div className="mb-2 flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1.5">
                   <span className="text-[10px]">🧪</span>
