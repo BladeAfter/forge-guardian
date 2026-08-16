@@ -646,7 +646,13 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       if (result?.status === 'already_processed') alreadyCredited.push(deposit.id);
       else {
         confirmed.push(deposit.id);
-        console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, fcAmount: result?.amountFc, poolContribution: result?.poolContribution?.poolAmountTon ?? null }));
+        credits.push({
+          id: String(deposit.id),
+          depositType: String(result?.depositType || deposit.depositType || 'ton_to_fc'),
+          amountTon: Number(result?.amountTon ?? 0),
+          amountFc: Number(result?.amountFc ?? 0),
+        });
+        console.log('[CREDIT]', JSON.stringify({ orderId: deposit.id, depositType: result?.depositType, fcAmount: result?.amountFc, tonAmount: result?.amountTon, poolContribution: result?.poolContribution?.poolAmountTon ?? null }));
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
