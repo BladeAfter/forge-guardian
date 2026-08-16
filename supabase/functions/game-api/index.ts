@@ -620,7 +620,8 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
       const hash = txHashOf(tx);
       if (!hash || used.has(hash)) return false;
       const value = BigInt(String(inMsg.value ?? '0'));
-      if (value < minNano || value < 1_000_000_000n) return false;
+      // Only the order's own amount matters: direct TON top-ups can be smaller than 1 TON.
+      if (value < minNano) return false;
       const txComment = msgComment(inMsg);
       if (byComment) return Boolean(comment) && txComment === comment;
       // Fallback: no comment on chain -> same sender, right value, sent after the order was created.
