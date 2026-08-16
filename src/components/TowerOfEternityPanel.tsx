@@ -38,6 +38,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const [slot, setSlot] = useState<number | null>(null);
   const [battle, setBattle] = useState<TowerBattle | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
+  const [payWith, setPayWith] = useState<'fc' | 'ton'>('fc');
   const ranking = useTowerRanking(initData || null, Boolean(initData) && isRankingOpen);
 
   const data = tower.data;
@@ -67,7 +68,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.unequipFailed')),
   });
   const enter = useMutation({
-    mutationFn: () => enterTowerFloor(initData),
+    mutationFn: (currency: 'fc' | 'ton') => enterTowerFloor(initData, currency),
     onSuccess: async result => { setBattle(result); setDashboard(result.dashboard); await refresh(); },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.enterFailed')),
   });
