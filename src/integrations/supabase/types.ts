@@ -14201,7 +14201,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      season_pass_claim_version_guard: { Args: never; Returns: undefined }
       season_pass_level_purchase_config: { Args: never; Returns: Json }
       season_pass_levels_for: {
         Args: { p_pass_version: number; p_season_levels: number }
