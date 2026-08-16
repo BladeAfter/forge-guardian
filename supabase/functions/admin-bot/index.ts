@@ -2300,6 +2300,12 @@ const PROMPTS: Record<string, string> = {
   boss: 'Envie: <code>code {json}</code> — ex.: <code>golem_ancestral {"name":"Golem","max_hp":50000,"attack":300,"reward_amount":9000}</code>',
   bossspawn: 'Envie o <code>code</code> do chefe para ativar (ex.: <code>golem_ancestral</code>).',
   bosshpval: 'Envie: <code>code hp</code> — ex.: <code>golem_ancestral 50000</code>',
+  gbthp: '❤️ Envie o HP total deste chefe global — ex.: <code>2500000</code>',
+  gbtrw: '🎁 Envie o prêmio total em FC deste chefe global — ex.: <code>600000</code>',
+  gbtdur: '⏱ Envie a duração do ciclo em horas (1 a 168) — ex.: <code>24</code>',
+  gbtname: '✏️ Envie o novo nome do chefe global.',
+  gbtsub: '📖 Envie a nova lore/subtítulo do chefe global.',
+
   bossdur: 'Envie: <code>code horas</code> — ex.: <code>golem_ancestral 24</code>',
   bossreward: '⚙️ <b>CHANGE DEFAULT REWARD</b> (próximos ciclos)\nEnvie: <code>code recompensa_fc</code> — ex.: <code>golem_ancestral 9000</code>\n\nIsto <b>não</b> altera o ciclo ativo. Para o ciclo atual use <b>✏️ CHANGE CURRENT REWARD</b>.',
   ads: 'Envie: <code>code {json}</code> — ex.: <code>adsgram {"enabled":true,"daily_limit":15,"reward_fc":800}</code>',
@@ -2355,7 +2361,9 @@ async function bossPanel(ctx: Ctx, editing = true) {
       '',
       `<b>Chefes cadastrados</b>\n${list}`,
     ].join('\n'), kb([
+      [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
       [{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }],
+
       [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }],
       [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }],
       [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
@@ -2381,7 +2389,9 @@ async function bossPanel(ctx: Ctx, editing = true) {
   ].join('\n');
 
   return (editing ? edit : send)(ctx, text, kb([
+    [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
     [{ t: '🏆 VER RANKING', d: 'boss:rank' }, { t: '🔴 ENCERRAR', d: 'confirm:bossend' }],
+
     [{ t: '✏️ CHANGE CURRENT REWARD', d: 'boss:curreward' }],
     [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
     [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
@@ -2391,7 +2401,54 @@ async function bossPanel(ctx: Ctx, editing = true) {
   ]));
 }
 
+// ---------------------------------------------------------------- global boss roster (20 bosses)
+/** Lists every Global Boss template so each one can be toggled/edited without spawning it first. */
+async function bossRoster(ctx: Ctx, page = 0) {
+  const d = await rpc('admin_global_boss_roster', { p_admin_id: ctx.adminId }) as any;
+  const bosses = arr<any>(d?.bosses);
+  const perPage = 10;
+  const slice = bosses.slice(page * perPage, page * perPage + perPage);
+  const body = slice.map((b) => [
+    `${b.current ? '🔥' : b.enabled ? '🟢' : '⚪'} <b>#${b.bossNumber} ${esc(b.name)}</b>`,
+    `   <i>${esc(b.subtitle ?? '—')}</i>`,
+    `   ❤️ ${fmt(b.maxHp)} HP · 🎁 ${fmt(b.rewardFc)} FC · ⏱ ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
+  ].join('\n')).join('\n\n') || '—';
+  const rows = slice.map((b) => [{ t: `${b.enabled ? '🟢' : '⚪'} #${b.bossNumber} ${b.name}`, d: `gbt:${b.code}` }]);
+  const pager: { t: string; d: string }[] = [];
+  if (page > 0) pager.push({ t: '⬅️', d: `boss:roster:${page - 1}` });
+  if ((page + 1) * perPage < bosses.length) pager.push({ t: '➡️', d: `boss:roster:${page + 1}` });
+  return edit(ctx, [
+    '🗺 <b>GLOBAL BOSS ROSTER</b>',
+    `Total: <b>${bosses.length}</b> chefes · ciclo atual: ${d?.activeBossNumber ? `#${d.activeBossNumber}` : '—'}`,
+    '',
+    body,
+  ].join('\n'), kb([...rows, ...(pager.length ? [pager] : []), nav('m:boss')]));
+}
+
+async function bossTemplateMenu(ctx: Ctx, code: string) {
+  const d = await rpc('admin_global_boss_roster', { p_admin_id: ctx.adminId }) as any;
+  const b = arr<any>(d?.bosses).find((x) => x.code === code);
+  if (!b) return send(ctx, '⚠️ Chefe não encontrado.', kb([[{ t: '🗺 ROSTER', d: 'boss:roster:0' }], nav()]));
+  return edit(ctx, [
+    `👹 <b>#${b.bossNumber} ${esc(b.name)}</b>`,
+    `<code>${esc(b.code)}</code> · tema ${esc(b.theme ?? '—')}`,
+    `<i>${esc(b.subtitle ?? '—')}</i>`,
+    '',
+    `❤️ HP: <b>${fmt(b.maxHp)}</b>`,
+    `🎁 Prêmio: <b>${fmt(b.rewardFc)} FC</b>`,
+    `⏱ Duração: ${Math.round(Number(b.durationSeconds ?? 0) / 3600)}h`,
+    `Status: ${b.enabled ? '🟢 ATIVO no ciclo' : '⚪ DESATIVADO'}${b.current ? ' · 🔥 EM COMBATE' : ''}`,
+  ].join('\n'), kb([
+    [{ t: b.enabled ? '⚪ DESATIVAR' : '🟢 ATIVAR', d: `gbtset:${b.code}:toggle` }],
+    [{ t: '❤️ HP', d: `ask:gbthp|${b.code}` }, { t: '🎁 PRÊMIO', d: `ask:gbtrw|${b.code}` }],
+    [{ t: '⏱ DURAÇÃO (h)', d: `ask:gbtdur|${b.code}` }],
+    [{ t: '✏️ NOME', d: `ask:gbtname|${b.code}` }, { t: '📖 LORE', d: `ask:gbtsub|${b.code}` }],
+    nav('boss:roster:0'),
+  ]));
+}
+
 async function bossRanking(ctx: Ctx) {
+
   const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
   const top = arr<any>(d?.top);
   const cycle = d?.cycle ?? null;
@@ -3635,6 +3692,15 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
+  if (head === 'boss' && rest[0] === 'roster') { await clearSession(ctx); return bossRoster(ctx, Number(rest[1] || 0) || 0); }
+  if (head === 'gbt') { await clearSession(ctx); return bossTemplateMenu(ctx, rest.join(':')); }
+  if (head === 'gbtset') {
+    await clearSession(ctx);
+    const code = rest[0]; const field = rest[1] || 'toggle';
+    await rpc('admin_global_boss_template_set', { p_admin_id: ctx.adminId, p_code: code, p_field: field, p_value: null, p_text: null, p_reason: 'roster toggle' });
+    return bossTemplateMenu(ctx, code);
+  }
+
   // Explicit flow: the prize of the ACTIVE cycle only (never the template, never a new cycle).
   if (head === 'boss' && rest[0] === 'curreward') {
     const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
@@ -5296,7 +5362,38 @@ async function nfthPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   }
 }
 
+/** Roster editing of a single Global Boss template (HP, reward, duration, name, lore). */
+async function gbtPrompt(ctx: Ctx, key: string, code: string, text: string) {
+  if (!code) throw new Error('⚠️ Chefe não identificado. Abra novamente o ROSTER.');
+  const numeric = parseAmount(text);
+  const call = (field: string, value: number | null, txt: string | null) => rpc('admin_global_boss_template_set', {
+    p_admin_id: ctx.adminId, p_code: code, p_field: field, p_value: value, p_text: txt, p_reason: 'roster global boss',
+  }) as Promise<any>;
+
+  if (key === 'gbthp') {
+    if (!Number.isFinite(numeric) || numeric < 1) throw new Error('KEEP_SESSION::⚠️ Envie o HP total. Ex.: <code>2500000</code>');
+    await call('hp', Math.round(numeric), null);
+  } else if (key === 'gbtrw') {
+    if (!Number.isFinite(numeric) || numeric < 0) throw new Error('KEEP_SESSION::⚠️ Envie o prêmio em FC. Ex.: <code>600000</code>');
+    await call('reward', Math.round(numeric), null);
+  } else if (key === 'gbtdur') {
+    if (!Number.isFinite(numeric) || numeric < 1 || numeric > 168) throw new Error('KEEP_SESSION::⚠️ Envie a duração em horas (1 a 168). Ex.: <code>24</code>');
+    await call('duration', Math.round(numeric * 3600), null);
+  } else if (key === 'gbtname') {
+    if (!text) throw new Error('KEEP_SESSION::⚠️ Envie o novo nome do chefe.');
+    await call('name', null, text.slice(0, 60));
+  } else if (key === 'gbtsub') {
+    await call('subtitle', null, text.slice(0, 120));
+  } else {
+    throw new Error('⚠️ Ação inválida.');
+  }
+  await clearSession(ctx);
+  await send(ctx, '✅ Chefe global atualizado.');
+  return bossTemplateMenu({ ...ctx, messageId: undefined }, code);
+}
+
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
+
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
 
@@ -5322,7 +5419,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     await send(ctx, `✅ Depósito direto mínimo: <b>${value} TON</b>.`);
     return depositSettingsHub({ ...ctx, messageId: undefined });
   }
+  if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
+
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key === 'hpset' || key === 'hpcurve' || key === 'hpquest') return heroProgressionPrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
