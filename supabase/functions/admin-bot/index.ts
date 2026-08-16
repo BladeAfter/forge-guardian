@@ -5343,7 +5343,38 @@ async function nfthPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   }
 }
 
+/** Roster editing of a single Global Boss template (HP, reward, duration, name, lore). */
+async function gbtPrompt(ctx: Ctx, key: string, code: string, text: string) {
+  if (!code) throw new Error('⚠️ Chefe não identificado. Abra novamente o ROSTER.');
+  const numeric = parseAmount(text);
+  const call = (field: string, value: number | null, txt: string | null) => rpc('admin_global_boss_template_set', {
+    p_admin_id: ctx.adminId, p_code: code, p_field: field, p_value: value, p_text: txt, p_reason: 'roster global boss',
+  }) as Promise<any>;
+
+  if (key === 'gbthp') {
+    if (!Number.isFinite(numeric) || numeric < 1) throw new Error('KEEP_SESSION::⚠️ Envie o HP total. Ex.: <code>2500000</code>');
+    await call('hp', Math.round(numeric), null);
+  } else if (key === 'gbtrw') {
+    if (!Number.isFinite(numeric) || numeric < 0) throw new Error('KEEP_SESSION::⚠️ Envie o prêmio em FC. Ex.: <code>600000</code>');
+    await call('reward', Math.round(numeric), null);
+  } else if (key === 'gbtdur') {
+    if (!Number.isFinite(numeric) || numeric < 1 || numeric > 168) throw new Error('KEEP_SESSION::⚠️ Envie a duração em horas (1 a 168). Ex.: <code>24</code>');
+    await call('duration', Math.round(numeric * 3600), null);
+  } else if (key === 'gbtname') {
+    if (!text) throw new Error('KEEP_SESSION::⚠️ Envie o novo nome do chefe.');
+    await call('name', null, text.slice(0, 60));
+  } else if (key === 'gbtsub') {
+    await call('subtitle', null, text.slice(0, 120));
+  } else {
+    throw new Error('⚠️ Ação inválida.');
+  }
+  await clearSession(ctx);
+  await send(ctx, '✅ Chefe global atualizado.');
+  return bossTemplateMenu({ ...ctx, messageId: undefined }, code);
+}
+
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
+
   const [key, ...args] = cmd.split('|');
   const text = input.trim();
 
