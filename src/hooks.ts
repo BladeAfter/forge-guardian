@@ -25,6 +25,8 @@ import{fetchClanBoss,type ClanBossState}from'./clanBoss';
 import type{SpecialEventsDashboard}from'./specialEvents';
 import{specialEventsRequest,spendingEventRequest}from'./services';
 import type{SpendingEventDashboard}from'./spendingEvent';
+import type{MarketingPoolDashboard}from'./marketingPool';
+import{marketingPoolRequest}from'./services';
 import type{HeroMiningState}from'./heroMining';
 import{fetchHeroMining}from'./services';
 
@@ -254,3 +256,6 @@ export const useHeroMining=(telegramInitData:string|null,enabled:boolean)=>useQu
   queryFn:()=>fetchHeroMining(telegramInitData??''),
   enabled:enabled&&Boolean(telegramInitData),staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnWindowFocus:true,retry:1,
 });
+
+/** POOL MARKETING: read-only; a 30s refetch keeps admin-bot edits live without a reload. */
+export const useMarketingPool=(telegramInitData:string|null,enabled:boolean,limit=50)=>useQuery<MarketingPoolDashboard>({queryKey:['marketing-pool',telegramInitData,limit],queryFn:()=>marketingPoolRequest(telegramInitData??'',limit),enabled,staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});

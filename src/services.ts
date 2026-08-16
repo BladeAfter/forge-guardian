@@ -1,5 +1,6 @@
 import type {SpecialEventsDashboard} from './specialEvents';
 import type {SpendingEventDashboard,SpendingEventPopup} from './spendingEvent';
+import type {MarketingPoolDashboard} from './marketingPool';
 import { createClient } from '@supabase/supabase-js';
 import { forgeFetch } from './apiClient';
 import type { HeroMiningClaimResult, HeroMiningState } from './heroMining';
@@ -460,6 +461,9 @@ export async function waitForMarketPayment(initData:string,paymentId:string,atte
 
 /** Spending Event (SPENDING EVENT tab): the backend counts every confirmed spend. */
 export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');const payload=await response.json().catch(()=>null)as(SpendingEventDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');return payload}
+
+/** POOL MARKETING tab: read-only project expense transparency (admin-bot driven). */
+export async function marketingPoolRequest(initData:string,limit=50):Promise<MarketingPoolDashboard>{const response=await forgeFetch('marketing-pool',{initData,limit});const payload=await response.json().catch(()=>null)as(MarketingPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Pool de Marketing.');return payload}
 
 /**
  * Entry highlight for an ACTIVE Spending Event. Never blocks the boot: any failure

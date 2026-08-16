@@ -4279,6 +4279,42 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_pool_expenses: {
+        Row: {
+          amount_ton: number
+          category: string
+          created_at: string
+          created_by: number | null
+          description: string
+          id: string
+          note: string | null
+          spent_at: string
+          updated_at: string
+        }
+        Insert: {
+          amount_ton: number
+          category?: string
+          created_at?: string
+          created_by?: number | null
+          description: string
+          id?: string
+          note?: string | null
+          spent_at?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_ton?: number
+          category?: string
+          created_at?: string
+          created_by?: number | null
+          description?: string
+          id?: string
+          note?: string | null
+          spent_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       name_mission_claims: {
         Row: {
           created_at: string
@@ -11411,6 +11447,49 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number; p_ref: string }
         Returns: Json
       }
+      admin_marketing_pool_add_expense: {
+        Args: {
+          p_admin_id: number
+          p_amount: number
+          p_category: string
+          p_description: string
+          p_note?: string
+          p_spent_at?: string
+        }
+        Returns: Json
+      }
+      admin_marketing_pool_delete_expense: {
+        Args: { p_admin_id: number; p_id: string }
+        Returns: Json
+      }
+      admin_marketing_pool_overview: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_marketing_pool_reset: {
+        Args: { p_admin_id: number; p_mode?: string }
+        Returns: Json
+      }
+      admin_marketing_pool_set_total: {
+        Args: { p_admin_id: number; p_total: number }
+        Returns: Json
+      }
+      admin_marketing_pool_toggle: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
+      admin_marketing_pool_update_expense: {
+        Args: {
+          p_admin_id: number
+          p_amount?: number
+          p_category?: string
+          p_description?: string
+          p_id: string
+          p_note?: string
+          p_spent_at?: string
+        }
+        Returns: Json
+      }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_name_mission: {
         Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
@@ -13626,6 +13705,8 @@ export type Database = {
           address: string
         }[]
       }
+      marketing_pool_categories: { Args: never; Returns: string[] }
+      marketing_pool_dashboard: { Args: { p_limit?: number }; Returns: Json }
       min_withdraw_ton: { Args: never; Returns: number }
       name_mission_config: { Args: never; Returns: Json }
       name_mission_matches: {

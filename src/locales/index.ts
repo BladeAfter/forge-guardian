@@ -30,9 +30,10 @@ import { tactical } from './tactical';
 import { clanAdmin } from './clanAdmin';
 import { auction } from './auction';
 import { nameMission } from './nameMission';
+import { marketingPool } from './marketingPool';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission, marketingPool];
 
 
 
