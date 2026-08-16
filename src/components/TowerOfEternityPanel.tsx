@@ -147,7 +147,9 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">{t('tower.entryCost')}</p>
-            <p className={`mt-1 font-semibold ${balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300'}`}>{compact(data.entryCost)} FC</p>
+            <p className={`mt-1 font-semibold ${payWith === 'ton' ? (tonBalance >= entryTon ? 'text-sky-300' : 'text-rose-300') : (balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300')}`}>
+              {payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}
+            </p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">{data.firstClear ? t('tower.firstClear') : t('tower.replay')}</p>
