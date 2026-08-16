@@ -1,5 +1,6 @@
 import { createSeasonPassOrder, verifyPassPurchases } from './services';
-import { encodeCommentPayload } from './tonComment';
+import { sendTonPayment, type SendTonTransaction } from './tonPayment';
+
 import type { PassTier, SeasonPassDashboard } from './seasonPass';
 
 export type PassPurchaseOutcome = { status: 'completed' | 'already_processed' | string; orderId?: string; tier?: PassTier; priceTon?: number };
