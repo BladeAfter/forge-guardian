@@ -44,6 +44,10 @@ const BY_CODE: Record<string, string> = {
   universal_fragments: UNIVERSAL_FRAGMENT_ART,
   pvp_ticket: ui('season-pvp-ticket.png'),
   pet_food: ui('season-pet-food.png'),
+  // Tower keys (collectibles): each rarity has its own unique art.
+  eternity_key: ui('eternity-key.png'),
+  void_key: ui('void-key.png'),
+  celestial_key: ui('celestial-key.png'),
 };
 
 const isImageUrl = (value?: string | null) =>
@@ -63,7 +67,7 @@ export type InventoryVisual = {
 
 /** Category emoji used only when no official asset exists for the item. */
 const CATEGORY_GLYPH: Record<string, string> = {
-  chests: '🎁', fragments: '💎', eggs: '🥚', food: '🍖', equipment: '🛡️', other: '📦',
+  chests: '🎁', fragments: '💎', eggs: '🥚', food: '🍖', equipment: '🛡️', keys: '🗝️', other: '📦',
 };
 
 export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {

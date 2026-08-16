@@ -17,7 +17,7 @@ const RARITY_BORDER: Record<string, string> = {
   legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6',
 };
 
-const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'other'];
+const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'keys', 'other'];
 
 /**
  * Art comes from `getInventoryItemVisual` (shared asset map keyed by stable item
