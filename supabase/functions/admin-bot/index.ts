@@ -2389,7 +2389,9 @@ async function bossPanel(ctx: Ctx, editing = true) {
   ].join('\n');
 
   return (editing ? edit : send)(ctx, text, kb([
+    [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
     [{ t: '🏆 VER RANKING', d: 'boss:rank' }, { t: '🔴 ENCERRAR', d: 'confirm:bossend' }],
+
     [{ t: '✏️ CHANGE CURRENT REWARD', d: 'boss:curreward' }],
     [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
     [{ t: '❤️ ALTERAR HP', d: 'ask:bosshpval' }],
