@@ -88,7 +88,8 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
    {!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}
   </>:null}
   <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
-  {r&&!r.unlocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
+  {r&&!r.unlocked&&!versionLocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
+  {versionLocked?<span className="absolute inset-0 z-10 grid place-items-center bg-black/70 px-1 text-center"><span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span></span>:null}
  </button>}
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
