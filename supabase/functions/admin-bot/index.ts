@@ -2361,7 +2361,9 @@ async function bossPanel(ctx: Ctx, editing = true) {
       '',
       `<b>Chefes cadastrados</b>\n${list}`,
     ].join('\n'), kb([
+      [{ t: '🗺 ROSTER GLOBAL (20)', d: 'boss:roster:0' }],
       [{ t: '🟢 ATIVAR BOSS', d: 'ask:bossspawn' }],
+
       [{ t: '✏️ CRIAR/EDITAR BOSS', d: 'ask:boss' }],
       [{ t: '❤️ HP PADRÃO', d: 'ask:bosshpval' }],
       [{ t: '⚙️ CHANGE DEFAULT REWARD', d: 'ask:bossreward' }],
