@@ -523,7 +523,7 @@ export async function claimStarterPackRequest(initData:string):Promise<{claimed:
 }
 
 /* ---------------- Tower of Eternity (solo dungeon, 100 floors) ---------------- */
-export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter'}|{action:'ranking';limit?:number};
+export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter';payWith?:'fc'|'ton'}|{action:'ranking';limit?:number};
 const TOWER_ERRORS:Record<string,string>={TOWER_TEAM_EMPTY:'Selecione sua equipe antes de entrar na masmorra.',TOWER_NO_ATTEMPTS:'Você já usou todas as tentativas de hoje.',TOWER_DUPLICATE_HERO_TEAM:'Heróis duplicados não são permitidos na equipe.',INSUFFICIENT_FC:'FC insuficiente para entrar na masmorra.',HERO_NOT_FOUND:'Herói indisponível.',INVALID_SLOT:'Espaço inválido.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PLAYER_BANNED:'Conta suspensa.'};
 export async function towerRequest<T=TowerDashboard>(telegramInitData:string,input:TowerAction={action:'dashboard'}):Promise<T>{
  const response=await forgeFetch('tower',{initData:telegramInitData,...input});
