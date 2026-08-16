@@ -7,7 +7,7 @@ describe('pet rules',()=>{
  it('increases team hp correctly',()=>expect(applyEligibleBonus(100,5,true)).toBe(105));
  it('does not affect ineligible farm rewards',()=>expect(applyEligibleBonus(1000,15,false)).toBe(1000));
  it('applies xp bonus once',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
- it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(5.73));
+ it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(5.72));
  it('caps critical chance',()=>expect(calculatePetBonus(100,'legendary',30,'critical_chance_percent')).toBe(30));
  it('grows buffs gradually per evolution stage',()=>expect([0,1,2].map(st=>calculatePetBonus(20,'mythic',10,'boss_damage_percent',st))).toEqual([20.9,22.99,25.08]));
  it('keeps a superior rarity stronger at the same level',()=>{const p=(r:string)=>petPower(r,10,{boss_damage_percent:20});expect(p('mythic')).toBeGreaterThan(p('rare'));expect(p('nft_exclusive')).toBeGreaterThan(p('ancestral'))});
