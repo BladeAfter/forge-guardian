@@ -97,6 +97,8 @@ export function activityAge(lastActive?: string | null): { minutes: number | nul
 
 const CLAN_ERRORS: Record<string, string> = {
   ALREADY_IN_CLAN: 'clan.error.alreadyInClan',
+  // The applicant (not the manager) joined another clan before the approval.
+  TARGET_ALREADY_IN_CLAN: 'clan.error.targetAlreadyInClan',
   NOT_IN_CLAN: 'clan.error.notInClan',
   CLAN_FULL: 'clan.error.full',
   CLAN_CLOSED: 'clan.error.closed',

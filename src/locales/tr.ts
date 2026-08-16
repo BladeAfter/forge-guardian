@@ -139,6 +139,7 @@ export const tr: Dict = {
   "clan.donations": "BAĞIŞLAR",
   "clan.emblem": "Klan Amblemi",
   "clan.error.alreadyInClan": "Zaten bir klandasın.",
+  "clan.error.targetAlreadyInClan": "Bu oyuncu başka bir klana katıldı.",
   "clan.error.bossCooldown": "Klan boss'u saldırısı bekleme süresinde.",
   "clan.error.bossDefeated": "Bu klan boss'u zaten yenildi.",
   "clan.error.busy": "Sunucu şu anda meşgul. Birazdan tekrar dene.",
