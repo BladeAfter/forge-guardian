@@ -251,7 +251,85 @@ Deno.serve(async req => {
       console.log('[MARKET PAYMENT]', JSON.stringify({ paymentId: intent.payment_id, listingId: intent.listing_id, txHash }));
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered, marketPaid });
+    // NFT purchases (pets, heroes and exclusive equipment) paid through TON Connect.
+    // Previously these were only reconciled while the player kept the shop open, so a payment
+    // made right before closing the mini app could stay pending forever. Now the worker
+    // delivers them server-side, every minute, fully idempotently.
+    const nftKinds = [
+      { table: 'nft_pet_orders', kind: 'nft', confirmFn: 'nft_confirm_purchase', deliverFn: 'nft_deliver_order' },
+      { table: 'nft_hero_orders', kind: 'nft_hero', confirmFn: 'nft_hero_confirm_purchase', deliverFn: 'nft_hero_deliver_order' },
+      { table: 'nft_equipment_orders', kind: 'nft_equipment', confirmFn: 'nft_equipment_confirm_purchase', deliverFn: 'nft_equipment_deliver_order' },
+    ] as const;
+    const nftDelivered: string[] = [];
+
+    for (const cfg of nftKinds) {
+      // Step 1 — already paid on-chain but never handed over: retry delivery.
+      const paid = await db
+        .from(cfg.table)
+        .select('id, user_id, tx_hash, status')
+        .not('tx_hash', 'is', null)
+        .is('delivered_at', null)
+        .gte('created_at', new Date(Date.now() - 90 * 86_400_000).toISOString())
+        .limit(200);
+      for (const order of paid.data ?? []) {
+        const { error } = await db.rpc(cfg.deliverFn, { p_order_id: order.id });
+        if (error) {
+          console.error('[NFT DELIVER RETRY]', JSON.stringify({ kind: cfg.kind, orderId: order.id, reason: error.message }));
+          continue;
+        }
+        nftDelivered.push(String(order.id));
+        await db.from('ton_payment_logs').insert({
+          order_kind: cfg.kind, order_id: order.id, user_id: order.user_id, tx_hash: order.tx_hash,
+          blockchain_status: 'found', fulfillment_status: 'completed', destination_wallet: hotWallet,
+        });
+      }
+
+      // Step 2 — still awaiting payment: matched ONLY by the order's own unique comment.
+      const awaiting = await db
+        .from(cfg.table)
+        .select('id, user_id, price_ton, amount_nano, payment_comment, status, created_at')
+        .is('tx_hash', null)
+        .in('status', ['pending', 'paid', 'confirmed', 'expired'])
+        .gte('created_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(200);
+      for (const order of awaiting.data ?? []) {
+        const comment = String(order.payment_comment || '').trim();
+        if (!comment) continue;
+        const expectedNano = BigInt(String(order.amount_nano || '0'));
+        if (expectedNano <= 0n) continue;
+        const minNano = (expectedNano * 97n) / 100n;
+        const match = transactions.find((tx: any) => {
+          const inMsg = tx?.in_msg;
+          if (!inMsg || msgComment(inMsg) !== comment) return false;
+          const hash = txHashOf(tx);
+          if (!hash || used.has(hash)) return false;
+          return BigInt(String(inMsg.value ?? '0')) >= minNano;
+        });
+        const logRow: Record<string, unknown> = {
+          order_kind: cfg.kind, order_id: order.id, user_id: order.user_id,
+          expected_amount_nano: expectedNano.toString(), destination_wallet: hotWallet,
+          payment_reference: comment,
+        };
+        if (!match) continue;
+        const txHash = txHashOf(match);
+        const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+        const { error } = await db.rpc(cfg.confirmFn, { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+        if (error) {
+          console.error('[NFT DELIVER]', JSON.stringify({ kind: cfg.kind, orderId: order.id, reason: error.message }));
+          await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: error.message });
+          if (String(error.message).includes('TX_ALREADY_USED')) used.add(txHash);
+          continue;
+        }
+        used.add(txHash);
+        nftDelivered.push(String(order.id));
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'completed' });
+        console.log('[NFT DELIVER]', JSON.stringify({ kind: cfg.kind, orderId: order.id, txHash }));
+      }
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered, marketPaid, nftDelivered });
+
 
 
   } catch (error) {
