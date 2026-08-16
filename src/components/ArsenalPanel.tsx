@@ -308,7 +308,8 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </section>
   );
