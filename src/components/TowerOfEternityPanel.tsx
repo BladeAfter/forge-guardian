@@ -96,12 +96,17 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   // The server-side FC balance is authoritative; the prop is only a fallback.
   const fc = Number.isFinite(Number(data.balanceFc)) ? Number(data.balanceFc) : Number(balance) || 0;
   const canEnter = !enter.isPending;
+  // Second entry option: pay with the internal TON balance (no TonConnect, no conversion).
+  const entryTon = Number(data.entryCostTon ?? 0.5);
+  const tonBalance = Number(data.balanceTon ?? 0);
 
   const start = () => {
     if (!team.length) { toast.error(t('tower.selectTeamFirst')); setIsTeamOpen(true); return; }
     if (data.attemptsRemaining <= 0) { toast.error(t('tower.noAttemptsToday')); return; }
-    if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
-    enter.mutate();
+    if (payWith === 'ton') {
+      if (tonBalance < entryTon) { toast.error(t('tower.insufficientTon')); return; }
+    } else if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
+    enter.mutate(payWith);
   };
 
   return (
