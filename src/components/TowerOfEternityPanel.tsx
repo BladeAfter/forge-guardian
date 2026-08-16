@@ -280,7 +280,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                     onClick={() => setSlot(n)}
                     className={`overflow-hidden rounded-xl border bg-black/70 text-left ${slot === n ? 'border-amber-300' : 'border-white/10'}`}
                   >
-                    {hero?.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" /> : <span className="grid aspect-square w-full place-items-center text-[10px] text-slate-500">+{n}</span>}
+                    {hero?.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" /> : <span className="grid aspect-square w-full place-items-center text-[10px] text-slate-500">+{n}</span>}
                     <p className="truncate px-1 py-0.5 text-[8px] font-bold text-slate-200">{hero?.name ?? t('tower.empty')}</p>
                   </button>
                 );
@@ -314,7 +314,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
                       className={`overflow-hidden rounded-xl border bg-black text-left ${duplicate ? 'opacity-40' : ''}`}
                       style={{ borderColor: selected ? '#fbbf24' : RARITY_COLORS[rarity] }}
                     >
-                      {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" loading="lazy" /> : null}
+                      {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" loading="lazy" /> : null}
                       <div className="p-1.5">
                         <p className="truncate text-[9px] font-bold">{hero.name}</p>
                         <p className="text-[8px] text-amber-200">{compact(hero.power ?? 0)}</p>

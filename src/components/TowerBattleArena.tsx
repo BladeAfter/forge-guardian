@@ -143,7 +143,7 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
               return (
                 <div key={h.heroId} className={`relative overflow-hidden rounded-lg border bg-black/70 transition-all duration-200 ${dead ? 'opacity-40 grayscale' : ''} ${attacking ? '-translate-y-1.5 shadow-[0_0_18px_rgba(251,191,36,.45)]' : ''}`} style={{ borderColor: rarityColor[h.rarity] ?? '#475569' }}>
                   <div className="relative">
-                    <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover" />
+                    <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover object-top" />
                     {hit ? <span key={hit.key} className="absolute inset-x-0 top-1 animate-fade-in text-center text-[11px] font-black text-rose-300">-{hit.damage}</span> : null}
                     {dead ? <span className="absolute inset-0 grid place-items-center bg-black/60 text-[7px] font-black tracking-widest text-rose-300">KO</span> : null}
                   </div>

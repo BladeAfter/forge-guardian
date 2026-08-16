@@ -376,7 +376,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <div className="mt-1.5 grid grid-cols-5 gap-1.5">
                     {shopResults.map((hero, index) => (
                       <div key={`${hero.id}-${index}`} className="overflow-hidden rounded-lg border bg-black/50" style={{ borderColor: `${RARITY_COLORS[hero.rarity]}99` }}>
-                        <img src={hero.image} alt={hero.name} className="aspect-square w-full object-cover" />
+                        <img src={hero.image} alt={hero.name} className="aspect-square w-full object-cover object-top" />
                         <p className="truncate px-1 py-0.5 text-center text-[7px] font-bold" style={{ color: RARITY_COLORS[hero.rarity] }}>{t(hero.rarity)}</p>
                       </div>
                     ))}
@@ -687,7 +687,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                           className={`relative overflow-hidden rounded-xl border bg-black/40 text-left transition ${active ? 'border-amber-300 ring-2 ring-amber-300/50 scale-[1.02]' : locked ? 'border-rose-400/30' : 'border-white/10'}`}
                         >
                           <div className={locked ? 'opacity-45' : ''}>
-                            {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
+                            {option.image ? <img src={option.image} alt={option.name} className="aspect-square w-full object-cover object-top" /> : <div className="grid aspect-square w-full place-items-center bg-white/[.03]"><Tag className="h-5 w-5 text-slate-500" /></div>}
                           </div>
                           {option.stackable && option.quantity > 1 ? (
                             <span className="absolute bottom-8 right-1 rounded bg-black/80 px-1 text-[7px] font-black text-amber-200">x{option.quantity}</span>

@@ -303,7 +303,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
             <div className="mt-2 grid grid-cols-5 gap-1">
               {chosen.map((hero) => (
                 <div key={hero.heroId} className="overflow-hidden rounded-lg border" style={{ borderColor: RARITY_COLOR[hero.rarity] }}>
-                  {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" /> : null}
+                  {hero.imageUrl ? <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" /> : null}
                 </div>
               ))}
             </div>

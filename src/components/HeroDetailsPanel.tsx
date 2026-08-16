@@ -51,7 +51,7 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
         </header>
 
         <div className="overflow-hidden rounded-2xl border bg-black/70" style={{ borderColor: accent }}>
-          <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" />
+          <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
           <div className="p-3 text-center">
             <p className="text-[10px] font-black uppercase tracking-[.18em]" style={{ color: accent }}>
               {t(`rarity.${hero.rarity}`)} · {String(hero.archetype ?? '').toUpperCase()}

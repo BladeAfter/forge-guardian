@@ -82,7 +82,7 @@ function HeroPicker({
                 className={`relative overflow-hidden rounded-xl border bg-black/70 text-left disabled:opacity-35`}
                 style={{ borderColor: inThisSlot ? '#fbbf24' : RARITY[hero.isNft ? 'nft_exclusive' : String(hero.rarity || '').toLowerCase()] || '#475569' }}
               >
-                <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" />
+                <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
                 <p className="truncate px-1 pt-1 text-[9px] font-bold">{hero.name}</p>
                 <p className="px-1 text-[8px] uppercase tracking-[.1em] text-amber-200/80">{hero.class}</p>
                 <p className="px-1 pb-1 text-[8px] text-slate-400">Lv. {hero.level} · {Number(hero.power || 0).toLocaleString()}</p>
@@ -281,7 +281,7 @@ export function TacticalArenaPanel({ initData }: { initData: string }) {
                 >
                   {hero ? (
                     <>
-                      <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover" />
+                      <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
                       <p className="truncate px-1 pt-1 text-[9px] font-bold">{hero.name}</p>
                       <p className="px-1 text-[8px] uppercase tracking-[.1em] text-cyan-200">{hero.class}</p>
                       <p className="px-1 pb-1 text-[8px] text-slate-400">ATK {Number(hero.finalAtk).toLocaleString()}</p>
