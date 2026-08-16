@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { ChevronLeft, Loader2 } from 'lucide-react';
