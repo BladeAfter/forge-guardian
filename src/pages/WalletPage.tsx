@@ -252,12 +252,39 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 
       <Panel title={t('wallet.deposit')} icon={<ArrowDownToLine />}>
-        <div className="grid grid-cols-4 gap-1">{[1,3,5,10].map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{value} TON</Quick>)}</div>
-        <input type="number" min={MIN_DEPOSIT_TON} step="0.5" value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
-        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minimumDepositNote', { ton: MIN_DEPOSIT_TON, fc: FC_PER_TON.toLocaleString('pt-BR') })}</p>
-        {!validDeposit(depositTon) ? <p className="mt-1 text-[9px] font-bold text-rose-300">{t('wallet.errors.minDeposit')}</p> : null}
-        <Result label={t('wallet.youWillReceive')} value={`${tonToFc(depositTon).toLocaleString('pt-BR')} FC`} />
-        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !validDeposit(depositTon)}>{deposit.isPending ? t('wallet.openingWallet') : t('wallet.depositButton')}</Primary>
+        {/* The destination is chosen BEFORE paying and is frozen in the order by the backend. */}
+        <div className="grid grid-cols-2 gap-2">
+          <DepositModeCard
+            active={depositMode === 'ton_to_fc'}
+            disabled={!depositConfig.fcEnabled}
+            title={t('wallet.depositModeFc')}
+            hint={t('wallet.depositModeFcHint', { fc: FC_PER_TON.toLocaleString('pt-BR') })}
+            icon={<img src={coin} alt="FC" className="h-5 w-5 object-contain" />}
+            onClick={() => { setDepositMode('ton_to_fc'); setDepositTon(Math.max(depositTon, depositConfig.minFcTon)); }}
+          />
+          <DepositModeCard
+            active={depositMode === 'ton_balance'}
+            disabled={!depositConfig.directEnabled}
+            title={t('wallet.depositModeTon')}
+            hint={t('wallet.depositModeTonHint')}
+            icon={<img src={tonIcon} alt="TON" className="h-5 w-5 object-contain" />}
+            onClick={() => setDepositMode('ton_balance')}
+          />
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-1">{depositPresets.map(value => <Quick key={value} active={depositTon===value} onClick={() => setDepositTon(value)}>{formatTon(value)} TON</Quick>)}</div>
+        <input type="number" min={minDepositTon} step={depositMode === 'ton_balance' ? '0.1' : '0.5'} value={depositTon} onChange={event => setDepositTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
+        <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">
+          {depositMode === 'ton_balance'
+            ? t('wallet.minimumDirectDepositNote', { ton: formatTon(minDepositTon) })
+            : t('wallet.minimumDepositNote', { ton: formatTon(minDepositTon), fc: FC_PER_TON.toLocaleString('pt-BR') })}
+        </p>
+        {!depositAmountValid ? <p className="mt-1 text-[9px] font-bold text-rose-300">{depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit')}</p> : null}
+        <Result
+          label={t('wallet.youWillReceive')}
+          value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
+        />
+        {depositMode === 'ton_balance' ? <p className="mt-1 text-[9px] leading-relaxed text-sky-300/80">{t('wallet.depositDirectNote')}</p> : null}
+        <Primary onClick={() => deposit.mutate()} disabled={!connected || deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
         <button onClick={() => verify.mutate()} disabled={verify.isPending} className="mt-2 w-full rounded-xl border border-sky-400/40 bg-sky-500/10 px-3 py-2 text-[11px] font-bold tracking-wide text-sky-200 transition hover:bg-sky-500/20 disabled:opacity-60">
           {verify.isPending ? t('wallet.verifying') : t('wallet.alreadyPaid')}
         </button>
