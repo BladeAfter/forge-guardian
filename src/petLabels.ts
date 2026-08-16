@@ -68,6 +68,7 @@ export const PET_RARITY_LABELS: Record<string, string> = {
   legendary: 'LENDÁRIO',
   mythic: 'MÍTICO',
   ancestral: 'ANCESTRAL',
+  exclusive: 'EXCLUSIVO',
   nft_exclusive: 'NFT EXCLUSIVE',
 };
 
