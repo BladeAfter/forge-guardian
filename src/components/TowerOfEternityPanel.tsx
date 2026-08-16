@@ -208,7 +208,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             disabled={!canEnter}
             className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${compact(data.entryCost)} FC`}
+            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}`}
           </button>
         </div>
       </div>
