@@ -519,6 +519,7 @@ export const tr: Dict = {
   "inventory.cat.food": "YEM",
   "inventory.cat.fragments": "PARÇALAR",
   "inventory.cat.other": "DİĞER",
+  "inventory.cat.keys": "ANAHTARLAR",
   "inventory.close": "Kapat",
   "inventory.count": "{count} eşya yığını",
   "inventory.eggHatched": "Yumurta açıldı: {name}!",

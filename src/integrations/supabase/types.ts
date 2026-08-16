@@ -10377,6 +10377,36 @@ export type Database = {
           },
         ]
       }
+      tower_key_catalog: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          image_url: string | null
+          name: string
+          rarity: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string
+          image_url?: string | null
+          name: string
+          rarity: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          image_url?: string | null
+          name?: string
+          rarity?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       tower_progress: {
         Row: {
           attempts_date: string
@@ -14378,6 +14408,11 @@ export type Database = {
         Args: { p_first: boolean; p_floor: number; p_user: string }
         Returns: Json
       }
+      tower_key_chances: {
+        Args: { p_first: boolean; p_floor: number }
+        Returns: Json
+      }
+      tower_milestone_rewards: { Args: { p_floor: number }; Returns: Json }
       tower_roll_equipment_drop: {
         Args: { p_first: boolean; p_floor: number; p_user: string }
         Returns: Json

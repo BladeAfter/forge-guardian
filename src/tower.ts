@@ -47,9 +47,26 @@ export type TowerRewards = {
   petFood: number;
   heroChest: number;
   towerKey: number;
+  /** Chest rarity granted on this floor (server-side). */
+  chestCode?: string | null;
+  /** Straight FC bonus paid on a clear. */
+  forgeCoins?: number;
+  /** Universal fragments (hero fusion currency). */
+  universalFragments?: number;
+  /** Drop chance in % for each tower key, per floor band (display only). */
+  keyChances?: Record<string, number>;
+  /** Keys actually granted on this clear (code -> quantity). */
+  keys?: Record<string, number>;
   /** Equipment instance dropped on this clear (null when nothing dropped). */
   equipment?: TowerEquipmentDrop | null;
 };
+
+/** The 3 collectible tower keys. They have NO function yet — inventory display only. */
+export const TOWER_KEYS = [
+  { code: 'eternity_key', name: 'Eternity Key', rarity: 'rare', image: '/assets/game/ui/eternity-key.png', color: '#60a5fa' },
+  { code: 'void_key', name: 'Void Key', rarity: 'epic', image: '/assets/game/ui/void-key.png', color: '#c084fc' },
+  { code: 'celestial_key', name: 'Celestial Key', rarity: 'legendary', image: '/assets/game/ui/celestial-key.png', color: '#fbbf24' },
+] as const;
 
 export type PetSummary = {
   activePet: { name: string; image: string; level?: number; rarity?: string } | null;
@@ -124,8 +141,8 @@ export type TowerRanking = {
 /** Milestone rewards shown on the tower screen (presentational only). */
 export const TOWER_MILESTONES = [
   { floor: 10, reward: '50,000 FC + Eternity Key x1' },
-  { floor: 25, reward: 'Rare Fragments x15' },
-  { floor: 50, reward: 'Legendary Fragments x10' },
-  { floor: 75, reward: 'Mythic Egg x1' },
-  { floor: 100, reward: 'Ancestral Fragments x25' },
+  { floor: 25, reward: '100,000 FC + Universal Frag. x15 + Void Key x1' },
+  { floor: 50, reward: '150,000 FC + Epic Gear Chest + Void Key x1' },
+  { floor: 75, reward: '250,000 FC + Universal Frag. x25 + Celestial Key x1' },
+  { floor: 100, reward: '500,000 FC + Legendary Gear Chest + Celestial Key x1' },
 ] as const;
