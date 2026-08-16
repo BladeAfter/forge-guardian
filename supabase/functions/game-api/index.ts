@@ -1592,6 +1592,55 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * MISSION: ADD #MYTHREON TO YOUR TELEGRAM NAME.
+   * The display name is NEVER read from the client. On VERIFY the server asks the
+   * Telegram Bot API for the current profile (getChat) and falls back to the signed
+   * initData only when the Bot API cannot answer for that user. The RPC re-validates
+   * the hashtag and pays at most once per Telegram ID, atomically.
+   */
+  namemission: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'get_name_mission_state', { p_telegram_id: user.id });
+    if (action !== 'verify') throw new Error('INVALID_ACTION');
+
+    const state = (await rpc(db, 'get_name_mission_state', { p_telegram_id: user.id })) as
+      | { enabled?: boolean; hashtag?: string; claimed?: boolean }
+      | null;
+    if (state?.claimed) return { ...(state as object), status: 'already_claimed', verified: true, creditedFc: 0 };
+    if (state?.enabled !== true) throw new Error('NAME_MISSION_DISABLED');
+
+    const hashtag = String(state?.hashtag || '#Mythreon');
+    const live = await telegramLiveDisplayName(user.id);
+    const fallback = [user.first_name ?? '', user.last_name ?? ''].join(' ').replace(/\s+/g, ' ').trim();
+    const displayName = live ?? fallback;
+    const source = live !== null ? 'bot_api' : 'init_data';
+
+    if (!hashtagPresent(displayName, hashtag)) {
+      return {
+        ...(state as object),
+        status: 'not_verified',
+        verified: false,
+        reason: 'HASHTAG_NOT_FOUND',
+        // The client uses this to ask for a reopen when only the cached session was available.
+        stale: source === 'init_data',
+        source,
+        displayName,
+      };
+    }
+
+    const authDate = Number(new URLSearchParams(readInitData(req0(body), body)).get('auth_date')) || null;
+    const claim = (await rpc(db, 'claim_name_mission', {
+      p_telegram_id: user.id,
+      p_display_name: displayName,
+      p_source: source,
+      p_auth_date: authDate,
+    })) as Record<string, unknown>;
+    return { ...claim, verified: true, source, displayName };
+  },
+
+
+
 
   pool: async (db, user, body) => {
     // Daily activity scoring progress (PvP / bosses / pet feed / expeditions).
