@@ -1267,7 +1267,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('INVALID_SLOT');
       return withPet(await rpc(db, 'remove_tower_team_slot', { p_telegram_id: user.id, p_slot: slot }));
     }
-    if (action === 'enter') return attachHeroXp(db, user.id, 'DUNGEON', await withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id })));
+    if (action === 'enter') {
+      // Entry can be paid with FC (default) or with the internal TON balance. Debit happens server-side.
+      const payWith = String(body.payWith ?? 'fc').toLowerCase() === 'ton' ? 'ton' : 'fc';
+      return attachHeroXp(db, user.id, 'DUNGEON', await withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id, p_pay_currency: payWith })));
+    }
     // Tower ranking: read-only leaderboard (highest floor, then team power, then who got there first).
     if (action === 'ranking') {
       const limit = Math.min(Math.max(Number(body.limit) || 50, 1), 100);
