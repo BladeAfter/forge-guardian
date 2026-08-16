@@ -6513,43 +6513,44 @@ const ERRORS: Record<string, string> = {
 
 Deno.serve(async (req) => {
   if (req.method === 'GET') {
-    // One-time webhook registration helper, gated by a server-only setup key.
     const url = new URL(req.url);
-    const setupKey = Deno.env.get('TELEGRAM_ADMIN_SETUP_KEY') || '';
-    if (url.searchParams.get('setup') && setupKey && url.searchParams.get('setup') === setupKey) {
-      const hookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/admin-bot`;
+    const action = ['setup', 'resync', 'diag', 'selftest'].find((a) => url.searchParams.has(a));
+    if (!action) return new Response('ok');
+    // Every maintenance/diagnostic action is gated by the server-only setup key (fail closed).
+    if (!setupKeyOk(url)) return new Response('Unauthorized', { status: 401 });
+
+    const hookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/admin-bot`;
+
+    if (action === 'setup') {
       const res = await tg('setWebhook', {
         url: hookUrl,
         allowed_updates: ['message', 'callback_query'],
         drop_pending_updates: true,
-        ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
+        secret_token: WEBHOOK_SECRET,
       });
       const info = await tg('getWebhookInfo', {});
       return new Response(JSON.stringify({ setWebhook: res, info }), { headers: { 'Content-Type': 'application/json' } });
     }
+
     // Safe self-heal: re-points the webhook at this very function with the server-side secret.
-    // No secret is returned and the only possible outcome is the canonical registration.
-    if (url.searchParams.get('resync')) {
-      const hookUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/admin-bot`;
+    if (action === 'resync') {
       await tg('setWebhook', {
         url: hookUrl,
         allowed_updates: ['message', 'callback_query'],
-        ...(WEBHOOK_SECRET ? { secret_token: WEBHOOK_SECRET } : {}),
+        secret_token: WEBHOOK_SECRET,
       });
       const info = await tg('getWebhookInfo', {});
       const r = info?.result ?? {};
       return new Response(JSON.stringify({
         ok: true,
-        superAdminId: SUPER_ADMIN_ID,
         webhookMatches: r?.url === hookUrl,
         pendingUpdates: r?.pending_update_count ?? null,
         lastError: r?.last_error_message ?? null,
-        hasSecret: Boolean(WEBHOOK_SECRET),
       }), { headers: { 'Content-Type': 'application/json' } });
     }
-    // Read-only diagnostics: confirms which bot the token belongs to and the live webhook state.
-    // Never returns the token itself.
-    if (url.searchParams.get('diag')) {
+
+    // Read-only diagnostics: never returns the token, the admin id, or secret state.
+    if (action === 'diag') {
       const me = await tg('getMe', {});
       const info = await tg('getWebhookInfo', {});
       const r = info?.result ?? {};
@@ -6557,10 +6558,6 @@ Deno.serve(async (req) => {
         ok: true,
         bot: me?.result ? { id: me.result.id, username: me.result.username } : null,
         tokenConfigured: Boolean(BOT_TOKEN),
-        tokenSource: Deno.env.get('TELEGRAM_BOT_TOKEN_Admin') ? 'TELEGRAM_BOT_TOKEN_Admin'
-          : Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN') ? 'TELEGRAM_ADMIN_BOT_TOKEN'
-          : Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'TELEGRAM_BOT_TOKEN' : null,
-        superAdminId: SUPER_ADMIN_ID,
         webhook: {
           url: r?.url ?? null,
           pending_update_count: r?.pending_update_count ?? null,
@@ -6569,22 +6566,21 @@ Deno.serve(async (req) => {
         },
       }, null, 2), { headers: { 'Content-Type': 'application/json' } });
     }
+
     // Server-side self test: renders the main menu straight to the super admin chat.
-    if (url.searchParams.get('selftest')) {
-      const ctx: Ctx = { chatId: SUPER_ADMIN_ID, adminId: SUPER_ADMIN_ID };
-      try {
-        await clearSession(ctx).catch(() => {});
-        await home(ctx);
-        return new Response(JSON.stringify({ ok: true, sent: 'main_menu' }), { headers: { 'Content-Type': 'application/json' } });
-      } catch (err) {
-        return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } });
-      }
+    const ctx: Ctx = { chatId: SUPER_ADMIN_ID, adminId: SUPER_ADMIN_ID };
+    try {
+      await clearSession(ctx).catch(() => {});
+      await home(ctx);
+      return new Response(JSON.stringify({ ok: true, sent: 'main_menu' }), { headers: { 'Content-Type': 'application/json' } });
+    } catch (err) {
+      return new Response(JSON.stringify({ ok: false, error: err instanceof Error ? err.message : String(err) }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
-    return new Response('ok');
   }
   if (req.method !== 'POST') return new Response('ok');
-  if (WEBHOOK_SECRET && req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== WEBHOOK_SECRET) {
+  // Fail closed: a webhook secret always exists server-side and the header must match it.
+  if (!secretMatches(req.headers.get('X-Telegram-Bot-Api-Secret-Token'))) {
     return new Response('Unauthorized', { status: 401 });
   }
   const update = await req.json().catch(() => null);
