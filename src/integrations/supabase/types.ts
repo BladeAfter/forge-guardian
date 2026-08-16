@@ -11518,6 +11518,14 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
         Returns: Json
       }
+      admin_nft_reserve_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_nft_reserve_refill: {
+        Args: { p_admin_id: number; p_kind: string; p_limit?: number }
+        Returns: Json
+      }
       admin_nft_revoke: {
         Args: { p_admin_id: number; p_nft_id: string; p_reason?: string }
         Returns: Json
@@ -13751,6 +13759,11 @@ export type Database = {
         Args: { p_admin_id?: number; p_kind: string }
         Returns: Json
       }
+      nft_reserve_publish: {
+        Args: { p_admin_id?: number; p_kind: string; p_limit?: number }
+        Returns: Json
+      }
+      nft_reserve_stock_json: { Args: never; Returns: Json }
       nft_rotation_after_sale: { Args: { p_kind: string }; Returns: undefined }
       nft_shop_json: { Args: { p_telegram_id: number }; Returns: Json }
       nft_stock_json: { Args: { p_kind?: string }; Returns: Json }
