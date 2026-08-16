@@ -134,15 +134,18 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                   </span>
                 </div>
               </div>
-              <div className="relative mt-3 grid grid-cols-2 gap-2 text-center">
+              {/* Effective yield rule: a 0/NULL yield NFT shows PRICE alone, full width. */}
+              <div className={`relative mt-3 grid gap-2 text-center ${Number(item.dailyYieldTon || 0) > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                   <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.price')}</p>
                   <p className="text-[13px] font-black text-amber-100">{formatTon(item.priceTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
                 </div>
-                <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-                  <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
-                </div>
+                {Number(item.dailyYieldTon || 0) > 0 ? (
+                  <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
+                    <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
+                    <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
+                  </div>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -165,7 +168,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              <p className="flex justify-between"><span>{t('nft.dailyMining')}</span><span className="font-black text-emerald-300">{formatTon(target.dailyYieldTon)} TON</span></p>
+              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyMining')}</span><span className="font-black text-emerald-300">{formatTon(target.dailyYieldTon)} TON</span></p> : null}
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
                 {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
@@ -225,7 +228,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
       <section className="rounded-[1.6rem] border border-amber-200/40 bg-gradient-to-b from-amber-950/40 to-black/80 p-3 text-center">
         <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 MY NFT HEROES</p>
         <p className="mt-1 text-xl font-black text-amber-100">{items.length} / {data?.totalSupply ?? 10}</p>
-        <p className="text-[9px] uppercase tracking-[.18em] text-emerald-300">{formatTon(totalDaily)} TON / dia via mineração</p>
+        {totalDaily > 0 ? <p className="text-[9px] uppercase tracking-[.18em] text-emerald-300">{formatTon(totalDaily)} TON / dia via mineração</p> : null}
       </section>
 
       {items.map((item) => (
@@ -242,17 +245,20 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
               <p className="text-[10px] text-slate-400">ATK {item.atk} • HP {item.hp}</p>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+          {/* Effective yield rule: hide the mining block (and its footnote) for 0-yield NFTs. */}
+          <div className={`mt-3 grid gap-2 text-center ${Number(item.dailyYieldTon || 0) > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
               <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.tier')}</p>
               <p className="text-[13px] font-black text-amber-100">{formatTon(item.tierTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
             </div>
-            <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-              <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-              <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
-            </div>
+            {Number(item.dailyYieldTon || 0) > 0 ? (
+              <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
+                <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
+                <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
+              </div>
+            ) : null}
           </div>
-          <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p>
+          {Number(item.dailyYieldTon || 0) > 0 ? <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p> : null}
         </section>
       ))}
     </div>
