@@ -759,6 +759,7 @@ export const tr: Dict = {
   "pass.currentXp": "Mevcut XP",
   "pass.dailyLimitReached": "GÜNLÜK SINIRA ULAŞILDI",
   "pass.exclusive": "ÖZEL",
+  "pass.newPassRequired": "YENİ BİLET GEREKLİ",
   "pass.includedCheck": "DAHİL ✓",
   "pass.legendaryIncludesAdventurer": "Efsanevi Bilet ayrıca tüm Maceracı Bileti ödüllerinin kilidini açar.",
   "pass.legendaryPassLine1": "EFSANEVİ",
