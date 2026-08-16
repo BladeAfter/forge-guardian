@@ -744,6 +744,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   ) : null}
                 </div>
               ) : null}
+              </>)}
             </div>
           )}
         </div>
