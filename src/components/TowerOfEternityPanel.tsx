@@ -157,6 +157,36 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           </div>
         </div>
 
+        {/* Payment choice for the entry: current 100k FC option OR internal TON balance. */}
+        <div className="relative mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setPayWith('fc')}
+            className={`min-h-10 rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'fc' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
+          >
+            {compact(data.entryCost)} FC
+          </button>
+          <button
+            type="button"
+            onClick={() => setPayWith('ton')}
+            className={`min-h-10 rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'ton' ? 'border-sky-300/70 bg-sky-400/20 text-sky-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
+          >
+            {entryTon.toFixed(2)} TON
+          </button>
+        </div>
+        {payWith === 'ton' && tonBalance < entryTon ? (
+          <div className="relative mt-2 rounded-2xl border border-rose-400/40 bg-rose-500/10 p-2.5 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-rose-200">{t('tower.insufficientTon')}</p>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('mythreon:navigate', { detail: 'wallet' }))}
+              className="mt-2 min-h-10 w-full rounded-xl border border-sky-300/50 bg-sky-400/15 text-[10px] font-black uppercase tracking-wide text-sky-200"
+            >
+              {t('tower.depositTon')}
+            </button>
+          </div>
+        ) : null}
+
         <div className="relative mt-3 grid gap-2">
           <button
             type="button"
