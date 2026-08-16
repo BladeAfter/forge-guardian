@@ -3682,6 +3682,15 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ---- global boss + user management (button driven, no JSON typing)
   if (head === 'boss' && rest[0] === 'rank') { await clearSession(ctx); return bossRanking(ctx); }
+  if (head === 'boss' && rest[0] === 'roster') { await clearSession(ctx); return bossRoster(ctx, Number(rest[1] || 0) || 0); }
+  if (head === 'gbt') { await clearSession(ctx); return bossTemplateMenu(ctx, rest.join(':')); }
+  if (head === 'gbtset') {
+    await clearSession(ctx);
+    const code = rest[0]; const field = rest[1] || 'toggle';
+    await rpc('admin_global_boss_template_set', { p_admin_id: ctx.adminId, p_code: code, p_field: field, p_value: null, p_text: null, p_reason: 'roster toggle' });
+    return bossTemplateMenu(ctx, code);
+  }
+
   // Explicit flow: the prize of the ACTIVE cycle only (never the template, never a new cycle).
   if (head === 'boss' && rest[0] === 'curreward') {
     const d = await rpc('admin_boss_overview', { p_admin_id: ctx.adminId }) as any;
