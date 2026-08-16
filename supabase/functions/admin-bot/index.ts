@@ -5369,7 +5369,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
     await send(ctx, `✅ Depósito direto mínimo: <b>${value} TON</b>.`);
     return depositSettingsHub({ ...ctx, messageId: undefined });
   }
+  if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
+
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
   if (key === 'hpset' || key === 'hpcurve' || key === 'hpquest') return heroProgressionPrompt(ctx, key, args, text);
   if (key.startsWith('neq')) return nftEquipPrompt(ctx, key, args, text);
