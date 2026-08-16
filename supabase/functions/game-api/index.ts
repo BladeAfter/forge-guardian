@@ -606,6 +606,8 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
   const confirmed: string[] = [];
   const stillPending: string[] = [];
   const alreadyCredited: string[] = [];
+  // Per-deposit credit detail so the client can show the right message (FC vs TON balance).
+  const credits: Array<{ id: string; depositType: string; amountTon: number; amountFc: number }> = [];
 
   for (const deposit of deposits) {
     const comment = String(deposit.paymentComment || '').trim();
