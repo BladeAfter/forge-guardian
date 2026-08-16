@@ -8,7 +8,32 @@ const SUPER_ADMIN_ID = Number(Deno.env.get('TELEGRAM_SUPER_ADMIN_ID') || '811856
 // Admin bot token: dedicated variables first (current name: TELEGRAM_BOT_TOKEN_Admin), then legacy names.
 const BOT_TOKEN = (Deno.env.get('TELEGRAM_BOT_TOKEN_Admin') || Deno.env.get('TELEGRAM_ADMIN_BOT_TOKEN') || Deno.env.get('TELEGRAM_BOT_TOKEN') || '').trim();
 
-const WEBHOOK_SECRET = Deno.env.get('TELEGRAM_ADMIN_WEBHOOK_SECRET') || '';
+// Webhook secret: explicit variable when configured, otherwise deterministically derived from the
+// bot token so the webhook check ALWAYS fails closed (never skipped because a variable is unset).
+async function deriveWebhookSecret(seed: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`admin-bot-webhook:${seed}`));
+  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+const WEBHOOK_SECRET = (Deno.env.get('TELEGRAM_ADMIN_WEBHOOK_SECRET') || '').trim()
+  || (BOT_TOKEN ? await deriveWebhookSecret(BOT_TOKEN) : '');
+
+/** Constant-shape comparison for the secret header. */
+function secretMatches(header: string | null): boolean {
+  if (!WEBHOOK_SECRET || !header || header.length !== WEBHOOK_SECRET.length) return false;
+  let diff = 0;
+  for (let i = 0; i < header.length; i++) diff |= header.charCodeAt(i) ^ WEBHOOK_SECRET.charCodeAt(i);
+  return diff === 0;
+}
+
+/** Every GET maintenance action requires the server-only setup key. Missing key = no access. */
+function setupKeyOk(url: URL): boolean {
+  const setupKey = (Deno.env.get('TELEGRAM_ADMIN_SETUP_KEY') || '').trim();
+  const provided = String(url.searchParams.get('key') || url.searchParams.get('setup') || '');
+  if (!setupKey || !provided || provided.length !== setupKey.length) return false;
+  let diff = 0;
+  for (let i = 0; i < provided.length; i++) diff |= provided.charCodeAt(i) ^ setupKey.charCodeAt(i);
+  return diff === 0;
+}
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false, autoRefreshToken: false },
