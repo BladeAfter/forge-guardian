@@ -142,6 +142,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
             {!auto.eligible?t('boss.autoAtkRequired')
             :!auto.enabled?t('boss.autoAtkOff')
             :!auto.hasTeam?t('boss.autoAtkNoTeam')
+            :auto.waitingRevive?`${t('boss.autoAtkOffline')} · ${t('boss.autoAtkRevive')}`
+            /* one single official countdown: the server already merged cooldown + revive */
             :`${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${formatDuration(secondsUntil(auto.nextAttackAt))}`}
           </p>
         </div>

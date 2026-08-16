@@ -291,7 +291,10 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
                       ? t('boss.autoAtkNoTeam')
                       : auto.bossActive === false
                         ? t('clanBoss.waiting')
-                        : `${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${countdownLabel(auto.nextAttackAt, now)}`}
+                        : auto.waitingRevive
+                          ? `${t('boss.autoAtkOffline')} · ${t('boss.autoAtkRevive')}`
+                          /* single official countdown from the backend (cooldown + revive merged) */
+                          : `${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${countdownLabel(auto.nextAttackAt, now)}`}
             </p>
           </div>
           {auto.eligible ? (
