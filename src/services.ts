@@ -534,7 +534,7 @@ export async function towerRequest<T=TowerDashboard>(telegramInitData:string,inp
 export const fetchTowerDashboard=(initData:string)=>towerRequest<TowerDashboard>(initData,{action:'dashboard'});
 export const equipTowerHero=(initData:string,slot:number,heroId:string)=>towerRequest<TowerDashboard>(initData,{action:'equip',slot,heroId});
 export const removeTowerHero=(initData:string,slot:number)=>towerRequest<TowerDashboard>(initData,{action:'remove',slot});
-export const enterTowerFloor=(initData:string)=>towerRequest<TowerBattle>(initData,{action:'enter'});
+export const enterTowerFloor=(initData:string,payWith:'fc'|'ton'='fc')=>towerRequest<TowerBattle>(initData,{action:'enter',payWith});
 export const fetchTowerRanking=(initData:string,limit=50)=>towerRequest<TowerRanking>(initData,{action:'ranking',limit});
 
 
