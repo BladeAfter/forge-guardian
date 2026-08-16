@@ -134,15 +134,18 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                   </span>
                 </div>
               </div>
-              <div className="relative mt-3 grid grid-cols-2 gap-2 text-center">
+              {/* Effective yield rule: a 0/NULL yield NFT shows PRICE alone, full width. */}
+              <div className={`relative mt-3 grid gap-2 text-center ${Number(item.dailyYieldTon || 0) > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                   <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.price')}</p>
                   <p className="text-[13px] font-black text-amber-100">{formatTon(item.priceTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
                 </div>
-                <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-                  <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-                  <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
-                </div>
+                {Number(item.dailyYieldTon || 0) > 0 ? (
+                  <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
+                    <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
+                    <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
+                  </div>
+                ) : null}
               </div>
               <button
                 type="button"
