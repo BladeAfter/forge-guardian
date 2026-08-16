@@ -10263,6 +10263,7 @@ export type Database = {
           conversion_rate: number
           created_at: string
           credited_at: string | null
+          deposit_type: string
           expires_at: string
           from_wallet: string | null
           id: string
@@ -10284,6 +10285,7 @@ export type Database = {
           conversion_rate?: number
           created_at?: string
           credited_at?: string | null
+          deposit_type?: string
           expires_at?: string
           from_wallet?: string | null
           id?: string
@@ -10305,6 +10307,7 @@ export type Database = {
           conversion_rate?: number
           created_at?: string
           credited_at?: string | null
+          deposit_type?: string
           expires_at?: string
           from_wallet?: string | null
           id?: string
@@ -10745,6 +10748,10 @@ export type Database = {
       }
       admin_delete_catalog_hero: {
         Args: { p_admin_id: number; p_hero_key: string; p_reason?: string }
+        Returns: Json
+      }
+      admin_deposit_settings: {
+        Args: { p_admin_id: number; p_key?: string; p_value?: number }
         Returns: Json
       }
       admin_egg_detail: {
@@ -12327,6 +12334,7 @@ export type Database = {
       create_wallet_deposit: {
         Args: {
           p_amount_ton: number
+          p_deposit_type?: string
           p_from_wallet: string
           p_idempotency_key: string
           p_telegram_id: number
@@ -13891,6 +13899,7 @@ export type Database = {
             }
             Returns: Json
           }
+      wallet_deposit_config: { Args: never; Returns: Json }
       wallet_hot_address: { Args: never; Returns: string }
       weighted_pick: { Args: { p_weights: Json }; Returns: string }
       withdraw_fee_percent: { Args: never; Returns: number }
