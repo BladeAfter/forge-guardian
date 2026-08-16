@@ -10,10 +10,15 @@ export const PET_BONUS_CAPS:Partial<Record<PetBonusKey,number>>={boss_damage_per
 export const PET_MAX_LEVEL=50;
 export function normalizePetRarity(rarity?:string|null):PetRarity{const value=String(rarity??'common').trim().toLowerCase();return ({common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',rara:'rare',epic:'epic',epico:'epic','épico':'epic',epica:'epic','épica':'epic',legendary:'legendary',mythic:'mythic',mitico:'mythic','mítico':'mythic',lendario:'legendary','lendário':'legendary',lendaria:'legendary','lendária':'legendary',ancestral:'ancestral',exclusive:'exclusive',exclusivo:'exclusive',exclusiva:'exclusive',nft_exclusive:'nft_exclusive','nft-exclusive':'nft_exclusive','nft exclusive':'nft_exclusive',nft:'nft_exclusive',nft_exclusivo:'nft_exclusive','nft exclusivo':'nft_exclusive'} as Record<string,PetRarity>)[value]??'common'}
 const clampLevel=(level:number)=>Math.min(PET_MAX_LEVEL,Math.max(1,Math.floor(Number.isFinite(level)?level:1)));
-/** One visual/structural stage every 10 levels: 0 = base form … 5 = final form. */
-export function petStageIndex(level:number,tier=0){return Math.min(5,Math.max(0,Math.max(Math.floor(clampLevel(level)/10),Math.floor(Number.isFinite(tier)?tier:0))))}
-export function petStagePowerMultiplier(stage:number){return 1+.08*Math.min(5,Math.max(0,Math.floor(stage)))}
-export function petStageBuffMultiplier(stage:number){return 1+.10*Math.min(5,Math.max(0,Math.floor(stage)))}
+/** Visual form: one new form every 10 levels (0 = base form … 5 = final form). */
+export function petVisualStage(level:number){return Math.min(5,Math.max(0,Math.floor(clampLevel(level)/10)))}
+/**
+ * Growth points = level milestones (every 10 levels) PLUS evolution tiers. Both ALWAYS add up,
+ * so crossing level 10/20/30/40/50 raises the stats even for an already evolved pet.
+ */
+export function petStageIndex(level:number,tier=0){return Math.min(10,petVisualStage(level)+Math.min(5,Math.max(0,Math.floor(Number.isFinite(tier)?tier:0))))}
+export function petStagePowerMultiplier(stage:number){return 1+.08*Math.min(10,Math.max(0,Math.floor(stage)))}
+export function petStageBuffMultiplier(stage:number){return 1+.10*Math.min(10,Math.max(0,Math.floor(stage)))}
 export function petLevelMultiplier(level:number){return 1+(clampLevel(level)-1)*.02}
 /**
  * Official buff formula: ALWAYS derived from the original base value (never compounded on the
