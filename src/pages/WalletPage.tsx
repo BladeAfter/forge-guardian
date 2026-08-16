@@ -153,12 +153,30 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendEnabled, telegramInitData]);
 
+  /**
+   * Pressing "deposit" must always end up inside the TON wallet. When no wallet is linked yet we open
+   * the TonConnect modal right here and wait for the connection instead of failing with an error.
+   */
+  const ensureWalletAddress = async (): Promise<string> => {
+    const current = tonConnectUI.account?.address ?? address;
+    if (current) return current;
+    const linked = new Promise<string>((resolve, reject) => {
+      const unsubscribe = tonConnectUI.onStatusChange(wallet => {
+        if (wallet?.account?.address) { unsubscribe(); resolve(wallet.account.address); }
+      });
+      window.setTimeout(() => { unsubscribe(); reject(new Error(t('wallet.errors.connectWallet'))); }, 180_000);
+    });
+    await tonConnectUI.openModal();
+    return linked;
+  };
+
   const deposit = useMutation({
     mutationFn: async () => {
-      if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
       if (!depositModeEnabled) throw new Error(t('wallet.errors.depositModeDisabled'));
       if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
-      const intent = await createDepositIntent(telegramInitData, depositTon, address, crypto.randomUUID(), depositMode);
+      const walletAddress = await ensureWalletAddress();
+      const intent = await createDepositIntent(telegramInitData, depositTon, walletAddress, crypto.randomUUID(), depositMode);
       await tonConnectUI.sendTransaction({
         validUntil: Math.floor(Date.now() / 1000) + 300,
         // The comment is the on-chain marker the backend matches against the hot wallet transactions.
