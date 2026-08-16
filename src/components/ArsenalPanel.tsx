@@ -16,6 +16,7 @@ import {
 } from '../services';
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
+import { sendTonPayment } from '../tonPayment';
 
 const RARITY: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
@@ -174,10 +175,7 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
         throw new Error('CONNECT_TON_WALLET');
       }
       const order = await createNftEquipmentTonOrder(telegramInitData, item.id, key);
-      await tonUI.sendTransaction({
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages: [{ address: order.paymentAddress, amount: order.amountNano, payload: encodeCommentPayload(order.paymentComment) }],
-      });
+      await sendTonPayment(order, (tx) => tonUI.sendTransaction(tx));
       setWaiting(true);
       for (let attempt = 1; attempt <= 10; attempt += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, attempt === 1 ? 6000 : 7000));

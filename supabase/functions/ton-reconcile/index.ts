@@ -328,7 +328,33 @@ Deno.serve(async req => {
       }
     }
 
-    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered, marketPaid, nftDelivered });
+    // OVERPAYMENT / DUPLICATE PAYMENT SWEEP.
+    // A wallet that fires the same intent twice sends the money twice while the product is (correctly)
+    // delivered only once. Those extra transfers used to stay unclaimed on the hot wallet: now every
+    // transfer whose comment belongs to an ALREADY SETTLED order is credited to the player's internal
+    // TON balance and logged as OVERPAYMENT_DETECTED. Fully idempotent (one tx hash = one absorption).
+    const duplicatesCredited: Array<{ txHash: string; amountTon: number }> = [];
+    for (const tx of transactions) {
+      const inMsg = tx?.in_msg;
+      if (!inMsg) continue;
+      const comment = msgComment(inMsg);
+      if (!comment.startsWith('forge_')) continue;
+      const txHash = txHashOf(tx);
+      if (!txHash || used.has(txHash)) continue;
+      const valueNano = BigInt(String(inMsg.value ?? '0'));
+      if (valueNano <= 0n) continue;
+      const { data, error } = await db.rpc('ton_absorb_duplicate_payment', {
+        p_comment: comment, p_tx_hash: txHash, p_amount_nano: valueNano.toString(),
+      });
+      if (error) { console.error('[OVERPAYMENT_DETECTED]', JSON.stringify({ txHash, comment, reason: error.message })); continue; }
+      if ((data as any)?.status !== 'credited') continue;
+      used.add(txHash);
+      duplicatesCredited.push({ txHash, amountTon: Number((data as any).amountTon) });
+      console.log('[OVERPAYMENT_DETECTED]', JSON.stringify({ txHash, comment, kind: (data as any).kind, orderId: (data as any).orderId, amountTon: (data as any).amountTon }));
+    }
+
+    return json({ checked: deposits.length, credited, pending: stillPending, passActivated, eggsDelivered, marketPaid, nftDelivered, duplicatesCredited });
+
 
 
 

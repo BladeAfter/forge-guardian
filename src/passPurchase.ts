@@ -1,11 +1,12 @@
 import { createSeasonPassOrder, verifyPassPurchases } from './services';
-import { encodeCommentPayload } from './tonComment';
+import { sendTonPayment, type SendTonTransaction } from './tonPayment';
+
 import type { PassTier, SeasonPassDashboard } from './seasonPass';
 
 export type PassPurchaseOutcome = { status: 'completed' | 'already_processed' | string; orderId?: string; tier?: PassTier; priceTon?: number };
 export type PassPurchaseVerification = { checked: number; completed: string[]; pending: string[]; results: PassPurchaseOutcome[]; dashboard?: SeasonPassDashboard };
 
-type SendTon = (tx: { validUntil: number; messages: Array<{ address: string; amount: string; payload?: string }> }) => Promise<unknown>;
+type SendTon = SendTonTransaction;
 
 /**
  * The ONE battle pass purchase pipeline: create order → pay with TonConnect (carrying the order
@@ -19,11 +20,10 @@ export async function purchaseBattlePass(input: {
 }): Promise<{ orderId: string; tier: PassTier; priceTon: number }> {
   if (!input.telegramInitData) throw new Error('Abra o jogo pelo Telegram para comprar o Passe.');
   const order = await createSeasonPassOrder(input.telegramInitData, input.tier);
-  await input.sendTransaction({
-    validUntil: Math.floor(Date.now() / 1000) + 300,
-    messages: [{ address: order.paymentAddress, amount: order.amountNano, payload: encodeCommentPayload(order.paymentComment) }],
-  });
+  // The wallet receives EXACTLY the amount the backend stored in the intent, once.
+  await sendTonPayment(order, (tx) => input.sendTransaction(tx));
   return { orderId: order.id, tier: input.tier, priceTon: order.amountTon };
+
 }
 
 /** Asks the server to reconcile every pending pass payment of this player (idempotent). */
