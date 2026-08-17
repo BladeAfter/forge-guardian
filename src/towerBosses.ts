@@ -107,7 +107,48 @@ export const TOWER_BOSS_THEMES: Record<string, TowerBossTheme> = {
     bar: 'linear-gradient(90deg,#fb923c,#ef4444,#7f1d1d)',
     border: 'border-orange-300/30', accent: 'text-orange-200',
   },
+  void_leviathan: {
+    art: globalArt('void-leviathan.png'), arena: arena('void-leviathan'),
+    stage: 'radial-gradient(120% 90% at 50% 12%, #1b1040 0%, #0d0820 48%, #04050b 100%)',
+    aura: 'radial-gradient(circle, rgba(129,140,248,.42) 0%, rgba(30,20,90,0) 68%)',
+    glow: 'drop-shadow(0 0 30px rgba(129,140,248,.6))',
+    bar: 'linear-gradient(90deg,#a5b4fc,#4f46e5,#1e1b4b)',
+    border: 'border-indigo-300/30', accent: 'text-indigo-200',
+  },
+  bone_emperor: {
+    art: globalArt('bone-emperor.png'), arena: arena('bone-emperor'),
+    stage: 'radial-gradient(120% 90% at 50% 12%, #3a3626 0%, #1e1c16 48%, #07070a 100%)',
+    aura: 'radial-gradient(circle, rgba(231,229,208,.4) 0%, rgba(70,65,45,0) 68%)',
+    glow: 'drop-shadow(0 0 26px rgba(231,229,208,.5))',
+    bar: 'linear-gradient(90deg,#f5f5dc,#a8a29e,#44403c)',
+    border: 'border-stone-300/30', accent: 'text-stone-200',
+  },
+  chaos_paragon: {
+    art: globalArt('chaos-paragon.png'), arena: arena('chaos-paragon'),
+    stage: 'radial-gradient(120% 90% at 50% 12%, #4a0d3a 0%, #24081f 48%, #07060c 100%)',
+    aura: 'radial-gradient(circle, rgba(244,114,182,.42) 0%, rgba(90,10,70,0) 68%)',
+    glow: 'drop-shadow(0 0 30px rgba(244,114,182,.6))',
+    bar: 'linear-gradient(90deg,#f9a8d4,#db2777,#500724)',
+    border: 'border-pink-300/30', accent: 'text-pink-200',
+  },
+  celestial_ruinbringer: {
+    art: globalArt('celestial-ruinbringer.png'), arena: arena('celestial-ruinbringer'),
+    stage: 'radial-gradient(120% 90% at 50% 12%, #3f3a13 0%, #1f1c22 48%, #06060c 100%)',
+    aura: 'radial-gradient(circle, rgba(253,224,71,.42) 0%, rgba(90,80,20,0) 68%)',
+    glow: 'drop-shadow(0 0 32px rgba(253,224,71,.6))',
+    bar: 'linear-gradient(90deg,#fef08a,#eab308,#713f12)',
+    border: 'border-yellow-300/30', accent: 'text-yellow-200',
+  },
+  crimson_behemoth: {
+    art: globalArt('crimson-behemoth.png'), arena: arena('crimson-behemoth'),
+    stage: 'radial-gradient(120% 90% at 50% 12%, #4c0a12 0%, #26060c 48%, #08070a 100%)',
+    aura: 'radial-gradient(circle, rgba(248,113,113,.45) 0%, rgba(110,10,20,0) 68%)',
+    glow: 'drop-shadow(0 0 30px rgba(248,113,113,.6))',
+    bar: 'linear-gradient(90deg,#fca5a5,#dc2626,#450a0a)',
+    border: 'border-red-300/30', accent: 'text-red-200',
+  },
 };
+
 
 export const towerBossTheme = (bossKey?: string | null): TowerBossTheme =>
   TOWER_BOSS_THEMES[String(bossKey ?? '').toLowerCase()] ?? TOWER_BOSS_THEMES.abyssal_warden;
