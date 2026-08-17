@@ -1,0 +1,1 @@
+ALTER FUNCTION public.distribute_community_pool(boolean) SET search_path TO 'public', 'extensions';
