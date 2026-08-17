@@ -1,5 +1,5 @@
 /**
- * Visual identity of the 10 Tower of Eternity bosses.
+ * Visual identity of the 15 Tower of Eternity bosses.
  *
  * Pure presentation: the backend decides which boss guards each floor and how
  * strong it is; this map only decides how it looks.
