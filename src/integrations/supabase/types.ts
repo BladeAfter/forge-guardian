@@ -7972,6 +7972,50 @@ export type Database = {
           },
         ]
       }
+      pool_reward_adjustments: {
+        Row: {
+          applied_at: string | null
+          applied_history_id: string | null
+          created_at: string
+          created_by_admin: number | null
+          delta_ton: number
+          id: string
+          pool_id: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_history_id?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          delta_ton: number
+          id?: string
+          pool_id?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_history_id?: string | null
+          created_at?: string
+          created_by_admin?: number | null
+          delta_ton?: number
+          id?: string
+          pool_id?: string | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pool_reward_adjustments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pool_rewards: {
         Row: {
           amount_ton: number
