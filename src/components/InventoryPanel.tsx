@@ -4,7 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
-import { openCalendarChest, openExclusiveChest, petRequest, summonHeroWithFragments } from '../services';
+import { openCalendarChest, openExclusiveChest, openLegendChest, petRequest, summonHeroWithFragments } from '../services';
+import type { LegendChestEquipment } from '../services';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { ArsenalPanel } from './ArsenalPanel';
 
@@ -16,6 +17,9 @@ const RARITY_BORDER: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
   legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6',
 };
+
+/** Premium Legend Chest: opens a random legendary equipment piece. */
+const isLegendChest = (item: InventoryItem) => item.itemId === 'legend-chest' || item.itemId === 'legend_chest';
 
 const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'keys', 'other'];
 
@@ -71,6 +75,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   const [selected, setSelected] = useState<InventoryItem | null>(null);
   const [summoned, setSummoned] = useState<FragmentSummonResult | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
+  const [legendReward, setLegendReward] = useState<LegendChestEquipment | null>(null);
 
 
   const items = data?.items ?? [];
@@ -83,6 +88,12 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   // regular hero chest is what used to fail.
   const openChest = useMutation({
     mutationFn: async (item: InventoryItem) => {
+      // Legend Chest: dedicated server action that always rolls a LEGENDARY equipment.
+      if (isLegendChest(item)) {
+        const payload = await openLegendChest(telegramInitData, String(item.instanceId));
+        setLegendReward(payload.equipment);
+        return null;
+      }
       if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
         const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
         return payload.reward?.name ?? payload.reward?.title ?? null;
@@ -92,11 +103,12 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
     },
     onSuccess: async (name) => {
       setSelected(null);
-      toast.success(name ?? t('inventory.opened'));
-      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
+      if (name) toast.success(name);
+      await invalidate(['player-inventory', 'player-heroes', 'player-equipment', 'arsenal', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
     },
     onError: (openError) => toast.error(openError instanceof Error ? openError.message : t('inventory.openError')),
   });
+
 
   // Eggs reuse the exact same hatch action as Pets → Eggs (petRequest 'hatch').
   const hatchEgg = useMutation({
@@ -249,6 +261,29 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                   className="mt-2 min-h-[34px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300 disabled:opacity-50"
                 >
                   {t('inventory.cancel')}
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {/* Legend Chest reveal: the equipment already exists server-side (Arsenal). */}
+      {legendReward
+        ? createPortal(
+            <div className="fixed inset-0 z-[130] grid place-items-center bg-black/85 p-4" onClick={() => setLegendReward(null)}>
+              <div className="w-full max-w-[300px] rounded-2xl border border-amber-300/40 bg-[#080c14] p-4 text-center" onClick={(event) => event.stopPropagation()}>
+                <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-300/80">BAÚ LENDÁRIO</p>
+                {legendReward.imageUrl ? (
+                  <img src={legendReward.imageUrl} alt={legendReward.name} className="mx-auto my-3 h-28 w-28 animate-[pulse_1.2s_ease-in-out_2] rounded-xl border border-amber-300/40 object-contain" />
+                ) : null}
+                <p className="text-[10px] font-black uppercase tracking-[.2em]" style={{ color: RARITY_BORDER[legendReward.rarity] ?? '#fbbf24' }}>{legendReward.rarity}</p>
+                <b className="block text-sm font-black text-amber-200">{legendReward.name}</b>
+                <p className="mt-1 text-[10px] uppercase tracking-[.12em] text-slate-400">{legendReward.slot}{legendReward.kind ? ` · ${legendReward.kind}` : ''}</p>
+                <p className="mt-1 text-[10px] text-slate-300">ATK +{legendReward.bonusAttack ?? 0} · DEF +{legendReward.bonusDefense ?? 0} · HP +{legendReward.bonusHp ?? 0}</p>
+                <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">⚔ ARSENAL</p>
+                <button onClick={() => setLegendReward(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
+                  {t('inventory.close')}
                 </button>
               </div>
             </div>,

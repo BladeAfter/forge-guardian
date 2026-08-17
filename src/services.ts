@@ -273,6 +273,15 @@ export async function openExclusiveChest(initData:string,inventoryItemId:string)
     throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o baú mítico. Tente novamente.')}
   return payload as {reward:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory};
 }
+/** Legend Chest: guaranteed random LEGENDARY equipment. Roll happens server-side. */
+export type LegendChestEquipment={instanceId:string;code:string;name:string;slot:string;kind:string|null;heroClass?:string|null;rarity:string;tier?:number|null;imageUrl?:string|null;bonusAttack?:number;bonusDefense?:number;bonusHp?:number;power?:number};
+export async function openLegendChest(initData:string,inventoryItemId:string):Promise<{equipment:LegendChestEquipment;inventory?:PlayerInventory}>{
+  const response=await forgeFetch('calendar',({initData,action:'open-legend-chest',inventoryItemId}));
+  const payload=await response.json().catch(()=>null)as{equipment?:LegendChestEquipment;inventory?:PlayerInventory;error?:string}|null;
+  if(!response.ok||!payload?.equipment){const raw=payload?.error||'';if(raw)console.error('[open-legend-chest]',raw);
+    throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Lendário. Tente novamente.')}
+  return payload as {equipment:LegendChestEquipment;inventory?:PlayerInventory};
+}
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'|'recent-xp'|'buy-level'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
 export const buySeasonPassLevels=(initData:string,levels:number)=>seasonPassRequest(initData,'buy-level',{levels,idempotencyKey:crypto.randomUUID()});
