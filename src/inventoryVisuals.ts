@@ -48,6 +48,9 @@ const BY_CODE: Record<string, string> = {
   eternity_key: ui('eternity-key.png'),
   void_key: ui('void-key.png'),
   celestial_key: ui('celestial-key.png'),
+  // Premium Legend Chest art (opens a random legendary equipment).
+  'legend-chest': chestArt('legend-chest.png'),
+  legend_chest: chestArt('legend-chest.png'),
 };
 
 const isImageUrl = (value?: string | null) =>
