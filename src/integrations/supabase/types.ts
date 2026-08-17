@@ -11547,6 +11547,20 @@ export type Database = {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
       }
+      admin_clan_war_action: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
+        Returns: Json
+      }
+      admin_clan_war_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_clan_war_set: {
+        Args: { p_admin_id: number; p_key: string; p_value: Json }
+        Returns: Json
+      }
       admin_clans: {
         Args: {
           p_action?: string

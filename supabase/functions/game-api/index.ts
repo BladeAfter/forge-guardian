@@ -1373,6 +1373,35 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
+  /**
+   * Clan War: 20v20 season warfare. Every mutation is a server RPC — the client only
+   * picks heroes for defense and chooses which enemy roster slot to attack.
+   */
+  'clan-war': async (db, user, body) => {
+    const action = String(body.action || 'dashboard');
+    if (action === 'dashboard') return rpc(db, 'clan_war_dashboard', { p_telegram_id: user.id });
+    if (action === 'join') return rpc(db, 'clan_war_join', { p_telegram_id: user.id });
+    if (action === 'leave-queue') return rpc(db, 'clan_war_leave_queue', { p_telegram_id: user.id });
+    if (action === 'defense') {
+      const heroIds = Array.isArray(body.heroIds) ? body.heroIds.filter((id: unknown) => isUuid(id)).slice(0, 5) : [];
+      if (heroIds.length === 0) throw new Error('INVALID_TEAM');
+      const petId = isUuid(body.petId) ? body.petId : null;
+      return rpc(db, 'clan_war_set_defense', { p_telegram_id: user.id, p_hero_ids: heroIds, p_pet_id: petId });
+    }
+    if (action === 'attack') {
+      if (!isUuid(body.defender)) throw new Error('TARGET_NOT_FOUND');
+      const clientKey = typeof body.clientKey === 'string' ? body.clientKey.slice(0, 64) : null;
+      return attachHeroXp(db, user.id, 'PVP', await rpc(db, 'clan_war_attack', {
+        p_telegram_id: user.id,
+        p_defender: body.defender,
+        p_client_key: clientKey,
+      }));
+    }
+    throw new Error('Ação inválida.');
+  },
+
+
+
   /** Daily quests: progress is only written by server-side event hooks, never by the client. */
   quests: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
