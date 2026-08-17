@@ -83,6 +83,12 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   // regular hero chest is what used to fail.
   const openChest = useMutation({
     mutationFn: async (item: InventoryItem) => {
+      // Legend Chest: dedicated server action that always rolls a LEGENDARY equipment.
+      if (isLegendChest(item)) {
+        const payload = await openLegendChest(telegramInitData, String(item.instanceId));
+        setLegendReward(payload.equipment);
+        return null;
+      }
       if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
         const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
         return payload.reward?.name ?? payload.reward?.title ?? null;
@@ -92,11 +98,12 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
     },
     onSuccess: async (name) => {
       setSelected(null);
-      toast.success(name ?? t('inventory.opened'));
-      await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
+      if (name) toast.success(name);
+      await invalidate(['player-inventory', 'player-heroes', 'player-equipment', 'arsenal', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
     },
     onError: (openError) => toast.error(openError instanceof Error ? openError.message : t('inventory.openError')),
   });
+
 
   // Eggs reuse the exact same hatch action as Pets → Eggs (petRequest 'hatch').
   const hatchEgg = useMutation({
