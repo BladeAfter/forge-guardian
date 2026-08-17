@@ -1701,39 +1701,396 @@ export type Database = {
           },
         ]
       }
+      clan_war_attacks: {
+        Row: {
+          attacker_clan: string
+          attacker_power: number
+          attacker_user: string
+          battle: Json
+          client_key: string | null
+          created_at: string
+          defender_clan: string
+          defender_power: number
+          defender_user: string
+          id: string
+          perfect: boolean
+          points: number
+          result: string
+          sector: string
+          upset_bonus: number
+          war_id: string
+        }
+        Insert: {
+          attacker_clan: string
+          attacker_power?: number
+          attacker_user: string
+          battle?: Json
+          client_key?: string | null
+          created_at?: string
+          defender_clan: string
+          defender_power?: number
+          defender_user: string
+          id?: string
+          perfect?: boolean
+          points?: number
+          result: string
+          sector: string
+          upset_bonus?: number
+          war_id: string
+        }
+        Update: {
+          attacker_clan?: string
+          attacker_power?: number
+          attacker_user?: string
+          battle?: Json
+          client_key?: string | null
+          created_at?: string
+          defender_clan?: string
+          defender_power?: number
+          defender_user?: string
+          id?: string
+          perfect?: boolean
+          points?: number
+          result?: string
+          sector?: string
+          upset_bonus?: number
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_attacks_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_war_defenses: {
+        Row: {
+          clan_id: string
+          hero_ids: string[]
+          id: string
+          locked_at: string | null
+          pet_buffs: Json
+          pet_id: string | null
+          power: number
+          team_json: Json
+          updated_at: string
+          user_id: string
+          war_id: string
+        }
+        Insert: {
+          clan_id: string
+          hero_ids?: string[]
+          id?: string
+          locked_at?: string | null
+          pet_buffs?: Json
+          pet_id?: string | null
+          power?: number
+          team_json?: Json
+          updated_at?: string
+          user_id: string
+          war_id: string
+        }
+        Update: {
+          clan_id?: string
+          hero_ids?: string[]
+          id?: string
+          locked_at?: string | null
+          pet_buffs?: Json
+          pet_id?: string | null
+          power?: number
+          team_json?: Json
+          updated_at?: string
+          user_id?: string
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_defenses_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_war_rating_history: {
+        Row: {
+          clan_id: string
+          created_at: string
+          delta: number
+          id: string
+          rating_after: number
+          rating_before: number
+          result: string
+          season_id: string | null
+          war_id: string | null
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          delta: number
+          id?: string
+          rating_after: number
+          rating_before: number
+          result: string
+          season_id?: string | null
+          war_id?: string | null
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          rating_after?: number
+          rating_before?: number
+          result?: string
+          season_id?: string | null
+          war_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_rating_history_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_war_rewards: {
+        Row: {
+          clan_id: string
+          created_at: string
+          id: string
+          payload: Json
+          result: string
+          user_id: string
+          war_id: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          result: string
+          user_id: string
+          war_id: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          result?: string
+          user_id?: string
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_rewards_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_war_rosters: {
+        Row: {
+          attacks_total: number
+          attacks_used: number
+          clan_id: string
+          created_at: string
+          defeats_taken: number
+          id: string
+          losses: number
+          points_earned: number
+          sector: string
+          team_power_snapshot: number
+          user_id: string
+          war_id: string
+          wins: number
+        }
+        Insert: {
+          attacks_total?: number
+          attacks_used?: number
+          clan_id: string
+          created_at?: string
+          defeats_taken?: number
+          id?: string
+          losses?: number
+          points_earned?: number
+          sector?: string
+          team_power_snapshot?: number
+          user_id: string
+          war_id: string
+          wins?: number
+        }
+        Update: {
+          attacks_total?: number
+          attacks_used?: number
+          clan_id?: string
+          created_at?: string
+          defeats_taken?: number
+          id?: string
+          losses?: number
+          points_earned?: number
+          sector?: string
+          team_power_snapshot?: number
+          user_id?: string
+          war_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_rosters_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_war_seasons: {
+        Row: {
+          code: string
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          status: string
+          ton_prize_enabled: boolean
+          ton_prize_ton: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          name?: string
+          starts_at?: string
+          status?: string
+          ton_prize_enabled?: boolean
+          ton_prize_ton?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          name?: string
+          starts_at?: string
+          status?: string
+          ton_prize_enabled?: boolean
+          ton_prize_ton?: number
+        }
+        Relationships: []
+      }
+      clan_war_sector_state: {
+        Row: {
+          clan_id: string
+          conquered_at: string | null
+          defeats: number
+          id: string
+          sector: string
+          war_id: string
+        }
+        Insert: {
+          clan_id: string
+          conquered_at?: string | null
+          defeats?: number
+          id?: string
+          sector: string
+          war_id: string
+        }
+        Update: {
+          clan_id?: string
+          conquered_at?: string | null
+          defeats?: number
+          id?: string
+          sector?: string
+          war_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_war_sector_state_war_id_fkey"
+            columns: ["war_id"]
+            isOneToOne: false
+            referencedRelation: "clan_wars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_wars: {
         Row: {
+          attacks_per_player: number
+          battle_ends_at: string | null
+          battle_starts_at: string | null
           clan_a: string | null
           clan_b: string | null
           created_at: string
           ends_at: string | null
+          finished_at: string | null
           id: string
+          preparation_starts_at: string | null
+          registered_by: string | null
+          roster_size: number
           score_a: number
           score_b: number
+          season_id: string | null
+          settled_at: string | null
           starts_at: string | null
           status: string
+          test_war: boolean
+          winner_clan_id: string | null
         }
         Insert: {
+          attacks_per_player?: number
+          battle_ends_at?: string | null
+          battle_starts_at?: string | null
           clan_a?: string | null
           clan_b?: string | null
           created_at?: string
           ends_at?: string | null
+          finished_at?: string | null
           id?: string
+          preparation_starts_at?: string | null
+          registered_by?: string | null
+          roster_size?: number
           score_a?: number
           score_b?: number
+          season_id?: string | null
+          settled_at?: string | null
           starts_at?: string | null
           status?: string
+          test_war?: boolean
+          winner_clan_id?: string | null
         }
         Update: {
+          attacks_per_player?: number
+          battle_ends_at?: string | null
+          battle_starts_at?: string | null
           clan_a?: string | null
           clan_b?: string | null
           created_at?: string
           ends_at?: string | null
+          finished_at?: string | null
           id?: string
+          preparation_starts_at?: string | null
+          registered_by?: string | null
+          roster_size?: number
           score_a?: number
           score_b?: number
+          season_id?: string | null
+          settled_at?: string | null
           starts_at?: string | null
           status?: string
+          test_war?: boolean
+          winner_clan_id?: string | null
         }
         Relationships: [
           {
@@ -1748,6 +2105,13 @@ export type Database = {
             columns: ["clan_b"]
             isOneToOne: false
             referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_wars_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "clan_war_seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -1817,6 +2181,11 @@ export type Database = {
           tag: string
           total_power: number
           updated_at: string
+          war_draws: number
+          war_losses: number
+          war_points_total: number
+          war_rating: number
+          war_wins: number
           xp: number
         }
         Insert: {
@@ -1835,6 +2204,11 @@ export type Database = {
           tag: string
           total_power?: number
           updated_at?: string
+          war_draws?: number
+          war_losses?: number
+          war_points_total?: number
+          war_rating?: number
+          war_wins?: number
           xp?: number
         }
         Update: {
@@ -1853,6 +2227,11 @@ export type Database = {
           tag?: string
           total_power?: number
           updated_at?: string
+          war_draws?: number
+          war_losses?: number
+          war_points_total?: number
+          war_rating?: number
+          war_wins?: number
           xp?: number
         }
         Relationships: [
@@ -12894,6 +13273,33 @@ export type Database = {
         Args: { p_item: string; p_quantity?: number; p_telegram_id: number }
         Returns: Json
       }
+      clan_war_cfg: { Args: never; Returns: Json }
+      clan_war_current_season: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          status: string
+          ton_prize_enabled: boolean
+          ton_prize_ton: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_war_seasons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_war_league: { Args: { p_rating: number }; Returns: string }
+      clan_war_league_multiplier: {
+        Args: { p_league: string }
+        Returns: number
+      }
+      clan_war_sector_def: { Args: never; Returns: Json }
       clan_week_key: { Args: never; Returns: string }
       confirm_pet_egg_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
