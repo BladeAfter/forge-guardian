@@ -98,6 +98,7 @@ const MAIN_MENU = kb([
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
   [{ t: '#️⃣ MISSÃO #MYTHREON', d: 'nm:hub' }],
   [{ t: '📣 POOL MARKETING', d: 'mp:hub' }],
+  [{ t: '🏰 CLAN WAR (20V20)', d: 'cw:hub' }],
 
 
 
@@ -2358,6 +2359,8 @@ const PROMPTS: Record<string, string> = {
   plfind: 'Envie o telegram_id, @username ou nome do jogador para ver a posição dele no evento.',
   tpset: 'Envie: <code>chave valor</code> — <code>turnTimerSeconds</code>, <code>ticketCost</code>, <code>reconnectSeconds</code>, <code>stalemateTurns</code>, <code>stalemateEscalation</code>, <code>ratingK</code>, <code>deckSize</code>, <code>tournamentEnabled</code>, <code>eventMode</code> (ex.: <code>turnTimerSeconds 20</code>).',
   tpskill: 'Envie: <code>skill_key campo valor</code> — campos: <code>multiplier</code>, <code>cooldown</code>, <code>duration</code>, <code>enabled</code> (ex.: <code>heavy_strike multiplier 1.6</code> ou <code>silence enabled 0</code>).',
+  cwset: 'Envie: <code>chave valor</code> — <code>rosterSize</code>, <code>attacksPerPlayer</code>, <code>preparationHours</code>, <code>battleHours</code>, <code>seasonWeeks</code>, <code>baseRating</code>, <code>pointsWin</code>, <code>pointsPerfect</code>, <code>pointsUpsetMax</code>, <code>pointsLoss</code>, <code>defenderMaxDefeats</code>, <code>conqueredPercent</code>, <code>sectorBonusPercent</code>, <code>matchmaking</code>, <code>tonSeasonPrize</code> (ex.: <code>battleHours 24</code>).',
+  cwseason: 'Envie: <code>nome | prêmio_ton</code> para abrir uma nova temporada — ex.: <code>Temporada 1 | 40</code>. Sem prêmio use <code>Temporada 1 | 0</code>.',
   poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
 
   tree: 'Envie o usuário para ver a árvore de convites.',
@@ -3993,6 +3996,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ⚔️ TACTICAL PVP (3v3) — feature flag, turn timer, ticket cost and skill balance.
   if (head === 'tp') { if (rest[0] !== 'ask') await clearSession(ctx); return tpCallback(ctx, rest); }
+
+  // 🏰 CLAN WAR (20v20) — feature flag, roster/phase timings, scoring and season control.
+  if (head === 'cw') { if (rest[0] !== 'ask') await clearSession(ctx); return cwCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5801,6 +5807,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key === 'tpset' || key === 'tpskill') return tpPrompt(ctx, key, text);
+  if (key === 'cwset' || key === 'cwseason') return cwPrompt(ctx, key, text);
   if (key === 'depmin') {
     const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
     if (!Number.isFinite(value) || value <= 0 || value > 1000) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON entre 0 e 1000 (ex.: <code>0.1</code>).');
