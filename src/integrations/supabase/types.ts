@@ -13273,6 +13273,46 @@ export type Database = {
         Args: { p_item: string; p_quantity?: number; p_telegram_id: number }
         Returns: Json
       }
+      clan_war_active: {
+        Args: { p_clan: string }
+        Returns: {
+          attacks_per_player: number
+          battle_ends_at: string | null
+          battle_starts_at: string | null
+          clan_a: string | null
+          clan_b: string | null
+          created_at: string
+          ends_at: string | null
+          finished_at: string | null
+          id: string
+          preparation_starts_at: string | null
+          registered_by: string | null
+          roster_size: number
+          score_a: number
+          score_b: number
+          season_id: string | null
+          settled_at: string | null
+          starts_at: string | null
+          status: string
+          test_war: boolean
+          winner_clan_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_wars"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_war_attack: {
+        Args: {
+          p_client_key?: string
+          p_defender: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      clan_war_attack_team: { Args: { p_user: string }; Returns: Json }
       clan_war_cfg: { Args: never; Returns: Json }
       clan_war_current_season: {
         Args: never
@@ -13294,12 +13334,31 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_war_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_war_fill_roster: {
+        Args: {
+          p_attacks: number
+          p_clan: string
+          p_size: number
+          p_war: string
+        }
+        Returns: undefined
+      }
+      clan_war_join: { Args: { p_telegram_id: number }; Returns: Json }
       clan_war_league: { Args: { p_rating: number }; Returns: string }
       clan_war_league_multiplier: {
         Args: { p_league: string }
         Returns: number
       }
+      clan_war_leave_queue: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_war_member_role: { Args: { p_user: string }; Returns: string }
       clan_war_sector_def: { Args: never; Returns: Json }
+      clan_war_set_defense: {
+        Args: { p_hero_ids: string[]; p_pet_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      clan_war_settle: { Args: { p_war: string }; Returns: undefined }
+      clan_war_tick: { Args: never; Returns: Json }
       clan_week_key: { Args: never; Returns: string }
       confirm_pet_egg_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
