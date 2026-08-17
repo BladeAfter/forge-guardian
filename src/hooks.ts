@@ -21,6 +21,7 @@ import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard}from'./quests';
 import type{FusionDashboard,RarityFusionDashboard}from'./heroFusion';
 import{fetchClanDashboard,type ClanDashboard}from'./clans';
+import{fetchClanWarDashboard,type ClanWarDashboard}from'./clanWar';
 import{fetchClanBoss,type ClanBossState}from'./clanBoss';
 import type{SpecialEventsDashboard}from'./specialEvents';
 import{specialEventsRequest,spendingEventRequest}from'./services';
@@ -137,6 +138,10 @@ export const useClanBossRealtime=(instanceId:string|null|undefined,clanId:string
 };
 
 export const useClanDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanDashboard>({queryKey:['clan-dashboard',telegramInitData],queryFn:()=>fetchClanDashboard(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
+
+/** Clan War dashboard. Polls while a war is live so scores, sectors and the feed stay fresh. */
+export const useClanWarDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<ClanWarDashboard>({queryKey:['clan-war',telegramInitData],queryFn:()=>fetchClanWarDashboard(telegramInitData??''),enabled,staleTime:10_000,refetchInterval:(query)=>{const status=query.state.data?.war?.status;return status==='battle'||status==='preparation'||status==='searching'?15_000:false},refetchOnWindowFocus:true,retry:1});
+
 
 /**
  * Live global boss. Any change the admin makes to the ACTIVE cycle (reward pool, HP, ends_at,

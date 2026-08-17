@@ -98,6 +98,7 @@ const MAIN_MENU = kb([
   [{ t: '🛡 ANTI-FAKE', d: 'af:hub' }],
   [{ t: '#️⃣ MISSÃO #MYTHREON', d: 'nm:hub' }],
   [{ t: '📣 POOL MARKETING', d: 'mp:hub' }],
+  [{ t: '🏰 CLAN WAR (20V20)', d: 'cw:hub' }],
 
 
 
@@ -2358,6 +2359,8 @@ const PROMPTS: Record<string, string> = {
   plfind: 'Envie o telegram_id, @username ou nome do jogador para ver a posição dele no evento.',
   tpset: 'Envie: <code>chave valor</code> — <code>turnTimerSeconds</code>, <code>ticketCost</code>, <code>reconnectSeconds</code>, <code>stalemateTurns</code>, <code>stalemateEscalation</code>, <code>ratingK</code>, <code>deckSize</code>, <code>tournamentEnabled</code>, <code>eventMode</code> (ex.: <code>turnTimerSeconds 20</code>).',
   tpskill: 'Envie: <code>skill_key campo valor</code> — campos: <code>multiplier</code>, <code>cooldown</code>, <code>duration</code>, <code>enabled</code> (ex.: <code>heavy_strike multiplier 1.6</code> ou <code>silence enabled 0</code>).',
+  cwset: 'Envie: <code>chave valor</code> — <code>rosterSize</code>, <code>attacksPerPlayer</code>, <code>preparationHours</code>, <code>battleHours</code>, <code>seasonWeeks</code>, <code>baseRating</code>, <code>pointsWin</code>, <code>pointsPerfect</code>, <code>pointsUpsetMax</code>, <code>pointsLoss</code>, <code>defenderMaxDefeats</code>, <code>conqueredPercent</code>, <code>sectorBonusPercent</code>, <code>matchmaking</code>, <code>tonSeasonPrize</code> (ex.: <code>battleHours 24</code>).',
+  cwseason: 'Envie: <code>nome | prêmio_ton</code> para abrir uma nova temporada — ex.: <code>Temporada 1 | 40</code>. Sem prêmio use <code>Temporada 1 | 0</code>.',
   poolrate: 'Envie a nova taxa de contribuição da Community Pool em % (0-100) — ex.: <code>15</code>. Vale apenas para transações TON processadas após a alteração.',
 
   tree: 'Envie o usuário para ver a árvore de convites.',
@@ -3993,6 +3996,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ⚔️ TACTICAL PVP (3v3) — feature flag, turn timer, ticket cost and skill balance.
   if (head === 'tp') { if (rest[0] !== 'ask') await clearSession(ctx); return tpCallback(ctx, rest); }
+
+  // 🏰 CLAN WAR (20v20) — feature flag, roster/phase timings, scoring and season control.
+  if (head === 'cw') { if (rest[0] !== 'ask') await clearSession(ctx); return cwCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5801,6 +5807,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key === 'plset' || key === 'plfind') return plPrompt(ctx, key, args, text);
   if (key === 'tpset' || key === 'tpskill') return tpPrompt(ctx, key, text);
+  if (key === 'cwset' || key === 'cwseason') return cwPrompt(ctx, key, text);
   if (key === 'depmin') {
     const value = Number(text.replace(',', '.').replace(/[^\d.]/g, ''));
     if (!Number.isFinite(value) || value <= 0 || value > 1000) throw new Error('KEEP_SESSION::⚠️ Envie um valor em TON entre 0 e 1000 (ex.: <code>0.1</code>).');
@@ -7165,3 +7172,143 @@ async function tpPrompt(ctx: Ctx, key: string, text: string) {
   await send(ctx, `✅ <code>${esc(skillKey)}</code> · <b>${esc(field)}</b> = <code>${esc(String(num))}</code>.`);
   return tpSkills({ ...ctx, messageId: undefined });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🏰 CLAN WAR (20v20) — feature flag, roster/phase timings, scoring, seasons.
+// Every value is stored in game_settings and read live by clan_war_cfg().
+// ─────────────────────────────────────────────────────────────────────────────
+const CW_BOOL_KEYS = ['matchmaking', 'tonSeasonPrize'];
+const CW_NUM_KEYS = ['rosterSize', 'attacksPerPlayer', 'preparationHours', 'battleHours', 'seasonWeeks', 'baseRating',
+  'pointsWin', 'pointsPerfect', 'pointsUpsetMax', 'pointsLoss', 'defenderMaxDefeats', 'conqueredPercent', 'sectorBonusPercent'];
+
+async function cwHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_clan_war_overview', { p_admin_id: ctx.adminId }) as any;
+  const c = d?.config ?? {};
+  const s = d?.season ?? null;
+  const counts = d?.counts ?? {};
+  const on = c.enabled === true;
+  const lines = [
+    '🏰 <b>CLAN WAR (20V20)</b>',
+    `Status: <b>${on ? '🟢 ATIVA' : '🔴 DESATIVADA'}</b> · Matchmaking: <b>${c.matchmaking === true ? 'ON' : 'OFF'}</b>`,
+    `Tropa: <b>${c.rosterSize ?? 20}</b> · Ataques/jogador: <b>${c.attacksPerPlayer ?? 2}</b>`,
+    `Preparação: <b>${c.preparationHours ?? 12}h</b> · Batalha: <b>${c.battleHours ?? 24}h</b>`,
+    `Pontos: vitória <b>${c.pointsWin ?? 100}</b> · perfeito <b>+${c.pointsPerfect ?? 20}</b> · upset máx <b>+${c.pointsUpsetMax ?? 30}</b> · derrota <b>${c.pointsLoss ?? 10}</b>`,
+    `Defensor cai em <b>${c.defenderMaxDefeats ?? 2}</b> derrotas · setor conquistado paga <b>${c.conqueredPercent ?? 25}%</b> · bônus setor <b>+${c.sectorBonusPercent ?? 5}%</b>`,
+    '',
+    s ? `Temporada: <b>${esc(String(s.name))}</b> (${esc(String(s.code))})\nTermina: <b>${String(s.ends_at).slice(0, 16).replace('T', ' ')}</b> · Prêmio: <b>${s.ton_prize_enabled ? `${Number(s.ton_prize_ton).toFixed(2)} TON` : 'OFF'}</b>`
+      : 'Temporada: <b>nenhuma ativa</b>',
+    '',
+    `Fila: <b>${fmt(counts.searching)}</b> · Preparação: <b>${fmt(counts.preparation)}</b> · Batalha: <b>${fmt(counts.battle)}</b> · Encerradas: <b>${fmt(counts.finished)}</b>`,
+  ];
+  const rows = [
+    [{ t: on ? '🔴 DESATIVAR GUERRA' : '🟢 ATIVAR GUERRA', d: `cw:toggle:${on ? '0' : '1'}` }],
+    [{ t: '⚙️ CONFIGURAR', d: 'cw:ask:cwset' }, { t: '🔀 MATCHMAKING', d: `cw:mm:${c.matchmaking === true ? '0' : '1'}` }],
+    [{ t: '⚔️ GUERRAS', d: 'cw:wars' }, { t: '🏆 RANKING', d: 'cw:rank' }],
+    [{ t: '🗓 NOVA TEMPORADA', d: 'cw:ask:cwseason' }, { t: '🏁 ENCERRAR TEMPORADA', d: 'cw:season_finish' }],
+    [{ t: '⏱ RODAR TICK AGORA', d: 'cw:tick' }],
+    [{ t: '♻️ RESETAR RATINGS', d: 'cw:confirm:reset' }],
+    nav(),
+  ];
+  const text = lines.join('\n');
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function cwWars(ctx: Ctx) {
+  const d = await rpc('admin_clan_war_overview', { p_admin_id: ctx.adminId }) as any;
+  const wars = (d?.wars ?? []) as any[];
+  const body = wars.length
+    ? wars.map((w) => {
+      const icon = w.status === 'battle' ? '⚔️' : w.status === 'preparation' ? '🛠' : w.status === 'searching' ? '🔎' : w.settled ? '🏁' : '⚫';
+      return `${icon} <b>[${esc(w.clanA)}] ${fmt(w.scoreA)} × ${fmt(w.scoreB)} [${esc(w.clanB)}]</b>\n   ${esc(String(w.status))} · <code>${esc(String(w.warId))}</code>`;
+    }).join('\n')
+    : 'Nenhuma guerra registrada.';
+  const rows = wars.filter((w) => ['searching', 'preparation', 'battle'].includes(String(w.status))).slice(0, 4)
+    .map((w) => [{ t: `🏁 LIQUIDAR ${w.clanA}v${w.clanB}`, d: `cw:settle:${w.warId}` }, { t: '❌ CANCELAR', d: `cw:cancel:${w.warId}` }]);
+  return edit(ctx, `⚔️ <b>GUERRAS DE CLÃ</b>\n\n${body}`, kb([...rows, [{ t: '🔄 Atualizar', d: 'cw:wars' }], [{ t: '⬅️ Voltar', d: 'cw:hub' }], nav()]));
+}
+
+async function cwRanking(ctx: Ctx) {
+  const d = await rpc('admin_clan_war_overview', { p_admin_id: ctx.adminId }) as any;
+  const rows = (d?.ranking ?? []) as any[];
+  const body = rows.length
+    ? rows.map((r, i) => `#${i + 1} <b>[${esc(r.tag)}] ${esc(r.name)}</b>\n   ${fmt(r.rating)} · ${esc(r.league)} · ${fmt(r.wins)}W/${fmt(r.losses)}L`).join('\n')
+    : 'Nenhum clã ranqueado.';
+  return edit(ctx, `🏆 <b>RANKING CLAN WAR</b>\n\n${body}`, kb([[{ t: '🔄 Atualizar', d: 'cw:rank' }], [{ t: '⬅️ Voltar', d: 'cw:hub' }], nav()]));
+}
+
+async function cwCallback(ctx: Ctx, rest: string[]) {
+  const sub = rest[0] || 'hub';
+  if (sub === 'ask') return ask(ctx, rest[1], PROMPTS[rest[1]] || 'Envie o valor.');
+  if (sub === 'wars') return cwWars(ctx);
+  if (sub === 'rank') return cwRanking(ctx);
+  if (sub === 'toggle') {
+    await rpc('admin_clan_war_set', { p_admin_id: ctx.adminId, p_key: 'enabled', p_value: rest[1] === '1' });
+    await send(ctx, rest[1] === '1' ? '🟢 <b>CLAN WAR ATIVADA.</b>' : '🔴 <b>CLAN WAR DESATIVADA.</b>');
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'mm') {
+    await rpc('admin_clan_war_set', { p_admin_id: ctx.adminId, p_key: 'matchmaking', p_value: rest[1] === '1' });
+    return cwHub(ctx);
+  }
+  if (sub === 'tick') {
+    const res = await rpc('admin_clan_war_action', { p_admin_id: ctx.adminId, p_action: 'tick' }) as any;
+    await send(ctx, `⏱ <b>Tick executado.</b>\n<code>${esc(JSON.stringify(res ?? {}).slice(0, 500))}</code>`);
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'settle' || sub === 'cancel') {
+    await rpc('admin_clan_war_action', { p_admin_id: ctx.adminId, p_action: sub, p_ref: rest[1] });
+    await send(ctx, sub === 'settle' ? '🏁 <b>Guerra liquidada.</b>' : '❌ <b>Guerra cancelada.</b>');
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'season_finish') {
+    await rpc('admin_clan_war_action', { p_admin_id: ctx.adminId, p_action: 'season_finish' });
+    await send(ctx, '🏁 <b>Temporada encerrada.</b>');
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === 'confirm') {
+    return send(ctx, '⚠️ <b>RESETAR TODOS OS RATINGS DE CLAN WAR?</b>\n\nVitórias, derrotas e pontos acumulados voltam a zero e todos os clãs retornam ao rating inicial.',
+      kb([[{ t: '✅ CONFIRMAR', d: 'cw:run:reset' }, { t: '❌ CANCELAR', d: 'cw:hub' }]]));
+  }
+  if (sub === 'run') {
+    await rpc('admin_clan_war_action', { p_admin_id: ctx.adminId, p_action: 'reset_ratings' });
+    await send(ctx, '♻️ <b>Ratings de Clan War resetados.</b>');
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+  return cwHub(ctx);
+}
+
+async function cwPrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'cwseason') {
+    const [rawName, rawPrize] = text.split('|');
+    const name = (rawName || '').trim().slice(0, 40);
+    const prize = Number(String(rawPrize || '0').replace(',', '.').replace(/[^\d.]/g, ''));
+    if (!name) throw new Error('KEEP_SESSION::⚠️ Use: <code>nome | prêmio_ton</code>.');
+    if (!Number.isFinite(prize) || prize < 0) throw new Error('KEEP_SESSION::⚠️ Prêmio em TON inválido.');
+    const res = await rpc('admin_clan_war_action', {
+      p_admin_id: ctx.adminId, p_action: 'season_start', p_ref: null,
+      p_payload: { name, prizeTon: prize },
+    }) as any;
+    await clearSession(ctx);
+    await send(ctx, `🗓 <b>Nova temporada aberta</b> — ${esc(name)} · ${res?.weeks ?? '?'} semanas · prêmio ${prize.toFixed(2)} TON.`);
+    return cwHub({ ...ctx, messageId: undefined }, false);
+  }
+
+  const parts = text.trim().split(/\s+/);
+  const field = parts[0];
+  const raw = parts.slice(1).join(' ');
+  if (!raw || (!CW_NUM_KEYS.includes(field) && !CW_BOOL_KEYS.includes(field))) {
+    throw new Error(`KEEP_SESSION::⚠️ Formato inválido. Use: <code>chave valor</code> (${[...CW_NUM_KEYS, ...CW_BOOL_KEYS].join(', ')}).`);
+  }
+  let value: unknown;
+  if (CW_BOOL_KEYS.includes(field)) value = ['1', 'on', 'true', 'sim', 'yes'].includes(raw.toLowerCase());
+  else {
+    const num = Number(String(raw).replace(',', '.'));
+    if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Valor numérico inválido.');
+    value = num;
+  }
+  await rpc('admin_clan_war_set', { p_admin_id: ctx.adminId, p_key: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `✅ <b>${esc(field)}</b> = <code>${esc(String(value))}</code>.`);
+  return cwHub({ ...ctx, messageId: undefined }, false);
+}
+

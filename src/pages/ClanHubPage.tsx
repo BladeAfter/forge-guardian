@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, Castle, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
@@ -8,9 +8,10 @@ import { clanErrorKey, clanRequest, type ClanMessage, type ClanSummary } from '.
 import { ClanCrest } from '../components/ClanHall';
 import { ClanMembersList, ClanRequestCard } from '../components/ClanMembersPanel';
 import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
+import { ClanWarPanel } from '../components/ClanWarPanel';
 import { formatCurrency } from '../utils';
 
-type Tab = 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'boss';
+type Tab = 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'boss' | 'war';
 
 /**
  * ClanHub: the single clan surface. Both the Clan Hall building and the compact
@@ -202,6 +203,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         <TabButton active={tab === 'missions'} onClick={() => setTab('missions')} icon={<Target className="h-4 w-4" />} label={t('clan.missions')} />
         <TabButton active={tab === 'ranking'} onClick={() => setTab('ranking')} icon={<Trophy className="h-4 w-4" />} label={t('clan.ranking')} />
         <TabButton active={tab === 'boss'} onClick={() => setTab('boss')} icon={<Swords className="h-4 w-4" />} label={t('clan.boss')} />
+        <TabButton active={tab === 'war'} onClick={() => setTab('war')} icon={<Castle className="h-4 w-4" />} label={t('clanwar.tab')} />
         {canManage ? (
           <div className="relative">
             <TabButton active={tab === 'requests'} onClick={() => setTab('requests')} icon={<UserPlus className="h-4 w-4" />} label={t('clanx.tabRequests')} />
@@ -285,6 +287,8 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         )) : null}
 
         {tab === 'boss' ? <ClanBossTeaser onOpen={() => setBossOpen(true)} /> : null}
+
+        {tab === 'war' ? <ClanWarPanel telegramInitData={telegramInitData} /> : null}
       </div>
     </Shell>
   );
