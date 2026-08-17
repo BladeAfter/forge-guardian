@@ -14377,6 +14377,10 @@ export type Database = {
         }
         Returns: Json
       }
+      open_legend_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       open_season_mythic_egg: {
         Args: { p_item_id: string; p_telegram_id: number }
         Returns: Json
