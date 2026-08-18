@@ -6,6 +6,8 @@ export const PET_BUFF_LABELS: Record<string, string> = {
   boss_damage_percent: 'Dano contra o Chefe',
   boss_damage_reduction_percent: 'Redução de dano do Chefe',
   team_hp_percent: 'HP da equipe',
+  hp_percent: 'HP da equipe',
+  hp_bonus: 'HP da equipe',
   team_attack_percent: 'Ataque da equipe',
   defense_percent: 'Defesa',
   pvp_attack_percent: 'Ataque na Arena',

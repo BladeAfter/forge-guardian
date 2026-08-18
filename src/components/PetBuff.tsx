@@ -4,6 +4,8 @@ import { Coins, Flame, Heart, Shield, Star, Swords, Zap } from 'lucide-react';
 const BUFF_ICONS: Record<string, JSX.Element> = {
   boss_damage_percent: <Flame />,
   team_hp_percent: <Heart />,
+  hp_percent: <Heart />,
+  hp_bonus: <Heart />,
   farm_fc_percent: <Coins />,
   pvp_attack_percent: <Swords />,
   pvp_defense_percent: <Shield />,
