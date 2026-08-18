@@ -1697,7 +1697,7 @@ async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
         const value = int();
         if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
         if (key === 'cllimit') {
-          if (value < 1 || value > 100) throw new Error('KEEP_SESSION::⚠️ O limite deve ficar entre 1 e 100.');
+          if (value < 1 || value > 500) throw new Error('KEEP_SESSION::⚠️ O limite deve ficar entre 1 e 500.');
           patch.memberLimit = value;
         } else patch.minimumTrophies = value;
       }
@@ -2312,7 +2312,7 @@ const PROMPTS: Record<string, string> = {
   clname: 'Envie o novo nome do clã (3 a 24 caracteres).',
   cltag: 'Envie a nova tag do clã (2 a 5 letras/números).',
   cldesc: 'Envie a nova descrição do clã (até 200 caracteres).',
-  cllimit: 'Envie o novo limite de membros (1 a 100). Ex.: <code>50</code>',
+  cllimit: 'Envie o novo limite de membros (1 a 500). Ex.: <code>150</code>',
   cltrophy: 'Envie o mínimo de troféus para entrar no clã. Ex.: <code>500</code>',
   find: 'Envie Telegram ID, @usuário, nome, carteira ou ID interno.',
   tonadj: '💎 <b>AJUSTAR TON</b>\n\nEnvie o <b>Telegram ID</b> do jogador.\nEx.: <code>8118569391</code>\n\n<i>Ajusta apenas o saldo TON interno/sacável do Mythreon. Não altera Hot Wallet nem carteira externa.</i>',
