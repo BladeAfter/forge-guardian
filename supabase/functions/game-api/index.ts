@@ -1025,6 +1025,19 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'myth') {
     // MYTH Token: read-only decorative balance. No purchase, swap, withdrawal or conversion exists.
     fn = 'get_myth_wallet';
+  } else if (action === 'myth-sale') {
+    // MYTH TOKEN SALE dashboard: every aggregate (sold/burned/available/raised) comes from the DB.
+    fn = 'get_myth_sale_dashboard';
+  } else if (action === 'myth-buy') {
+    // The DB alone decides the payment method: internal TON when it covers 100%, TonConnect otherwise.
+    const amount = Math.floor(Number(body.mythAmount));
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('MYTH_INVALID_AMOUNT');
+    const wallet = toFriendlyTonAddress(body.walletAddress);
+    fn = 'myth_start_purchase';
+    args = { ...args, p_myth_amount: amount, p_wallet_address: wallet, p_idempotency_key: `myth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'myth-verify') {
+    return await verifyMythPurchases(db, user);
+
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';
