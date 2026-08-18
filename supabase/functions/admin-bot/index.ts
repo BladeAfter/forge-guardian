@@ -3739,6 +3739,86 @@ async function mythPrompt(ctx: Ctx, key: string, text: string) {
   return mythHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
+// Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
+// Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
+async function saleHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_myth_sale_overview', { p_admin_id: ctx.adminId }) as any;
+  const sales = (d.recentSales ?? []) as any[];
+  const intents = (d.activeIntents ?? []) as any[];
+  const burns = (d.burnHistory ?? []) as any[];
+  const statusLabel: Record<string, string> = { active: '🟢 ATIVA', paused: '⏸ PAUSADA', finished: '🏁 ENCERRADA' };
+  const text = [
+    `🪙 <b>MYTH TOKEN SALE</b> — ${statusLabel[d.saleStatus] ?? esc(String(d.saleStatus))}`,
+    '',
+    `<b>Preço:</b> 1 TON = ${mythFmt(d.mythPerTon)} ${esc(d.symbol)}`,
+    `<b>Alocação da venda:</b> ${mythFmt(d.saleAllocation)}`,
+    `<b>Vendido:</b> ${mythFmt(d.sold)} (${Number(d.soldPercent ?? 0).toFixed(2)}%)`,
+    `<b>Disponível:</b> ${mythFmt(d.available)} · <b>Reservado:</b> ${mythFmt(d.reserved)}`,
+    `🔥 <b>Queimado:</b> ${mythFmt(d.burned)} (${Number(d.burnedPercent ?? 0).toFixed(2)}%)`,
+    `💎 <b>TON arrecadado:</b> ${mythFmt(d.tonRaised)} TON`,
+    `<b>Compra mínima:</b> ${mythFmt(d.minPurchase)} · <b>Checkout:</b> ${fmt(d.intentMinutes)} min`,
+    '',
+    `<b>ÚLTIMAS VENDAS</b>\n${sales.map((r) => `• ${mythFmt(r.myth_amount)} ${esc(d.symbol)} — ${mythFmt(r.amount_ton)} TON (${r.payment_method === 'INTERNAL' ? 'saldo interno' : 'TonConnect'}) — ${esc(r.player ?? '—')}`).join('\n') || 'nenhuma venda ainda'}`,
+    '',
+    `<b>CHECKOUTS ABERTOS</b>\n${intents.map((r) => `⏳ ${mythFmt(r.myth_amount)} — ${mythFmt(r.amount_ton)} TON (<code>${esc(r.payment_comment)}</code>)`).join('\n') || 'nenhum'}`,
+    '',
+    `<b>QUEIMAS</b>\n${burns.map((r) => `🔥 ${mythFmt(r.amount)} — ${esc(r.reason ?? 'sem motivo')}`).join('\n') || 'nenhuma queima ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: '💱 PREÇO (1 TON = X)', d: 'ms:ask:msprice' }, { t: '🧮 ALOCAÇÃO', d: 'ms:ask:msalloc' }],
+    [{ t: '📉 COMPRA MÍNIMA', d: 'ms:ask:msmin' }, { t: '⏱ CHECKOUT (min)', d: 'ms:ask:msminutes' }],
+    [{ t: '🔥 BURN MYTH', d: 'ms:ask:msburn' }],
+    [{ t: d.saleStatus === 'active' ? '⏸ PAUSAR VENDA' : '🟢 ATIVAR VENDA', d: `ms:st:${d.saleStatus === 'active' ? 'paused' : 'active'}` },
+     { t: '🏁 ENCERRAR', d: 'ms:st:finished' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function saleCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'st') {
+    await rpc('admin_myth_sale_status', { p_admin_id: ctx.adminId, p_status: a });
+    return saleHub(ctx);
+  }
+  // Burning supply is irreversible, so it always goes through an explicit confirmation step.
+  if (sub === 'burn') {
+    const amount = Number(a);
+    if (!Number.isFinite(amount) || amount <= 0) return saleHub(ctx);
+    await rpc('admin_myth_burn', { p_admin_id: ctx.adminId, p_amount: amount, p_reason: b ? decodeURIComponent(b) : null });
+    await send(ctx, `🔥 <b>${mythFmt(amount)} MYTH</b> queimado permanentemente.`);
+    return saleHub({ ...ctx, messageId: undefined }, false);
+  }
+  return saleHub(ctx);
+}
+
+async function salePrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'msburn') {
+    const parts = text.split('|');
+    const amount = parseAmount(parts[0] ?? '');
+    const reason = (parts[1] ?? '').trim();
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>quantidade | motivo</code>. Ex.: <code>1000000 | queima de lançamento</code>');
+    await clearSession(ctx);
+    return send(ctx, `🔥 <b>CONFIRMAR QUEIMA</b>\nQuantidade: <b>${mythFmt(amount)} MYTH</b>\nMotivo: ${esc(reason || 'sem motivo')}\n\n<i>Ação irreversível.</i>`, kb([
+      [{ t: '✅ CONFIRMAR QUEIMA', d: `ms:burn:${Math.floor(amount)}:${encodeURIComponent(reason).slice(0, 40)}` }],
+      [{ t: '↩️ CANCELAR', d: 'ms:hub' }],
+    ]));
+  }
+  const keys: Record<string, string> = { msprice: 'price', msalloc: 'allocation', msmin: 'min_purchase', msminutes: 'minutes' };
+  const configKey = keys[key];
+  if (configKey) {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>20000</code>');
+    await rpc('admin_myth_sale_set', { p_admin_id: ctx.adminId, p_key: configKey, p_value: value });
+    await clearSession(ctx);
+    await send(ctx, `✅ Configuração <b>${esc(configKey)}</b> atualizada para <b>${mythFmt(value)}</b>.`);
+  }
+  return saleHub({ ...ctx, messageId: undefined }, false);
+}
+
+
 // ---------------------------------------------------------------- 🧩 FRAGMENT UTILITY (master admin only)
 // FRAGMENTS -> random common/uncommon hero. UNIVERSAL FRAGMENTS -> replace the copies
 // required by one star-fusion step. Costs and odds live in game_settings.
