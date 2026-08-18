@@ -72,8 +72,10 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-slate-300">
-                Official Mythreon token. Utility coming in future updates. Currently decorative only.
+                The official currency of Mythreon. Earn MYTH from NFT mining, buy it in the token sale and put it to work
+                in staking. New utilities keep coming as the realm grows.
               </p>
+
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
                   <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
