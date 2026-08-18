@@ -2899,8 +2899,10 @@ export type Database = {
           forge_coins: number
           hero_mining_claimed_at: string | null
           hero_mining_invested_ton: number
+          hero_mining_lifetime_myth: number
           hero_mining_lifetime_ton: number
           hero_mining_returned_ton: number
+          hero_mining_unclaimed_myth: number
           hero_mining_unclaimed_ton: number
           id: string
           language: string
@@ -2942,8 +2944,10 @@ export type Database = {
           forge_coins?: number
           hero_mining_claimed_at?: string | null
           hero_mining_invested_ton?: number
+          hero_mining_lifetime_myth?: number
           hero_mining_lifetime_ton?: number
           hero_mining_returned_ton?: number
+          hero_mining_unclaimed_myth?: number
           hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
@@ -2985,8 +2989,10 @@ export type Database = {
           forge_coins?: number
           hero_mining_claimed_at?: string | null
           hero_mining_invested_ton?: number
+          hero_mining_lifetime_myth?: number
           hero_mining_lifetime_ton?: number
           hero_mining_returned_ton?: number
+          hero_mining_unclaimed_myth?: number
           hero_mining_unclaimed_ton?: number
           id?: string
           language?: string
@@ -3764,8 +3770,10 @@ export type Database = {
       }
       hero_mining_claims: {
         Row: {
+          amount_myth: number
           amount_ton: number
           created_at: string
+          currency: string
           hero_count: number
           id: string
           rate_per_day: number
@@ -3773,8 +3781,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount_myth?: number
           amount_ton: number
           created_at?: string
+          currency?: string
           hero_count?: number
           id?: string
           rate_per_day?: number
@@ -3782,8 +3792,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount_myth?: number
           amount_ton?: number
           created_at?: string
+          currency?: string
           hero_count?: number
           id?: string
           rate_per_day?: number
@@ -3858,21 +3870,33 @@ export type Database = {
       }
       hero_mining_settings: {
         Row: {
+          currency_changed_at: string
           enabled: boolean
           id: boolean
+          min_claim_myth: number
           min_claim_ton: number
+          mining_currency: string
+          myth_per_day: number
           updated_at: string
         }
         Insert: {
+          currency_changed_at?: string
           enabled?: boolean
           id?: boolean
+          min_claim_myth?: number
           min_claim_ton?: number
+          mining_currency?: string
+          myth_per_day?: number
           updated_at?: string
         }
         Update: {
+          currency_changed_at?: string
           enabled?: boolean
           id?: boolean
+          min_claim_myth?: number
           min_claim_ton?: number
+          mining_currency?: string
+          myth_per_day?: number
           updated_at?: string
         }
         Relationships: []
@@ -4803,6 +4827,27 @@ export type Database = {
           },
         ]
       }
+      myth_mining_pool: {
+        Row: {
+          allocated_myth: number
+          distributed_myth: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          allocated_myth?: number
+          distributed_myth?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allocated_myth?: number
+          distributed_myth?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       myth_payment_intents: {
         Row: {
           amount_nano: number
@@ -5637,6 +5682,50 @@ export type Database = {
           {
             foreignKeyName: "nft_heroes_owner_user_id_fkey"
             columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nft_mining_ledger: {
+        Row: {
+          admin_telegram_id: number | null
+          amount: number
+          created_at: string
+          currency: string
+          entry_type: string
+          id: string
+          meta: Json
+          reference_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          amount?: number
+          created_at?: string
+          currency: string
+          entry_type: string
+          id?: string
+          meta?: Json
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          amount?: number
+          created_at?: string
+          currency?: string
+          entry_type?: string
+          id?: string
+          meta?: Json
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nft_mining_ledger_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
@@ -14453,11 +14542,17 @@ export type Database = {
       }
       hero_max_level: { Args: { p_stars: number }; Returns: number }
       hero_mining_accrue: { Args: { p_user_id: string }; Returns: number }
+      hero_mining_currency: { Args: never; Returns: string }
+      hero_mining_effective_daily: {
+        Args: { p_nft_hero_id: string; p_rarity: string }
+        Returns: number
+      }
       hero_mining_enabled: { Args: never; Returns: boolean }
       hero_mining_hero_rate: {
         Args: { p_nft_hero_id: string; p_rarity: string }
         Returns: number
       }
+      hero_mining_myth_per_day: { Args: never; Returns: number }
       hero_mining_rarity_eligible: {
         Args: { p_rarity: string }
         Returns: boolean
@@ -14477,6 +14572,7 @@ export type Database = {
         Args: { p_reference: string }
         Returns: undefined
       }
+      hero_mining_settle_all: { Args: never; Returns: Json }
       hero_mining_sync_invested: {
         Args: { p_user_id: string }
         Returns: number
@@ -14726,6 +14822,7 @@ export type Database = {
         Returns: Json
       }
       myth_expire_payment_intents: { Args: never; Returns: number }
+      myth_mining_pool_available: { Args: never; Returns: number }
       myth_pending_payment_intents: {
         Args: { p_max_age_minutes?: number }
         Returns: {
