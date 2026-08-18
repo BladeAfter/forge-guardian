@@ -11725,6 +11725,10 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_hero_mining_set_limit: {
+        Args: { p_admin_id: number; p_amount_ton: number; p_ref: string }
+        Returns: Json
+      }
       admin_hero_mining_set_min_claim: {
         Args: { p_admin_id: number; p_min_ton: number }
         Returns: Json

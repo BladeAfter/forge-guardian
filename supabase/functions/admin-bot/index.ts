@@ -2211,6 +2211,7 @@ const PROMPTS: Record<string, string> = {
   afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
   aflimit: '🛡 Envie o número máximo de contas por dispositivo (padrão <code>3</code>).',
   hmuser: '⛏ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para ver a mineração dele.',
+  hmlimit: '⛏ Envie <code>ID_ou_@usuario limite_ton</code> para ajustar manualmente o LIMITE de mineração (ROI) do jogador.\nEx.: <code>5925045925 5</code> · use <code>0</code> para desativar a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
@@ -3554,6 +3555,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
     [{ t: '⚙️ ALTERAR TAXA', d: 'hm:ask:hmrate' }, { t: '💠 RESGATE MÍNIMO', d: 'hm:ask:hmmin' }],
     [{ t: d.enabled ? '⏸ PAUSAR MINERAÇÃO' : '▶️ ATIVAR MINERAÇÃO', d: `hm:toggle:${d.enabled ? '0' : '1'}` }],
     [{ t: '👤 CONSULTAR JOGADOR', d: 'hm:ask:hmuser' }],
+    [{ t: '💠 AJUSTAR LIMITE DO JOGADOR', d: 'hm:ask:hmlimit' }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -3571,7 +3573,11 @@ async function hmUserCard(ctx: Ctx, ref: string, useEdit = true) {
     + `Capacidade restante: <b>${hmTon(d.remainingTon)} TON</b>${Number(d.investedTon ?? 0) > 0 && Number(d.remainingTon ?? 0) <= 0 ? ' ⛔ LIMITE ATINGIDO' : ''}\n`
     + `Saldo TON sacável: ${hmTon(d.availableTon)} TON\n`
     + `Última coleta: ${d.lastClaimAt ? String(d.lastClaimAt).slice(0, 16).replace('T', ' ') : '—'}\n\n${byRarity}`;
-  const rows = [[{ t: '👤 OUTRO JOGADOR', d: 'hm:ask:hmuser' }], nav('hm:hub')];
+  const rows = [
+    [{ t: '💠 AJUSTAR LIMITE', d: 'hm:ask:hmlimit' }],
+    [{ t: '👤 OUTRO JOGADOR', d: 'hm:ask:hmuser' }],
+    nav('hm:hub'),
+  ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
 
@@ -3623,6 +3629,21 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
       const ref = text.trim();
       if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');
       await clearSession(ctx);
+      return hmUserCard({ ...ctx, messageId: undefined }, ref, false);
+    }
+    case 'hmlimit': {
+      const parts = text.trim().split(/\s+/);
+      const raw = parts.pop() ?? '';
+      const ref = parts.join(' ').trim();
+      const value = Number(String(raw).replace(',', '.'));
+      if (!ref || !Number.isFinite(value) || value < 0) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>ID_ou_@usuario limite_ton</code>. Ex.: <code>5925045925 5</code>');
+      }
+      await rpc('admin_hero_mining_set_limit', { p_admin_id: ctx.adminId, p_ref: ref, p_amount_ton: value });
+      await clearSession(ctx);
+      await send(ctx, value > 0
+        ? `⛏ Limite de mineração ajustado para <b>${hmTon(value)} TON</b>.\n🟢 Mineração ativa para esse jogador.`
+        : '⛏ Limite de mineração zerado.\n🔴 Mineração desativada para esse jogador.');
       return hmUserCard({ ...ctx, messageId: undefined }, ref, false);
     }
     default: return hmHub({ ...ctx, messageId: undefined }, false);
