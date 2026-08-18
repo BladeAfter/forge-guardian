@@ -5575,8 +5575,9 @@ async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: strin
       p_admin_id: ctx.adminId, p_target: target, p_key: filter || 'all', p_value: value,
     }) as any;
     await clearSession(ctx);
-    const scope = target.endsWith('_yield') ? '\n🔒 Aplicado <b>SOMENTE A NOVOS NFTs</b> — unidades já adquiridas seguem com o rendimento congelado.' : '';
-    await send(ctx, `✅ <b>${NPRC_TARGETS[target]}</b> atualizado\nFiltro: <code>${esc(filter || 'all')}</code> · novo valor: <b>${value}</b>\nUnidades afetadas: ${fmt(r?.affected ?? 0)}${scope}`);
+    const unit = target.endsWith('_yield_myth') ? ' MYTH/dia' : '';
+    const scope = target.includes('_yield') ? '\n🔒 Aplicado <b>SOMENTE ÀS UNIDADES EM LOJA</b> — NFTs já vendidos seguem com o rendimento congelado.' : '';
+    await send(ctx, `✅ <b>${NPRC_TARGETS[target]}</b> atualizado\nFiltro: <code>${esc(filter || 'all')}</code> · novo valor: <b>${value}${unit}</b>\nUnidades afetadas: ${fmt(r?.affected ?? 0)}${scope}`);
     return nftPriceHub({ ...ctx, messageId: undefined }, false);
   }
   if (key === 'nprcforce') {
