@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pickaxe } from 'lucide-react';
 import { claimHeroMining } from '../services';
-import { miningActive, miningStateCurrency, miningStateRate, projectUnclaimed, type HeroMiningState } from '../heroMining';
+import { miningActive, miningStateMythRate, miningStateRate, projectUnclaimed, projectUnclaimedMyth, type HeroMiningState } from '../heroMining';
 import { formatMiningAmount, miningSymbol } from '../miningCurrency';
 import { useT } from '../LanguageContext';
 
