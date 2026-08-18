@@ -3555,6 +3555,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
     [{ t: '⚙️ ALTERAR TAXA', d: 'hm:ask:hmrate' }, { t: '💠 RESGATE MÍNIMO', d: 'hm:ask:hmmin' }],
     [{ t: d.enabled ? '⏸ PAUSAR MINERAÇÃO' : '▶️ ATIVAR MINERAÇÃO', d: `hm:toggle:${d.enabled ? '0' : '1'}` }],
     [{ t: '👤 CONSULTAR JOGADOR', d: 'hm:ask:hmuser' }],
+    [{ t: '💠 AJUSTAR LIMITE DO JOGADOR', d: 'hm:ask:hmlimit' }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
