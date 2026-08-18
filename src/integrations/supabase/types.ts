@@ -5540,6 +5540,8 @@ export type Database = {
           for_sale: boolean
           id: string
           metadata: Json
+          mining_daily_myth: number
+          mining_last_at: string | null
           nft_serial: number
           owner_user_id: string | null
           player_equipment_id: string | null
@@ -5556,6 +5558,8 @@ export type Database = {
           for_sale?: boolean
           id?: string
           metadata?: Json
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           nft_serial: number
           owner_user_id?: string | null
           player_equipment_id?: string | null
@@ -5572,6 +5576,8 @@ export type Database = {
           for_sale?: boolean
           id?: string
           metadata?: Json
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           nft_serial?: number
           owner_user_id?: string | null
           player_equipment_id?: string | null
