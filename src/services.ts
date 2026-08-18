@@ -384,6 +384,7 @@ export const setHeroLock=(initData:string,heroId:string,locked:boolean)=>fusionR
 // ------------------------------------------------------------- player market (FC + TON)
 const MARKET_ERRORS:Record<string,string>={PRICE_BELOW_MINIMUM_LEGENDARY:'Heróis Lendários ou superiores custam no mínimo 10 TON.',INVALID_QUANTITY:'Quantidade inválida.',EQUIPMENT_EQUIPPED:'Desequipe o item antes de anunciá-lo.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
+  PET_ALREADY_OWNED:'Você já possui esse pet. Só é possível ter um de cada espécie.',
   INVALID_ITEM_TYPE:'Categoria inválida.',
   INVALID_ITEM:'Item inválido.',
   INVALID_PRICE:'Preço inválido.',
