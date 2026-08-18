@@ -3631,6 +3631,21 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
       await clearSession(ctx);
       return hmUserCard({ ...ctx, messageId: undefined }, ref, false);
     }
+    case 'hmlimit': {
+      const parts = text.trim().split(/\s+/);
+      const raw = parts.pop() ?? '';
+      const ref = parts.join(' ').trim();
+      const value = Number(String(raw).replace(',', '.'));
+      if (!ref || !Number.isFinite(value) || value < 0) {
+        throw new Error('KEEP_SESSION::⚠️ Envie <code>ID_ou_@usuario limite_ton</code>. Ex.: <code>5925045925 5</code>');
+      }
+      await rpc('admin_hero_mining_set_limit', { p_admin_id: ctx.adminId, p_ref: ref, p_amount_ton: value });
+      await clearSession(ctx);
+      await send(ctx, value > 0
+        ? `⛏ Limite de mineração ajustado para <b>${hmTon(value)} TON</b>.\n🟢 Mineração ativa para esse jogador.`
+        : '⛏ Limite de mineração zerado.\n🔴 Mineração desativada para esse jogador.');
+      return hmUserCard({ ...ctx, messageId: undefined }, ref, false);
+    }
     default: return hmHub({ ...ctx, messageId: undefined }, false);
   }
 }
