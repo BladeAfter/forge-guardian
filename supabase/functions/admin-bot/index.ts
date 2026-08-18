@@ -5450,9 +5450,11 @@ async function nftEquipPrompt(ctx: Ctx, key: string, _args: string[], text: stri
 // e preço dos Equipamentos NFT. Só afeta unidades AINDA DISPONÍVEIS (1/1 vendido nunca muda de preço).
 const NPRC_TARGETS: Record<string, string> = {
   hero_price: '💰 Preço Herói NFT',
-  hero_yield: '⛏ Rendimento Herói NFT',
+  hero_yield: '⛏ Rendimento Herói NFT (TON)',
+  hero_yield_myth: '🪙 Rendimento Herói NFT (MYTH)',
   pet_price: '💰 Preço Pet NFT',
-  pet_yield: '💧 Rendimento Pet NFT',
+  pet_yield: '💧 Rendimento Pet NFT (TON)',
+  pet_yield_myth: '🪙 Rendimento Pet NFT (MYTH)',
   equip_price: '⚔️ Preço Equipamento NFT',
 };
 
@@ -5462,24 +5464,26 @@ async function nftPriceHub(ctx: Ctx, useEdit = true) {
   const pets = (d.pets ?? []) as any[];
   const equips = (d.equipment ?? []) as any[];
   const py = d.petYield ?? {};
+  const currency = String(d.miningCurrency ?? 'ton').toUpperCase();
   const range = (a: any, b: any, unit: string) =>
     Number(a ?? 0) === Number(b ?? 0) ? `${Number(a ?? 0)} ${unit}` : `${Number(a ?? 0)}–${Number(b ?? 0)} ${unit}`;
 
   const text = [
     '💰 <b>NFT — PREÇOS & RENDIMENTOS</b>',
     '<i>Alterações valem imediatamente, sem publicar o app.</i>',
+    `Moeda de mineração ativa: <b>${esc(currency)}</b>`,
     '',
     '<b>⚔️ HERÓIS NFT</b>',
-    heroes.map((h) => `• Tier ${Number(h.tier)} TON · 🟢 ${fmt(h.available)} · 👤 ${fmt(h.sold)}\n  preço ${range(h.priceMin, h.priceMax, 'TON')} · mineração ${range(h.yieldMin, h.yieldMax, 'TON/dia')}`).join('\n') || 'nenhum herói NFT',
+    heroes.map((h) => `• Tier ${Number(h.tier)} TON · 🟢 ${fmt(h.available)} · 👤 ${fmt(h.sold)}\n  preço ${range(h.priceMin, h.priceMax, 'TON')} · mineração ${range(h.yieldMin, h.yieldMax, 'TON/dia')}\n  🪙 loja ${range(h.mythMin, h.mythMax, 'MYTH/dia')}`).join('\n') || 'nenhum herói NFT',
     '',
     '<b>🐾 PETS NFT</b>',
-    pets.map((p) => `• Tier ${Number(p.tier)} TON · 🟢 ${fmt(p.available)} · 👤 ${fmt(p.sold)}\n  preço ${range(p.priceMin, p.priceMax, 'TON')}`).join('\n') || 'nenhum pet NFT',
+    pets.map((p) => `• Tier ${Number(p.tier)} TON · 🟢 ${fmt(p.available)} · 👤 ${fmt(p.sold)}\n  preço ${range(p.priceMin, p.priceMax, 'TON')}\n  🪙 loja ${range(p.mythMin, p.mythMax, 'MYTH/dia')}`).join('\n') || 'nenhum pet NFT',
     `  rendimento tier 20 = ${Number(py.tier20 ?? 0)} TON/dia · tier 30 = ${Number(py.tier30 ?? 0)} TON/dia`,
     '',
     '<b>🛡 EQUIPAMENTOS NFT</b>',
     equips.map((e) => `• ${esc(String(e.slot).toUpperCase())} · 🟢 ${fmt(e.available)} · 👤 ${fmt(e.sold)} · preço ${range(e.priceMin, e.priceMax, 'TON')}`).join('\n') || 'nenhum equipamento NFT',
     '',
-    '🔒 <b>YIELD CONGELADO</b>: alterações de rendimento valem <b>SOMENTE PARA NOVOS NFTs</b>.',
+    '🔒 <b>YIELD CONGELADO</b>: alterações de rendimento (TON ou MYTH) valem <b>SOMENTE PARA AS UNIDADES AINDA EM LOJA</b>.',
     'NFTs já adquiridos mantêm para sempre o rendimento do momento da aquisição (venda/transferência não altera).',
   ].join('\n').slice(0, 3800);
 
@@ -5489,14 +5493,21 @@ async function nftPriceHub(ctx: Ctx, useEdit = true) {
     rows.push([
       { t: `💰 HERÓI ${tier}T`, d: `nprc:ask:nprcset|hero_price|${tier}` },
       { t: `⛏ MINER. ${tier}T`, d: `nprc:ask:nprcset|hero_yield|${tier}` },
+      { t: `🪙 MYTH ${tier}T`, d: `nprc:ask:nprcmyth|hero_yield_myth|${tier}` },
     ]);
   }
   for (const p of pets) {
     const tier = Number(p.tier);
     const row = [{ t: `💰 PET ${tier}T`, d: `nprc:ask:nprcset|pet_price|${tier}` }];
     if (tier === 20 || tier === 30) row.push({ t: `💧 REND. ${tier}T`, d: `nprc:ask:nprcset|pet_yield|${tier}` });
+    row.push({ t: `🪙 MYTH ${tier}T`, d: `nprc:ask:nprcmyth|pet_yield_myth|${tier}` });
     rows.push(row);
   }
+  // Atalho global: aplica o mesmo rendimento MYTH a TODO o estoque em loja (heróis ou pets).
+  rows.push([
+    { t: '🪙 MYTH TODOS HERÓIS', d: 'nprc:ask:nprcmyth|hero_yield_myth|all' },
+    { t: '🪙 MYTH TODOS PETS', d: 'nprc:ask:nprcmyth|pet_yield_myth|all' },
+  ]);
   rows.push([
     { t: '⚔ ARMAS', d: 'nprc:ask:nprcset|equip_price|weapon' },
     { t: '🛡 ARMADURAS', d: 'nprc:ask:nprcset|equip_price|armor' },
