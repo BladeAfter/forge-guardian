@@ -210,7 +210,7 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
                       {t('auction.seller')}: {item.seller} · {item.bidCount} {t('auction.bids')}
                     </p>
                     {item.dailyYield > 0 ? (
-                      <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">{t('auction.dailyMining')}: {auctionTon(item.dailyYield)} TON</p>
+                      <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">{t('auction.dailyMining')}: {formatMiningAmount(effectiveDailyMining(item.dailyYield, mining), mining.currency)} {miningSymbol(mining.currency)}</p>
                     ) : null}
                     <div className="mt-1.5 rounded-lg border border-sky-300/20 bg-sky-500/[.07] px-2 py-1">
                       <p className="text-[7px] font-black uppercase tracking-[0.14em] text-slate-400">{item.currentBidTon ? t('auction.currentBid') : t('auction.startingBid')}</p>
