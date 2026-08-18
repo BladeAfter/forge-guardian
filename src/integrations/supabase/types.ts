@@ -5801,6 +5801,7 @@ export type Database = {
           id: string
           level: number
           metadata: Json
+          mining_daily_myth: number
           mining_daily_ton: number
           minted: boolean
           nft_serial: number
@@ -5827,6 +5828,7 @@ export type Database = {
           id?: string
           level?: number
           metadata?: Json
+          mining_daily_myth?: number
           mining_daily_ton?: number
           minted?: boolean
           nft_serial: number
@@ -5853,6 +5855,7 @@ export type Database = {
           id?: string
           level?: number
           metadata?: Json
+          mining_daily_myth?: number
           mining_daily_ton?: number
           minted?: boolean
           nft_serial?: number
@@ -6057,6 +6060,7 @@ export type Database = {
           contract_address: string | null
           created_at: string
           created_by_admin: number | null
+          daily_yield_myth: number
           daily_yield_ton: number | null
           element: string | null
           for_sale: boolean
@@ -6089,6 +6093,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          daily_yield_myth?: number
           daily_yield_ton?: number | null
           element?: string | null
           for_sale?: boolean
@@ -6121,6 +6126,7 @@ export type Database = {
           contract_address?: string | null
           created_at?: string
           created_by_admin?: number | null
+          daily_yield_myth?: number
           daily_yield_ton?: number | null
           element?: string | null
           for_sale?: boolean
@@ -6343,9 +6349,12 @@ export type Database = {
       }
       nft_yield_positions: {
         Row: {
+          accrued_myth: number
           accrued_ton: number
+          claimed_myth: number
           claimed_ton: number
           created_at: string
+          daily_yield_myth: number
           daily_yield_ton: number
           id: string
           last_accrual_at: string
@@ -6361,9 +6370,12 @@ export type Database = {
           yield_locked_at: string | null
         }
         Insert: {
+          accrued_myth?: number
           accrued_ton?: number
+          claimed_myth?: number
           claimed_ton?: number
           created_at?: string
+          daily_yield_myth?: number
           daily_yield_ton?: number
           id?: string
           last_accrual_at?: string
@@ -6379,9 +6391,12 @@ export type Database = {
           yield_locked_at?: string | null
         }
         Update: {
+          accrued_myth?: number
           accrued_ton?: number
+          claimed_myth?: number
           claimed_ton?: number
           created_at?: string
+          daily_yield_myth?: number
           daily_yield_ton?: number
           id?: string
           last_accrual_at?: string
@@ -14788,6 +14803,10 @@ export type Database = {
         Returns: number
       }
       hero_mining_enabled: { Args: never; Returns: boolean }
+      hero_mining_hero_myth_rate: {
+        Args: { p_nft_hero_id: string; p_rarity: string }
+        Returns: number
+      }
       hero_mining_hero_rate: {
         Args: { p_nft_hero_id: string; p_rarity: string }
         Returns: number
@@ -15180,6 +15199,12 @@ export type Database = {
       }
       nft_deliver_order: { Args: { p_order_id: string }; Returns: Json }
       nft_effective_daily: {
+        Args: {
+          p_position: Database["public"]["Tables"]["nft_yield_positions"]["Row"]
+        }
+        Returns: number
+      }
+      nft_effective_daily_myth: {
         Args: {
           p_position: Database["public"]["Tables"]["nft_yield_positions"]["Row"]
         }

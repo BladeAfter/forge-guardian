@@ -604,7 +604,7 @@ export async function claimNftReward(telegramInitData:string):Promise<NftClaimRe
 }
 
 /** One NFT EXCLUSIVE pet owned by the player. Pool data is never part of this payload. */
-export type NftRewardItem={positionId:string;serial:number;name:string;rarity:string;level:number;image?:string|null;tierTon:number;dailyYieldTon:number;availableTon:number;lifetimeEarnedTon:number;roiReached?:boolean;minClaimTon:number;canClaim:boolean;lastClaimAt?:string|null};
+export type NftRewardItem={positionId:string;serial:number;name:string;rarity:string;level:number;image?:string|null;tierTon:number;dailyYieldTon:number;dailyYieldMyth?:number;availableMyth?:number;availableTon:number;lifetimeEarnedTon:number;roiReached?:boolean;minClaimTon:number;canClaim:boolean;lastClaimAt?:string|null};
 export type NftRewardList={totalSupply:number;items:NftRewardItem[]};
 
 /**
@@ -652,7 +652,7 @@ export async function claimNftPosition(telegramInitData:string,positionId:string
  * BUY NFT store. Sale data only: price, tier daily yield, supply and status.
  * The NFT Reward Pool (balance, reserved, health, treasury) is never part of this payload.
  */
-export type NftShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;passives?:Record<string,number>};
+export type NftShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;dailyYieldMyth?:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;passives?:Record<string,number>};
 export type NftShop={totalSupply:number;sold:number;available:number;items:NftShopItem[];balanceTon:number};
 
 const NFT_SHOP_ERRORS:Record<string,string>={
@@ -699,9 +699,9 @@ export async function verifyNftPurchases(telegramInitData:string):Promise<NftPur
  * NFT EXCLUSIVE HEROES — same structure as the NFT pets store.
  * Sale data only (price, daily yield through hero mining, supply, status).
  */
-export type NftHeroShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;atk?:number;hp?:number};
+export type NftHeroShopItem={id:string;serial:number;instance:string;name:string;slug:string;image?:string|null;rarity:string;priceTon:number;tierTon:number;dailyYieldTon:number;dailyYieldMyth?:number;supply:number;status:'AVAILABLE'|'SOLD_OUT';ownedByMe:boolean;atk?:number;hp?:number};
 export type NftHeroShop={totalSupply:number;sold:number;available:number;items:NftHeroShopItem[];balanceTon:number};
-export type NftHeroOwned={nftId:string;playerHeroId:string|null;serial:number;instance:string;name:string;image?:string|null;rarity:string;level:number;stars:number;atk:number;hp:number;tierTon:number;dailyYieldTon:number};
+export type NftHeroOwned={nftId:string;playerHeroId:string|null;serial:number;instance:string;name:string;image?:string|null;rarity:string;level:number;stars:number;atk:number;hp:number;tierTon:number;dailyYieldTon:number;dailyYieldMyth?:number};
 
 export async function fetchNftHeroShop(telegramInitData:string):Promise<NftHeroShop>{
   const response=await forgeFetch('nft-hero',{initData:telegramInitData,action:'shop'});
