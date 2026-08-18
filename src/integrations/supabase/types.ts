@@ -5016,6 +5016,204 @@ export type Database = {
         }
         Relationships: []
       }
+      myth_staking_idempotency: {
+        Row: {
+          created_at: string
+          key: string
+          result: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          result?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          result?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      myth_staking_ledger: {
+        Row: {
+          admin_telegram_id: number | null
+          amount: number
+          created_at: string
+          entry_type: string
+          id: string
+          note: string | null
+          position_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          amount: number
+          created_at?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          position_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          amount?: number
+          created_at?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          position_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "myth_staking_ledger_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "myth_staking_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "myth_staking_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      myth_staking_plans: {
+        Row: {
+          active: boolean
+          apr_percent: number
+          code: string
+          label: string
+          lock_days: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          apr_percent?: number
+          code: string
+          label: string
+          lock_days?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          apr_percent?: number
+          code?: string
+          label?: string
+          lock_days?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      myth_staking_positions: {
+        Row: {
+          accrued_myth: number
+          amount: number
+          apr_percent: number
+          claimed_myth: number
+          closed_at: string | null
+          id: string
+          last_accrual_at: string
+          lock_days: number
+          plan_code: string
+          staked_at: string
+          status: string
+          unlock_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accrued_myth?: number
+          amount: number
+          apr_percent: number
+          claimed_myth?: number
+          closed_at?: string | null
+          id?: string
+          last_accrual_at?: string
+          lock_days?: number
+          plan_code: string
+          staked_at?: string
+          status?: string
+          unlock_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accrued_myth?: number
+          amount?: number
+          apr_percent?: number
+          claimed_myth?: number
+          closed_at?: string | null
+          id?: string
+          last_accrual_at?: string
+          lock_days?: number
+          plan_code?: string
+          staked_at?: string
+          status?: string
+          unlock_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "myth_staking_positions_plan_code_fkey"
+            columns: ["plan_code"]
+            isOneToOne: false
+            referencedRelation: "myth_staking_plans"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "myth_staking_positions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      myth_staking_settings: {
+        Row: {
+          claims_enabled: boolean
+          id: boolean
+          max_stake: number
+          min_stake: number
+          new_stakes_paused: boolean
+          reward_pool_distributed: number
+          reward_pool_total: number
+          staking_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          claims_enabled?: boolean
+          id?: boolean
+          max_stake?: number
+          min_stake?: number
+          new_stakes_paused?: boolean
+          reward_pool_distributed?: number
+          reward_pool_total?: number
+          staking_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          claims_enabled?: boolean
+          id?: boolean
+          max_stake?: number
+          min_stake?: number
+          new_stakes_paused?: boolean
+          reward_pool_distributed?: number
+          reward_pool_total?: number
+          staking_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       myth_supply_ledger: {
         Row: {
           admin_telegram_id: number | null
@@ -12502,6 +12700,23 @@ export type Database = {
         Args: { p_admin_id: number; p_visible: boolean }
         Returns: Json
       }
+      admin_myth_staking_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_myth_staking_plan_set: {
+        Args: {
+          p_active: boolean
+          p_admin_id: number
+          p_apr: number
+          p_code: string
+        }
+        Returns: Json
+      }
+      admin_myth_staking_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: Json
+      }
       admin_myth_supply_adjust: {
         Args: { p_admin_id: number; p_amount: number; p_reason?: string }
         Returns: Json
@@ -14380,6 +14595,10 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_myth_staking_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_myth_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_name_mission_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
@@ -14856,12 +15075,45 @@ export type Database = {
         }[]
       }
       myth_sale_stats: { Args: never; Returns: Json }
+      myth_stake: {
+        Args: {
+          p_amount: number
+          p_idempotency_key: string
+          p_plan: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      myth_staking_accrue: {
+        Args: { p_position_id: string }
+        Returns: undefined
+      }
+      myth_staking_accrue_user: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      myth_staking_claim: {
+        Args: {
+          p_idempotency_key: string
+          p_position_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       myth_start_purchase: {
         Args: {
           p_idempotency_key?: string
           p_myth_amount: number
           p_telegram_id: number
           p_wallet_address?: string
+        }
+        Returns: Json
+      }
+      myth_unstake: {
+        Args: {
+          p_idempotency_key: string
+          p_position_id: string
+          p_telegram_id: number
         }
         Returns: Json
       }
