@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pickaxe } from 'lucide-react';
 import { claimHeroMining } from '../services';
-import { formatMiningTon, miningActive, projectUnclaimed, type HeroMiningState } from '../heroMining';
+import { formatMiningTon, miningActive, miningStateCurrency, miningStateRate, projectUnclaimed, type HeroMiningState } from '../heroMining';
+import { formatMiningAmount, miningSymbol } from '../miningCurrency';
 import { useT } from '../LanguageContext';
 
 /**
@@ -17,18 +18,20 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state?.enabled || !state.dailyRateTon || !miningActive(state)) return;
+    if (!state?.enabled || !miningStateRate(state) || !miningActive(state)) return;
     const timer = window.setInterval(() => setTick(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [state?.enabled, state?.dailyRateTon, state?.remainingTon, state?.investedTon]);
+  }, [state?.enabled, state?.dailyRate, state?.dailyRateTon, state?.miningCurrency, state?.remainingTon, state?.investedTon]);
 
   const claim = useMutation({
     mutationFn: () => claimHeroMining(telegramInitData),
     onSuccess: (result) => {
-      setFeedback(t('mining.claimed', { amount: formatMiningTon(result.claimedTon) }));
+      const paid = result.currency === 'myth' ? Number(result.claimedMyth ?? 0) : Number(result.claimedTon ?? 0);
+      setFeedback(t('mining.claimed', { amount: `${formatMiningAmount(paid, result.currency === 'myth' ? 'myth' : 'ton')} ${miningSymbol(result.currency === 'myth' ? 'myth' : 'ton')}` }));
       client.setQueryData(['hero-mining', telegramInitData], result);
       void client.invalidateQueries({ queryKey: ['ton-wallet'] });
       void client.invalidateQueries({ queryKey: ['wallet-summary'] });
+      void client.invalidateQueries({ queryKey: ['myth-token'] });
     },
     onError: (error) => setFeedback(error instanceof Error ? error.message : t('mining.error')),
   });
@@ -46,12 +49,20 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
    * Everyone else does not see the panel at all.
    */
   const MINING_CARD_MIN_TON = 5;
-  const unlocked = Number(state.investedTon || 0) >= MINING_CARD_MIN_TON || Number(state.lifetimeTon || 0) > 0;
+  const unlocked = Number(state.investedTon || 0) >= MINING_CARD_MIN_TON
+    || Number(state.lifetimeTon || 0) > 0 || Number(state.lifetimeMyth || 0) > 0;
   if (!unlocked) return null;
+  // Currency comes from the server (Admin Bot): only one currency is ever active.
+  const currency = miningStateCurrency(state);
   const unclaimed = projectUnclaimed(state, tick);
   const active = miningActive(state);
-  const claimable = Math.min(unclaimed, Math.max(0, state.investedTon - state.returnedTon));
-  const canClaim = state.enabled && state.investedTon > 0 && claimable >= Math.max(state.minClaimTon, 0.000001) && !claim.isPending;
+  const minClaim = Math.max(Number(state.minClaim ?? state.minClaimTon ?? 0), 0.000001);
+  const claimable = currency === 'myth'
+    ? Math.min(unclaimed, Math.max(0, Number(state.mythPoolAvailable ?? 0)))
+    : Math.min(unclaimed, Math.max(0, state.investedTon - state.returnedTon));
+  const canClaim = state.enabled
+    && (currency === 'myth' ? true : state.investedTon > 0)
+    && claimable >= minClaim && !claim.isPending;
 
   return (
     <section className="mt-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-2.5">
@@ -65,13 +76,13 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
       <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
           <p className="text-[8px] uppercase tracking-[.14em] text-slate-400">{t('mining.totalRate')}</p>
-          <p className="text-[12px] font-black text-white">{formatMiningTon(state.dailyRateTon)}</p>
+          <p className="text-[12px] font-black text-white">{formatMiningAmount(miningStateRate(state), currency)}</p>
           <p className="text-[8px] text-slate-400">{t('mining.perDay')}</p>
         </div>
         <div className="rounded-xl border border-cyan-300/30 bg-black/50 px-2 py-1.5 text-center">
           <p className="text-[8px] uppercase tracking-[.14em] text-slate-400">{t('mining.unclaimed')}</p>
-          <p className="text-[12px] font-black text-cyan-200">{formatMiningTon(unclaimed, 6)}</p>
-          <p className="text-[8px] text-slate-400">TON</p>
+          <p className="text-[12px] font-black text-cyan-200">{formatMiningAmount(unclaimed, currency, 6)}</p>
+          <p className="text-[8px] text-slate-400">{miningSymbol(currency)}</p>
         </div>
       </div>
 
@@ -94,7 +105,9 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.inactive')}</p>
       ) : null}
       <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min')}</p>
-      {state.lifetimeTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: formatMiningTon(state.lifetimeTon, 6) })}</p> : null}
+      {(currency === 'myth' ? Number(state.lifetimeMyth ?? 0) : state.lifetimeTon) > 0
+        ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: `${formatMiningAmount(currency === 'myth' ? state.lifetimeMyth : state.lifetimeTon, currency, 6)} ${miningSymbol(currency)}` })}</p>
+        : null}
       {feedback ? <p className="mt-1 text-center text-[9px] font-black text-cyan-200">{feedback}</p> : null}
     </section>
   );
