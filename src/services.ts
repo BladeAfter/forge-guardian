@@ -18,7 +18,7 @@ import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,FragmentSummonResult,PlayerInventory} from './calendarRewards';
 
-import type{PassTier,PassXpGain,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
+import type{PassTier,PassXpGain,PassLockedPurchaseResult,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
@@ -291,9 +291,14 @@ export async function openLegendChest(initData:string,inventoryItemId:string):Pr
     throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Lendário. Tente novamente.')}
   return payload as {equipment:LegendChestEquipment;inventory?:PlayerInventory};
 }
-export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'|'recent-xp'|'buy-level'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
+export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'|'recent-xp'|'buy-level'|'buy-locked-reward'|'verify-locked-reward'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
 export const buySeasonPassLevels=(initData:string,levels:number)=>seasonPassRequest(initData,'buy-level',{levels,idempotencyKey:crypto.randomUUID()});
+/** Locked reward unlock (fixed TON price): the backend decides internal balance vs TonConnect. */
+export const buyLockedPassReward=(initData:string,rewardId:string,walletAddress?:string|null)=>seasonPassRequest<PassLockedPurchaseResult>(initData,'buy-locked-reward',{rewardId,walletAddress:walletAddress??null,idempotencyKey:crypto.randomUUID()});
+/** Reconciles TonConnect payments made for locked reward unlocks (idempotent, server-side). */
+export const verifyLockedPassRewards=(initData:string)=>seasonPassRequest<{checked:number;completed:string[];pending:string[];dashboard?:SeasonPassDashboard}>(initData,'verify-locked-reward');
+
 export const createSeasonPassOrder=(initData:string,tier:PassTier)=>seasonPassRequest<SeasonPassOrder>(initData,'order',{tier,idempotencyKey:crypto.randomUUID()});
 /** Battle Pass XP gains registered by the backend since a timestamp (client only renders them). */
 export const fetchRecentPassXp=(initData:string,since:string|null)=>seasonPassRequest<PassXpGain[]>(initData,'recent-xp',{since});

@@ -3,7 +3,9 @@ import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
 import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
 import{toast}from'sonner';
-import{seasonPassRequest,buySeasonPassLevels}from'../services';
+import{seasonPassRequest,buySeasonPassLevels,buyLockedPassReward,verifyLockedPassRewards}from'../services';
+import{sendTonPayment,type TonTransactionRequest}from'../tonPayment';
+
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
 import{useT,useLanguage}from'../LanguageContext';
 import{formatTon}from'../economy';
@@ -36,6 +38,24 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  const[buyOpen,setBuyOpen]=React.useState(false);
  // Level purchase: the client only sends how many levels; price/limits/new level come back from the server.
  const buyLevels=useMutation({mutationFn:(levels:number)=>buySeasonPassLevels(telegramInitData,levels) as Promise<SeasonPassDashboard>,onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();const p=dashboard.purchase;setBuyOpen(false);if(p&&p.levelsBought>1)toast.success(t('pass.levelsBoughtToast',{levels:p.levelsBought}));else if(p)toast.success(t('pass.levelUpToast',{from:p.levelBefore,to:p.levelAfter}));},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyLevelFailed'))});
+ /**
+  * Locked reward unlock (fixed TON price). The backend decides the method:
+  * internal TON balance pays instantly, otherwise it returns a TonConnect intent and the
+  * server reconciles the on-chain payment before the exclusive chest is delivered.
+  */
+ const unlockReward=useMutation({mutationFn:async(reward:PassReward)=>{
+  const outcome=await buyLockedPassReward(telegramInitData,reward.id,wallet?.account?.address??null);
+  if(outcome.status==='completed')return outcome;
+  if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}
+  await sendTonPayment({paymentAddress:String(outcome.paymentAddress),paymentComment:String(outcome.paymentComment),amountNano:String(outcome.amountNano)},(tx:TonTransactionRequest)=>tonUI.sendTransaction(tx));
+  toast.message(t('pass.paymentSent'));
+  for(let attempt=1;attempt<=8;attempt+=1){
+   await new Promise(resolve=>window.setTimeout(resolve,attempt===1?6000:7000));
+   try{const verification=await verifyLockedPassRewards(telegramInitData);if(verification.completed.length)return{...outcome,status:'completed' as const};}catch(error){console.error('[MYTHREON PASS CHEST]',error)}
+  }
+  return{...outcome,status:'pending' as const};
+ },onSuccess:async outcome=>{await invalidateAll();if(outcome.status==='completed')toast.success(t('pass.unlockSuccess'));else toast.message(t('pass.paymentPendingActivation'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.unlockFailed'))});
+
  if(isLoading&&!stalled)return<Shell onClose={onClose}><div className="space-y-3 pt-12">{[1,2,3].map(x=><div key={x} className="h-24 animate-pulse rounded-2xl bg-white/5"/>)}<p className="text-center text-sm text-amber-200">{t('pass.preparingSeason')}</p></div></Shell>;
  if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p>{t('pass.loadError')}</p><button onClick={()=>void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3">{t('pass.retryButton')}</button></div></Shell>;
 const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000),currentXp=data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel,maxed=data.player.maxed??false,barPercent=maxed?100:Math.round(currentXp/data.season.xpPerLevel*100);
@@ -59,14 +79,14 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
      {/* Track length always follows the server (V2 pass = 50 levels), never a hardcoded number. */}
      {Array.from({length:Math.max(data.season.levels||0,...data.rewards.map(r=>r.level))},(_,i)=>{const level=i+1;const reached=data.player.level>=level;return<div key={level} className={`grid grid-cols-[68px_1fr_1fr] items-stretch gap-1 px-2 py-2 ${reached?'bg-amber-400/[.04]':''}`}>
      <div className="grid place-items-center text-center"><span className={`grid h-9 w-9 place-items-center rounded-full border text-[11px] font-black ${reached?'border-amber-300/70 bg-amber-400/15 text-amber-200':'border-white/10 bg-black/40 text-slate-500'}`}>{level}</span></div>
-     {(['adventurer','legendary'] as PassTier[]).map(tier=><Reward key={tier} reward={data.rewards.find(x=>x.level===level&&x.tier===tier)} pending={claim.isPending} onClaim={id=>claim.mutate(id)}/>)}
+     {(['adventurer','legendary'] as PassTier[]).map(tier=><Reward key={tier} reward={data.rewards.find(x=>x.level===level&&x.tier===tier)} pending={claim.isPending} onClaim={id=>claim.mutate(id)} onUnlock={r=>unlockReward.mutate(r)} unlocking={unlockReward.isPending}/>)}
     </div>})}
    </div>
   </section>
  </Shell>
 }
 
-function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void}){
+function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void;onUnlock:(r:PassReward)=>void;unlocking?:boolean}){
  const t=useT();
  const code=r?.code??'',mysteryArt=silhouette[code]??(r?.type==='hero_random'?silhouette.hero_random:undefined);
  const equipment=r?.type==='equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]);
@@ -76,7 +96,9 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
   :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
  const versionLocked=Boolean(r?.versionLocked);
- return<button disabled={!r?.unlocked||r.claimed||pending||versionLocked} onClick={()=>r&&!versionLocked&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
+ // Locked rewards can be bought for the fixed TON price the backend publishes on the reward itself.
+ const buyable=Boolean(versionLocked&&r?.purchasable&&!r?.claimed&&Number(r?.priceTon??0)>0);
+ return<button disabled={buyable?Boolean(unlocking):(!r?.unlocked||r.claimed||pending||versionLocked)} onClick={()=>{if(!r)return;if(buyable)onUnlock(r);else if(!versionLocked)onClaim(r.id)}} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
   {premium||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
   {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
@@ -89,8 +111,13 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   </>:null}
   <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
   {r&&!r.unlocked&&!versionLocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
-  {versionLocked?<span className="absolute inset-0 z-10 grid place-items-center bg-black/70 px-1 text-center"><span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span></span>:null}
+  {versionLocked?<span className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/75 px-1 text-center">
+   <span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span>
+   {buyable?<span className="rounded-md border border-cyan-300/60 bg-cyan-400/15 px-1.5 py-0.5 text-[8px] font-black leading-tight text-cyan-100">{unlocking?'…':`${formatTon(Number(r?.priceTon??0))} TON`}</span>:null}
+   {buyable?<span className="text-[6px] font-black uppercase tracking-[.1em] text-cyan-200/80">{t('pass.unlockTap')}</span>:null}
+  </span>:null}
  </button>}
+
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
 function Pass({tier,owned,included=false,upgrade=false,price,bonus=0,pending,onBuy}:{tier:'adventurer'|'legendary';owned:boolean;included?:boolean;upgrade?:boolean;price:number;bonus?:number;pending:boolean;onBuy:()=>void}){const t=useT();const held=owned||included;return<div className={`rounded-2xl border p-3 text-center ${tier==='adventurer'?'border-emerald-400/30 bg-emerald-950/20':'border-violet-400/35 bg-violet-950/25'}`}><Star className={`mx-auto ${tier==='adventurer'?'text-emerald-300':'text-amber-300'}`}/><b className="mt-1 block text-xs">{tier==='adventurer'?`${t('pass.adventurerPassLine1')} ${t('pass.adventurerPassLine2')}`:`${t('pass.legendaryPassLine1')} ${t('pass.legendaryPassLine2')}`}</b><p className="text-lg font-black">{held?<span className="text-emerald-300">{included?t('pass.includedCheck'):t('pass.activeCheck')}</span>:`${formatTon(price)} TON`}</p>{bonus>0?<p className="mt-1 rounded-lg border border-amber-300/30 bg-amber-400/10 px-1 py-0.5 text-[8px] font-black text-amber-200">{t('pass.benefitXp',{percent:bonus})}</p>:null}<button disabled={held||pending} onClick={onBuy} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[9px] font-black text-black disabled:bg-emerald-500">{held?t('pass.acquired'):upgrade?t('pass.buyLegendary'):t('pass.buyPass')}</button></div>}
