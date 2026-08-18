@@ -3573,7 +3573,11 @@ async function hmUserCard(ctx: Ctx, ref: string, useEdit = true) {
     + `Capacidade restante: <b>${hmTon(d.remainingTon)} TON</b>${Number(d.investedTon ?? 0) > 0 && Number(d.remainingTon ?? 0) <= 0 ? ' ⛔ LIMITE ATINGIDO' : ''}\n`
     + `Saldo TON sacável: ${hmTon(d.availableTon)} TON\n`
     + `Última coleta: ${d.lastClaimAt ? String(d.lastClaimAt).slice(0, 16).replace('T', ' ') : '—'}\n\n${byRarity}`;
-  const rows = [[{ t: '👤 OUTRO JOGADOR', d: 'hm:ask:hmuser' }], nav('hm:hub')];
+  const rows = [
+    [{ t: '💠 AJUSTAR LIMITE', d: 'hm:ask:hmlimit' }],
+    [{ t: '👤 OUTRO JOGADOR', d: 'hm:ask:hmuser' }],
+    nav('hm:hub'),
+  ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
 
