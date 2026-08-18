@@ -7,7 +7,7 @@ import { buyNftWithBalance, createNftTonOrder, fetchNftShop, verifyNftPurchases,
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
-import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
+import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 /**
  * BUY NFT: the store for the 10 unique NFT EXCLUSIVE companions (1/1 each).
@@ -163,7 +163,7 @@ export function NftShopSection({ telegramInitData }: { telegramInitData: string 
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyYield')}</span><span className="font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(target.dailyYieldTon, mining, target.dailyYieldMyth), mining.currency)} {miningSymbol(itemMiningCurrency(item.dailyYieldMyth))}</span></p> : null}
+              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyYield')}</span><span className="font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(target.dailyYieldTon, mining, target.dailyYieldMyth), itemMiningCurrency(target.dailyYieldMyth))} {miningSymbol(itemMiningCurrency(target.dailyYieldMyth))}</span></p> : null}
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
                 {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
