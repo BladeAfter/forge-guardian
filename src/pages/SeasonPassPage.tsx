@@ -66,7 +66,7 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
  </Shell>
 }
 
-function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void}){
+function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void;onUnlock:(r:PassReward)=>void;unlocking?:boolean}){
  const t=useT();
  const code=r?.code??'',mysteryArt=silhouette[code]??(r?.type==='hero_random'?silhouette.hero_random:undefined);
  const equipment=r?.type==='equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]);
@@ -76,7 +76,9 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
   :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
  const versionLocked=Boolean(r?.versionLocked);
- return<button disabled={!r?.unlocked||r.claimed||pending||versionLocked} onClick={()=>r&&!versionLocked&&onClaim(r.id)} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
+ // Locked rewards can be bought for the fixed TON price the backend publishes on the reward itself.
+ const buyable=Boolean(versionLocked&&r?.purchasable&&!r?.claimed&&Number(r?.priceTon??0)>0);
+ return<button disabled={buyable?Boolean(unlocking):(!r?.unlocked||r.claimed||pending||versionLocked)} onClick={()=>{if(!r)return;if(buyable)onUnlock(r);else if(!versionLocked)onClaim(r.id)}} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
   {premium||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
   {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
@@ -89,8 +91,13 @@ function Reward({reward:r,pending,onClaim}:{reward?:PassReward;pending:boolean;o
   </>:null}
   <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
   {r&&!r.unlocked&&!versionLocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
-  {versionLocked?<span className="absolute inset-0 z-10 grid place-items-center bg-black/70 px-1 text-center"><span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span></span>:null}
+  {versionLocked?<span className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/75 px-1 text-center">
+   <span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span>
+   {buyable?<span className="rounded-md border border-cyan-300/60 bg-cyan-400/15 px-1.5 py-0.5 text-[8px] font-black leading-tight text-cyan-100">{unlocking?'…':`${formatTon(Number(r?.priceTon??0))} TON`}</span>:null}
+   {buyable?<span className="text-[6px] font-black uppercase tracking-[.1em] text-cyan-200/80">{t('pass.unlockTap')}</span>:null}
+  </span>:null}
  </button>}
+
 
 function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
 function Pass({tier,owned,included=false,upgrade=false,price,bonus=0,pending,onBuy}:{tier:'adventurer'|'legendary';owned:boolean;included?:boolean;upgrade?:boolean;price:number;bonus?:number;pending:boolean;onBuy:()=>void}){const t=useT();const held=owned||included;return<div className={`rounded-2xl border p-3 text-center ${tier==='adventurer'?'border-emerald-400/30 bg-emerald-950/20':'border-violet-400/35 bg-violet-950/25'}`}><Star className={`mx-auto ${tier==='adventurer'?'text-emerald-300':'text-amber-300'}`}/><b className="mt-1 block text-xs">{tier==='adventurer'?`${t('pass.adventurerPassLine1')} ${t('pass.adventurerPassLine2')}`:`${t('pass.legendaryPassLine1')} ${t('pass.legendaryPassLine2')}`}</b><p className="text-lg font-black">{held?<span className="text-emerald-300">{included?t('pass.includedCheck'):t('pass.activeCheck')}</span>:`${formatTon(price)} TON`}</p>{bonus>0?<p className="mt-1 rounded-lg border border-amber-300/30 bg-amber-400/10 px-1 py-0.5 text-[8px] font-black text-amber-200">{t('pass.benefitXp',{percent:bonus})}</p>:null}<button disabled={held||pending} onClick={onBuy} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[9px] font-black text-black disabled:bg-emerald-500">{held?t('pass.acquired'):upgrade?t('pass.buyLegendary'):t('pass.buyPass')}</button></div>}
