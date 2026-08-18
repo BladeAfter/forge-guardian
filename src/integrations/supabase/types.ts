@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      _market_probe: {
+        Row: {
+          k: string
+          v: string | null
+        }
+        Insert: {
+          k: string
+          v?: string | null
+        }
+        Update: {
+          k?: string
+          v?: string | null
+        }
+        Relationships: []
+      }
       ad_providers: {
         Row: {
           code: string
