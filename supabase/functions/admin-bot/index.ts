@@ -2207,6 +2207,10 @@ const PROMPTS: Record<string, string> = {
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
   depmin: '💠 Envie o valor mínimo do DEPÓSITO DIRETO DE TON (vai para o saldo TON sacável).\nEx.: <code>0.1</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
+  hmdaily: '⛏ Envie o valor do <b>DAILY MINING</b> na moeda ativa.\nSe a moeda for MYTH: <code>500</code> · se for TON: <code>0.20</code>\n<i>Nenhuma conversão automática é feita — o valor informado é o valor usado.</i>',
+  hmminmyth: '🪙 Envie o valor mínimo de resgate da mineração em MYTH (<code>0</code> libera qualquer valor).\nEx.: <code>100</code>',
+  hmpool: '🪙 Envie a <b>alocação total</b> da MYTH MINING POOL. Ex.: <code>5000000</code>\n<i>Não pode passar do supply total nem ficar abaixo do já distribuído.</i>',
+
   afsearch: '🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.',
   afunblock: '🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.',
   afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
