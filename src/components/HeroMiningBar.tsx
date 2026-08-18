@@ -40,6 +40,14 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   }, [feedback]);
 
   if (!state) return null;
+  /**
+   * Visibility gate: the mining card is only shown to players who really put 5 TON or more
+   * into the game (deposits + TON purchases), or to legacy players that already mined TON.
+   * Everyone else does not see the panel at all.
+   */
+  const MINING_CARD_MIN_TON = 5;
+  const unlocked = Number(state.investedTon || 0) >= MINING_CARD_MIN_TON || Number(state.lifetimeTon || 0) > 0;
+  if (!unlocked) return null;
   const unclaimed = projectUnclaimed(state, tick);
   const active = miningActive(state);
   const claimable = Math.min(unclaimed, Math.max(0, state.investedTon - state.returnedTon));
@@ -85,7 +93,7 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
       {!state.enabled || !active ? (
         <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.inactive')}</p>
       ) : null}
-      {state.minClaimTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min', { amount: formatMiningTon(state.minClaimTon, 6) })}</p> : null}
+      <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min')}</p>
       {state.lifetimeTon > 0 ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: formatMiningTon(state.lifetimeTon, 6) })}</p> : null}
       {feedback ? <p className="mt-1 text-center text-[9px] font-black text-cyan-200">{feedback}</p> : null}
     </section>
