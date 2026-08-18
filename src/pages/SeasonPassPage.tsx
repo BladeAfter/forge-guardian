@@ -3,7 +3,9 @@ import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
 import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
 import{toast}from'sonner';
-import{seasonPassRequest,buySeasonPassLevels}from'../services';
+import{seasonPassRequest,buySeasonPassLevels,buyLockedPassReward,verifyLockedPassRewards}from'../services';
+import{sendTonPayment,type TonTransactionRequest}from'../tonPayment';
+
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
 import{useT,useLanguage}from'../LanguageContext';
 import{formatTon}from'../economy';
