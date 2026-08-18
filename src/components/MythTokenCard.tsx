@@ -60,7 +60,7 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
             <div className="relative">
               <img src={mythTokenCard} alt={name} loading="lazy" width={1536} height={1024} className="h-36 w-full object-cover" />
               <span className="absolute right-2 top-2 rounded-full border border-amber-400/50 bg-black/70 px-2 py-1 text-[9px] font-black uppercase tracking-[.16em] text-amber-200">
-                Coming Soon
+                Live Token
               </span>
             </div>
             <div className="space-y-3 p-4">
@@ -68,12 +68,14 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                 <img src={mythToken} alt="" loading="lazy" width={64} height={64} className="h-12 w-12 object-contain" />
                 <div>
                   <p className="text-sm font-black uppercase tracking-[.14em] text-amber-100">{name}</p>
-                  <p className="text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token · Future Utility</p>
+                  <p className="text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token · Mining & Staking</p>
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-slate-300">
-                Official Mythreon token. Utility coming in future updates. Currently decorative only.
+                The official currency of Mythreon. Earn MYTH from NFT mining, buy it in the token sale and put it to work
+                in staking. New utilities keep coming as the realm grows.
               </p>
+
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
                   <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
@@ -105,9 +107,10 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                   ? `Fixed ${feeReduced}% TON withdrawal fee active`
                   : `Stake ${formatMyth(feeThreshold)} ${symbol} for a fixed ${feeReduced}% TON withdrawal fee`}
               </p>
-              <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
-                Decorative Only · Not Tradable Yet
+              <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-300/80">
+                Mine · Stake · Rise — Powered by Mythreon
               </p>
+
 
               <button
                 type="button"
