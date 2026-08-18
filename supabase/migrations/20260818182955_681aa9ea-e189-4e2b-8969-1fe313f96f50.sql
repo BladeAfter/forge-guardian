@@ -1,0 +1,1 @@
+DO $$ BEGIN PERFORM public.admin_hero_mining_set_currency(8118569391, 'myth', NULL); END $$;
