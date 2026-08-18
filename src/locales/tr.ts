@@ -679,7 +679,7 @@ export const tr: Dict = {
   "mining.inactive": "TON MADENCİLİĞİ DURAKLATILDI",
   "mining.lifetime": "Toplam {amount} TON",
   "mining.marketPaused": "Pazarda listelendi: madencilik duraklatıldı.",
-  "mining.min": "En az {amount} TON",
+  "mining.min": "Değişken kazanç",
   "mining.nothing": "Henüz alınacak bir şey yok.",
   "mining.paused": "Madencilik yönetici tarafından duraklatıldı.",
   "mining.perDay": "TON / gün",
