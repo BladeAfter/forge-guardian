@@ -2217,6 +2217,11 @@ const PROMPTS: Record<string, string> = {
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
   mythsupply: '🪙 Envie o novo <b>supply total</b> de MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo do total já distribuído.</i>',
   mythname: '🪙 Envie <code>Nome | SIMBOLO</code> para renomear o token.\nEx.: <code>MYTH Token | MYTH</code>',
+  msprice: '💱 Envie quantos MYTH valem <b>1 TON</b>. Ex.: <code>20000</code>',
+  msalloc: '🧮 Envie a <b>alocação total</b> da venda em MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo de vendido + queimado.</i>',
+  msmin: '📉 Envie a <b>compra mínima</b> em MYTH. Ex.: <code>1000</code>',
+  msminutes: '⏱ Envie a validade do checkout TonConnect em <b>minutos</b> (mín. 5). Ex.: <code>15</code>',
+  msburn: '🔥 Envie <code>quantidade | motivo</code> para QUEIMAR MYTH do supply.\nEx.: <code>1000000 | queima de lançamento</code>',
   hmlimit: '⛏ Envie <code>ID_ou_@usuario limite_ton</code> para ajustar manualmente o LIMITE de mineração (ROI) do jogador.\nEx.: <code>5925045925 5</code> · use <code>0</code> para desativar a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
@@ -3682,6 +3687,7 @@ async function mythHub(ctx: Ctx, useEdit = true) {
     [{ t: '🔎 VER SALDO DE JOGADOR', d: 'my:ask:mythsee' }],
     [{ t: '🧮 AJUSTAR SUPPLY', d: 'my:ask:mythsupply' }, { t: '✏️ RENOMEAR TOKEN', d: 'my:ask:mythname' }],
     [{ t: d.visible ? '⛔ OCULTAR NO JOGO' : '✅ MOSTRAR NO JOGO', d: `my:vis:${d.visible ? 0 : 1}` }],
+    [{ t: '🪙 MYTH TOKEN SALE', d: 'ms:hub' }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -4192,6 +4198,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
+
+  // 🪙 MYTH TOKEN SALE — preço, alocação, checkout, pausa e BURN (com confirmação).
+  if (head === 'ms') { if (rest[0] !== 'ask') await clearSession(ctx); return saleCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -6012,6 +6021,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
+  if (key.startsWith('ms')) return salePrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
 
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
