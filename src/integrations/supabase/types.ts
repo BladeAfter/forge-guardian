@@ -12226,12 +12226,24 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_hero_mining_set_currency: {
+        Args: { p_admin_id: number; p_currency: string; p_daily?: number }
+        Returns: Json
+      }
       admin_hero_mining_set_limit: {
         Args: { p_admin_id: number; p_amount_ton: number; p_ref: string }
         Returns: Json
       }
       admin_hero_mining_set_min_claim: {
         Args: { p_admin_id: number; p_min_ton: number }
+        Returns: Json
+      }
+      admin_hero_mining_set_min_claim_myth: {
+        Args: { p_admin_id: number; p_min_myth: number }
+        Returns: Json
+      }
+      admin_hero_mining_set_myth_rate: {
+        Args: { p_admin_id: number; p_myth_per_day: number }
         Returns: Json
       }
       admin_hero_mining_set_rate: {
@@ -12455,6 +12467,11 @@ export type Database = {
         Args: { p_admin_id: number; p_amount: number; p_reason?: string }
         Returns: Json
       }
+      admin_myth_mining_pool: { Args: { p_admin_id: number }; Returns: Json }
+      admin_myth_mining_pool_set: {
+        Args: { p_admin_id: number; p_allocated: number }
+        Returns: Json
+      }
       admin_myth_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_myth_player: {
         Args: { p_admin_id: number; p_ref: string }
@@ -12577,6 +12594,10 @@ export type Database = {
       }
       admin_nft_hero_stats: { Args: { p_admin_id: number }; Returns: Json }
       admin_nft_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_nft_mining_history: {
         Args: { p_admin_id: number; p_limit?: number }
         Returns: Json
       }
