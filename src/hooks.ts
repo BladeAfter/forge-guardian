@@ -13,7 +13,7 @@ import type { PetDashboard } from './pets';
 import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
 import { fetchTowerDashboard, fetchTowerRanking } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
-import type { TonWallet, WalletSummary } from './wallet';
+import type { TonWallet, WalletSummary ,MythWallet} from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
@@ -62,6 +62,8 @@ export const usePvpDashboard=(telegramInitData:string|null,enabled:boolean)=>use
 export const useWalletSummary=(telegramInitData:string|null,enabled:boolean)=>useQuery<WalletSummary>({queryKey:['wallet-summary',telegramInitData],queryFn:()=>walletRequest<WalletSummary>(telegramInitData??'',{action:'summary'}),enabled,staleTime:30_000,refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
 /** Withdrawable TON balance (rewards only). Shared key so any credit refreshes header + wallet. */
 export const useTonWallet=(telegramInitData:string|null,enabled:boolean)=>useQuery<TonWallet>({queryKey:['ton-wallet',telegramInitData],queryFn:()=>walletRequest<TonWallet>(telegramInitData??'',{action:'ton-wallet'}),enabled,staleTime:30_000,refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
+/** MYTH Token balance (decorative). Read-only: nothing in the app can spend or convert it. */
+export const useMythWallet=(telegramInitData:string|null,enabled:boolean)=>useQuery<MythWallet>({queryKey:['myth-wallet',telegramInitData],queryFn:()=>walletRequest<MythWallet>(telegramInitData??'',{action:'myth'}),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
 export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>useQuery<TelegramPlayerProfile>({queryKey:['telegram-profile',telegramInitData],queryFn:()=>fetchTelegramProfile(telegramInitData??''),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
 /** Stored chests and eggs; shares the ['player-inventory'] key so any grant refreshes it. */
 export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:5_000,refetchOnMount:'always',refetchOnWindowFocus:true});

@@ -9,3 +9,6 @@ export type TonRewardEntry={id:string;amountTon:number;direction:'credit'|'debit
 export type TonWithdrawalEntry={id:string;grossTon:number;feePercent:number;feeTon:number;netTon:number;status:string;source:string;createdAt:string};
 export type TonWallet={balanceFc:number;availableTon:number;reservedTon:number;feePercent:number;minWithdrawTon:number;rewards:TonRewardEntry[];withdrawals:TonWithdrawalEntry[]};
 export type TonWithdrawalReceipt={id:string;status:string;grossTon:number;feePercent:number;feeTon:number;netTon:number;walletAddress:string;availableTon?:number};
+
+/** MYTH Token: decorative only. Supply lives with the Admin Bot; players never buy, sell or withdraw it. */
+export type MythWallet={name:string;symbol:string;balance:number;totalSupply:number;visible:boolean;status:string;tradable:false;withdrawable:false;hasUtility:false};
