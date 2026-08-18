@@ -1,0 +1,11 @@
+REVOKE EXECUTE ON FUNCTION public.admin_hero_mining_set_currency(bigint, text, numeric) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_hero_mining_set_myth_rate(bigint, numeric) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_hero_mining_set_min_claim_myth(bigint, numeric) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_myth_mining_pool_set(bigint, numeric) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_myth_mining_pool(bigint) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_nft_mining_history(bigint, integer) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.hero_mining_settle_all() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.hero_mining_effective_daily(text, uuid) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.hero_mining_myth_per_day() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.hero_mining_currency() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.myth_mining_pool_available() FROM anon, authenticated;
