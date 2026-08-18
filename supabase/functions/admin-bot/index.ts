@@ -3694,6 +3694,38 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
       await send(ctx, `⛏ Resgate mínimo da mineração: <b>${hmTon(value)} TON</b>.`);
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
+    // DAILY MINING in the ACTIVE currency: no automatic TON→MYTH conversion is ever applied.
+    case 'hmdaily': {
+      const value = Number(text.replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>500</code> (MYTH) ou <code>0.2</code> (TON)');
+      const overview = await rpc('admin_hero_mining_overview', { p_admin_id: ctx.adminId }) as any;
+      const currency = String(overview.currency ?? 'ton');
+      if (currency === 'myth') {
+        await rpc('admin_hero_mining_set_myth_rate', { p_admin_id: ctx.adminId, p_myth_per_day: value });
+      } else {
+        await rpc('admin_hero_mining_set_currency', { p_admin_id: ctx.adminId, p_currency: 'ton', p_daily: value });
+      }
+      await clearSession(ctx);
+      await send(ctx, `⛏ DAILY MINING: <b>${currency === 'myth' ? `${hmMyth(value)} MYTH` : `${hmTon(value)} TON`}</b>.`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'hmminmyth': {
+      const value = Number(text.replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>100</code>');
+      await rpc('admin_hero_mining_set_min_claim_myth', { p_admin_id: ctx.adminId, p_min_myth: value });
+      await clearSession(ctx);
+      await send(ctx, `🪙 Resgate mínimo em MYTH: <b>${hmMyth(value)} MYTH</b>.`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'hmpool': {
+      const value = Number(text.replace(/[.\s]/g, '').replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>5000000</code>');
+      await rpc('admin_myth_mining_pool_set', { p_admin_id: ctx.adminId, p_allocated: value });
+      await clearSession(ctx);
+      await send(ctx, `🪙 MYTH MINING POOL alocada: <b>${hmMyth(value)} MYTH</b>.\n<i>A mineração MYTH só distribui tokens dessa reserva — nada é criado além do supply oficial.</i>`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+
     case 'hmuser': {
       const ref = text.trim();
       if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');
