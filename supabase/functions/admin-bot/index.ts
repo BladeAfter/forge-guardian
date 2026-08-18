@@ -5566,7 +5566,7 @@ async function nftYieldForceMenu(ctx: Ctx) {
 }
 
 async function nftPricePrompt(ctx: Ctx, key: string, args: string[], text: string) {
-  if (key === 'nprcset') {
+  if (key === 'nprcset' || key === 'nprcmyth') {
     const [target, filter] = args;
     if (!target || !NPRC_TARGETS[target]) throw new Error('KEEP_SESSION::⚠️ Alvo inválido. Volte ao painel e escolha novamente.');
     const value = parseAmount(text);
