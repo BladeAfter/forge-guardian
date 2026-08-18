@@ -29,6 +29,7 @@ import type{SpendingEventDashboard}from'./spendingEvent';
 import type{MarketingPoolDashboard}from'./marketingPool';
 import{marketingPoolRequest}from'./services';
 import type{MythSaleDashboard}from'./mythSale';
+import type{MythStakingDashboard}from'./mythStaking';
 import{fetchMythSale}from'./services';
 import type{HeroMiningState}from'./heroMining';
 import{fetchHeroMining}from'./services';
@@ -66,6 +67,8 @@ export const useWalletSummary=(telegramInitData:string|null,enabled:boolean)=>us
 export const useTonWallet=(telegramInitData:string|null,enabled:boolean)=>useQuery<TonWallet>({queryKey:['ton-wallet',telegramInitData],queryFn:()=>walletRequest<TonWallet>(telegramInitData??'',{action:'ton-wallet'}),enabled,staleTime:30_000,refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
 /** MYTH Token balance (decorative). Read-only: nothing in the app can spend or convert it. */
 export const useMythWallet=(telegramInitData:string|null,enabled:boolean)=>useQuery<MythWallet>({queryKey:['myth-wallet',telegramInitData],queryFn:()=>walletRequest<MythWallet>(telegramInitData??'',{action:'myth'}),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
+/** Internal MYTH staking dashboard: settings, plans, positions and accrued rewards are server-owned. */
+export const useMythStaking=(telegramInitData:string|null,enabled:boolean)=>useQuery<MythStakingDashboard>({queryKey:['myth-staking',telegramInitData],queryFn:()=>walletRequest<MythStakingDashboard>(telegramInitData??'',{action:'myth-staking'}),enabled,staleTime:15_000,refetchInterval:enabled?60_000:false,refetchOnWindowFocus:true,retry:1});
 export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>useQuery<TelegramPlayerProfile>({queryKey:['telegram-profile',telegramInitData],queryFn:()=>fetchTelegramProfile(telegramInitData??''),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
 /** Stored chests and eggs; shares the ['player-inventory'] key so any grant refreshes it. */
 export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:5_000,refetchOnMount:'always',refetchOnWindowFocus:true});

@@ -1074,6 +1074,25 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'myth-verify') {
     return await verifyMythPurchases(db, user);
 
+  // INTERNAL MYTH STAKING (MYTH -> MYTH only): the DB owns settings, APR, locks and the reward pool.
+  // Nothing here touches FC, TON, withdrawable TON or the token sale.
+  } else if (action === 'myth-staking') {
+    fn = 'get_myth_staking_dashboard';
+  } else if (action === 'myth-stake') {
+    const amount = Number(body.amount);
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('MYTH_STAKING_INVALID_AMOUNT');
+    fn = 'myth_stake';
+    args = { ...args, p_amount: amount, p_plan: String(body.planCode || ''), p_idempotency_key: `myth-stake:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'myth-staking-claim') {
+    fn = 'myth_staking_claim';
+    args = { ...args, p_position_id: isUuid(body.positionId) ? body.positionId : null, p_idempotency_key: `myth-claim:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'myth-unstake') {
+    if (!isUuid(body.positionId)) throw new Error('MYTH_STAKING_POSITION_NOT_FOUND');
+    fn = 'myth_unstake';
+    args = { ...args, p_position_id: body.positionId, p_idempotency_key: `myth-unstake:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+
+
+
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';

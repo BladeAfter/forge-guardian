@@ -2221,6 +2221,10 @@ const PROMPTS: Record<string, string> = {
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
   mythsupply: '🪙 Envie o novo <b>supply total</b> de MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo do total já distribuído.</i>',
   mythname: '🪙 Envie <code>Nome | SIMBOLO</code> para renomear o token.\nEx.: <code>MYTH Token | MYTH</code>',
+  stkmin: '🔒 Envie o <b>stake mínimo</b> em MYTH. Ex.: <code>1000</code>',
+  stkmax: '🔒 Envie o <b>stake máximo</b> por jogador em MYTH (<code>0</code> = sem limite). Ex.: <code>5000000</code>',
+  stkpool: '🪙 Envie o <b>REWARD POOL</b> total do staking em MYTH.\nEx.: <code>5000000</code>\n<i>Toda recompensa sai desse pool — nada é criado do nada.</i>',
+  stkapr: '📈 Envie <code>plano APR</code> para definir o APR anual do plano.\nPlanos: <code>flexible</code>, <code>d7</code>, <code>d30</code>, <code>d90</code>, <code>d180</code>\nEx.: <code>d30 18</code>',
   msprice: '💱 Envie quantos MYTH valem <b>1 TON</b>. Ex.: <code>20000</code>',
   msalloc: '🧮 Envie a <b>alocação total</b> da venda em MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo de vendido + queimado.</i>',
   msmin: '📉 Envie a <b>compra mínima</b> em MYTH. Ex.: <code>1000</code>',
@@ -3778,6 +3782,7 @@ async function mythHub(ctx: Ctx, useEdit = true) {
     [{ t: '🧮 AJUSTAR SUPPLY', d: 'my:ask:mythsupply' }, { t: '✏️ RENOMEAR TOKEN', d: 'my:ask:mythname' }],
     [{ t: d.visible ? '⛔ OCULTAR NO JOGO' : '✅ MOSTRAR NO JOGO', d: `my:vis:${d.visible ? 0 : 1}` }],
     [{ t: '🪙 MYTH TOKEN SALE', d: 'ms:hub' }],
+    [{ t: '🔒 MYTH STAKING', d: 'stk:hub' }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -3791,6 +3796,74 @@ async function mythCallback(ctx: Ctx, rest: string[]) {
     return mythHub(ctx);
   }
   return mythHub(ctx);
+}
+
+// ---------------------------------------------------------------- 🔒 MYTH STAKING (interno)
+// Staking do ecossistema Mythreon: MYTH -> MYTH, sem smart contract e sem criar supply.
+// Toda recompensa sai do REWARD POOL reservado; ligar/desligar aqui vale na hora, sem deploy.
+async function stakingHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_myth_staking_overview', { p_admin_id: ctx.adminId }) as any;
+  const plans = (d.plans ?? []) as any[];
+  const text = [
+    '🔒 <b>MYTH STAKING</b>',
+    '<i>Mythreon Ecosystem Staking · interno · MYTH → MYTH</i>',
+    '',
+    `STATUS: <b>${d.enabled ? '✅ ACTIVE' : '⛔ OFF (Coming Soon)'}</b>`,
+    `NOVOS STAKES: <b>${d.newStakesPaused ? '⏸ PAUSADOS' : '▶️ LIBERADOS'}</b> · RESGATES: <b>${d.claimsEnabled ? '✅ ON' : '⛔ OFF'}</b>`,
+    `MÍNIMO: <b>${mythFmt(d.minStake)} MYTH</b> · MÁXIMO: <b>${Number(d.maxStake) > 0 ? `${mythFmt(d.maxStake)} MYTH` : 'sem limite'}</b>`,
+    '',
+    `TOTAL STAKED: <b>${mythFmt(d.totalStaked)} MYTH</b> · STAKERS: <b>${fmt(d.stakers)}</b>`,
+    `REWARD POOL: <b>${mythFmt(d.rewardPoolTotal)} MYTH</b>`,
+    `DISPONÍVEL: <b>${mythFmt(d.rewardPoolAvailable)}</b> · PAGO: <b>${mythFmt(d.rewardPoolDistributed)}</b>`,
+    `PENDENTE (acumulado): <b>${mythFmt(d.pendingRewards)} MYTH</b>`,
+    '',
+    '<b>PLANOS</b>',
+    plans.map((p) => `${p.active ? '✅' : '⛔'} ${esc(p.label)} — APR ${Number(p.aprPercent) > 0 ? `${p.aprPercent}%` : '--'} · lock ${p.lockDays}d`).join('\n') || 'nenhum plano',
+  ].join('\n');
+  const rows = [
+    [{ t: d.enabled ? '⛔ DESLIGAR STAKING' : '✅ LIGAR STAKING', d: `stk:set:enabled:${d.enabled ? 0 : 1}` }],
+    [{ t: d.newStakesPaused ? '▶️ LIBERAR NOVOS STAKES' : '⏸ PAUSAR NOVOS STAKES', d: `stk:set:pause:${d.newStakesPaused ? 0 : 1}` }],
+    [{ t: d.claimsEnabled ? '⛔ BLOQUEAR RESGATES' : '✅ LIBERAR RESGATES', d: `stk:set:claims:${d.claimsEnabled ? 0 : 1}` }],
+    [{ t: '🪙 REWARD POOL', d: 'stk:ask:stkpool' }, { t: '📈 APR DO PLANO', d: 'stk:ask:stkapr' }],
+    [{ t: '🔒 STAKE MÍNIMO', d: 'stk:ask:stkmin' }, { t: '🔒 STAKE MÁXIMO', d: 'stk:ask:stkmax' }],
+    ...plans.map((p) => [{ t: `${p.active ? '⛔ DESATIVAR' : '✅ ATIVAR'} ${p.label}`, d: `stk:plan:${p.code}:${p.active ? 0 : 1}` }]),
+    [{ t: '🔄 ATUALIZAR', d: 'stk:hub' }],
+    nav('my:hub'),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function stakingCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'set') {
+    await rpc('admin_myth_staking_set', { p_admin_id: ctx.adminId, p_field: a, p_value: Number(b) });
+    return stakingHub(ctx);
+  }
+  if (sub === 'plan') {
+    await rpc('admin_myth_staking_plan_set', { p_admin_id: ctx.adminId, p_code: a, p_apr: null, p_active: b === '1' });
+    return stakingHub(ctx);
+  }
+  return stakingHub(ctx);
+}
+
+async function stakingPrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'stkapr') {
+    const [code, raw] = text.trim().split(/\s+/);
+    const apr = Number(String(raw ?? '').replace(',', '.'));
+    if (!code || !Number.isFinite(apr) || apr < 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>plano APR</code>. Ex.: <code>d30 18</code>');
+    await rpc('admin_myth_staking_plan_set', { p_admin_id: ctx.adminId, p_code: code, p_apr: apr, p_active: null });
+    await clearSession(ctx);
+    await send(ctx, `📈 APR do plano <b>${esc(code)}</b>: <b>${apr}%</b>.`);
+    return stakingHub({ ...ctx, messageId: undefined }, false);
+  }
+  const value = Number(text.replace(',', '.').trim());
+  if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>5000000</code>');
+  const field = key === 'stkmin' ? 'min' : key === 'stkmax' ? 'max' : 'pool';
+  await rpc('admin_myth_staking_set', { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `🔒 MYTH STAKING atualizado: <b>${mythFmt(value)} MYTH</b>.`);
+  return stakingHub({ ...ctx, messageId: undefined }, false);
 }
 
 async function mythPrompt(ctx: Ctx, key: string, text: string) {
@@ -4288,6 +4361,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
+
+  // 🔒 MYTH STAKING — staking interno MYTH → MYTH: ON/OFF, APR por plano, limites e reward pool.
+  if (head === 'stk') { if (rest[0] !== 'ask') await clearSession(ctx); return stakingCallback(ctx, rest); }
 
   // 🪙 MYTH TOKEN SALE — preço, alocação, checkout, pausa e BURN (com confirmação).
   if (head === 'ms') { if (rest[0] !== 'ask') await clearSession(ctx); return saleCallback(ctx, rest); }
@@ -6110,6 +6186,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   }
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
+  if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
   if (key.startsWith('ms')) return salePrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
