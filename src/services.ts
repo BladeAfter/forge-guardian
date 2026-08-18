@@ -237,6 +237,12 @@ export const requestTonWithdrawal=(initData:string,amountTon:number,walletAddres
 
 /** MYTH Token: decorative read-only balance. No trading, price, conversion or withdrawal. */
 export const fetchMythWallet=(initData:string)=>walletRequest<MythWallet>(initData,{action:'myth'});
+/** MYTH TOKEN SALE: read-only dashboard (supply, sold, burned, TON raised, current price). */
+export const fetchMythSale=(initData:string)=>walletRequest<MythSaleDashboard>(initData,{action:'myth-sale'});
+/** The backend decides the method: internal TON when it covers 100%, otherwise a TonConnect intent. */
+export const startMythPurchase=(initData:string,mythAmount:number,idempotencyKey:string,walletAddress?:string)=>walletRequest<MythSalePurchaseResult>(initData,{action:'myth-buy',mythAmount,idempotencyKey,walletAddress});
+/** Checks the blockchain and settles any paid MYTH intent once (duplicate tx hashes are rejected). */
+export const verifyMythPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];stats:MythSaleStats}>(initData,{action:'myth-verify'});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
 export const verifyEggPurchases=(initData:string)=>walletRequest<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>}>(initData,{action:'verify-egg-purchases'});
