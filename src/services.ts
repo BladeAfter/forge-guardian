@@ -18,7 +18,7 @@ import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,FragmentSummonResult,PlayerInventory} from './calendarRewards';
 
-import type{PassTier,PassXpGain,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
+import type{PassTier,PassXpGain,PassLockedPurchaseResult,SeasonPassDashboard,SeasonPassOrder}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
