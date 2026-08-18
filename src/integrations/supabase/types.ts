@@ -4890,6 +4890,42 @@ export type Database = {
         }
         Relationships: []
       }
+      myth_sale_public_stats: {
+        Row: {
+          available: number
+          burned: number
+          id: boolean
+          myth_per_ton: number
+          reserved: number
+          sale_status: string
+          sold: number
+          ton_raised: number
+          updated_at: string
+        }
+        Insert: {
+          available?: number
+          burned?: number
+          id?: boolean
+          myth_per_ton?: number
+          reserved?: number
+          sale_status?: string
+          sold?: number
+          ton_raised?: number
+          updated_at?: string
+        }
+        Update: {
+          available?: number
+          burned?: number
+          id?: boolean
+          myth_per_ton?: number
+          reserved?: number
+          sale_status?: string
+          sold?: number
+          ton_raised?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       myth_sale_transactions: {
         Row: {
           amount_nano: number
