@@ -36,6 +36,24 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  const[buyOpen,setBuyOpen]=React.useState(false);
  // Level purchase: the client only sends how many levels; price/limits/new level come back from the server.
  const buyLevels=useMutation({mutationFn:(levels:number)=>buySeasonPassLevels(telegramInitData,levels) as Promise<SeasonPassDashboard>,onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();const p=dashboard.purchase;setBuyOpen(false);if(p&&p.levelsBought>1)toast.success(t('pass.levelsBoughtToast',{levels:p.levelsBought}));else if(p)toast.success(t('pass.levelUpToast',{from:p.levelBefore,to:p.levelAfter}));},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyLevelFailed'))});
+ /**
+  * Locked reward unlock (fixed TON price). The backend decides the method:
+  * internal TON balance pays instantly, otherwise it returns a TonConnect intent and the
+  * server reconciles the on-chain payment before the exclusive chest is delivered.
+  */
+ const unlockReward=useMutation({mutationFn:async(reward:PassReward)=>{
+  const outcome=await buyLockedPassReward(telegramInitData,reward.id,wallet?.account?.address??null);
+  if(outcome.status==='completed')return outcome;
+  if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}
+  await sendTonPayment({paymentAddress:String(outcome.paymentAddress),paymentComment:String(outcome.paymentComment),amountNano:String(outcome.amountNano)},tx=>tonUI.sendTransaction(tx));
+  toast.message(t('pass.paymentSent'));
+  for(let attempt=1;attempt<=8;attempt+=1){
+   await new Promise(resolve=>window.setTimeout(resolve,attempt===1?6000:7000));
+   try{const verification=await verifyLockedPassRewards(telegramInitData);if(verification.completed.length)return{...outcome,status:'completed' as const};}catch(error){console.error('[MYTHREON PASS CHEST]',error)}
+  }
+  return{...outcome,status:'pending' as const};
+ },onSuccess:async outcome=>{await invalidateAll();if(outcome.status==='completed')toast.success(t('pass.unlockSuccess'));else toast.message(t('pass.paymentPendingActivation'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.unlockFailed'))});
+
  if(isLoading&&!stalled)return<Shell onClose={onClose}><div className="space-y-3 pt-12">{[1,2,3].map(x=><div key={x} className="h-24 animate-pulse rounded-2xl bg-white/5"/>)}<p className="text-center text-sm text-amber-200">{t('pass.preparingSeason')}</p></div></Shell>;
  if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p>{t('pass.loadError')}</p><button onClick={()=>void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3">{t('pass.retryButton')}</button></div></Shell>;
 const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000),currentXp=data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel,maxed=data.player.maxed??false,barPercent=maxed?100:Math.round(currentXp/data.season.xpPerLevel*100);
