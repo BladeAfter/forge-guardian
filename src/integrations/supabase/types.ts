@@ -14309,6 +14309,14 @@ export type Database = {
         Returns: Json
       }
       deliver_pet_egg_order: { Args: { p_order_id: string }; Returns: Json }
+      detach_hero_everywhere: {
+        Args: { p_hero: string; p_owner?: string }
+        Returns: undefined
+      }
+      detach_pet_everywhere: {
+        Args: { p_owner?: string; p_pet: string }
+        Returns: undefined
+      }
       device_access_blocked: {
         Args: { p_telegram_id: number }
         Returns: boolean
