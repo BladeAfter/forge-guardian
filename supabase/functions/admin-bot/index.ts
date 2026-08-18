@@ -2211,6 +2211,7 @@ const PROMPTS: Record<string, string> = {
   afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
   aflimit: '🛡 Envie o número máximo de contas por dispositivo (padrão <code>3</code>).',
   hmuser: '⛏ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para ver a mineração dele.',
+  hmlimit: '⛏ Envie <code>ID_ou_@usuario limite_ton</code> para ajustar manualmente o LIMITE de mineração (ROI) do jogador.\nEx.: <code>5925045925 5</code> · use <code>0</code> para desativar a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
   nfthmint: '⚔️ Envie <code>hero_key quantidade</code> para criar novas unidades.\nEx.: <code>kaelion 3</code>',
