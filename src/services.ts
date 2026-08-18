@@ -14,6 +14,7 @@ import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from 
 import type {TowerBattle,TowerDashboard,TowerRanking} from './tower';
 import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary ,MythWallet} from './wallet';
 import type { MythSaleDashboard, MythSalePurchaseResult, MythSaleStats } from './mythSale';
+import type { MythStakingDashboard } from './mythStaking';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,FragmentSummonResult,PlayerInventory} from './calendarRewards';
@@ -228,7 +229,7 @@ export const beginPvpAdView=(initData:string)=>pvpRequest<{viewId:string;blockId
 /** Called ONLY after AdsGram confirms a valid completion. The server credits +1 ticket atomically. */
 export const claimPvpAdReward=(initData:string,viewId:string)=>pvpRequest<{granted:boolean;reason?:string;tickets:number;ads:PvpAdsState}>(initData,{action:'ads-reward',viewId});
 
-export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'};
+export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'}|{action:'myth-staking'}|{action:'myth-stake';amount:number;planCode:string;idempotencyKey:string}|{action:'myth-staking-claim';positionId?:string|null;idempotencyKey:string}|{action:'myth-unstake';positionId:string;idempotencyKey:string};
 export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 /** depositType decides the destination BEFORE payment: 'ton_to_fc' buys FC, 'ton_balance' tops up the internal TON balance 1:1. */
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string,depositType:'ton_to_fc'|'ton_balance'='ton_to_fc')=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey,depositType});
@@ -244,6 +245,11 @@ export const fetchMythSale=(initData:string)=>walletRequest<MythSaleDashboard>(i
 export const startMythPurchase=(initData:string,mythAmount:number,idempotencyKey:string,walletAddress?:string)=>walletRequest<MythSalePurchaseResult>(initData,{action:'myth-buy',mythAmount,idempotencyKey,walletAddress});
 /** Checks the blockchain and settles any paid MYTH intent once (duplicate tx hashes are rejected). */
 export const verifyMythPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];stats:MythSaleStats}>(initData,{action:'myth-verify'});
+/** INTERNAL MYTH STAKING: MYTH -> MYTH only. Never touches FC, TON, withdrawable TON or the sale. */
+export const fetchMythStaking=(initData:string)=>walletRequest<MythStakingDashboard>(initData,{action:'myth-staking'});
+export const stakeMyth=(initData:string,amount:number,planCode:string,idempotencyKey:string)=>walletRequest<MythStakingDashboard&{ok:true;duplicate?:boolean}>(initData,{action:'myth-stake',amount,planCode,idempotencyKey});
+export const claimMythStakingRewards=(initData:string,idempotencyKey:string,positionId?:string|null)=>walletRequest<MythStakingDashboard&{ok:true;claimed:number;duplicate?:boolean}>(initData,{action:'myth-staking-claim',positionId:positionId??null,idempotencyKey});
+export const unstakeMyth=(initData:string,positionId:string,idempotencyKey:string)=>walletRequest<MythStakingDashboard&{ok:true;returned:number;rewards:number;duplicate?:boolean}>(initData,{action:'myth-unstake',positionId,idempotencyKey});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
 export const verifyEggPurchases=(initData:string)=>walletRequest<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>}>(initData,{action:'verify-egg-purchases'});
