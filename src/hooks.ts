@@ -28,6 +28,8 @@ import{specialEventsRequest,spendingEventRequest}from'./services';
 import type{SpendingEventDashboard}from'./spendingEvent';
 import type{MarketingPoolDashboard}from'./marketingPool';
 import{marketingPoolRequest}from'./services';
+import type{MythSaleDashboard}from'./mythSale';
+import{fetchMythSale}from'./services';
 import type{HeroMiningState}from'./heroMining';
 import{fetchHeroMining}from'./services';
 
@@ -266,3 +268,19 @@ export const useHeroMining=(telegramInitData:string|null,enabled:boolean)=>useQu
 
 /** POOL MARKETING: read-only; a 30s refetch keeps admin-bot edits live without a reload. */
 export const useMarketingPool=(telegramInitData:string|null,enabled:boolean,limit=50)=>useQuery<MarketingPoolDashboard>({queryKey:['marketing-pool',telegramInitData,limit],queryFn:()=>marketingPoolRequest(telegramInitData??'',limit),enabled,staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});
+
+/**
+ * MYTH TOKEN SALE dashboard. The aggregated public stats table is broadcast over Realtime, so the
+ * SOLD/BURNED/AVAILABLE cards move for everyone the moment a purchase or a burn is confirmed —
+ * without exposing who bought what (the public table carries aggregates only).
+ */
+export const useMythSale=(telegramInitData:string|null,enabled:boolean)=>{
+  const client=useQueryClient();
+  const query=useQuery<MythSaleDashboard>({queryKey:['myth-sale',telegramInitData],queryFn:()=>fetchMythSale(telegramInitData??''),enabled,staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});
+  useEffect(()=>{
+    if(!enabled)return;
+    const channel=supabase.channel('myth-sale-stats').on('postgres_changes',{event:'*',schema:'public',table:'myth_sale_public_stats'},()=>{void client.invalidateQueries({queryKey:['myth-sale']})}).subscribe();
+    return ()=>{void supabase.removeChannel(channel)};
+  },[enabled,client]);
+  return query;
+};
