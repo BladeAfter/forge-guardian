@@ -47,7 +47,7 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
   const outcome=await buyLockedPassReward(telegramInitData,reward.id,wallet?.account?.address??null);
   if(outcome.status==='completed')return outcome;
   if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}
-  await sendTonPayment({paymentAddress:String(outcome.paymentAddress),paymentComment:String(outcome.paymentComment),amountNano:String(outcome.amountNano)},tx=>tonUI.sendTransaction(tx));
+  await sendTonPayment({paymentAddress:String(outcome.paymentAddress),paymentComment:String(outcome.paymentComment),amountNano:String(outcome.amountNano)},(tx:TonTransactionRequest)=>tonUI.sendTransaction(tx));
   toast.message(t('pass.paymentSent'));
   for(let attempt=1;attempt<=8;attempt+=1){
    await new Promise(resolve=>window.setTimeout(resolve,attempt===1?6000:7000));
