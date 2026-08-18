@@ -11881,6 +11881,10 @@ export type Database = {
       }
       admin_log:
         | {
+            Args: { p_action: string; p_admin_id: number; p_context: Json }
+            Returns: string
+          }
+        | {
             Args: {
               p_action: string
               p_admin_id: number
