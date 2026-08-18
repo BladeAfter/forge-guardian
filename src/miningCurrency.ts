@@ -81,22 +81,30 @@ export function miningSymbol(currency: MiningCurrency): string {
 }
 
 /**
- * Daily mining of an item in the ACTIVE currency.
- * `tonPerDay` is only used as the eligibility gate (0 => no mining at all).
- * `mythPerDay` is the per-unit MYTH value frozen on the NFT (shop stock is admin editable);
- * when absent/0 the global admin value is used.
+ * Currency of a SINGLE NFT: the rate frozen on the unit decides it.
+ * Units carrying a MYTH daily rate mine MYTH; every other unit keeps TON.
+ * NFTs already sold keep whatever was frozen on them at purchase time.
+ */
+export function itemMiningCurrency(mythPerDay?: number | null): MiningCurrency {
+  return Number(mythPerDay ?? 0) > 0 ? 'myth' : 'ton';
+}
+
+/**
+ * Daily mining of an item in ITS OWN currency.
+ * `tonPerDay` is the eligibility gate (0 => no mining at all) and the TON rate;
+ * `mythPerDay` is the per-unit MYTH value frozen on the NFT (shop stock is admin editable).
  */
 export function effectiveDailyMining(
   tonPerDay: number | null | undefined,
   config: MiningConfig,
   mythPerDay?: number | null,
 ): number {
+  const myth = Number(mythPerDay ?? 0);
+  if (myth > 0) return myth;
   const base = Number(tonPerDay ?? 0);
-  if (!(base > 0)) return 0;
-  if (config.currency !== 'myth') return base;
-  const perUnit = Number(mythPerDay ?? 0);
-  return perUnit > 0 ? perUnit : Math.max(0, Number(config.mythPerDay ?? 0));
+  return base > 0 ? base : 0;
 }
+
 
 /** Amount formatting per currency: MYTH is a whole-ish token, TON keeps small decimals. */
 export function formatMiningAmount(value: number | null | undefined, currency: MiningCurrency, digits = 4): string {
