@@ -46,15 +46,25 @@ export type HeroMiningState = {
 
 export type HeroMiningClaimResult = HeroMiningState & { ok: boolean; currency?: 'ton' | 'myth'; claimedTon: number; claimedMyth?: number; claimId: string };
 
-/** Active currency of the mining state (defaults to TON for legacy payloads). */
+/**
+ * Currency shown as the "main" one (defaults to TON for legacy payloads).
+ * Mining is per-NFT now: a player can accrue TON (already sold NFTs) and MYTH
+ * (NFTs that carry a MYTH rate) at the same time.
+ */
 export function miningStateCurrency(state: HeroMiningState | undefined): 'ton' | 'myth' {
-  return state?.miningCurrency === 'myth' ? 'myth' : 'ton';
+  if (Number(state?.dailyRateMyth ?? 0) > 0 && !(Number(state?.dailyRateTon ?? 0) > 0)) return 'myth';
+  return 'ton';
 }
 
-/** Daily rate in the active currency. */
+/** TON daily rate (units frozen in TON). */
 export function miningStateRate(state: HeroMiningState | undefined): number {
   if (!state) return 0;
-  return Number(state.dailyRate ?? state.dailyRateTon ?? 0);
+  return Number(state.dailyRateTon ?? state.dailyRate ?? 0);
+}
+
+/** MYTH daily rate (units frozen in MYTH). */
+export function miningStateMythRate(state: HeroMiningState | undefined): number {
+  return Number(state?.dailyRateMyth ?? 0);
 }
 
 /** Daily rate of a single hero, taken from the server rate table. */
@@ -77,29 +87,32 @@ export function formatMiningTon(value: number, digits = 4): string {
  * elapsed local seconds at the server rate. Claim always uses the server value.
  */
 export function projectUnclaimed(state: HeroMiningState | undefined, nowMs: number): number {
-  const currency = miningStateCurrency(state);
-  const base = Number((currency === 'myth' ? state?.unclaimedMyth : state?.unclaimedTon) ?? state?.unclaimed ?? 0);
+  const base = Number(state?.unclaimedTon ?? state?.unclaimed ?? 0);
   if (!state || !state.enabled) return base;
   const since = Math.max(0, (nowMs - new Date(state.updatedAt).getTime()) / 1000);
   const produced = (miningStateRate(state) * since) / 86400;
-  if (currency === 'myth') {
-    // MYTH accrual has no ROI cap: it is limited by the MYTH mining pool at claim time.
-    return base + produced;
-  }
-  // No eligible TON invested (or ROI cap reached): heroes generate nothing.
+  // No eligible TON invested (or ROI cap reached): TON units generate nothing.
   const room = Math.max(0, Number(state.remainingTon ?? 0));
   if (room <= 0) return base;
   return base + Math.min(produced, room);
 }
 
-/** Mining only runs for players with remaining ROI capacity. */
+/** MYTH accrual has no ROI cap: it is limited by the MYTH mining pool at claim time. */
+export function projectUnclaimedMyth(state: HeroMiningState | undefined, nowMs: number): number {
+  const base = Number(state?.unclaimedMyth ?? 0);
+  if (!state || !state.enabled) return base;
+  const since = Math.max(0, (nowMs - new Date(state.updatedAt).getTime()) / 1000);
+  return base + (miningStateMythRate(state) * since) / 86400;
+}
+
+/** Mining runs when any unit produces: TON needs ROI room, MYTH only a rate. */
 export function miningActive(state: HeroMiningState | undefined): boolean {
   if (!state) return false;
   if (!state.enabled) return false;
-  // MYTH mode ignores the TON ROI cap (that cap only limits TON payouts).
-  if (miningStateCurrency(state) === 'myth') return miningStateRate(state) > 0;
+  if (miningStateMythRate(state) > 0) return true;
   return Number(state.investedTon || 0) > 0 && Number(state.remainingTon || 0) > 0;
 }
+
 
 /** Rarities allowed to mine TON (mirrors the server gate `hero_mining_rarity_eligible`). */
 export const MINING_ELIGIBLE_RARITIES = ['rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'] as const;
