@@ -2207,6 +2207,10 @@ const PROMPTS: Record<string, string> = {
   hmrate: '⛏ Envie <code>raridade ton_por_dia</code> para alterar a taxa de mineração.\nEx.: <code>legendary 0.09</code>',
   depmin: '💠 Envie o valor mínimo do DEPÓSITO DIRETO DE TON (vai para o saldo TON sacável).\nEx.: <code>0.1</code>',
   hmmin: '⛏ Envie o valor mínimo de resgate da mineração em TON (<code>0</code> libera qualquer valor).\nEx.: <code>0.01</code>',
+  hmdaily: '⛏ Envie o valor do <b>DAILY MINING</b> na moeda ativa.\nSe a moeda for MYTH: <code>500</code> · se for TON: <code>0.20</code>\n<i>Nenhuma conversão automática é feita — o valor informado é o valor usado.</i>',
+  hmminmyth: '🪙 Envie o valor mínimo de resgate da mineração em MYTH (<code>0</code> libera qualquer valor).\nEx.: <code>100</code>',
+  hmpool: '🪙 Envie a <b>alocação total</b> da MYTH MINING POOL. Ex.: <code>5000000</code>\n<i>Não pode passar do supply total nem ficar abaixo do já distribuído.</i>',
+
   afsearch: '🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.',
   afunblock: '🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.',
   afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
@@ -3543,27 +3547,44 @@ async function nmPrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
-// ---------------------------------------------------------------- ⛏ HERO TON MINING (master admin only)
-// Passive TON generation driven by hero RARITY. Rates, global pause and the minimum
-// claim live in the database; every RPC below asserts the master admin id.
+// ---------------------------------------------------------------- ⛏ NFT MINING (master admin only)
+// Passive generation driven by hero RARITY / NFT rate. The ACTIVE CURRENCY (TON or MYTH)
+// is global, lives in the database and is applied without deploy: only one currency
+// accrues at a time and switching settles the previous window at now().
 const hmTon = (v: unknown) => Number(v ?? 0).toFixed(6).replace(/0+$/, '').replace(/\.$/, '') || '0';
+const hmMyth = (v: unknown) => Number(v ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
 async function hmHub(ctx: Ctx, useEdit = true) {
   const d = await rpc('admin_hero_mining_overview', { p_admin_id: ctx.adminId }) as any;
+  const isMyth = String(d.currency ?? 'ton') === 'myth';
+  const pool = (d.mythPool ?? {}) as any;
   const rates = arr<any>(d.rates).map((r) => `• <b>${esc(String(r.rarity).toUpperCase())}</b> ${hmTon(r.tonPerDay)} TON/dia`).join('\n') || 'sem taxas';
-  const claims = arr<any>(d.claims).slice(0, 8).map((c) => `• ${String(c.createdAt).slice(0, 16).replace('T', ' ')} · ${hmTon(c.amountTon)} TON · ${esc(String(c.name ?? '—'))} <code>${c.telegramId}</code>`).join('\n') || 'sem coletas';
-  const text = `⛏ <b>MINERAÇÃO DE TON POR HERÓIS</b>\n`
-    + `Estado: <b>${d.enabled ? '🟢 MINERAÇÃO ATIVA' : '🔴 MINERAÇÃO PAUSADA'}</b> · resgate mínimo ${hmTon(d.minClaimTon)} TON\n\n`
-    + `<b>TAXAS</b>\n${rates}\n\n`
+  const claims = arr<any>(d.claims).slice(0, 8).map((c) => {
+    const amount = String(c.currency ?? 'ton') === 'myth' ? `${hmMyth(c.amountMyth)} MYTH` : `${hmTon(c.amountTon)} TON`;
+    return `• ${String(c.createdAt).slice(0, 16).replace('T', ' ')} · ${amount} · ${esc(String(c.name ?? '—'))} <code>${c.telegramId}</code>`;
+  }).join('\n') || 'sem coletas';
+  const text = `⛏ <b>NFT MINING</b>\n`
+    + `STATUS: <b>${d.enabled ? '🟢 ACTIVE' : '🔴 PAUSED'}</b>\n`
+    + `CURRENCY: <b>${isMyth ? '🪙 MYTH' : '💎 TON'}</b>\n`
+    + `DAILY RATE: <b>${isMyth ? `${hmMyth(d.mythPerDay)} MYTH` : `${hmTon(arr<any>(d.rates).find((r) => r.rarity === 'legendary')?.tonPerDay ?? 0)} TON`}</b>\n`
+    + `Trocada em: ${d.currencyChangedAt ? String(d.currencyChangedAt).slice(0, 16).replace('T', ' ') : '—'}\n`
+    + `Resgate mínimo: ${isMyth ? `${hmMyth(d.minClaimMyth)} MYTH` : `${hmTon(d.minClaimTon)} TON`}\n\n`
+    + `<b>TAXAS TON POR RARIDADE</b> (define a elegibilidade)\n${rates}\n\n`
     + `Heróis minerando: <b>${fmt(d.eligibleHeroes)}</b> · pausados (mercado): ${fmt(d.pausedHeroes)}\n`
-    + `Produção da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n`
+    + `<b>MYTH MINING POOL</b>\nAllocated ${hmMyth(pool.allocated)} · Distributed ${hmMyth(pool.distributed)} · Available <b>${hmMyth(pool.available)}</b>\n`
+    + `MYTH não coletado: ${hmMyth(d.unclaimedMyth)}\n\n`
+    + `<b>TON POOL</b>\nProdução da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n`
     + `Acumulado não coletado: ${hmTon(d.unclaimedTon)} TON\n`
     + `Coletado 24h: ${hmTon(d.claimedTon24h)} TON · total ${hmTon(d.claimedTon)} TON\n`
     + `<b>LIMITE ROI</b> · investido ${hmTon(d.investedTon)} TON · devolvido ${hmTon(d.returnedTon)} TON\n`
     + `Investidores: <b>${fmt(d.investorsCount)}</b> · no limite: ${fmt(d.capReachedPlayers)}\n\n`
     + `<b>ÚLTIMAS COLETAS</b>\n${claims}`;
   const rows = [
-    [{ t: '⚙️ ALTERAR TAXA', d: 'hm:ask:hmrate' }, { t: '💠 RESGATE MÍNIMO', d: 'hm:ask:hmmin' }],
+    [{ t: isMyth ? '💎 MUDAR PARA TON' : '🪙 MUDAR PARA MYTH', d: `hm:cur:${isMyth ? 'ton' : 'myth'}` }],
+    [{ t: '⛏ SET DAILY MINING', d: 'hm:ask:hmdaily' }],
+    [{ t: '🪙 MYTH POOL', d: 'hm:ask:hmpool' }, { t: '🪙 MÍNIMO MYTH', d: 'hm:ask:hmminmyth' }],
+    [{ t: '⚙️ ALTERAR TAXA TON', d: 'hm:ask:hmrate' }, { t: '💠 MÍNIMO TON', d: 'hm:ask:hmmin' }],
+    [{ t: '📜 MINING HISTORY', d: 'hm:hist' }],
     [{ t: d.enabled ? '⏸ PAUSAR MINERAÇÃO' : '▶️ ATIVAR MINERAÇÃO', d: `hm:toggle:${d.enabled ? '0' : '1'}` }],
     [{ t: '👤 CONSULTAR JOGADOR', d: 'hm:ask:hmuser' }],
     [{ t: '💠 AJUSTAR LIMITE DO JOGADOR', d: 'hm:ask:hmlimit' }],
@@ -3571,6 +3592,24 @@ async function hmHub(ctx: Ctx, useEdit = true) {
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
+
+/** Mining ledger: TON and MYTH accruals/claims and every currency switch. */
+async function hmHistory(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_nft_mining_history', { p_admin_id: ctx.adminId, p_limit: 15 }) as any;
+  const lines = arr<any>(d.entries).map((e) => {
+    const when = String(e.createdAt).slice(0, 16).replace('T', ' ');
+    if (e.entryType === 'NFT_MINING_CURRENCY_CHANGED') {
+      const m = (e.meta ?? {}) as any;
+      return `• ${when} · 🔁 <b>${String(m.previousCurrency ?? '—').toUpperCase()} ${m.oldDailyValue ?? 0}</b> → <b>${String(m.newCurrency ?? '—').toUpperCase()} ${m.newDailyValue ?? 0}</b>`;
+    }
+    const amount = e.currency === 'myth' ? `${hmMyth(e.amount)} MYTH` : `${hmTon(e.amount)} TON`;
+    return `• ${when} · ${esc(String(e.entryType))} · ${amount}${e.telegramId ? ` · <code>${e.telegramId}</code>` : ''}`;
+  }).join('\n') || 'sem registros';
+  const text = `📜 <b>MINING HISTORY</b>\n\n${lines}`;
+  const rows = [[{ t: '🔄 ATUALIZAR', d: 'hm:hist' }], nav('hm:hub')];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
 
 async function hmUserCard(ctx: Ctx, ref: string, useEdit = true) {
   const d = await rpc('admin_hero_mining_user', { p_admin_id: ctx.adminId, p_ref: ref }) as any;
@@ -3609,9 +3648,28 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
 
+    case 'hist': return hmHistory(ctx);
+    // Currency switch: the RPC settles the previous currency at now() and only then flips,
+    // so TON and MYTH never overlap and old rewards are preserved in their own currency.
+    case 'cur': {
+      const next = a === 'myth' ? 'myth' : 'ton';
+      try {
+        await rpc('admin_hero_mining_set_currency', { p_admin_id: ctx.adminId, p_currency: next, p_daily: null });
+      } catch (err) {
+        console.error('[admin-bot] hero_mining_set_currency failed', err);
+        await send(ctx, '⚠️ Não foi possível alterar a moeda da mineração.');
+        return hmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next === 'myth'
+        ? '✅ Mineração dos NFTs agora paga <b>🪙 MYTH</b>.\nO acúmulo em TON foi encerrado neste instante e os TON já acumulados foram preservados.'
+        : '✅ Mineração dos NFTs agora paga <b>💎 TON</b>.\nO acúmulo em MYTH foi encerrado neste instante e o MYTH já acumulado foi preservado.');
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+
     default: return hmHub(ctx);
   }
 }
+
 
 async function hmPrompt(ctx: Ctx, key: string, text: string) {
   switch (key) {
@@ -3636,6 +3694,38 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
       await send(ctx, `⛏ Resgate mínimo da mineração: <b>${hmTon(value)} TON</b>.`);
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
+    // DAILY MINING in the ACTIVE currency: no automatic TON→MYTH conversion is ever applied.
+    case 'hmdaily': {
+      const value = Number(text.replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>500</code> (MYTH) ou <code>0.2</code> (TON)');
+      const overview = await rpc('admin_hero_mining_overview', { p_admin_id: ctx.adminId }) as any;
+      const currency = String(overview.currency ?? 'ton');
+      if (currency === 'myth') {
+        await rpc('admin_hero_mining_set_myth_rate', { p_admin_id: ctx.adminId, p_myth_per_day: value });
+      } else {
+        await rpc('admin_hero_mining_set_currency', { p_admin_id: ctx.adminId, p_currency: 'ton', p_daily: value });
+      }
+      await clearSession(ctx);
+      await send(ctx, `⛏ DAILY MINING: <b>${currency === 'myth' ? `${hmMyth(value)} MYTH` : `${hmTon(value)} TON`}</b>.`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'hmminmyth': {
+      const value = Number(text.replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>100</code>');
+      await rpc('admin_hero_mining_set_min_claim_myth', { p_admin_id: ctx.adminId, p_min_myth: value });
+      await clearSession(ctx);
+      await send(ctx, `🪙 Resgate mínimo em MYTH: <b>${hmMyth(value)} MYTH</b>.`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case 'hmpool': {
+      const value = Number(text.replace(/[.\s]/g, '').replace(',', '.').trim());
+      if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>5000000</code>');
+      await rpc('admin_myth_mining_pool_set', { p_admin_id: ctx.adminId, p_allocated: value });
+      await clearSession(ctx);
+      await send(ctx, `🪙 MYTH MINING POOL alocada: <b>${hmMyth(value)} MYTH</b>.\n<i>A mineração MYTH só distribui tokens dessa reserva — nada é criado além do supply oficial.</i>`);
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+
     case 'hmuser': {
       const ref = text.trim();
       if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome do jogador.');

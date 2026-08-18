@@ -6,6 +6,7 @@ import { useT } from '../LanguageContext';
 import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { auctionCountdown, auctionTon, type AuctionBrowse, type AuctionCard, type AuctionMine, type AuctionSellable, type AuctionSellableItem } from '../auction';
 import { cancelAuction, createAuction, fetchAuctionBrowse, fetchAuctionMine, fetchAuctionSellable, placeAuctionBid } from '../services';
+import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 type Props = { telegramInitData: string | null; onOpenWallet?: () => void };
 
@@ -19,6 +20,7 @@ const chip = (active: boolean) =>
  * Every number here comes from the server (min next bid, fee, countdown, reserves).
  */
 export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
+  const mining = useMiningConfig();
   const t = useT();
   const queryClient = useQueryClient();
   const [view, setView] = useState<'browse' | 'mine' | 'sell'>('browse');
@@ -210,7 +212,7 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
                       {t('auction.seller')}: {item.seller} · {item.bidCount} {t('auction.bids')}
                     </p>
                     {item.dailyYield > 0 ? (
-                      <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">{t('auction.dailyMining')}: {auctionTon(item.dailyYield)} TON</p>
+                      <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">{t('auction.dailyMining')}: {formatMiningAmount(effectiveDailyMining(item.dailyYield, mining), mining.currency)} {miningSymbol(mining.currency)}</p>
                     ) : null}
                     <div className="mt-1.5 rounded-lg border border-sky-300/20 bg-sky-500/[.07] px-2 py-1">
                       <p className="text-[7px] font-black uppercase tracking-[0.14em] text-slate-400">{item.currentBidTon ? t('auction.currentBid') : t('auction.startingBid')}</p>

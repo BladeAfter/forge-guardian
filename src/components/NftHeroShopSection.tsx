@@ -14,6 +14,7 @@ import {
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
+import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 /**
  * BUY NFT (heroes): store for the 10 unique NFT EXCLUSIVE heroes (1/1 each).
@@ -22,6 +23,7 @@ import { sendTonPayment } from '../tonPayment';
  * sold twice and a double tap can never create two owners.
  */
 export function NftHeroShopSection({ telegramInitData }: { telegramInitData: string }) {
+  const mining = useMiningConfig();
   const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftHeroShopItem | null>(null);
@@ -141,7 +143,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                 {Number(item.dailyYieldTon || 0) > 0 ? (
                   <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                     <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-                    <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
+                    <p className="text-[13px] font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(item.dailyYieldTon, mining), mining.currency)} <span className="text-[8px] text-emerald-200/70">{miningSymbol(mining.currency)}</span></p>
                   </div>
                 ) : null}
               </div>
@@ -166,7 +168,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyMining')}</span><span className="font-black text-emerald-300">{formatTon(target.dailyYieldTon)} TON</span></p> : null}
+              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyMining')}</span><span className="font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(target.dailyYieldTon, mining), mining.currency)} {miningSymbol(mining.currency)}</span></p> : null}
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
                 {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
@@ -198,6 +200,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
  * stays in the HEROES mining bar — here we only show what each NFT produces.
  */
 export function NftHeroCollectionSection({ telegramInitData }: { telegramInitData: string }) {
+  const mining = useMiningConfig();
   const t = useT();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-heroes-mine'],
@@ -252,7 +255,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
             {Number(item.dailyYieldTon || 0) > 0 ? (
               <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                 <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-                <p className="text-[13px] font-black text-emerald-300">{formatTon(item.dailyYieldTon)} <span className="text-[8px] text-emerald-200/70">TON</span></p>
+                <p className="text-[13px] font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(item.dailyYieldTon, mining), mining.currency)} <span className="text-[8px] text-emerald-200/70">{miningSymbol(mining.currency)}</span></p>
               </div>
             ) : null}
           </div>
