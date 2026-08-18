@@ -3648,9 +3648,28 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
 
+    case 'hist': return hmHistory(ctx);
+    // Currency switch: the RPC settles the previous currency at now() and only then flips,
+    // so TON and MYTH never overlap and old rewards are preserved in their own currency.
+    case 'cur': {
+      const next = a === 'myth' ? 'myth' : 'ton';
+      try {
+        await rpc('admin_hero_mining_set_currency', { p_admin_id: ctx.adminId, p_currency: next, p_daily: null });
+      } catch (err) {
+        console.error('[admin-bot] hero_mining_set_currency failed', err);
+        await send(ctx, '⚠️ Não foi possível alterar a moeda da mineração.');
+        return hmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next === 'myth'
+        ? '✅ Mineração dos NFTs agora paga <b>🪙 MYTH</b>.\nO acúmulo em TON foi encerrado neste instante e os TON já acumulados foram preservados.'
+        : '✅ Mineração dos NFTs agora paga <b>💎 TON</b>.\nO acúmulo em MYTH foi encerrado neste instante e o MYTH já acumulado foi preservado.');
+      return hmHub({ ...ctx, messageId: undefined }, false);
+    }
+
     default: return hmHub(ctx);
   }
 }
+
 
 async function hmPrompt(ctx: Ctx, key: string, text: string) {
   switch (key) {
