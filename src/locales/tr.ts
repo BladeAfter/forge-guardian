@@ -318,6 +318,7 @@ export const tr: Dict = {
   "epic": "Destansı",
   "equipFailed": "Kahraman kuşanılamadı.",
   "equippedInSlot": "Slot'a kuşandı",
+  "errors.LOCKED_REWARD_ALREADY_OWNED": "Zaten açıldı — sandık envanterinizde.",
   "errors.ALREADY_CLAIMED": "Zaten alındı.",
   "errors.BOSS_ALREADY_DEFEATED": "Bu Boss zaten mağlup edildi.",
   "errors.BOSS_NOT_ACTIVE": "Şu anda aktif bir Boss yok.",
