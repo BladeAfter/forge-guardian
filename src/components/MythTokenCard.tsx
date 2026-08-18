@@ -18,6 +18,12 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
   if (!wallet || wallet.visible === false) return null;
   const name = wallet.name || 'MYTH Token';
   const symbol = wallet.symbol || 'MYTH';
+  const staked = Number(wallet.staked ?? 0);
+  const owned = Number(wallet.totalOwned ?? (Number(wallet.balance ?? 0) + staked));
+  const feeThreshold = Number(wallet.feeThreshold ?? 100000);
+  const feeReduced = Number(wallet.feePercentReduced ?? 15);
+  const feeActive = staked >= feeThreshold && feeThreshold > 0;
+
 
   return (
     <>
