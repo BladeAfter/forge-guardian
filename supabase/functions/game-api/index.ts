@@ -1250,7 +1250,19 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     if (![1, 3, 5].includes(levels)) throw new Error('Pacote de níveis inválido.');
     fn = 'buy_season_pass_levels';
     args = { ...args, p_levels: levels, p_idempotency_key: `passlevel:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'buy-locked-reward') {
+    // Locked exclusive chest (NEW PASS REQUIRED): the DB charges the internal TON balance
+    // when it covers 100% of the price, otherwise it returns a TonConnect intent.
+    if (!isUuid(body.rewardId)) throw new Error('Recompensa inválida.');
+    fn = 'buy_pass_locked_reward';
+    args = {
+      ...args,
+      p_reward_id: body.rewardId,
+      p_wallet_address: toFriendlyTonAddress(body.walletAddress),
+      p_idempotency_key: `passlocked:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+    };
   } else if (action === 'recent-xp') {
+
     // Battle Pass XP feed for client toasts: the server owns multipliers, caps and final XP.
     fn = 'get_recent_pass_xp';
     args = { ...args, p_since: typeof body.since === 'string' && body.since ? body.since : null };
