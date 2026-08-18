@@ -980,10 +980,46 @@ async function verifyNftEquipmentPurchases(db: Db, user: TelegramUser) {
   return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, results };
 }
 
+/**
+ * MYTH TOKEN SALE — on-chain settlement of external (TonConnect) purchases.
+ * MYTH is NEVER credited because the wallet said "ok": the payment is matched on-chain by the
+ * intent's unique comment, the received value is compared in integer nanotons, and the database
+ * blocks any duplicate transaction hash (one tx can only ever buy MYTH once).
+ */
+async function verifyMythPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  const userId = player.data?.id;
+  const pending = await rpc(db, 'myth_pending_payment_intents', { p_max_age_minutes: 1440 }) as any[];
+  const mine = (Array.isArray(pending) ? pending : []).filter(row => row.user_id === userId);
+  if (!mine.length) return { checked: 0, confirmed: [], pending: [], stats: await rpc(db, 'myth_sale_stats', {}) };
 
-
-
-
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const intent of mine) {
+    const comment = String(intent.payment_comment || '').trim();
+    const expectedNano = BigInt(String(intent.amount_nano || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(intent.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'myth_confirm_payment_intent', { p_payment_id: intent.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(intent.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] myth-confirm', { intentId: intent.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(intent.id));
+    }
+  }
+  return { checked: mine.length, confirmed, pending: stillPending, stats: await rpc(db, 'myth_sale_stats', {}) };
+}
 
 
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
@@ -1025,6 +1061,19 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'myth') {
     // MYTH Token: read-only decorative balance. No purchase, swap, withdrawal or conversion exists.
     fn = 'get_myth_wallet';
+  } else if (action === 'myth-sale') {
+    // MYTH TOKEN SALE dashboard: every aggregate (sold/burned/available/raised) comes from the DB.
+    fn = 'get_myth_sale_dashboard';
+  } else if (action === 'myth-buy') {
+    // The DB alone decides the payment method: internal TON when it covers 100%, TonConnect otherwise.
+    const amount = Math.floor(Number(body.mythAmount));
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('MYTH_INVALID_AMOUNT');
+    const wallet = toFriendlyTonAddress(body.walletAddress);
+    fn = 'myth_start_purchase';
+    args = { ...args, p_myth_amount: amount, p_wallet_address: wallet, p_idempotency_key: `myth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'myth-verify') {
+    return await verifyMythPurchases(db, user);
+
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';

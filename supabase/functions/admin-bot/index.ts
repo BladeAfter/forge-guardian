@@ -2217,6 +2217,11 @@ const PROMPTS: Record<string, string> = {
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
   mythsupply: '🪙 Envie o novo <b>supply total</b> de MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo do total já distribuído.</i>',
   mythname: '🪙 Envie <code>Nome | SIMBOLO</code> para renomear o token.\nEx.: <code>MYTH Token | MYTH</code>',
+  msprice: '💱 Envie quantos MYTH valem <b>1 TON</b>. Ex.: <code>20000</code>',
+  msalloc: '🧮 Envie a <b>alocação total</b> da venda em MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo de vendido + queimado.</i>',
+  msmin: '📉 Envie a <b>compra mínima</b> em MYTH. Ex.: <code>1000</code>',
+  msminutes: '⏱ Envie a validade do checkout TonConnect em <b>minutos</b> (mín. 5). Ex.: <code>15</code>',
+  msburn: '🔥 Envie <code>quantidade | motivo</code> para QUEIMAR MYTH do supply.\nEx.: <code>1000000 | queima de lançamento</code>',
   hmlimit: '⛏ Envie <code>ID_ou_@usuario limite_ton</code> para ajustar manualmente o LIMITE de mineração (ROI) do jogador.\nEx.: <code>5925045925 5</code> · use <code>0</code> para desativar a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
@@ -3682,6 +3687,7 @@ async function mythHub(ctx: Ctx, useEdit = true) {
     [{ t: '🔎 VER SALDO DE JOGADOR', d: 'my:ask:mythsee' }],
     [{ t: '🧮 AJUSTAR SUPPLY', d: 'my:ask:mythsupply' }, { t: '✏️ RENOMEAR TOKEN', d: 'my:ask:mythname' }],
     [{ t: d.visible ? '⛔ OCULTAR NO JOGO' : '✅ MOSTRAR NO JOGO', d: `my:vis:${d.visible ? 0 : 1}` }],
+    [{ t: '🪙 MYTH TOKEN SALE', d: 'ms:hub' }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -3738,6 +3744,86 @@ async function mythPrompt(ctx: Ctx, key: string, text: string) {
   }
   return mythHub({ ...ctx, messageId: undefined }, false);
 }
+
+// ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
+// Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
+// Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
+async function saleHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_myth_sale_overview', { p_admin_id: ctx.adminId }) as any;
+  const sales = (d.recentSales ?? []) as any[];
+  const intents = (d.activeIntents ?? []) as any[];
+  const burns = (d.burnHistory ?? []) as any[];
+  const statusLabel: Record<string, string> = { active: '🟢 ATIVA', paused: '⏸ PAUSADA', finished: '🏁 ENCERRADA' };
+  const text = [
+    `🪙 <b>MYTH TOKEN SALE</b> — ${statusLabel[d.saleStatus] ?? esc(String(d.saleStatus))}`,
+    '',
+    `<b>Preço:</b> 1 TON = ${mythFmt(d.mythPerTon)} ${esc(d.symbol)}`,
+    `<b>Alocação da venda:</b> ${mythFmt(d.saleAllocation)}`,
+    `<b>Vendido:</b> ${mythFmt(d.sold)} (${Number(d.soldPercent ?? 0).toFixed(2)}%)`,
+    `<b>Disponível:</b> ${mythFmt(d.available)} · <b>Reservado:</b> ${mythFmt(d.reserved)}`,
+    `🔥 <b>Queimado:</b> ${mythFmt(d.burned)} (${Number(d.burnedPercent ?? 0).toFixed(2)}%)`,
+    `💎 <b>TON arrecadado:</b> ${mythFmt(d.tonRaised)} TON`,
+    `<b>Compra mínima:</b> ${mythFmt(d.minPurchase)} · <b>Checkout:</b> ${fmt(d.intentMinutes)} min`,
+    '',
+    `<b>ÚLTIMAS VENDAS</b>\n${sales.map((r) => `• ${mythFmt(r.myth_amount)} ${esc(d.symbol)} — ${mythFmt(r.amount_ton)} TON (${r.payment_method === 'INTERNAL' ? 'saldo interno' : 'TonConnect'}) — ${esc(r.player ?? '—')}`).join('\n') || 'nenhuma venda ainda'}`,
+    '',
+    `<b>CHECKOUTS ABERTOS</b>\n${intents.map((r) => `⏳ ${mythFmt(r.myth_amount)} — ${mythFmt(r.amount_ton)} TON (<code>${esc(r.payment_comment)}</code>)`).join('\n') || 'nenhum'}`,
+    '',
+    `<b>QUEIMAS</b>\n${burns.map((r) => `🔥 ${mythFmt(r.amount)} — ${esc(r.reason ?? 'sem motivo')}`).join('\n') || 'nenhuma queima ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: '💱 PREÇO (1 TON = X)', d: 'ms:ask:msprice' }, { t: '🧮 ALOCAÇÃO', d: 'ms:ask:msalloc' }],
+    [{ t: '📉 COMPRA MÍNIMA', d: 'ms:ask:msmin' }, { t: '⏱ CHECKOUT (min)', d: 'ms:ask:msminutes' }],
+    [{ t: '🔥 BURN MYTH', d: 'ms:ask:msburn' }],
+    [{ t: d.saleStatus === 'active' ? '⏸ PAUSAR VENDA' : '🟢 ATIVAR VENDA', d: `ms:st:${d.saleStatus === 'active' ? 'paused' : 'active'}` },
+     { t: '🏁 ENCERRAR', d: 'ms:st:finished' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function saleCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'st') {
+    await rpc('admin_myth_sale_status', { p_admin_id: ctx.adminId, p_status: a });
+    return saleHub(ctx);
+  }
+  // Burning supply is irreversible, so it always goes through an explicit confirmation step.
+  if (sub === 'burn') {
+    const amount = Number(a);
+    if (!Number.isFinite(amount) || amount <= 0) return saleHub(ctx);
+    await rpc('admin_myth_burn', { p_admin_id: ctx.adminId, p_amount: amount, p_reason: b ? decodeURIComponent(b) : null });
+    await send(ctx, `🔥 <b>${mythFmt(amount)} MYTH</b> queimado permanentemente.`);
+    return saleHub({ ...ctx, messageId: undefined }, false);
+  }
+  return saleHub(ctx);
+}
+
+async function salePrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'msburn') {
+    const parts = text.split('|');
+    const amount = parseAmount(parts[0] ?? '');
+    const reason = (parts[1] ?? '').trim();
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('KEEP_SESSION::⚠️ Envie <code>quantidade | motivo</code>. Ex.: <code>1000000 | queima de lançamento</code>');
+    await clearSession(ctx);
+    return send(ctx, `🔥 <b>CONFIRMAR QUEIMA</b>\nQuantidade: <b>${mythFmt(amount)} MYTH</b>\nMotivo: ${esc(reason || 'sem motivo')}\n\n<i>Ação irreversível.</i>`, kb([
+      [{ t: '✅ CONFIRMAR QUEIMA', d: `ms:burn:${Math.floor(amount)}:${encodeURIComponent(reason).slice(0, 40)}` }],
+      [{ t: '↩️ CANCELAR', d: 'ms:hub' }],
+    ]));
+  }
+  const keys: Record<string, string> = { msprice: 'price', msalloc: 'allocation', msmin: 'min_purchase', msminutes: 'minutes' };
+  const configKey = keys[key];
+  if (configKey) {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>20000</code>');
+    await rpc('admin_myth_sale_set', { p_admin_id: ctx.adminId, p_key: configKey, p_value: value });
+    await clearSession(ctx);
+    await send(ctx, `✅ Configuração <b>${esc(configKey)}</b> atualizada para <b>${mythFmt(value)}</b>.`);
+  }
+  return saleHub({ ...ctx, messageId: undefined }, false);
+}
+
 
 // ---------------------------------------------------------------- 🧩 FRAGMENT UTILITY (master admin only)
 // FRAGMENTS -> random common/uncommon hero. UNIVERSAL FRAGMENTS -> replace the copies
@@ -4112,6 +4198,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
+
+  // 🪙 MYTH TOKEN SALE — preço, alocação, checkout, pausa e BURN (com confirmação).
+  if (head === 'ms') { if (rest[0] !== 'ask') await clearSession(ctx); return saleCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5932,6 +6021,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
+  if (key.startsWith('ms')) return salePrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
 
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);
