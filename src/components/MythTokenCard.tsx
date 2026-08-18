@@ -107,9 +107,10 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                   ? `Fixed ${feeReduced}% TON withdrawal fee active`
                   : `Stake ${formatMyth(feeThreshold)} ${symbol} for a fixed ${feeReduced}% TON withdrawal fee`}
               </p>
-              <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
-                Decorative Only · Not Tradable Yet
+              <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-300/80">
+                Mine · Stake · Rise — Powered by Mythreon
               </p>
+
 
               <button
                 type="button"
