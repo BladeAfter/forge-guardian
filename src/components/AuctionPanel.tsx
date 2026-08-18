@@ -6,6 +6,7 @@ import { useT } from '../LanguageContext';
 import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { auctionCountdown, auctionTon, type AuctionBrowse, type AuctionCard, type AuctionMine, type AuctionSellable, type AuctionSellableItem } from '../auction';
 import { cancelAuction, createAuction, fetchAuctionBrowse, fetchAuctionMine, fetchAuctionSellable, placeAuctionBid } from '../services';
+import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 type Props = { telegramInitData: string | null; onOpenWallet?: () => void };
 

@@ -7,6 +7,7 @@ import { HeroEquipmentSlots } from './HeroEquipmentSlots';
 import type { HeroEquipmentState } from '../heroEquipment';
 import { useT } from '../LanguageContext';
 import { formatMiningTon, heroDailyRate, isMiningRarity } from '../heroMining';
+import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 const RARITY_COLOR: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
