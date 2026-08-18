@@ -356,7 +356,7 @@ export const heroes: LocaleBundle = {
     'mining.nothing': 'Nada para reclamar todavía.',
     'mining.error': 'No se pudo reclamar la minería.',
     'mining.lifetime': 'Total minado {amount} TON',
-    'mining.min': 'Ganhos variáveis',
+    'mining.min': 'Ganancias variables',
     'heroes.title': 'HÉROES',
     'heroes.close': 'Cerrar',
     'heroes.tabCollection': 'MIS HÉROES',
