@@ -61,6 +61,9 @@ export const logo = {
 };
 
 export const coin = gameAsset('coins/forge-coin.png');
+/** MYTH Token art (decorative only — no price, no trading, no utility yet). */
+export const mythToken = gameAsset('coins/myth-token.png');
+export const mythTokenCard = gameAsset('ui/myth-token-card.jpg');
 export const dragon = gameAsset('bosses/ancient-dragon.png');
 
 export const bossHeroes = [
