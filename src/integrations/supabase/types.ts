@@ -6257,6 +6257,78 @@ export type Database = {
           },
         ]
       }
+      pass_locked_reward_orders: {
+        Row: {
+          amount_nano: string
+          created_at: string
+          delivered_at: string | null
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          method: string
+          payment_address: string | null
+          payment_comment: string | null
+          price_ton: number
+          reward_id: string
+          season_id: string | null
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          method?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          price_ton: number
+          reward_id: string
+          season_id?: string | null
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          method?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          price_ton?: number
+          reward_id?: string
+          season_id?: string | null
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pass_locked_reward_orders_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pass_locked_reward_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_recovery_audit: {
         Row: {
           action: string
@@ -13480,6 +13552,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      buy_pass_locked_reward: {
+        Args: {
+          p_idempotency_key: string
+          p_reward_id: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
       buy_pet_egg: {
         Args: {
           p_egg_id: string
@@ -13808,6 +13889,10 @@ export type Database = {
       clan_war_settle: { Args: { p_war: string }; Returns: undefined }
       clan_war_tick: { Args: never; Returns: Json }
       clan_week_key: { Args: never; Returns: string }
+      confirm_pass_locked_reward_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
       confirm_pet_egg_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: undefined
@@ -14872,6 +14957,11 @@ export type Database = {
         Args: { p_partner_id: string }
         Returns: Json
       }
+      pass_locked_reward_config: { Args: never; Returns: Json }
+      pass_locked_reward_deliver: {
+        Args: { p_order_id: string }
+        Returns: Json
+      }
       payment_recovery_deliver: {
         Args: {
           p_admin_id: number
@@ -14888,6 +14978,10 @@ export type Database = {
       payment_recovery_tx_conflict: {
         Args: { p_order_id: string; p_tx_hash: string }
         Returns: string
+      }
+      pending_pass_locked_reward_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json[]
       }
       pending_pet_egg_orders: { Args: { p_telegram_id: number }; Returns: Json }
       pending_season_pass_orders: {
