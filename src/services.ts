@@ -279,7 +279,7 @@ export async function openExclusiveChest(initData:string,inventoryItemId:string)
   const response=await forgeFetch('calendar',({initData,action:'open-exclusive-chest',inventoryItemId}));
   const payload=await response.json().catch(()=>null)as{reward?:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory;error?:string}|null;
   if(!response.ok||!payload?.reward){const raw=payload?.error||'';if(raw)console.error('[open-exclusive-chest]',raw);
-    throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o baú mítico. Tente novamente.')}
+    throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o baú exclusivo. Tente novamente.')}
   return payload as {reward:ExclusiveChestReward;chestCode?:string;inventory?:PlayerInventory};
 }
 /** Legend Chest: guaranteed random LEGENDARY equipment. Roll happens server-side. */
