@@ -52,17 +52,18 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   const unlocked = Number(state.investedTon || 0) >= MINING_CARD_MIN_TON
     || Number(state.lifetimeTon || 0) > 0 || Number(state.lifetimeMyth || 0) > 0;
   if (!unlocked) return null;
-  // Currency comes from the server (Admin Bot): only one currency is ever active.
-  const currency = miningStateCurrency(state);
-  const unclaimed = projectUnclaimed(state, tick);
+  // Mining is per-NFT: sold units keep TON, units with a MYTH rate mine MYTH.
+  const tonRate = miningStateRate(state);
+  const mythRate = miningStateMythRate(state);
+  const unclaimedTon = projectUnclaimed(state, tick);
+  const unclaimedMyth = projectUnclaimedMyth(state, tick);
   const active = miningActive(state);
-  const minClaim = Math.max(Number(state.minClaim ?? state.minClaimTon ?? 0), 0.000001);
-  const claimable = currency === 'myth'
-    ? Math.min(unclaimed, Math.max(0, Number(state.mythPoolAvailable ?? 0)))
-    : Math.min(unclaimed, Math.max(0, state.investedTon - state.returnedTon));
-  const canClaim = state.enabled
-    && (currency === 'myth' ? true : state.investedTon > 0)
-    && claimable >= minClaim && !claim.isPending;
+  const minTon = Math.max(Number(state.minClaimTon ?? 0), 0.000001);
+  const minMyth = Math.max(Number(state.minClaimMyth ?? 0), 0.000001);
+  const claimableTon = Math.min(unclaimedTon, Math.max(0, state.investedTon - state.returnedTon));
+  const claimableMyth = Math.min(unclaimedMyth, Math.max(0, Number(state.mythPoolAvailable ?? 0)));
+  const canClaim = state.enabled && !claim.isPending
+    && ((state.investedTon > 0 && claimableTon >= minTon) || claimableMyth >= minMyth);
 
   return (
     <section className="mt-2 rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-2.5">
@@ -76,13 +77,14 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
       <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
           <p className="text-[8px] uppercase tracking-[.14em] text-slate-400">{t('mining.totalRate')}</p>
-          <p className="text-[12px] font-black text-white">{formatMiningAmount(miningStateRate(state), currency)}</p>
+          <p className="text-[12px] font-black text-white">{formatMiningAmount(tonRate, 'ton')} <span className="text-[8px] text-slate-400">{miningSymbol('ton')}</span></p>
+          {mythRate > 0 ? <p className="text-[12px] font-black text-amber-200">{formatMiningAmount(mythRate, 'myth')} <span className="text-[8px] text-amber-200/70">{miningSymbol('myth')}</span></p> : null}
           <p className="text-[8px] text-slate-400">{t('mining.perDay')}</p>
         </div>
         <div className="rounded-xl border border-cyan-300/30 bg-black/50 px-2 py-1.5 text-center">
           <p className="text-[8px] uppercase tracking-[.14em] text-slate-400">{t('mining.unclaimed')}</p>
-          <p className="text-[12px] font-black text-cyan-200">{formatMiningAmount(unclaimed, currency, 6)}</p>
-          <p className="text-[8px] text-slate-400">{miningSymbol(currency)}</p>
+          <p className="text-[12px] font-black text-cyan-200">{formatMiningAmount(unclaimedTon, 'ton', 6)} <span className="text-[8px] text-slate-400">{miningSymbol('ton')}</span></p>
+          {mythRate > 0 || unclaimedMyth > 0 ? <p className="text-[12px] font-black text-amber-200">{formatMiningAmount(unclaimedMyth, 'myth', 6)} <span className="text-[8px] text-amber-200/70">{miningSymbol('myth')}</span></p> : null}
         </div>
       </div>
 
@@ -105,9 +107,13 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
         <p className="mt-1.5 text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-300">{t('mining.inactive')}</p>
       ) : null}
       <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.min')}</p>
-      {(currency === 'myth' ? Number(state.lifetimeMyth ?? 0) : state.lifetimeTon) > 0
-        ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: `${formatMiningAmount(currency === 'myth' ? state.lifetimeMyth : state.lifetimeTon, currency, 6)} ${miningSymbol(currency)}` })}</p>
+      {Number(state.lifetimeTon ?? 0) > 0
+        ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: `${formatMiningAmount(state.lifetimeTon, 'ton', 6)} ${miningSymbol('ton')}` })}</p>
         : null}
+      {Number(state.lifetimeMyth ?? 0) > 0
+        ? <p className="mt-1 text-center text-[8px] text-slate-400">{t('mining.lifetime', { amount: `${formatMiningAmount(state.lifetimeMyth, 'myth', 6)} ${miningSymbol('myth')}` })}</p>
+        : null}
+
       {feedback ? <p className="mt-1 text-center text-[9px] font-black text-cyan-200">{feedback}</p> : null}
     </section>
   );
