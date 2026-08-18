@@ -18,6 +18,12 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
   if (!wallet || wallet.visible === false) return null;
   const name = wallet.name || 'MYTH Token';
   const symbol = wallet.symbol || 'MYTH';
+  const staked = Number(wallet.staked ?? 0);
+  const owned = Number(wallet.totalOwned ?? (Number(wallet.balance ?? 0) + staked));
+  const feeThreshold = Number(wallet.feeThreshold ?? 100000);
+  const feeReduced = Number(wallet.feePercentReduced ?? 15);
+  const feeActive = staked >= feeThreshold && feeThreshold > 0;
+
 
   return (
     <>
@@ -37,12 +43,16 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-100">{name}</span>
           <span className="block text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token</span>
+          {staked > 0 ? (
+            <span className="block text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">Staked {formatMyth(staked)} {symbol}</span>
+          ) : null}
         </span>
         <span className="shrink-0 text-right">
-          <span className="block text-base font-black text-white">{formatMyth(wallet.balance)}</span>
+          <span className="block text-base font-black text-white">{formatMyth(owned)}</span>
           <span className="block text-[9px] font-black uppercase tracking-[.16em] text-amber-300">{symbol}</span>
         </span>
       </button>
+
 
       {open ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" role="dialog" aria-modal="true">
@@ -66,17 +76,39 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
               </p>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
+                  <p className="text-sm font-black text-white">{formatMyth(wallet.balance)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Staked</p>
+                  <p className="text-sm font-black text-emerald-300">{formatMyth(staked)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Total Owned</p>
+                  <p className="text-sm font-black text-amber-200">{formatMyth(owned)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Circulating</p>
+                  <p className="text-sm font-black text-white">{formatMyth(wallet.circulating ?? 0)}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
                   <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Total Supply</p>
                   <p className="text-sm font-black text-white">{formatMyth(wallet.totalSupply)}</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
-                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
-                  <p className="text-sm font-black text-white">{formatMyth(wallet.balance)} {symbol}</p>
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Burned</p>
+                  <p className="text-sm font-black text-rose-300">{formatMyth(wallet.burned ?? 0)}</p>
                 </div>
               </div>
+              <p className={`rounded-xl border px-3 py-2 text-center text-[9px] font-black uppercase tracking-[.14em] ${feeActive ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' : 'border-white/10 bg-black/50 text-slate-400'}`}>
+                {feeActive
+                  ? `Fixed ${feeReduced}% TON withdrawal fee active`
+                  : `Stake ${formatMyth(feeThreshold)} ${symbol} for a fixed ${feeReduced}% TON withdrawal fee`}
+              </p>
               <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
                 Decorative Only · Not Tradable Yet
               </p>
+
               <button
                 type="button"
                 onClick={() => setOpen(false)}
