@@ -3877,6 +3877,7 @@ export type Database = {
           min_claim_ton: number
           mining_currency: string
           myth_per_day: number
+          pass_exclusive_myth_per_day: number
           updated_at: string
         }
         Insert: {
@@ -3887,6 +3888,7 @@ export type Database = {
           min_claim_ton?: number
           mining_currency?: string
           myth_per_day?: number
+          pass_exclusive_myth_per_day?: number
           updated_at?: string
         }
         Update: {
@@ -3897,6 +3899,7 @@ export type Database = {
           min_claim_ton?: number
           mining_currency?: string
           myth_per_day?: number
+          pass_exclusive_myth_per_day?: number
           updated_at?: string
         }
         Relationships: []
@@ -7893,6 +7896,7 @@ export type Database = {
           level: number
           locked: boolean
           market_locked: boolean
+          mining_daily_myth: number
           mining_last_at: string | null
           name: string
           nft_hero_id: string | null
@@ -7940,6 +7944,7 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_daily_myth?: number
           mining_last_at?: string | null
           name: string
           nft_hero_id?: string | null
@@ -7987,6 +7992,7 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_daily_myth?: number
           mining_last_at?: string | null
           name?: string
           nft_hero_id?: string | null
@@ -8263,6 +8269,8 @@ export type Database = {
           is_season_exclusive: boolean
           level: number
           market_locked: boolean
+          mining_daily_myth: number
+          mining_last_at: string | null
           nft_pet_id: string | null
           obtained_at: string
           pass_exclusive: boolean
@@ -8287,6 +8295,8 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           market_locked?: boolean
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           nft_pet_id?: string | null
           obtained_at?: string
           pass_exclusive?: boolean
@@ -8311,6 +8321,8 @@ export type Database = {
           is_season_exclusive?: boolean
           level?: number
           market_locked?: boolean
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           nft_pet_id?: string | null
           obtained_at?: string
           pass_exclusive?: boolean
@@ -15363,6 +15375,7 @@ export type Database = {
         Args: { p_partner_id: string }
         Returns: Json
       }
+      pass_exclusive_myth_rate: { Args: never; Returns: number }
       pass_locked_reward_config: { Args: never; Returns: Json }
       pass_locked_reward_deliver: {
         Args: { p_order_id: string }
