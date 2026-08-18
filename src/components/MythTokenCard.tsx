@@ -76,17 +76,39 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
               </p>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
+                  <p className="text-sm font-black text-white">{formatMyth(wallet.balance)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Staked</p>
+                  <p className="text-sm font-black text-emerald-300">{formatMyth(staked)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Total Owned</p>
+                  <p className="text-sm font-black text-amber-200">{formatMyth(owned)} {symbol}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Circulating</p>
+                  <p className="text-sm font-black text-white">{formatMyth(wallet.circulating ?? 0)}</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/50 p-2">
                   <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Total Supply</p>
                   <p className="text-sm font-black text-white">{formatMyth(wallet.totalSupply)}</p>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/50 p-2">
-                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Your Balance</p>
-                  <p className="text-sm font-black text-white">{formatMyth(wallet.balance)} {symbol}</p>
+                  <p className="text-[9px] uppercase tracking-[.14em] text-slate-400">Burned</p>
+                  <p className="text-sm font-black text-rose-300">{formatMyth(wallet.burned ?? 0)}</p>
                 </div>
               </div>
+              <p className={`rounded-xl border px-3 py-2 text-center text-[9px] font-black uppercase tracking-[.14em] ${feeActive ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200' : 'border-white/10 bg-black/50 text-slate-400'}`}>
+                {feeActive
+                  ? `Fixed ${feeReduced}% TON withdrawal fee active`
+                  : `Stake ${formatMyth(feeThreshold)} ${symbol} for a fixed ${feeReduced}% TON withdrawal fee`}
+              </p>
               <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-slate-500">
                 Decorative Only · Not Tradable Yet
               </p>
+
               <button
                 type="button"
                 onClick={() => setOpen(false)}
