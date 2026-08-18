@@ -303,7 +303,7 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
   const current = useMemo(() => picked ?? data.war?.me?.defense?.heroIds ?? [], [picked, data.war]);
   const toggle = (heroId: string) => {
     if (current.includes(heroId)) setPicked(current.filter((id) => id !== heroId));
-    else if (current.length < 5) setPicked([...current, heroId]);
+    else if (current.length < 3) setPicked([...current, heroId]);
   };
 
   return (
@@ -330,9 +330,9 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
           );
         })}
       </div>
-      <button disabled={busy || current.length === 0} onClick={() => onSave(current)}
+      <button disabled={busy || current.length !== 3} onClick={() => onSave(current)}
         className="w-full rounded-xl border border-amber-300/50 bg-amber-400/20 py-3 text-[10px] font-black text-amber-100 disabled:opacity-50">
-        {t('clanwar.defenseSave')} ({current.length}/5)
+        {t('clanwar.defenseSave')} ({current.length}/3)
       </button>
       <div className="rounded-2xl border border-white/10 bg-black/45 p-3">
         <b className="text-[9px] tracking-[.2em] text-amber-200">{t('clanwar.attackTeam')}</b>
