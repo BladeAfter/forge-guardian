@@ -15417,6 +15417,7 @@ export type Database = {
         }
         Returns: Json
       }
+      pet_hp_bonus_percent: { Args: { p_buffs: Json }; Returns: number }
       pet_instance_power: { Args: { p_player_pet_id: string }; Returns: number }
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
