@@ -22,6 +22,7 @@ import { sendTonPayment } from '../tonPayment';
  * sold twice and a double tap can never create two owners.
  */
 export function NftHeroShopSection({ telegramInitData }: { telegramInitData: string }) {
+  const mining = useMiningConfig();
   const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftHeroShopItem | null>(null);
@@ -198,6 +199,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
  * stays in the HEROES mining bar — here we only show what each NFT produces.
  */
 export function NftHeroCollectionSection({ telegramInitData }: { telegramInitData: string }) {
+  const mining = useMiningConfig();
   const t = useT();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-heroes-mine'],

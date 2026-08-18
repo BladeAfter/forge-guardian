@@ -19,6 +19,7 @@ const chip = (active: boolean) =>
  * Every number here comes from the server (min next bid, fee, countdown, reserves).
  */
 export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
+  const mining = useMiningConfig();
   const t = useT();
   const queryClient = useQueryClient();
   const [view, setView] = useState<'browse' | 'mine' | 'sell'>('browse');

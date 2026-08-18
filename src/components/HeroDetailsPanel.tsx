@@ -15,6 +15,7 @@ const RARITY_COLOR: Record<string, string> = {
 
 /** Hero sheet: stats come from the same rows used by PvP/Boss, equipment included. */
 export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, miningRates, onClose }: { hero: PvpHero; state?: FusionHero | null; maxStars: number; telegramInitData: string; miningRates?: Record<string, number>; onClose: () => void }) {
+  const mining = useMiningConfig();
   const t = useT();
   const [equipment, setEquipment] = useState<HeroEquipmentState | null>(null);
 
@@ -93,7 +94,7 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
               miningRate > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                  <p className="text-[13px] font-black text-cyan-100">{formatMiningTon(miningRate, 6)} {t('mining.perDay')}</p>
+                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {t('mining.perDay')}</p>
                 </div>
               ) : null
             ) : (
