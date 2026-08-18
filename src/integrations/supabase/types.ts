@@ -15103,6 +15103,7 @@ export type Database = {
         }
         Returns: Json
       }
+      myth_staked_amount: { Args: { p_user: string }; Returns: number }
       myth_staking_accrue: {
         Args: { p_position_id: string }
         Returns: undefined
@@ -15119,6 +15120,8 @@ export type Database = {
         }
         Returns: Json
       }
+      myth_staking_fee_percent: { Args: never; Returns: number }
+      myth_staking_fee_threshold: { Args: never; Returns: number }
       myth_start_purchase: {
         Args: {
           p_idempotency_key?: string
@@ -16045,6 +16048,10 @@ export type Database = {
       wallet_hot_address: { Args: never; Returns: string }
       weighted_pick: { Args: { p_weights: Json }; Returns: string }
       withdraw_fee_percent: { Args: never; Returns: number }
+      withdraw_fee_percent_for_user: {
+        Args: { p_user: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
