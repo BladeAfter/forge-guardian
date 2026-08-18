@@ -1182,9 +1182,54 @@ async function verifyPassPurchases(db: Db, user: TelegramUser) {
   return { checked: orders.length, completed, pending: stillPending, results, dashboard };
 }
 
+/**
+ * Reconciler for LOCKED pass rewards paid with TonConnect (the 2.5 TON exclusive chest unlock).
+ * A chest is only delivered by a payment carrying THIS order's unique comment.
+ */
+async function verifyLockedRewardPurchases(db: Db, user: TelegramUser) {
+  const orders = await rpc(db, 'pending_pass_locked_reward_orders', { p_telegram_id: user.id }) as any[];
+  if (!Array.isArray(orders) || !orders.length) return { checked: 0, completed: [], pending: [], results: [] as any[] };
+  const transactions = await fetchHotWalletIncoming(await hotWalletAddress(db));
+  const completed: string[] = [];
+  const stillPending: string[] = [];
+  const results: any[] = [];
+  const usedHashes = new Set<string>();
+  for (const order of orders) {
+    const comment = String(order.paymentComment || '').trim();
+    const minNano = (BigInt(String(order.amountNano || '0')) * 97n) / 100n;
+    const match = !comment ? undefined : transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || msgComment(inMsg) !== comment) return false;
+      const hash = String(tx.hash || inMsg.hash || '');
+      if (!hash || usedHashes.has(hash)) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(order.id); continue; }
+    const txHash = String(match.hash || match.in_msg?.hash || '');
+    try {
+      const outcome = await rpc(db, 'confirm_pass_locked_reward_order', {
+        p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: String(match.in_msg?.value ?? '0'),
+      }) as any;
+      usedHashes.add(txHash);
+      results.push(outcome);
+      completed.push(order.id);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error('[FORGE ERROR] pass-locked-reward-confirm', { orderId: order.id, reason });
+      if (reason.includes('TX_ALREADY_USED') || reason.includes('INVALID_PAYMENT_AMOUNT')) stillPending.push(order.id);
+      else throw error;
+    }
+  }
+  const dashboard = await rpc(db, 'get_season_pass_dashboard', { p_telegram_id: user.id });
+  const inventory = await rpc(db, 'get_player_inventory', { p_telegram_id: user.id });
+  return { checked: orders.length, completed, pending: stillPending, results, dashboard, inventory };
+}
+
 async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string, any>) {
   const action = String(body.action || 'dashboard');
   if (action === 'verify') return await verifyPassPurchases(db, user);
+  if (action === 'verify-locked-reward') return await verifyLockedRewardPurchases(db, user);
+
   let fn = 'get_season_pass_dashboard';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'order') {
