@@ -12,7 +12,7 @@ import type { ReferralDashboard } from './referrals';
 import type {PetActionResponse,PetDashboard} from './pets';
 import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from './pvp';
 import type {TowerBattle,TowerDashboard,TowerRanking} from './tower';
-import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary } from './wallet';
+import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary ,MythWallet} from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
 import type {CalendarClaimResult,CalendarDashboard,ChestOpenResult,FragmentSummonResult,PlayerInventory} from './calendarRewards';
@@ -227,7 +227,7 @@ export const beginPvpAdView=(initData:string)=>pvpRequest<{viewId:string;blockId
 /** Called ONLY after AdsGram confirms a valid completion. The server credits +1 ticket atomically. */
 export const claimPvpAdReward=(initData:string,viewId:string)=>pvpRequest<{granted:boolean;reason?:string;tickets:number;ads:PvpAdsState}>(initData,{action:'ads-reward',viewId});
 
-export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'};
+export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'};
 export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 /** depositType decides the destination BEFORE payment: 'ton_to_fc' buys FC, 'ton_balance' tops up the internal TON balance 1:1. */
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string,depositType:'ton_to_fc'|'ton_balance'='ton_to_fc')=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey,depositType});
@@ -235,6 +235,8 @@ export const createDepositIntent=(initData:string,amountTon:number,walletAddress
 export const fetchTonWallet=(initData:string)=>walletRequest<TonWallet>(initData,{action:'ton-wallet'});
 export const requestTonWithdrawal=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string)=>walletRequest<TonWithdrawalReceipt>(initData,{action:'withdraw-ton',amountTon,walletAddress,idempotencyKey});
 
+/** MYTH Token: decorative read-only balance. No trading, price, conversion or withdrawal. */
+export const fetchMythWallet=(initData:string)=>walletRequest<MythWallet>(initData,{action:'myth'});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
 export const verifyEggPurchases=(initData:string)=>walletRequest<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>}>(initData,{action:'verify-egg-purchases'});

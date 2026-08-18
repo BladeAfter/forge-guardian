@@ -4694,6 +4694,100 @@ export type Database = {
         }
         Relationships: []
       }
+      myth_balances: {
+        Row: {
+          amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "myth_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      myth_ledger: {
+        Row: {
+          admin_telegram_id: number | null
+          amount: number
+          created_at: string
+          direction: string
+          id: string
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          amount: number
+          created_at?: string
+          direction: string
+          id?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          amount?: number
+          created_at?: string
+          direction?: string
+          id?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "myth_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      myth_token_settings: {
+        Row: {
+          id: boolean
+          status_label: string
+          token_name: string
+          token_symbol: string
+          total_supply: number
+          updated_at: string
+          visible_in_game: boolean
+        }
+        Insert: {
+          id?: boolean
+          status_label?: string
+          token_name?: string
+          token_symbol?: string
+          total_supply?: number
+          updated_at?: string
+          visible_in_game?: boolean
+        }
+        Update: {
+          id?: boolean
+          status_label?: string
+          token_name?: string
+          token_symbol?: string
+          total_supply?: number
+          updated_at?: string
+          visible_in_game?: boolean
+        }
+        Relationships: []
+      }
       name_mission_claims: {
         Row: {
           created_at: string
@@ -11942,6 +12036,27 @@ export type Database = {
         Returns: Json
       }
       admin_missions_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_myth_adjust: {
+        Args: { p_admin_id: number; p_amount: number; p_ref: string }
+        Returns: Json
+      }
+      admin_myth_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_myth_player: {
+        Args: { p_admin_id: number; p_ref: string }
+        Returns: Json
+      }
+      admin_myth_rename: {
+        Args: { p_admin_id: number; p_name: string; p_symbol: string }
+        Returns: Json
+      }
+      admin_myth_set_supply: {
+        Args: { p_admin_id: number; p_total: number }
+        Returns: Json
+      }
+      admin_myth_set_visibility: {
+        Args: { p_admin_id: number; p_visible: boolean }
+        Returns: Json
+      }
       admin_name_mission: {
         Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
         Returns: Json
@@ -13795,6 +13910,7 @@ export type Database = {
       }
       get_hero_mining_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_hero_shop_config: { Args: never; Returns: Json }
+      get_myth_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_name_mission_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_admin_stats: { Args: never; Returns: Json }

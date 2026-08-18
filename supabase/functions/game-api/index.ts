@@ -1022,6 +1022,9 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     throw new Error('FC_WITHDRAWAL_DISABLED');
 
 
+  } else if (action === 'myth') {
+    // MYTH Token: read-only decorative balance. No purchase, swap, withdrawal or conversion exists.
+    fn = 'get_myth_wallet';
   } else if (action === 'egg-order') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';

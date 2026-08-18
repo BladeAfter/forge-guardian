@@ -99,6 +99,7 @@ const MAIN_MENU = kb([
   [{ t: '#️⃣ MISSÃO #MYTHREON', d: 'nm:hub' }],
   [{ t: '📣 POOL MARKETING', d: 'mp:hub' }],
   [{ t: '🏰 CLAN WAR (20V20)', d: 'cw:hub' }],
+  [{ t: '🪙 MYTH TOKEN', d: 'my:hub' }],
 
 
 
@@ -2211,6 +2212,11 @@ const PROMPTS: Record<string, string> = {
   afallow: '🛡 Envie o <b>Telegram ID</b> (ou identificador do dispositivo) para colocar na allowlist.',
   aflimit: '🛡 Envie o número máximo de contas por dispositivo (padrão <code>3</code>).',
   hmuser: '⛏ Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para ver a mineração dele.',
+  mythadd: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para ADICIONAR MYTH ao jogador (sai da reserva do Admin Bot).\nEx.: <code>5925045925 1000</code>',
+  mythsub: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para REMOVER MYTH do jogador (volta para a reserva).\nEx.: <code>5925045925 500</code>',
+  mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
+  mythsupply: '🪙 Envie o novo <b>supply total</b> de MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo do total já distribuído.</i>',
+  mythname: '🪙 Envie <code>Nome | SIMBOLO</code> para renomear o token.\nEx.: <code>MYTH Token | MYTH</code>',
   hmlimit: '⛏ Envie <code>ID_ou_@usuario limite_ton</code> para ajustar manualmente o LIMITE de mineração (ROI) do jogador.\nEx.: <code>5925045925 5</code> · use <code>0</code> para desativar a mineração dele.',
   nfthgive: '⚔️ Envie <code>ID_ou_@usuario</code> para escolher o herói NFT que será entregue.\nEx.: <code>8118569391</code>',
   nfthsearch: '🔎 Envie o nome do herói NFT, o <b>serial/instância</b> (<code>NFT-HERO-KAELION-0001</code>), o nome do dono ou o Telegram ID.',
@@ -3650,6 +3656,89 @@ async function hmPrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
+
+// ---------------------------------------------------------------- 🪙 MYTH TOKEN (decorativo)
+// Supply fixo inicial de 100.000.000 MYTH, 100% na reserva do Admin Bot.
+// Sem preço, sem mercado, sem saque e sem qualquer conversão com FC ou TON.
+const mythFmt = (n: unknown) => Number(n ?? 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+
+async function mythHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_myth_overview', { p_admin_id: ctx.adminId }) as any;
+  const recent = (d.recent ?? []) as any[];
+  const label: Record<string, string> = { credit: '➕', debit: '➖', supply: '🧮' };
+  const text = [
+    `🪙 <b>${esc(d.name)}</b> (${esc(d.symbol)})`,
+    '<i>Decorativo · Coming Soon · sem preço, sem trade, sem saque</i>',
+    '',
+    `<b>Total Supply:</b> ${mythFmt(d.totalSupply)} ${esc(d.symbol)}`,
+    `<b>Admin Reserve:</b> ${mythFmt(d.adminReserve)} ${esc(d.symbol)}`,
+    `<b>Com jogadores:</b> ${mythFmt(d.playerHeld)} · 👥 ${fmt(d.holders)} holder(s)`,
+    `<b>Visível no jogo:</b> ${d.visible ? '✅ SIM' : '⛔ NÃO'}`,
+    '',
+    `<b>ÚLTIMOS LANÇAMENTOS</b>\n${recent.map((r) => `${label[r.direction] ?? '•'} ${mythFmt(r.amount)} — ${esc(r.player ?? '—')}${r.telegram_id ? ` (<code>${r.telegram_id}</code>)` : ''}`).join('\n') || 'nenhum lançamento ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: '➕ ADICIONAR A JOGADOR', d: 'my:ask:mythadd' }, { t: '➖ REMOVER DE JOGADOR', d: 'my:ask:mythsub' }],
+    [{ t: '🔎 VER SALDO DE JOGADOR', d: 'my:ask:mythsee' }],
+    [{ t: '🧮 AJUSTAR SUPPLY', d: 'my:ask:mythsupply' }, { t: '✏️ RENOMEAR TOKEN', d: 'my:ask:mythname' }],
+    [{ t: d.visible ? '⛔ OCULTAR NO JOGO' : '✅ MOSTRAR NO JOGO', d: `my:vis:${d.visible ? 0 : 1}` }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function mythCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'vis') {
+    await rpc('admin_myth_set_visibility', { p_admin_id: ctx.adminId, p_visible: a === '1' });
+    return mythHub(ctx);
+  }
+  return mythHub(ctx);
+}
+
+async function mythPrompt(ctx: Ctx, key: string, text: string) {
+  if (key === 'mythadd' || key === 'mythsub') {
+    const parts = text.trim().split(/\s+/);
+    const raw = parts.pop() ?? '';
+    const ref = parts.join(' ').trim();
+    const value = parseAmount(raw);
+    if (!ref || !Number.isFinite(value) || value <= 0) {
+      throw new Error('KEEP_SESSION::⚠️ Envie <code>ID_ou_@usuario quantidade</code>. Ex.: <code>5925045925 1000</code>');
+    }
+    const signed = key === 'mythadd' ? value : -value;
+    const r = await rpc('admin_myth_adjust', { p_admin_id: ctx.adminId, p_ref: ref, p_amount: signed }) as any;
+    await clearSession(ctx);
+    await send(ctx, `🪙 ${key === 'mythadd' ? '➕ Adicionado' : '➖ Removido'} <b>${mythFmt(value)} MYTH</b>\n👤 ${esc(r.name)} (<code>${r.telegramId}</code>)\n💠 Novo saldo: <b>${mythFmt(r.balance)} MYTH</b>`);
+    return mythHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'mythsee') {
+    const ref = text.trim();
+    if (!ref) throw new Error('KEEP_SESSION::⚠️ Envie o Telegram ID, @usuário ou nome.');
+    const r = await rpc('admin_myth_player', { p_admin_id: ctx.adminId, p_ref: ref }) as any;
+    await clearSession(ctx);
+    await send(ctx, `🪙 <b>SALDO MYTH</b>\n👤 ${esc(r.name)} (<code>${r.telegramId}</code>)\n💠 <b>${mythFmt(r.balance)} MYTH</b>`);
+    return mythHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'mythsupply') {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>100000000</code>');
+    await rpc('admin_myth_set_supply', { p_admin_id: ctx.adminId, p_total: value });
+    await clearSession(ctx);
+    await send(ctx, `🪙 Supply total definido em <b>${mythFmt(value)} MYTH</b>.`);
+    return mythHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'mythname') {
+    const [name, symbol] = text.split('|').map((x) => x.trim());
+    if (!name) throw new Error('KEEP_SESSION::⚠️ Envie <code>Nome | SIMBOLO</code>. Ex.: <code>MYTH Token | MYTH</code>');
+    await rpc('admin_myth_rename', { p_admin_id: ctx.adminId, p_name: name, p_symbol: symbol ?? null });
+    await clearSession(ctx);
+    await send(ctx, `🪙 Token renomeado para <b>${esc(name)}</b>${symbol ? ` (${esc(symbol.toUpperCase())})` : ''}.`);
+    return mythHub({ ...ctx, messageId: undefined }, false);
+  }
+  return mythHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🧩 FRAGMENT UTILITY (master admin only)
 // FRAGMENTS -> random common/uncommon hero. UNIVERSAL FRAGMENTS -> replace the copies
 // required by one star-fusion step. Costs and odds live in game_settings.
@@ -4020,6 +4109,9 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🏰 CLAN WAR (20v20) — feature flag, roster/phase timings, scoring and season control.
   if (head === 'cw') { if (rest[0] !== 'ask') await clearSession(ctx); return cwCallback(ctx, rest); }
+
+  // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
+  if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
 
   if (head === 'nft') { if (rest[0] !== 'ask') await clearSession(ctx); return nftCallback(ctx, rest); }
 
@@ -5839,6 +5931,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   }
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
+  if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
 
   if (key.startsWith('nprc')) return nftPricePrompt(ctx, key, args, text);

@@ -14,7 +14,8 @@ import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurc
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
-import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
+import { useMythWallet, usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
+import { MythTokenCard } from '../components/MythTokenCard';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
@@ -44,6 +45,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const { data: summary } = useWalletSummary(telegramInitData, backendEnabled);
   const { data: tonWallet } = useTonWallet(telegramInitData, backendEnabled);
   const { data: pets } = usePetDashboard(telegramInitData, backendEnabled);
+  // Decorative MYTH balance (read-only; no economy attached).
+  const { data: myth } = useMythWallet(telegramInitData, backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
   const reservedTon = tonWallet?.reservedTon ?? 0;
@@ -285,6 +288,10 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           {reservedTon > 0 ? <p className="mt-1 text-[9px] font-bold text-amber-300">{t('wallet.tonReserved', { ton: formatTon(reservedTon) })}</p> : null}
         </Panel>
       </div>
+
+      {/* MYTH Token: decorative only — tapping it opens an informative popup, never a purchase/swap/withdraw flow. */}
+      <MythTokenCard wallet={myth} />
+
 
       <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
         <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
