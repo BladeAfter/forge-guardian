@@ -286,6 +286,10 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </Panel>
       </div>
 
+      {/* MYTH Token: decorative only — tapping it opens an informative popup, never a purchase/swap/withdraw flow. */}
+      <MythTokenCard wallet={myth} />
+
+
       <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
         <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
         <p className="mt-1 text-[10px] text-slate-300">1 TON = {FC_PER_TON.toLocaleString('pt-BR')} FC — {t('wallet.oneWayNote')}</p>
