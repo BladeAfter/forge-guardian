@@ -11,6 +11,8 @@ export const BOSS_BONUS_KEYS = [
   'boss_damage_percent',
   'boss_damage_reduction_percent',
   'team_hp_percent',
+  'hp_percent',
+  'hp_bonus',
   'reward_percent',
 ] as const;
 
