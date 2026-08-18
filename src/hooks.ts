@@ -98,6 +98,33 @@ export const useSpendingEvent=(telegramInitData:string|null,enabled:boolean,limi
   return query;
 };
 
+/**
+ * Live MYTH state: balances, staking positions and token settings stream from the
+ * backend, so the wallet card, the staking panel and the TON withdrawal fee
+ * (15% while >= 100k MYTH is staked) update without a reload.
+ */
+export const useMythRealtime=(enabled:boolean)=>{
+  const client=useQueryClient();
+  useEffect(()=>{
+    if(!enabled)return;
+    const refresh=()=>{
+      void client.invalidateQueries({queryKey:['myth-wallet']});
+      void client.invalidateQueries({queryKey:['myth-staking']});
+      void client.invalidateQueries({queryKey:['myth-sale']});
+      void client.invalidateQueries({queryKey:['ton-wallet']});
+      void client.invalidateQueries({queryKey:['wallet-summary']});
+    };
+    const channel=supabase.channel('myth-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'myth_balances'},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'myth_staking_positions'},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'myth_token_settings'},refresh)
+      .subscribe();
+    return()=>{void supabase.removeChannel(channel)};
+  },[enabled,client]);
+};
+
+
+
 export const usePlayerHeroes=(telegramInitData:string|null,enabled:boolean)=>useQuery<{heroes:PvpHero[]}>({queryKey:['player-heroes',telegramInitData],queryFn:()=>fetchPlayerHeroes(telegramInitData??''),enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 
 export const useRewardHistory=(telegramInitData:string|null,enabled:boolean,limit=5)=>useQuery<RewardHistory>({queryKey:['reward-history',telegramInitData,limit],queryFn:()=>fetchRewardHistory(telegramInitData??'',limit),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
