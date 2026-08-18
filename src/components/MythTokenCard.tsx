@@ -37,12 +37,16 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-100">{name}</span>
           <span className="block text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token</span>
+          {staked > 0 ? (
+            <span className="block text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">Staked {formatMyth(staked)} {symbol}</span>
+          ) : null}
         </span>
         <span className="shrink-0 text-right">
-          <span className="block text-base font-black text-white">{formatMyth(wallet.balance)}</span>
+          <span className="block text-base font-black text-white">{formatMyth(owned)}</span>
           <span className="block text-[9px] font-black uppercase tracking-[.16em] text-amber-300">{symbol}</span>
         </span>
       </button>
+
 
       {open ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" role="dialog" aria-modal="true">
