@@ -14,7 +14,8 @@ import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurc
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
-import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
+import { useMythWallet, usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
+import { MythTokenCard } from '../components/MythTokenCard';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
@@ -44,6 +45,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const { data: summary } = useWalletSummary(telegramInitData, backendEnabled);
   const { data: tonWallet } = useTonWallet(telegramInitData, backendEnabled);
   const { data: pets } = usePetDashboard(telegramInitData, backendEnabled);
+  // Decorative MYTH balance (read-only; no economy attached).
+  const { data: myth } = useMythWallet(telegramInitData, backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
   const reservedTon = tonWallet?.reservedTon ?? 0;
