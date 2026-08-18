@@ -4735,6 +4735,36 @@ export type Database = {
           },
         ]
       }
+      myth_burn_history: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: number | null
+          id: string
+          reason: string | null
+          supply_after: number
+          supply_before: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: number | null
+          id?: string
+          reason?: string | null
+          supply_after: number
+          supply_before: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: number | null
+          id?: string
+          reason?: string | null
+          supply_after?: number
+          supply_before?: number
+        }
+        Relationships: []
+      }
       myth_ledger: {
         Row: {
           admin_telegram_id: number | null
@@ -4772,6 +4802,171 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      myth_payment_intents: {
+        Row: {
+          amount_nano: number
+          amount_ton: number
+          created_at: string
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          myth_amount: number
+          payment_address: string
+          payment_comment: string
+          price_snapshot: number
+          status: string
+          transaction_id: string | null
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          amount_nano: number
+          amount_ton: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          idempotency_key?: string | null
+          myth_amount: number
+          payment_address: string
+          payment_comment: string
+          price_snapshot: number
+          status?: string
+          transaction_id?: string | null
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          amount_nano?: number
+          amount_ton?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          myth_amount?: number
+          payment_address?: string
+          payment_comment?: string
+          price_snapshot?: number
+          status?: string
+          transaction_id?: string | null
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      myth_sale_config: {
+        Row: {
+          id: boolean
+          intent_minutes: number
+          min_purchase_myth: number
+          myth_per_ton: number
+          sale_allocation: number
+          sale_status: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          intent_minutes?: number
+          min_purchase_myth?: number
+          myth_per_ton?: number
+          sale_allocation?: number
+          sale_status?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          intent_minutes?: number
+          min_purchase_myth?: number
+          myth_per_ton?: number
+          sale_allocation?: number
+          sale_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      myth_sale_transactions: {
+        Row: {
+          amount_nano: number
+          amount_ton: number
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          intent_id: string | null
+          myth_amount: number
+          payment_method: string
+          price_snapshot: number
+          status: string
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_nano: number
+          amount_ton: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          intent_id?: string | null
+          myth_amount: number
+          payment_method: string
+          price_snapshot: number
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_nano?: number
+          amount_ton?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          intent_id?: string | null
+          myth_amount?: number
+          payment_method?: string
+          price_snapshot?: number
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      myth_supply_ledger: {
+        Row: {
+          admin_telegram_id: number | null
+          amount: number
+          created_at: string
+          entry_type: string
+          id: string
+          note: string | null
+          reference_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          amount: number
+          created_at?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          amount?: number
+          created_at?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       myth_token_settings: {
         Row: {
@@ -12059,6 +12254,10 @@ export type Database = {
         Args: { p_admin_id: number; p_amount: number; p_ref: string }
         Returns: Json
       }
+      admin_myth_burn: {
+        Args: { p_admin_id: number; p_amount: number; p_reason?: string }
+        Returns: Json
+      }
       admin_myth_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_myth_player: {
         Args: { p_admin_id: number; p_ref: string }
@@ -12068,12 +12267,29 @@ export type Database = {
         Args: { p_admin_id: number; p_name: string; p_symbol: string }
         Returns: Json
       }
+      admin_myth_sale_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_myth_sale_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_myth_sale_set: {
+        Args: { p_admin_id: number; p_key: string; p_value: number }
+        Returns: Json
+      }
+      admin_myth_sale_status: {
+        Args: { p_admin_id: number; p_status: string }
+        Returns: Json
+      }
       admin_myth_set_supply: {
         Args: { p_admin_id: number; p_total: number }
         Returns: Json
       }
       admin_myth_set_visibility: {
         Args: { p_admin_id: number; p_visible: boolean }
+        Returns: Json
+      }
+      admin_myth_supply_adjust: {
+        Args: { p_admin_id: number; p_amount: number; p_reason?: string }
         Returns: Json
       }
       admin_name_mission: {
@@ -13929,6 +14145,10 @@ export type Database = {
       }
       get_hero_mining_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_hero_shop_config: { Args: never; Returns: Json }
+      get_myth_sale_dashboard: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_myth_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_name_mission_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
@@ -14380,6 +14600,32 @@ export type Database = {
       marketing_pool_categories: { Args: never; Returns: string[] }
       marketing_pool_dashboard: { Args: { p_limit?: number }; Returns: Json }
       min_withdraw_ton: { Args: never; Returns: number }
+      myth_confirm_payment_intent: {
+        Args: { p_amount_nano: number; p_payment_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      myth_expire_payment_intents: { Args: never; Returns: number }
+      myth_pending_payment_intents: {
+        Args: { p_max_age_minutes?: number }
+        Returns: {
+          amount_nano: number
+          created_at: string
+          id: string
+          myth_amount: number
+          payment_comment: string
+          user_id: string
+        }[]
+      }
+      myth_sale_stats: { Args: never; Returns: Json }
+      myth_start_purchase: {
+        Args: {
+          p_idempotency_key?: string
+          p_myth_amount: number
+          p_telegram_id: number
+          p_wallet_address?: string
+        }
+        Returns: Json
+      }
       name_mission_config: { Args: never; Returns: Json }
       name_mission_matches: {
         Args: { p_display_name: string; p_hashtag: string }
