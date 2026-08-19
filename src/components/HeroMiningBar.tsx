@@ -44,14 +44,19 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
 
   if (!state) return null;
   /**
-   * Visibility gate: the mining card is only shown to players who really put 5 TON or more
-   * into the game (deposits + TON purchases), or to legacy players that already mined TON.
-   * Everyone else does not see the panel at all.
+   * Visibility gate: the mining card only exists for players that actually own a
+   * yielding NFT (hero, pet or equipment). Ownership is proven by the server-side
+   * rate (TON or MYTH), by a pending accrual, or by past mining payouts.
+   * Never gate this on invested TON again — buying TON does not unlock mining.
    */
-  const MINING_CARD_MIN_TON = 5;
-  const unlocked = Number(state.investedTon || 0) >= MINING_CARD_MIN_TON
-    || Number(state.lifetimeTon || 0) > 0 || Number(state.lifetimeMyth || 0) > 0;
+  const unlocked = Number(state.dailyRateTon || 0) > 0
+    || Number(state.dailyRateMyth || 0) > 0
+    || Number(state.unclaimedTon || 0) > 0
+    || Number(state.unclaimedMyth || 0) > 0
+    || Number(state.lifetimeTon || 0) > 0
+    || Number(state.lifetimeMyth || 0) > 0;
   if (!unlocked) return null;
+
   // Mining is per-NFT: sold units keep TON, units with a MYTH rate mine MYTH.
   const tonRate = miningStateRate(state);
   const mythRate = miningStateMythRate(state);
