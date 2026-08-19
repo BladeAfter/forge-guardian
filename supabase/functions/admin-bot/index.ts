@@ -5167,7 +5167,7 @@ async function spendHub(ctx: Ctx, editing = true) {
     [{ t: '▶️ START EVENT', d: 'sp:start' }, { t: '⏹ END EVENT', d: 'sp:end' }],
     [{ t: '📅 DURATION', d: 'sp:dur' }, { t: '🎁 REWARDS', d: 'sp:rw' }],
     [{ t: '🏆 VIEW RANKING', d: 'sp:rank' }, { t: '✅ VALID SPEND TYPES', d: 'sp:types' }],
-    [{ t: '📣 ENTRY POPUP', d: 'sp:popup' }],
+    [{ t: '📣 ENTRY POPUP', d: 'sp:popup' }, { t: '⚖️ POINT RULES', d: 'sp:rules' }],
     [{ t: '🔒 FINALIZE', d: 'sp:fin' }, { t: '📜 AUDIT', d: 'sp:audit' }],
     nav(),
   ];
