@@ -17,6 +17,7 @@ import type { MythSaleDashboard, MythSalePurchaseResult, MythSaleStats } from '.
 import type { FounderEntitlement, FounderPackPurchaseResult, FounderPackState } from './founderPack';
 import type { VeteranVaultClaimResult, VeteranVaultPurchaseResult, VeteranVaultState } from './veteranVault';
 import type { VeteranV2PurchaseResult, VeteranV2State } from './veteranVaultV2';
+import type { PremiumOfferType, PremiumOffersState } from './premiumOffers';
 import type { MythStakingDashboard } from './mythStaking';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
@@ -258,6 +259,10 @@ export const fetchFounderPack=(initData:string)=>walletRequest<FounderPackState>
 /** The backend picks the method: internal TON when it covers the full 25 TON, TonConnect otherwise. */
 export const startFounderPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<FounderPackPurchaseResult>(initData,{action:'founder-pack-buy',idempotencyKey,walletAddress});
 /** Checks the blockchain and delivers the pack once (duplicate tx hashes are rejected by the DB). */
+/** 🎁 Fila diária de popups premium (servidor decide ordem e limite de 1x/dia por oferta). */
+export const fetchPremiumOffers=(initData:string)=>walletRequest<PremiumOffersState>(initData,{action:'premium-offers'});
+/** Registra que o popup foi exibido (e opcionalmente fechado) — trava a repetição no mesmo dia. */
+export const markPremiumOfferSeen=(initData:string,offerType:PremiumOfferType,dismissed=false)=>walletRequest<{ok:boolean;offerType:PremiumOfferType;dayKey:string}>(initData,{action:'premium-offer-seen',offerType,dismissed});
 export const verifyFounderPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:FounderPackState}>(initData,{action:'founder-pack-verify'});
 /** Cosmetic only: toggles the Founder profile frame the pack granted. */
 export const setFounderFrame=(initData:string,equipped:boolean)=>walletRequest<{ok:true;equipped:boolean}>(initData,{action:'founder-frame',equipped});
