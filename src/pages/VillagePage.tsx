@@ -2,16 +2,20 @@ import type { GameState, LanguageStrings } from '../types';
 import { Sparkles } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { buildings, characters } from '../gameAssets';
+import { FounderPackCard } from '../components/FounderPackCard';
 
 type VillagePageProps = {
   game: GameState;
   onUpgrade: (id: string) => void;
   lang: LanguageStrings;
+  /** Present only inside Telegram: enables the server-gated Founder Pack card. */
+  telegramInitData?: string;
 };
 
-export function VillagePage({ game, onUpgrade, lang }: VillagePageProps) {
+export function VillagePage({ game, onUpgrade, lang, telegramInitData }: VillagePageProps) {
   return (
     <section className="space-y-4">
+      {telegramInitData ? <FounderPackCard telegramInitData={telegramInitData} /> : null}
       <div className="rounded-3xl border border-white/10 bg-forge-black/80 p-4 shadow-card">
         <div className="relative mb-4 flex min-h-24 items-center justify-between overflow-hidden">
           <div>

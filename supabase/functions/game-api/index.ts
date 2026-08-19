@@ -1022,7 +1022,46 @@ async function verifyMythPurchases(db: Db, user: TelegramUser) {
 }
 
 
+/**
+ * 👑 FOUNDER PACK — on-chain settlement of external (TonConnect) purchases.
+ * Nothing is delivered because the wallet said "ok": the payment intent is matched on-chain by its
+ * unique comment, the received value is compared in integer nanotons, and the database refuses any
+ * duplicate transaction hash. Delivery happens inside the RPC, atomically and idempotently.
+ */
+async function verifyFounderPackPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const orders = (await rpc(db, 'founder_pack_pending_orders', { p_telegram_id: user.id })) as any[];
+  const list = Array.isArray(orders) ? orders : [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await rpc(db, 'founder_pack_state', { p_telegram_id: user.id }) };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.paymentComment || '').trim();
+    const expectedNano = BigInt(String(order.amountNano || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'founder_pack_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] founder-pack-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await rpc(db, 'founder_pack_state', { p_telegram_id: user.id }) };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
+
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
   if (hotWallet) {
     const configured = await db.from('wallet_settings').upsert({ key: 'ton_hot_wallet', value_text: hotWallet, updated_at: new Date().toISOString() });
@@ -1093,7 +1132,23 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
 
 
 
+  // ---------------- 👑 MYTHREON FOUNDER PACK (25 TON, new players only) ----------------
+  // Eligibility, price, snapshot, payment and delivery are 100% server-side.
+  } else if (action === 'founder-pack') {
+    fn = 'founder_pack_state';
+  } else if (action === 'founder-pack-buy') {
+    // The DB decides the method: internal TON when it covers 100% of the price, TonConnect otherwise.
+    fn = 'founder_pack_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `founder:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'founder-pack-verify') {
+    return await verifyFounderPackPurchases(db, user);
+  } else if (action === 'founder-frame') {
+    fn = 'founder_frame_set';
+    args = { ...args, p_equipped: Boolean(body.equipped) };
+  } else if (action === 'entitlements') {
+    fn = 'get_player_entitlements';
   } else if (action === 'egg-order') {
+
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';
     args = { ...args, p_egg_id: body.eggId, p_idempotency_key: `egg:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
@@ -1138,6 +1193,12 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
     if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
     return rpc(db, 'open_legend_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
   }
+  if (action === 'open-resource-chest') {
+    // FOUNDER PACK premium resource chest: contents are configured in the DB and granted server-side.
+    if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
+    return rpc(db, 'open_resource_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
+  }
+
   if (action === 'summon-hero') {
     // 5 fragments -> 1 random common/uncommon hero. Cost, odds, roll and the new
     // hero instance are all resolved atomically inside the RPC (idempotent).

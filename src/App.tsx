@@ -712,7 +712,7 @@ function App() {
 
 
   const tabContent = {
-    village: <VillagePage game={game} onUpgrade={upgradeBuilding} lang={lang} />,
+    village: <VillagePage game={game} onUpgrade={upgradeBuilding} lang={lang} telegramInitData={telegramInitData ?? undefined} />,
     missions: <QuestsPage telegramInitData={telegramInitData} dashboard={dailyQuests.data} loading={dailyQuests.isLoading} error={dailyQuests.error instanceof Error?dailyQuests.error.message:null} />,
     boss: <BossPage
       game={game}

@@ -14,6 +14,7 @@ import type {PvpAdsState,PvpBattleResult,PvpDashboard,PvpHero,PvpOpponent} from 
 import type {TowerBattle,TowerDashboard,TowerRanking} from './tower';
 import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary ,MythWallet} from './wallet';
 import type { MythSaleDashboard, MythSalePurchaseResult, MythSaleStats } from './mythSale';
+import type { FounderEntitlement, FounderPackPurchaseResult, FounderPackState } from './founderPack';
 import type { MythStakingDashboard } from './mythStaking';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
@@ -229,7 +230,7 @@ export const beginPvpAdView=(initData:string)=>pvpRequest<{viewId:string;blockId
 /** Called ONLY after AdsGram confirms a valid completion. The server credits +1 ticket atomically. */
 export const claimPvpAdReward=(initData:string,viewId:string)=>pvpRequest<{granted:boolean;reason?:string;tickets:number;ads:PvpAdsState}>(initData,{action:'ads-reward',viewId});
 
-export type WalletAction={action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'}|{action:'myth-staking'}|{action:'myth-stake';amount:number;planCode:string;idempotencyKey:string}|{action:'myth-staking-claim';positionId?:string|null;idempotencyKey:string}|{action:'myth-unstake';positionId:string;idempotencyKey:string};
+export type WalletAction={action:'founder-pack'}|{action:'founder-pack-buy';walletAddress?:string;idempotencyKey:string}|{action:'founder-pack-verify'}|{action:'founder-frame';equipped:boolean}|{action:'entitlements'}|{action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'}|{action:'myth-staking'}|{action:'myth-stake';amount:number;planCode:string;idempotencyKey:string}|{action:'myth-staking-claim';positionId?:string|null;idempotencyKey:string}|{action:'myth-unstake';positionId:string;idempotencyKey:string};
 export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 /** depositType decides the destination BEFORE payment: 'ton_to_fc' buys FC, 'ton_balance' tops up the internal TON balance 1:1. */
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string,depositType:'ton_to_fc'|'ton_balance'='ton_to_fc')=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey,depositType});
@@ -250,6 +251,15 @@ export const fetchMythStaking=(initData:string)=>walletRequest<MythStakingDashbo
 export const stakeMyth=(initData:string,amount:number,planCode:string,idempotencyKey:string)=>walletRequest<MythStakingDashboard&{ok:true;duplicate?:boolean}>(initData,{action:'myth-stake',amount,planCode,idempotencyKey});
 export const claimMythStakingRewards=(initData:string,idempotencyKey:string,positionId?:string|null)=>walletRequest<MythStakingDashboard&{ok:true;claimed:number;duplicate?:boolean}>(initData,{action:'myth-staking-claim',positionId:positionId??null,idempotencyKey});
 export const unstakeMyth=(initData:string,positionId:string,idempotencyKey:string)=>walletRequest<MythStakingDashboard&{ok:true;returned:number;rewards:number;duplicate?:boolean}>(initData,{action:'myth-unstake',positionId,idempotencyKey});
+/** 👑 FOUNDER PACK: eligibility window, price and reward list are computed server-side. */
+export const fetchFounderPack=(initData:string)=>walletRequest<FounderPackState>(initData,{action:'founder-pack'});
+/** The backend picks the method: internal TON when it covers the full 25 TON, TonConnect otherwise. */
+export const startFounderPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<FounderPackPurchaseResult>(initData,{action:'founder-pack-buy',idempotencyKey,walletAddress});
+/** Checks the blockchain and delivers the pack once (duplicate tx hashes are rejected by the DB). */
+export const verifyFounderPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:FounderPackState}>(initData,{action:'founder-pack-verify'});
+/** Cosmetic only: toggles the Founder profile frame the pack granted. */
+export const setFounderFrame=(initData:string,equipped:boolean)=>walletRequest<{ok:true;equipped:boolean}>(initData,{action:'founder-frame',equipped});
+export const fetchPlayerEntitlements=(initData:string)=>walletRequest<{entitlements:FounderEntitlement[]}>(initData,{action:'entitlements'});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
 export const verifyEggPurchases=(initData:string)=>walletRequest<{checked:number;completed:string[];pending:string[];results:Array<Record<string,unknown>>}>(initData,{action:'verify-egg-purchases'});
@@ -296,6 +306,15 @@ export async function openLegendChest(initData:string,inventoryItemId:string):Pr
   if(!response.ok||!payload?.equipment){const raw=payload?.error||'';if(raw)console.error('[open-legend-chest]',raw);
     throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Lendário. Tente novamente.')}
   return payload as {equipment:LegendChestEquipment;inventory?:PlayerInventory};
+}
+/** FOUNDER PACK premium resource chest: contents live in the DB and are granted server-side. */
+export type ResourceChestRewards={fc:number;fragments:number;pvpTickets:number;heroChest:string|null;heroChestQty:number};
+export async function openResourceChest(initData:string,inventoryItemId:string):Promise<{rewards:ResourceChestRewards;inventory?:PlayerInventory}>{
+  const response=await forgeFetch('calendar',({initData,action:'open-resource-chest',inventoryItemId}));
+  const payload=await response.json().catch(()=>null)as{rewards?:ResourceChestRewards;inventory?:PlayerInventory;error?:string}|null;
+  if(!response.ok||!payload?.rewards){const raw=payload?.error||'';if(raw)console.error('[open-resource-chest]',raw);
+    throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Premium. Tente novamente.')}
+  return payload as {rewards:ResourceChestRewards;inventory?:PlayerInventory};
 }
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'claim'|'recent-xp'|'buy-level'|'buy-locked-reward'|'verify-locked-reward'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
