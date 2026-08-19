@@ -16614,6 +16614,14 @@ export type Database = {
             Returns: Json
           }
       veteran_vault_myth_budget: { Args: never; Returns: number }
+      veteran_vault_pending_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      veteran_vault_pending_rewards: {
+        Args: { p_purchase_id: string }
+        Returns: Json
+      }
       veteran_vault_settings: {
         Args: never
         Returns: {
@@ -16651,6 +16659,7 @@ export type Database = {
         }
       }
       veteran_vault_snapshot: { Args: never; Returns: Json }
+      veteran_vault_state: { Args: { p_telegram_id: number }; Returns: Json }
       veteran_vault_ton_budget: { Args: never; Returns: number }
       wallet_deposit_config: { Args: never; Returns: Json }
       wallet_hot_address: { Args: never; Returns: string }
