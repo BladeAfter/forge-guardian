@@ -136,7 +136,7 @@ export const useChannelRewards=(telegramInitData:string|null,enabled:boolean)=>u
 export const useDailyQuests=(telegramInitData:string|null,enabled:boolean)=>useQuery<DailyQuestsDashboard>({queryKey:['daily-quests',telegramInitData],queryFn:()=>fetchDailyQuests(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
 
 /** Hero ascension state (stars, duplicates, costs) — server is the only source of truth. */
-export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<FusionDashboard>({queryKey:['hero-fusion',telegramInitData],queryFn:()=>fetchHeroFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
+export const useHeroFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<FusionDashboard>({queryKey:['hero-fusion',telegramInitData],queryFn:()=>fetchHeroFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:3,retryDelay:800});
 
 /** Rarity fusion state (config, odds, eligible heroes) — the server owns every rule. */
 export const useRarityFusion=(telegramInitData:string|null,enabled:boolean)=>useQuery<RarityFusionDashboard>({queryKey:['rarity-fusion',telegramInitData],queryFn:()=>fetchRarityFusion(telegramInitData??''),enabled,staleTime:10_000,refetchOnWindowFocus:true,retry:1});
