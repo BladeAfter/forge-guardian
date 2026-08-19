@@ -5354,6 +5354,16 @@ async function spendPrompt(ctx: Ctx, key: string, text: string) {
     await send(ctx, `✅ <b>EVENTO CRIADO</b>\n${esc(d?.event?.name || name)} · ${Math.round(days)} dias\nTodos começam com 0 pontos.`);
     return spendHub({ ...ctx, messageId: undefined }, false);
   }
+  if (key === 'spratet' || key === 'spratef') {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0 || value > 100_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um número válido (0 a 100.000.000).');
+    await rpc('admin_spending_event_set_rate', {
+      p_admin_id: ctx.adminId, p_currency: key === 'spratet' ? 'TON' : 'FC', p_value: value,
+    });
+    await clearSession(ctx);
+    await send(ctx, `✅ Nova regra salva: 1 ${key === 'spratet' ? 'TON' : 'FC'} = <b>${spPoints(value)}</b> pontos.`);
+    return spendRulesMenu({ ...ctx, messageId: undefined });
+  }
   if (key === 'spreward') {
     const [slot, ...labelParts] = text.split('|');
     const label = labelParts.join('|').trim();
