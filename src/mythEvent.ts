@@ -1,5 +1,5 @@
 /**
- * MYTHREON :: MYTH TOKEN EVENT (frontend contract only).
+ * MYTHREON :: SPENDING EVENT (frontend contract only).
  *
  * Promotional 14-day event attached to the MYTH sale. Supply/sold/burned/TON raised always come
  * from the backend sale dashboard (`get_myth_sale_dashboard`); this module only holds the fixed
