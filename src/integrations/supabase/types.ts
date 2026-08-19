@@ -14920,6 +14920,10 @@ export type Database = {
         }
         Returns: Json
       }
+      deliver_myth_sale_milestone_weapon: {
+        Args: { p_code: string; p_user: string }
+        Returns: undefined
+      }
       deliver_myth_sale_milestones: {
         Args: { p_user: string }
         Returns: number
