@@ -17,6 +17,7 @@ import type { TonWallet, WalletSummary ,MythWallet} from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
 import type { FounderPackState } from './founderPack';
 import type { VeteranVaultState } from './veteranVault';
+import type { VeteranV2State } from './veteranVaultV2';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
@@ -74,6 +75,8 @@ export const useMythStaking=(telegramInitData:string|null,enabled:boolean)=>useQ
 /** 👑 FOUNDER PACK: server-owned visibility. Short polling keeps the 7-day countdown honest. */
 export const useFounderPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<FounderPackState>({queryKey:['founder-pack',telegramInitData],queryFn:()=>walletRequest<FounderPackState>(telegramInitData??'',{action:'founder-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 export const useVeteranVault=(telegramInitData:string|null,enabled:boolean)=>useQuery<VeteranVaultState>({queryKey:['veteran-vault',telegramInitData],queryFn:()=>walletRequest<VeteranVaultState>(telegramInitData??'',{action:'veteran-vault'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
+/** ⚔️ VETERAN VAULT V2: visibilidade, preço e estoque são do servidor. */
+export const useVeteranV2=(telegramInitData:string|null,enabled:boolean)=>useQuery<VeteranV2State>({queryKey:['veteran-v2',telegramInitData],queryFn:()=>walletRequest<VeteranV2State>(telegramInitData??'',{action:'veteran-v2'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>useQuery<TelegramPlayerProfile>({queryKey:['telegram-profile',telegramInitData],queryFn:()=>fetchTelegramProfile(telegramInitData??''),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
 /** Stored chests and eggs; shares the ['player-inventory'] key so any grant refreshes it. */
 export const usePlayerInventory=(telegramInitData:string|null,enabled:boolean)=>useQuery<PlayerInventory>({queryKey:['player-inventory',telegramInitData],queryFn:()=>fetchPlayerInventory(telegramInitData??''),enabled,staleTime:5_000,refetchOnMount:'always',refetchOnWindowFocus:true});
