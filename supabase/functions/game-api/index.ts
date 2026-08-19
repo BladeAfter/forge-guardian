@@ -1022,7 +1022,46 @@ async function verifyMythPurchases(db: Db, user: TelegramUser) {
 }
 
 
+/**
+ * 👑 FOUNDER PACK — on-chain settlement of external (TonConnect) purchases.
+ * Nothing is delivered because the wallet said "ok": the payment intent is matched on-chain by its
+ * unique comment, the received value is compared in integer nanotons, and the database refuses any
+ * duplicate transaction hash. Delivery happens inside the RPC, atomically and idempotently.
+ */
+async function verifyFounderPackPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const orders = (await rpc(db, 'founder_pack_pending_orders', { p_telegram_id: user.id })) as any[];
+  const list = Array.isArray(orders) ? orders : [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await rpc(db, 'founder_pack_state', { p_telegram_id: user.id }) };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.paymentComment || '').trim();
+    const expectedNano = BigInt(String(order.amountNano || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'founder_pack_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] founder-pack-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await rpc(db, 'founder_pack_state', { p_telegram_id: user.id }) };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
+
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
   if (hotWallet) {
     const configured = await db.from('wallet_settings').upsert({ key: 'ton_hot_wallet', value_text: hotWallet, updated_at: new Date().toISOString() });
