@@ -13984,8 +13984,16 @@ export type Database = {
         Args: { p_admin_id: number; p_event_id: string; p_limit?: number }
         Returns: Json
       }
+      admin_spending_event_rules: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
       admin_spending_event_set_duration: {
         Args: { p_admin_id: number; p_days: number; p_event_id: string }
+        Returns: Json
+      }
+      admin_spending_event_set_rate: {
+        Args: { p_admin_id: number; p_currency: string; p_value: number }
         Returns: Json
       }
       admin_spending_event_set_reward: {
@@ -14000,6 +14008,10 @@ export type Database = {
       }
       admin_spending_event_set_status: {
         Args: { p_admin_id: number; p_event_id: string; p_status: string }
+        Returns: Json
+      }
+      admin_spending_event_toggle_source: {
+        Args: { p_admin_id: number; p_enabled?: boolean; p_source: string }
         Returns: Json
       }
       admin_status_overview: { Args: { p_admin_id: number }; Returns: Json }
