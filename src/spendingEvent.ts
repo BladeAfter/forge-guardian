@@ -24,10 +24,14 @@ export type SpendingEventSummary = {
   endsAt: string;
   status: 'scheduled' | 'active' | 'finished' | 'cancelled';
   tonRateFc: number;
+  fcRate?: number;
   topLimit: number;
 };
 
 export type SpendingRewardSlot = { from: number; to: number; label: string };
+
+/** Per-source activity aggregate (backend grouped: ton_direct_deposit, fc_spend, ...). */
+export type SpendingBreakdownRow = { group: string; points: number; entries: number };
 
 export type SpendingEventDashboard = {
   event: SpendingEventSummary | null;
@@ -43,6 +47,7 @@ export type SpendingEventDashboard = {
   };
   ranking: SpendingRankRow[];
   rewards: SpendingRewardSlot[];
+  breakdown?: SpendingBreakdownRow[];
   serverTime: string;
 };
 
