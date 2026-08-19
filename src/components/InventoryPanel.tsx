@@ -18,8 +18,13 @@ const RARITY_BORDER: Record<string, string> = {
   legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6',
 };
 
-/** Premium Legend Chest: opens a random legendary equipment piece. */
-const isLegendChest = (item: InventoryItem) => item.itemId === 'legend-chest' || item.itemId === 'legend_chest';
+/**
+ * Premium Legend Chest: opens a random legendary equipment piece.
+ * Season Pass rewards use the code `legendary_chest`, the shop uses `legend-chest`.
+ * All of them must route to `open_legend_chest`, never to the calendar chest action.
+ */
+const isLegendChest = (item: InventoryItem) => ['legend-chest', 'legend_chest', 'legendary-chest', 'legendary_chest']
+  .includes(String(item.itemId ?? '').toLowerCase());
 
 const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', 'food', 'chests', 'equipment', 'keys', 'other'];
 
