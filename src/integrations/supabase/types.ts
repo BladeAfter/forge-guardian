@@ -2488,6 +2488,7 @@ export type Database = {
           code: string
           created_at: string
           description: string
+          founder_line: boolean
           hero_class: string | null
           id: string
           image_url: string
@@ -2509,6 +2510,7 @@ export type Database = {
           code: string
           created_at?: string
           description?: string
+          founder_line?: boolean
           hero_class?: string | null
           id?: string
           image_url: string
@@ -2530,6 +2532,7 @@ export type Database = {
           code?: string
           created_at?: string
           description?: string
+          founder_line?: boolean
           hero_class?: string | null
           id?: string
           image_url?: string
@@ -2796,58 +2799,85 @@ export type Database = {
           badge_enabled: boolean
           eligibility_days: number
           enabled: boolean
+          ends_at: string | null
           equipment_chest_code: string
           fragments: number
           frame_enabled: boolean
+          hero_daily_myth: number
           hero_key: string
           id: boolean
+          legendary_chests: number
           myth_amount: number
           pack_version: number
           pass_tier: string
+          pet_daily_myth: number
           pet_slug: string
+          popup_enabled: boolean
+          popup_frequency: string
           price_ton: number
+          require_new_account: boolean
           resource_chest: Json
           resource_chest_code: string
           signup_from: string
+          start_at: string
           updated_at: string
+          weapon_code: string | null
         }
         Insert: {
           badge_enabled?: boolean
           eligibility_days?: number
           enabled?: boolean
+          ends_at?: string | null
           equipment_chest_code?: string
           fragments?: number
           frame_enabled?: boolean
+          hero_daily_myth?: number
           hero_key?: string
           id?: boolean
+          legendary_chests?: number
           myth_amount?: number
           pack_version?: number
           pass_tier?: string
+          pet_daily_myth?: number
           pet_slug?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
           price_ton?: number
+          require_new_account?: boolean
           resource_chest?: Json
           resource_chest_code?: string
           signup_from?: string
+          start_at?: string
           updated_at?: string
+          weapon_code?: string | null
         }
         Update: {
           badge_enabled?: boolean
           eligibility_days?: number
           enabled?: boolean
+          ends_at?: string | null
           equipment_chest_code?: string
           fragments?: number
           frame_enabled?: boolean
+          hero_daily_myth?: number
           hero_key?: string
           id?: boolean
+          legendary_chests?: number
           myth_amount?: number
           pack_version?: number
           pass_tier?: string
+          pet_daily_myth?: number
           pet_slug?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
           price_ton?: number
+          require_new_account?: boolean
           resource_chest?: Json
           resource_chest_code?: string
           signup_from?: string
+          start_at?: string
           updated_at?: string
+          weapon_code?: string | null
         }
         Relationships: []
       }
@@ -8051,6 +8081,7 @@ export type Database = {
           market_locked: boolean
           mining_daily_myth: number
           mining_last_at: string | null
+          premium_source: string | null
           source: string
           source_ref: string | null
           template_id: string
@@ -8067,6 +8098,7 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          premium_source?: string | null
           source?: string
           source_ref?: string | null
           template_id: string
@@ -8083,6 +8115,7 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          premium_source?: string | null
           source?: string
           source_ref?: string | null
           template_id?: string
@@ -8146,6 +8179,7 @@ export type Database = {
           nft_instance_id: string | null
           nft_serial: number | null
           pass_exclusive: boolean
+          premium_source: string | null
           rarity: string
           skill_power: number | null
           speed: number | null
@@ -8195,6 +8229,7 @@ export type Database = {
           nft_instance_id?: string | null
           nft_serial?: number | null
           pass_exclusive?: boolean
+          premium_source?: string | null
           rarity: string
           skill_power?: number | null
           speed?: number | null
@@ -8244,6 +8279,7 @@ export type Database = {
           nft_instance_id?: string | null
           nft_serial?: number | null
           pass_exclusive?: boolean
+          premium_source?: string | null
           rarity?: string
           skill_power?: number | null
           speed?: number | null
@@ -8521,6 +8557,7 @@ export type Database = {
           obtained_at: string
           pass_exclusive: boolean
           pet_id: string
+          premium_source: string | null
           rarity: string
           secondary_buffs: Json
           sub_nft_id: string | null
@@ -8548,6 +8585,7 @@ export type Database = {
           obtained_at?: string
           pass_exclusive?: boolean
           pet_id: string
+          premium_source?: string | null
           rarity: string
           secondary_buffs?: Json
           sub_nft_id?: string | null
@@ -8575,6 +8613,7 @@ export type Database = {
           obtained_at?: string
           pass_exclusive?: boolean
           pet_id?: string
+          premium_source?: string | null
           rarity?: string
           secondary_buffs?: Json
           sub_nft_id?: string | null
@@ -9169,6 +9208,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      premium_myth_mining_pools: {
+        Row: {
+          allocated_myth: number
+          distributed_myth: number
+          offer_type: string
+          updated_at: string
+        }
+        Insert: {
+          allocated_myth?: number
+          distributed_myth?: number
+          offer_type: string
+          updated_at?: string
+        }
+        Update: {
+          allocated_myth?: number
+          distributed_myth?: number
+          offer_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      premium_offer_popup_views: {
+        Row: {
+          day_key: string
+          dismissed_at: string | null
+          id: string
+          offer_type: string
+          purchase_id: string | null
+          shown_at: string
+          user_id: string
+        }
+        Insert: {
+          day_key: string
+          dismissed_at?: string | null
+          id?: string
+          offer_type: string
+          purchase_id?: string | null
+          shown_at?: string
+          user_id: string
+        }
+        Update: {
+          day_key?: string
+          dismissed_at?: string | null
+          id?: string
+          offer_type?: string
+          purchase_id?: string | null
+          shown_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_offer_popup_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premium_offer_settings: {
+        Row: {
+          id: boolean
+          reset_timezone: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          reset_timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          reset_timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       processed_ton_transactions: {
         Row: {
@@ -12457,6 +12573,7 @@ export type Database = {
           boost_percent: number
           dragon_daily_myth: number
           enabled: boolean
+          ends_at: string | null
           fragments: number
           hero_daily_myth: number
           id: boolean
@@ -12470,6 +12587,7 @@ export type Database = {
           price_ton: number
           reward_configuration_version: number
           sales_paused: boolean
+          start_at: string
           updated_at: string
           weapons_per_purchase: number
         }
@@ -12477,6 +12595,7 @@ export type Database = {
           boost_percent?: number
           dragon_daily_myth?: number
           enabled?: boolean
+          ends_at?: string | null
           fragments?: number
           hero_daily_myth?: number
           id?: boolean
@@ -12490,6 +12609,7 @@ export type Database = {
           price_ton?: number
           reward_configuration_version?: number
           sales_paused?: boolean
+          start_at?: string
           updated_at?: string
           weapons_per_purchase?: number
         }
@@ -12497,6 +12617,7 @@ export type Database = {
           boost_percent?: number
           dragon_daily_myth?: number
           enabled?: boolean
+          ends_at?: string | null
           fragments?: number
           hero_daily_myth?: number
           id?: boolean
@@ -12510,6 +12631,7 @@ export type Database = {
           price_ton?: number
           reward_configuration_version?: number
           sales_paused?: boolean
+          start_at?: string
           updated_at?: string
           weapons_per_purchase?: number
         }
@@ -13916,6 +14038,19 @@ export type Database = {
         Returns: Json
       }
       admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_premium_offers_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_premium_offers_set: {
+        Args: {
+          p_admin_id: number
+          p_field: string
+          p_offer: string
+          p_value: string
+        }
+        Returns: Json
+      }
       admin_pvp_league_activate: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_cancel: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_configure: {
@@ -15506,20 +15641,29 @@ export type Database = {
           badge_enabled: boolean
           eligibility_days: number
           enabled: boolean
+          ends_at: string | null
           equipment_chest_code: string
           fragments: number
           frame_enabled: boolean
+          hero_daily_myth: number
           hero_key: string
           id: boolean
+          legendary_chests: number
           myth_amount: number
           pack_version: number
           pass_tier: string
+          pet_daily_myth: number
           pet_slug: string
+          popup_enabled: boolean
+          popup_frequency: string
           price_ton: number
+          require_new_account: boolean
           resource_chest: Json
           resource_chest_code: string
           signup_from: string
+          start_at: string
           updated_at: string
+          weapon_code: string | null
         }
         SetofOptions: {
           from: "*"
@@ -16495,6 +16639,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      premium_offer_day_key: { Args: never; Returns: string }
+      premium_offer_popup_mark: {
+        Args: {
+          p_dismissed?: boolean
+          p_offer_type: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      premium_offer_timezone: { Args: never; Returns: string }
+      premium_offers_state: { Args: { p_telegram_id: number }; Returns: Json }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
@@ -17081,6 +17236,7 @@ export type Database = {
           boost_percent: number
           dragon_daily_myth: number
           enabled: boolean
+          ends_at: string | null
           fragments: number
           hero_daily_myth: number
           id: boolean
@@ -17094,6 +17250,7 @@ export type Database = {
           price_ton: number
           reward_configuration_version: number
           sales_paused: boolean
+          start_at: string
           updated_at: string
           weapons_per_purchase: number
         }
