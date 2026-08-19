@@ -11,8 +11,8 @@ const RARITY_SORT: Record<string, number> = { common: 100, uncommon: 200, rare: 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   const token = req.headers.get('x-seed-token') ?? '';
-  const expected = Deno.env.get('TELEGRAM_GAME_BOT_TOKEN') ?? '';
-  if (!expected || token !== expected) {
+  const allowed = [Deno.env.get('TELEGRAM_GAME_BOT_TOKEN'), Deno.env.get('HERO_SEED_TOKEN')].filter((v): v is string => !!v);
+  if (allowed.length === 0 || !allowed.includes(token)) {
     return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
