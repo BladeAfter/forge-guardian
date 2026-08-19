@@ -8020,6 +8020,8 @@ export type Database = {
           level: number
           locked: boolean
           market_locked: boolean
+          mining_daily_myth: number
+          mining_last_at: string | null
           source: string
           source_ref: string | null
           template_id: string
@@ -8033,6 +8035,8 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           source?: string
           source_ref?: string | null
           template_id: string
@@ -8046,6 +8050,8 @@ export type Database = {
           level?: number
           locked?: boolean
           market_locked?: boolean
+          mining_daily_myth?: number
+          mining_last_at?: string | null
           source?: string
           source_ref?: string | null
           template_id?: string
