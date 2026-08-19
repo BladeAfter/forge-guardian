@@ -217,7 +217,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                   >
                     {openChest.isPending ? t('inventory.opening') : t('inventory.open')}
                   </button>
-                ) : selected.itemType === 'egg' ? (
+                ) : selected.itemType === 'egg' || selected.itemType === 'pet_egg' || selected.category === 'eggs' ? (
                   <button
                     disabled={busy}
                     onClick={() => hatchEgg.mutate(selected)}

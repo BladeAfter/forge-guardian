@@ -3640,6 +3640,7 @@ export type Database = {
           drop_weight: number
           enabled: boolean
           featured: boolean
+          fixed_base_stats: boolean
           fusion_pool_enabled: boolean
           growth_multiplier: number
           hero_class: string
@@ -3685,6 +3686,7 @@ export type Database = {
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
+          fixed_base_stats?: boolean
           fusion_pool_enabled?: boolean
           growth_multiplier?: number
           hero_class?: string
@@ -3730,6 +3732,7 @@ export type Database = {
           drop_weight?: number
           enabled?: boolean
           featured?: boolean
+          fixed_base_stats?: boolean
           fusion_pool_enabled?: boolean
           growth_multiplier?: number
           hero_class?: string
