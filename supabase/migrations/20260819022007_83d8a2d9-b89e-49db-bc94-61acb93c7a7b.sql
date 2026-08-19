@@ -1,0 +1,13 @@
+REVOKE EXECUTE ON FUNCTION public.spending_event_rules() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_source_enabled(text) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_currency_rate(text) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_event_recount_user(uuid, uuid) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.record_spending_points(uuid, text, text, text, numeric) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.record_spending_reversal(text) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_event_refresh_ticker(uuid) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_spending_event_ranking(uuid, integer, integer) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_spending_event_dashboard(bigint, integer) FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_track_payment() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_track_wallet_ledger() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_track_market_transaction() FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.spending_track_auction() FROM anon, authenticated;

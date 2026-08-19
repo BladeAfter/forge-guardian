@@ -2294,6 +2294,8 @@ const PROMPTS: Record<string, string> = {
   spname: '💰 Envie o <b>nome</b> do novo evento de gastos.\nEx.: <code>SPENDING EVENT</code>',
   spdays: '📅 Envie a <b>duração em dias</b> (1 a 90).\nEx.: <code>7</code>',
   spreward: '🎁 Envie a recompensa no formato <code>posição|texto</code> ou <code>de-até|texto</code>.\nEx.: <code>1|Ancestral Egg + Exclusive Hero</code>\nEx.: <code>11-12|Rare Chest + 20 Universal Fragments</code>',
+  spratet: '💎 Envie quantos <b>pontos por 1 TON</b>.\nEx.: <code>100000</code>',
+  spratef: '🪙 Envie quantos <b>pontos por 1 FC gasto</b>.\nEx.: <code>1</code>',
   mksearch: '🔍 Envie o nome do item ou o <b>ID do anúncio</b>.',
   mkuser: '👤 Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os anúncios do jogador.',
   mkfee: '💸 Envie a nova taxa do mercado em % (0 a 50).\nEx.: <code>5</code> ou <code>3</code>',
@@ -5165,7 +5167,7 @@ async function spendHub(ctx: Ctx, editing = true) {
     [{ t: '▶️ START EVENT', d: 'sp:start' }, { t: '⏹ END EVENT', d: 'sp:end' }],
     [{ t: '📅 DURATION', d: 'sp:dur' }, { t: '🎁 REWARDS', d: 'sp:rw' }],
     [{ t: '🏆 VIEW RANKING', d: 'sp:rank' }, { t: '✅ VALID SPEND TYPES', d: 'sp:types' }],
-    [{ t: '📣 ENTRY POPUP', d: 'sp:popup' }],
+    [{ t: '📣 ENTRY POPUP', d: 'sp:popup' }, { t: '⚖️ POINT RULES', d: 'sp:rules' }],
     [{ t: '🔒 FINALIZE', d: 'sp:fin' }, { t: '📜 AUDIT', d: 'sp:audit' }],
     nav(),
   ];
@@ -5224,6 +5226,42 @@ async function spendAudit(ctx: Ctx) {
     kb([[{ t: '🔄 ATUALIZAR', d: 'sp:audit' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
 }
 
+// POINT RULES — live scoring configuration (no deploy). Only rates and per-source switches.
+const SPEND_SOURCES: [string, string][] = [
+  ['ton_direct_deposit', 'TON DIRECT DEPOSIT'],
+  ['ton_to_fc', 'TON → FC'],
+  ['myth_sale', 'MYTH SALE'],
+  ['season_pass', 'SEASON PASS'],
+  ['packs', 'PACKS (FOUNDER / VETERAN / EGGS)'],
+  ['nft_shop', 'NFT SHOP'],
+  ['marketplace', 'MARKETPLACE'],
+  ['auction', 'AUCTION'],
+  ['fc_spend', 'FC SPENDING'],
+  ['other_ton', 'OTHER TON SPENDING'],
+];
+
+async function spendRulesMenu(ctx: Ctx) {
+  const r = await rpc('admin_spending_event_rules', { p_admin_id: ctx.adminId }) as any;
+  const rules = r?.rules || {};
+  const sources = rules.sources || {};
+  const body = ['⚖️ <b>SPENDING EVENT — POINT RULES</b>', '',
+    `💎 1 TON = <b>${spPoints(rules.ton_points ?? 100000)}</b> pontos`,
+    `🪙 1 FC gasto = <b>${spPoints(rules.fc_points ?? 1)}</b> ponto(s)`,
+    '',
+    `📚 Registros no ledger: <b>${spPoints(r?.entries)}</b>`,
+    `👥 Jogadores pontuados: <b>${spPoints(r?.scored_players)}</b>`,
+    '',
+    'Fontes ativas (toque para ligar/desligar):',
+    ...SPEND_SOURCES.map(([k, label]) => `${sources[k] === false ? '⛔' : '✅'} ${label}`),
+  ].join('\n');
+  const rows = [
+    [{ t: '💎 PONTOS POR TON', d: 'sp:ask:spratet' }, { t: '🪙 PONTOS POR FC', d: 'sp:ask:spratef' }],
+    ...SPEND_SOURCES.map(([k, label]) => [{ t: `${sources[k] === false ? '⛔' : '✅'} ${label}`, d: `sp:src:${k}` }]),
+    [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav(),
+  ];
+  return edit(ctx, body, kb(rows));
+}
+
 const SPEND_TYPES_TEXT = [
   '✅ <b>CONTA COMO GASTO</b>',
   '• Recrutamento e fusão de heróis',
@@ -5254,6 +5292,10 @@ async function spendCallback(ctx: Ctx, rest: string[]) {
     case 'audit': return spendAudit(ctx);
     case 'types': return edit(ctx, SPEND_TYPES_TEXT, kb([[{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
     case 'popup': return spendPopupMenu(ctx);
+    case 'rules': return spendRulesMenu(ctx);
+    case 'src':
+      await rpc('admin_spending_event_toggle_source', { p_admin_id: ctx.adminId, p_source: a });
+      return spendRulesMenu(ctx);
     case 'popset':
       await rpc('admin_spending_event_popup_config', { p_admin_id: ctx.adminId, p_enabled: a === 'on' });
       return spendPopupMenu(ctx);
@@ -5311,6 +5353,16 @@ async function spendPrompt(ctx: Ctx, key: string, text: string) {
     await clearSession(ctx);
     await send(ctx, `✅ <b>EVENTO CRIADO</b>\n${esc(d?.event?.name || name)} · ${Math.round(days)} dias\nTodos começam com 0 pontos.`);
     return spendHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === 'spratet' || key === 'spratef') {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0 || value > 100_000_000) throw new Error('KEEP_SESSION::⚠️ Envie um número válido (0 a 100.000.000).');
+    await rpc('admin_spending_event_set_rate', {
+      p_admin_id: ctx.adminId, p_currency: key === 'spratet' ? 'TON' : 'FC', p_value: value,
+    });
+    await clearSession(ctx);
+    await send(ctx, `✅ Nova regra salva: 1 ${key === 'spratet' ? 'TON' : 'FC'} = <b>${spPoints(value)}</b> pontos.`);
+    return spendRulesMenu({ ...ctx, messageId: undefined });
   }
   if (key === 'spreward') {
     const [slot, ...labelParts] = text.split('|');
@@ -6380,7 +6432,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
-  if (key.startsWith('sp') && ['spname', 'spdays', 'spreward'].includes(key)) return spendPrompt(ctx, key, text);
+  if (key.startsWith('sp') && ['spname', 'spdays', 'spreward', 'spratet', 'spratef'].includes(key)) return spendPrompt(ctx, key, text);
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);

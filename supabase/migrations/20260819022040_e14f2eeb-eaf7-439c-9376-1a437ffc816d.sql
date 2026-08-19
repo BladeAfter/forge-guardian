@@ -1,0 +1,12 @@
+REVOKE ALL ON FUNCTION public.spending_event_rules() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_source_enabled(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_currency_rate(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_event_recount_user(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_track_payment() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_track_wallet_ledger() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_track_market_transaction() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.spending_track_auction() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.spending_event_rules() TO service_role;
+GRANT EXECUTE ON FUNCTION public.spending_source_enabled(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.spending_currency_rate(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.spending_event_recount_user(uuid, uuid) TO service_role;
