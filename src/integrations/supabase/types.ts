@@ -3047,6 +3047,7 @@ export type Database = {
           market_restricted_until: string | null
           market_trust: string
           name: string | null
+          premium_title: string | null
           premium_until: string | null
           pvp_banned: boolean
           pvp_losses: number
@@ -3093,6 +3094,7 @@ export type Database = {
           market_restricted_until?: string | null
           market_trust?: string
           name?: string | null
+          premium_title?: string | null
           premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
@@ -3139,6 +3141,7 @@ export type Database = {
           market_restricted_until?: string | null
           market_trust?: string
           name?: string | null
+          premium_title?: string | null
           premium_until?: string | null
           pvp_banned?: boolean
           pvp_losses?: number
@@ -13932,6 +13935,10 @@ export type Database = {
         Args: { p_admin_id: number; p_percent: number }
         Returns: Json
       }
+      admin_set_premium_title: {
+        Args: { p_admin_id: number; p_telegram_id: number; p_title: string }
+        Returns: Json
+      }
       admin_set_pvp_ticket_pack: {
         Args: { p_admin_id: number; p_price_fc: number; p_quantity: number }
         Returns: Json
@@ -15558,6 +15565,7 @@ export type Database = {
         Returns: Json
       }
       leave_clan: { Args: { p_telegram_id: number }; Returns: Json }
+      list_premium_titles: { Args: never; Returns: Json }
       log_pet_transaction: {
         Args: {
           p_after: number

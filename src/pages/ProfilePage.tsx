@@ -6,6 +6,7 @@ import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import type { GameState } from '../types';
 import { useT } from '../LanguageContext';
+import{PlayerTag}from'../premiumTitles';
 
 type ProfilePageProps = {
   game: GameState;
@@ -136,7 +137,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
             : <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-amber-400/60 bg-[#0b1120] text-sm font-black text-amber-200">{getInitials(name)}</div>}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-black leading-tight text-white">{name}</p>
-            <p className="truncate text-[11px] font-semibold text-sky-300">{profile?.username ? `@${profile.username}` : t('profile.noUsername')}</p>
+            <p className="truncate text-[11px] font-semibold text-sky-300"><PlayerTag telegramId={profile?.telegramId} username={profile?.username} fallback={t('profile.noUsername')}/></p>
             <div className="mt-1 flex items-center gap-1.5">
               <span className="truncate text-[10px] text-slate-400">ID: {profile?.telegramId ?? '--'}</span>
               <button

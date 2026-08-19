@@ -6,7 +6,9 @@ import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
 
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
+import { usePremiumTitles, resolvePremiumTitle } from '../premiumTitles';
 import { useT } from '../LanguageContext';
+
 
 /** Exclusive cosmetic frames unlocked by rewards (MYTH SALE milestone at 100k). */
 const AVATAR_BORDERS: Record<string, string> = { myth_sale_exclusive: avatarBorderMyth.url };
@@ -49,6 +51,10 @@ export function PlayerIdentity({
   onRetry?: () => void;
 }) {
   const t = useT();
+  const titles = usePremiumTitles();
+  const title = profile
+    ? profile.premiumTitle || resolvePremiumTitle(titles, { telegramId: profile.telegramId, username: profile.username })
+    : null;
   return (
     <div className="player-identity">
       {loading && !profile ? <div className="player-avatar animate-pulse rounded-full bg-white/10" /> : <PlayerAvatar profile={profile} />}
@@ -56,9 +62,10 @@ export function PlayerIdentity({
         {profile ? (
           <>
             <p className="player-name font-black text-white">{getDisplayName(profile)}</p>
-            <p className="player-username truncate text-[10px] leading-tight text-sky-300">
-              {profile.username ? `@${profile.username}` : t('profile.noUsername')}
+            <p className={`player-username truncate text-[10px] leading-tight ${title ? 'premium-title' : 'text-sky-300'}`}>
+              {title ? `👑 ${title}` : profile.username ? `@${profile.username}` : t('profile.noUsername')}
             </p>
+
             <p className="player-tgid truncate text-[9px] leading-tight text-slate-400">ID: {profile.telegramId}</p>
           </>
         ) : (
