@@ -7,6 +7,10 @@ import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../play
 import type { GameState } from '../types';
 import { useT } from '../LanguageContext';
 import{PlayerTag}from'../premiumTitles';
+import { AvatarWithBorder } from '../components/AvatarWithBorder';
+
+/** Reward icons come from mixed sources: only real URLs can be rendered as images. */
+const isImageUrl = (value?: string | null) => Boolean(value && (/^https?:\/\//.test(value) || value.startsWith('/') || value.startsWith('data:')));
 
 type ProfilePageProps = {
   game: GameState;
@@ -63,8 +67,8 @@ function RewardRow({ item }: { item: RewardHistoryItem }) {
   return (
     <li className="flex items-center gap-2.5 rounded-2xl border border-amber-300/10 bg-black/35 px-2.5 py-2">
       <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-300/20 bg-[#0b1120]">
-        {item.image_url
-          ? <img src={item.image_url} alt={item.reward_name} loading="lazy" className="h-full w-full object-cover" />
+        {isImageUrl(item.image_url)
+          ? <img src={item.image_url as string} alt={item.reward_name} loading="lazy" className="h-full w-full object-cover" />
           : <Gift className="h-4 w-4 text-amber-300" />}
       </div>
       <div className="min-w-0 flex-1">
@@ -132,9 +136,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       <div className="relative overflow-hidden rounded-3xl border border-amber-300/25 bg-[#080d17]/90 p-3 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
         <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="relative flex items-center gap-3">
-          {profile?.photoUrl
-            ? <img src={profile.photoUrl} alt={name} className="h-14 w-14 shrink-0 rounded-full border-2 border-amber-400/60 object-cover" />
-            : <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-amber-400/60 bg-[#0b1120] text-sm font-black text-amber-200">{getInitials(name)}</div>}
+          <AvatarWithBorder photoUrl={profile?.photoUrl} border={profile?.avatarBorder} fallback={getInitials(name)} size={profile?.avatarBorder ? 78 : 56} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-black leading-tight text-white">{name}</p>
             <p className="truncate text-[11px] font-semibold text-sky-300"><PlayerTag telegramId={profile?.telegramId} username={profile?.username} fallback={t('profile.noUsername')}/></p>
