@@ -3,6 +3,7 @@ import { BookOpen, Clock3, Shield, Swords, Trophy, Users } from 'lucide-react';
 import { useT } from '../LanguageContext';
 import { formatTon } from '../economy';
 import { leagueCountdown, leagueMedal, type PvpLeagueDashboard } from '../pvpLeague';
+import { PlayerTag } from '../premiumTitles';
 
 const ton = (value: number) => `${formatTon(value)} TON`;
 /** Estimates are projections: at most 3 decimals, trailing zeros trimmed. */
@@ -102,7 +103,7 @@ export function PvpLeagueArenaPanel({ data }: { data: PvpLeagueDashboard }) {
           >
             <b className="text-amber-300">{leagueMedal(r.position) || `#${r.position}`}</b>
             <div className="min-w-0">
-              <b className="block truncate text-xs">{r.username ? `@${r.username}` : r.name}</b>
+              <b className="block truncate text-xs"><PlayerTag username={r.username} fallback={r.name}/></b>
               <p className="text-[9px] text-slate-400">
                 {r.score.toLocaleString()} {t('league.points')} · {r.wins}W
               </p>

@@ -4,6 +4,7 @@ import { useSpendingEvent } from '../hooks';
 import { formatTon } from '../economy';
 import { abbreviatePoints, countdownLabel, fullPoints, rankMedal, rankTone, spendingCountdown } from '../spendingEvent';
 import type { SpendingRankRow } from '../spendingEvent';
+import { PlayerTag } from '../premiumTitles';
 
 /**
  * MYTHREON SPENDING EVENT — competitive 14-day spending leaderboard.
@@ -227,7 +228,7 @@ function RankRow({ row, me }: { row: SpendingRankRow; me: boolean }) {
         ? <img src={row.avatarUrl} alt={row.name} loading="lazy" className="h-8 w-8 shrink-0 rounded-full border border-white/10 object-cover" />
         : <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-[10px] font-black text-slate-300">{row.name.slice(0, 1).toUpperCase()}</div>}
       <div className="min-w-0 flex-1">
-        <b className={`block truncate text-[11px] font-black ${me ? 'text-emerald-100' : 'text-slate-100'}`}>{me ? 'YOU' : row.username ? `@${row.username}` : row.name}</b>
+        <b className={`block truncate text-[11px] font-black ${me ? 'text-emerald-100' : 'text-slate-100'}`}>{me ? 'YOU' : null}{me ? null : <PlayerTag userId={row.userId} username={row.username} fallback={row.name}/>}</b>
         <p className="truncate text-[9px] text-slate-400">{formatTon(row.tonSpent)} TON · {abbreviatePoints(row.fcSpent)} FC</p>
       </div>
       <b className="shrink-0 text-[12px] font-black text-amber-100">{abbreviatePoints(row.points)} pts</b>

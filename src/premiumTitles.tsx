@@ -60,3 +60,25 @@ export function PlayerHandle({
   if (username) return <span className={className}>@{username}</span>;
   return <span className={className}>{fallback ?? ''}</span>;
 }
+
+/** Self-contained tag: fetches the (cached) title map itself so any ranking row can use it. */
+export function PlayerTag({
+  userId,
+  telegramId,
+  username,
+  fallback,
+  className = ''
+}: {
+  userId?: string | null;
+  telegramId?: string | null;
+  username?: string | null;
+  fallback?: string | null;
+  className?: string;
+}) {
+  const titles = usePremiumTitles();
+  const title = resolvePremiumTitle(titles, { userId, telegramId, username });
+  if (title) return <p className={`premium-title truncate ${className}`.trim()}>👑 {title}</p>;
+  if (username) return <p className={`truncate ${className}`.trim()}>@{username}</p>;
+  if (fallback) return <p className={`truncate ${className}`.trim()}>{fallback}</p>;
+  return null;
+}

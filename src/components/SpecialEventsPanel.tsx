@@ -4,6 +4,7 @@ import championshipTrophy from '../assets/referral-championship-trophy.png';
 import { useSpecialEvents } from '../hooks';
 import { describeDistribution, eventCountdown, formatEventTon } from '../specialEvents';
 import { useT, useLanguage } from '../LanguageContext';
+import { PlayerTag } from '../premiumTitles';
 
 /**
  * EVENTS tab of the Community Pool. Fully independent from the weekly pool:
@@ -173,7 +174,7 @@ export function SpecialEventsPanel({ telegramInitData, onInvite }: { telegramIni
                     {row.position === 1 ? '🥇' : row.position === 2 ? '🥈' : row.position === 3 ? '🥉' : `#${row.position}`}
                   </b>
                   <div className="min-w-0">
-                    <b className="block truncate text-xs">{row.username ? `@${row.username}` : row.name}</b>
+                    <b className="block truncate text-xs"><PlayerTag username={row.username} fallback={row.name}/></b>
                     <p className="text-[9px] text-slate-400">{row.validReferrals.toLocaleString()} {t('events.validInvitesShort')}</p>
                   </div>
                   <b className="text-[10px] text-cyan-300">{formatEventTon(row.estimatedRewardTon)}</b>

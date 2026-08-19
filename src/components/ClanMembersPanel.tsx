@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Crown, Shield, Swords, Trophy, Users, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
 import { activityAge, type ClanAdminStats, type ClanJoinRequest, type ClanMember, type ClanRole } from '../clans';
+import { PlayerTag } from '../premiumTitles';
 
 /**
  * Leader tools for the MEMBERS / REQUESTS tabs.
@@ -83,7 +84,7 @@ export function ClanRequestCard({ request, busy, onAccept, onReject }: {
           ? <img src={request.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
           : <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-[10px]">{request.name.slice(0, 2)}</span>}
         <div className="min-w-0 flex-1">
-          <b className="block truncate text-xs text-amber-100">{request.username ? `@${request.username}` : request.name}</b>
+          <b className="block truncate text-xs text-amber-100"><PlayerTag username={request.username} fallback={request.name}/></b>
           <span className="text-[9px] text-slate-400">Lv. {request.accountLevel ?? 1}</span>
         </div>
         <Activity lastActive={request.lastActive} online={request.online} />
@@ -181,7 +182,7 @@ export function ClanMembersList({ members, stats, canManage, myRole, busy, onAct
               ? <img src={member.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
               : <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[10px]">{member.name.slice(0, 2)}</span>}
             <div className="min-w-0 flex-1">
-              <b className="block truncate text-xs">{member.role === 'leader' ? '👑 ' : ''}{member.username ? `@${member.username}` : member.name}</b>
+              <b className="block truncate text-xs">{member.role === 'leader' ? '👑 ' : ''}<PlayerTag username={member.username} fallback={member.name}/></b>
               <span className="text-[9px] font-black uppercase tracking-[.12em] text-amber-300">{t(`clan.role.${member.role}`)}</span>
             </div>
             <div className="text-right">
@@ -204,7 +205,7 @@ export function ClanMembersList({ members, stats, canManage, myRole, busy, onAct
                 ? <img src={detail.avatar} alt="" className="h-11 w-11 rounded-full object-cover" />
                 : <span className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-xs">{detail.name.slice(0, 2)}</span>}
               <div className="min-w-0">
-                <b className="block truncate text-sm text-amber-100">{detail.username ? `@${detail.username}` : detail.name}</b>
+                <b className="block truncate text-sm text-amber-100"><PlayerTag username={detail.username} fallback={detail.name}/></b>
                 <span className="text-[9px] text-slate-400">{t(`clan.role.${detail.role}`)} · Lv. {detail.accountLevel ?? 1}</span>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { abbreviateDamage, countdownLabel, setClanBossAutoAttack, strikeClanBoss
 import { clanBossArt, clanBossTheme, DEFAULT_CLAN_BOSS_THEME } from '../clanBossThemes';
 import { ClanCrest } from './ClanHall';
 import { FloatingDamage, NextAttackBar, TurnIndicator, useCombatFx, useEasedPercent, type CombatEvent } from './ClanBossCombatFx';
+import { PlayerTag } from '../premiumTitles';
 
 
 
@@ -348,7 +349,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
               <div key={row.userId} className={`flex items-center gap-2 rounded-xl border p-2 ${row.isMe ? 'border-amber-300/50 bg-amber-400/10' : 'border-white/10 bg-black/55'}`}>
                 <b className="w-8 text-center text-[10px] text-amber-300">{['🥇', '🥈', '🥉'][index] ?? `#${index + 1}`}</b>
                 {row.avatar ? <img src={row.avatar} alt="" loading="lazy" className="h-6 w-6 rounded-full object-cover" /> : <div className="h-6 w-6 rounded-full bg-violet-500/30" />}
-                <span className="min-w-0 flex-1 truncate text-[10px] text-white">{row.username ? `@${row.username}` : row.name}</span>
+                <span className="min-w-0 flex-1 truncate text-[10px] text-white"><PlayerTag username={row.username} fallback={row.name}/></span>
                 <b className="text-[10px] text-rose-300">{abbreviateDamage(row.damage)}</b>
               </div>
             ))}
