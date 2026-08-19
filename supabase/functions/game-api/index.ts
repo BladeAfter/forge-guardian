@@ -1239,6 +1239,13 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'veteran-vault-claim') {
     fn = 'veteran_vault_claim';
     args = { ...args, p_idempotency_key: `veteran-claim:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  // ---------------- ⚔️ VETERAN VAULT V2 (100 TON premium pack, MYTH-only mining + owner boost) ----------------
+  } else if (action === 'veteran-v2') {
+    fn = 'veteran_v2_state';
+  } else if (action === 'veteran-v2-buy') {
+    fn = 'veteran_v2_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `veteranv2:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+
   } else if (action === 'founder-frame') {
     fn = 'founder_frame_set';
     args = { ...args, p_equipped: Boolean(body.equipped) };
