@@ -19,11 +19,16 @@ import founderArt from '../assets/founder-pack.jpg';
  * 2. TonConnect otherwise, charging the full price there — balances are never mixed.
  * Rewards are granted atomically inside the database; nothing is credited from here.
  */
-export function FounderPackCard({ telegramInitData }: { telegramInitData: string }) {
+export function FounderPackCard({ telegramInitData, popupMode = false, onPopupClose }: {
+  telegramInitData: string;
+  /** Popup mode: rendered by the daily premium-offer queue — no trigger card, opens immediately. */
+  popupMode?: boolean;
+  onPopupClose?: () => void;
+}) {
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
   const { data: state } = useFounderPack(telegramInitData, Boolean(telegramInitData));
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(popupMode);
   const [tick, setTick] = useState(0);
 
   useEffect(() => { const id = window.setInterval(() => setTick(v => v + 1), 1000); return () => window.clearInterval(id); }, []);
@@ -79,16 +84,19 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
   // A pending TonConnect intent means the wallet was already opened: settle it as soon as we mount.
   useEffect(() => { if (state?.pendingOrder) void reconcile(); }, [state?.pendingOrder?.orderId]);
 
-  if (!state?.show) return null;
+  const close = () => { setOpen(false); onPopupClose?.(); };
+
+  if (!state?.show) { if (popupMode) onPopupClose?.(); return null; }
 
   const countdown = founderCountdown(state.eligibleUntil, Date.now() + tick * 0);
   const payWithInternal = state.availableTon >= state.priceTon;
   const rewards = [
     { icon: '🎟️', label: 'Season Pass Premium', detail: state.passTier === 'legendary' ? 'Tier Legendary' : 'Tier Adventurer' },
     { icon: '🪙', label: `${state.mythAmount.toLocaleString('pt-BR')} MYTH`, detail: 'Creditado na carteira' },
-    { icon: '⚔️', label: 'Herói EXCLUSIVE', detail: 'Mineração ativa' },
-    { icon: '🥚', label: 'Pet Mítico', detail: 'Entrega imediata' },
-    { icon: '🗝️', label: 'Baú Lendário', detail: 'Equipamento lendário' },
+    { icon: '⚔️', label: 'Herói Founder EXCLUSIVE', detail: `MYTH MINING · ${Math.round(state.heroDailyMyth ?? 0).toLocaleString('pt-BR')} MYTH/dia` },
+    { icon: '🐾', label: 'Pet Founder EXCLUSIVE', detail: `MYTH MINING · ${Math.round(state.petDailyMyth ?? 0).toLocaleString('pt-BR')} MYTH/dia` },
+    { icon: '🗡️', label: 'Arma Founder EXCLUSIVE', detail: 'Equipamento exclusivo 1/1' },
+    { icon: '🗝️', label: `${state.legendaryChests ?? 1} Baús Lendários`, detail: 'Equipamentos lendários' },
     { icon: '💎', label: `${state.fragments} Fragmentos`, detail: 'Universais' },
     { icon: '📦', label: 'Baú Premium', detail: 'FC · tickets · fragmentos' },
     { icon: '👑', label: 'Badge de Fundador', detail: 'Perfil permanente' },
@@ -97,6 +105,7 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
 
   return (
     <>
+      {popupMode ? null : (
       <button
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 text-left shadow-card"
@@ -108,7 +117,9 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
               <Crown className="h-3 w-3" /> Founder Pack
             </p>
             <h3 className="mt-1 truncate text-base font-semibold text-white">Pacote de Fundador</h3>
-            <p className="text-[11px] text-slate-300">Somente contas novas · encerra em {countdown}</p>
+            <p className="text-[11px] text-slate-300">
+              {state.requireNewAccount ? 'Somente contas novas' : 'Disponível para todos'} · {countdown === '--' ? 'oferta ativa' : `encerra em ${countdown}`}
+            </p>
           </div>
           <div className="shrink-0 rounded-2xl bg-amber-400/20 px-3 py-2 text-center">
             <p className="text-sm font-bold text-amber-200">{formatTon(state.priceTon)} TON</p>
@@ -116,6 +127,7 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
           </div>
         </div>
       </button>
+      )}
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-3 sm:items-center">
@@ -127,7 +139,7 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
                 </p>
                 <h3 className="text-lg font-semibold text-white">Mythreon Founder Pack</h3>
               </div>
-              <button onClick={() => setOpen(false)} className="rounded-full bg-white/5 p-2 text-slate-300" aria-label="Fechar">
+              <button onClick={close} className="rounded-full bg-white/5 p-2 text-slate-300" aria-label="Fechar">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -148,7 +160,13 @@ export function FounderPackCard({ telegramInitData }: { telegramInitData: string
 
             <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-[11px] text-slate-300">
               <p className="flex items-center gap-1 text-slate-200"><ShieldCheck className="h-3 w-3 text-emerald-300" /> Uma compra por conta · entrega automática</p>
-              <p className="mt-1">Janela de elegibilidade: {state.eligibilityDays} dias · encerra em {countdown}</p>
+              <p className="mt-1">
+                {state.requireNewAccount
+                  ? `Janela de contas novas: ${state.eligibilityDays} dias`
+                  : 'Disponível para todos os jogadores'}
+                {countdown === '--' ? '' : ` · encerra em ${countdown}`}
+              </p>
+              <p className="mt-1 text-amber-200">Herói, pet e arma Founder mineram MYTH (sem TON mining) e não recebem o bônus do Veteran Vault.</p>
               <p className="mt-1 flex items-center gap-1"><Wallet className="h-3 w-3 text-sky-300" /> Saldo interno: {formatTon(state.availableTon)} TON</p>
               {state.testMode ? <p className="mt-1 text-amber-300">Modo administrador: visível para testes.</p> : null}
             </div>
