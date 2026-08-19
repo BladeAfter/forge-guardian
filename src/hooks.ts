@@ -18,6 +18,7 @@ import type { TelegramPlayerProfile } from './playerProfile';
 import type { FounderPackState } from './founderPack';
 import type { VeteranVaultState } from './veteranVault';
 import type { VeteranV2State } from './veteranVaultV2';
+import type { PremiumOffersState } from './premiumOffers';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
 import type{CommunityPoolDashboard}from'./communityPool';
