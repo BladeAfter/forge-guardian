@@ -100,9 +100,9 @@ export type AuctionMine = {
   settings: AuctionSettings;
 };
 
-/** Heróis Lendary+ e qualquer NFT Exclusive são AUCTION ONLY (espelho da regra do backend). */
+/** Heróis Mythic+ e qualquer NFT Exclusive são AUCTION ONLY (espelho da regra do backend). Lendários são livres no mercado. */
 export const AUCTION_ONLY_RARITIES = ['nft_exclusive', 'divine', 'celestial'];
-export const AUCTION_ONLY_HERO_RARITIES = ['legendary', 'mythic', 'ancestral'];
+export const AUCTION_ONLY_HERO_RARITIES = ['mythic', 'ancestral'];
 export const isAuctionOnlyItem = (itemType: string, rarity?: string | null) => {
   const rar = String(rarity ?? '').toLowerCase();
   return AUCTION_ONLY_RARITIES.includes(rar)
