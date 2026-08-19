@@ -5226,6 +5226,42 @@ async function spendAudit(ctx: Ctx) {
     kb([[{ t: '🔄 ATUALIZAR', d: 'sp:audit' }], [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav()]));
 }
 
+// POINT RULES — live scoring configuration (no deploy). Only rates and per-source switches.
+const SPEND_SOURCES: [string, string][] = [
+  ['ton_direct_deposit', 'TON DIRECT DEPOSIT'],
+  ['ton_to_fc', 'TON → FC'],
+  ['myth_sale', 'MYTH SALE'],
+  ['season_pass', 'SEASON PASS'],
+  ['packs', 'PACKS (FOUNDER / VETERAN / EGGS)'],
+  ['nft_shop', 'NFT SHOP'],
+  ['marketplace', 'MARKETPLACE'],
+  ['auction', 'AUCTION'],
+  ['fc_spend', 'FC SPENDING'],
+  ['other_ton', 'OTHER TON SPENDING'],
+];
+
+async function spendRulesMenu(ctx: Ctx) {
+  const r = await rpc('admin_spending_event_rules', { p_admin_id: ctx.adminId }) as any;
+  const rules = r?.rules || {};
+  const sources = rules.sources || {};
+  const body = ['⚖️ <b>SPENDING EVENT — POINT RULES</b>', '',
+    `💎 1 TON = <b>${spPoints(rules.ton_points ?? 100000)}</b> pontos`,
+    `🪙 1 FC gasto = <b>${spPoints(rules.fc_points ?? 1)}</b> ponto(s)`,
+    '',
+    `📚 Registros no ledger: <b>${spPoints(r?.entries)}</b>`,
+    `👥 Jogadores pontuados: <b>${spPoints(r?.scored_players)}</b>`,
+    '',
+    'Fontes ativas (toque para ligar/desligar):',
+    ...SPEND_SOURCES.map(([k, label]) => `${sources[k] === false ? '⛔' : '✅'} ${label}`),
+  ].join('\n');
+  const rows = [
+    [{ t: '💎 PONTOS POR TON', d: 'sp:ask:spratet' }, { t: '🪙 PONTOS POR FC', d: 'sp:ask:spratef' }],
+    ...SPEND_SOURCES.map(([k, label]) => [{ t: `${sources[k] === false ? '⛔' : '✅'} ${label}`, d: `sp:src:${k}` }]),
+    [{ t: '⬅️ SPENDING EVENT', d: 'sp:hub' }], nav(),
+  ];
+  return edit(ctx, body, kb(rows));
+}
+
 const SPEND_TYPES_TEXT = [
   '✅ <b>CONTA COMO GASTO</b>',
   '• Recrutamento e fusão de heróis',
