@@ -749,7 +749,7 @@ export async function verifyNftHeroPurchases(telegramInitData:string):Promise<Nf
  * weapon class, ownership, payment) is enforced server-side.
  */
 export type ArsenalItem={instanceId:string;code:string;name:string;slot:'weapon'|'armor'|'ring';kind:string|null;rarity:string|null;image:string|null;level:number;power:number;heroClass:string|null;bonusAttack:number;bonusDefense:number;bonusHp:number;listed:boolean;tradable:boolean;isNft:boolean;serial:number|null;instance:string|null;equippedHeroId:string|null;equippedHeroName:string|null};
-export type NftEquipShopItem={id:string;code:string;name:string;slot:'weapon'|'armor'|'ring';kind:string|null;rarity:string;image:string|null;power:number;serial:number;instance:string;supply:number;status:'AVAILABLE'|'SOLD_OUT';priceTon:number;heroClass:string|null;bonusAttack:number;bonusDefense:number;bonusHp:number;description:string|null;ownedByMe:boolean|null};
+export type NftEquipShopItem={id:string;code:string;name:string;slot:'weapon'|'armor'|'ring';kind:string|null;rarity:string;image:string|null;power:number;serial:number;instance:string;supply:number;status:'AVAILABLE'|'SOLD_OUT';priceTon:number;mythPerDay?:number|null;heroClass:string|null;bonusAttack:number;bonusDefense:number;bonusHp:number;description:string|null;ownedByMe:boolean|null};
 export type NftEquipShop={totalSupply:number;sold:number;available:number;balanceTon:number;items:NftEquipShopItem[]};
 
 export async function fetchArsenal(telegramInitData:string):Promise<{items:ArsenalItem[]}>{
