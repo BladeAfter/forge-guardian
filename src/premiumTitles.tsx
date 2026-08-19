@@ -11,9 +11,11 @@ export function usePremiumTitles() {
     queryKey: ['premium-titles'],
     staleTime: 5 * 60 * 1000,
     queryFn: async (): Promise<PremiumTitleMap> => {
+      if (!supabase) return {};
       const { data, error } = await supabase.rpc('list_premium_titles');
       if (error) throw error;
       const rows = (Array.isArray(data) ? data : []) as PremiumTitleEntry[];
+
       const map: PremiumTitleMap = {};
       for (const row of rows) {
         if (!row?.title) continue;
