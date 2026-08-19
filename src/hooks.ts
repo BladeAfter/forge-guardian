@@ -315,7 +315,9 @@ export const useMythSale=(telegramInitData:string|null,enabled:boolean)=>{
   const query=useQuery<MythSaleDashboard>({queryKey:['myth-sale',telegramInitData],queryFn:()=>fetchMythSale(telegramInitData??''),enabled,staleTime:10_000,refetchInterval:enabled?30_000:false,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});
   useEffect(()=>{
     if(!enabled)return;
-    const channel=supabase.channel('myth-sale-stats').on('postgres_changes',{event:'*',schema:'public',table:'myth_sale_public_stats'},()=>{void client.invalidateQueries({queryKey:['myth-sale']})}).subscribe();
+    // Unique channel name per mount: two components may read this hook at the same time
+    // (sale panel + milestone ladder) and a duplicated channel name breaks the subscription.
+    const channel=supabase.channel(`myth-sale-stats-${Math.random().toString(36).slice(2)}`).on('postgres_changes',{event:'*',schema:'public',table:'myth_sale_public_stats'},()=>{void client.invalidateQueries({queryKey:['myth-sale']})}).subscribe();
     return ()=>{void supabase.removeChannel(channel)};
   },[enabled,client]);
   return query;
