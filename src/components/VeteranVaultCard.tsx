@@ -78,7 +78,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
     mutationFn: () => claimVeteranVaultRewards(telegramInitData, crypto.randomUUID()),
     onSuccess: async result => {
       await refreshAll();
-      if (result.nothingToClaim) { toast.info('Nenhuma recompensa disponível agora.'); return; }
+      if (result.nothingToClaim) { toast('Nenhuma recompensa disponível agora.'); return; }
       const parts = [
         (result.tonClaimed ?? 0) > 0 ? `${formatTon(result.tonClaimed ?? 0)} TON` : null,
         (result.mythClaimed ?? 0) > 0 ? `${Math.round(result.mythClaimed ?? 0).toLocaleString('pt-BR')} MYTH` : null,
