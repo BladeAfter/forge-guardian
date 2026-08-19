@@ -10935,6 +10935,57 @@ export type Database = {
           },
         ]
       }
+      spending_event_scores: {
+        Row: {
+          event_id: string
+          fc_points: number
+          fc_spent: number
+          score_reached_at: string
+          ton_points: number
+          ton_spent: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          fc_points?: number
+          fc_spent?: number
+          score_reached_at?: string
+          ton_points?: number
+          ton_spent?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          fc_points?: number
+          fc_spent?: number
+          score_reached_at?: string
+          ton_points?: number
+          ton_spent?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spending_event_scores_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "spending_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spending_event_scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spending_event_ticker: {
         Row: {
           event_id: string
@@ -16375,10 +16426,15 @@ export type Database = {
         Args: { a: Json; b: Json; seed: string }
         Returns: Json
       }
+      spending_currency_rate: { Args: { p_currency: string }; Returns: number }
       spending_event_backfill_nft_purchases: { Args: never; Returns: Json }
       spending_event_pay_rewards: {
         Args: { p_event_id: string }
         Returns: Json
+      }
+      spending_event_recount_user: {
+        Args: { p_event_id: string; p_user_id: string }
+        Returns: undefined
       }
       spending_event_refresh_ticker: {
         Args: { p_event_id: string }
@@ -16386,6 +16442,15 @@ export type Database = {
       }
       spending_event_reward_label: {
         Args: { p_event_id: string; p_position: number }
+        Returns: string
+      }
+      spending_event_rules: { Args: never; Returns: Json }
+      spending_source_enabled: {
+        Args: { p_source_type: string }
+        Returns: boolean
+      }
+      spending_source_group: {
+        Args: { p_source_type: string }
         Returns: string
       }
       spending_ton_rate_fc: { Args: never; Returns: number }
