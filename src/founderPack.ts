@@ -24,12 +24,24 @@ export type FounderPackState = {
   priceTon: number;
   amountNano: string;
   eligibilityDays: number;
-  eligibleUntil: string;
+  eligibleUntil: string | null;
   accountCreatedAt: string;
   availableTon: number;
   mythAmount: number;
   fragments: number;
   passTier: string;
+  /** Popup diário controlado pelo servidor (Admin Bot). */
+  popupEnabled: boolean;
+  popupFrequency: string;
+  /** Quando falso, a oferta vale para todos os jogadores dentro da janela. */
+  requireNewAccount: boolean;
+  startAt: string | null;
+  endsAt: string | null;
+  /** MYTH MINING dos itens Founder (sem TON mining, sem bônus Veteran). */
+  heroDailyMyth: number;
+  petDailyMyth: number;
+  legendaryChests: number;
+  weaponCode: string | null;
   pendingOrder: FounderPackPendingOrder | null;
 };
 

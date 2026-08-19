@@ -103,6 +103,7 @@ const MAIN_MENU = kb([
   [{ t: '👑 FOUNDER PACK', d: 'fp:hub' }],
   [{ t: '⚔️ VETERAN VAULT', d: 'vv:hub' }],
   [{ t: '⚔️ VETERAN VAULT (PREMIUM)', d: 'v2:hub' }],
+  [{ t: '🎁 OFERTAS PREMIUM (POPUPS)', d: 'po:hub' }],
 
 
 
@@ -2224,6 +2225,19 @@ const PROMPTS: Record<string, string> = {
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
   vvprice: '⚔️ Envie o novo <b>preço</b> do Veteran Vault em TON. Ex.: <code>50</code>',
   v2price: '⚔️ Envie o <b>preço</b> do Veteran Vault em TON. Ex.: <code>100</code>',
+  pofprice: '💎 Envie o novo <b>preço do Founder Pack</b> em TON. Ex.: <code>35</code>',
+  pofmyth: '🪙 Envie a quantidade de <b>MYTH</b> entregue no Founder Pack. Ex.: <code>300000</code>',
+  pofheromyth: '⛏ Envie a mineração diária de <b>MYTH do herói Founder</b>. Ex.: <code>10000</code>',
+  pofpetmyth: '⛏ Envie a mineração diária de <b>MYTH do pet Founder</b>. Ex.: <code>5000</code>',
+  pofchests: '🗝 Envie a quantidade de <b>Baús Lendários</b> do Founder Pack. Ex.: <code>3</code>',
+  pofweapon: '🗡 Envie o <b>código da arma Founder</b>. Ex.: <code>founder-warblade</code>',
+  pofend: '📅 Envie a <b>data de término</b> da oferta Founder (ISO) ou <code>0</code> para sem prazo.',
+  pofpool: '⛏ Envie quanto <b>MYTH</b> adicionar ao fundo de mineração do Founder Pack.',
+  povprice: '💎 Envie o novo <b>preço do Veteran Vault</b> em TON. Ex.: <code>100</code>',
+  povboost: '🚀 Envie o <b>bônus de MYTH</b> do Veteran Vault em %. Ex.: <code>10</code>',
+  povend: '📅 Envie a <b>data de término</b> da oferta Veteran (ISO) ou <code>0</code> para sem prazo.',
+  povpool: '⛏ Envie quanto <b>MYTH</b> adicionar ao fundo de mineração do Veteran Vault.',
+  potz: '🕒 Envie o <b>fuso horário</b> do reset diário dos popups. Ex.: <code>America/Sao_Paulo</code>',
   v2version: '⚔️ Envie a <b>versão</b> do pacote. Ex.: <code>VETERAN_VAULT_V2</code>',
   v2myth: '🪙 Envie o <b>MYTH entregue na compra</b>. Ex.: <code>1000000</code>',
   v2boost: '🚀 Envie o <b>bônus de mineração MYTH</b> do comprador em %. Ex.: <code>10</code>',
@@ -4122,6 +4136,94 @@ async function vvPrompt(ctx: Ctx, key: string, text: string) {
   return vvHub({ ...ctx, messageId: undefined }, false);
 }
 
+
+// ---------------------------------------------------------------- 🎁 PREMIUM OFFERS (FOUNDER + VETERAN)
+// Controle unificado dos dois pacotes premium: janelas de oferta, popup diário (1x/dia por oferta no
+// fuso oficial), elegibilidade global e mineração em MYTH. Nada é entregue aqui — só configuração.
+async function poHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_premium_offers_overview', { p_admin_id: ctx.adminId }) as any;
+  const f = d.founder ?? {};
+  const v = d.veteran ?? {};
+  const when = (value: unknown) => (value ? esc(String(value).slice(0, 16).replace('T', ' ')) : '∞');
+  const text = [
+    '🎁 <b>OFERTAS PREMIUM</b>',
+    '<i>Founder Pack + Veteran Vault · popup 1x por dia por oferta · mineração somente em MYTH</i>',
+    '',
+    `<b>Fuso do reset:</b> <code>${esc(String(d.timezone))}</code> · <b>Dia atual:</b> <code>${esc(String(d.dayKey))}</code>`,
+    `<b>Fundo MYTH de mineração disponível:</b> ${mythFmt(d.mythPoolAvailable)}`,
+    '',
+    '👑 <b>FOUNDER PACK</b>',
+    `Status: ${f.enabled ? '✅ ATIVO' : '⛔ OFF'} · Popup: ${f.popupEnabled ? '🔔 ON' : '🔕 OFF'} (<code>${esc(String(f.popupFrequency))}</code>)`,
+    `Preço: <b>${fmt(f.priceTon)} TON</b> · MYTH: <b>${mythFmt(f.mythAmount)}</b> · Baús: <b>${fmt(f.legendaryChests)}</b> · Frag: <b>${fmt(f.fragments)}</b>`,
+    `Arma: <code>${esc(f.weaponCode ?? '—')}</code> · ⛏ herói: <b>${mythFmt(f.heroDailyMyth)}</b>/dia · pet: <b>${mythFmt(f.petDailyMyth)}</b>/dia`,
+    `Janela: ${when(f.startAt)} → ${when(f.endsAt)} · Só contas novas: ${f.requireNewAccount ? '✅' : '⛔ (todos)'}`,
+    `Vendas: ${fmt(f.purchases)} · popups hoje: ${fmt(f.popupsToday)}`,
+    '',
+    '⚔️ <b>VETERAN VAULT</b>',
+    `Status: ${v.enabled ? '✅ ATIVO' : '⛔ OFF'}${v.salesPaused ? ' · ⏸ PAUSADO' : ''} · Popup: ${v.popupEnabled ? '🔔 ON' : '🔕 OFF'} (<code>${esc(String(v.popupFrequency))}</code>)`,
+    `Preço: <b>${fmt(v.priceTon)} TON</b> · Bônus: <b>+${fmt(v.boostPercent)}%</b> MYTH (não vale para itens Founder)`,
+    `⛏ herói: <b>${mythFmt(v.heroDailyMyth)}</b> · pet: <b>${mythFmt(v.petDailyMyth)}</b> · dragão: <b>${mythFmt(v.dragonDailyMyth)}</b> /dia`,
+    `Janela: ${when(v.startAt)} → ${when(v.endsAt)}`,
+    `Vendas: ${fmt(v.purchases)} · popups hoje: ${fmt(v.popupsToday)}`,
+  ].join('\n');
+  const rows = [
+    [{ t: f.enabled ? '👑 FOUNDER OFF' : '👑 FOUNDER ON', d: `po:set:FOUNDER_PACK:enabled:${f.enabled ? 0 : 1}` },
+     { t: f.popupEnabled ? '🔕 POPUP FOUNDER' : '🔔 POPUP FOUNDER', d: `po:set:FOUNDER_PACK:popup:${f.popupEnabled ? 0 : 1}` }],
+    [{ t: f.requireNewAccount ? '🌍 LIBERAR P/ TODOS' : '🆕 SÓ CONTAS NOVAS', d: `po:set:FOUNDER_PACK:newaccount:${f.requireNewAccount ? 0 : 1}` }],
+    [{ t: '💎 PREÇO FOUNDER', d: 'po:ask:pofprice' }, { t: '🪙 MYTH FOUNDER', d: 'po:ask:pofmyth' }],
+    [{ t: '⛏ MYTH/DIA HERÓI', d: 'po:ask:pofheromyth' }, { t: '⛏ MYTH/DIA PET', d: 'po:ask:pofpetmyth' }],
+    [{ t: '🗝 BAÚS FOUNDER', d: 'po:ask:pofchests' }, { t: '🗡 ARMA FOUNDER', d: 'po:ask:pofweapon' }],
+    [{ t: '📅 FIM FOUNDER', d: 'po:ask:pofend' }, { t: '⛏ FUNDO MYTH FOUNDER', d: 'po:ask:pofpool' }],
+    [{ t: v.enabled ? '⚔️ VETERAN OFF' : '⚔️ VETERAN ON', d: `po:set:VETERAN_VAULT:enabled:${v.enabled ? 0 : 1}` },
+     { t: v.popupEnabled ? '🔕 POPUP VETERAN' : '🔔 POPUP VETERAN', d: `po:set:VETERAN_VAULT:popup:${v.popupEnabled ? 0 : 1}` }],
+    [{ t: '💎 PREÇO VETERAN', d: 'po:ask:povprice' }, { t: '🚀 BÔNUS VETERAN (%)', d: 'po:ask:povboost' }],
+    [{ t: '📅 FIM VETERAN', d: 'po:ask:povend' }, { t: '⛏ FUNDO MYTH VETERAN', d: 'po:ask:povpool' }],
+    [{ t: '🕒 FUSO DO RESET', d: 'po:ask:potz' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function poCallback(ctx: Ctx, rest: string[]) {
+  const [sub, offer, field, value] = rest;
+  if (sub === 'ask') return ask(ctx, offer, PROMPTS[offer] ?? 'Envie o valor.');
+  if (sub === 'set') await rpc('admin_premium_offers_set', { p_admin_id: ctx.adminId, p_offer: offer, p_field: field, p_value: value });
+  return poHub(ctx);
+}
+
+const PO_FIELDS: Record<string, [string, string]> = {
+  pofprice: ['FOUNDER_PACK', 'price'], pofmyth: ['FOUNDER_PACK', 'myth'],
+  pofheromyth: ['FOUNDER_PACK', 'heromyth'], pofpetmyth: ['FOUNDER_PACK', 'petmyth'],
+  pofchests: ['FOUNDER_PACK', 'chests'], pofweapon: ['FOUNDER_PACK', 'weapon'],
+  pofend: ['FOUNDER_PACK', 'end'], pofpool: ['FOUNDER_PACK', 'pool'],
+  povprice: ['VETERAN_VAULT', 'price'], povboost: ['VETERAN_VAULT', 'boost'],
+  povend: ['VETERAN_VAULT', 'end'], povpool: ['VETERAN_VAULT', 'pool'],
+  potz: ['TIMEZONE', 'timezone'],
+};
+
+async function poPrompt(ctx: Ctx, key: string, text: string) {
+  const entry = PO_FIELDS[key];
+  if (!entry) return poHub({ ...ctx, messageId: undefined }, false);
+  const [offer, field] = entry;
+  let value = text.trim();
+  if (['price', 'boost'].includes(field)) {
+    const num = Number(value.replace(',', '.').replace(/[^\d.]/g, ''));
+    if (!Number.isFinite(num) || num <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    value = String(num);
+  } else if (['myth', 'heromyth', 'petmyth', 'chests', 'pool'].includes(field)) {
+    const num = parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    value = String(num);
+  } else if (field === 'end') {
+    if (/^(0|off|nunca|never|-)$/i.test(value)) value = '';
+    else if (Number.isNaN(Date.parse(value))) throw new Error('KEEP_SESSION::⚠️ Envie uma data ISO (ex.: <code>2026-12-31T23:59:00Z</code>) ou <code>0</code> para sem prazo.');
+  }
+  await rpc('admin_premium_offers_set', { p_admin_id: ctx.adminId, p_offer: offer, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `🎁 Ofertas premium atualizadas: <b>${esc(offer)}.${esc(field)}</b> = <code>${esc(value || '∞')}</code>`);
+  return poHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- ⚔️ VETERAN VAULT (pacote premium 100 TON)
 // Linha Veteran (herói, pet, dragão, ovo, armas), mineração SOMENTE em MYTH e bônus de +X% para quem compra.
 // Preço, taxas, conteúdo e o fundo de MYTH vivem no banco: o bot apenas configura e financia.
@@ -4667,6 +4769,7 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ⚔️ VETERAN VAULT — oferta para veteranos: preço, ciclo, conteúdo, cronograma e pools de reward.
   if (head === 'v2') { if (rest[0] !== 'ask') await clearSession(ctx); return vv2Callback(ctx, rest); }
+  if (head === 'po') { if (rest[0] !== 'ask') await clearSession(ctx); return poCallback(ctx, rest); }
   if (head === 'vv') { if (rest[0] !== 'ask') await clearSession(ctx); return vvCallback(ctx, rest); }
 
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
@@ -6558,6 +6661,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
+  if (key.startsWith('po')) return poPrompt(ctx, key, text);
   if (key.startsWith('v2')) return vv2Prompt(ctx, key, text);
   if (key.startsWith('vv')) return vvPrompt(ctx, key, text);
   if (key.startsWith('fp')) return fpPrompt(ctx, key, text);

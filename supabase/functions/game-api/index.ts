@@ -1246,6 +1246,13 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     fn = 'veteran_v2_start_purchase';
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `veteranv2:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
 
+  // ---------------- 🎁 PREMIUM OFFERS DAILY POPUP QUEUE (server-owned, 1x/day per offer) ----------------
+  } else if (action === 'premium-offers') {
+    fn = 'premium_offers_state';
+  } else if (action === 'premium-offer-seen') {
+    fn = 'premium_offer_popup_mark';
+    args = { ...args, p_offer_type: String(body.offerType || ''), p_dismissed: Boolean(body.dismissed) };
+
   } else if (action === 'founder-frame') {
     fn = 'founder_frame_set';
     args = { ...args, p_equipped: Boolean(body.equipped) };

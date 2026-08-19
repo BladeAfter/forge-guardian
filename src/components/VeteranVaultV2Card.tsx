@@ -19,11 +19,16 @@ const myth = (value: number) => Math.round(Number(value || 0)).toLocaleString('p
  * entrega dos itens, taxas de mineração em MYTH e o bônus de +10% para quem compra.
  * Pagamento segue a regra oficial: 100% TON interno quando cobre o preço, senão 100% TonConnect.
  */
-export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: string }) {
+export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopupClose }: {
+  telegramInitData: string;
+  /** Popup mode: rendered by the daily premium-offer queue — no trigger card, opens immediately. */
+  popupMode?: boolean;
+  onPopupClose?: () => void;
+}) {
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
   const { data: state } = useVeteranV2(telegramInitData, Boolean(telegramInitData));
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(popupMode);
 
   const refreshAll = () => Promise.all(
     ['veteran-v2', 'game-state', 'ton-wallet', 'wallet-summary', 'myth-wallet', 'player-inventory', 'player-heroes', 'pet-dashboard', 'season-pass', 'hero-mining', 'telegram-profile']
@@ -66,7 +71,7 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
     },
     onSuccess: async order => {
       await refreshAll();
-      if (order.status === 'completed') { setOpen(false); toast.success('Veteran Vault garantido! Recompensas entregues.'); }
+      if (order.status === 'completed') { close(); toast.success('Veteran Vault garantido! Recompensas entregues.'); }
       else { toast.success('Pagamento enviado. Confirmando na blockchain…'); window.setTimeout(() => { void reconcile(); }, 6_000); }
     },
     onError: error => toast.error(veteranV2ErrorText(error)),
@@ -74,7 +79,9 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
 
   useEffect(() => { if (state?.pendingOrder) void reconcile(); }, [state?.pendingOrder?.orderId]);
 
-  if (!state?.show) return null;
+  const close = () => { setOpen(false); onPopupClose?.(); };
+
+  if (!state?.show) { if (popupMode) onPopupClose?.(); return null; }
 
   const payWithInternal = state.availableTon >= state.priceTon;
   const rewards = [
@@ -90,6 +97,7 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
   ];
 
   if (state.purchased) {
+    if (popupMode) { onPopupClose?.(); return null; }
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-amber-300/30 bg-forge-black/80 p-4 shadow-card">
         <img src={vaultArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
@@ -122,6 +130,7 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
 
   return (
     <>
+      {popupMode ? null : (
       <button
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 text-left shadow-card"
@@ -141,6 +150,7 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
           </div>
         </div>
       </button>
+      )}
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-3 sm:items-center">
@@ -153,7 +163,7 @@ export function VeteranVaultV2Card({ telegramInitData }: { telegramInitData: str
                 <h3 className="mt-1 text-lg font-semibold text-white">Pacote premium Veteran</h3>
                 <p className="text-[11px] text-slate-300">Uma compra por conta · itens exclusivos da linha Veteran</p>
               </div>
-              <button onClick={() => setOpen(false)} className="rounded-full bg-white/10 p-2 text-slate-300"><X className="h-4 w-4" /></button>
+              <button onClick={close} className="rounded-full bg-white/10 p-2 text-slate-300"><X className="h-4 w-4" /></button>
             </div>
 
             <img src={vaultArt} alt="Recompensas do Veteran Vault" loading="lazy" width={1024} height={640} className="mt-3 h-36 w-full rounded-2xl object-cover" />
