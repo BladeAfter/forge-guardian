@@ -77,8 +77,8 @@ export function PlayerTag({
 }) {
   const titles = usePremiumTitles();
   const title = resolvePremiumTitle(titles, { userId, telegramId, username });
-  if (title) return <p className={`premium-title truncate ${className}`.trim()}>👑 {title}</p>;
-  if (username) return <p className={`truncate ${className}`.trim()}>@{username}</p>;
-  if (fallback) return <p className={`truncate ${className}`.trim()}>{fallback}</p>;
+  if (title) return <span className={`premium-title block truncate ${className}`.trim()}>👑 {title}</span>;
+  if (username) return <span className={`block truncate ${className}`.trim()}>@{username}</span>;
+  if (fallback) return <span className={`block truncate ${className}`.trim()}>{fallback}</span>;
   return null;
 }
