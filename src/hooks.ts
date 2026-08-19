@@ -97,6 +97,7 @@ export const useSpendingEvent=(telegramInitData:string|null,enabled:boolean,limi
     if(!enabled)return;
     const channel=supabase.channel('spending-event-ticker')
       .on('postgres_changes',{event:'*',schema:'public',table:'spending_event_ticker'},()=>{void client.invalidateQueries({queryKey:['spending-event']})})
+      .on('postgres_changes',{event:'*',schema:'public',table:'spending_event_scores'},()=>{void client.invalidateQueries({queryKey:['spending-event']})})
       .subscribe();
     return()=>{void supabase.removeChannel(channel)};
   },[enabled,client]);
