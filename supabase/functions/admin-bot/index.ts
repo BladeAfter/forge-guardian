@@ -6382,7 +6382,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith('gift')) return giftPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('cl')) return clansPrompt(ctx, key, args[0] ?? '', text);
-  if (key.startsWith('sp') && ['spname', 'spdays', 'spreward'].includes(key)) return spendPrompt(ctx, key, text);
+  if (key.startsWith('sp') && ['spname', 'spdays', 'spreward', 'spratet', 'spratef'].includes(key)) return spendPrompt(ctx, key, text);
   if (key.startsWith('cb')) return cbPrompt(ctx, key, text);
   if (key.startsWith('pt') && key !== 'ptr') return partnersPrompt(ctx, key, args, text);
   if (key === 'prsearch') return prSearch(ctx, text);
