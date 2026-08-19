@@ -2462,27 +2462,6 @@ export type Database = {
         }
         Relationships: []
       }
-      diag_tmp: {
-        Row: {
-          created_at: string | null
-          id: number
-          label: string | null
-          value: Json | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          label?: string | null
-          value?: Json | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          label?: string | null
-          value?: Json | null
-        }
-        Relationships: []
-      }
       economy_settings: {
         Row: {
           key: string
