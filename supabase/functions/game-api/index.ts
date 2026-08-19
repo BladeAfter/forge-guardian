@@ -1060,6 +1060,43 @@ async function verifyFounderPackPurchases(db: Db, user: TelegramUser) {
   return { checked: list.length, confirmed, pending: stillPending, state: await rpc(db, 'founder_pack_state', { p_telegram_id: user.id }) };
 }
 
+/**
+ * ⚔️ VETERAN VAULT — on-chain settlement of external (TonConnect) purchases.
+ * Payments are matched by their unique comment and integer nanoton value; delivery + cycle activation
+ * happen inside the RPC, atomically and idempotently. A signed wallet tx alone delivers nothing.
+ */
+async function verifyVeteranVaultPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const orders = (await rpc(db, 'veteran_vault_pending_orders', { p_telegram_id: user.id })) as any[];
+  const list = Array.isArray(orders) ? orders : [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await rpc(db, 'veteran_vault_state', { p_telegram_id: user.id }) };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.paymentComment || '').trim();
+    const expectedNano = BigInt(String(order.amountNano || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'veteran_vault_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] veteran-vault-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await rpc(db, 'veteran_vault_state', { p_telegram_id: user.id }) };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
 
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
@@ -1070,6 +1107,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   const action = String(body.action || 'summary');
   if (action === 'verify-deposit') return await verifyPendingDeposits(db, user);
   if (action === 'verify-egg-purchases') return await verifyEggPurchases(db, user);
+  if (action === 'veteran-vault-verify') return await verifyVeteranVaultPurchases(db, user);
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'deposit') {
@@ -1142,6 +1180,17 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `founder:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'founder-pack-verify') {
     return await verifyFounderPackPurchases(db, user);
+  // ---------------- ⚔️ MYTHREON VETERAN VAULT (55 TON, veteran players only) ----------------
+  // Eligibility (account age / pre-launch account), price, reward pools, 45-day cycle and every
+  // credited TON/MYTH are owned by the database. The client only displays server truth.
+  } else if (action === 'veteran-vault') {
+    fn = 'veteran_vault_state';
+  } else if (action === 'veteran-vault-buy') {
+    fn = 'veteran_vault_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `veteran:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'veteran-vault-claim') {
+    fn = 'veteran_vault_claim';
+    args = { ...args, p_idempotency_key: `veteran-claim:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'founder-frame') {
     fn = 'founder_frame_set';
     args = { ...args, p_equipped: Boolean(body.equipped) };
