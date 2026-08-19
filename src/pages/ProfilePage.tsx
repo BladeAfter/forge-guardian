@@ -67,8 +67,8 @@ function RewardRow({ item }: { item: RewardHistoryItem }) {
   return (
     <li className="flex items-center gap-2.5 rounded-2xl border border-amber-300/10 bg-black/35 px-2.5 py-2">
       <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-300/20 bg-[#0b1120]">
-        {item.image_url
-          ? <img src={item.image_url} alt={item.reward_name} loading="lazy" className="h-full w-full object-cover" />
+        {isImageUrl(item.image_url)
+          ? <img src={item.image_url as string} alt={item.reward_name} loading="lazy" className="h-full w-full object-cover" />
           : <Gift className="h-4 w-4 text-amber-300" />}
       </div>
       <div className="min-w-0 flex-1">
