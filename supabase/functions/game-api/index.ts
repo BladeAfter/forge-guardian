@@ -1097,6 +1097,52 @@ async function verifyVeteranVaultPurchases(db: Db, user: TelegramUser) {
   return { checked: list.length, confirmed, pending: stillPending, state: await rpc(db, 'veteran_vault_state', { p_telegram_id: user.id }) };
 }
 
+/**
+ * ⚔️ VETERAN VAULT V2 — on-chain settlement of TonConnect purchases (100 TON premium pack).
+ * Matching is done by unique comment + integer nanoton value; delivery, MYTH mining rates and the
+ * +10% owner boost are applied inside the RPC, atomically and idempotently.
+ */
+async function verifyVeteranV2Purchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const state = async () => await rpc(db, 'veteran_v2_state', { p_telegram_id: user.id });
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  const userId = player.data?.id;
+  if (!userId) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const pending = await db.from('veteran_vault_v2_purchases')
+    .select('id,payment_comment,expected_nanoton,expires_at')
+    .eq('user_id', userId).eq('status', 'pending').gt('expires_at', new Date().toISOString());
+  if (pending.error) throw new Error(pending.error.message);
+  const list = pending.data ?? [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.payment_comment || '').trim();
+    const expectedNano = BigInt(String(order.expected_nanoton || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'veteran_v2_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] veteran-v2-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await state() };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
 
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
@@ -1108,6 +1154,8 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   if (action === 'verify-deposit') return await verifyPendingDeposits(db, user);
   if (action === 'verify-egg-purchases') return await verifyEggPurchases(db, user);
   if (action === 'veteran-vault-verify') return await verifyVeteranVaultPurchases(db, user);
+  if (action === 'veteran-v2-verify') return await verifyVeteranV2Purchases(db, user);
+
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'deposit') {
@@ -1191,6 +1239,13 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'veteran-vault-claim') {
     fn = 'veteran_vault_claim';
     args = { ...args, p_idempotency_key: `veteran-claim:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  // ---------------- ⚔️ VETERAN VAULT V2 (100 TON premium pack, MYTH-only mining + owner boost) ----------------
+  } else if (action === 'veteran-v2') {
+    fn = 'veteran_v2_state';
+  } else if (action === 'veteran-v2-buy') {
+    fn = 'veteran_v2_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `veteranv2:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+
   } else if (action === 'founder-frame') {
     fn = 'founder_frame_set';
     args = { ...args, p_equipped: Boolean(body.equipped) };
