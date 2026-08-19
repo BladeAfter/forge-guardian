@@ -5069,6 +5069,33 @@ export type Database = {
         }
         Relationships: []
       }
+      myth_sale_milestone_claims: {
+        Row: {
+          created_at: string
+          id: string
+          milestone_amount: number
+          myth_total: number
+          rewards: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          milestone_amount: number
+          myth_total?: number
+          rewards?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          milestone_amount?: number
+          myth_total?: number
+          rewards?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       myth_sale_public_stats: {
         Row: {
           available: number
