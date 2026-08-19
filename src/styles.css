@@ -1038,3 +1038,27 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .tac-confirm:not(:disabled):active { transform: translateY(1px) scale(.995); }
 .tac-confirm:disabled { background: linear-gradient(180deg, rgba(148,163,184,.28), rgba(30,41,59,.6)); color: #94a3b8;
   border-color: rgba(255,255,255,.08); box-shadow: none; }
+
+/* MYTH SALE exclusive avatar border: ornate frame drawn over the Telegram photo. */
+.player-avatar-frame{
+  flex:0 0 auto;
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:clamp(40px,12vw,52px);
+  height:clamp(40px,12vw,52px);
+}
+.player-avatar-frame > .player-avatar{
+  width:72%;
+  height:72%;
+  border-color:rgba(45,212,191,.55);
+}
+.player-avatar-frame-ring{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  object-fit:contain;
+  filter:drop-shadow(0 0 6px rgba(45,212,191,.55));
+}
