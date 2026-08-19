@@ -102,6 +102,7 @@ const MAIN_MENU = kb([
   [{ t: '🪙 MYTH TOKEN', d: 'my:hub' }],
   [{ t: '👑 FOUNDER PACK', d: 'fp:hub' }],
   [{ t: '⚔️ VETERAN VAULT', d: 'vv:hub' }],
+  [{ t: '⚔️ VETERAN VAULT (PREMIUM)', d: 'v2:hub' }],
 
 
 
@@ -2222,6 +2223,18 @@ const PROMPTS: Record<string, string> = {
   mythsub: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para REMOVER MYTH do jogador (volta para a reserva).\nEx.: <code>5925045925 500</code>',
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
   vvprice: '⚔️ Envie o novo <b>preço</b> do Veteran Vault em TON. Ex.: <code>50</code>',
+  v2price: '⚔️ Envie o <b>preço</b> do Veteran Vault em TON. Ex.: <code>100</code>',
+  v2version: '⚔️ Envie a <b>versão</b> do pacote. Ex.: <code>VETERAN_VAULT_V2</code>',
+  v2myth: '🪙 Envie o <b>MYTH entregue na compra</b>. Ex.: <code>1000000</code>',
+  v2boost: '🚀 Envie o <b>bônus de mineração MYTH</b> do comprador em %. Ex.: <code>10</code>',
+  v2heromyth: '🦸 Envie a mineração diária em MYTH do herói Veteran. Ex.: <code>10000</code>',
+  v2petmyth: '🐾 Envie a mineração diária em MYTH do pet Veteran. Ex.: <code>5000</code>',
+  v2dragonmyth: '🐉 Envie a mineração diária em MYTH do dragão Veteran. Ex.: <code>20000</code>',
+  v2weapons: '⚔️ Envie quantas <b>armas Veteran</b> cada compra entrega. Ex.: <code>2</code>',
+  v2chests: '🎁 Envie a quantidade de <b>baús lendários</b>. Ex.: <code>5</code>',
+  v2frag: '💎 Envie a quantidade de <b>fragmentos universais</b>. Ex.: <code>200</code>',
+  v2reference: '🎯 Envie a referência <b>MYTH por TON</b>. Ex.: <code>40000</code>',
+  v2freq: '🔁 Envie a frequência do popup: <code>ONCE_PER_SESSION</code>, <code>ONCE_PER_DAY</code>, <code>UNTIL_PURCHASED</code> ou <code>DISABLED</code>',
   vvage: '⚔️ Envie a <b>idade mínima da conta</b> em dias para ser veterano. Ex.: <code>7</code>',
   vvcycle: '⚔️ Envie a <b>duração do ciclo</b> em dias. Ex.: <code>45</code>',
   vvversion: '⚔️ Envie a nova <b>versão</b> da campanha (reinicia elegibilidade). Ex.: <code>VETERAN_V2</code>',
@@ -4653,6 +4666,7 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'fp') { if (rest[0] !== 'ask') await clearSession(ctx); return fpCallback(ctx, rest); }
 
   // ⚔️ VETERAN VAULT — oferta para veteranos: preço, ciclo, conteúdo, cronograma e pools de reward.
+  if (head === 'v2') { if (rest[0] !== 'ask') await clearSession(ctx); return vv2Callback(ctx, rest); }
   if (head === 'vv') { if (rest[0] !== 'ask') await clearSession(ctx); return vvCallback(ctx, rest); }
 
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
@@ -6544,6 +6558,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
+  if (key.startsWith('v2')) return vv2Prompt(ctx, key, text);
   if (key.startsWith('vv')) return vvPrompt(ctx, key, text);
   if (key.startsWith('fp')) return fpPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
