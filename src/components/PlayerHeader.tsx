@@ -1,18 +1,23 @@
 import { useEffect, useState } from 'react';
 import { coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
+import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
 import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
 
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
 import { useT } from '../LanguageContext';
 
+/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE milestone at 100k). */
+const AVATAR_BORDERS: Record<string, string> = { myth_sale_exclusive: avatarBorderMyth.url };
+
 export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | null }) {
   const t = useT();
   const [failed, setFailed] = useState(false);
   const name = profile ? getDisplayName(profile) : t('profile.player');
   useEffect(() => setFailed(false), [profile?.photoUrl]);
-  return profile?.photoUrl && !failed ? (
+  const borderUrl = profile?.avatarBorder ? AVATAR_BORDERS[profile.avatarBorder] : undefined;
+  const inner = profile?.photoUrl && !failed ? (
     <img
       src={profile.photoUrl}
       onError={() => setFailed(true)}
@@ -24,7 +29,15 @@ export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | nul
       {getInitials(name)}
     </div>
   );
+  if (!borderUrl) return inner;
+  return (
+    <div className="player-avatar-frame" title="Exclusive Avatar Border">
+      {inner}
+      <img src={borderUrl} alt="" loading="lazy" className="player-avatar-frame-ring" />
+    </div>
+  );
 }
+
 
 export function PlayerIdentity({
   profile,
