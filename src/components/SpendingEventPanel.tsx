@@ -1,178 +1,208 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Coins, Crown, Flame, Gem, Gift, Hourglass, Lock, Rocket, ShieldCheck, Sparkles, Star, Timer, Wallet, CheckCircle2 } from 'lucide-react';
-import { useMythSale } from '../hooks';
+import { Coins, Crown, Flame, Gift, Medal, Timer, TrendingUp, Trophy, Users, Wallet } from 'lucide-react';
+import { useSpendingEvent } from '../hooks';
 import { formatTon } from '../economy';
-import { abbreviateMyth, mythFull } from '../mythSale';
-import { MYTH_EVENT_DAYS, MYTH_EVENT_MILESTONES, mythBoughtInEvent, mythEventCountdown, mythMilestoneProgress, nextMythMilestone } from '../mythEvent';
+import { abbreviatePoints, countdownLabel, fullPoints, rankMedal, rankTone, spendingCountdown } from '../spendingEvent';
+import type { SpendingRankRow } from '../spendingEvent';
 
 /**
- * SPENDING EVENT — premium 14-day promotional panel.
- * Supply, sold, burned and TON raised are the live backend numbers (same dashboard as the MYTH sale);
- * only the event window and the milestone table are local constants.
+ * MYTHREON SPENDING EVENT — competitive 14-day spending leaderboard.
+ * Every number (score, rank, totals, breakdown, ranking, reward table and end date) comes
+ * from the backend scoring engine; the client never computes points.
  */
-export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet }: { telegramInitData: string; onGoToSale: () => void; onGoToWallet?: () => void }) {
-  const { data, isLoading, error, refetch } = useMythSale(telegramInitData, true);
+const GROUP_LABELS: Record<string, string> = {
+  ton_direct_deposit: 'TON DIRECT DEPOSITS',
+  ton_to_fc: 'TON → FC',
+  myth_sale: 'MYTH PURCHASES',
+  season_pass: 'SEASON PASS',
+  packs: 'PACKS (FOUNDER / VETERAN)',
+  nft_shop: 'NFT SHOP',
+  marketplace: 'MARKETPLACE',
+  auction: 'AUCTION',
+  fc_spend: 'FC SPENDING',
+  other_ton: 'OTHER TON SPENDING',
+};
+
+export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet }: { telegramInitData: string; onGoToSale?: () => void; onGoToWallet?: () => void }) {
+  const { data, isLoading, error, refetch } = useSpendingEvent(telegramInitData, true, 20);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, []);
 
-  const stats = data?.stats;
-  const clock = useMemo(() => mythEventCountdown(now), [now]);
-  const bought = useMemo(() => mythBoughtInEvent(data?.purchases ?? [], now), [data?.purchases, now]);
-  const next = nextMythMilestone(bought);
-  const milestoneProgress = mythMilestoneProgress(bought);
-  const unlocked = MYTH_EVENT_MILESTONES.filter(m => bought >= m.amount).length;
+  const event = data?.event ?? null;
+  const clock = useMemo(() => spendingCountdown(event?.endsAt, now), [event?.endsAt, now]);
+  const seconds = useMemo(() => {
+    const end = event?.endsAt ? new Date(event.endsAt).getTime() : 0;
+    return Math.max(0, Math.floor((Math.max(0, end - now) % 60_000) / 1000));
+  }, [event?.endsAt, now]);
 
   if (isLoading) return <div className="space-y-3 pt-6">{[1, 2, 3].map(x => <div key={x} className="h-28 animate-pulse rounded-3xl bg-white/5" />)}</div>;
-  if (error || !data || !stats) return (
+  if (error || !data) return (
     <div className="py-20 text-center">
       <p className="text-rose-300">Unable to load the Spending Event.</p>
       <button onClick={() => void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3 text-xs font-black">RETRY</button>
     </div>
   );
 
-  const internalTon = data.player.internalTon;
+  const { player, totals, ranking, rewards, breakdown } = data;
+  const finished = event?.status === 'finished' || clock.ended;
+  const myRow = ranking.find(r => r.position === player.position) ?? null;
+  const breakdownTotal = (breakdown ?? []).reduce((sum, row) => sum + Number(row.points || 0), 0);
 
   return (
     <div className="pb-12">
-      {/* HEADER */}
+      {/* MAIN EVENT CARD */}
       <section className="relative overflow-hidden rounded-[2rem] border border-amber-300/50 bg-gradient-to-br from-[#241703] via-[#0a1020] to-black p-5 text-center shadow-[0_0_60px_rgba(245,158,11,.25)]">
         <div className="pointer-events-none absolute -left-10 -top-12 h-40 w-40 rounded-full bg-amber-400/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 -right-8 h-44 w-44 rounded-full bg-yellow-200/10 blur-3xl" />
-        {[8, 26, 48, 66, 84].map((left, i) => (
-          <Sparkles key={left} className="pointer-events-none absolute h-3 w-3 animate-pulse text-amber-200/50" style={{ left: `${left}%`, top: `${12 + ((i * 17) % 60)}%`, animationDelay: `${i * 320}ms` }} />
+        {[10, 30, 52, 70, 88].map((left, i) => (
+          <Flame key={left} className="pointer-events-none absolute h-3 w-3 animate-pulse text-amber-300/40" style={{ left: `${left}%`, top: `${12 + ((i * 19) % 60)}%`, animationDelay: `${i * 300}ms` }} />
         ))}
         <div className="relative">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-amber-300/60 bg-black/60 shadow-[0_0_35px_rgba(245,158,11,.45)]">
-            <Coins className="h-9 w-9 animate-pulse text-amber-300" />
+            <Trophy className="h-9 w-9 animate-pulse text-amber-300" />
           </div>
-          <h2 className="mt-3 bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-2xl font-black tracking-[.08em] text-transparent">SPENDING EVENT</h2>
-          <p className="mt-1 text-[9px] font-black uppercase tracking-[.34em] text-amber-300">LIMITED {MYTH_EVENT_DAYS}-DAY EVENT</p>
-          <p className="mx-auto mt-2 max-w-[16rem] text-[10px] leading-4 text-slate-300">Buy MYTH during the event and unlock exclusive rewards, milestone bonuses and special advantages.</p>
+          <h2 className="mt-3 bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-2xl font-black tracking-[.06em] text-transparent">🔥 MYTHREON SPENDING EVENT</h2>
+          <p className="mt-1 text-[9px] font-black uppercase tracking-[.34em] text-amber-300">14-DAY SPENDING EVENT</p>
+          <p className="mx-auto mt-2 max-w-[17rem] text-[10px] leading-4 text-slate-300">Spend, deposit and participate across Mythreon to climb the live leaderboard and compete for exclusive Top {event?.topLimit ?? 20} rewards.</p>
           <div className="mt-4 rounded-2xl border border-amber-300/30 bg-black/60 p-3">
-            <p className="text-[8px] font-black uppercase tracking-[.3em] text-amber-300/80"><Timer className="mr-1 inline h-3 w-3" />{clock.ended ? 'EVENT ENDED' : 'ENDS IN'}</p>
+            <p className="text-[8px] font-black uppercase tracking-[.3em] text-amber-300/80"><Timer className="mr-1 inline h-3 w-3" />{finished ? 'EVENT ENDED — FINAL RANKING LOCKED' : 'ENDS IN'}</p>
             <b className="mt-1 block text-xl font-black tabular-nums text-amber-100">
-              {clock.ended ? '--' : `${clock.days}d ${String(clock.hours).padStart(2, '0')}h ${String(clock.minutes).padStart(2, '0')}m ${String(clock.seconds).padStart(2, '0')}s`}
+              {finished ? '--' : `${clock.days}d ${String(clock.hours).padStart(2, '0')}h ${String(clock.minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`}
             </b>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-left">
+            <Cell label="Your score" value={`${abbreviatePoints(player.points)} pts`} tone="emerald" />
+            <Cell label="Your position" value={player.position ? `#${player.position}` : '—'} />
+            <Cell label="Total participants" value={fullPoints(totals.participants)} tone="cyan" />
+            <Cell label="Total event score" value={`${abbreviatePoints(totals.points)} pts`} />
           </div>
         </div>
       </section>
 
-      {/* SECTION 1 — EVENT OVERVIEW */}
-      <SectionTitle icon={<Gem className="h-3.5 w-3.5" />} title="EVENT OVERVIEW" subtitle="Live supply and event progress." />
-      <div className="grid grid-cols-2 gap-2">
-        <Cell label="Total supply" value={`${abbreviateMyth(stats.initialSupply)} ${stats.symbol}`} />
-        <Cell label="Available" value={`${abbreviateMyth(stats.available)} ${stats.symbol}`} tone="emerald" />
-        <Cell label="Sold" value={`${abbreviateMyth(stats.sold)} ${stats.symbol}`} />
-        <Cell label="Burned" value={`${abbreviateMyth(stats.burned)} ${stats.symbol}`} tone="rose" />
-        <Cell label="TON raised" value={`${formatTon(stats.tonRaised)} TON`} tone="cyan" />
-        <Cell label="Price" value={`1 TON = ${abbreviateMyth(stats.mythPerTon)}`} />
-      </div>
-      <div className="mt-2 rounded-3xl border border-amber-300/30 bg-gradient-to-br from-amber-950/40 to-black p-4">
-        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[.22em]">
-          <span className="text-amber-200/80">Event progress</span>
-          <b className="text-amber-100">{clock.progressPercent.toFixed(1)}%</b>
+      {/* YOUR POSITION */}
+      <SectionTitle icon={<Crown className="h-3.5 w-3.5" />} title="YOUR POSITION" subtitle="Overtake the player above you to climb the leaderboard." />
+      <div className="rounded-3xl border border-amber-300/35 bg-gradient-to-br from-[#160f04] to-black p-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[8px] font-black uppercase tracking-[.26em] text-slate-400">Current rank</p>
+            <b className="text-3xl font-black text-amber-100">{player.position ? `#${player.position}` : '—'}</b>
+          </div>
+          <div className="text-right">
+            <p className="text-[8px] font-black uppercase tracking-[.26em] text-slate-400">Your score</p>
+            <b className="text-lg font-black text-emerald-200">{abbreviatePoints(player.points)} pts</b>
+            <p className="text-[9px] text-slate-400">{fullPoints(player.points)} pts</p>
+          </div>
         </div>
-        <Bar percent={clock.progressPercent} />
-        <div className="mt-3 flex items-center justify-between text-[9px] font-black uppercase tracking-[.22em]">
-          <span className="text-amber-200/80">Sold progress</span>
-          <b className="text-amber-100">{stats.soldPercent.toFixed(2)}%</b>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Cell label="Next position" value={player.nextRank ? `#${player.nextRank}` : player.position === 1 ? 'TOP 1' : '—'} />
+          <Cell label="Points needed" value={player.neededToNext ? `+${abbreviatePoints(player.neededToNext)} pts` : player.position === 1 ? 'LEADING' : '—'} tone="cyan" />
+          <Cell label="TON spent" value={`${formatTon(player.tonSpent)} TON`} />
+          <Cell label="FC spent" value={fullPoints(player.fcSpent)} />
         </div>
-        <Bar percent={stats.soldPercent} />
+        {player.estimatedReward && (
+          <div className="mt-2 rounded-2xl border border-amber-300/30 bg-black/55 p-3">
+            <p className="text-[8px] font-black uppercase tracking-[.26em] text-amber-300/80">Reward at current rank</p>
+            <b className="text-[11px] leading-4 text-amber-100">{player.estimatedReward}</b>
+          </div>
+        )}
       </div>
 
-      {/* SECTION 2 — EVENT REWARDS */}
-      <SectionTitle icon={<Gift className="h-3.5 w-3.5" />} title="EVENT REWARDS" subtitle="Unlock bonus rewards as you buy more MYTH." />
-      <div className="space-y-2">
-        {MYTH_EVENT_MILESTONES.map((m, index) => {
-          const done = bought >= m.amount;
-          const active = next?.amount === m.amount;
+      {/* YOUR EVENT ACTIVITY */}
+      <SectionTitle icon={<TrendingUp className="h-3.5 w-3.5" />} title="YOUR EVENT ACTIVITY" subtitle="Where your event points came from." />
+      <div className="rounded-3xl border border-white/10 bg-black/55 p-3.5">
+        {(breakdown ?? []).length === 0 ? (
+          <p className="py-4 text-center text-[10px] text-slate-400">No eligible activity yet. Deposits, purchases and FC spending all score points.</p>
+        ) : (
+          <>
+            <ul className="space-y-1.5">
+              {(breakdown ?? []).map(row => (
+                <li key={row.group} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/50 px-3 py-2">
+                  <span className="text-[9px] font-black uppercase tracking-[.16em] text-slate-300">{GROUP_LABELS[row.group] ?? row.group.replace(/_/g, ' ').toUpperCase()}</span>
+                  <b className="text-[11px] text-amber-100">{abbreviatePoints(row.points)} pts</b>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 flex items-center justify-between rounded-2xl border border-amber-300/35 bg-amber-500/10 px-3 py-2">
+              <span className="text-[9px] font-black uppercase tracking-[.2em] text-amber-200">TOTAL</span>
+              <b className="text-[12px] text-amber-100">{fullPoints(breakdownTotal)} pts</b>
+            </div>
+          </>
+        )}
+        <p className="mt-2 text-[9px] leading-4 text-slate-500">
+          1 TON = {abbreviatePoints(event?.tonRateFc ?? 100000)} pts · 1 FC spent = {fullPoints(event?.fcRate ?? 1)} pt. Rewards received (boss, PvP, clan, mining, pool) never score points.
+        </p>
+      </div>
+
+      {/* LIVE RANKING */}
+      <SectionTitle icon={<Medal className="h-3.5 w-3.5" />} title="LIVE RANKING" subtitle={`Top ${event?.topLimit ?? 20} · updates in real time.`} />
+      <div className="space-y-1.5">
+        {ranking.length === 0 && <p className="rounded-3xl border border-white/10 bg-black/55 py-6 text-center text-[10px] text-slate-400">No participants yet — be the first on the leaderboard.</p>}
+        {ranking.map(row => <RankRow key={row.userId} row={row} me={row.position === player.position && !!myRow} />)}
+      </div>
+
+      {/* TOP REWARDS */}
+      <SectionTitle icon={<Gift className="h-3.5 w-3.5" />} title={`🏆 TOP ${event?.topLimit ?? 20} REWARDS`} subtitle="Rewards are paid by final rank at the end of the event." />
+      <div className="space-y-1.5">
+        {rewards.length === 0 && <p className="rounded-3xl border border-white/10 bg-black/55 py-6 text-center text-[10px] text-slate-400">Reward table not published yet.</p>}
+        {rewards.map(slot => {
+          const grand = slot.from === 1;
+          const mine = player.position != null && player.position >= slot.from && player.position <= slot.to;
           return (
-            <div key={m.amount} className={`relative overflow-hidden rounded-3xl border p-3.5 ${done ? 'border-emerald-300/45 bg-gradient-to-br from-emerald-950/50 to-black' : active ? 'border-amber-300/60 bg-gradient-to-br from-amber-950/50 to-black shadow-[0_0_28px_rgba(245,158,11,.18)]' : 'border-white/10 bg-black/55'}`}>
+            <div key={`${slot.from}-${slot.to}`} className={`rounded-3xl border p-3.5 ${grand ? 'border-amber-300/60 bg-gradient-to-br from-amber-950/60 to-black shadow-[0_0_28px_rgba(245,158,11,.18)]' : mine ? 'border-emerald-300/45 bg-gradient-to-br from-emerald-950/40 to-black' : 'border-white/10 bg-black/55'}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`grid h-9 w-9 place-items-center rounded-xl border ${done ? 'border-emerald-300/50 bg-emerald-500/10' : active ? 'border-amber-300/50 bg-amber-500/10' : 'border-white/10 bg-white/5'}`}>
-                    {done ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : active ? <Star className="h-4 w-4 text-amber-300" /> : <Lock className="h-4 w-4 text-slate-500" />}
-                  </div>
-                  <div>
-                    <p className="text-[8px] font-black uppercase tracking-[.26em] text-slate-400">Milestone {index + 1}</p>
-                    <b className={`text-[13px] font-black ${done ? 'text-emerald-100' : 'text-amber-100'}`}>BUY {mythFull(m.amount)} {stats.symbol}</b>
-                  </div>
-                </div>
-                <b className={`text-[9px] font-black uppercase tracking-[.2em] ${done ? 'text-emerald-300' : active ? 'text-amber-300' : 'text-slate-500'}`}>{done ? 'UNLOCKED' : active ? 'NEXT' : 'LOCKED'}</b>
+                <b className={`text-[12px] font-black ${grand ? 'text-amber-100' : 'text-slate-100'}`}>
+                  {grand && <Crown className="mr-1 inline h-3.5 w-3.5 text-amber-300" />}
+                  {slot.from === slot.to ? `#${slot.from}` : `#${slot.from} – #${slot.to}`}
+                </b>
+                {grand ? <span className="text-[8px] font-black uppercase tracking-[.22em] text-amber-300">GRAND PRIZE</span>
+                  : mine ? <span className="text-[8px] font-black uppercase tracking-[.22em] text-emerald-300">YOUR RANGE</span> : null}
               </div>
-              <ul className="mt-2 space-y-1 pl-1">
-                {m.rewards.map(reward => (
-                  <li key={reward} className="flex items-center gap-1.5 text-[10px] text-slate-300"><Sparkles className="h-3 w-3 shrink-0 text-amber-300/80" />{reward}</li>
-                ))}
-              </ul>
+              <p className="mt-1.5 text-[10px] leading-4 text-slate-300">{slot.label}</p>
             </div>
           );
         })}
       </div>
 
-      {/* SECTION 3 — YOUR EVENT STATUS */}
-      <SectionTitle icon={<Crown className="h-3.5 w-3.5" />} title="YOUR EVENT STATUS" subtitle="Tracked from your purchases inside the event window." />
-      <div className="rounded-3xl border border-amber-300/35 bg-gradient-to-br from-[#160f04] to-black p-4">
-        <div className="grid grid-cols-2 gap-2">
-          <Cell label="Your bought" value={`${mythFull(bought)} ${stats.symbol}`} tone="emerald" />
-          <Cell label="Your MYTH balance" value={`${mythFull(data.player.mythBalance)} ${stats.symbol}`} />
-        </div>
-        <div className="mt-3 flex items-center justify-between text-[9px] font-black uppercase tracking-[.22em]">
-          <span className="text-amber-200/80">Your progress</span>
-          <b className="text-amber-100">{milestoneProgress.toFixed(1)}%</b>
-        </div>
-        <Bar percent={milestoneProgress} />
-        <div className="mt-3 rounded-2xl border border-white/10 bg-black/55 p-3">
-          <p className="text-[8px] font-black uppercase tracking-[.26em] text-slate-400">Next reward</p>
-          {next ? (
-            <>
-              <b className="text-[12px] text-amber-100">BUY {mythFull(next.amount)} {stats.symbol}</b>
-              <p className="mt-1 text-[10px] text-slate-300">{next.rewards.join(' · ')}</p>
-              <p className="mt-1 text-[9px] text-amber-300/80">{mythFull(Math.max(0, next.amount - bought))} {stats.symbol} to go</p>
-            </>
-          ) : <b className="text-[12px] text-emerald-200">All milestones unlocked — maximum event tier reached.</b>}
-        </div>
-        <div className="mt-2 rounded-2xl border border-white/10 bg-black/55 p-3">
-          <p className="text-[8px] font-black uppercase tracking-[.26em] text-slate-400">Event bonus status</p>
-          <b className={`text-[12px] ${unlocked > 0 ? 'text-emerald-200' : 'text-slate-300'}`}>{unlocked > 0 ? `${unlocked}/${MYTH_EVENT_MILESTONES.length} milestones unlocked` : 'No bonus unlocked yet'}</b>
-        </div>
-      </div>
-
-      {/* SECTION 4 — EVENT BONUSES */}
-      <SectionTitle icon={<Rocket className="h-3.5 w-3.5" />} title="EVENT BONUSES" subtitle="Advantages active while the event runs." />
-      <div className="grid grid-cols-2 gap-2">
-        <Bonus icon={<Coins className="h-4 w-4 text-amber-300" />} text="Bonus MYTH on larger purchases" />
-        <Bonus icon={<Gift className="h-4 w-4 text-amber-300" />} text="Special event rewards" />
-        <Bonus icon={<Flame className="h-4 w-4 text-amber-300" />} text="Access to exclusive future drops" />
-        <Bonus icon={<ShieldCheck className="h-4 w-4 text-amber-300" />} text="Better positioning for future holder benefits" />
-      </div>
-
-      {/* SECTION 5 — BUY CTA */}
-      <section className="relative mt-4 overflow-hidden rounded-[2rem] border border-amber-300/50 bg-gradient-to-br from-[#231703] via-[#0a1020] to-black p-5 text-center shadow-[0_0_45px_rgba(245,158,11,.2)]">
+      {/* WALLET SHORTCUTS */}
+      <section className="relative mt-4 overflow-hidden rounded-[2rem] border border-amber-300/45 bg-gradient-to-br from-[#231703] via-[#0a1020] to-black p-5 text-center">
         <div className="pointer-events-none absolute -top-10 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-amber-400/20 blur-3xl" />
         <div className="relative">
-          <h3 className="bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-xl font-black tracking-[.06em] text-transparent">BUY MYTH NOW</h3>
-          <p className="mx-auto mt-1 max-w-[15rem] text-[10px] leading-4 text-slate-300">Use your internal TON balance to buy instantly. Without enough balance, the payment goes through your TON wallet.</p>
-          <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 px-3 py-2 text-[10px]">
-            <span className="text-slate-400"><Wallet className="mr-1 inline h-3.5 w-3.5 text-emerald-300" />Internal TON balance</span>
-            <b className={internalTon > 0 ? 'text-emerald-300' : 'text-slate-300'}>{formatTon(internalTon)} TON</b>
-          </div>
-          <button onClick={onGoToSale} className="mt-3 w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3.5 text-xs font-black uppercase tracking-[.24em] text-black shadow-[0_0_25px_rgba(245,158,11,.35)]">BUY WITH TON</button>
-          {onGoToWallet && <button onClick={onGoToWallet} className="mt-2 w-full rounded-2xl border border-amber-300/35 bg-black/50 py-3 text-[11px] font-black uppercase tracking-[.24em] text-amber-200">GO TO WALLET</button>}
+          <h3 className="bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-lg font-black tracking-[.06em] text-transparent">CLIMB THE LEADERBOARD</h3>
+          <p className="mx-auto mt-1 max-w-[16rem] text-[10px] leading-4 text-slate-300">Every eligible deposit, purchase and FC sink adds points instantly.</p>
+          {onGoToWallet && <button onClick={onGoToWallet} className="mt-3 w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3.5 text-xs font-black uppercase tracking-[.24em] text-black shadow-[0_0_25px_rgba(245,158,11,.35)]"><Wallet className="mr-1 inline h-4 w-4" />DEPOSIT TON</button>}
+          {onGoToSale && <button onClick={onGoToSale} className="mt-2 w-full rounded-2xl border border-amber-300/35 bg-black/50 py-3 text-[11px] font-black uppercase tracking-[.24em] text-amber-200"><Coins className="mr-1 inline h-3.5 w-3.5" />MYTH SALE</button>}
         </div>
       </section>
 
-      {/* SECTION 6 — EVENT RULES */}
+      {/* RULES */}
       <section className="mt-3 rounded-3xl border border-white/10 bg-black/55 p-4">
-        <b className="text-[10px] font-black uppercase tracking-[.24em] text-amber-200"><Hourglass className="mr-1 inline h-3.5 w-3.5" />EVENT RULES</b>
+        <b className="text-[10px] font-black uppercase tracking-[.24em] text-amber-200"><Users className="mr-1 inline h-3.5 w-3.5" />EVENT RULES</b>
         <ul className="mt-2 space-y-1 text-[10px] leading-4 text-slate-400">
-          <li>· Event duration: {MYTH_EVENT_DAYS} days</li>
-          <li>· Rewards are based on total MYTH purchased during the event</li>
-          <li>· Rewards are claimable only once per milestone</li>
-          <li>· Event purchases update in real time</li>
-          <li>· Final availability depends on remaining supply</li>
+          <li>· Duration: 14 days — the backend clock is the only authority</li>
+          <li>· Score sources: TON deposits, TON → FC, MYTH purchases, Season Pass, packs, NFT shop, marketplace, auction wins and every eligible FC sink</li>
+          <li>· Converting TON to FC scores once; spending that FC later scores again as a new sink</li>
+          <li>· Rewards, mining, pool payouts and admin grants never score points</li>
+          <li>· When the event ends the ranking is locked and rewards are paid by final rank</li>
         </ul>
       </section>
+    </div>
+  );
+}
+
+function RankRow({ row, me }: { row: SpendingRankRow; me: boolean }) {
+  return (
+    <div className={`flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 ${me ? 'border-emerald-300/50 bg-emerald-500/10' : rankTone(row.position)}`}>
+      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-white/10 bg-black/60 text-[11px] font-black text-amber-100">
+        {rankMedal(row.position) || `#${row.position}`}
+      </div>
+      {row.avatarUrl
+        ? <img src={row.avatarUrl} alt={row.name} loading="lazy" className="h-8 w-8 shrink-0 rounded-full border border-white/10 object-cover" />
+        : <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-[10px] font-black text-slate-300">{row.name.slice(0, 1).toUpperCase()}</div>}
+      <div className="min-w-0 flex-1">
+        <b className={`block truncate text-[11px] font-black ${me ? 'text-emerald-100' : 'text-slate-100'}`}>{me ? 'YOU' : row.username ? `@${row.username}` : row.name}</b>
+        <p className="truncate text-[9px] text-slate-400">{formatTon(row.tonSpent)} TON · {abbreviatePoints(row.fcSpent)} FC</p>
+      </div>
+      <b className="shrink-0 text-[12px] font-black text-amber-100">{abbreviatePoints(row.points)} pts</b>
     </div>
   );
 }
@@ -182,14 +212,6 @@ function SectionTitle({ icon, title, subtitle }: { icon: React.ReactNode; title:
     <div className="mb-2 mt-5">
       <b className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[.24em] text-amber-200">{icon}{title}</b>
       <p className="mt-0.5 text-[9px] text-slate-400">{subtitle}</p>
-    </div>
-  );
-}
-
-function Bar({ percent }: { percent: number }) {
-  return (
-    <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-white/10">
-      <div className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-200 shadow-[0_0_14px_rgba(245,158,11,.6)] transition-all" style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
     </div>
   );
 }
@@ -204,11 +226,4 @@ function Cell({ label, value, tone }: { label: string; value: string; tone?: 'ro
   );
 }
 
-function Bonus({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div className="rounded-2xl border border-amber-300/25 bg-gradient-to-br from-amber-950/30 to-black p-3">
-      <div className="grid h-8 w-8 place-items-center rounded-xl border border-amber-300/30 bg-black/60">{icon}</div>
-      <p className="mt-2 text-[10px] leading-4 text-slate-300">{text}</p>
-    </div>
-  );
-}
+export const spendingCountdownLabel = countdownLabel;
