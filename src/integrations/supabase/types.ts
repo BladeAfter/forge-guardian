@@ -2805,6 +2805,7 @@ export type Database = {
           price_ton: number
           resource_chest: Json
           resource_chest_code: string
+          signup_from: string
           updated_at: string
         }
         Insert: {
@@ -2823,6 +2824,7 @@ export type Database = {
           price_ton?: number
           resource_chest?: Json
           resource_chest_code?: string
+          signup_from?: string
           updated_at?: string
         }
         Update: {
@@ -2841,6 +2843,7 @@ export type Database = {
           price_ton?: number
           resource_chest?: Json
           resource_chest_code?: string
+          signup_from?: string
           updated_at?: string
         }
         Relationships: []
@@ -14766,6 +14769,7 @@ export type Database = {
           price_ton: number
           resource_chest: Json
           resource_chest_code: string
+          signup_from: string
           updated_at: string
         }
         SetofOptions: {
