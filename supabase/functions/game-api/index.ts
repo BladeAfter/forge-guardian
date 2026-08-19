@@ -1093,7 +1093,23 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
 
 
 
+  // ---------------- 👑 MYTHREON FOUNDER PACK (25 TON, new players only) ----------------
+  // Eligibility, price, snapshot, payment and delivery are 100% server-side.
+  } else if (action === 'founder-pack') {
+    fn = 'founder_pack_state';
+  } else if (action === 'founder-pack-buy') {
+    // The DB decides the method: internal TON when it covers 100% of the price, TonConnect otherwise.
+    fn = 'founder_pack_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `founder:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'founder-pack-verify') {
+    return await verifyFounderPackPurchases(db, user);
+  } else if (action === 'founder-frame') {
+    fn = 'founder_frame_set';
+    args = { ...args, p_equipped: Boolean(body.equipped) };
+  } else if (action === 'entitlements') {
+    fn = 'get_player_entitlements';
   } else if (action === 'egg-order') {
+
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'create_pet_egg_order';
     args = { ...args, p_egg_id: body.eggId, p_idempotency_key: `egg:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
