@@ -6,7 +6,9 @@ import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
 
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
+import { usePremiumTitles, resolvePremiumTitle } from '../premiumTitles';
 import { useT } from '../LanguageContext';
+
 
 /** Exclusive cosmetic frames unlocked by rewards (MYTH SALE milestone at 100k). */
 const AVATAR_BORDERS: Record<string, string> = { myth_sale_exclusive: avatarBorderMyth.url };
