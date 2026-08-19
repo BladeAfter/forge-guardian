@@ -100,6 +100,7 @@ const MAIN_MENU = kb([
   [{ t: '📣 POOL MARKETING', d: 'mp:hub' }],
   [{ t: '🏰 CLAN WAR (20V20)', d: 'cw:hub' }],
   [{ t: '🪙 MYTH TOKEN', d: 'my:hub' }],
+  [{ t: '👑 FOUNDER PACK', d: 'fp:hub' }],
 
 
 
@@ -2219,6 +2220,14 @@ const PROMPTS: Record<string, string> = {
   mythadd: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para ADICIONAR MYTH ao jogador (sai da reserva do Admin Bot).\nEx.: <code>5925045925 1000</code>',
   mythsub: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para REMOVER MYTH do jogador (volta para a reserva).\nEx.: <code>5925045925 500</code>',
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
+  fpprice: '👑 Envie o novo <b>preço</b> do Founder Pack em TON. Ex.: <code>25</code>',
+  fpdays: '👑 Envie a <b>janela de elegibilidade</b> em dias (contas novas). Ex.: <code>7</code>',
+  fpmyth: '👑 Envie a quantidade de <b>MYTH</b> entregue no pacote. Ex.: <code>100000</code>',
+  fpfrag: '👑 Envie a quantidade de <b>fragmentos universais</b> do pacote. Ex.: <code>50</code>',
+  fphero: '👑 Envie a <b>hero_key</b> do herói exclusivo entregue no pacote.',
+  fppet: '👑 Envie o <b>slug</b> do pet mítico entregue no pacote.',
+  fpchest: '👑 Envie o <b>código do baú</b> de equipamento (ex.: <code>legendary_chest</code>).',
+  fpresource: '👑 Envie o conteúdo do <b>Baú Premium</b> em JSON.\nEx.: <code>{"fc":250000,"fragments":25,"pvp_tickets":10,"hero_chest":"epic_chest","hero_chest_qty":1}</code>',
   mythsupply: '🪙 Envie o novo <b>supply total</b> de MYTH. Ex.: <code>100000000</code>\n<i>Não pode ficar abaixo do total já distribuído.</i>',
   mythname: '🪙 Envie <code>Nome | SIMBOLO</code> para renomear o token.\nEx.: <code>MYTH Token | MYTH</code>',
   stkmin: '🔒 Envie o <b>stake mínimo</b> em MYTH. Ex.: <code>1000</code>',
@@ -3909,6 +3918,74 @@ async function mythPrompt(ctx: Ctx, key: string, text: string) {
   return mythHub({ ...ctx, messageId: undefined }, false);
 }
 
+
+// ---------------------------------------------------------------- 👑 MYTHREON FOUNDER PACK (25 TON)
+// Pacote único para contas novas. Preço, janela, conteúdo e cosméticos vivem no banco:
+// tudo aqui é leitura/escrita de configuração — nenhuma recompensa é entregue pelo bot.
+async function fpHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_founder_pack_overview', { p_admin_id: ctx.adminId }) as any;
+  const recent = (d.recent ?? []) as any[];
+  const rc = d.resourceChest ?? {};
+  const text = [
+    '👑 <b>MYTHREON FOUNDER PACK</b>',
+    '<i>Exclusivo para contas novas · 1 compra por conta · entrega automática</i>',
+    '',
+    `<b>Status:</b> ${d.enabled ? '✅ ATIVO' : '⛔ DESATIVADO'} · <b>Versão:</b> v${fmt(d.packVersion)}`,
+    `<b>Preço:</b> ${fmt(d.priceTon)} TON · <b>Janela:</b> ${fmt(d.eligibilityDays)} dia(s)`,
+    '',
+    `🎟 Passe: <b>${esc(String(d.passTier).toUpperCase())}</b>`,
+    `🪙 MYTH: <b>${mythFmt(d.mythAmount)}</b> · 💎 Fragmentos: <b>${fmt(d.fragments)}</b>`,
+    `⚔️ Herói: <code>${esc(d.heroKey ?? '—')}</code> · 🐲 Pet: <code>${esc(d.petSlug ?? '—')}</code>`,
+    `🗝 Baú equip.: <code>${esc(d.equipmentChestCode ?? '—')}</code>`,
+    `📦 Baú Premium: ${fmt(rc.fc)} FC · ${fmt(rc.fragments)} frag · ${fmt(rc.pvp_tickets)} tickets${rc.hero_chest ? ` · ${esc(rc.hero_chest)} x${fmt(rc.hero_chest_qty)}` : ''}`,
+    `👑 Badge: ${d.badgeEnabled ? '✅' : '⛔'} · 🖼 Moldura: ${d.frameEnabled ? '✅' : '⛔'}`,
+    '',
+    `<b>Vendas:</b> ${fmt(d.purchases)} · <b>TON arrecadado:</b> ${fmt(d.tonRaised)}`,
+    `<b>Intents ativos:</b> ${fmt(d.activeIntents)} · <b>expirados:</b> ${fmt(d.failedIntents)}`,
+    '',
+    `<b>ÚLTIMAS COMPRAS</b>\n${recent.map((r) => `• ${esc(r.player ?? '—')} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.method ?? '—')} · ${esc(r.status)}`).join('\n') || 'nenhuma compra ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: d.enabled ? '⛔ DESATIVAR PACOTE' : '✅ ATIVAR PACOTE', d: `fp:on:${d.enabled ? 0 : 1}` }],
+    [{ t: '💎 PREÇO (TON)', d: 'fp:ask:fpprice' }, { t: '📅 JANELA (DIAS)', d: 'fp:ask:fpdays' }],
+    [{ t: '🪙 MYTH', d: 'fp:ask:fpmyth' }, { t: '💎 FRAGMENTOS', d: 'fp:ask:fpfrag' }],
+    [{ t: '⚔️ HERÓI', d: 'fp:ask:fphero' }, { t: '🐲 PET', d: 'fp:ask:fppet' }],
+    [{ t: '🗝 BAÚ EQUIP.', d: 'fp:ask:fpchest' }, { t: '📦 BAÚ PREMIUM', d: 'fp:ask:fpresource' }],
+    [{ t: `🎟 PASSE: ${String(d.passTier).toUpperCase()}`, d: `fp:pass:${d.passTier === 'legendary' ? 'adventurer' : 'legendary'}` }],
+    [{ t: d.badgeEnabled ? '👑 BADGE ON' : '👑 BADGE OFF', d: `fp:badge:${d.badgeEnabled ? 0 : 1}` }, { t: d.frameEnabled ? '🖼 MOLDURA ON' : '🖼 MOLDURA OFF', d: `fp:frame:${d.frameEnabled ? 0 : 1}` }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function fpCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'on') await rpc('admin_founder_pack_set', { p_admin_id: ctx.adminId, p_field: 'enabled', p_value: a });
+  if (sub === 'pass') await rpc('admin_founder_pack_set', { p_admin_id: ctx.adminId, p_field: 'pass', p_value: a });
+  if (sub === 'badge') await rpc('admin_founder_pack_set', { p_admin_id: ctx.adminId, p_field: 'badge', p_value: a });
+  if (sub === 'frame') await rpc('admin_founder_pack_set', { p_admin_id: ctx.adminId, p_field: 'frame', p_value: a });
+  return fpHub(ctx);
+}
+
+const FP_FIELDS: Record<string, string> = { fpprice: 'price', fpdays: 'days', fpmyth: 'myth', fpfrag: 'fragments', fphero: 'hero', fppet: 'pet', fpchest: 'chest', fpresource: 'resource' };
+
+async function fpPrompt(ctx: Ctx, key: string, text: string) {
+  const field = FP_FIELDS[key];
+  if (!field) return fpHub({ ...ctx, messageId: undefined }, false);
+  let value = text.trim();
+  if (['price', 'days', 'myth', 'fragments'].includes(field)) {
+    const num = field === 'price' ? Number(value.replace(',', '.').replace(/[^\d.]/g, '')) : parseAmount(value);
+    if (!Number.isFinite(num) || num <= 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    value = String(num);
+  }
+  if (field === 'resource') { try { JSON.parse(value); } catch { throw new Error('KEEP_SESSION::⚠️ JSON inválido. Envie algo como <code>{"fc":250000,"fragments":25}</code>'); } }
+  await rpc('admin_founder_pack_set', { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `👑 Founder Pack atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return fpHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
@@ -4361,6 +4438,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === 'cw') { if (rest[0] !== 'ask') await clearSession(ctx); return cwCallback(ctx, rest); }
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
+  // 👑 FOUNDER PACK — preço, janela de contas novas, conteúdo do pacote e cosméticos.
+  if (head === 'fp') { if (rest[0] !== 'ask') await clearSession(ctx); return fpCallback(ctx, rest); }
+
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
 
   // 🔒 MYTH STAKING — staking interno MYTH → MYTH: ON/OFF, APR por plano, limites e reward pool.
@@ -6200,6 +6280,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
+  if (key.startsWith('fp')) return fpPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
   if (key.startsWith('ms')) return salePrompt(ctx, key, text);
   if (key.startsWith('hm')) return hmPrompt(ctx, key, text);
