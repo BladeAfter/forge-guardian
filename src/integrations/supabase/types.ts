@@ -16613,6 +16613,7 @@ export type Database = {
             }
             Returns: Json
           }
+      veteran_vault_deliver: { Args: { p_purchase_id: string }; Returns: Json }
       veteran_vault_myth_budget: { Args: never; Returns: number }
       veteran_vault_pending_orders: {
         Args: { p_telegram_id: number }
