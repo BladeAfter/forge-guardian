@@ -1,4 +1,5 @@
 import { ShieldCheck, Trophy } from 'lucide-react';
+import { AvatarWithBorder } from '../components/AvatarWithBorder';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
