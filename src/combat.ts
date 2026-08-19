@@ -53,7 +53,7 @@ export type GlobalBossHistoryRow = {
 
 
 export type GlobalBossRankingEntry = {
-  rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null;
+  rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null; avatarBorder?: string | null;
   damage: number; sharePercent: number; estimatedReward: number; isYou: boolean;
 };
 export type GlobalBossRanking = {
