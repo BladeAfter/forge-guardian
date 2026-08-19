@@ -2500,6 +2500,7 @@ export type Database = {
           slot: string
           tier: number
           updated_at: string
+          veteran_line: boolean
         }
         Insert: {
           bonus_attack?: number
@@ -2520,6 +2521,7 @@ export type Database = {
           slot: string
           tier?: number
           updated_at?: string
+          veteran_line?: boolean
         }
         Update: {
           bonus_attack?: number
@@ -2540,6 +2542,7 @@ export type Database = {
           slot?: string
           tier?: number
           updated_at?: string
+          veteran_line?: boolean
         }
         Relationships: []
       }
@@ -3665,6 +3668,7 @@ export type Database = {
           start_level: number
           stock: number | null
           updated_at: string
+          veteran_line: boolean
         }
         Insert: {
           available_from?: string | null
@@ -3709,6 +3713,7 @@ export type Database = {
           start_level?: number
           stock?: number | null
           updated_at?: string
+          veteran_line?: boolean
         }
         Update: {
           available_from?: string | null
@@ -3753,6 +3758,7 @@ export type Database = {
           start_level?: number
           stock?: number | null
           updated_at?: string
+          veteran_line?: boolean
         }
         Relationships: []
       }
@@ -7151,6 +7157,8 @@ export type Database = {
           rarity_rates: Json
           slug: string
           updated_at: string
+          veteran_dragon_pet_id: string | null
+          veteran_line: boolean
         }
         Insert: {
           allowed_pet_categories?: Json | null
@@ -7169,6 +7177,8 @@ export type Database = {
           rarity_rates: Json
           slug: string
           updated_at?: string
+          veteran_dragon_pet_id?: string | null
+          veteran_line?: boolean
         }
         Update: {
           allowed_pet_categories?: Json | null
@@ -7187,8 +7197,18 @@ export type Database = {
           rarity_rates?: Json
           slug?: string
           updated_at?: string
+          veteran_dragon_pet_id?: string | null
+          veteran_line?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pet_eggs_veteran_dragon_pet_id_fkey"
+            columns: ["veteran_dragon_pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pet_evolution_history: {
         Row: {
@@ -7890,6 +7910,8 @@ export type Database = {
           slug: string
           species: string
           updated_at: string
+          veteran_line: boolean
+          veteran_role: string | null
         }
         Insert: {
           active_skill?: Json | null
@@ -7928,6 +7950,8 @@ export type Database = {
           slug: string
           species: string
           updated_at?: string
+          veteran_line?: boolean
+          veteran_role?: string | null
         }
         Update: {
           active_skill?: Json | null
@@ -7966,6 +7990,8 @@ export type Database = {
           slug?: string
           species?: string
           updated_at?: string
+          veteran_line?: boolean
+          veteran_role?: string | null
         }
         Relationships: [
           {
@@ -8027,6 +8053,7 @@ export type Database = {
           template_id: string
           updated_at: string
           user_id: string
+          veteran_line: boolean
         }
         Insert: {
           created_at?: string
@@ -8042,6 +8069,7 @@ export type Database = {
           template_id: string
           updated_at?: string
           user_id: string
+          veteran_line?: boolean
         }
         Update: {
           created_at?: string
@@ -8057,6 +8085,7 @@ export type Database = {
           template_id?: string
           updated_at?: string
           user_id?: string
+          veteran_line?: boolean
         }
         Relationships: [
           {
@@ -8122,6 +8151,7 @@ export type Database = {
           tradable: boolean
           updated_at: string
           user_id: string
+          veteran_line: boolean
           xp: number
         }
         Insert: {
@@ -8170,6 +8200,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id: string
+          veteran_line?: boolean
           xp?: number
         }
         Update: {
@@ -8218,6 +8249,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id?: string
+          veteran_line?: boolean
           xp?: number
         }
         Relationships: [
@@ -8492,6 +8524,7 @@ export type Database = {
           tradable: boolean
           updated_at: string
           user_id: string
+          veteran_line: boolean
           xp: number
         }
         Insert: {
@@ -8518,6 +8551,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id: string
+          veteran_line?: boolean
           xp?: number
         }
         Update: {
@@ -8544,6 +8578,7 @@ export type Database = {
           tradable?: boolean
           updated_at?: string
           user_id?: string
+          veteran_line?: boolean
           xp?: number
         }
         Relationships: [
@@ -12079,6 +12114,33 @@ export type Database = {
           },
         ]
       }
+      veteran_myth_pools: {
+        Row: {
+          id: boolean
+          mining_distributed: number
+          mining_funded: number
+          reward_distributed: number
+          reward_funded: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          mining_distributed?: number
+          mining_funded?: number
+          reward_distributed?: number
+          reward_funded?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          mining_distributed?: number
+          mining_funded?: number
+          reward_distributed?: number
+          reward_funded?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       veteran_vault_claims: {
         Row: {
           created_at: string
@@ -12380,6 +12442,245 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "veteran_vault_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veteran_vault_v2_config: {
+        Row: {
+          boost_percent: number
+          dragon_daily_myth: number
+          enabled: boolean
+          fragments: number
+          hero_daily_myth: number
+          id: boolean
+          legendary_chests: number
+          myth_reference_rate: number
+          myth_reward: number
+          package_version: string
+          pet_daily_myth: number
+          popup_enabled: boolean
+          popup_frequency: string
+          price_ton: number
+          reward_configuration_version: number
+          sales_paused: boolean
+          updated_at: string
+          weapons_per_purchase: number
+        }
+        Insert: {
+          boost_percent?: number
+          dragon_daily_myth?: number
+          enabled?: boolean
+          fragments?: number
+          hero_daily_myth?: number
+          id?: boolean
+          legendary_chests?: number
+          myth_reference_rate?: number
+          myth_reward?: number
+          package_version?: string
+          pet_daily_myth?: number
+          popup_enabled?: boolean
+          popup_frequency?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          updated_at?: string
+          weapons_per_purchase?: number
+        }
+        Update: {
+          boost_percent?: number
+          dragon_daily_myth?: number
+          enabled?: boolean
+          fragments?: number
+          hero_daily_myth?: number
+          id?: boolean
+          legendary_chests?: number
+          myth_reference_rate?: number
+          myth_reward?: number
+          package_version?: string
+          pet_daily_myth?: number
+          popup_enabled?: boolean
+          popup_frequency?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          updated_at?: string
+          weapons_per_purchase?: number
+        }
+        Relationships: []
+      }
+      veteran_vault_v2_items: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string | null
+          item_type: string
+          purchase_id: string
+          source: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type: string
+          purchase_id: string
+          source?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type?: string
+          purchase_id?: string
+          source?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_v2_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_vault_v2_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veteran_vault_v2_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veteran_vault_v2_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          myth_amount: number
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          myth_amount?: number
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          myth_amount?: number
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_v2_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_vault_v2_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veteran_vault_v2_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veteran_vault_v2_purchases: {
+        Row: {
+          boost_percent_snapshot: number
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery: Json | null
+          expected_nanoton: string
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          myth_reward_snapshot: number
+          package_version: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_configuration_version: number
+          reward_snapshot: Json
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          boost_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          myth_reward_snapshot?: number
+          package_version: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_configuration_version?: number
+          reward_snapshot?: Json
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          boost_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          myth_reward_snapshot?: number
+          package_version?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          reward_snapshot?: Json
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_v2_purchases_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -14168,6 +14469,8 @@ export type Database = {
           rarity_rates: Json
           slug: string
           updated_at: string
+          veteran_dragon_pet_id: string | null
+          veteran_line: boolean
         }
         SetofOptions: {
           from: "*"
