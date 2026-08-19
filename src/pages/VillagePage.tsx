@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { formatCurrency } from '../utils';
 import { buildings, characters } from '../gameAssets';
 import { FounderPackCard } from '../components/FounderPackCard';
+import { VeteranVaultCard } from '../components/VeteranVaultCard';
 
 type VillagePageProps = {
   game: GameState;
@@ -16,6 +17,7 @@ export function VillagePage({ game, onUpgrade, lang, telegramInitData }: Village
   return (
     <section className="space-y-4">
       {telegramInitData ? <FounderPackCard telegramInitData={telegramInitData} /> : null}
+      {telegramInitData ? <VeteranVaultCard telegramInitData={telegramInitData} /> : null}
       <div className="rounded-3xl border border-white/10 bg-forge-black/80 p-4 shadow-card">
         <div className="relative mb-4 flex min-h-24 items-center justify-between overflow-hidden">
           <div>

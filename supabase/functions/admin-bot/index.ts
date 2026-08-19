@@ -101,6 +101,7 @@ const MAIN_MENU = kb([
   [{ t: '🏰 CLAN WAR (20V20)', d: 'cw:hub' }],
   [{ t: '🪙 MYTH TOKEN', d: 'my:hub' }],
   [{ t: '👑 FOUNDER PACK', d: 'fp:hub' }],
+  [{ t: '⚔️ VETERAN VAULT', d: 'vv:hub' }],
 
 
 
@@ -2220,6 +2221,23 @@ const PROMPTS: Record<string, string> = {
   mythadd: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para ADICIONAR MYTH ao jogador (sai da reserva do Admin Bot).\nEx.: <code>5925045925 1000</code>',
   mythsub: '🪙 Envie <code>ID_ou_@usuario quantidade</code> para REMOVER MYTH do jogador (volta para a reserva).\nEx.: <code>5925045925 500</code>',
   mythsee: '🪙 Envie o <b>Telegram ID</b>, @usuário ou nome para ver o saldo MYTH.',
+  vvprice: '⚔️ Envie o novo <b>preço</b> do Veteran Vault em TON. Ex.: <code>50</code>',
+  vvage: '⚔️ Envie a <b>idade mínima da conta</b> em dias para ser veterano. Ex.: <code>7</code>',
+  vvcycle: '⚔️ Envie a <b>duração do ciclo</b> em dias. Ex.: <code>45</code>',
+  vvversion: '⚔️ Envie a nova <b>versão</b> da campanha (reinicia elegibilidade). Ex.: <code>VETERAN_V2</code>',
+  vvmyth: '⚔️ Envie o <b>MYTH inicial</b> entregue na compra. Ex.: <code>150000</code>',
+  vvhero: '⚔️ Envie o <code>hero_key</code> do herói exclusivo do Vault.',
+  vvpet: '⚔️ Envie o <code>slug</code> do pet do Vault.',
+  vvchest: '⚔️ Envie o <b>código do baú de equipamento</b>. Ex.: <code>legendary_chest</code>',
+  vvfrag: '⚔️ Envie a quantidade de <b>fragmentos universais</b>. Ex.: <code>200</code>',
+  vvchests: '⚔️ Envie a quantidade de <b>baús premium</b> entregues. Ex.: <code>2</code>',
+  vvmaxton: '⚔️ Envie o <b>TON real máximo</b> por Vault (reserva por venda). Ex.: <code>9</code>',
+  vvdailymyth: '⚔️ Envie o <b>MYTH diário</b> do ciclo. Ex.: <code>2000</code>',
+  vvschedule: '⚔️ Envie o <b>cronograma</b> em JSON. Ex.: <code>{"ton":{"7":1,"14":1,"21":1.5,"30":2,"37":1.5,"45":2},"mythBonus":{"7":5000,"45":15000}}</code>',
+  vvfinal: '⚔️ Envie a <b>recompensa final</b> em JSON. Ex.: <code>{"myth":25000,"fragments":100,"chest":"premium_resource_chest","chestQty":1,"badge":"veteran_badge_ii"}</code>',
+  vvtarget: '⚔️ Envie o <b>valor de referência alvo</b> em TON. Ex.: <code>50</code>',
+  vvfundton: '⚔️ Envie o valor de <b>TON</b> para financiar o Veteran Pool (negativo retira). Ex.: <code>100</code>',
+  vvfundmyth: '⚔️ Envie o valor de <b>MYTH</b> para reservar no Veteran Pool. Ex.: <code>2000000</code>',
   fpprice: '👑 Envie o novo <b>preço</b> do Founder Pack em TON. Ex.: <code>25</code>',
   fpdays: '👑 Envie a <b>janela de elegibilidade</b> em dias (contas novas). Ex.: <code>7</code>',
   fpmyth: '👑 Envie a quantidade de <b>MYTH</b> entregue no pacote. Ex.: <code>100000</code>',
@@ -3986,6 +4004,109 @@ async function fpPrompt(ctx: Ctx, key: string, text: string) {
   return fpHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- ⚔️ MYTHREON VETERAN VAULT (45-day cycle)
+// Oferta para jogadores ANTIGOS. Preço, idade mínima, conteúdo, cronograma de rewards e o
+// financiamento dos pools (TON real / MYTH da reserva oficial) vivem no banco: o bot só configura.
+// Nenhuma venda é permitida sem reserva de TON/MYTH suficiente no Veteran Reward Pool.
+async function vvHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_veteran_vault_overview', { p_admin_id: ctx.adminId }) as any;
+  const pool = d.pool ?? {};
+  const recent = (d.recent ?? []) as any[];
+  const tonSchedule = Object.entries((d.rewardSchedule?.ton ?? {}) as Record<string, unknown>)
+    .sort((a, b) => Number(a[0]) - Number(b[0])).map(([day, value]) => `D${day}: ${fmt(value)}`).join(' · ');
+  const text = [
+    '⚔️ <b>MYTHREON VETERAN VAULT</b>',
+    '<i>Somente jogadores antigos · 1 compra por versão · ciclo de recompensas</i>',
+    '',
+    `<b>Status:</b> ${d.enabled ? '✅ ATIVO' : '⛔ DESATIVADO'}${d.salesPaused ? ' · ⏸ VENDAS PAUSADAS' : ''}`,
+    `<b>Versão:</b> <code>${esc(String(d.vaultVersion))}</code> · <b>Preço:</b> ${fmt(d.priceTon)} TON`,
+    `<b>Idade mínima:</b> ${fmt(d.minAccountAgeDays)} dia(s) · <b>Ciclo:</b> ${fmt(d.cycleDays)} dias`,
+    '',
+    `🎫 Passe: <b>${esc(String(d.passTier).toUpperCase())}</b> · 🪙 MYTH inicial: <b>${mythFmt(d.initialMyth)}</b>`,
+    `🦸 Herói: <code>${esc(d.heroKey ?? '—')}</code> · 🐉 Pet: <code>${esc(d.petSlug ?? '—')}</code>`,
+    `⚔️ Baú equip.: <code>${esc(d.equipmentChestCode ?? '—')}</code> · 💎 Frag: <b>${fmt(d.fragments)}</b> · 🎁 Baús: <b>${fmt(d.resourceChestQty)}</b>`,
+    `👑 Badge: ${d.badgeEnabled ? '✅' : '⛔'} · 🖼 Moldura: ${d.frameEnabled ? '✅' : '⛔'}`,
+    '',
+    `<b>REWARD CYCLE</b> · TON máx/vault: <b>${fmt(d.maxTonReward)}</b> · MYTH/dia: <b>${mythFmt(d.dailyMyth)}</b>`,
+    `Marcos TON: ${tonSchedule || '—'}`,
+    `Reserva por venda: <b>${fmt(d.tonBudgetPerVault)} TON</b> + <b>${mythFmt(d.mythBudgetPerVault)} MYTH</b>`,
+    `Valor de referência alvo: <b>${fmt(d.targetReferenceTon)} TON</b>`,
+    '',
+    `<b>VETERAN TON POOL</b> — financiado: ${fmt(pool.tonFunded)} · reservado: ${fmt(pool.tonReserved)} · distribuído: ${fmt(pool.tonDistributed)} · disponível: <b>${fmt(pool.tonAvailable)}</b>`,
+    `<b>VETERAN MYTH POOL</b> — financiado: ${mythFmt(pool.mythFunded)} · reservado: ${mythFmt(pool.mythReserved)} · distribuído: ${mythFmt(pool.mythDistributed)} · disponível: <b>${mythFmt(pool.mythAvailable)}</b>`,
+    '',
+    `<b>Vaults ativos:</b> ${fmt(d.activeVaults)} · <b>concluídos:</b> ${fmt(d.completedVaults)}`,
+    `<b>TON arrecadado:</b> ${fmt(d.tonRaised)} · <b>TON distribuído:</b> ${fmt(d.tonDistributed)} · <b>MYTH distribuído:</b> ${mythFmt(d.mythDistributed)}`,
+    `<b>Intents ativos:</b> ${fmt(d.activeIntents)} · <b>falhos/expirados:</b> ${fmt(d.failedPayments)}`,
+    '',
+    `<b>ÚLTIMAS COMPRAS</b>\n${recent.map((r) => `• ${esc(r.player ?? '—')} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.method ?? '—')} · ${esc(r.status)} · ${fmt(r.tonEarned)} TON / ${mythFmt(r.mythEarned)} MYTH`).join('\n') || 'nenhuma compra ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: d.enabled ? '⛔ DESATIVAR VAULT' : '✅ ATIVAR VAULT', d: `vv:on:${d.enabled ? 0 : 1}` },
+     { t: d.salesPaused ? '▶️ RETOMAR VENDAS' : '⏸ PAUSAR VENDAS', d: `vv:pause:${d.salesPaused ? 0 : 1}` }],
+    [{ t: '💎 PREÇO (TON)', d: 'vv:ask:vvprice' }, { t: '📅 IDADE MÍNIMA', d: 'vv:ask:vvage' }],
+    [{ t: '🔁 CICLO (DIAS)', d: 'vv:ask:vvcycle' }, { t: '🏷 VERSÃO', d: 'vv:ask:vvversion' }],
+    [{ t: '🪙 MYTH INICIAL', d: 'vv:ask:vvmyth' }, { t: '💎 FRAGMENTOS', d: 'vv:ask:vvfrag' }],
+    [{ t: '🦸 HERÓI', d: 'vv:ask:vvhero' }, { t: '🐉 PET', d: 'vv:ask:vvpet' }],
+    [{ t: '⚔️ BAÚ EQUIP.', d: 'vv:ask:vvchest' }, { t: '🎁 BAÚS PREMIUM', d: 'vv:ask:vvchests' }],
+    [{ t: `🎫 PASSE: ${String(d.passTier).toUpperCase()}`, d: `vv:pass:${d.passTier === 'legendary' ? 'adventurer' : 'legendary'}` }],
+    [{ t: '💠 TON MÁX/VAULT', d: 'vv:ask:vvmaxton' }, { t: '🪙 MYTH DIÁRIO', d: 'vv:ask:vvdailymyth' }],
+    [{ t: '📆 CRONOGRAMA', d: 'vv:ask:vvschedule' }, { t: '🏁 REWARD FINAL', d: 'vv:ask:vvfinal' }],
+    [{ t: '🎯 VALOR REFERÊNCIA', d: 'vv:ask:vvtarget' }],
+    [{ t: '💰 FINANCIAR TON POOL', d: 'vv:ask:vvfundton' }, { t: '🪙 FINANCIAR MYTH POOL', d: 'vv:ask:vvfundmyth' }],
+    [{ t: d.badgeEnabled ? '👑 BADGE ON' : '👑 BADGE OFF', d: `vv:badge:${d.badgeEnabled ? 0 : 1}` }, { t: d.frameEnabled ? '🖼 MOLDURA ON' : '🖼 MOLDURA OFF', d: `vv:frame:${d.frameEnabled ? 0 : 1}` }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function vvCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'on') await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: 'enabled', p_value: a });
+  if (sub === 'pause') await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: 'paused', p_value: a });
+  if (sub === 'pass') await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: 'pass', p_value: a });
+  if (sub === 'badge') await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: 'badge', p_value: a });
+  if (sub === 'frame') await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: 'frame', p_value: a });
+  return vvHub(ctx);
+}
+
+const VV_FIELDS: Record<string, string> = {
+  vvprice: 'price', vvage: 'age', vvcycle: 'cycle', vvversion: 'version', vvmyth: 'myth', vvhero: 'hero',
+  vvpet: 'pet', vvchest: 'chest', vvfrag: 'fragments', vvchests: 'chests', vvmaxton: 'maxton',
+  vvdailymyth: 'dailymyth', vvschedule: 'schedule', vvfinal: 'final', vvtarget: 'target',
+};
+
+async function vvPrompt(ctx: Ctx, key: string, text: string) {
+  const raw = text.trim();
+  // Pool funding is a ledger operation, not a config field: it never touches an existing reservation.
+  if (key === 'vvfundton' || key === 'vvfundmyth') {
+    const amount = Number(raw.replace(',', '.').replace(/[^\d.-]/g, ''));
+    if (!Number.isFinite(amount) || amount === 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    await rpc('admin_veteran_vault_fund', { p_admin_id: ctx.adminId, p_currency: key === 'vvfundton' ? 'ton' : 'myth', p_amount: amount });
+    await clearSession(ctx);
+    await send(ctx, `⚔️ Veteran Pool atualizado: <b>${key === 'vvfundton' ? 'TON' : 'MYTH'}</b> ${amount > 0 ? '+' : ''}<code>${esc(String(amount))}</code>`);
+    return vvHub({ ...ctx, messageId: undefined }, false);
+  }
+  const field = VV_FIELDS[key];
+  if (!field) return vvHub({ ...ctx, messageId: undefined }, false);
+  let value = raw;
+  if (['price', 'age', 'cycle', 'myth', 'fragments', 'chests', 'maxton', 'dailymyth', 'target'].includes(field)) {
+    const num = ['price', 'maxton', 'target'].includes(field)
+      ? Number(value.replace(',', '.').replace(/[^\d.]/g, ''))
+      : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    value = String(num);
+  }
+  if (field === 'schedule' || field === 'final') {
+    try { JSON.parse(value); } catch { throw new Error('KEEP_SESSION::⚠️ JSON inválido.'); }
+  }
+  await rpc('admin_veteran_vault_set', { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `⚔️ Veteran Vault atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return vvHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
@@ -4440,6 +4561,9 @@ async function handleCallback(ctx: Ctx, data: string) {
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   // 👑 FOUNDER PACK — preço, janela de contas novas, conteúdo do pacote e cosméticos.
   if (head === 'fp') { if (rest[0] !== 'ask') await clearSession(ctx); return fpCallback(ctx, rest); }
+
+  // ⚔️ VETERAN VAULT — oferta para veteranos: preço, ciclo, conteúdo, cronograma e pools de reward.
+  if (head === 'vv') { if (rest[0] !== 'ask') await clearSession(ctx); return vvCallback(ctx, rest); }
 
   if (head === 'my') { if (rest[0] !== 'ask') await clearSession(ctx); return mythCallback(ctx, rest); }
 
@@ -6280,6 +6404,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
+  if (key.startsWith('vv')) return vvPrompt(ctx, key, text);
   if (key.startsWith('fp')) return fpPrompt(ctx, key, text);
   if (key.startsWith('myth')) return mythPrompt(ctx, key, text);
   if (key.startsWith('ms')) return salePrompt(ctx, key, text);

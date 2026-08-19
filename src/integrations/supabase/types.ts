@@ -11989,6 +11989,314 @@ export type Database = {
           },
         ]
       }
+      veteran_vault_claims: {
+        Row: {
+          created_at: string
+          id: string
+          myth_amount: number
+          payload: Json
+          purchase_id: string
+          reward_day: number
+          reward_type: string
+          ton_amount: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          myth_amount?: number
+          payload?: Json
+          purchase_id: string
+          reward_day: number
+          reward_type: string
+          ton_amount?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          myth_amount?: number
+          payload?: Json
+          purchase_id?: string
+          reward_day?: number
+          reward_type?: string
+          ton_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_claims_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_vault_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veteran_vault_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veteran_vault_config: {
+        Row: {
+          badge_enabled: boolean
+          cycle_days: number
+          daily_myth: number
+          enabled: boolean
+          equipment_chest_code: string
+          final_reward: Json
+          fragments: number
+          frame_enabled: boolean
+          hero_key: string | null
+          id: boolean
+          initial_myth: number
+          launch_at: string
+          max_ton_reward: number
+          min_account_age_days: number
+          pass_tier: string
+          pet_slug: string | null
+          price_ton: number
+          reference_values: Json
+          resource_chest_code: string
+          resource_chest_qty: number
+          reward_schedule: Json
+          sales_paused: boolean
+          target_reference_ton: number
+          updated_at: string
+          vault_version: string
+        }
+        Insert: {
+          badge_enabled?: boolean
+          cycle_days?: number
+          daily_myth?: number
+          enabled?: boolean
+          equipment_chest_code?: string
+          final_reward?: Json
+          fragments?: number
+          frame_enabled?: boolean
+          hero_key?: string | null
+          id?: boolean
+          initial_myth?: number
+          launch_at?: string
+          max_ton_reward?: number
+          min_account_age_days?: number
+          pass_tier?: string
+          pet_slug?: string | null
+          price_ton?: number
+          reference_values?: Json
+          resource_chest_code?: string
+          resource_chest_qty?: number
+          reward_schedule?: Json
+          sales_paused?: boolean
+          target_reference_ton?: number
+          updated_at?: string
+          vault_version?: string
+        }
+        Update: {
+          badge_enabled?: boolean
+          cycle_days?: number
+          daily_myth?: number
+          enabled?: boolean
+          equipment_chest_code?: string
+          final_reward?: Json
+          fragments?: number
+          frame_enabled?: boolean
+          hero_key?: string | null
+          id?: boolean
+          initial_myth?: number
+          launch_at?: string
+          max_ton_reward?: number
+          min_account_age_days?: number
+          pass_tier?: string
+          pet_slug?: string | null
+          price_ton?: number
+          reference_values?: Json
+          resource_chest_code?: string
+          resource_chest_qty?: number
+          reward_schedule?: Json
+          sales_paused?: boolean
+          target_reference_ton?: number
+          updated_at?: string
+          vault_version?: string
+        }
+        Relationships: []
+      }
+      veteran_vault_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          myth_amount: number
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          myth_amount?: number
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          myth_amount?: number
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_vault_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veteran_vault_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      veteran_vault_pool: {
+        Row: {
+          id: boolean
+          myth_distributed: number
+          myth_funded: number
+          myth_reserved: number
+          ton_distributed: number
+          ton_funded: number
+          ton_reserved: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          myth_distributed?: number
+          myth_funded?: number
+          myth_reserved?: number
+          ton_distributed?: number
+          ton_funded?: number
+          ton_reserved?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          myth_distributed?: number
+          myth_funded?: number
+          myth_reserved?: number
+          ton_distributed?: number
+          ton_funded?: number
+          ton_reserved?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      veteran_vault_purchases: {
+        Row: {
+          amount_nano: string
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          cycle_end_at: string | null
+          cycle_start_at: string | null
+          delivery: Json | null
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          myth_distributed: number
+          myth_reserved: number
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_snapshot: Json
+          settled_at: string | null
+          status: string
+          telegram_id: number
+          ton_distributed: number
+          ton_reserved: number
+          tx_hash: string | null
+          user_id: string
+          vault_version: string
+        }
+        Insert: {
+          amount_nano: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          cycle_end_at?: string | null
+          cycle_start_at?: string | null
+          delivery?: Json | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          myth_distributed?: number
+          myth_reserved?: number
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_snapshot?: Json
+          settled_at?: string | null
+          status?: string
+          telegram_id: number
+          ton_distributed?: number
+          ton_reserved?: number
+          tx_hash?: string | null
+          user_id: string
+          vault_version: string
+        }
+        Update: {
+          amount_nano?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          cycle_end_at?: string | null
+          cycle_start_at?: string | null
+          delivery?: Json | null
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          myth_distributed?: number
+          myth_reserved?: number
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_snapshot?: Json
+          settled_at?: string | null
+          status?: string
+          telegram_id?: number
+          ton_distributed?: number
+          ton_reserved?: number
+          tx_hash?: string | null
+          user_id?: string
+          vault_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veteran_vault_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_deposits: {
         Row: {
           amount_fc: number
@@ -13938,6 +14246,18 @@ export type Database = {
           p_patch: Json
           p_reason?: string
         }
+        Returns: Json
+      }
+      admin_veteran_vault_fund: {
+        Args: { p_admin_id: number; p_amount: number; p_currency: string }
+        Returns: Json
+      }
+      admin_veteran_vault_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_veteran_vault_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
         Returns: Json
       }
       admin_wallet_config: {
@@ -16305,6 +16625,71 @@ export type Database = {
             }
             Returns: Json
           }
+      veteran_vault_claim: {
+        Args: { p_idempotency_key: string; p_telegram_id: number }
+        Returns: Json
+      }
+      veteran_vault_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      veteran_vault_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      veteran_vault_myth_budget: { Args: never; Returns: number }
+      veteran_vault_pending_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      veteran_vault_pending_rewards: {
+        Args: { p_purchase_id: string }
+        Returns: Json
+      }
+      veteran_vault_settings: {
+        Args: never
+        Returns: {
+          badge_enabled: boolean
+          cycle_days: number
+          daily_myth: number
+          enabled: boolean
+          equipment_chest_code: string
+          final_reward: Json
+          fragments: number
+          frame_enabled: boolean
+          hero_key: string | null
+          id: boolean
+          initial_myth: number
+          launch_at: string
+          max_ton_reward: number
+          min_account_age_days: number
+          pass_tier: string
+          pet_slug: string | null
+          price_ton: number
+          reference_values: Json
+          resource_chest_code: string
+          resource_chest_qty: number
+          reward_schedule: Json
+          sales_paused: boolean
+          target_reference_ton: number
+          updated_at: string
+          vault_version: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "veteran_vault_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      veteran_vault_snapshot: { Args: never; Returns: Json }
+      veteran_vault_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      veteran_vault_state: { Args: { p_telegram_id: number }; Returns: Json }
+      veteran_vault_ton_budget: { Args: never; Returns: number }
       wallet_deposit_config: { Args: never; Returns: Json }
       wallet_hot_address: { Args: never; Returns: string }
       weighted_pick: { Args: { p_weights: Json }; Returns: string }

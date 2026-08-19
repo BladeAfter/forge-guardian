@@ -15,6 +15,7 @@ import type {TowerBattle,TowerDashboard,TowerRanking} from './tower';
 import type { TonPaymentIntent, TonWallet, TonWithdrawalReceipt, WalletSummary ,MythWallet} from './wallet';
 import type { MythSaleDashboard, MythSalePurchaseResult, MythSaleStats } from './mythSale';
 import type { FounderEntitlement, FounderPackPurchaseResult, FounderPackState } from './founderPack';
+import type { VeteranVaultClaimResult, VeteranVaultPurchaseResult, VeteranVaultState } from './veteranVault';
 import type { MythStakingDashboard } from './mythStaking';
 import type { TelegramPlayerProfile } from './playerProfile';
 import {officialGameDayKey} from './calendarRewards';
@@ -230,7 +231,7 @@ export const beginPvpAdView=(initData:string)=>pvpRequest<{viewId:string;blockId
 /** Called ONLY after AdsGram confirms a valid completion. The server credits +1 ticket atomically. */
 export const claimPvpAdReward=(initData:string,viewId:string)=>pvpRequest<{granted:boolean;reason?:string;tickets:number;ads:PvpAdsState}>(initData,{action:'ads-reward',viewId});
 
-export type WalletAction={action:'founder-pack'}|{action:'founder-pack-buy';walletAddress?:string;idempotencyKey:string}|{action:'founder-pack-verify'}|{action:'founder-frame';equipped:boolean}|{action:'entitlements'}|{action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'}|{action:'myth-staking'}|{action:'myth-stake';amount:number;planCode:string;idempotencyKey:string}|{action:'myth-staking-claim';positionId?:string|null;idempotencyKey:string}|{action:'myth-unstake';positionId:string;idempotencyKey:string};
+export type WalletAction={action:'veteran-vault'}|{action:'veteran-vault-buy';walletAddress?:string;idempotencyKey:string}|{action:'veteran-vault-verify'}|{action:'veteran-vault-claim';idempotencyKey:string}|{action:'founder-pack'}|{action:'founder-pack-buy';walletAddress?:string;idempotencyKey:string}|{action:'founder-pack-verify'}|{action:'founder-frame';equipped:boolean}|{action:'entitlements'}|{action:'summary'}|{action:'verify-deposit'}|{action:'deposit';amountTon:number;walletAddress:string;idempotencyKey:string;depositType:'ton_to_fc'|'ton_balance'}|{action:'ton-wallet'}|{action:'withdraw-ton';amountTon:number;walletAddress:string;idempotencyKey:string}|{action:'egg-order';eggId:string;idempotencyKey:string}|{action:'verify-egg-purchases'}|{action:'myth'}|{action:'myth-sale'}|{action:'myth-buy';mythAmount:number;idempotencyKey:string;walletAddress?:string}|{action:'myth-verify'}|{action:'myth-staking'}|{action:'myth-stake';amount:number;planCode:string;idempotencyKey:string}|{action:'myth-staking-claim';positionId?:string|null;idempotencyKey:string}|{action:'myth-unstake';positionId:string;idempotencyKey:string};
 export async function walletRequest<T=WalletSummary>(telegramInitData:string,input:WalletAction={action:'summary'}):Promise<T>{const response=await forgeFetch('wallet',({initData:telegramInitData,...input}));const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível processar a carteira.');return payload}
 /** depositType decides the destination BEFORE payment: 'ton_to_fc' buys FC, 'ton_balance' tops up the internal TON balance 1:1. */
 export const createDepositIntent=(initData:string,amountTon:number,walletAddress:string,idempotencyKey:string,depositType:'ton_to_fc'|'ton_balance'='ton_to_fc')=>walletRequest<TonPaymentIntent>(initData,{action:'deposit',amountTon,walletAddress,idempotencyKey,depositType});
@@ -259,6 +260,14 @@ export const startFounderPackPurchase=(initData:string,idempotencyKey:string,wal
 export const verifyFounderPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:FounderPackState}>(initData,{action:'founder-pack-verify'});
 /** Cosmetic only: toggles the Founder profile frame the pack granted. */
 export const setFounderFrame=(initData:string,equipped:boolean)=>walletRequest<{ok:true;equipped:boolean}>(initData,{action:'founder-frame',equipped});
+/** ⚔️ VETERAN VAULT: eligibility, price, 45-day cycle state and matured rewards come from the server. */
+export const fetchVeteranVault=(initData:string)=>walletRequest<VeteranVaultState>(initData,{action:'veteran-vault'});
+/** Internal TON when it covers 100% of the price, TonConnect otherwise — balances are never mixed. */
+export const startVeteranVaultPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<VeteranVaultPurchaseResult>(initData,{action:'veteran-vault-buy',idempotencyKey,walletAddress});
+/** Settles a TonConnect payment on-chain exactly once (duplicate tx hashes are rejected by the DB). */
+export const verifyVeteranVaultPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:VeteranVaultState}>(initData,{action:'veteran-vault-verify'});
+/** CLAIM ALL AVAILABLE: every matured day is paid once, offline days accumulate. */
+export const claimVeteranVaultRewards=(initData:string,idempotencyKey:string)=>walletRequest<VeteranVaultClaimResult>(initData,{action:'veteran-vault-claim',idempotencyKey});
 export const fetchPlayerEntitlements=(initData:string)=>walletRequest<{entitlements:FounderEntitlement[]}>(initData,{action:'entitlements'});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
