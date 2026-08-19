@@ -9,6 +9,8 @@ import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
 import { HeroMiningBar } from '../components/HeroMiningBar';
 import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
+import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
+
 import { useT, useLanguage } from '../LanguageContext';
 
 
@@ -156,7 +158,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                   <div className="p-2 text-left">
                     <b className="block truncate text-[9px]">{hero.name}</b>
                     <p className="text-[9px] tracking-[.08em] text-amber-300">{starRow(stars, maxStars)}</p>
-                    <p className="text-[8px]" style={{ color: color[hero.rarity] }}>{t(`rarity.${hero.rarity}`)} · {t('common.levelShort')} {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
+                    <p className="text-[8px]" style={{ color: color[hero.rarity] }}>{isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {t('common.levelShort')} {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
                     <p className="text-[8px] text-slate-300">ATK {hero.finalAtk} · HP {hero.finalHp}</p>
                     <p className="text-[8px] text-amber-200">{t('common.power')} {hero.power}</p>
                     {equipped.has(hero.heroId) ? <p className="text-[8px] font-black text-emerald-300">{t('heroes.inTeam')}</p> : null}
