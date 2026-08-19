@@ -1062,3 +1062,15 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   object-fit:contain;
   filter:drop-shadow(0 0 6px rgba(45,212,191,.55));
 }
+/* Premium Title cosmetic (MYTH SALE milestone 250k) — replaces the @username. */
+.premium-title{
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  background:linear-gradient(90deg,#fde68a,#f59e0b,#fbbf24);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 12px rgba(251,191,36,.35);
+}
+
