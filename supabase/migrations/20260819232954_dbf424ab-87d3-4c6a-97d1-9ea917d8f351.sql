@@ -1,0 +1,12 @@
+REVOKE ALL ON FUNCTION public.veteran_v2_settings() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.veteran_v2_deliver(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.veteran_v2_start_purchase(bigint, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.veteran_v2_confirm_order(uuid, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.veteran_v2_state(bigint) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.veteran_v2_boost_percent(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_settings() TO service_role;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_deliver(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_start_purchase(bigint, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_confirm_order(uuid, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_state(bigint) TO service_role;
+GRANT EXECUTE ON FUNCTION public.veteran_v2_boost_percent(uuid) TO service_role;
