@@ -23,6 +23,17 @@ const GROUP_LABELS: Record<string, string> = {
   other_ton: 'OTHER TON SPENDING',
 };
 
+/** Compact reward tiers (presentation only — payouts follow the backend reward table). */
+type RewardTier = { label: string; medal: string; from: number; to: number; items: string[]; grand?: boolean; wide?: boolean; note?: string };
+const REWARD_TIERS: RewardTier[] = [
+  { label: '#1', medal: '🥇', from: 1, to: 1, grand: true, wide: true, items: ['1 Exclusive Hero', '1 Exclusive Pet', '2 NFT Weapons', '1 NFT Exclusive Grand Prize'], note: 'GRAND PRIZE ≈ 50 TON · TON MINING ENABLED' },
+  { label: '#2', medal: '🥈', from: 2, to: 2, items: ['1 Exclusive Hero', '1 Mythic Pet', '1 NFT Weapon', '100,000 MYTH'] },
+  { label: '#3', medal: '🥉', from: 3, to: 3, items: ['1 Exclusive Pet', '1 Mythic Hero', '1 NFT Weapon', '75,000 MYTH'] },
+  { label: '#4 – #10', medal: '🏆', from: 4, to: 10, items: ['Mythic / Legendary rewards', 'MYTH Tokens', 'Fragments', 'Equipment Chests'] },
+  { label: '#11 – #20', medal: '🎁', from: 11, to: 20, items: ['MYTH Tokens', 'Universal Fragments', 'Premium Chests', 'PvP Tickets'] },
+];
+
+
 export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet }: { telegramInitData: string; onGoToSale?: () => void; onGoToWallet?: () => void }) {
   const { data, isLoading, error, refetch } = useSpendingEvent(telegramInitData, true, 20);
   const [now, setNow] = useState(() => Date.now());
