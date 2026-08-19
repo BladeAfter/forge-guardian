@@ -2788,6 +2788,134 @@ export type Database = {
         }
         Relationships: []
       }
+      founder_pack_config: {
+        Row: {
+          badge_enabled: boolean
+          eligibility_days: number
+          enabled: boolean
+          equipment_chest_code: string
+          fragments: number
+          frame_enabled: boolean
+          hero_key: string
+          id: boolean
+          myth_amount: number
+          pack_version: number
+          pass_tier: string
+          pet_slug: string
+          price_ton: number
+          resource_chest: Json
+          resource_chest_code: string
+          updated_at: string
+        }
+        Insert: {
+          badge_enabled?: boolean
+          eligibility_days?: number
+          enabled?: boolean
+          equipment_chest_code?: string
+          fragments?: number
+          frame_enabled?: boolean
+          hero_key?: string
+          id?: boolean
+          myth_amount?: number
+          pack_version?: number
+          pass_tier?: string
+          pet_slug?: string
+          price_ton?: number
+          resource_chest?: Json
+          resource_chest_code?: string
+          updated_at?: string
+        }
+        Update: {
+          badge_enabled?: boolean
+          eligibility_days?: number
+          enabled?: boolean
+          equipment_chest_code?: string
+          fragments?: number
+          frame_enabled?: boolean
+          hero_key?: string
+          id?: boolean
+          myth_amount?: number
+          pack_version?: number
+          pass_tier?: string
+          pet_slug?: string
+          price_ton?: number
+          resource_chest?: Json
+          resource_chest_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      founder_pack_purchases: {
+        Row: {
+          amount_nano: string
+          confirmed_at: string | null
+          created_at: string
+          delivery: Json
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          pack_version: number
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_snapshot: Json
+          settled_at: string | null
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivery?: Json
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          pack_version?: number
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_snapshot?: Json
+          settled_at?: string | null
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivery?: Json
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          pack_version?: number
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_snapshot?: Json
+          settled_at?: string | null
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founder_pack_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fragment_summon_history: {
         Row: {
           created_at: string
@@ -7813,6 +7941,41 @@ export type Database = {
           },
         ]
       }
+      player_entitlements: {
+        Row: {
+          code: string
+          equipped: boolean
+          granted_at: string
+          id: string
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          equipped?: boolean
+          granted_at?: string
+          id?: string
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          equipped?: boolean
+          granted_at?: string
+          id?: string
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_equipment: {
         Row: {
           created_at: string
@@ -12358,6 +12521,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_founder_pack_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_founder_pack_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_game_balance_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -14564,6 +14735,56 @@ export type Database = {
         Returns: undefined
       }
       forge_random_seed: { Args: { p_salt?: string }; Returns: string }
+      founder_frame_set: {
+        Args: { p_equipped: boolean; p_telegram_id: number }
+        Returns: Json
+      }
+      founder_pack_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      founder_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      founder_pack_pending_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      founder_pack_settings: {
+        Args: never
+        Returns: {
+          badge_enabled: boolean
+          eligibility_days: number
+          enabled: boolean
+          equipment_chest_code: string
+          fragments: number
+          frame_enabled: boolean
+          hero_key: string
+          id: boolean
+          myth_amount: number
+          pack_version: number
+          pass_tier: string
+          pet_slug: string
+          price_ton: number
+          resource_chest: Json
+          resource_chest_code: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "founder_pack_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      founder_pack_snapshot: { Args: never; Returns: Json }
+      founder_pack_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      founder_pack_state: { Args: { p_telegram_id: number }; Returns: Json }
       fragment_summon_config: { Args: never; Returns: Json }
       fuse_heroes: {
         Args: {
@@ -14652,6 +14873,10 @@ export type Database = {
       }
       get_pet_egg_store: { Args: { p_telegram_id: number }; Returns: Json }
       get_pet_pvp_snapshot: { Args: { p_user: string }; Returns: Json }
+      get_player_entitlements: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       get_player_inventory: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_dashboard: { Args: { p_telegram_id: number }; Returns: Json }
       get_pvp_history: { Args: { p_telegram_id: number }; Returns: Json }
@@ -15366,6 +15591,10 @@ export type Database = {
         Returns: Json
       }
       open_legend_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
+        Returns: Json
+      }
+      open_resource_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json
       }
