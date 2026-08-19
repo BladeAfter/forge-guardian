@@ -14910,6 +14910,10 @@ export type Database = {
         }
         Returns: Json
       }
+      deliver_myth_sale_milestones: {
+        Args: { p_user: string }
+        Returns: number
+      }
       deliver_pet_egg_order: { Args: { p_order_id: string }; Returns: Json }
       detach_hero_everywhere: {
         Args: { p_hero: string; p_owner?: string }
