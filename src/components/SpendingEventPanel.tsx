@@ -23,6 +23,17 @@ const GROUP_LABELS: Record<string, string> = {
   other_ton: 'OTHER TON SPENDING',
 };
 
+/** Compact reward tiers (presentation only — payouts follow the backend reward table). */
+type RewardTier = { label: string; medal: string; from: number; to: number; items: string[]; grand?: boolean; wide?: boolean; note?: string };
+const REWARD_TIERS: RewardTier[] = [
+  { label: '#1', medal: '🥇', from: 1, to: 1, grand: true, wide: true, items: ['1 Exclusive Hero', '1 Exclusive Pet', '2 NFT Weapons', '1 NFT Exclusive Grand Prize'], note: 'GRAND PRIZE ≈ 50 TON · TON MINING ENABLED' },
+  { label: '#2', medal: '🥈', from: 2, to: 2, items: ['1 Exclusive Hero', '1 Mythic Pet', '1 NFT Weapon', '100,000 MYTH'] },
+  { label: '#3', medal: '🥉', from: 3, to: 3, items: ['1 Exclusive Pet', '1 Mythic Hero', '1 NFT Weapon', '75,000 MYTH'] },
+  { label: '#4 – #10', medal: '🏆', from: 4, to: 10, items: ['Mythic / Legendary rewards', 'MYTH Tokens', 'Fragments', 'Equipment Chests'] },
+  { label: '#11 – #20', medal: '🎁', from: 11, to: 20, items: ['MYTH Tokens', 'Universal Fragments', 'Premium Chests', 'PvP Tickets'] },
+];
+
+
 export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet }: { telegramInitData: string; onGoToSale?: () => void; onGoToWallet?: () => void }) {
   const { data, isLoading, error, refetch } = useSpendingEvent(telegramInitData, true, 20);
   const [now, setNow] = useState(() => Date.now());
@@ -144,28 +155,41 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
         {ranking.map((row,index) => <RankRow key={row.userId||`rank-${index}`} row={row} me={row.position === player.position && !!myRow} />)}
       </div>
 
-      {/* TOP REWARDS */}
-      <SectionTitle icon={<Gift className="h-3.5 w-3.5" />} title={`🏆 TOP ${event?.topLimit ?? 20} REWARDS`} subtitle="Rewards are paid by final rank at the end of the event." />
-      <div className="space-y-1.5">
-        {rewards.length === 0 && <p className="rounded-3xl border border-white/10 bg-black/55 py-6 text-center text-[10px] text-slate-400">Reward table not published yet.</p>}
-        {rewards.map(slot => {
-          const grand = slot.from === 1;
-          const mine = player.position != null && player.position >= slot.from && player.position <= slot.to;
+      {/* TOP REWARDS — compact tier grid */}
+      <SectionTitle icon={<Gift className="h-3.5 w-3.5" />} title={`🏆 TOP ${event?.topLimit ?? 20} REWARDS`} subtitle="Paid by final rank at the end of the event." />
+      <div className="grid grid-cols-2 gap-1.5">
+        {REWARD_TIERS.map(tier => {
+          const mine = player.position != null && player.position >= tier.from && player.position <= tier.to;
           return (
-            <div key={`${slot.from}-${slot.to}`} className={`rounded-3xl border p-3.5 ${grand ? 'border-amber-300/60 bg-gradient-to-br from-amber-950/60 to-black shadow-[0_0_28px_rgba(245,158,11,.18)]' : mine ? 'border-emerald-300/45 bg-gradient-to-br from-emerald-950/40 to-black' : 'border-white/10 bg-black/55'}`}>
+            <div key={tier.label} className={`rounded-2xl border p-2.5 ${tier.wide ? 'col-span-2' : ''} ${tier.grand ? 'border-amber-300/60 bg-gradient-to-br from-amber-950/60 to-black shadow-[0_0_22px_rgba(245,158,11,.18)]' : mine ? 'border-emerald-300/45 bg-gradient-to-br from-emerald-950/40 to-black' : 'border-white/10 bg-black/55'}`}>
               <div className="flex items-center justify-between">
-                <b className={`text-[12px] font-black ${grand ? 'text-amber-100' : 'text-slate-100'}`}>
-                  {grand && <Crown className="mr-1 inline h-3.5 w-3.5 text-amber-300" />}
-                  {slot.from === slot.to ? `#${slot.from}` : `#${slot.from} – #${slot.to}`}
+                <b className={`text-[11px] font-black ${tier.grand ? 'text-amber-100' : 'text-slate-100'}`}>
+                  {tier.grand && <Crown className="mr-1 inline h-3 w-3 text-amber-300" />}{tier.medal} {tier.label}
                 </b>
-                {grand ? <span className="text-[8px] font-black uppercase tracking-[.22em] text-amber-300">GRAND PRIZE</span>
-                  : mine ? <span className="text-[8px] font-black uppercase tracking-[.22em] text-emerald-300">YOUR RANGE</span> : null}
+                {mine && <span className="text-[7px] font-black uppercase tracking-[.2em] text-emerald-300">YOU</span>}
               </div>
-              <p className="mt-1.5 text-[10px] leading-4 text-slate-300">{slot.label}</p>
+              <ul className={`mt-1 space-y-0.5 text-[9px] leading-[13px] text-slate-300 ${tier.wide ? 'columns-2' : ''}`}>
+                {tier.items.map(item => <li key={item}>· {item}</li>)}
+              </ul>
+              {tier.note && <p className="mt-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-300">{tier.note}</p>}
             </div>
           );
         })}
       </div>
+      {rewards.length > 0 && (
+        <details className="mt-1.5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2">
+          <summary className="cursor-pointer text-[9px] font-black uppercase tracking-[.2em] text-amber-200/80">FULL RANK TABLE</summary>
+          <div className="mt-1.5 space-y-1">
+            {rewards.map(slot => (
+              <div key={`${slot.from}-${slot.to}`} className="flex gap-2 text-[9px] leading-[13px]">
+                <b className="shrink-0 text-amber-200">{slot.from === slot.to ? `#${slot.from}` : `#${slot.from}–${slot.to}`}</b>
+                <span className="text-slate-400">{slot.label}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
 
       {/* WALLET SHORTCUTS */}
       <section className="relative mt-4 overflow-hidden rounded-[2rem] border border-amber-300/45 bg-gradient-to-br from-[#231703] via-[#0a1020] to-black p-5 text-center">
