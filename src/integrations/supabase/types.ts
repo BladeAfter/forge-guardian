@@ -17057,6 +17057,50 @@ export type Database = {
             }
             Returns: Json
           }
+      veteran_v2_boost_percent: { Args: { p_user_id: string }; Returns: number }
+      veteran_v2_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      veteran_v2_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      veteran_v2_settings: {
+        Args: never
+        Returns: {
+          boost_percent: number
+          dragon_daily_myth: number
+          enabled: boolean
+          fragments: number
+          hero_daily_myth: number
+          id: boolean
+          legendary_chests: number
+          myth_reference_rate: number
+          myth_reward: number
+          package_version: string
+          pet_daily_myth: number
+          popup_enabled: boolean
+          popup_frequency: string
+          price_ton: number
+          reward_configuration_version: number
+          sales_paused: boolean
+          updated_at: string
+          weapons_per_purchase: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "veteran_vault_v2_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      veteran_v2_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      veteran_v2_state: { Args: { p_telegram_id: number }; Returns: Json }
       veteran_vault_claim: {
         Args: { p_idempotency_key: string; p_telegram_id: number }
         Returns: Json
