@@ -2294,6 +2294,8 @@ const PROMPTS: Record<string, string> = {
   spname: '💰 Envie o <b>nome</b> do novo evento de gastos.\nEx.: <code>SPENDING EVENT</code>',
   spdays: '📅 Envie a <b>duração em dias</b> (1 a 90).\nEx.: <code>7</code>',
   spreward: '🎁 Envie a recompensa no formato <code>posição|texto</code> ou <code>de-até|texto</code>.\nEx.: <code>1|Ancestral Egg + Exclusive Hero</code>\nEx.: <code>11-12|Rare Chest + 20 Universal Fragments</code>',
+  spratet: '💎 Envie quantos <b>pontos por 1 TON</b>.\nEx.: <code>100000</code>',
+  spratef: '🪙 Envie quantos <b>pontos por 1 FC gasto</b>.\nEx.: <code>1</code>',
   mksearch: '🔍 Envie o nome do item ou o <b>ID do anúncio</b>.',
   mkuser: '👤 Envie Telegram ID, @usuário, nome, carteira ou ID interno para ver os anúncios do jogador.',
   mkfee: '💸 Envie a nova taxa do mercado em % (0 a 50).\nEx.: <code>5</code> ou <code>3</code>',
