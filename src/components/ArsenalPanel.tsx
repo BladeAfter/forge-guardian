@@ -128,6 +128,11 @@ function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; to
       <p className="relative mt-2 text-center text-[9px] font-bold text-slate-300">
         ATK +{item.bonusAttack} · DEF +{item.bonusDefense} · HP +{item.bonusHp}
       </p>
+      {Number(item.mythPerDay ?? 0) > 0 ? (
+        <p className="relative mt-1 text-center text-[9px] font-black uppercase tracking-[.14em] text-violet-200">
+          ⛏ {Math.round(Number(item.mythPerDay))} MYTH / DAY
+        </p>
+      ) : null}
       <button
         type="button"
         disabled={sold || disabled}
