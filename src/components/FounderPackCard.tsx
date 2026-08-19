@@ -75,7 +75,7 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
     },
     onSuccess: async order => {
       await refreshAll();
-      if (order.status === 'completed') { setOpen(false); toast.success('Founder Pack garantido! Todas as recompensas foram entregues.'); }
+      if (order.status === 'completed') { close(); toast.success('Founder Pack garantido! Todas as recompensas foram entregues.'); }
       else { toast.success('Pagamento enviado. Confirmando na blockchain…'); window.setTimeout(() => { void reconcile(); }, 6_000); }
     },
     onError: error => toast.error(founderErrorText(error)),
