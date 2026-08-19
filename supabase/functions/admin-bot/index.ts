@@ -4109,6 +4109,94 @@ async function vvPrompt(ctx: Ctx, key: string, text: string) {
   return vvHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- ⚔️ VETERAN VAULT (pacote premium 100 TON)
+// Linha Veteran (herói, pet, dragão, ovo, armas), mineração SOMENTE em MYTH e bônus de +X% para quem compra.
+// Preço, taxas, conteúdo e o fundo de MYTH vivem no banco: o bot apenas configura e financia.
+async function vv2Hub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_veteran_v2_overview', { p_admin_id: ctx.adminId }) as any;
+  const pool = d.pool ?? {};
+  const tpl = d.templates ?? {};
+  const recent = (d.recent ?? []) as any[];
+  const text = [
+    '⚔️ <b>MYTHREON VETERAN VAULT</b>',
+    '<i>Pacote premium · 1 compra por conta · mineração exclusiva em MYTH</i>',
+    '',
+    `<b>Status:</b> ${d.enabled ? '✅ ATIVO' : '⛔ DESATIVADO'}${d.salesPaused ? ' · ⏸ VENDAS PAUSADAS' : ''}`,
+    `<b>Versão:</b> <code>${esc(String(d.packageVersion))}</code> · <b>Preço:</b> ${fmt(d.priceTon)} TON`,
+    `<b>Popup:</b> ${d.popupEnabled ? '✅' : '⛔'} · <code>${esc(String(d.popupFrequency))}</code>`,
+    '',
+    `🪙 MYTH na compra: <b>${mythFmt(d.mythReward)}</b> · 🎁 Baús: <b>${fmt(d.legendaryChests)}</b> · 💎 Frag: <b>${fmt(d.fragments)}</b> · ⚔️ Armas: <b>${fmt(d.weapons)}</b>`,
+    `⛏ Mineração/dia — herói: <b>${mythFmt(d.heroDailyMyth)}</b> · pet: <b>${mythFmt(d.petDailyMyth)}</b> · dragão: <b>${mythFmt(d.dragonDailyMyth)}</b>`,
+    `🚀 Bônus do comprador: <b>+${fmt(d.boostPercent)}%</b> em toda mineração de MYTH`,
+    '',
+    `<b>TEMPLATES VETERAN</b> — heróis: ${fmt(tpl.heroes)} · pets: ${fmt(tpl.pets)} · dragões: ${fmt(tpl.dragons)} · ovos: ${fmt(tpl.eggs)} · armas: ${fmt(tpl.weapons)}`,
+    `<b>FUNDO MYTH (RECOMPENSAS)</b> — financiado: ${mythFmt(pool.rewardFunded)} · distribuído: ${mythFmt(pool.rewardDistributed)} · disponível: <b>${mythFmt(pool.rewardAvailable)}</b>`,
+    `<b>FUNDO MYTH (MINERAÇÃO)</b> — financiado: ${mythFmt(pool.miningFunded)} · distribuído: ${mythFmt(pool.miningDistributed)} · disponível: <b>${mythFmt(pool.miningAvailable)}</b>`,
+    '',
+    `<b>Vendidos:</b> ${fmt(d.sold)} · <b>intents ativos:</b> ${fmt(d.pending)} · <b>TON arrecadado:</b> ${fmt(d.tonRaised)}`,
+    '',
+    `<b>ÚLTIMAS COMPRAS</b>\n${recent.map((r) => `• ${esc(r.player ?? '—')} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.method ?? '—')} · ${esc(r.status)}`).join('\n') || 'nenhuma compra ainda'}`,
+  ].join('\n');
+  const rows = [
+    [{ t: d.enabled ? '⛔ DESATIVAR' : '✅ ATIVAR', d: `v2:on:${d.enabled ? 0 : 1}` },
+     { t: d.salesPaused ? '▶️ RETOMAR VENDAS' : '⏸ PAUSAR VENDAS', d: `v2:pause:${d.salesPaused ? 0 : 1}` }],
+    [{ t: d.popupEnabled ? '🔔 POPUP ON' : '🔔 POPUP OFF', d: `v2:popup:${d.popupEnabled ? 0 : 1}` },
+     { t: '🔁 FREQUÊNCIA', d: 'v2:ask:v2freq' }],
+    [{ t: '💎 PREÇO (TON)', d: 'v2:ask:v2price' }, { t: '🏷 VERSÃO', d: 'v2:ask:v2version' }],
+    [{ t: '🪙 MYTH NA COMPRA', d: 'v2:ask:v2myth' }, { t: '🚀 BÔNUS (%)', d: 'v2:ask:v2boost' }],
+    [{ t: '🦸 MYTH/DIA HERÓI', d: 'v2:ask:v2heromyth' }, { t: '🐾 MYTH/DIA PET', d: 'v2:ask:v2petmyth' }],
+    [{ t: '🐉 MYTH/DIA DRAGÃO', d: 'v2:ask:v2dragonmyth' }, { t: '⚔️ ARMAS/COMPRA', d: 'v2:ask:v2weapons' }],
+    [{ t: '🎁 BAÚS LENDÁRIOS', d: 'v2:ask:v2chests' }, { t: '💎 FRAGMENTOS', d: 'v2:ask:v2frag' }],
+    [{ t: '🎯 REFERÊNCIA MYTH/TON', d: 'v2:ask:v2reference' }],
+    [{ t: '🪙 FINANCIAR RECOMPENSAS', d: 'v2:ask:v2fundreward' }, { t: '⛏ FINANCIAR MINERAÇÃO', d: 'v2:ask:v2fundmining' }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function vv2Callback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'on') await rpc('admin_veteran_v2_set', { p_admin_id: ctx.adminId, p_field: 'enabled', p_value: a });
+  if (sub === 'pause') await rpc('admin_veteran_v2_set', { p_admin_id: ctx.adminId, p_field: 'paused', p_value: a });
+  if (sub === 'popup') await rpc('admin_veteran_v2_set', { p_admin_id: ctx.adminId, p_field: 'popup', p_value: a });
+  return vv2Hub(ctx);
+}
+
+const VV2_FIELDS: Record<string, string> = {
+  v2price: 'price', v2version: 'version', v2myth: 'myth', v2boost: 'boost', v2heromyth: 'heromyth',
+  v2petmyth: 'petmyth', v2dragonmyth: 'dragonmyth', v2weapons: 'weapons', v2chests: 'chests',
+  v2frag: 'fragments', v2reference: 'reference', v2freq: 'frequency',
+};
+
+async function vv2Prompt(ctx: Ctx, key: string, text: string) {
+  const raw = text.trim();
+  if (key === 'v2fundreward' || key === 'v2fundmining') {
+    const amount = Number(raw.replace(',', '.').replace(/[^\d.-]/g, ''));
+    if (!Number.isFinite(amount) || amount === 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    await rpc('admin_veteran_v2_fund', { p_admin_id: ctx.adminId, p_pool: key === 'v2fundmining' ? 'mining' : 'reward', p_amount: amount });
+    await clearSession(ctx);
+    await send(ctx, `⚔️ Fundo Veteran atualizado: <b>${key === 'v2fundmining' ? 'MINERAÇÃO' : 'RECOMPENSAS'}</b> ${amount > 0 ? '+' : ''}<code>${esc(String(amount))}</code> MYTH`);
+    return vv2Hub({ ...ctx, messageId: undefined }, false);
+  }
+  const field = VV2_FIELDS[key];
+  if (!field) return vv2Hub({ ...ctx, messageId: undefined }, false);
+  let value = raw;
+  if (['price', 'boost', 'myth', 'heromyth', 'petmyth', 'dragonmyth', 'weapons', 'chests', 'fragments', 'reference'].includes(field)) {
+    const num = ['price', 'boost'].includes(field)
+      ? Number(value.replace(',', '.').replace(/[^\d.]/g, ''))
+      : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+    value = String(num);
+  }
+  if (field === 'frequency') value = value.toUpperCase();
+  await rpc('admin_veteran_v2_set', { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `⚔️ Veteran Vault atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return vv2Hub({ ...ctx, messageId: undefined }, false);
+}
+
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
