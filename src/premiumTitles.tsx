@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from './services';
+
 
 export type PremiumTitleEntry = { userId: string; telegramId: string; username: string; title: string };
 export type PremiumTitleMap = Record<string, string>;
