@@ -1,22 +1,9 @@
-import { useState } from 'react';
 import { MythTokenSalePanel } from './MythTokenSalePanel';
-import { SpendingEventPanel } from './SpendingEventPanel';
 
 /**
- * MYTH TOKEN SALE screen wrapper: keeps the original sale panel untouched and adds the
- * SPENDING EVENT sub-tab beside it.
+ * MYTH TOKEN SALE screen: the original sale panel, untouched. The SPENDING EVENT
+ * now lives in its own tab and never replaces the token sale.
  */
-export function MythSaleSection({ telegramInitData, onGoToWallet }: { telegramInitData: string; onGoToWallet?: () => void }) {
-  const [view, setView] = useState<'sale' | 'event'>('sale');
-  return (
-    <div>
-      <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-2xl border border-amber-300/25 bg-black/55 p-1">
-        <button onClick={() => setView('sale')} className={`rounded-xl py-2 text-[9px] font-black uppercase tracking-[.14em] ${view === 'sale' ? 'bg-gradient-to-r from-amber-400 to-yellow-200 text-black' : 'text-amber-200/70'}`}>MYTH SALE</button>
-        <button onClick={() => setView('event')} className={`rounded-xl py-2 text-[9px] font-black uppercase tracking-[.14em] ${view === 'event' ? 'bg-gradient-to-r from-amber-500 to-yellow-300 text-black shadow-[0_0_18px_rgba(245,158,11,.4)]' : 'text-amber-200/70'}`}>SPENDING EVENT</button>
-      </div>
-      {view === 'sale'
-        ? <MythTokenSalePanel telegramInitData={telegramInitData} />
-        : <SpendingEventPanel telegramInitData={telegramInitData} onGoToSale={() => setView('sale')} onGoToWallet={onGoToWallet} />}
-    </div>
-  );
+export function MythSaleSection({ telegramInitData }: { telegramInitData: string; onGoToWallet?: () => void }) {
+  return <MythTokenSalePanel telegramInitData={telegramInitData} />;
 }
