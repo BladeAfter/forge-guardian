@@ -3019,6 +3019,7 @@ export type Database = {
       }
       game_players: {
         Row: {
+          avatar_border: string | null
           avatar_url: string | null
           ban_reason: string | null
           banned: boolean
@@ -3064,6 +3065,7 @@ export type Database = {
           vip_until: string | null
         }
         Insert: {
+          avatar_border?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned?: boolean
@@ -3109,6 +3111,7 @@ export type Database = {
           vip_until?: string | null
         }
         Update: {
+          avatar_border?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned?: boolean
