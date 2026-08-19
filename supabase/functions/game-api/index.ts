@@ -1138,6 +1138,12 @@ async function handleCalendar(db: Db, user: TelegramUser, body: Record<string, a
     if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
     return rpc(db, 'open_legend_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
   }
+  if (action === 'open-resource-chest') {
+    // FOUNDER PACK premium resource chest: contents are configured in the DB and granted server-side.
+    if (!isUuid(body.inventoryItemId)) throw new Error('Baú inválido.');
+    return rpc(db, 'open_resource_chest', { p_telegram_id: user.id, p_inventory_item_id: body.inventoryItemId });
+  }
+
   if (action === 'summon-hero') {
     // 5 fragments -> 1 random common/uncommon hero. Cost, odds, roll and the new
     // hero instance are all resolved atomically inside the RPC (idempotent).
