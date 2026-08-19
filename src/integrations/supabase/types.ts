@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _diag_log: {
+        Row: {
+          created_at: string | null
+          id: number
+          msg: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          msg?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          msg?: string | null
+        }
+        Relationships: []
+      }
       _market_probe: {
         Row: {
           k: string
