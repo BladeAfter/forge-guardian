@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
-import { openCalendarChest, openExclusiveChest, openLegendChest, petRequest, summonHeroWithFragments } from '../services';
+import { openCalendarChest, openExclusiveChest, openLegendChest, openResourceChest, petRequest, summonHeroWithFragments } from '../services';
 import type { LegendChestEquipment } from '../services';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { ArsenalPanel } from './ArsenalPanel';
@@ -98,6 +98,12 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
         const payload = await openLegendChest(telegramInitData, String(item.instanceId));
         setLegendReward(payload.equipment);
         return null;
+      }
+      // FOUNDER PACK premium resource chest: its own server action (FC, fragments, tickets, chest).
+      if (item.itemType === 'resource_chest' || item.action === 'open-resource-chest') {
+        const payload = await openResourceChest(telegramInitData, String(item.instanceId));
+        const parts = [payload.rewards.fc ? `${payload.rewards.fc.toLocaleString('pt-BR')} FC` : '', payload.rewards.fragments ? `${payload.rewards.fragments} fragmentos` : '', payload.rewards.pvpTickets ? `${payload.rewards.pvpTickets} tickets PvP` : ''].filter(Boolean);
+        return parts.length ? parts.join(' · ') : null;
       }
       if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
         const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
@@ -203,7 +209,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
                 <p className="text-[10px] text-slate-400">{selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
-                {(selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
+                {(selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.action === 'open-resource-chest' || selected.itemType === 'resource_chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
                   <button
                     disabled={busy}
                     onClick={() => openChest.mutate(selected)}
