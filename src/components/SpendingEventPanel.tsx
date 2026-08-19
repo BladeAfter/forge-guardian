@@ -43,10 +43,14 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
     </div>
   );
 
-  const { player, totals, ranking, rewards, breakdown } = data;
+  const player = data.player;
+  const totals = data.totals;
+  const ranking = Array.isArray(data.ranking) ? data.ranking : [];
+  const rewards = Array.isArray(data.rewards) ? data.rewards : [];
+  const breakdown = Array.isArray(data.breakdown) ? data.breakdown : [];
   const finished = event?.status === 'finished' || clock.ended;
   const myRow = ranking.find(r => r.position === player.position) ?? null;
-  const breakdownTotal = (breakdown ?? []).reduce((sum, row) => sum + Number(row.points || 0), 0);
+  const breakdownTotal = breakdown.reduce((sum, row) => sum + Number(row.points || 0), 0);
 
   return (
     <div className="pb-12">
@@ -110,12 +114,12 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
       {/* YOUR EVENT ACTIVITY */}
       <SectionTitle icon={<TrendingUp className="h-3.5 w-3.5" />} title="YOUR EVENT ACTIVITY" subtitle="Where your event points came from." />
       <div className="rounded-3xl border border-white/10 bg-black/55 p-3.5">
-        {(breakdown ?? []).length === 0 ? (
+        {breakdown.length === 0 ? (
           <p className="py-4 text-center text-[10px] text-slate-400">No eligible activity yet. Deposits, purchases and FC spending all score points.</p>
         ) : (
           <>
             <ul className="space-y-1.5">
-              {(breakdown ?? []).map(row => (
+              {breakdown.map(row => (
                 <li key={row.group} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/50 px-3 py-2">
                   <span className="text-[9px] font-black uppercase tracking-[.16em] text-slate-300">{GROUP_LABELS[row.group] ?? row.group.replace(/_/g, ' ').toUpperCase()}</span>
                   <b className="text-[11px] text-amber-100">{abbreviatePoints(row.points)} pts</b>
@@ -137,7 +141,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
       <SectionTitle icon={<Medal className="h-3.5 w-3.5" />} title="LIVE RANKING" subtitle={`Top ${event?.topLimit ?? 20} · updates in real time.`} />
       <div className="space-y-1.5">
         {ranking.length === 0 && <p className="rounded-3xl border border-white/10 bg-black/55 py-6 text-center text-[10px] text-slate-400">No participants yet — be the first on the leaderboard.</p>}
-        {ranking.map(row => <RankRow key={row.userId} row={row} me={row.position === player.position && !!myRow} />)}
+        {ranking.map((row,index) => <RankRow key={row.userId||`rank-${index}`} row={row} me={row.position === player.position && !!myRow} />)}
       </div>
 
       {/* TOP REWARDS */}

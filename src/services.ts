@@ -518,7 +518,23 @@ export async function waitForMarketPayment(initData:string,paymentId:string,atte
 
 
 /** Spending Event (SPENDING EVENT tab): the backend counts every confirmed spend. */
-export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');const payload=await response.json().catch(()=>null)as(SpendingEventDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');return payload}
+export async function spendingEventRequest(initData:string,limit=20):Promise<SpendingEventDashboard>{
+  const response=await forgeFetch('spending-event',({initData,action:'dashboard',limit}));
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o Evento de Gastos.');
+  const payload=await response.json().catch(()=>null)as(Partial<SpendingEventDashboard>&{error?:string})|null;
+  if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Evento de Gastos.');
+  const player=payload.player??{points:0,fcSpent:0,tonSpent:0,position:null,estimatedReward:null,nextRank:null,neededToNext:null};
+  const totals=payload.totals??{points:0,fcSpent:0,tonSpent:0,participants:0};
+  return{
+    event:payload.event??null,
+    player:{...player,points:Number(player.points)||0,fcSpent:Number(player.fcSpent)||0,tonSpent:Number(player.tonSpent)||0},
+    totals:{points:Number(totals.points)||0,fcSpent:Number(totals.fcSpent)||0,tonSpent:Number(totals.tonSpent)||0,participants:Number(totals.participants)||0},
+    ranking:Array.isArray(payload.ranking)?payload.ranking:[],
+    rewards:Array.isArray(payload.rewards)?payload.rewards:[],
+    breakdown:Array.isArray(payload.breakdown)?payload.breakdown:[],
+    serverTime:payload.serverTime??new Date().toISOString(),
+  };
+}
 
 /** POOL MARKETING tab: read-only project expense transparency (admin-bot driven). */
 export async function marketingPoolRequest(initData:string,limit=50):Promise<MarketingPoolDashboard>{const response=await forgeFetch('marketing-pool',{initData,limit});const payload=await response.json().catch(()=>null)as(MarketingPoolDashboard&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Pool de Marketing.');return payload}
