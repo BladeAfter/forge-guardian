@@ -14657,6 +14657,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_veteran_v2_fund: {
+        Args: { p_admin_id: number; p_amount: number; p_pool: string }
+        Returns: Json
+      }
+      admin_veteran_v2_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_veteran_v2_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_veteran_vault_fund: {
         Args: { p_admin_id: number; p_amount: number; p_currency: string }
         Returns: Json
