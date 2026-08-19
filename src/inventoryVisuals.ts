@@ -53,6 +53,10 @@ const BY_CODE: Record<string, string> = {
   legend_chest: chestArt('legend-chest.png'),
 };
 
+/** Pet egg art (same files served by `pet_eggs.image_url`), keyed by slug. */
+const EGG_ART = (slug: string) => `/assets/game/pet-eggs/${slug}.webp`;
+const EGG_SLUGS = ['common-egg', 'rare-egg', 'epic-egg', 'dragon-egg', 'mythic-egg', 'ancestral-egg'];
+
 const isImageUrl = (value?: string | null) =>
   !!value && (value.startsWith('http') || value.startsWith('/') || value.startsWith('data:'));
 
@@ -102,6 +106,9 @@ export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {
     BY_CODE[type] ??
     (type.includes('fragment') || code.includes('fragment')
       ? code.includes('universal') || type.includes('universal') ? UNIVERSAL_FRAGMENT_ART : FRAGMENT_ART
+      : null) ??
+    (type.includes('egg') || code.includes('egg')
+      ? EGG_ART(EGG_SLUGS.find((slug) => code === slug || code.includes(slug.split('-')[0])) ?? 'common-egg')
       : null) ??
     (type.includes('chest') || code.includes('chest') ? CHEST_BY_RARITY[rarityToken ?? 'common'] ?? CHEST_BY_RARITY.common : null);
   if (mapped) return { image: mapped, glyph: null, rarity };
