@@ -1,0 +1,1 @@
+UPDATE public.equipment_templates SET hero_class='archer', updated_at=now() WHERE hero_class='ranger';
