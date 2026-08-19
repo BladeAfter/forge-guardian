@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
+import avatarBorderFounder from '../assets/avatar-border-founder.png.asset.json';
 import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
 
@@ -10,8 +11,11 @@ import { usePremiumTitles, resolvePremiumTitle } from '../premiumTitles';
 import { useT } from '../LanguageContext';
 
 
-/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE milestone at 100k). */
-const AVATAR_BORDERS: Record<string, string> = { myth_sale_exclusive: avatarBorderMyth.url };
+/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE 100k, FOUNDER PACK). */
+const AVATAR_BORDERS: Record<string, string> = {
+  myth_sale_exclusive: avatarBorderMyth.url,
+  founder_exclusive: avatarBorderFounder.url,
+};
 
 export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | null }) {
   const t = useT();
