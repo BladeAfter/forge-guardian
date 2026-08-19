@@ -170,7 +170,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       :!ranking.data?.top.length?<p className="py-8 text-center text-xs text-slate-400">{t('boss.noRanking')}</p>
       :<div className="mt-3 max-h-[55vh] space-y-1.5 overflow-y-auto">{ranking.data.top.map(entry=><div key={entry.userId} className={`flex items-center gap-2 rounded-2xl border p-2 ${entry.isYou?'border-amber-300/60 bg-amber-400/10':'border-white/10 bg-black/60'}`}>
         <span className="w-7 text-center text-[11px] font-black text-amber-300">#{entry.rank}</span>
-        {entry.photoUrl?<img src={entry.photoUrl} alt="" className="h-8 w-8 rounded-full object-cover"/>:<span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-[10px]">🛡️</span>}
+        <AvatarWithBorder photoUrl={entry.photoUrl} border={entry.avatarBorder} fallback={(entry.name[0]??'?').toUpperCase()} size={entry.avatarBorder?44:32}/>
         <div className="min-w-0 flex-1"><p className="truncate text-[11px] font-bold">{entry.name}{entry.isYou?<span className="ml-1 text-[8px] text-amber-300">({t('boss.you')})</span>:null}</p><p className="text-[9px] text-slate-400">{compact(entry.damage)} · {t('boss.share')} {entry.sharePercent.toFixed(2)}%</p></div>
         <span className="text-[10px] font-bold text-amber-300">{compact(entry.estimatedReward)} FC</span>
       </div>)}</div>}
