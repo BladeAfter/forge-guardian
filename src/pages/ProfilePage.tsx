@@ -7,6 +7,10 @@ import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../play
 import type { GameState } from '../types';
 import { useT } from '../LanguageContext';
 import{PlayerTag}from'../premiumTitles';
+import { AvatarWithBorder } from '../components/AvatarWithBorder';
+
+/** Reward icons come from mixed sources: only real URLs can be rendered as images. */
+const isImageUrl = (value?: string | null) => Boolean(value && (/^https?:\/\//.test(value) || value.startsWith('/') || value.startsWith('data:')));
 
 type ProfilePageProps = {
   game: GameState;
