@@ -184,9 +184,10 @@ export async function fetchHeroShopConfig(telegramInitData:string):Promise<HeroS
   return payload;
 }
 
-export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10){
-  const response=await forgeFetch('boss',({initData:telegramInitData,action:'recruit',count}));
-  const payload=await response.json().catch(()=>null) as {heroes:Array<{heroKey:string}>;balance:number;error?:string}|null;
+/** `payWith` is an EXTRA option: 'FC' keeps the original behaviour, 'MYTH' burns MYTH (priced server-side). */
+export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10,payWith:'FC'|'MYTH'='FC'){
+  const response=await forgeFetch('boss',({initData:telegramInitData,action:'recruit',count,payWith}));
+  const payload=await response.json().catch(()=>null) as {heroes:Array<{heroKey:string}>;balance:number;mythSpent?:number|null;error?:string}|null;
   if(!response.ok||!payload)throw new Error(payload?.error||'Recruitment failed.'); return payload;
 }
 
