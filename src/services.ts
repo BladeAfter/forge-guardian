@@ -517,6 +517,8 @@ export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',ra
 export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
 export const fetchMarketQuote=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string})=>marketRequest<MarketQuote>(initData,{action:'quote',...input});
 export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});
+/** Read-only premium preview of a listing / auction lot (real attributes, no mock data). */
+export const fetchMarketItemDetails=(initData:string,source:'market'|'auction',id:string)=>marketRequest<MarketItemDetailsResult>(initData,source==='auction'?{action:'details',source,auctionId:id}:{action:'details',source,listingId:id});
 export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number;quantity?:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
 export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
 export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});
