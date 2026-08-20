@@ -5192,6 +5192,7 @@ async function handleCallback(ctx: Ctx, data: string) {
     const view = rest[0];
     if (view === 'prices') return heroPricesView(ctx);
     if (view === 'odds') return heroOddsView(ctx);
+    if (view === 'roddz') return heroRealOddsView(ctx);
     if (view === 'list') return module(ctx, 'herolist');
     if (view === 'store') return module(ctx, 'store');
     if (view === 'fusion') return fusionView(ctx);
