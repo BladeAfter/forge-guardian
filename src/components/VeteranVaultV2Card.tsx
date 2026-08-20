@@ -81,7 +81,11 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
 
   const close = () => { setOpen(false); onPopupClose?.(); };
 
-  if (!state?.show) { if (popupMode) onPopupClose?.(); return null; }
+  // Enquanto o estado do servidor não chega, o popup espera: fechar aqui faria a oferta
+  // desaparecer antes de renderizar (e queimar a exibição do dia).
+  useEffect(() => { if (popupMode && state && (!state.show || state.purchased)) onPopupClose?.(); }, [popupMode, state?.show, state?.purchased]);
+
+  if (!state || !state.show) return null;
 
   const payWithInternal = state.availableTon >= state.priceTon;
   const rewards = [
@@ -97,7 +101,7 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
   ];
 
   if (state.purchased) {
-    if (popupMode) { onPopupClose?.(); return null; }
+    if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-amber-300/30 bg-forge-black/80 p-4 shadow-card">
         <img src={vaultArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />

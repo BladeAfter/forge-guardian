@@ -86,7 +86,11 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
 
   const close = () => { setOpen(false); onPopupClose?.(); };
 
-  if (!state?.show) { if (popupMode) onPopupClose?.(); return null; }
+  // Enquanto o estado do servidor não chega, o popup espera: fechar aqui faria a oferta
+  // desaparecer antes de renderizar (e queimar a exibição do dia).
+  useEffect(() => { if (popupMode && state && !state.show) onPopupClose?.(); }, [popupMode, state?.show]);
+
+  if (!state || !state.show) return null;
 
   const countdown = founderCountdown(state.eligibleUntil, Date.now() + tick * 0);
   const payWithInternal = state.availableTon >= state.priceTon;
