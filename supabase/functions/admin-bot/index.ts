@@ -473,9 +473,33 @@ async function heroOddsView(ctx: Ctx) {
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
     [{ t: 'LENDÁRIO', d: 'ho:legendary' }, { t: 'MÍTICO', d: 'ho:mythic' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
+    [{ t: '🕵️ CHANCES REAIS (SORTEIO)', d: 'hs:roddz' }],
     nav('m:shop'),
   ]));
 }
+
+/** Hidden roll odds: players keep seeing the public percentages, the server rolls with these. */
+async function heroRealOddsView(ctx: Ctx) {
+  const d = await rpc('admin_hero_real_odds', { p_admin_id: ctx.adminId }) as any;
+  const rates = d.rates ?? {};
+  const odds = d.odds ?? {};
+  const pub = d.publicOdds ?? {};
+  const list = RARITY_ORDER.filter((r) => r !== 'ancestral');
+  const total = list.reduce((sum, r) => sum + Number(rates[r] ?? 0), 0);
+  const text = [
+    '🕵️ <b>CHANCES REAIS DO SORTEIO</b>', '',
+    'Só o servidor usa estes valores. No jogo o jogador continua vendo as chances públicas.', '',
+    ...list.map((r) => `${RARITY_LABEL[r]} — real <b>${pct(rates[r])}%</b> (efetivo ${pct(odds[r] ?? 0)}%) · vitrine ${pct(pub[r] ?? 0)}%`),
+    '', `Total real: <b>${pct(total)}%</b> — precisa fechar 100%.`,
+    d.custom ? '' : '⚠️ Ainda usando as chances públicas como fallback.',
+  ].filter(Boolean).join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '✏️ EDITAR CHANCES REAIS', d: 'ask:hoddsreal' }],
+    [{ t: '🎲 CHANCES PÚBLICAS', d: 'hs:odds' }],
+    nav('m:shop'),
+  ]));
+}
+
 
 /** DUPLICATE FUSE settings (same hero_key copies -> stars/ATK/HP/Power, rarity never changes). */
 async function fusionView(ctx: Ctx) {
