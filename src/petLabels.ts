@@ -1,3 +1,5 @@
+import { VETERAN_LINE_LABEL, isVeteranLine } from './veteranLine';
+
 /**
  * Friendly PT-BR presentation for every pet bonus key. The database stores raw
  * keys (`boss_damage_percent`); the player must never see them.
