@@ -13900,6 +13900,19 @@ export type Database = {
         Args: { p_admin_id: number; p_amount: number; p_reason?: string }
         Returns: Json
       }
+      admin_myth_utility_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_myth_utility_set: {
+        Args: {
+          p_admin_id: number
+          p_feature?: string
+          p_field: string
+          p_value: string
+        }
+        Returns: Json
+      }
       admin_name_mission: {
         Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
         Returns: Json
