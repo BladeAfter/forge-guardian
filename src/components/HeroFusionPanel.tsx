@@ -125,12 +125,16 @@ export function HeroFusionPanel({
             <Stat label={t('fusion.statMaxLevel')} before={current.maxLevel} after={next.maxLevel} />
             <p className="mt-2 text-[10px] uppercase tracking-[.18em] text-slate-400">{t('fusion.requires')}</p>
             <div className="mt-1 space-y-1 rounded-lg border border-white/10 bg-black/40 p-2">
-              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option1')}</p>
-              <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
-                {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
-              </p>
-              <p className="text-center text-[9px] font-black uppercase tracking-[.24em] text-slate-500">{t('fusion.or')}</p>
-              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option2')}</p>
+              {current.isNft ? null : (
+                <>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option1')}</p>
+                  <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
+                  </p>
+                  <p className="text-center text-[9px] font-black uppercase tracking-[.24em] text-slate-500">{t('fusion.or')}</p>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option2')}</p>
+                </>
+              )}
               <p className={`text-[11px] font-black ${universalFragments >= fragmentsPerFusion ? 'text-emerald-300' : 'text-rose-300'}`}>
                 {t('fusion.fragmentsRequired', { count: fragmentsPerFusion })} ({t('fusion.available', { count: universalFragments })})
               </p>
