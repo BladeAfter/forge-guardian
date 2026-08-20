@@ -55,7 +55,8 @@ export function HeroFusionPanel({
   const mythFee = next ? mythPrice(myth, 'HERO_FUSE', { fc: next.costFc }) : null;
   const mythFeeOk = mythFee !== null && Number(myth?.available ?? 0) >= mythFee;
   const payMyth = feeCurrency === 'MYTH' && mythFee !== null;
-  const readyCopies = payMyth ? Boolean(next) && current.duplicates >= (next?.duplicatesRequired ?? 0) && mythFeeOk : ready;
+  // NFT Exclusive heroes are 1/1: copies never exist, so they ascend only with universal fragments.
+  const readyCopies = !current.isNft && (payMyth ? Boolean(next) && current.duplicates >= (next?.duplicatesRequired ?? 0) && mythFeeOk : ready);
   const readyFragments = payMyth ? Boolean(next) && universalFragments >= fragmentsPerFusion && mythFeeOk : readyWithFragments;
 
   const refresh = () => {
@@ -124,12 +125,16 @@ export function HeroFusionPanel({
             <Stat label={t('fusion.statMaxLevel')} before={current.maxLevel} after={next.maxLevel} />
             <p className="mt-2 text-[10px] uppercase tracking-[.18em] text-slate-400">{t('fusion.requires')}</p>
             <div className="mt-1 space-y-1 rounded-lg border border-white/10 bg-black/40 p-2">
-              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option1')}</p>
-              <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
-                {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
-              </p>
-              <p className="text-center text-[9px] font-black uppercase tracking-[.24em] text-slate-500">{t('fusion.or')}</p>
-              <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option2')}</p>
+              {current.isNft ? null : (
+                <>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option1')}</p>
+                  <p className={`text-[11px] font-black ${current.duplicates >= next.duplicatesRequired ? 'text-emerald-300' : 'text-rose-300'}`}>
+                    {t('fusion.copiesRequired', { count: next.duplicatesRequired })} ({t('fusion.available', { count: current.duplicates })})
+                  </p>
+                  <p className="text-center text-[9px] font-black uppercase tracking-[.24em] text-slate-500">{t('fusion.or')}</p>
+                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-500">{t('fusion.option2')}</p>
+                </>
+              )}
               <p className={`text-[11px] font-black ${universalFragments >= fragmentsPerFusion ? 'text-emerald-300' : 'text-rose-300'}`}>
                 {t('fusion.fragmentsRequired', { count: fragmentsPerFusion })} ({t('fusion.available', { count: universalFragments })})
               </p>
@@ -166,7 +171,7 @@ export function HeroFusionPanel({
         ) : null}
         {payMyth ? <MythBalanceHint state={myth} /> : null}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className={`mt-3 grid gap-2 ${current.isNft ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <button
             onClick={() => lock.mutate(!current.locked)}
             disabled={lock.isPending}
@@ -175,14 +180,16 @@ export function HeroFusionPanel({
             {current.locked ? <Lock size={16} /> : <LockOpen size={16} />}
             {current.locked ? t('fusion.unlockHero') : t('fusion.lockHero')}
           </button>
-          <button
-            onClick={() => fusion.mutate({ mode: 'copies', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
-            disabled={!readyCopies || fusion.isPending}
-            className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
-          >
-            <Sparkles size={16} />
-            {fusion.isPending ? t('fusion.fusing') : t('fusion.fuseWithCopies')}
-          </button>
+          {current.isNft ? null : (
+            <button
+              onClick={() => fusion.mutate({ mode: 'copies', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
+              disabled={!readyCopies || fusion.isPending}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
+            >
+              <Sparkles size={16} />
+              {fusion.isPending ? t('fusion.fusing') : t('fusion.fuseWithCopies')}
+            </button>
+          )}
         </div>
         {next ? (
           <button
