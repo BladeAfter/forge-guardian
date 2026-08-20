@@ -8,7 +8,8 @@ import altarImage from '../assets/recruit-altar.jpg';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
+import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus, useMythUtility } from '../hooks';
+import { MythBalanceHint, MythPayButton } from './MythPayButton';
 import {
   buyMarketListing,
   cancelMarketListing,
@@ -33,7 +34,7 @@ type Props = {
   summonOdds: Array<{ rarity: HeroRarity; chance: number }>;
   recruitPrice: (count: number) => number;
   shopResults: ShopHero[];
-  onRecruit: (count: 1 | 5 | 10) => void;
+  onRecruit: (count: 1 | 5 | 10, payWith?: 'FC' | 'MYTH') => void;
   onClose: () => void;
   /** Which access point opened the panel: hero recruitment or the Player Market. */
   mode?: 'recruit' | 'market';
@@ -56,6 +57,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
+  // MYTH is offered as an EXTRA recruitment payment when the backend enables it.
+  const mythUtility = useMythUtility(telegramInitData, mode === 'recruit');
   // Tapping a listing opens the read-only premium preview (real backend attributes).
   const [detailsId, setDetailsId] = useState<string | null>(null);
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
@@ -361,12 +364,18 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
 
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {([1, 5, 10] as const).map((count) => (
-                  <button key={count} onClick={() => onRecruit(count)} className="rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/[.06] to-black/40 px-1 py-3 text-center active:scale-95">
-                    <span className="block text-xl font-black text-white">{count}×</span>
-                    <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
-                  </button>
+                  <div key={count} className="flex flex-col gap-1.5">
+                    <button onClick={() => onRecruit(count, 'FC')} className="rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/[.06] to-black/40 px-1 py-3 text-center active:scale-95">
+                      <span className="block text-xl font-black text-white">{count}×</span>
+                      <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
+                    </button>
+                    {/* Extra payment option: MYTH (price + burn are decided by the backend). */}
+                    <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />
+                  </div>
                 ))}
               </div>
+              <MythBalanceHint state={mythUtility.data} />
+
 
               <div className="mt-3 flex items-start gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/[.06] p-2.5">
                 <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-300" />

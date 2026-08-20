@@ -17008,10 +17008,16 @@ export type Database = {
         }
         Returns: Json
       }
-      recruit_heroes: {
-        Args: { p_count: number; p_telegram_id: number }
-        Returns: Json
-      }
+      recruit_heroes:
+        | { Args: { p_count: number; p_telegram_id: number }; Returns: Json }
+        | {
+            Args: {
+              p_count: number
+              p_pay_currency: string
+              p_telegram_id: number
+            }
+            Returns: Json
+          }
       referral_pay_ton_commission: {
         Args: {
           p_amount_ton: number

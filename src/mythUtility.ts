@@ -19,7 +19,8 @@ export type MythFeatureCode =
   | 'PET_UPGRADE'
   | 'PASS_LEVELS'
   | 'PASS_PURCHASE'
-  | 'TOWER_ENTRY';
+  | 'TOWER_ENTRY'
+  | 'HERO_RECRUIT';
 
 export type MythFeatureConfig = {
   label: string;

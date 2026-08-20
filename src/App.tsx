@@ -813,10 +813,10 @@ function App() {
     return pool[Math.floor(Math.random() * pool.length)];
   };
 
-  const recruitHeroes = async (count: number) => {
+  const recruitHeroes = async (count: number, payWith: 'FC' | 'MYTH' = 'FC') => {
     if (backendEnabled && telegramInitData && (count === 1 || count === 5 || count === 10)) {
       try {
-        const result = await recruitHeroesOnServer(telegramInitData, count);
+        const result = await recruitHeroesOnServer(telegramInitData, count, payWith);
         // Server catalog wins (heroes created in the admin bot exist only there); local art is a fallback.
         setShopResults(result.heroes.map((item) => {
           const local = HERO_CATALOG.find((hero) => hero.id === item.heroKey);
@@ -826,8 +826,14 @@ function App() {
           return { id: item.heroKey, name: raw.name || local?.name || item.heroKey, rarity: (raw.rarity || local?.rarity || 'common') as HeroRarity, image } satisfies ShopHero;
         }).filter((hero): hero is ShopHero => Boolean(hero)));
 
-        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }), queryClient.invalidateQueries({ queryKey: ['market-sellable'] }), queryClient.invalidateQueries({ queryKey: ['hero-fusion'] }), queryClient.invalidateQueries({ queryKey: ['rarity-fusion'] })]);
-      } catch (recruitError) { toast.error(recruitError instanceof Error && recruitError.message === 'NOT_ENOUGH_FC' ? t('notEnoughFc') : String(recruitError)); }
+        await Promise.all([refetchBoss(), refetchGame(), queryClient.invalidateQueries({ queryKey: ['player-heroes'] }), queryClient.invalidateQueries({ queryKey: ['community-pool'] }), queryClient.invalidateQueries({ queryKey: ['pvp-dashboard'] }), queryClient.invalidateQueries({ queryKey: ['market-sellable'] }), queryClient.invalidateQueries({ queryKey: ['hero-fusion'] }), queryClient.invalidateQueries({ queryKey: ['rarity-fusion'] }), queryClient.invalidateQueries({ queryKey: ['myth-utility'] }), queryClient.invalidateQueries({ queryKey: ['myth-wallet'] })]);
+      } catch (recruitError) {
+        const message = recruitError instanceof Error ? recruitError.message : String(recruitError);
+        toast.error(message === 'NOT_ENOUGH_FC' ? t('notEnoughFc')
+          : message.includes('INSUFFICIENT_MYTH') ? 'Saldo de MYTH insuficiente.'
+          : message.includes('MYTH_PAYMENT_NOT_ENABLED') || message.includes('MYTH_UTILITY_DISABLED') ? 'Pagamento com MYTH indisponível agora.'
+          : message);
+      }
       return;
     }
     const cost = recruitPrice(count);
@@ -979,7 +985,7 @@ function App() {
               summonOdds={summonOdds}
               recruitPrice={recruitPrice}
               shopResults={shopResults}
-              onRecruit={(count: 1 | 5 | 10) => void recruitHeroes(count)}
+              onRecruit={(count: 1 | 5 | 10, payWith: 'FC' | 'MYTH' = 'FC') => void recruitHeroes(count, payWith)}
               onClose={closeInternal}
             />
           ) : null}
