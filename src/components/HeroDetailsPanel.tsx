@@ -9,6 +9,7 @@ import { useT } from '../LanguageContext';
 import { formatMiningTon, heroDailyRate, isMiningRarity } from '../heroMining';
 import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
+import { VETERAN_LINE_COLOR, VETERAN_LINE_LABEL, isVeteranLine } from '../veteranLine';
 
 
 const RARITY_COLOR: Record<string, string> = {
