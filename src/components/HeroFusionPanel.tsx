@@ -55,7 +55,8 @@ export function HeroFusionPanel({
   const mythFee = next ? mythPrice(myth, 'HERO_FUSE', { fc: next.costFc }) : null;
   const mythFeeOk = mythFee !== null && Number(myth?.available ?? 0) >= mythFee;
   const payMyth = feeCurrency === 'MYTH' && mythFee !== null;
-  const readyCopies = payMyth ? Boolean(next) && current.duplicates >= (next?.duplicatesRequired ?? 0) && mythFeeOk : ready;
+  // NFT Exclusive heroes are 1/1: copies never exist, so they ascend only with universal fragments.
+  const readyCopies = !current.isNft && (payMyth ? Boolean(next) && current.duplicates >= (next?.duplicatesRequired ?? 0) && mythFeeOk : ready);
   const readyFragments = payMyth ? Boolean(next) && universalFragments >= fragmentsPerFusion && mythFeeOk : readyWithFragments;
 
   const refresh = () => {
