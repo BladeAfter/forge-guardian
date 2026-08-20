@@ -32,12 +32,17 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
   const dailyXp = Math.max(0, Number(hero.dailyXp ?? 0));
   const dailyCap = Math.max(0, Number(hero.dailyXpCap ?? 0));
 
-  const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
+  // Founder/Veteran packs: SUPERIOR premium line, never mythic, never TON mining.
+  const veteran = isVeteranLine(hero);
+  const veteranMyth = veteran ? Math.max(0, Number(hero.miningDailyMyth ?? 0)) : 0;
+  const accent = veteran ? VETERAN_LINE_COLOR : (RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8');
   // Mining depends ONLY on rarity: level and equipment never change it.
   // NFT Exclusive heroes have their own server rate (nft_heroes.mining_daily_ton).
-  const miningRate = Number(state?.miningDailyTon ?? 0) > 0
-    ? Number(state?.miningDailyTon ?? 0)
-    : heroDailyRate(miningRates, hero.rarity);
+  const miningRate = veteran
+    ? 0
+    : Number(state?.miningDailyTon ?? 0) > 0
+      ? Number(state?.miningDailyTon ?? 0)
+      : heroDailyRate(miningRates, hero.rarity);
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
