@@ -2408,6 +2408,7 @@ const PROMPTS: Record<string, string> = {
   chreset: '⚠️ Reset manual de claim. Envie: <code>usuário channel_key CONFIRMAR</code>\nEx.: <code>8082515829 news CONFIRMAR</code>\nIsso libera o VERIFY novamente e fica registrado na auditoria.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
+  hoddsreal: 'Envie as 6 chances REAIS do sorteio na ordem <b>comum incomum raro épico lendário mítico</b>.\nEx.: <code>71.3 25 2 1 0.6 0.1</code>\nO total precisa fechar 100%. O jogador continua vendo as chances públicas.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
   fusion: 'Envie o JSON da fusão (merge parcial). Ex.:\n<code>{"max_stars":5,"bonus_percent":{"1":5,"2":5,"3":7,"4":8,"5":10},"cost_fc":{"1":5000,"2":15000,"3":35000,"4":75000,"5":150000},"duplicates":{"1":5,"2":5,"3":5,"4":5,"5":5},"level_cap":{"0":20,"1":20,"2":25,"3":25,"4":30,"5":35}}</code>',
   rfcommon: 'COMMON → UNCOMMON — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>10000 80 10</code>',
