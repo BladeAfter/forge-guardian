@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Lock, LockOpen, Sparkles, X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fuseHeroWithFragments, fuseHeroes, setHeroLock } from '../services';
+import { useMythUtility } from '../hooks';
+import { MythPayButton, MythBalanceHint } from './MythPayButton';
+import { mythPrice } from '../mythUtility';
 import { canFuse, canFuseWithFragments, pickMaterials, starRow, type FusionDashboard, type FusionHero, type FusionResult } from '../heroFusion';
 import { useT, useLanguage } from '../LanguageContext';
 
@@ -57,10 +60,11 @@ export function HeroFusionPanel({
   };
 
   const fusion = useMutation({
-    mutationFn: (mode: 'copies' | 'fragments') =>
+    // Only the FEE currency changes here: copies/fragments stay mandatory either way.
+    mutationFn: ({ mode, feeCurrency = 'FC' }: { mode: 'copies' | 'fragments'; feeCurrency?: 'FC' | 'MYTH' }) =>
       mode === 'fragments'
-        ? fuseHeroWithFragments(telegramInitData, current.heroId)
-        : fuseHeroes(telegramInitData, current.heroId, materials),
+        ? fuseHeroWithFragments(telegramInitData, current.heroId, undefined, feeCurrency)
+        : fuseHeroes(telegramInitData, current.heroId, materials, undefined, feeCurrency),
     onSuccess: (payload) => { setError(null); setResult(payload); refresh(); queryClient.invalidateQueries({ queryKey: ['player-inventory'] }); queryClient.invalidateQueries({ queryKey: ['pet-dashboard'] }); },
     onError: (err) => setError(tError(err) || t('fusion.defaultError')),
   });

@@ -5,6 +5,8 @@ import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import type { PvpHero } from '../pvp';
 import { useTowerDashboard, useTowerRanking } from '../hooks';
 import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
+import { useMythUtility } from '../hooks';
+import { formatMyth, mythDiscountLabel, mythPrice } from '../mythUtility';
 import { TOWER_KEYS, TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
@@ -38,8 +40,9 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const [slot, setSlot] = useState<number | null>(null);
   const [battle, setBattle] = useState<TowerBattle | null>(null);
   const [isRankingOpen, setIsRankingOpen] = useState(false);
-  const [payWith, setPayWith] = useState<'fc' | 'ton'>('fc');
+  const [payWith, setPayWith] = useState<'fc' | 'ton' | 'myth'>('fc');
   const ranking = useTowerRanking(initData || null, Boolean(initData) && isRankingOpen);
+  const { data: myth } = useMythUtility(initData || null);
 
   const data = tower.data;
   const heroes = useMemo(() => (collection ?? []).slice().sort((a, b) => (b.power ?? 0) - (a.power ?? 0)), [collection]);
@@ -68,7 +71,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.unequipFailed')),
   });
   const enter = useMutation({
-    mutationFn: (currency: 'fc' | 'ton') => enterTowerFloor(initData, currency),
+    mutationFn: (currency: 'fc' | 'ton' | 'myth') => enterTowerFloor(initData, currency),
     onSuccess: async result => { setBattle(result); setDashboard(result.dashboard); await refresh(); },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t('tower.enterFailed')),
   });
@@ -100,12 +103,18 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   // Second entry option: pay with the internal TON balance (no TonConnect, no conversion).
   const entryTon = Number(data.entryCostTon ?? 0.5);
   const tonBalance = Number(data.balanceTon ?? 0);
+  // Third entry option: burn MYTH (price/discount come from the backend; staked MYTH is never used).
+  const entryMyth = mythPrice(myth, 'TOWER_ENTRY', { fc: data.entryCost, ton: entryTon });
+  const mythBalance = Number(myth?.available ?? 0);
 
   const start = () => {
     if (!team.length) { toast.error(t('tower.selectTeamFirst')); setIsTeamOpen(true); return; }
     if (data.attemptsRemaining <= 0) { toast.error(t('tower.noAttemptsToday')); return; }
     if (payWith === 'ton') {
       if (tonBalance < entryTon) { toast.error(t('tower.insufficientTon')); return; }
+    } else if (payWith === 'myth') {
+      if (entryMyth === null) { toast.error('Pagamento com MYTH indisponível.'); return; }
+      if (mythBalance < entryMyth) { toast.error('MYTH insuficiente.'); return; }
     } else if (fc < data.entryCost) { toast.error(t('tower.insufficientFc')); return; }
     enter.mutate(payWith);
   };
@@ -174,6 +183,15 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             {entryTon.toFixed(2)} TON
           </button>
         </div>
+        {entryMyth !== null && (
+          <button
+            type="button"
+            onClick={() => setPayWith('myth')}
+            className={`relative mt-2 min-h-10 w-full rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'myth' ? 'border-fuchsia-300/70 bg-fuchsia-400/20 text-fuchsia-100' : 'border-white/10 bg-black/50 text-slate-400'}`}
+          >
+            🔥 {formatMyth(entryMyth)} MYTH {mythDiscountLabel(myth) ? `(${mythDiscountLabel(myth)})` : ''} · saldo {formatMyth(mythBalance)}
+          </button>
+        )}
         {payWith === 'ton' && tonBalance < entryTon ? (
           <div className="relative mt-2 rounded-2xl border border-rose-400/40 bg-rose-500/10 p-2.5 text-center">
             <p className="text-[10px] font-bold uppercase tracking-wide text-rose-200">{t('tower.insufficientTon')}</p>
@@ -208,7 +226,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             disabled={!canEnter}
             className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}`}
+            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : payWith === 'myth' ? `${formatMyth(entryMyth ?? 0)} MYTH` : `${compact(data.entryCost)} FC`}`}
           </button>
         </div>
       </div>
