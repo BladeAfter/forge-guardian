@@ -21,6 +21,7 @@ import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
 import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
 import { AuctionPanel } from './AuctionPanel';
+import { ItemDetailsModal } from './ItemDetailsModal';
 import { sendTonPayment } from '../tonPayment';
 
 
@@ -55,6 +56,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
+  // Tapping a listing opens the read-only premium preview (real backend attributes).
+  const [detailsId, setDetailsId] = useState<string | null>(null);
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
   const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
 
@@ -533,12 +536,14 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                       <div className="mt-3 space-y-2">
                         {pageListings.map((listing) => (
                           <div key={listing.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 p-2">
-                            {listing.image ? (
-                              <img src={listing.image} alt={listing.name} className="h-16 w-16 shrink-0 rounded-xl border-2 object-cover" style={{ borderColor: rarityColor(listing.rarity) }} />
-                            ) : (
-                              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-xl border-2 bg-white/[.03]" style={{ borderColor: rarityColor(listing.rarity) }}><Tag className="h-5 w-5 text-slate-500" /></div>
-                            )}
-                            <div className="min-w-0 flex-1">
+                            <button type="button" onClick={() => setDetailsId(listing.id)} className="shrink-0 active:scale-95" aria-label={`Ver detalhes de ${listing.name}`}>
+                              {listing.image ? (
+                                <img src={listing.image} alt={listing.name} loading="lazy" className="h-16 w-16 rounded-xl border-2 object-cover" style={{ borderColor: rarityColor(listing.rarity) }} />
+                              ) : (
+                                <div className="grid h-16 w-16 place-items-center rounded-xl border-2 bg-white/[.03]" style={{ borderColor: rarityColor(listing.rarity) }}><Tag className="h-5 w-5 text-slate-500" /></div>
+                              )}
+                            </button>
+                            <button type="button" onClick={() => setDetailsId(listing.id)} className="min-w-0 flex-1 text-left">
                               <p className="truncate text-[11px] font-black" style={{ color: rarityColor(listing.rarity) }}>{listing.name}</p>
                               <p className="truncate text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
                                 {t(listing.rarity)} · Lv. {listing.level}
@@ -551,7 +556,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                                 {Number(listing.quantity ?? 1) > 1 ? ` · x${listing.quantity}` : ''}
                               </p>
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
-                            </div>
+                              <p className="mt-0.5 flex items-center gap-1 text-[7px] font-black uppercase tracking-[0.14em] text-amber-300/80"><Info className="h-2.5 w-2.5" />Ver atributos</p>
+                            </button>
                             <div className="flex w-[86px] shrink-0 flex-col items-end gap-1">
                               <p className={`text-right text-[11px] font-black leading-tight ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>
                               {listing.mine ? (
