@@ -253,7 +253,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             </div>
 
             <LevelBar pet={active} />
-            <BuffGrid pet={active} />
+            <BuffGrid pet={active} bonuses={data.bonuses} />
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
@@ -294,6 +294,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
           <div className="grid grid-cols-2 gap-2">
             {data.playerPets.map((pet) => (
               <PetCard
+                bonuses={data.bonuses}
                 key={pet.id}
                 pet={pet}
                 onFeed={() => setFeedTarget(pet)}
@@ -490,6 +491,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
       {liveDetails && (
         <PetDetailsModal
           pet={liveDetails}
+          bonuses={data.bonuses}
           onClose={() => setDetailsTarget(null)}
           onFeed={() => { setFeedTarget(liveDetails); setDetailsTarget(null); }}
           onResetTransfer={() => { setXpTarget(liveDetails); setDetailsTarget(null); }}
@@ -648,8 +650,17 @@ function LevelBar({ pet }: { pet: PlayerPet }) {
   );
 }
 
-function BuffGrid({ pet }: { pet: PlayerPet }) {
-  const entries = Object.entries(pet.buffs).slice(0, 6);
+/**
+ * Buffs shown here must match what the backend actually applies in combat
+ * (`get_pet_bonuses`). When the pet is the active companion we read the server
+ * bonuses instead of the per-pet preview values, so details never disagree with
+ * the Boss/PvP screens.
+ */
+function BuffGrid({ pet, bonuses }: { pet: PlayerPet; bonuses?: Record<string, number> | null }) {
+  const effective = pet.isActive && bonuses ? bonuses : null;
+  const entries = Object.entries(pet.buffs)
+    .map(([key, value]) => [key, effective && effective[key] != null ? Number(effective[key]) : value] as const)
+    .slice(0, 6);
   const secondary = new Set(pet.secondaryBuffs.map((buff) => buff.key));
   if (entries.length === 0) return null;
   return (
@@ -990,7 +1001,10 @@ function NftPetTag({ serial, className = '' }: { serial?: string | number | null
   );
 }
 
-function PetCard({ pet, onFeed, onActivate, onDetails, pending }: { pet: PlayerPet; onFeed: () => void; onActivate?: () => void; onDetails?: () => void; pending: boolean }) {
+function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet: PlayerPet; bonuses?: Record<string, number> | null; onFeed: () => void; onActivate?: () => void; onDetails?: () => void; pending: boolean }) {
+  const primaryValue = pet.isActive && bonuses && pet.primaryBuffKey && bonuses[pet.primaryBuffKey] != null
+    ? Number(bonuses[pet.primaryBuffKey])
+    : pet.primaryBuffValue;
   const t = useT();
   const isNft = isNftExclusivePet(pet);
   const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
@@ -1036,7 +1050,7 @@ function PetCard({ pet, onFeed, onActivate, onDetails, pending }: { pet: PlayerP
         <PetBuff
           buffKey={pet.primaryBuffKey}
           label={petBuffShortLabel(pet.primaryBuffKey)}
-          value={`+${pet.primaryBuffValue}%`}
+          value={`+${primaryValue}%`}
           size="sm"
           color={rarityColor[pet.rarity]}
         />
@@ -1274,7 +1288,7 @@ function Row({ label, value, strong, danger }: { label: string; value: string; s
  * Pet details sheet. Opened by tapping the pet image/name, it hosts the
  * PET MANAGEMENT actions (level/XP recycling) so no new tab is required.
  */
-function PetDetailsModal({ pet, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
+function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; bonuses?: Record<string, number> | null; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
   const t = useT();
   return (
     <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
@@ -1292,7 +1306,7 @@ function PetDetailsModal({ pet, onClose, onFeed, onResetTransfer }: { pet: Playe
 
         <img src={pet.image} alt={pet.name} className="mx-auto h-40 w-40 object-contain" />
         <LevelBar pet={pet} />
-        <BuffGrid pet={pet} />
+        <BuffGrid pet={pet} bonuses={bonuses} />
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
