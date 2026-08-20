@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { realtimeSupabase as supabase } from './realtimeClient';
 
 import type { ActivityProgress, ChannelRewards, RewardHistory } from './services';
-import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, activityProgressRequest,communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
-import type { MarketBrowse, MarketCurrency, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
+import { fetchGlobalBossRanking, fetchGlobalBossHistory, fetchRarityFusion, fetchHeroFusion, channelsRequest, fetchDailyQuests, fetchRewardHistory, fetchPlayerHeroes, fetchPlayerInventory, bossRequest, calendarRequest, activityProgressRequest,communityPoolRequest, fetchGameState, fetchReferralDashboard, fetchTelegramProfile, petRequest, pvpRequest, seasonPassRequest, walletRequest, fetchMarketBrowse, fetchMarketItemDetails, fetchMarketMine, fetchMarketQuote, fetchMarketSellable, fetchMarketStatus } from './services';
+import type { MarketBrowse, MarketCurrency, MarketItemDetailsResult, MarketItemType, MarketMine, MarketQuote, MarketSellable, MarketSort, MarketStatus } from './market';
 
 import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
@@ -253,6 +253,16 @@ export const useMarketQuote=(telegramInitData:string|null,enabled:boolean,input:
   queryKey:['market-quote',telegramInitData,input.itemType,input.itemInstanceId??input.itemCode??''],
   queryFn:()=>fetchMarketQuote(telegramInitData??'',input),
   enabled,staleTime:15_000,retry:1
+});
+
+/**
+ * Full attribute preview for one listing / auction lot. Read-only: the data comes
+ * straight from the backend instance (no client-side recomputation).
+ */
+export const useMarketItemDetails=(telegramInitData:string|null,source:'market'|'auction',id:string|null)=>useQuery<MarketItemDetailsResult>({
+  queryKey:['market-item-details',telegramInitData,source,id],
+  queryFn:()=>fetchMarketItemDetails(telegramInitData??'',source,id??''),
+  enabled:Boolean(telegramInitData&&id),staleTime:15_000,retry:1
 });
 
 export const useMarketMine=(telegramInitData:string|null,enabled:boolean)=>useQuery<MarketMine>({
