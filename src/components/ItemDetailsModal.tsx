@@ -132,10 +132,10 @@ export function ItemDetailsModal({ telegramInitData, source, id, onClose, onBuy,
   const badges = (item?.badges ?? []).filter((badge) => BADGE_META[badge]);
 
   return (
-    <div className="absolute inset-0 z-50 flex items-end bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div
         onClick={(event) => event.stopPropagation()}
-        className="max-h-[92%] w-full overflow-y-auto rounded-t-[1.75rem] border-t bg-[#080d18] pb-6"
+        className="max-h-[92%] w-full max-w-[460px] overflow-y-auto rounded-t-[1.75rem] border-t bg-[#080d18] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         style={{ borderColor: `${color}66` }}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-[#080d18]/95 px-3 py-2.5 backdrop-blur">
