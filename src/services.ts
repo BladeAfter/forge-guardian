@@ -492,7 +492,8 @@ export type MarketAction=
   |{action:'buy';listingId:string}
   |{action:'payment-intent';listingId:string;walletAddress:string}
   |{action:'payment-status';paymentId:string}
-  |{action:'payment-cancel';paymentId:string};
+  |{action:'payment-cancel';paymentId:string}
+  |{action:'details';source:'market'|'auction';listingId?:string;auctionId?:string};
 export async function marketRequest<T>(initData:string,input:MarketAction):Promise<T>{
   const response=await forgeFetch('market',{initData,...input});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o mercado.');
