@@ -473,9 +473,33 @@ async function heroOddsView(ctx: Ctx) {
     [{ t: 'RARO', d: 'ho:rare' }, { t: 'ÉPICO', d: 'ho:epic' }],
     [{ t: 'LENDÁRIO', d: 'ho:legendary' }, { t: 'MÍTICO', d: 'ho:mythic' }],
     [{ t: '✏️ EDITAR TODAS', d: 'ask:hodds' }, { t: '🔄 RESET PADRÃO', d: 'hs:reseto' }],
+    [{ t: '🕵️ CHANCES REAIS (SORTEIO)', d: 'hs:roddz' }],
     nav('m:shop'),
   ]));
 }
+
+/** Hidden roll odds: players keep seeing the public percentages, the server rolls with these. */
+async function heroRealOddsView(ctx: Ctx) {
+  const d = await rpc('admin_hero_real_odds', { p_admin_id: ctx.adminId }) as any;
+  const rates = d.rates ?? {};
+  const odds = d.odds ?? {};
+  const pub = d.publicOdds ?? {};
+  const list = RARITY_ORDER.filter((r) => r !== 'ancestral');
+  const total = list.reduce((sum, r) => sum + Number(rates[r] ?? 0), 0);
+  const text = [
+    '🕵️ <b>CHANCES REAIS DO SORTEIO</b>', '',
+    'Só o servidor usa estes valores. No jogo o jogador continua vendo as chances públicas.', '',
+    ...list.map((r) => `${RARITY_LABEL[r]} — real <b>${pct(rates[r])}%</b> (efetivo ${pct(odds[r] ?? 0)}%) · vitrine ${pct(pub[r] ?? 0)}%`),
+    '', `Total real: <b>${pct(total)}%</b> — precisa fechar 100%.`,
+    d.custom ? '' : '⚠️ Ainda usando as chances públicas como fallback.',
+  ].filter(Boolean).join('\n');
+  return edit(ctx, text, kb([
+    [{ t: '✏️ EDITAR CHANCES REAIS', d: 'ask:hoddsreal' }],
+    [{ t: '🎲 CHANCES PÚBLICAS', d: 'hs:odds' }],
+    nav('m:shop'),
+  ]));
+}
+
 
 /** DUPLICATE FUSE settings (same hero_key copies -> stars/ATK/HP/Power, rarity never changes). */
 async function fusionView(ctx: Ctx) {
@@ -2384,6 +2408,7 @@ const PROMPTS: Record<string, string> = {
   chreset: '⚠️ Reset manual de claim. Envie: <code>usuário channel_key CONFIRMAR</code>\nEx.: <code>8082515829 news CONFIRMAR</code>\nIsso libera o VERIFY novamente e fica registrado na auditoria.',
   hero: 'Envie: <code>hero_key {json}</code>\nEx.: <code>pyro_knight {"name":"Cavaleiro Ígneo","rarity":"epico","price_fc":50000,"in_shop":true,"sort_order":1}</code>',
   hodds: 'Envie as 5 chances na ordem <b>comum incomum raro épico lendário</b>.\nEx.: <code>62 25 10 2.7 0.3</code>\nO total precisa fechar 100%.',
+  hoddsreal: 'Envie as 6 chances REAIS do sorteio na ordem <b>comum incomum raro épico lendário mítico</b>.\nEx.: <code>71.3 25 2 1 0.6 0.1</code>\nO total precisa fechar 100%. O jogador continua vendo as chances públicas.',
   herotoggle: 'Envie o <code>hero_key</code> para ativar/desativar o herói.',
   fusion: 'Envie o JSON da fusão (merge parcial). Ex.:\n<code>{"max_stars":5,"bonus_percent":{"1":5,"2":5,"3":7,"4":8,"5":10},"cost_fc":{"1":5000,"2":15000,"3":35000,"4":75000,"5":150000},"duplicates":{"1":5,"2":5,"3":5,"4":5,"5":5},"level_cap":{"0":20,"1":20,"2":25,"3":25,"4":30,"5":35}}</code>',
   rfcommon: 'COMMON → UNCOMMON — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>10000 80 10</code>',
@@ -5168,6 +5193,7 @@ async function handleCallback(ctx: Ctx, data: string) {
     const view = rest[0];
     if (view === 'prices') return heroPricesView(ctx);
     if (view === 'odds') return heroOddsView(ctx);
+    if (view === 'roddz') return heroRealOddsView(ctx);
     if (view === 'list') return module(ctx, 'herolist');
     if (view === 'store') return module(ctx, 'store');
     if (view === 'fusion') return fusionView(ctx);
@@ -7189,6 +7215,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       const r = await rpc('admin_set_hero_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'painel admin (bot)' });
       return send(ctx, `✅ Chances salvas.\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]}: ${pct(before[k])}% → <b>${pct(r.odds[k])}%</b>`).join('\n')}`,
         kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
+    }
+    case 'hoddsreal': {
+      const parts = text.replace(/,/g, '.').split(/[\s;]+/).map(Number).filter((n) => Number.isFinite(n));
+      if (parts.length !== 6) return send(ctx, '⚠️ Envie 6 números: comum incomum raro épico lendário mítico.', kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
+      const total = parts.reduce((a, b) => a + b, 0);
+      if (Math.abs(total - 100) > 0.001) {
+        return send(ctx, `❌ Total inválido: <b>${pct(total)}%</b>\nA soma precisa ser exatamente 100%.`, kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
+      }
+      const rates: Record<string, number> = { ancestral: 0 };
+      RARITY_ORDER.filter((k) => k !== 'ancestral').forEach((k, i) => { rates[k] = parts[i]; });
+      const r = await rpc('admin_set_hero_real_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'chances reais (bot)' });
+      return send(ctx, `✅ Chances REAIS salvas (a vitrine do jogo não muda).\n${RARITY_ORDER.filter((k) => k !== 'ancestral').map((k) => `${RARITY_LABEL[k]}: <b>${pct(r.rates[k])}%</b> · vitrine ${pct(r.publicOdds?.[k] ?? 0)}%`).join('\n')}`,
+        kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
     }
     case 'fusion': {
       const r = await rpc('admin_set_fusion_config', { p_admin_id: ctx.adminId, p_patch: JSON.parse(text), p_reason: 'painel admin (bot)' });
