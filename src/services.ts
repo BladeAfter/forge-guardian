@@ -28,7 +28,7 @@ import type{CommunityPoolDashboard}from'./communityPool';
 import type{DailyQuestsDashboard,QuestClaimResult}from'./quests';
 import type {FusionDashboard,FusionResult, RarityFusionDashboard, RarityFusionResult} from './heroFusion';
 import type { MythUtilityState } from './mythUtility';
-import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketCurrency,MarketItemType,MarketMine,MarketPaymentIntent,MarketPaymentStatus,MarketQuote,MarketSellable,MarketSort,MarketStatus} from './market';
+import type {MarketBrowse,MarketBuyResult,MarketCreateResult,MarketCurrency,MarketItemType,MarketItemDetailsResult,MarketMine,MarketPaymentIntent,MarketPaymentStatus,MarketQuote,MarketSellable,MarketSort,MarketStatus} from './market';
 
 
 const demoPlayerId = (telegramInitData: string) => {
@@ -492,7 +492,8 @@ export type MarketAction=
   |{action:'buy';listingId:string}
   |{action:'payment-intent';listingId:string;walletAddress:string}
   |{action:'payment-status';paymentId:string}
-  |{action:'payment-cancel';paymentId:string};
+  |{action:'payment-cancel';paymentId:string}
+  |{action:'details';source:'market'|'auction';listingId?:string;auctionId?:string};
 export async function marketRequest<T>(initData:string,input:MarketAction):Promise<T>{
   const response=await forgeFetch('market',{initData,...input});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o mercado.');
@@ -516,6 +517,8 @@ export const fetchMarketBrowse=(initData:string,itemType:MarketItemType|'all',ra
 export const fetchMarketSellable=(initData:string)=>marketRequest<MarketSellable>(initData,{action:'sellable'});
 export const fetchMarketQuote=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string})=>marketRequest<MarketQuote>(initData,{action:'quote',...input});
 export const fetchMarketMine=(initData:string)=>marketRequest<MarketMine>(initData,{action:'mine'});
+/** Read-only premium preview of a listing / auction lot (real attributes, no mock data). */
+export const fetchMarketItemDetails=(initData:string,source:'market'|'auction',id:string)=>marketRequest<MarketItemDetailsResult>(initData,source==='auction'?{action:'details',source,auctionId:id}:{action:'details',source,listingId:id});
 export const createMarketListing=(initData:string,input:{itemType:MarketItemType;itemInstanceId?:string;itemCode?:string;currency:MarketCurrency;priceFc?:number;priceTon?:number;quantity?:number})=>marketRequest<MarketCreateResult>(initData,{action:'create',...input});
 export const cancelMarketListing=(initData:string,listingId:string)=>marketRequest<{ok:boolean}>(initData,{action:'cancel',listingId});
 export const buyMarketListing=(initData:string,listingId:string)=>marketRequest<MarketBuyResult>(initData,{action:'buy',listingId});

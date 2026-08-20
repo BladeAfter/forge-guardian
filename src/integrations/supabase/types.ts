@@ -16286,6 +16286,10 @@ export type Database = {
         }
         Returns: Json
       }
+      market_equipment_details_json: {
+        Args: { p_equipment_id: string }
+        Returns: Json
+      }
       market_expire_payment_intents: { Args: never; Returns: number }
       market_finalize_purchase: {
         Args: {
@@ -16297,6 +16301,7 @@ export type Database = {
         Returns: Json
       }
       market_get_sellable: { Args: { p_telegram_id: number }; Returns: Json }
+      market_hero_details_json: { Args: { p_hero_id: string }; Returns: Json }
       market_hero_locks: {
         Args: { p_hero: Database["public"]["Tables"]["player_heroes"]["Row"] }
         Returns: Json
@@ -16304,6 +16309,10 @@ export type Database = {
       market_is_bypass_admin: {
         Args: { p_telegram_id: number }
         Returns: boolean
+      }
+      market_item_details: {
+        Args: { p_id: string; p_source: string; p_telegram_id: number }
+        Returns: Json
       }
       market_item_give: {
         Args: { p_code: string; p_qty: number; p_snap: Json; p_user: string }
@@ -16333,6 +16342,10 @@ export type Database = {
           payment_comment: string
           payment_id: string
         }[]
+      }
+      market_pet_details_json: {
+        Args: { p_player_pet_id: string }
+        Returns: Json
       }
       market_price_quote: {
         Args: {
@@ -16380,6 +16393,10 @@ export type Database = {
       market_shares_wallet: {
         Args: { p_a: string; p_b: string }
         Returns: boolean
+      }
+      market_stack_details_json: {
+        Args: { p_item_code: string; p_snapshot: Json }
+        Returns: Json
       }
       market_status: { Args: { p_telegram_id: number }; Returns: Json }
       market_status_json: { Args: never; Returns: Json }

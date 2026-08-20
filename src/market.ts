@@ -212,3 +212,65 @@ export type MarketStatus = {
   maintenanceMessage: string;
   updatedAt: string | null;
 };
+
+/**
+ * Premium item preview (read-only). Every field mirrors the real instance stored
+ * in the backend — the modal never computes or mocks values.
+ */
+export type MarketItemDetailKind = 'hero' | 'pet' | 'equipment' | 'item';
+
+export type MarketItemDetails = {
+  kind: MarketItemDetailKind;
+  name: string;
+  rarity: string;
+  level: number | null;
+  maxLevel?: number | null;
+  image: string | null;
+  power?: number | null;
+  description?: string | null;
+  heroClass?: string | null;
+  role?: string | null;
+  slot?: string | null;
+  category?: string | null;
+  tier?: number | string | null;
+  species?: string | null;
+  fusionLevel?: number | null;
+  stats?: Record<string, number | null> | null;
+  skills?: unknown[] | null;
+  passives?: unknown[] | null;
+  buffs?: unknown[] | null;
+  secondaryBuffs?: unknown[] | null;
+  primaryBuffKey?: string | null;
+  primaryBuffValue?: number | null;
+  activeSkill?: Record<string, unknown> | null;
+  evolutionTier?: number | null;
+  evolutionLabel?: string | null;
+  badges?: string[] | null;
+  miningMyth?: number | null;
+  nft?: { serial?: number | string | null; supply?: number | null; instanceId?: string | null } | null;
+};
+
+export type MarketItemDetailsListing = {
+  source: 'market' | 'auction';
+  id: string;
+  status: string;
+  itemType: MarketItemType;
+  currency: MarketCurrency;
+  priceFc: number | null;
+  priceTon: number | null;
+  quantity: number | null;
+  seller: string | null;
+  mine: boolean;
+  createdAt: string | null;
+  endsAt?: string | null;
+  bidCount?: number | null;
+  reserved?: boolean;
+  reservedForMe?: boolean;
+  sold?: boolean;
+};
+
+export type MarketItemDetailsResult = {
+  ok: boolean;
+  listing: MarketItemDetailsListing;
+  item: MarketItemDetails;
+};

@@ -6,6 +6,7 @@ import { useT } from '../LanguageContext';
 import { RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { auctionCountdown, auctionTon, type AuctionBrowse, type AuctionCard, type AuctionMine, type AuctionSellable, type AuctionSellableItem } from '../auction';
 import { cancelAuction, createAuction, fetchAuctionBrowse, fetchAuctionMine, fetchAuctionSellable, placeAuctionBid } from '../services';
+import { ItemDetailsModal } from './ItemDetailsModal';
 import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 
 type Props = { telegramInitData: string | null; onOpenWallet?: () => void };
@@ -32,6 +33,8 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
   const [startBid, setStartBid] = useState('');
   const [duration, setDuration] = useState(24);
   const [now, setNow] = useState(() => Date.now());
+  // Read-only premium preview of a lot (opened by tapping the card artwork/name).
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -192,7 +195,7 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
             <div className="mt-3 grid grid-cols-2 gap-2">
               {browse.data?.auctions.map((item) => (
                 <div key={item.id} className="overflow-hidden rounded-2xl border bg-black/40" style={{ borderColor: `${rarityColor(item.rarity)}55` }}>
-                  <div className="relative aspect-square w-full overflow-hidden bg-black/60">
+                  <button type="button" onClick={() => setDetailsId(item.id)} className="relative block aspect-square w-full overflow-hidden bg-black/60 text-left active:scale-[.98]">
                     {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover object-top" loading="lazy" /> : null}
                     <span className="absolute left-1.5 top-1.5 rounded-full border border-black/40 px-1.5 py-0.5 text-[7px] font-black uppercase tracking-[0.1em] text-black" style={{ background: rarityColor(item.rarity) }}>
                       {item.rarity === 'nft_exclusive' ? 'NFT' : item.rarity}
@@ -205,9 +208,11 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
                     <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full bg-black/70 px-1.5 py-0.5 text-[8px] font-black text-amber-200">
                       <Clock className="h-2.5 w-2.5" />{auctionCountdown(item.endsAt, now)}
                     </span>
-                  </div>
+                  </button>
                   <div className="p-2">
-                    <p className="truncate text-[11px] font-black text-white">{item.name}</p>
+                    <button type="button" onClick={() => setDetailsId(item.id)} className="block w-full text-left">
+                      <p className="truncate text-[11px] font-black text-white">{item.name}</p>
+                    </button>
                     <p className="text-[8px] uppercase tracking-[0.1em] text-slate-500">
                       {t('auction.seller')}: {item.seller} · {item.bidCount} {t('auction.bids')}
                     </p>
@@ -394,6 +399,24 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {/* Full attribute preview. Bidding/prices/rules are untouched — the modal only reads. */}
+      {detailsId ? (
+        <ItemDetailsModal
+          telegramInitData={telegramInitData}
+          source="auction"
+          id={detailsId}
+          onClose={() => setDetailsId(null)}
+          onBuy={(id) => {
+            const lot = browse.data?.auctions.find((row) => row.id === id);
+            if (!lot) return;
+            setDetailsId(null);
+            setBidding(lot);
+            setBidValue(auctionTon(lot.minNextBidTon));
+          }}
+          buyLabel={t('auction.placeBid')}
+        />
       ) : null}
     </div>
   );
