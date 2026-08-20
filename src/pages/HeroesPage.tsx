@@ -10,6 +10,7 @@ import { HeroMiningBar } from '../components/HeroMiningBar';
 import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
+import { VETERAN_LINE_COLOR, VETERAN_LINE_LABEL, isVeteranLine } from '../veteranLine';
 
 import { useT, useLanguage } from '../LanguageContext';
 
