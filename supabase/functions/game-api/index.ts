@@ -1867,6 +1867,13 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     if (action === 'sellable') return rpc(db, 'market_get_sellable', { p_telegram_id: user.id });
     if (action === 'mine') return rpc(db, 'market_my_listings', { p_telegram_id: user.id });
+    // Read-only premium preview of one listing / auction lot (real instance attributes).
+    if (action === 'details') {
+      const source = String(body.source || 'market') === 'auction' ? 'auction' : 'market';
+      const id = source === 'auction' ? body.auctionId ?? body.listingId : body.listingId;
+      if (!isUuid(id)) throw new Error('INVALID_LISTING');
+      return rpc(db, 'market_item_details', { p_telegram_id: user.id, p_source: source, p_id: id });
+    }
     if (action === 'create') {
       const itemType = String(body.itemType || '');
       if (!['hero', 'pet', 'item'].includes(itemType)) throw new Error('INVALID_ITEM_TYPE');
