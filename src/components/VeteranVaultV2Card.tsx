@@ -83,7 +83,7 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
 
   // Enquanto o estado do servidor não chega, o popup espera: fechar aqui faria a oferta
   // desaparecer antes de renderizar (e queimar a exibição do dia).
-  useEffect(() => { if (popupMode && state && !state.show) onPopupClose?.(); }, [popupMode, state?.show]);
+  useEffect(() => { if (popupMode && state && (!state.show || state.purchased)) onPopupClose?.(); }, [popupMode, state?.show, state?.purchased]);
 
   if (!state || !state.show) return null;
 
