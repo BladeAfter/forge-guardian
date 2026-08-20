@@ -465,6 +465,10 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
         isNft: Boolean(hero.is_nft_exclusive),
         nftSerial: hero.nft_serial ?? null,
         nftInstance: hero.nft_instance_id ?? null,
+        // Premium packs (Founder/Veteran): VETERAN tag and MYTH-only mining, never TON.
+        veteranLine: Boolean((hero as any).veteran_line) || String((hero as any).premium_source ?? '').toUpperCase() === 'FOUNDER',
+        premiumSource: (hero as any).premium_source ?? null,
+        miningDailyMyth: Number((hero as any).mining_daily_myth ?? 0),
         };
       }),
     };
