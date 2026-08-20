@@ -31,7 +31,9 @@ export function PremiumOffersPopups({ telegramInitData }: { telegramInitData: st
     const ordered = eligible.length ? eligible : serverQueue;
     return ordered.filter((offer, position) => ordered.indexOf(offer) === position);
   }, [data]);
-  const current = queue[index] ?? null;
+
+  const current: PremiumOfferType | null = queue[index] ?? null;
+
 
 
 
