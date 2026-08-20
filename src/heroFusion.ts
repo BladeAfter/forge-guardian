@@ -140,10 +140,10 @@ export const canFuse = (hero: FusionHero, balance: number) =>
 
 /**
  * Option 2: pay the SAME step with universal fragments instead of hero copies.
- * NFT exclusive heroes never enter the star fusion system.
+ * NFT exclusive heroes ascend ONLY through this path (they are 1/1, so copies never exist).
  */
 export const canFuseWithFragments = (hero: FusionHero, balance: number, universalFragments: number, fragmentsPerFusion: number) =>
-  Boolean(hero.next) && !hero.isNft && fragmentsPerFusion > 0
+  Boolean(hero.next) && fragmentsPerFusion > 0
   && universalFragments >= fragmentsPerFusion && balance >= (hero.next?.costFc ?? 0);
 
 // ------------------------------------------------------------------ rarity fusion (5 heroes -> next rarity)
