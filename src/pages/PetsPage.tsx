@@ -5,7 +5,7 @@ import { formatTon } from '../economy';
 import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
-import { usePetDashboard } from '../hooks';
+import { usePetDashboard, useMythUtility } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
@@ -17,6 +17,8 @@ import { NftShopSection } from '../components/NftShopSection';
 import BreedingSection from '../components/BreedingSection';
 import ExpeditionsSection from '../components/ExpeditionsSection';
 import { PetXpTransferModal } from '../components/PetXpTransferModal';
+import { MythBalanceHint, MythPayButton } from '../components/MythPayButton';
+import { mythFeatureEnabled, mythPrice, formatMyth, type MythUtilityState } from '../mythUtility';
 import { useT, useLanguage } from '../LanguageContext';
 
 
@@ -60,6 +62,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
+  // MYTH is an alternative payment method for food/eggs/evolution: FC keeps working untouched.
+  const { data: myth } = useMythUtility(telegramInitData);
   // Main section selector shown in the header: PETS | NFT EXCLUSIVE.
   const [section, setSection] = useState<Section>('pets');
   const [tab, setTab] = useState<Tab>('pets');
@@ -106,7 +110,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   const sync = async (fresh?: PetDashboard) => {
     if (fresh) queryClient.setQueryData(['pet-dashboard', telegramInitData], fresh);
     await Promise.all(
-      ['pet-dashboard', 'player-inventory', 'boss-combat', 'pvp-dashboard', 'wallet-summary', 'game-state', 'community-pool', 'daily-quests', 'season-pass', 'market-sellable'].map((key) =>
+      ['pet-dashboard', 'player-inventory', 'boss-combat', 'pvp-dashboard', 'wallet-summary', 'game-state', 'community-pool', 'daily-quests', 'season-pass', 'market-sellable', 'myth-utility', 'myth-wallet'].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );
@@ -253,7 +257,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
-              <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} />
+              <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} myth={myth} onEvolveMyth={() => evolve(active, 'MYTH')} />
             </div>
             <p className="mt-2 text-center text-[9px] leading-relaxed text-slate-400">
               {t('pets.feedHintPre')} <b className="text-amber-200">{t('pets.levelWord')}</b>{t('pets.feedHintMid')} <b className="text-violet-200">{t('pets.evolutionWord')}</b>{t('pets.feedHintPost')}
@@ -370,6 +374,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             {eggTarget && (
               <BuyEggModal
                 egg={eggTarget}
+                myth={myth}
+                onBuyMyth={(quantity) => mutation.mutate({ action: 'buy-egg', eggId: eggTarget.id, quantity, idempotencyKey: crypto.randomUUID(), currency: 'MYTH' })}
                 balance={data.balance}
                 tonBalance={data.tonBalance ?? 0}
                 pending={pending || tonPurchase.isPending}
@@ -427,6 +433,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
             {foodTarget && (
               <BuyFoodModal
                 food={foodTarget}
+                myth={myth}
+                onBuyMyth={(quantity) => mutation.mutate({ action: 'buy-food', foodCode: foodTarget.code, quantity, idempotencyKey: crypto.randomUUID(), currency: 'MYTH' })}
                 balance={data.balance}
                 pending={pending}
                 onClose={() => setFoodTarget(null)}
@@ -439,7 +447,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
         {tab === 'evolution' && (
           <div className="space-y-2">
             {data.playerPets.map((pet) => (
-              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} />
+              <EvolutionRow key={pet.id} pet={pet} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(pet)} onFeed={() => setFeedTarget(pet)} myth={myth} onEvolveMyth={() => evolve(pet, 'MYTH')} />
             ))}
           </div>
         )}
@@ -525,8 +533,8 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     </Shell>
   );
 
-  function evolve(pet: PlayerPet) {
-    mutation.mutate({ action: 'evolve', playerPetId: pet.id, idempotencyKey: crypto.randomUUID() });
+  function evolve(pet: PlayerPet, currency: 'FC' | 'MYTH' = 'FC') {
+    mutation.mutate({ action: 'evolve', playerPetId: pet.id, idempotencyKey: crypto.randomUUID(), currency });
   }
 }
 
@@ -662,7 +670,7 @@ function BuffGrid({ pet }: { pet: PlayerPet }) {
 }
 
 
-function EvolveButton({ pet, balance, universal = 0, pending, onEvolve }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void }) {
+function EvolveButton({ pet, balance, universal = 0, pending, onEvolve, myth, onEvolveMyth }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void; myth?: MythUtilityState | null; onEvolveMyth?: () => void }) {
   const t = useT();
   const next = pet.nextEvolution;
   if (!next) return <Action text={t('pets.maxEvolution')} disabled onClick={() => undefined} />;
@@ -671,12 +679,16 @@ function EvolveButton({ pet, balance, universal = 0, pending, onEvolve }: { pet:
   const missingFragments = pet.fragments + universal < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
   const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
+  // MYTH only replaces the FC fee — level and fragments are still required.
+  const mythCost = mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost });
+  const canPayMyth = !!onEvolveMyth && mythCost !== null && !missingLevel && !missingFragments;
   return (
+    <div className="mt-2 space-y-1.5">
     <button
       type="button"
       onClick={onEvolve}
       disabled={pending || !ready}
-      className={`mt-2 flex w-full items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-black uppercase transition disabled:grayscale disabled:opacity-40 ${
+      className={`flex w-full items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-[10px] font-black uppercase transition disabled:grayscale disabled:opacity-40 ${
         ready
           ? 'animate-pulse border-violet-200/70 bg-gradient-to-b from-violet-400 to-fuchsia-600 text-black shadow-[0_0_22px_rgba(192,132,252,.55)]'
           : 'border-white/15 bg-white/5 text-slate-300'
@@ -685,10 +697,14 @@ function EvolveButton({ pet, balance, universal = 0, pending, onEvolve }: { pet:
       <ChevronUp className="h-3 w-3" />
       {label}
     </button>
+    {canPayMyth && (
+      <MythPayButton state={myth} feature="PET_UPGRADE" fc={next.fcCost} disabled={pending} onPay={() => onEvolveMyth?.()} />
+    )}
+    </div>
   );
 }
 
-function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void; onFeed: () => void }) {
+function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed, myth, onEvolveMyth }: { pet: PlayerPet; balance: number; universal?: number; pending: boolean; onEvolve: () => void; onFeed: () => void; myth?: MythUtilityState | null; onEvolveMyth?: () => void }) {
   const t = useT();
   const next = pet.nextEvolution;
   const specificSpend = next ? Math.min(pet.fragments, next.fragmentCost) : 0;
@@ -714,6 +730,9 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
               <b className={pet.fragments + universal >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
               <span className="text-violet-300">{t('pets.newBuffChance', { percent: next.newBuffChance })}</span>
+              {mythFeatureEnabled(myth, 'PET_UPGRADE') && mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost }) !== null && (
+                <>{' · '}<span className="text-fuchsia-300">{formatMyth(mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost })!)} MYTH</span></>
+              )}
             </p>
           ) : (
             <p className="mt-1 text-[9px] text-amber-200">{t('pets.finalForm')}</p>
@@ -732,7 +751,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed }
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Action text={t('pets.feed')} disabled={pending || pet.isMaxLevel} onClick={onFeed} />
-        <EvolveButton pet={pet} balance={balance} universal={universal} pending={pending} onEvolve={onEvolve} />
+        <EvolveButton pet={pet} balance={balance} universal={universal} pending={pending} onEvolve={onEvolve} myth={myth} onEvolveMyth={onEvolveMyth} />
       </div>
     </div>
   );
@@ -1070,7 +1089,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 }
 
 /** Purchase confirmation: prices come from the server payload, never from the client. */
-function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBuyTon, onBuyTonBalance }: { egg: PetEgg; balance: number; tonBalance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void; onBuyTonBalance: () => void }) {
+function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBuyTon, onBuyTonBalance, myth, onBuyMyth }: { egg: PetEgg; balance: number; tonBalance: number; pending: boolean; onClose: () => void; onBuyFc: (quantity: number) => void; onBuyTon: () => void; onBuyTonBalance: () => void; myth?: MythUtilityState | null; onBuyMyth?: (quantity: number) => void }) {
   const t = useT();
   const [quantity, setQuantity] = useState(1);
   const isTon = !egg.priceFc && !!egg.priceTon;
@@ -1123,6 +1142,14 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
           </>
         )}
 
+        {/* FC eggs also accept MYTH: same item, price converted server-side and the MYTH is burned. */}
+        {!isTon && unit > 0 && onBuyMyth && (
+          <div className="mt-3">
+            <MythPayButton state={myth} feature="EGG_PURCHASE" fc={unit} quantity={quantity} disabled={pending} onPay={() => onBuyMyth(quantity)} />
+            <MythBalanceHint state={myth} />
+          </div>
+        )}
+
         {/* Premium eggs: internal TON balance is offered alongside the wallet payment. */}
         {isTon && (
           <button
@@ -1155,7 +1182,7 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
   );
 }
 
-function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFood; balance: number; pending: boolean; onClose: () => void; onBuy: (quantity: number) => void }) {
+function BuyFoodModal({ food, balance, pending, onClose, onBuy, myth, onBuyMyth }: { food: PetFood; balance: number; pending: boolean; onClose: () => void; onBuy: (quantity: number) => void; myth?: MythUtilityState | null; onBuyMyth?: (quantity: number) => void }) {
   const t = useT();
   const [quantity, setQuantity] = useState(1);
   const unit = food.priceFc ?? 0;
@@ -1182,6 +1209,13 @@ function BuyFoodModal({ food, balance, pending, onClose, onBuy }: { food: PetFoo
           <Row label={t('pets.currentBalance')} value={`${fmt(balance)} FC`} />
           <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
         </div>
+
+        {unit > 0 && onBuyMyth && (
+          <div className="mt-3">
+            <MythPayButton state={myth} feature="FOOD_PURCHASE" fc={unit} quantity={quantity} disabled={pending} onPay={() => onBuyMyth(quantity)} />
+            <MythBalanceHint state={myth} />
+          </div>
+        )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">{t('pets.cancel')}</button>

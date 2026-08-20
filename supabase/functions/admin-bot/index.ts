@@ -104,6 +104,7 @@ const MAIN_MENU = kb([
   [{ t: '⚔️ VETERAN VAULT', d: 'vv:hub' }],
   [{ t: '⚔️ VETERAN VAULT (PREMIUM)', d: 'v2:hub' }],
   [{ t: '🎁 OFERTAS PREMIUM (POPUPS)', d: 'po:hub' }],
+  [{ t: '🔥 MYTH UTILITY (PAGAMENTOS)', d: 'mu:hub' }],
 
 
 
@@ -2237,6 +2238,10 @@ const PROMPTS: Record<string, string> = {
   povboost: '🚀 Envie o <b>bônus de MYTH</b> do Veteran Vault em %. Ex.: <code>10</code>',
   povend: '📅 Envie a <b>data de término</b> da oferta Veteran (ISO) ou <code>0</code> para sem prazo.',
   povpool: '⛏ Envie quanto <b>MYTH</b> adicionar ao fundo de mineração do Veteran Vault.',
+  muton: '🪙 Envie quantos <b>MYTH</b> equivalem a 1 TON. Ex.: <code>20000</code>',
+  mufc: '💰 Envie quantos <b>FC</b> equivalem a 1 TON. Ex.: <code>100000</code>',
+  mudisc: '🎯 Envie o <b>desconto</b> ao pagar em MYTH, em %. Ex.: <code>8</code>',
+  mucustom: '🔧 Envie o <b>preço fixo em MYTH</b> desta funcionalidade, ou <code>0</code> para voltar ao cálculo automático.',
   potz: '🕒 Envie o <b>fuso horário</b> do reset diário dos popups. Ex.: <code>America/Sao_Paulo</code>',
   v2version: '⚔️ Envie a <b>versão</b> do pacote. Ex.: <code>VETERAN_VAULT_V2</code>',
   v2myth: '🪙 Envie o <b>MYTH entregue na compra</b>. Ex.: <code>1000000</code>',
@@ -4137,6 +4142,74 @@ async function vvPrompt(ctx: Ctx, key: string, text: string) {
 }
 
 
+// ---------------------------------------------------------------- 🔥 MYTH UTILITY (pagamento alternativo)
+// Liga/desliga o pagamento em MYTH, ajusta a paridade (MYTH por TON / FC por TON), o desconto e o modo de
+// preço de cada funcionalidade. Todo MYTH pago é queimado — aqui só se configura, nada é creditado.
+async function muHub(ctx: Ctx, useEdit = true) {
+  const d = await rpc('admin_myth_utility_overview', { p_admin_id: ctx.adminId }) as any;
+  const feats = (d.features ?? []) as any[];
+  const text = [
+    '🔥 <b>MYTH UTILITY</b>',
+    '<i>Pagamento alternativo em MYTH · todo valor pago é queimado (supply efetivo cai)</i>',
+    '',
+    `Status: ${d.enabled ? '✅ ATIVO' : '⛔ DESLIGADO'} · Burn on-chain: ${d.onchainBurnEnabled ? '🔗 ON' : '📕 só interno'}`,
+    `Paridade: <b>1 TON = ${mythFmt(d.mythPerTon)} MYTH = ${fmt(d.fcPerTon)} FC</b> · <b>1 MYTH ≈ ${fmt(Number(d.fcPerTon) / Math.max(1, Number(d.mythPerTon)))} FC</b>`,
+    `Desconto ao pagar em MYTH: <b>${fmt(d.discountPercent)}%</b>`,
+    `Queimado por utilidade: <b>${mythFmt(d.utilityBurned)}</b> · pagantes: <b>${fmt(d.payers)}</b>`,
+    '',
+    '<b>FUNCIONALIDADES</b>',
+    ...feats.map(f => `${f.enabled ? '✅' : '⛔'} <code>${esc(f.code)}</code> · ${esc(f.label ?? '')} · modo <code>${esc(f.pricingMode)}</code>${f.customMyth ? ` (${mythFmt(f.customMyth)})` : ''} · 🔥 ${mythFmt(f.burned)}`),
+  ].join('\n');
+  const rows: { t: string; d: string }[][] = [
+    [{ t: d.enabled ? '⛔ DESLIGAR MYTH' : '✅ LIGAR MYTH', d: `mu:set:enabled:${d.enabled ? 0 : 1}` }],
+    [{ t: '🪙 MYTH POR TON', d: 'mu:ask:muton' }, { t: '💰 FC POR TON', d: 'mu:ask:mufc' }],
+    [{ t: '🎯 DESCONTO (%)', d: 'mu:ask:mudisc' }, { t: d.onchainBurnEnabled ? '📕 BURN INTERNO' : '🔗 BURN ON-CHAIN', d: `mu:set:onchain:${d.onchainBurnEnabled ? 0 : 1}` }],
+  ];
+  for (const f of feats) {
+    rows.push([
+      { t: `${f.enabled ? '⛔' : '✅'} ${String(f.label ?? f.code).slice(0, 18)}`, d: `mu:feat:${f.code}:${f.enabled ? 0 : 1}` },
+      { t: `🔧 ${String(f.pricingMode).slice(0, 8)}`, d: `mu:mode:${f.code}` },
+    ]);
+  }
+  rows.push(nav());
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+const MU_MODES = ['AUTO_FC', 'AUTO_TON', 'CUSTOM'];
+
+async function muCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === 'ask') return ask(ctx, a, PROMPTS[a] ?? 'Envie o valor.');
+  if (sub === 'set') await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: a, p_value: b });
+  if (sub === 'feat') await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'feature', p_value: b, p_feature: a });
+  if (sub === 'mode') {
+    // Rotaciona o modo de preço da funcionalidade: FC → TON → valor fixo em MYTH.
+    const current = ((await rpc('admin_myth_utility_overview', { p_admin_id: ctx.adminId }) as any).features ?? [])
+      .find((f: any) => f.code === a);
+    const next = MU_MODES[(MU_MODES.indexOf(String(current?.pricingMode ?? 'AUTO_FC')) + 1) % MU_MODES.length];
+    await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'mode', p_value: next, p_feature: a });
+    if (next === 'CUSTOM') return ask(ctx, `mucustom|${a}`, PROMPTS.mucustom);
+  }
+  return muHub(ctx);
+}
+
+async function muPrompt(ctx: Ctx, key: string, text: string) {
+  const [base, feature] = key.split('|');
+  const raw = text.trim().replace(',', '.').replace(/[^\d.]/g, '');
+  const num = Number(raw);
+  if (!Number.isFinite(num) || num < 0) throw new Error('KEEP_SESSION::⚠️ Envie um número válido.');
+  if (base === 'muton') await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'mythperton', p_value: String(num) });
+  else if (base === 'mufc') await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'fcperton', p_value: String(num) });
+  else if (base === 'mudisc') await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'discount', p_value: String(num) });
+  else if (base === 'mucustom') {
+    await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'custom', p_value: num > 0 ? String(num) : '', p_feature: feature });
+    if (num <= 0) await rpc('admin_myth_utility_set', { p_admin_id: ctx.adminId, p_field: 'mode', p_value: 'AUTO_FC', p_feature: feature });
+  }
+  await clearSession(ctx);
+  await send(ctx, `🔥 MYTH Utility atualizado: <b>${esc(base)}</b> = <code>${esc(String(num))}</code>`);
+  return muHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🎁 PREMIUM OFFERS (FOUNDER + VETERAN)
 // Controle unificado dos dois pacotes premium: janelas de oferta, popup diário (1x/dia por oferta no
 // fuso oficial), elegibilidade global e mineração em MYTH. Nada é entregue aqui — só configuração.
@@ -4769,6 +4842,7 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // ⚔️ VETERAN VAULT — oferta para veteranos: preço, ciclo, conteúdo, cronograma e pools de reward.
   if (head === 'v2') { if (rest[0] !== 'ask') await clearSession(ctx); return vv2Callback(ctx, rest); }
+  if (head === 'mu') { if (rest[0] !== 'ask') await clearSession(ctx); return muCallback(ctx, rest); }
   if (head === 'po') { if (rest[0] !== 'ask') await clearSession(ctx); return poCallback(ctx, rest); }
   if (head === 'vv') { if (rest[0] !== 'ask') await clearSession(ctx); return vvCallback(ctx, rest); }
 
@@ -6661,6 +6735,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith('gbt')) return gbtPrompt(ctx, key, args[0] ?? '', text);
   if (key.startsWith('nm')) return nmPrompt(ctx, key, text);
   if (key.startsWith('stk')) return stakingPrompt(ctx, key, text);
+  if (key.startsWith('mu')) return muPrompt(ctx, key, text);
   if (key.startsWith('po')) return poPrompt(ctx, key, text);
   if (key.startsWith('v2')) return vv2Prompt(ctx, key, text);
   if (key.startsWith('vv')) return vvPrompt(ctx, key, text);

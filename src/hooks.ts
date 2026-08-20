@@ -10,6 +10,8 @@ import type { GameState } from './types';
 import type { BossCombat, GlobalBossRanking, GlobalBossHistoryRow } from './combat';
 import type { ReferralDashboard } from './referrals';
 import type { PetDashboard } from './pets';
+import type { MythUtilityState } from './mythUtility';
+import { fetchMythUtility } from './services';
 import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
 import { fetchTowerDashboard, fetchTowerRanking } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
@@ -64,6 +66,8 @@ export const useGlobalBossHistory=(telegramInitData:string|null,enabled:boolean,
   enabled,staleTime:30_000,retry:1
 });
 export const useReferralDashboard=(telegramInitData:string|null,enabled:boolean,level?:1|2|3,offset=0)=>useQuery<ReferralDashboard>({queryKey:['referral-dashboard',telegramInitData,level??'all',offset],queryFn:()=>fetchReferralDashboard(telegramInitData??'',level,offset),enabled,staleTime:60_000,refetchInterval:120_000,refetchOnWindowFocus:true,retry:1});
+/** MYTH utility (rates, discount, per-feature switches, spendable balance). Shared by every screen that offers MYTH. */
+export const useMythUtility=(telegramInitData:string|null,enabled=true)=>useQuery<MythUtilityState>({queryKey:['myth-utility',telegramInitData],queryFn:()=>fetchMythUtility(telegramInitData??''),enabled:enabled&&!!telegramInitData,staleTime:30_000,retry:1});
 export const usePetDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<PetDashboard>({queryKey:['pet-dashboard',telegramInitData],queryFn:async()=>petRequest(telegramInitData??'',{action:'dashboard'}) as Promise<PetDashboard>,enabled,staleTime:20_000,refetchOnWindowFocus:true,retry:1});
 export const usePvpDashboard=(telegramInitData:string|null,enabled:boolean)=>useQuery<PvpDashboard>({queryKey:['pvp-dashboard',telegramInitData],queryFn:()=>pvpRequest<PvpDashboard>(telegramInitData??'',{action:'dashboard'}),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useWalletSummary=(telegramInitData:string|null,enabled:boolean)=>useQuery<WalletSummary>({queryKey:['wallet-summary',telegramInitData],queryFn:()=>walletRequest<WalletSummary>(telegramInitData??'',{action:'summary'}),enabled,staleTime:30_000,refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});

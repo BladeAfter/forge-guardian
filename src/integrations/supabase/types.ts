@@ -4941,32 +4941,52 @@ export type Database = {
       myth_burn_history: {
         Row: {
           amount: number
+          burn_kind: string
           created_at: string
           created_by: number | null
           id: string
           reason: string | null
+          source: string | null
+          source_id: string | null
           supply_after: number
           supply_before: number
+          user_id: string | null
         }
         Insert: {
           amount: number
+          burn_kind?: string
           created_at?: string
           created_by?: number | null
           id?: string
           reason?: string | null
+          source?: string | null
+          source_id?: string | null
           supply_after: number
           supply_before: number
+          user_id?: string | null
         }
         Update: {
           amount?: number
+          burn_kind?: string
           created_at?: string
           created_by?: number | null
           id?: string
           reason?: string | null
+          source?: string | null
+          source_id?: string | null
           supply_after?: number
           supply_before?: number
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "myth_burn_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       myth_ledger: {
         Row: {
@@ -5480,6 +5500,134 @@ export type Database = {
           total_supply?: number
           updated_at?: string
           visible_in_game?: boolean
+        }
+        Relationships: []
+      }
+      myth_utility_burns: {
+        Row: {
+          amount_base_units: number
+          amount_myth: number
+          balance_after: number
+          balance_before: number
+          confirmed_at: string | null
+          created_at: string
+          feature_code: string
+          game_burn_status: string
+          id: string
+          idempotency_key: string | null
+          meta: Json
+          onchain_burn_status: string
+          onchain_tx_hash: string | null
+          reference_myth_per_ton: number
+          source_id: string | null
+          user_id: string
+          utility_discount_percent: number
+        }
+        Insert: {
+          amount_base_units?: number
+          amount_myth: number
+          balance_after: number
+          balance_before: number
+          confirmed_at?: string | null
+          created_at?: string
+          feature_code: string
+          game_burn_status?: string
+          id?: string
+          idempotency_key?: string | null
+          meta?: Json
+          onchain_burn_status?: string
+          onchain_tx_hash?: string | null
+          reference_myth_per_ton: number
+          source_id?: string | null
+          user_id: string
+          utility_discount_percent: number
+        }
+        Update: {
+          amount_base_units?: number
+          amount_myth?: number
+          balance_after?: number
+          balance_before?: number
+          confirmed_at?: string | null
+          created_at?: string
+          feature_code?: string
+          game_burn_status?: string
+          id?: string
+          idempotency_key?: string | null
+          meta?: Json
+          onchain_burn_status?: string
+          onchain_tx_hash?: string | null
+          reference_myth_per_ton?: number
+          source_id?: string | null
+          user_id?: string
+          utility_discount_percent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "myth_utility_burns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      myth_utility_features: {
+        Row: {
+          custom_myth: number | null
+          enabled: boolean
+          feature_code: string
+          label: string
+          pricing_mode: string
+          updated_at: string
+        }
+        Insert: {
+          custom_myth?: number | null
+          enabled?: boolean
+          feature_code: string
+          label: string
+          pricing_mode?: string
+          updated_at?: string
+        }
+        Update: {
+          custom_myth?: number | null
+          enabled?: boolean
+          feature_code?: string
+          label?: string
+          pricing_mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      myth_utility_settings: {
+        Row: {
+          discount_percent: number
+          enabled: boolean
+          fc_per_ton: number
+          id: boolean
+          jetton_master_address: string | null
+          myth_per_ton: number
+          onchain_burn_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          discount_percent?: number
+          enabled?: boolean
+          fc_per_ton?: number
+          id?: boolean
+          jetton_master_address?: string | null
+          myth_per_ton?: number
+          onchain_burn_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          discount_percent?: number
+          enabled?: boolean
+          fc_per_ton?: number
+          id?: boolean
+          jetton_master_address?: string | null
+          myth_per_ton?: number
+          onchain_burn_enabled?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -13752,6 +13900,19 @@ export type Database = {
         Args: { p_admin_id: number; p_amount: number; p_reason?: string }
         Returns: Json
       }
+      admin_myth_utility_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_myth_utility_set: {
+        Args: {
+          p_admin_id: number
+          p_feature?: string
+          p_field: string
+          p_value: string
+        }
+        Returns: Json
+      }
       admin_name_mission: {
         Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
         Returns: Json
@@ -14971,6 +15132,7 @@ export type Database = {
       }
       buy_pet_egg: {
         Args: {
+          p_currency?: string
           p_egg_id: string
           p_idempotency_key?: string
           p_quantity?: number
@@ -14980,6 +15142,7 @@ export type Database = {
       }
       buy_pet_food: {
         Args: {
+          p_currency?: string
           p_food_code: string
           p_idempotency_key?: string
           p_quantity?: number
@@ -14997,6 +15160,7 @@ export type Database = {
       }
       buy_season_pass_levels: {
         Args: {
+          p_currency?: string
           p_idempotency_key: string
           p_levels: number
           p_telegram_id: number
@@ -15516,6 +15680,7 @@ export type Database = {
       event_sync_statuses: { Args: never; Returns: undefined }
       evolve_pet: {
         Args: {
+          p_currency?: string
           p_idempotency_key: string
           p_player_pet_id: string
           p_telegram_id: number
@@ -15685,6 +15850,7 @@ export type Database = {
       fragment_summon_config: { Args: never; Returns: Json }
       fuse_heroes: {
         Args: {
+          p_fee_currency?: string
           p_idempotency_key?: string
           p_main_hero_id: string
           p_material_ids?: string[]
@@ -15758,6 +15924,7 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: Json
       }
+      get_myth_utility_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_myth_wallet: { Args: { p_telegram_id: number }; Returns: Json }
       get_name_mission_state: { Args: { p_telegram_id: number }; Returns: Json }
       get_partner_channels: { Args: { p_telegram_id: number }; Returns: Json }
@@ -16287,6 +16454,22 @@ export type Database = {
           p_telegram_id: number
         }
         Returns: Json
+      }
+      myth_utility_charge: {
+        Args: {
+          p_amount: number
+          p_feature: string
+          p_idempotency_key?: string
+          p_meta?: Json
+          p_source_id?: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      myth_utility_config: { Args: never; Returns: Json }
+      myth_utility_price: {
+        Args: { p_fc?: number; p_feature: string; p_ton?: number }
+        Returns: number
       }
       name_mission_config: { Args: never; Returns: Json }
       name_mission_matches: {
@@ -16910,6 +17093,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      season_pass_buy_with_myth: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_tier: string
+        }
+        Returns: Json
+      }
       season_pass_level_purchase_config: { Args: never; Returns: Json }
       season_pass_levels_for: {
         Args: { p_pass_version: number; p_season_levels: number }
@@ -17196,6 +17387,7 @@ export type Database = {
       }
       upgrade_pet_v2: {
         Args: {
+          p_currency?: string
           p_idempotency_key: string
           p_player_pet_id: string
           p_telegram_id: number

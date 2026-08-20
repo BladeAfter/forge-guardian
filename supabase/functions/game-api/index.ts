@@ -321,6 +321,8 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     if (key.length < 8 || key.length > 100) throw new Error('Chave de requisição inválida.');
     return `${prefix}:${user.id}:${key}`;
   };
+  // Optional alternative payment: MYTH burns instead of FC. Price/discount/burn are all server-side.
+  const mythOpt = () => (String(body.currency ?? body.payWith ?? 'FC').toUpperCase() === 'MYTH' ? 'MYTH' : 'FC');
   if (action === 'activate') {
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
     fn = 'activate_pet';
@@ -343,6 +345,7 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     fn = 'evolve_pet';
     args.p_player_pet_id = body.playerPetId;
     args.p_idempotency_key = requestKey('pet_evolve');
+    args.p_currency = mythOpt();
   } else if (action === 'hatch') {
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
     fn = 'hatch_pet_egg';
@@ -360,6 +363,7 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_egg_id = body.eggId;
     args.p_quantity = quantity;
     args.p_idempotency_key = requestKey('pet_egg_buy');
+    args.p_currency = mythOpt();
   } else if (action === 'buy-egg-balance') {
     // Premium (TON) egg paid with the player's internal TON balance: debit + delivery are atomic server-side.
     if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
@@ -375,6 +379,7 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_food_code = foodCode;
     args.p_quantity = quantity;
     args.p_idempotency_key = requestKey('pet_food_buy');
+    args.p_currency = mythOpt();
   } else if (action === 'xp-transfer-preview') {
     // Level/XP recycling: preview only (recoverable XP, FC cost and eligible target pets).
     if (!isUuid(body.playerPetId)) throw new Error('Pet inválido.');
@@ -517,6 +522,7 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
       p_material_ids: useFragments ? [] : materials,
       p_use_fragments: useFragments,
       p_idempotency_key: `hero_fusion:${user.id}:${fuseKey}`,
+      p_fee_currency: String(body.feeCurrency ?? body.currency ?? 'FC').toUpperCase() === 'MYTH' ? 'MYTH' : 'FC',
     };
 
   } else if (action === 'rarity-fusion') {
@@ -1196,6 +1202,9 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     const wallet = toFriendlyTonAddress(body.walletAddress);
     fn = 'myth_start_purchase';
     args = { ...args, p_myth_amount: amount, p_wallet_address: wallet, p_idempotency_key: `myth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'myth-utility') {
+    // MYTH utility: live balance, discount, conversion rates, per-feature toggles and burn totals.
+    fn = 'get_myth_utility_state';
   } else if (action === 'myth-verify') {
     return await verifyMythPurchases(db, user);
 
@@ -1427,6 +1436,11 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     if (!['adventurer', 'legendary'].includes(body.tier)) throw new Error('Passe inválido.');
     fn = 'create_season_pass_order';
     args = { ...args, p_tier: body.tier, p_idempotency_key: `season:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'order-myth') {
+    // Alternative pass payment: burns MYTH from the available balance (staked MYTH is never touched).
+    if (!['adventurer', 'legendary'].includes(body.tier)) throw new Error('Passe inválido.');
+    fn = 'season_pass_buy_with_myth';
+    args = { ...args, p_tier: body.tier, p_idempotency_key: `passmyth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'claim') {
     if (!isUuid(body.rewardId)) throw new Error('Recompensa inválida.');
     fn = 'claim_season_pass_reward';
@@ -1440,7 +1454,12 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     const levels = Number(body.levels);
     if (![1, 3, 5].includes(levels)) throw new Error('Pacote de níveis inválido.');
     fn = 'buy_season_pass_levels';
-    args = { ...args, p_levels: levels, p_idempotency_key: `passlevel:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+    args = {
+      ...args,
+      p_levels: levels,
+      p_idempotency_key: `passlevel:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+      p_currency: String(body.currency ?? 'FC').toUpperCase() === 'MYTH' ? 'MYTH' : 'FC',
+    };
   } else if (action === 'buy-locked-reward') {
     // Locked exclusive chest (NEW PASS REQUIRED): the DB charges the internal TON balance
     // when it covers 100% of the price, otherwise it returns a TonConnect intent.
@@ -1580,7 +1599,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     if (action === 'enter') {
       // Entry can be paid with FC (default) or with the internal TON balance. Debit happens server-side.
-      const payWith = String(body.payWith ?? 'fc').toLowerCase() === 'ton' ? 'ton' : 'fc';
+      const raw = String(body.payWith ?? 'fc').toLowerCase();
+      const payWith = raw === 'ton' ? 'ton' : raw === 'myth' ? 'myth' : 'fc';
       return attachHeroXp(db, user.id, 'DUNGEON', await withPet(await rpc(db, 'tower_enter_floor', { p_telegram_id: user.id, p_pay_currency: payWith })));
     }
     // Tower ranking: read-only leaderboard (highest floor, then team power, then who got there first).
