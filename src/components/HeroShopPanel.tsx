@@ -33,7 +33,7 @@ type Props = {
   summonOdds: Array<{ rarity: HeroRarity; chance: number }>;
   recruitPrice: (count: number) => number;
   shopResults: ShopHero[];
-  onRecruit: (count: 1 | 5 | 10) => void;
+  onRecruit: (count: 1 | 5 | 10, payWith?: 'FC' | 'MYTH') => void;
   onClose: () => void;
   /** Which access point opened the panel: hero recruitment or the Player Market. */
   mode?: 'recruit' | 'market';
