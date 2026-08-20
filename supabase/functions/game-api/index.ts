@@ -276,7 +276,11 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_hero_id = body.hero_id;
   }
   if (action === 'team') args.p_hero_ids = Array.isArray(body.heroIds) ? body.heroIds : [];
-  if (action === 'recruit') args.p_count = Number(body.count);
+  if (action === 'recruit') {
+    args.p_count = Number(body.count);
+    // Optional alternative payment: MYTH is priced and burned server-side; FC stays the default.
+    args.p_pay_currency = String(body.payWith ?? body.currency ?? 'FC').toUpperCase() === 'MYTH' ? 'MYTH' : 'FC';
+  }
   const data = await rpc(db, fn, args);
   if (action === 'recruit') return data;
   if (action === 'attack') return await attachHeroXp(db, user.id, 'GLOBAL_BOSS', await withBossPet(db, user, data));
