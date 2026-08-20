@@ -37,6 +37,10 @@ export type PlayerPet = {
   /** NFT EXCLUSIVE companions: admin-only delivery, never drawable, never sellable. */
   isNft?: boolean;
   nft?: { serial: number; instanceId: string; status: string; minted: boolean } | null;
+  /** Founder Pack / Veteran Vault line: VETERAN tag and MYTH-only daily mining (never TON). */
+  veteranLine?: boolean;
+  premiumSource?: string | null;
+  miningDailyMyth?: number;
 };
 
 export type PetEgg = { id: string; name: string; slug: string; image: string; priceFc: number | null; priceTon: number | null; quantity: number; rarityRates: Record<string, number>; isPurchasable?: boolean; premiumOnly?: boolean; dailyQuantity?: number | null; perPlayerLimit?: number | null; availabilityLabel?: string | null };
