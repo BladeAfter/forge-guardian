@@ -171,7 +171,7 @@ export function HeroFusionPanel({
         ) : null}
         {payMyth ? <MythBalanceHint state={myth} /> : null}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className={`mt-3 grid gap-2 ${current.isNft ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <button
             onClick={() => lock.mutate(!current.locked)}
             disabled={lock.isPending}
@@ -180,14 +180,16 @@ export function HeroFusionPanel({
             {current.locked ? <Lock size={16} /> : <LockOpen size={16} />}
             {current.locked ? t('fusion.unlockHero') : t('fusion.lockHero')}
           </button>
-          <button
-            onClick={() => fusion.mutate({ mode: 'copies', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
-            disabled={!readyCopies || fusion.isPending}
-            className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
-          >
-            <Sparkles size={16} />
-            {fusion.isPending ? t('fusion.fusing') : t('fusion.fuseWithCopies')}
-          </button>
+          {current.isNft ? null : (
+            <button
+              onClick={() => fusion.mutate({ mode: 'copies', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
+              disabled={!readyCopies || fusion.isPending}
+              className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
+            >
+              <Sparkles size={16} />
+              {fusion.isPending ? t('fusion.fusing') : t('fusion.fuseWithCopies')}
+            </button>
+          )}
         </div>
         {next ? (
           <button
