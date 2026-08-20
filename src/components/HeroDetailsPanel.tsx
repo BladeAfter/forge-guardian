@@ -9,6 +9,7 @@ import { useT } from '../LanguageContext';
 import { formatMiningTon, heroDailyRate, isMiningRarity } from '../heroMining';
 import { effectiveDailyMining, formatMiningAmount, miningSymbol, useMiningConfig } from '../miningCurrency';
 import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
+import { VETERAN_LINE_COLOR, VETERAN_LINE_LABEL, isVeteranLine } from '../veteranLine';
 
 
 const RARITY_COLOR: Record<string, string> = {
@@ -32,12 +33,17 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
   const dailyXp = Math.max(0, Number(hero.dailyXp ?? 0));
   const dailyCap = Math.max(0, Number(hero.dailyXpCap ?? 0));
 
-  const accent = RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8';
+  // Founder/Veteran packs: SUPERIOR premium line, never mythic, never TON mining.
+  const veteran = isVeteranLine(hero);
+  const veteranMyth = veteran ? Math.max(0, Number(hero.miningDailyMyth ?? 0)) : 0;
+  const accent = veteran ? VETERAN_LINE_COLOR : (RARITY_COLOR[String(hero.rarity)] ?? '#94a3b8');
   // Mining depends ONLY on rarity: level and equipment never change it.
   // NFT Exclusive heroes have their own server rate (nft_heroes.mining_daily_ton).
-  const miningRate = Number(state?.miningDailyTon ?? 0) > 0
-    ? Number(state?.miningDailyTon ?? 0)
-    : heroDailyRate(miningRates, hero.rarity);
+  const miningRate = veteran
+    ? 0
+    : Number(state?.miningDailyTon ?? 0) > 0
+      ? Number(state?.miningDailyTon ?? 0)
+      : heroDailyRate(miningRates, hero.rarity);
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
@@ -58,7 +64,7 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
           <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
           <div className="p-3 text-center">
             <p className="text-[10px] font-black uppercase tracking-[.18em]" style={{ color: accent }}>
-              {isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {String(hero.archetype ?? '').toUpperCase()}
+              {veteran ? VETERAN_LINE_LABEL : isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {String(hero.archetype ?? '').toUpperCase()}
             </p>
             <p className="mt-1 text-[13px] tracking-[.16em] text-amber-300">{starRow(stars, maxStars)}</p>
             <p className="mt-1 text-[10px] text-slate-300">
@@ -93,7 +99,13 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
                 </p>
               ) : null}
             </div>
-            {isMiningRarity(hero.rarity) ? (
+            {veteran ? (
+              /* Veteran line: MYTH-only mining, paid by the premium pool (never TON). */
+              <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
+                <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('mining.heroRate')}</p>
+                <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {t('mining.perDay')}</p>
+              </div>
+            ) : isMiningRarity(hero.rarity) ? (
               miningRate > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>

@@ -423,7 +423,7 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     if (!player.data?.id) return { heroes: [] };
     const heroes = await db
       .from('player_heroes')
-      .select('id,hero_key,name,rarity,level,xp,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id')
+      .select('id,hero_key,name,rarity,level,xp,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id,veteran_line,premium_source,mining_daily_myth')
       .eq('user_id', player.data.id)
       // Heroes listed on the marketplace are held in escrow: they must not appear in the collection.
       .or('market_locked.is.null,market_locked.eq.false')
@@ -465,6 +465,10 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
         isNft: Boolean(hero.is_nft_exclusive),
         nftSerial: hero.nft_serial ?? null,
         nftInstance: hero.nft_instance_id ?? null,
+        // Premium packs (Founder/Veteran): VETERAN tag and MYTH-only mining, never TON.
+        veteranLine: Boolean((hero as any).veteran_line) || String((hero as any).premium_source ?? '').toUpperCase() === 'FOUNDER',
+        premiumSource: (hero as any).premium_source ?? null,
+        miningDailyMyth: Number((hero as any).mining_daily_myth ?? 0),
         };
       }),
     };

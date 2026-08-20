@@ -11,6 +11,7 @@ import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { isNftExclusivePet, petBuffLabel, petBuffShortLabel, petDisplayRarity, petDisplayRarityLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
+import { isVeteranLine } from '../veteranLine';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
@@ -1018,11 +1019,17 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
       <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : style.glowClass} to-transparent blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-1">
-        {/* NFT EXCLUSIVE replaces the normal rarity badge — never both. */}
+        {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
         {isNft ? (
           <NftPetTag serial={serial} />
         ) : (
-          <span className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${style.badgeClass}`}>{petRarityLabel(pet.rarity)}</span>
+          <span
+            className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${
+              isVeteranLine(pet) ? 'border-amber-300/60 bg-amber-300/10 text-amber-200' : style.badgeClass
+            }`}
+          >
+            {petDisplayRarityLabel(pet)}
+          </span>
         )}
         {pet.isActive && (
           <span className="flex items-center gap-1 rounded-full border border-emerald-300/45 bg-emerald-950/80 px-2 py-1 text-[7px] font-black text-emerald-200">
