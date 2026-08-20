@@ -108,6 +108,11 @@ export type NftPetLike = {
   specialType?: string | null;
   special_type?: string | null;
   exclusiveBadge?: string | null;
+  /** Founder Pack / Veteran Vault line: superior premium tier, never mythic. */
+  veteranLine?: boolean | null;
+  veteran_line?: boolean | null;
+  premiumSource?: string | null;
+  premium_source?: string | null;
 };
 
 const NFT_TOKEN = /nft/i;
@@ -123,8 +128,13 @@ export function isNftExclusivePet(pet?: NftPetLike | null): boolean {
 
 /** Rarity key used ONLY for presentation (colors, badges). Stats stay untouched. */
 export const petDisplayRarity = (pet?: NftPetLike | null): string =>
-  isNftExclusivePet(pet) ? 'nft_exclusive' : String(pet?.rarity ?? 'common');
+  isVeteranLine(pet) ? 'veteran' : isNftExclusivePet(pet) ? 'nft_exclusive' : String(pet?.rarity ?? 'common');
 
-/** The single rarity badge text for a pet. NFT pets never show COMUM/ANCESTRAL/etc. */
+/** The single rarity badge text for a pet. NFT/Veteran pets never show COMUM/MÍTICO/etc. */
 export const petDisplayRarityLabel = (pet?: NftPetLike | null): string =>
-  isNftExclusivePet(pet) ? PET_RARITY_LABELS.nft_exclusive : petRarityLabel(pet?.rarity ?? null);
+  isVeteranLine(pet)
+    ? VETERAN_LINE_LABEL
+    : isNftExclusivePet(pet)
+      ? PET_RARITY_LABELS.nft_exclusive
+      : petRarityLabel(pet?.rarity ?? null);
+
