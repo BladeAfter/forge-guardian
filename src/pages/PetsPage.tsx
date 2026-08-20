@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
+import { Check, ChevronUp, Crown, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard, useMythUtility } from '../hooks';
@@ -1008,26 +1008,35 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
     : pet.primaryBuffValue;
   const t = useT();
   const isNft = isNftExclusivePet(pet);
+  const isVeteran = !isNft && isVeteranLine(pet);
   const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
   const serial = pet.nft?.serial;
   return (
     <div
       className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] p-2.5 text-center shadow-[0_16px_30px_rgba(0,0,0,.45)] transition duration-200 active:scale-[.98] ${
-        isNft ? 'forge-nft-card border-amber-200/60' : style.borderClass
+        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : style.borderClass
       } ${pet.isActive ? 'ring-1 ring-emerald-300/25' : ''}`}
     >
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
-      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : style.glowClass} to-transparent blur-xl`} />
+      {isVeteran && (
+        <>
+          <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="forge-veteran-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-amber-200/25" aria-hidden />
+        </>
+      )}
+      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : style.glowClass} to-transparent blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-1">
         {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
         {isNft ? (
           <NftPetTag serial={serial} />
         ) : (
           <span
-            className={`rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${
-              isVeteranLine(pet) ? 'border-amber-300/60 bg-amber-300/10 text-amber-200' : style.badgeClass
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${
+              isVeteran ? 'forge-veteran-tag border-amber-200/70 bg-gradient-to-r from-amber-400/25 to-orange-500/20 text-amber-100' : style.badgeClass
             }`}
           >
+            {isVeteran ? <Crown className="h-2.5 w-2.5" /> : null}
             {petDisplayRarityLabel(pet)}
           </span>
         )}
@@ -1040,8 +1049,12 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
 
 
       <button type="button" onClick={onDetails} className="relative z-10 mt-1 grid h-[124px] w-full place-items-center">
-        <img src={pet.image} alt={pet.name} className="h-[118px] w-full object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]" />
+        {isVeteran ? (
+          <span className="pointer-events-none absolute h-[104px] w-[104px] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_68%)] blur-md" aria-hidden />
+        ) : null}
+        <img src={pet.image} alt={pet.name} className={`relative h-[118px] w-full object-contain ${isVeteran ? 'drop-shadow-[0_10px_18px_rgba(245,158,11,.45)]' : 'drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]'}`} />
       </button>
+
 
       <div className="relative z-10">
         <button type="button" onClick={onDetails} className="block w-full truncate text-base font-black uppercase tracking-wide">{pet.name}</button>

@@ -1074,3 +1074,41 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   text-shadow:0 0 12px rgba(251,191,36,.35);
 }
 
+
+/* ===== VETERAN line pet/hero cards (Founder 35 TON + Veteran Vault 100 TON) =====
+   Dragon-tier treatment: molten gold frame, breathing ember glow and a slow
+   scale-shimmer sweep. Purely cosmetic — no gameplay impact. */
+.forge-veteran-card{
+  background-image:
+    radial-gradient(120% 80% at 50% 0%,rgba(245,158,11,.20),transparent 62%),
+    linear-gradient(180deg,#2a1a06 0%,#150d05 52%,#05040a 100%);
+  box-shadow:0 0 0 1px rgba(245,158,11,.45),0 20px 40px rgba(120,53,15,.5),inset 0 0 26px rgba(251,191,36,.14);
+  animation:forge-veteran-glow 3.8s ease-in-out infinite;
+}
+@keyframes forge-veteran-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(245,158,11,.45),0 20px 40px rgba(120,53,15,.5),inset 0 0 26px rgba(251,191,36,.14)}
+  50%{box-shadow:0 0 0 1px rgba(253,224,71,.8),0 26px 52px rgba(180,83,9,.62),inset 0 0 36px rgba(251,191,36,.26)}
+}
+.forge-veteran-scales{
+  background-image:
+    radial-gradient(6px 6px at 12% 18%,rgba(251,191,36,.14),transparent 62%),
+    radial-gradient(6px 6px at 42% 32%,rgba(251,146,60,.12),transparent 62%),
+    radial-gradient(6px 6px at 74% 20%,rgba(253,224,71,.12),transparent 62%),
+    radial-gradient(6px 6px at 28% 62%,rgba(251,191,36,.10),transparent 62%),
+    radial-gradient(6px 6px at 66% 74%,rgba(251,146,60,.10),transparent 62%);
+  animation:forge-veteran-scales 6s ease-in-out infinite;
+}
+@keyframes forge-veteran-scales{
+  0%,100%{opacity:.5;transform:translateY(0)}
+  50%{opacity:1;transform:translateY(-3px)}
+}
+.forge-veteran-sheen{
+  background:linear-gradient(115deg,transparent 38%,rgba(255,236,170,.16) 50%,transparent 62%);
+  background-size:260% 100%;
+  animation:forge-veteran-sheen 5.5s linear infinite;
+}
+@keyframes forge-veteran-sheen{
+  0%{background-position:180% 0}
+  100%{background-position:-80% 0}
+}
+.forge-veteran-tag{box-shadow:0 0 14px rgba(245,158,11,.5)}

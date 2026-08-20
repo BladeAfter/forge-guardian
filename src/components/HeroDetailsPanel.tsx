@@ -44,6 +44,8 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
     : Number(state?.miningDailyTon ?? 0) > 0
       ? Number(state?.miningDailyTon ?? 0)
       : heroDailyRate(miningRates, hero.rarity);
+  // 'mining.perDay' ships the TON word baked in; strip it so we can print the real currency once.
+  const perDaySuffix = t('mining.perDay').replace(/^\s*[A-Za-z]+\s*/, '').trim() || '/ dia';
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
@@ -103,13 +105,13 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
               /* Veteran line: MYTH-only mining, paid by the premium pool (never TON). */
               <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
                 <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('mining.heroRate')}</p>
-                <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {t('mining.perDay')}</p>
+                <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {perDaySuffix}</p>
               </div>
             ) : isMiningRarity(hero.rarity) ? (
               miningRate > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {t('mining.perDay')}</p>
+                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
                 </div>
               ) : null
             ) : (
