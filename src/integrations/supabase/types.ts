@@ -13649,6 +13649,7 @@ export type Database = {
         Returns: Json
       }
       admin_hero_rarity_flags: { Args: { p_admin_id: number }; Returns: Json }
+      admin_hero_real_odds: { Args: { p_admin_id: number }; Returns: Json }
       admin_hero_shop_overview: { Args: { p_admin_id: number }; Returns: Json }
       admin_list_audit: {
         Args: { p_admin_id: number; p_limit?: number; p_offset?: number }
@@ -14433,6 +14434,10 @@ export type Database = {
           p_rates: Json
           p_reason?: string
         }
+        Returns: Json
+      }
+      admin_set_hero_real_summon_rates: {
+        Args: { p_admin_id: number; p_rates: Json; p_reason?: string }
         Returns: Json
       }
       admin_set_hero_recruit_price: {
@@ -16095,6 +16100,7 @@ export type Database = {
           max_hp: number
         }[]
       }
+      hero_effective_real_summon_odds: { Args: never; Returns: Json }
       hero_effective_summon_odds: { Args: never; Returns: Json }
       hero_equipment_json: {
         Args: { p_hero_id: string; p_telegram_id: number }
@@ -16172,6 +16178,7 @@ export type Database = {
       hero_rarity_mid_atk: { Args: { r: string }; Returns: number }
       hero_rarity_mid_hp: { Args: { r: string }; Returns: number }
       hero_rarity_recruitable: { Args: { p_rarity: string }; Returns: boolean }
+      hero_real_summon_rates: { Args: never; Returns: Json }
       hero_recalc_equipment: { Args: { p_hero: string }; Returns: undefined }
       hero_recruit_price: { Args: { p_count: number }; Returns: number }
       hero_recruit_rarity_flags: { Args: never; Returns: Json }
