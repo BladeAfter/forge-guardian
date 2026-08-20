@@ -31,6 +31,7 @@ import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {StarterPackPopup}from'./components/StarterPackPopup';
 import {GiveawayPopup}from'./components/GiveawayPopup';
 import {PremiumOffersPopups}from'./components/PremiumOffersPopups';
+import {PremiumOffersModal}from'./components/PremiumOffersModal';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
@@ -573,6 +574,7 @@ function App() {
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
+  const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [rewardsOpen,setRewardsOpen]=useState(false);
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
@@ -954,6 +956,10 @@ function App() {
               >
                 <Sparkles className="h-3.5 w-3.5" /> {t('adRewards.button')}
               </button>
+              <button
+                onClick={()=>setPremiumOffersOpen(true)}
+                className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
+              >💎 OFERTAS</button>
             </div>
           </div>
 
@@ -961,6 +967,7 @@ function App() {
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
           {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
+          {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
           {shopOpen||marketOpen ? (
