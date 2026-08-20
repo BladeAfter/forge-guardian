@@ -31,6 +31,8 @@ export function PremiumOffersPopups({ telegramInitData }: { telegramInitData: st
     const ordered = eligible.length ? eligible : serverQueue;
     return ordered.filter((offer, position) => ordered.indexOf(offer) === position);
   }, [data]);
+  const current = queue[index] ?? null;
+
 
 
   // Registra no servidor que o popup foi mostrado hoje (idempotente por dia/oferta).
