@@ -64,7 +64,7 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
           <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
           <div className="p-3 text-center">
             <p className="text-[10px] font-black uppercase tracking-[.18em]" style={{ color: accent }}>
-              {isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {String(hero.archetype ?? '').toUpperCase()}
+              {veteran ? VETERAN_LINE_LABEL : isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {String(hero.archetype ?? '').toUpperCase()}
             </p>
             <p className="mt-1 text-[13px] tracking-[.16em] text-amber-300">{starRow(stars, maxStars)}</p>
             <p className="mt-1 text-[10px] text-slate-300">
