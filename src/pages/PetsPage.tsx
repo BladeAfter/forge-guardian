@@ -11,6 +11,7 @@ import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
 import type { PetRarity } from '../petRules';
 import { isNftExclusivePet, petBuffLabel, petBuffShortLabel, petDisplayRarity, petDisplayRarityLabel, petRarityLabel, petStageLabel, PET_FOOD_ICONS } from '../petLabels';
+import { isVeteranLine } from '../veteranLine';
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
