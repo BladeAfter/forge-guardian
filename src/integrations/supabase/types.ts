@@ -16235,6 +16235,10 @@ export type Database = {
         Args: { p_hero_id: string }
         Returns: undefined
       }
+      market_auction_exclusive_item: {
+        Args: { p_item_type: string; p_rarity: string }
+        Returns: boolean
+      }
       market_audit_unpaid_fc_sales: { Args: never; Returns: Json }
       market_browse: {
         Args: {
