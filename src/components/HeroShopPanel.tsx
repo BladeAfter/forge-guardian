@@ -57,6 +57,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
+  // MYTH is offered as an EXTRA recruitment payment when the backend enables it.
+  const mythUtility = useMythUtility(telegramInitData, mode === 'recruit');
   // Tapping a listing opens the read-only premium preview (real backend attributes).
   const [detailsId, setDetailsId] = useState<string | null>(null);
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
