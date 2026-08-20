@@ -158,7 +158,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
                   <div className="p-2 text-left">
                     <b className="block truncate text-[9px]">{hero.name}</b>
                     <p className="text-[9px] tracking-[.08em] text-amber-300">{starRow(stars, maxStars)}</p>
-                    <p className="text-[8px]" style={{ color: color[hero.rarity] }}>{isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {t('common.levelShort')} {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
+                    <p className="text-[8px]" style={{ color: isVeteranLine(hero) ? VETERAN_LINE_COLOR : color[hero.rarity] }}>{isVeteranLine(hero) ? VETERAN_LINE_LABEL : isGiftHero(hero.heroKey) ? GIFT_HERO_LABEL : t(`rarity.${hero.rarity}`)} · {t('common.levelShort')} {hero.level}{state ? `/${state.maxLevel}` : ''}</p>
                     <p className="text-[8px] text-slate-300">ATK {hero.finalAtk} · HP {hero.finalHp}</p>
                     <p className="text-[8px] text-amber-200">{t('common.power')} {hero.power}</p>
                     {equipped.has(hero.heroId) ? <p className="text-[8px] font-black text-emerald-300">{t('heroes.inTeam')}</p> : null}
