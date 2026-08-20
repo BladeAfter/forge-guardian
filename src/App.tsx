@@ -31,6 +31,7 @@ import {CommunityPoolPage}from'./pages/CommunityPoolPage';
 import {StarterPackPopup}from'./components/StarterPackPopup';
 import {GiveawayPopup}from'./components/GiveawayPopup';
 import {PremiumOffersPopups}from'./components/PremiumOffersPopups';
+import {PremiumOffersModal}from'./components/PremiumOffersModal';
 import {DiagnosticsPage}from'./pages/DiagnosticsPage';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
