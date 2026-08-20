@@ -7216,6 +7216,19 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       return send(ctx, `✅ Chances salvas.\n${RARITY_ORDER.map((k) => `${RARITY_LABEL[k]}: ${pct(before[k])}% → <b>${pct(r.odds[k])}%</b>`).join('\n')}`,
         kb([[{ t: '🎲 CHANCES', d: 'hs:odds' }], nav('m:shop')]));
     }
+    case 'hoddsreal': {
+      const parts = text.replace(/,/g, '.').split(/[\s;]+/).map(Number).filter((n) => Number.isFinite(n));
+      if (parts.length !== 6) return send(ctx, '⚠️ Envie 6 números: comum incomum raro épico lendário mítico.', kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
+      const total = parts.reduce((a, b) => a + b, 0);
+      if (Math.abs(total - 100) > 0.001) {
+        return send(ctx, `❌ Total inválido: <b>${pct(total)}%</b>\nA soma precisa ser exatamente 100%.`, kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
+      }
+      const rates: Record<string, number> = { ancestral: 0 };
+      RARITY_ORDER.filter((k) => k !== 'ancestral').forEach((k, i) => { rates[k] = parts[i]; });
+      const r = await rpc('admin_set_hero_real_summon_rates', { p_admin_id: ctx.adminId, p_rates: rates, p_reason: 'chances reais (bot)' });
+      return send(ctx, `✅ Chances REAIS salvas (a vitrine do jogo não muda).\n${RARITY_ORDER.filter((k) => k !== 'ancestral').map((k) => `${RARITY_LABEL[k]}: <b>${pct(r.rates[k])}%</b> · vitrine ${pct(r.publicOdds?.[k] ?? 0)}%`).join('\n')}`,
+        kb([[{ t: '🕵️ CHANCES REAIS', d: 'hs:roddz' }], nav('m:shop')]));
+    }
     case 'fusion': {
       const r = await rpc('admin_set_fusion_config', { p_admin_id: ctx.adminId, p_patch: JSON.parse(text), p_reason: 'painel admin (bot)' });
       return send(ctx, `✅ Fusão atualizada — máximo ★${r.max_stars}.`, kb([[{ t: '🧬 DUPLICATE FUSE SETTINGS', d: 'hs:fusion' }], nav('m:shop')]));
