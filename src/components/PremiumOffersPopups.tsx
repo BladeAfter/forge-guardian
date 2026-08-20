@@ -19,18 +19,24 @@ export function PremiumOffersPopups({ telegramInitData }: { telegramInitData: st
   const [index, setIndex] = useState(0);
   const [marked, setMarked] = useState<PremiumOfferType[]>([]);
 
-  // Fila da sessão: ofertas da fila oficial do servidor + qualquer oferta ainda elegível
-  // (Founder Pack primeiro, Veteran Vault depois) para que nenhuma seja engolida no mesmo dia.
+  // Fila da sessão: apenas ofertas que o servidor ainda não marcou como exibidas hoje
+  // (Founder Pack primeiro, Veteran Vault depois) — 1 popup por oferta por dia, por jogador.
   const queue = useMemo(() => {
     const serverQueue = Array.isArray(data?.queue) ? (data!.queue as PremiumOfferType[]) : [];
     const eligible: PremiumOfferType[] = [];
-    if (data?.founder?.eligible && data.founder.popupFrequency !== 'DISABLED') eligible.push('FOUNDER_PACK');
-    if (data?.veteran?.eligible && data.veteran.windowOpen && data.veteran.popupFrequency !== 'DISABLED') {
+    if (data?.founder?.eligible && data.founder.popupFrequency !== 'DISABLED' && !data.founder.popupSeenToday) {
+      eligible.push('FOUNDER_PACK');
+    }
+    if (
+      data?.veteran?.eligible && data.veteran.windowOpen &&
+      data.veteran.popupFrequency !== 'DISABLED' && !data.veteran.popupSeenToday
+    ) {
       eligible.push('VETERAN_VAULT');
     }
     const ordered = eligible.length ? eligible : serverQueue;
     return ordered.filter((offer, position) => ordered.indexOf(offer) === position);
   }, [data]);
+
 
   const current: PremiumOfferType | null = queue[index] ?? null;
 
