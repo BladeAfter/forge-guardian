@@ -103,13 +103,13 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
               /* Veteran line: MYTH-only mining, paid by the premium pool (never TON). */
               <div className="mt-2 rounded-xl border border-amber-300/30 bg-amber-300/10 py-2">
                 <p className="text-[8px] uppercase tracking-[.24em] text-amber-200">{t('mining.heroRate')}</p>
-                <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {t('mining.perDay')}</p>
+                <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {perDaySuffix}</p>
               </div>
             ) : isMiningRarity(hero.rarity) ? (
               miningRate > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {t('mining.perDay')}</p>
+                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
                 </div>
               ) : null
             ) : (
