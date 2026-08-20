@@ -931,6 +931,19 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             </div>
           </div>
         ) : null}
+
+        {/* Premium read-only preview. Purchase flow, prices and fees stay unchanged. */}
+        {detailsId ? (
+          <ItemDetailsModal
+            telegramInitData={telegramInitData}
+            source="market"
+            id={detailsId}
+            onClose={() => setDetailsId(null)}
+            onBuy={(id) => { setDetailsId(null); startPurchase(id); }}
+            buyLabel={t('market.buy')}
+            buyDisabled={buyMutation.isPending}
+          />
+        ) : null}
       </div>
     </div>
   );
