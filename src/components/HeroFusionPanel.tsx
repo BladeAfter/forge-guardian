@@ -3,8 +3,8 @@ import { Lock, LockOpen, Sparkles, X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fuseHeroWithFragments, fuseHeroes, setHeroLock } from '../services';
 import { useMythUtility } from '../hooks';
-import { MythPayButton, MythBalanceHint } from './MythPayButton';
-import { mythPrice } from '../mythUtility';
+import { MythBalanceHint } from './MythPayButton';
+import { formatMyth, mythPrice } from '../mythUtility';
 import { canFuse, canFuseWithFragments, pickMaterials, starRow, type FusionDashboard, type FusionHero, type FusionResult } from '../heroFusion';
 import { useT, useLanguage } from '../LanguageContext';
 
@@ -48,6 +48,15 @@ export function HeroFusionPanel({
   const universalFragments = dashboard.universalFragments ?? 0;
   const fragmentsPerFusion = next?.fragmentsRequired ?? dashboard.fragmentsPerFusion ?? 25;
   const readyWithFragments = canFuseWithFragments(current, dashboard.balance, universalFragments, fragmentsPerFusion);
+
+  // MYTH fee: the copies/fragments requirement is unchanged, only the FC fee is replaced.
+  const { data: myth } = useMythUtility(telegramInitData);
+  const [feeCurrency, setFeeCurrency] = useState<'FC' | 'MYTH'>('FC');
+  const mythFee = next ? mythPrice(myth, 'HERO_FUSE', { fc: next.costFc }) : null;
+  const mythFeeOk = mythFee !== null && Number(myth?.available ?? 0) >= mythFee;
+  const payMyth = feeCurrency === 'MYTH' && mythFee !== null;
+  const readyCopies = payMyth ? Boolean(next) && current.duplicates >= (next?.duplicatesRequired ?? 0) && mythFeeOk : ready;
+  const readyFragments = payMyth ? Boolean(next) && universalFragments >= fragmentsPerFusion && mythFeeOk : readyWithFragments;
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['hero-fusion'] });
@@ -137,6 +146,26 @@ export function HeroFusionPanel({
 
         {error ? <p className="mt-2 text-center text-[11px] font-bold text-rose-300">{error}</p> : null}
 
+        {next && mythFee !== null ? (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setFeeCurrency('FC')}
+              className={`min-h-10 rounded-xl border text-[10px] font-black uppercase tracking-wide ${feeCurrency === 'FC' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
+            >
+              {fmt(next.costFc)} FC
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeeCurrency('MYTH')}
+              className={`min-h-10 rounded-xl border text-[10px] font-black uppercase tracking-wide ${feeCurrency === 'MYTH' ? 'border-fuchsia-300/70 bg-fuchsia-400/20 text-fuchsia-100' : 'border-white/10 bg-black/50 text-slate-400'}`}
+            >
+              🔥 {formatMyth(mythFee)} MYTH
+            </button>
+          </div>
+        ) : null}
+        {payMyth ? <MythBalanceHint state={myth} /> : null}
+
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             onClick={() => lock.mutate(!current.locked)}
@@ -147,8 +176,8 @@ export function HeroFusionPanel({
             {current.locked ? t('fusion.unlockHero') : t('fusion.lockHero')}
           </button>
           <button
-            onClick={() => fusion.mutate('copies')}
-            disabled={!ready || fusion.isPending}
+            onClick={() => fusion.mutate({ mode: 'copies', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
+            disabled={!readyCopies || fusion.isPending}
             className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-b from-amber-300 to-amber-600 text-[11px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
           >
             <Sparkles size={16} />
@@ -157,8 +186,8 @@ export function HeroFusionPanel({
         </div>
         {next ? (
           <button
-            onClick={() => fusion.mutate('fragments')}
-            disabled={!readyWithFragments || fusion.isPending}
+            onClick={() => fusion.mutate({ mode: 'fragments', feeCurrency: payMyth ? 'MYTH' : 'FC' })}
+            disabled={!readyFragments || fusion.isPending}
             className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-300/10 text-[11px] font-black uppercase tracking-[.14em] text-cyan-200 disabled:opacity-40"
           >
             <Sparkles size={16} />
