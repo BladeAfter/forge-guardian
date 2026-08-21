@@ -90,6 +90,8 @@ export type FusionHero = {
   isNft?: boolean;
   /** Server-computed daily TON mining rate for this hero instance (0 = not eligible). */
   miningDailyTon?: number;
+  /** Server-computed daily MYTH mining rate for this hero instance. */
+  miningDailyMyth?: number;
   duplicates: number;
 
   next: FusionNext | null;

@@ -44,8 +44,11 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
     : Number(state?.miningDailyTon ?? 0) > 0
       ? Number(state?.miningDailyTon ?? 0)
       : heroDailyRate(miningRates, hero.rarity);
+  // NFT instances can mine MYTH and TON at the same time (dual mining set server-side).
+  const nftMyth = veteran ? 0 : Math.max(0, Number(state?.miningDailyMyth ?? hero.miningDailyMyth ?? 0));
   // 'mining.perDay' ships the TON word baked in; strip it so we can print the real currency once.
   const perDaySuffix = t('mining.perDay').replace(/^\s*[A-Za-z]+\s*/, '').trim() || '/ dia';
+
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
@@ -108,12 +111,18 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
                 <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {perDaySuffix}</p>
               </div>
             ) : isMiningRarity(hero.rarity) ? (
-              miningRate > 0 ? (
+              miningRate > 0 || nftMyth > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
+                  {nftMyth > 0 ? (
+                    <p className="text-[13px] font-black text-amber-100">{nftMyth.toLocaleString('pt-BR')} MYTH {perDaySuffix}</p>
+                  ) : null}
+                  {miningRate > 0 ? (
+                    <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
+                  ) : null}
                 </div>
               ) : null
+
             ) : (
               /* Common/Uncommon: discreet note so the player understands why it never mines. */
               <div className="mt-2 rounded-xl border border-white/10 bg-white/5 py-2">
