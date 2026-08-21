@@ -16437,6 +16437,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      myth_purchase_total: { Args: { p_user: string }; Returns: number }
       myth_sale_stats: { Args: never; Returns: Json }
       myth_stake: {
         Args: {
