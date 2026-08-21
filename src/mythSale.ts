@@ -50,7 +50,8 @@ export type MythSaleIntent = {
 
 export type MythSaleDashboard = {
   stats: MythSaleStats;
-  player: { mythBalance: number; internalTon: number };
+  /** `mythPurchasedTotal` = compras diretas + MYTH recebido nos pacotes premium (35 / 100 TON). */
+  player: { mythBalance: number; internalTon: number; mythPurchasedTotal?: number };
   purchases: MythSalePurchaseRow[];
   pendingIntent: MythSaleIntent | null;
   burns: MythBurnRow[];
