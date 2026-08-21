@@ -291,10 +291,10 @@ function SubNftCard({ sub }: { sub: SubNft }) {
       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-300" style={{ width: `${progress}%` }} />
       </div>
-      <p className="mt-1 flex justify-between text-[9px] text-slate-400">
-        <span>{t('breeding.mined')} {sub.minedTon.toFixed(3)} / {sub.capTon.toFixed(2)} TON</span>
+      <p className="mt-1 flex justify-end text-[9px] text-slate-400">
         <span className="text-amber-200">{t('breeding.claimLabel')} {sub.unclaimedTon.toFixed(3)}</span>
       </p>
+
     </div>
   );
 }
