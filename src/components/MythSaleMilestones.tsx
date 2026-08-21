@@ -10,7 +10,11 @@ import { MYTH_SALE_MILESTONES, mythBoughtTotal, mythMilestoneProgress, nextMythM
  */
 export function MythSaleMilestones({ telegramInitData }: { telegramInitData: string }) {
   const { data } = useMythSale(telegramInitData, true);
-  const bought = useMemo(() => mythBoughtTotal(data?.purchases ?? []), [data?.purchases]);
+  // O servidor consolida compras diretas + MYTH dos pacotes premium (35 / 100 TON).
+  const bought = useMemo(
+    () => Number(data?.player?.mythPurchasedTotal ?? NaN) || mythBoughtTotal(data?.purchases ?? []),
+    [data?.player?.mythPurchasedTotal, data?.purchases],
+  );
   const next = nextMythMilestone(bought);
   const progress = mythMilestoneProgress(bought);
   const unlocked = MYTH_SALE_MILESTONES.filter(m => bought >= m.amount).length;
