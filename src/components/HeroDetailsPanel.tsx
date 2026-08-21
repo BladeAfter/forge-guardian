@@ -111,12 +111,18 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
                 <p className="text-[13px] font-black text-amber-100">{veteranMyth.toLocaleString()} MYTH {perDaySuffix}</p>
               </div>
             ) : isMiningRarity(hero.rarity) ? (
-              miningRate > 0 ? (
+              miningRate > 0 || nftMyth > 0 ? (
                 <div className="mt-2 rounded-xl border border-cyan-300/30 bg-cyan-300/10 py-2">
                   <p className="text-[8px] uppercase tracking-[.24em] text-cyan-200">{t('mining.heroRate')}</p>
-                  <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
+                  {nftMyth > 0 ? (
+                    <p className="text-[13px] font-black text-amber-100">{nftMyth.toLocaleString('pt-BR')} MYTH {perDaySuffix}</p>
+                  ) : null}
+                  {miningRate > 0 ? (
+                    <p className="text-[13px] font-black text-cyan-100">{formatMiningAmount(effectiveDailyMining(miningRate, mining), mining.currency, 6)} {miningSymbol(mining.currency)} {perDaySuffix}</p>
+                  ) : null}
                 </div>
               ) : null
+
             ) : (
               /* Common/Uncommon: discreet note so the player understands why it never mines. */
               <div className="mt-2 rounded-xl border border-white/10 bg-white/5 py-2">
