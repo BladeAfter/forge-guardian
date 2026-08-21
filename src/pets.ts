@@ -37,6 +37,9 @@ export type PlayerPet = {
   /** NFT EXCLUSIVE companions: admin-only delivery, never drawable, never sellable. */
   isNft?: boolean;
   nft?: { serial: number; instanceId: string; status: string; minted: boolean } | null;
+  /** Breeding offspring: SUB-NFT tag, inherits the strongest parent passives +25%. */
+  isSubNft?: boolean;
+  subNft?: { serial: number; instanceId: string; maturityStage: string; generation: number; trait: string | null; maturesAt: string } | null;
   /** Founder Pack / Veteran Vault line: VETERAN tag and MYTH-only daily mining (never TON). */
   veteranLine?: boolean;
   premiumSource?: string | null;
