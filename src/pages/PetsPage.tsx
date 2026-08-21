@@ -1028,7 +1028,12 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
       <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : style.glowClass} to-transparent blur-xl`} />
       <div className="relative z-10 flex items-start justify-between gap-1">
         {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
-        {isNft ? (
+        {pet.isSubNft ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-sky-300/70 bg-[#04121c] px-2 py-1 text-[7px] font-black tracking-[.16em] text-sky-200">
+            SUB-NFT
+            {pet.subNft?.serial ? <b className="text-sky-100">#{String(pet.subNft.serial).padStart(3, '0')}</b> : null}
+          </span>
+        ) : isNft ? (
           <NftPetTag serial={serial} />
         ) : (
           <span
