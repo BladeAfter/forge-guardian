@@ -1,0 +1,1 @@
+revoke all on function public.sub_nft_passives(uuid) from anon, authenticated;
