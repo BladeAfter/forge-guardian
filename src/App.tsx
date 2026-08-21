@@ -470,10 +470,13 @@ function App() {
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
   // Withdrawable TON lives on its own ledger (rewards only) and is shown beside FC.
   const {data:tonRewardWallet}=useTonRewardWallet(telegramInitData,backendEnabled);
-  const tonBalance=Number.isFinite(tonRewardWallet?.availableTon)?Number(tonRewardWallet?.availableTon):0;
+  // A falha temporária de uma request NUNCA deve mostrar 0: mantemos o último valor conhecido do servidor.
+  const lastTon=useRef(0);
+  if(Number.isFinite(tonRewardWallet?.availableTon))lastTon.current=Number(tonRewardWallet?.availableTon);
+  const tonBalance=Number.isFinite(tonRewardWallet?.availableTon)?Number(tonRewardWallet?.availableTon):lastTon.current;
   const serverBalance=typeof serverWallet?.balanceFc==='number'&&Number.isFinite(serverWallet.balanceFc)?serverWallet.balanceFc:null;
   // Header, shop, pets and every other screen read this value — never a local or default amount.
-  const fcBalance=backendEnabled?(serverBalance??0):(game?.balance??0);
+  const fcBalance=backendEnabled?(serverBalance??game?.balance??0):(game?.balance??0);
   useEffect(()=>{
     if(serverBalance===null)return;
     setGame(current=>current&&current.balance!==serverBalance?{...current,balance:serverBalance}:current);
