@@ -8704,6 +8704,7 @@ export type Database = {
           nft_pet_id: string | null
           obtained_at: string
           pass_exclusive: boolean
+          passives_override: Json | null
           pet_id: string
           premium_source: string | null
           rarity: string
@@ -8732,6 +8733,7 @@ export type Database = {
           nft_pet_id?: string | null
           obtained_at?: string
           pass_exclusive?: boolean
+          passives_override?: Json | null
           pet_id: string
           premium_source?: string | null
           rarity: string
@@ -8760,6 +8762,7 @@ export type Database = {
           nft_pet_id?: string | null
           obtained_at?: string
           pass_exclusive?: boolean
+          passives_override?: Json | null
           pet_id?: string
           premium_source?: string | null
           rarity?: string
@@ -17235,6 +17238,7 @@ export type Database = {
         }
         Returns: string
       }
+      sub_nft_passives: { Args: { p_sub_nft_id: string }; Returns: Json }
       sub_nft_sync: { Args: { p_user_id: string }; Returns: undefined }
       summon_hero_with_fragments: {
         Args: { p_idempotency_key?: string; p_telegram_id: number }
