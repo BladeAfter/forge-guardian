@@ -1,0 +1,1 @@
+ALTER TABLE public.nft_heroes ALTER COLUMN mining_daily_myth SET DEFAULT 1500;
