@@ -6163,6 +6163,7 @@ export type Database = {
           metadata: Json
           mining_daily_myth: number
           mining_daily_ton: number
+          mining_dual: boolean
           minted: boolean
           nft_serial: number
           owner_user_id: string | null
@@ -6190,6 +6191,7 @@ export type Database = {
           metadata?: Json
           mining_daily_myth?: number
           mining_daily_ton?: number
+          mining_dual?: boolean
           minted?: boolean
           nft_serial: number
           owner_user_id?: string | null
@@ -6217,6 +6219,7 @@ export type Database = {
           metadata?: Json
           mining_daily_myth?: number
           mining_daily_ton?: number
+          mining_dual?: boolean
           minted?: boolean
           nft_serial?: number
           owner_user_id?: string | null
@@ -16133,6 +16136,10 @@ export type Database = {
         Returns: number
       }
       hero_mining_enabled: { Args: never; Returns: boolean }
+      hero_mining_hero_dual: {
+        Args: { p_nft_hero_id: string }
+        Returns: boolean
+      }
       hero_mining_hero_myth_rate: {
         Args: { p_nft_hero_id: string; p_rarity: string }
         Returns: number
