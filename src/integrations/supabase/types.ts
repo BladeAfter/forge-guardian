@@ -9607,6 +9607,7 @@ export type Database = {
       }
       pvp_bots: {
         Row: {
+          attacker_power: number | null
           avatar_color: string
           avatar_letter: string
           created_at: string
@@ -9621,6 +9622,7 @@ export type Database = {
           used_at: string | null
         }
         Insert: {
+          attacker_power?: number | null
           avatar_color: string
           avatar_letter: string
           created_at?: string
@@ -9635,6 +9637,7 @@ export type Database = {
           used_at?: string | null
         }
         Update: {
+          attacker_power?: number | null
           avatar_color?: string
           avatar_letter?: string
           created_at?: string
@@ -9901,18 +9904,21 @@ export type Database = {
         Row: {
           last_shown_at: string
           opponent_id: string
+          search_power: number | null
           shown_count: number
           user_id: string
         }
         Insert: {
           last_shown_at?: string
           opponent_id: string
+          search_power?: number | null
           shown_count?: number
           user_id: string
         }
         Update: {
           last_shown_at?: string
           opponent_id?: string
+          search_power?: number | null
           shown_count?: number
           user_id?: string
         }
