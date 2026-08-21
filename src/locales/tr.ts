@@ -348,6 +348,7 @@ export const tr: Dict = {
   "errors.PLAYER_NOT_FOUND": "Oyuncu bulunamadı.",
   "errors.PVP_DUPLICATE_HERO": "PvP'de aynı kahramanı birden fazla kez kullanamazsın.",
   "errors.PVP_DUPLICATE_HERO_TEAM": "PvP takımını güncelle. Yinelenen kahramanlara artık izin verilmiyor.",
+  "errors.PVP_TEAM_CHANGED": "Aramadan sonra takımın değişti. Saldırmak için yeni bir rakip ara.",
   "errors.QUESTS_INCOMPLETE": "Önce tüm günlük görevleri tamamla.",
   "errors.SESSION_INVALID": "Telegram oturumu sona erdi. Oyunu yeniden aç.",
   "errors.TICKET_LIMIT_REACHED": "Günlük bilet sınırına ulaşıldı.",
