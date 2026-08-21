@@ -44,8 +44,11 @@ export function HeroDetailsPanel({ hero, state, maxStars, telegramInitData, mini
     : Number(state?.miningDailyTon ?? 0) > 0
       ? Number(state?.miningDailyTon ?? 0)
       : heroDailyRate(miningRates, hero.rarity);
+  // NFT instances can mine MYTH and TON at the same time (dual mining set server-side).
+  const nftMyth = veteran ? 0 : Math.max(0, Number(state?.miningDailyMyth ?? hero.miningDailyMyth ?? 0));
   // 'mining.perDay' ships the TON word baked in; strip it so we can print the real currency once.
   const perDaySuffix = t('mining.perDay').replace(/^\s*[A-Za-z]+\s*/, '').trim() || '/ dia';
+
   const stat = (label: string, value: string | number, bonus?: number) => (
     <div key={label} className="rounded-xl border border-white/10 bg-black/50 px-2 py-1.5 text-center">
       <p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p>
