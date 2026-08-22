@@ -251,20 +251,23 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
               <p className="text-[10px] text-slate-400">ATK {item.atk} • HP {item.hp}</p>
             </div>
           </div>
-          {/* Effective yield rule: hide the mining block (and its footnote) for 0-yield NFTs. */}
-          <div className={`mt-3 grid gap-2 text-center ${Number(item.dailyYieldTon || 0) > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {/* Effective yield rule: hide the mining block (and its footnote) for 0-yield NFTs.
+              Dual mining (MYTH + TON) prints both lines. */}
+          <div className={`mt-3 grid gap-2 text-center ${miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
               <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.tier')}</p>
               <p className="text-[13px] font-black text-amber-100">{formatTon(item.tierTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
             </div>
-            {Number(item.dailyYieldTon || 0) > 0 ? (
+            {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? (
               <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                 <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyMining')}</p>
-                <p className="text-[13px] font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(item.dailyYieldTon, mining, item.dailyYieldMyth), itemMiningCurrency(item.dailyYieldMyth))} <span className="text-[8px] text-emerald-200/70">{miningSymbol(itemMiningCurrency(item.dailyYieldMyth))}</span></p>
+                {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).map((line) => (
+                  <p key={line.currency} className="text-[13px] font-black text-emerald-300">{formatMiningAmount(line.amount, line.currency)} <span className="text-[8px] text-emerald-200/70">{miningSymbol(line.currency)}</span></p>
+                ))}
               </div>
             ) : null}
           </div>
-          {Number(item.dailyYieldTon || 0) > 0 ? <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p> : null}
+          {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p> : null}
         </section>
       ))}
     </div>
