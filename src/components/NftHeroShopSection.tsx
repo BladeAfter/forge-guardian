@@ -14,7 +14,7 @@ import {
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
-import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSymbol, useMiningConfig } from '../miningCurrency';
+import { formatMiningAmount, miningRateLines, miningSymbol } from '../miningCurrency';
 
 /**
  * BUY NFT (heroes): store for the 10 unique NFT EXCLUSIVE heroes (1/1 each).
@@ -23,7 +23,6 @@ import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSym
  * sold twice and a double tap can never create two owners.
  */
 export function NftHeroShopSection({ telegramInitData }: { telegramInitData: string }) {
-  const mining = useMiningConfig();
   const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftHeroShopItem | null>(null);
@@ -205,7 +204,6 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
  * stays in the HEROES mining bar — here we only show what each NFT produces.
  */
 export function NftHeroCollectionSection({ telegramInitData }: { telegramInitData: string }) {
-  const mining = useMiningConfig();
   const t = useT();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-heroes-mine'],
