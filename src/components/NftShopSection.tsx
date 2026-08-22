@@ -7,7 +7,7 @@ import { buyNftWithBalance, createNftTonOrder, fetchNftShop, verifyNftPurchases,
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
-import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSymbol, useMiningConfig } from '../miningCurrency';
+import { formatMiningAmount, miningRateLines, miningSymbol } from '../miningCurrency';
 
 /**
  * BUY NFT: the store for the 10 unique NFT EXCLUSIVE companions (1/1 each).
@@ -18,7 +18,7 @@ import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSym
  * sold twice, and a double tap can never create two owners.
  */
 export function NftShopSection({ telegramInitData }: { telegramInitData: string }) {
-  const mining = useMiningConfig();
+  
   const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftShopItem | null>(null);
@@ -129,16 +129,19 @@ export function NftShopSection({ telegramInitData }: { telegramInitData: string 
                   </span>
                 </div>
               </div>
-              {/* Effective yield rule: a 0/NULL yield NFT shows PRICE alone, full width. */}
-              <div className={`relative mt-3 grid gap-2 text-center ${Number(item.dailyYieldTon || 0) > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Effective yield rule: a 0/NULL yield NFT shows PRICE alone, full width.
+                  Dual mining (MYTH + TON) prints both lines in the same block. */}
+              <div className={`relative mt-3 grid gap-2 text-center ${miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                   <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.price')}</p>
                   <p className="text-[13px] font-black text-amber-100">{formatTon(item.priceTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
                 </div>
-                {Number(item.dailyYieldTon || 0) > 0 ? (
+                {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? (
                   <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
                     <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{t('nft.dailyYield')}</p>
-                    <p className="text-[13px] font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(item.dailyYieldTon, mining, item.dailyYieldMyth), itemMiningCurrency(item.dailyYieldMyth))} <span className="text-[8px] text-emerald-200/70">{miningSymbol(itemMiningCurrency(item.dailyYieldMyth))}</span></p>
+                    {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).map((line) => (
+                      <p key={line.currency} className="text-[13px] font-black text-emerald-300">{formatMiningAmount(line.amount, line.currency)} <span className="text-[8px] text-emerald-200/70">{miningSymbol(line.currency)}</span></p>
+                    ))}
                   </div>
                 ) : null}
               </div>
@@ -163,7 +166,9 @@ export function NftShopSection({ telegramInitData }: { telegramInitData: string 
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              {Number(target.dailyYieldTon || 0) > 0 ? <p className="flex justify-between"><span>{t('nft.dailyYield')}</span><span className="font-black text-emerald-300">{formatMiningAmount(effectiveDailyMining(target.dailyYieldTon, mining, target.dailyYieldMyth), itemMiningCurrency(target.dailyYieldMyth))} {miningSymbol(itemMiningCurrency(target.dailyYieldMyth))}</span></p> : null}
+              {miningRateLines(target.dailyYieldTon, target.dailyYieldMyth).map((line) => (
+                <p key={line.currency} className="flex justify-between"><span>{t('nft.dailyYield')}</span><span className="font-black text-emerald-300">{formatMiningAmount(line.amount, line.currency)} {miningSymbol(line.currency)}</span></p>
+              ))}
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
                 {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
