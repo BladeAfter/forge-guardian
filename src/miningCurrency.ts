@@ -105,6 +105,22 @@ export function effectiveDailyMining(
   return base > 0 ? base : 0;
 }
 
+/**
+ * Every daily rate an NFT produces. When the admin sets BOTH MYTH and TON on the
+ * same unit (dual mining), the card must print the two lines instead of picking one.
+ */
+export function miningRateLines(
+  tonPerDay: number | null | undefined,
+  mythPerDay?: number | null,
+): Array<{ currency: MiningCurrency; amount: number }> {
+  const lines: Array<{ currency: MiningCurrency; amount: number }> = [];
+  const myth = Number(mythPerDay ?? 0);
+  const ton = Number(tonPerDay ?? 0);
+  if (myth > 0) lines.push({ currency: 'myth', amount: myth });
+  if (ton > 0) lines.push({ currency: 'ton', amount: ton });
+  return lines;
+}
+
 
 /** Amount formatting per currency: MYTH is a whole-ish token, TON keeps small decimals. */
 export function formatMiningAmount(value: number | null | undefined, currency: MiningCurrency, digits = 4): string {
