@@ -7,7 +7,7 @@ import { buyNftWithBalance, createNftTonOrder, fetchNftShop, verifyNftPurchases,
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
-import { effectiveDailyMining, formatMiningAmount, itemMiningCurrency, miningSymbol, useMiningConfig } from '../miningCurrency';
+import { formatMiningAmount, miningRateLines, miningSymbol } from '../miningCurrency';
 
 /**
  * BUY NFT: the store for the 10 unique NFT EXCLUSIVE companions (1/1 each).
