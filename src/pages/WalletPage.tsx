@@ -54,6 +54,10 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const availableTon = tonWallet?.availableTon ?? 0;
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
+  // Nova regra: saque só liberado para quem já depositou o mínimo em TON (servidor decide).
+  const depositRequirementTon = tonWallet?.depositRequirementTon ?? 1;
+  const depositTotalTon = tonWallet?.depositTotalTon ?? 0;
+  const depositRequirementMet = tonWallet?.depositRequirementMet ?? depositTotalTon >= depositRequirementTon;
   const [depositTon, setDepositTon] = useState(1);
   // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
   const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
@@ -65,7 +69,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
-  const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+  const canWithdraw = depositRequirementMet && withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
   // Minimums and toggles are server-side settings; the client only mirrors them.
   const depositConfig = useMemo<WalletDepositConfig>(() => ({
     fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
@@ -200,6 +204,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const withdrawal = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (!depositRequirementMet) throw new Error(t('wallet.errors.depositRequired', { ton: formatTon(depositRequirementTon) }));
       if (withdrawTon < minWithdrawTon) throw new Error(t('wallet.errors.minWithdrawTon', { ton: formatTon(minWithdrawTon) }));
       if (withdrawTon > availableTon) throw new Error(t('wallet.errors.insufficientTon'));
       return requestTonWithdrawal(telegramInitData, withdrawTon, address, crypto.randomUUID());
