@@ -170,7 +170,14 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           <>
             <h3 className="mb-2 mt-5 text-[10px] font-black tracking-[.2em] text-amber-200">{t('clan.recommended')}</h3>
             <div className="space-y-2 pb-10">
-              {(data.recommended ?? []).map((clan) => <ClanCard key={clan.id} clan={clan} onJoin={() => void run({ action: 'join', clanId: clan.id }, 'clan.joined')} />)}
+              {(data.recommended ?? []).map((clan) => (
+                <ClanCard
+                  key={clan.id}
+                  clan={clan}
+                  disabled={cooldownActive}
+                  onJoin={() => void run({ action: 'join', clanId: clan.id }, 'clan.joined')}
+                />
+              ))}
             </div>
           </>
         )}
