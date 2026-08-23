@@ -1640,7 +1640,14 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
    */
   clan: async (db, user, body) => {
     const action = String(body.action || 'dashboard');
-    if (action === 'dashboard') return rpc(db, 'get_clan_dashboard', { p_telegram_id: user.id });
+    if (action === 'dashboard') {
+      // Anti-abuse state (join cooldown + clan boss lock) rides along so the UI can show real counters.
+      const [dash, antiAbuse] = await Promise.all([
+        rpc(db, 'get_clan_dashboard', { p_telegram_id: user.id }),
+        rpc(db, 'clan_anti_abuse_state', { p_telegram_id: user.id }).catch(() => null),
+      ]);
+      return { ...(dash as Record<string, unknown>), antiAbuse };
+    }
     if (action === 'search') return rpc(db, 'search_clans', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 40) });
     if (action === 'create') {
       return rpc(db, 'create_clan', {
