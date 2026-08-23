@@ -234,7 +234,18 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
               busy={busy}
               onAction={(action, targetId) => void run({ action: 'manage', manageAction: action, targetId })}
             />
-            <button onClick={() => void run({ action: 'leave' }, 'clan.left')} className="mt-2 w-full rounded-xl border border-rose-400/30 py-3 text-[10px] font-black text-rose-300">{t('clan.leave')}</button>
+            <button onClick={() => setConfirmLeave(true)} className="mt-2 w-full rounded-xl border border-rose-400/30 py-3 text-[10px] font-black text-rose-300">{t('clan.leave')}</button>
+            {confirmLeave ? (
+              <LeaveClanConfirm
+                hours={data.antiAbuse?.leaveCooldownHours ?? 24}
+                busy={busy}
+                onCancel={() => setConfirmLeave(false)}
+                onConfirm={async () => {
+                  setConfirmLeave(false);
+                  await run({ action: 'leave' }, 'clan.left');
+                }}
+              />
+            ) : null}
           </>
         ) : null}
 
