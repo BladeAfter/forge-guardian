@@ -1352,68 +1352,119 @@ export type Database = {
       }
       clan_boss_instances: {
         Row: {
+          active_members_snapshot: number | null
+          actual_duration_seconds: number | null
+          atk_multiplier: number
           attacks: number
+          base_hp: number | null
+          boss_atk: number
+          boss_def: number
           boss_key: string
           boss_name: string
+          boss_power: number
           clan_id: string
+          clan_power_snapshot: number | null
           clan_xp_awarded: number
           created_at: string
           current_hp: number
           cycle: number
+          cycle_ends_at: string | null
+          cycle_started_at: string | null
+          def_multiplier: number
+          duration_quality: string | null
           ends_at: string
           finished_at: string | null
+          historical_dps_snapshot: number | null
+          hp_multiplier: number
           id: string
           level: number
           max_hp: number
           min_damage_required: number
           participants: number
           rewards_snapshot: Json
+          scaling_snapshot: Json
+          scaling_version: number
           starts_at: string
           status: string
+          target_duration_seconds: number | null
           top_user_id: string | null
           total_damage: number
         }
         Insert: {
+          active_members_snapshot?: number | null
+          actual_duration_seconds?: number | null
+          atk_multiplier?: number
           attacks?: number
+          base_hp?: number | null
+          boss_atk?: number
+          boss_def?: number
           boss_key?: string
           boss_name?: string
+          boss_power?: number
           clan_id: string
+          clan_power_snapshot?: number | null
           clan_xp_awarded?: number
           created_at?: string
           current_hp: number
           cycle?: number
+          cycle_ends_at?: string | null
+          cycle_started_at?: string | null
+          def_multiplier?: number
+          duration_quality?: string | null
           ends_at: string
           finished_at?: string | null
+          historical_dps_snapshot?: number | null
+          hp_multiplier?: number
           id?: string
           level?: number
           max_hp: number
           min_damage_required?: number
           participants?: number
           rewards_snapshot?: Json
+          scaling_snapshot?: Json
+          scaling_version?: number
           starts_at?: string
           status?: string
+          target_duration_seconds?: number | null
           top_user_id?: string | null
           total_damage?: number
         }
         Update: {
+          active_members_snapshot?: number | null
+          actual_duration_seconds?: number | null
+          atk_multiplier?: number
           attacks?: number
+          base_hp?: number | null
+          boss_atk?: number
+          boss_def?: number
           boss_key?: string
           boss_name?: string
+          boss_power?: number
           clan_id?: string
+          clan_power_snapshot?: number | null
           clan_xp_awarded?: number
           created_at?: string
           current_hp?: number
           cycle?: number
+          cycle_ends_at?: string | null
+          cycle_started_at?: string | null
+          def_multiplier?: number
+          duration_quality?: string | null
           ends_at?: string
           finished_at?: string | null
+          historical_dps_snapshot?: number | null
+          hp_multiplier?: number
           id?: string
           level?: number
           max_hp?: number
           min_damage_required?: number
           participants?: number
           rewards_snapshot?: Json
+          scaling_snapshot?: Json
+          scaling_version?: number
           starts_at?: string
           status?: string
+          target_duration_seconds?: number | null
           top_user_id?: string | null
           total_damage?: number
         }
@@ -1476,6 +1527,98 @@ export type Database = {
           },
         ]
       }
+      clan_boss_performance_history: {
+        Row: {
+          active_members_snapshot: number | null
+          actual_duration_seconds: number | null
+          atk_multiplier: number | null
+          base_atk: number | null
+          base_def: number | null
+          base_hp: number | null
+          boss_power: number | null
+          clan_id: string
+          clan_power_snapshot: number | null
+          created_at: string
+          cycle: number | null
+          def_multiplier: number | null
+          effective_atk: number | null
+          effective_def: number | null
+          effective_hp: number | null
+          final_status: string | null
+          historical_damage_rate: number | null
+          hp_multiplier: number | null
+          id: string
+          instance_id: string
+          participants: number | null
+          quality: string | null
+          scaling_version: number | null
+          target_duration_seconds: number | null
+          total_damage: number | null
+        }
+        Insert: {
+          active_members_snapshot?: number | null
+          actual_duration_seconds?: number | null
+          atk_multiplier?: number | null
+          base_atk?: number | null
+          base_def?: number | null
+          base_hp?: number | null
+          boss_power?: number | null
+          clan_id: string
+          clan_power_snapshot?: number | null
+          created_at?: string
+          cycle?: number | null
+          def_multiplier?: number | null
+          effective_atk?: number | null
+          effective_def?: number | null
+          effective_hp?: number | null
+          final_status?: string | null
+          historical_damage_rate?: number | null
+          hp_multiplier?: number | null
+          id?: string
+          instance_id: string
+          participants?: number | null
+          quality?: string | null
+          scaling_version?: number | null
+          target_duration_seconds?: number | null
+          total_damage?: number | null
+        }
+        Update: {
+          active_members_snapshot?: number | null
+          actual_duration_seconds?: number | null
+          atk_multiplier?: number | null
+          base_atk?: number | null
+          base_def?: number | null
+          base_hp?: number | null
+          boss_power?: number | null
+          clan_id?: string
+          clan_power_snapshot?: number | null
+          created_at?: string
+          cycle?: number | null
+          def_multiplier?: number | null
+          effective_atk?: number | null
+          effective_def?: number | null
+          effective_hp?: number | null
+          final_status?: string | null
+          historical_damage_rate?: number | null
+          hp_multiplier?: number | null
+          id?: string
+          instance_id?: string
+          participants?: number | null
+          quality?: string | null
+          scaling_version?: number | null
+          target_duration_seconds?: number | null
+          total_damage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_performance_history_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_boss_player_locks: {
         Row: {
           clan_id: string
@@ -1510,6 +1653,161 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_boss_scaling_config: {
+        Row: {
+          atk_ratio: number
+          atk_scaling: number
+          cycle_hours: number
+          cycle_lock_enabled: boolean
+          def_mitigation_cap: number
+          def_scaling: number
+          def_share: number
+          enabled: boolean
+          engagement_factor: number
+          hp_scaling: number
+          hp_share: number
+          id: number
+          max_scale_down_per_cycle: number
+          max_scale_up_per_cycle: number
+          min_effective_damage_pct: number
+          outlier_median_factor: number
+          rebase_kills_threshold: number
+          rebase_max_scale: number
+          scaling_version: number
+          survival_factor: number
+          target_duration_seconds: number
+          too_easy_seconds: number
+          too_hard_seconds: number
+          updated_at: string
+          w_24h: number
+          w_3d: number
+          w_7d: number
+        }
+        Insert: {
+          atk_ratio?: number
+          atk_scaling?: number
+          cycle_hours?: number
+          cycle_lock_enabled?: boolean
+          def_mitigation_cap?: number
+          def_scaling?: number
+          def_share?: number
+          enabled?: boolean
+          engagement_factor?: number
+          hp_scaling?: number
+          hp_share?: number
+          id?: number
+          max_scale_down_per_cycle?: number
+          max_scale_up_per_cycle?: number
+          min_effective_damage_pct?: number
+          outlier_median_factor?: number
+          rebase_kills_threshold?: number
+          rebase_max_scale?: number
+          scaling_version?: number
+          survival_factor?: number
+          target_duration_seconds?: number
+          too_easy_seconds?: number
+          too_hard_seconds?: number
+          updated_at?: string
+          w_24h?: number
+          w_3d?: number
+          w_7d?: number
+        }
+        Update: {
+          atk_ratio?: number
+          atk_scaling?: number
+          cycle_hours?: number
+          cycle_lock_enabled?: boolean
+          def_mitigation_cap?: number
+          def_scaling?: number
+          def_share?: number
+          enabled?: boolean
+          engagement_factor?: number
+          hp_scaling?: number
+          hp_share?: number
+          id?: number
+          max_scale_down_per_cycle?: number
+          max_scale_up_per_cycle?: number
+          min_effective_damage_pct?: number
+          outlier_median_factor?: number
+          rebase_kills_threshold?: number
+          rebase_max_scale?: number
+          scaling_version?: number
+          survival_factor?: number
+          target_duration_seconds?: number
+          too_easy_seconds?: number
+          too_hard_seconds?: number
+          updated_at?: string
+          w_24h?: number
+          w_3d?: number
+          w_7d?: number
+        }
+        Relationships: []
+      }
+      clan_boss_scaling_profiles: {
+        Row: {
+          active_members_snapshot: number
+          atk_multiplier: number
+          boss_participants_snapshot: number
+          clan_id: string
+          clan_power_snapshot: number
+          def_multiplier: number
+          effective_dps: number
+          historical_damage_rate: number
+          hp_multiplier: number
+          last_actual_duration_seconds: number | null
+          last_mode: string | null
+          last_quality: string | null
+          metrics: Json
+          scaling_tier: string
+          scaling_version: number
+          updated_at: string
+        }
+        Insert: {
+          active_members_snapshot?: number
+          atk_multiplier?: number
+          boss_participants_snapshot?: number
+          clan_id: string
+          clan_power_snapshot?: number
+          def_multiplier?: number
+          effective_dps?: number
+          historical_damage_rate?: number
+          hp_multiplier?: number
+          last_actual_duration_seconds?: number | null
+          last_mode?: string | null
+          last_quality?: string | null
+          metrics?: Json
+          scaling_tier?: string
+          scaling_version?: number
+          updated_at?: string
+        }
+        Update: {
+          active_members_snapshot?: number
+          atk_multiplier?: number
+          boss_participants_snapshot?: number
+          clan_id?: string
+          clan_power_snapshot?: number
+          def_multiplier?: number
+          effective_dps?: number
+          historical_damage_rate?: number
+          hp_multiplier?: number
+          last_actual_duration_seconds?: number | null
+          last_mode?: string | null
+          last_quality?: string | null
+          metrics?: Json
+          scaling_tier?: string
+          scaling_version?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_scaling_profiles_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
             referencedColumns: ["id"]
           },
         ]
@@ -13893,6 +14191,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_clan_boss_balance: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
+        Returns: Json
+      }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -15745,6 +16052,10 @@ export type Database = {
       }
       clan_anti_abuse_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_assert_can_join: { Args: { p_user_id: string }; Returns: undefined }
+      clan_boss_apply_def: {
+        Args: { p_def: number; p_power: number; p_raw: number }
+        Returns: number
+      }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
       clan_boss_auto_attack_state_json: {
         Args: { p_user: string }
@@ -15774,31 +16085,54 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_boss_compute_scaling: {
+        Args: { p_clan_id: string; p_cycle?: number }
+        Returns: Json
+      }
+      clan_boss_cycle_lock: { Args: { p_clan_id: string }; Returns: Json }
       clan_boss_deliver: {
         Args: { p_reward: Json; p_user_id: string }
         Returns: undefined
       }
+      clan_boss_effective_dps: { Args: { p_clan_id: string }; Returns: Json }
       clan_boss_ensure: {
         Args: { p_clan_id: string }
         Returns: {
+          active_members_snapshot: number | null
+          actual_duration_seconds: number | null
+          atk_multiplier: number
           attacks: number
+          base_hp: number | null
+          boss_atk: number
+          boss_def: number
           boss_key: string
           boss_name: string
+          boss_power: number
           clan_id: string
+          clan_power_snapshot: number | null
           clan_xp_awarded: number
           created_at: string
           current_hp: number
           cycle: number
+          cycle_ends_at: string | null
+          cycle_started_at: string | null
+          def_multiplier: number
+          duration_quality: string | null
           ends_at: string
           finished_at: string | null
+          historical_dps_snapshot: number | null
+          hp_multiplier: number
           id: string
           level: number
           max_hp: number
           min_damage_required: number
           participants: number
           rewards_snapshot: Json
+          scaling_snapshot: Json
+          scaling_version: number
           starts_at: string
           status: string
+          target_duration_seconds: number | null
           top_user_id: string | null
           total_damage: number
         }
@@ -15820,10 +16154,54 @@ export type Database = {
         Returns: undefined
       }
       clan_boss_lock_json: { Args: { p_user_id: string }; Returns: Json }
+      clan_boss_metrics: { Args: { p_clan_id: string }; Returns: Json }
+      clan_boss_record_performance: {
+        Args: { p_instance_id: string; p_status: string }
+        Returns: undefined
+      }
       clan_boss_scaled_hp: {
         Args: { p_clan_id: string; p_cycle: number }
         Returns: number
       }
+      clan_boss_scaling_cfg: {
+        Args: never
+        Returns: {
+          atk_ratio: number
+          atk_scaling: number
+          cycle_hours: number
+          cycle_lock_enabled: boolean
+          def_mitigation_cap: number
+          def_scaling: number
+          def_share: number
+          enabled: boolean
+          engagement_factor: number
+          hp_scaling: number
+          hp_share: number
+          id: number
+          max_scale_down_per_cycle: number
+          max_scale_up_per_cycle: number
+          min_effective_damage_pct: number
+          outlier_median_factor: number
+          rebase_kills_threshold: number
+          rebase_max_scale: number
+          scaling_version: number
+          survival_factor: number
+          target_duration_seconds: number
+          too_easy_seconds: number
+          too_hard_seconds: number
+          updated_at: string
+          w_24h: number
+          w_3d: number
+          w_7d: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_scaling_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_boss_scaling_persist: { Args: { p_clan_id: string }; Returns: Json }
       clan_boss_settle: {
         Args: { p_instance_id: string; p_status: string }
         Returns: undefined

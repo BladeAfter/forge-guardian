@@ -3953,6 +3953,16 @@ const PROMPTS: Record<string, string> = {
   cbrewards:
     '🎁 Envie as recompensas por dano em JSON.\nEx.: <code>{"fc_per_1m":2500,"universal_fragments":10,"rare_chests":1,"pvp_tickets":2}</code>',
   cbclan: "🏰 Envie o <b>nome</b> ou a <b>tag</b> do clã para gerenciar o ciclo do chefe.",
+  cbbaltarget:
+    "🎯 Envie a <b>duração alvo em horas</b> que cada Clan Boss deve sobreviver (1 a 48).\nEx.: <code>23.5</code>",
+  cbbalcycle: "🕒 Envie o <b>tamanho do ciclo em horas</b> (1 rewarding boss por ciclo).\nEx.: <code>24</code>",
+  cbbalhp: "❤️ Envie o <b>fator de HP</b> (multiplicador sobre a capacidade diária do clã).\nEx.: <code>0.80</code>",
+  cbbaldef: "🛡 Envie o <b>fator de DEF</b> do boss (mitigação).\nEx.: <code>1.00</code>",
+  cbbalatk: "⚔️ Envie o <b>fator de ATK</b> do boss.\nEx.: <code>1.00</code>",
+  cbbaltooeasy: "⚡ Envie em <b>segundos</b> o limite de “fácil demais” (boss morto rápido).\nEx.: <code>28800</code>",
+  cbbaltoohard: "🐢 Envie em <b>segundos</b> o limite de “difícil demais”.\nEx.: <code>129600</code>",
+  cbbalclan: "🏰 Envie o <b>nome</b> ou a <b>tag</b> do clã para ver/recalcular o balanceamento.",
+
   clname: "Envie o novo nome do clã (3 a 24 caracteres).",
   cltag: "Envie a nova tag do clã (2 a 5 letras/números).",
   cldesc: "Envie a nova descrição do clã (até 200 caracteres).",
@@ -9068,7 +9078,9 @@ async function cbHub(ctx: Ctx, editing = true) {
       { t: "⚔️ CHEFES ATIVOS", d: "cb:active" },
       { t: "🏰 GERENCIAR CLÃ", d: "cb:ask:cbclan" },
     ],
+    [{ t: "⚖️ BALANCEAMENTO 24H", d: "cb:bal" }],
     [{ t: "📜 HISTÓRICO", d: "cb:audit" }],
+
     nav(),
   ];
   return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
@@ -9142,6 +9154,174 @@ async function cbClanCard(ctx: Ctx, clanId: string, editing = true) {
     ]),
   );
 }
+
+// ---- ⚖️ CLAN BOSS BALANCE (dynamic 24h scaling per guild)
+// Every number here is computed server-side by clan_boss_compute_scaling; the bot
+// only reads the report and forwards admin settings. Global Boss is untouched.
+const CB_BAL_FIELDS: Record<string, { ref: string; label: string; hours?: boolean }> = {
+  cbbaltarget: { ref: "target_duration_seconds", label: "duração alvo", hours: true },
+  cbbalcycle: { ref: "cycle_hours", label: "horas do ciclo" },
+  cbbalhp: { ref: "hp_scaling", label: "fator de HP" },
+  cbbaldef: { ref: "def_scaling", label: "fator de DEF" },
+  cbbalatk: { ref: "atk_scaling", label: "fator de ATK" },
+  cbbaltooeasy: { ref: "too_easy_seconds", label: "limite fácil demais" },
+  cbbaltoohard: { ref: "too_hard_seconds", label: "limite difícil demais" },
+};
+
+const cbBalCall = (ctx: Ctx, action = "OVERVIEW", ref: string | null = null, payload: Record<string, unknown> = {}) =>
+  rpc("admin_clan_boss_balance", { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+
+const cbHours = (seconds: unknown) => {
+  const s = Number(seconds ?? 0);
+  if (!Number.isFinite(s) || s <= 0) return "—";
+  return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}`;
+};
+
+async function cbBalHub(ctx: Ctx, editing = true) {
+  const d = await cbBalCall(ctx);
+  const c = d?.config || {};
+  const clans = (d?.clans || []) as any[];
+  const body = [
+    "⚖️ <b>CLAN BOSS — ESCALA DINÂMICA 24H</b>",
+    "Cada clã recebe HP/DEF/ATK calculados no nascimento do boss (snapshot) a partir do poder do roster, membros ativos e DPS real. Não afeta o 👑 Global Boss.",
+    "",
+    `🎯 Alvo de duração: <b>${cbHours(c.target_duration_seconds)}</b> · 🕒 ciclo <b>${fmt(c.cycle_hours)}h</b>`,
+    `❤️ Fator HP <b>${Number(c.hp_scaling ?? 0)}</b> · 🛡 DEF <b>${Number(c.def_scaling ?? 0)}</b> · ⚔️ ATK <b>${Number(c.atk_scaling ?? 0)}</b>`,
+    `⚡ Fácil demais: <b>${cbHours(c.too_easy_seconds)}</b> · 🐢 difícil demais: <b>${cbHours(c.too_hard_seconds)}</b>`,
+    `🔁 Escala automática: <b>${c.enabled ? "ATIVA" : "DESLIGADA"}</b> · 🔒 trava de ciclo: <b>${c.cycle_lock_enabled ? "ATIVA" : "DESLIGADA"}</b>`,
+    "",
+    `🏰 Clãs calibrados: <b>${fmt(clans.length)}</b>`,
+    clans
+      .slice(0, 10)
+      .map(
+        (x: any) =>
+          `• [${esc(x.tag)}] ${esc(x.name)} · ${esc(x.tier || "—")} · x${Number(x.hpMultiplier ?? 0).toFixed(2)} HP\n   DPS ${fmt(Math.round(Number(x.dps ?? 0)))}/s · último ciclo ${cbHours(x.lastDuration)} (${esc(x.lastQuality || "—")}) · ${fmt(x.kills24h)} abates 24h`,
+      )
+      .join("\n") || "—",
+  ].join("\n");
+  const rows = [
+    [
+      { t: "🎯 DURAÇÃO ALVO", d: "cb:ask:cbbaltarget" },
+      { t: "🕒 CICLO (H)", d: "cb:ask:cbbalcycle" },
+    ],
+    [
+      { t: "❤️ FATOR HP", d: "cb:ask:cbbalhp" },
+      { t: "🛡 FATOR DEF", d: "cb:ask:cbbaldef" },
+    ],
+    [
+      { t: "⚔️ FATOR ATK", d: "cb:ask:cbbalatk" },
+      { t: "⚡ FÁCIL DEMAIS", d: "cb:ask:cbbaltooeasy" },
+    ],
+    [
+      { t: "🐢 DIFÍCIL DEMAIS", d: "cb:ask:cbbaltoohard" },
+      { t: c.enabled ? "🔁 DESLIGAR ESCALA" : "🔁 ATIVAR ESCALA", d: `cb:baltoggle:enabled` },
+    ],
+    [{ t: c.cycle_lock_enabled ? "🔓 DESLIGAR TRAVA 24H" : "🔒 ATIVAR TRAVA 24H", d: "cb:baltoggle:lock" }],
+    [
+      { t: "🔄 RECALCULAR TODOS", d: "cb:balrecalcall" },
+      { t: "🏰 VER CLÃ", d: "cb:ask:cbbalclan" },
+    ],
+    [
+      { t: "📊 DURAÇÕES REAIS", d: "cb:baldur" },
+      { t: "⚡ FÁCEIS DEMAIS", d: "cb:baleasy" },
+    ],
+    [{ t: "🚨 OUTLIERS DE DANO", d: "cb:balout" }],
+    [{ t: "⬅️ CLAN BOSS", d: "cb:hub" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
+}
+
+async function cbBalClan(ctx: Ctx, clanId: string, editing = true) {
+  const d = await cbBalCall(ctx, "VIEW_CLAN", clanId);
+  const clan = d?.clan || {};
+  const s = d?.scaling || {};
+  const p = d?.profile || {};
+  const cur = d?.currentBoss;
+  const lock = d?.cycleLock || {};
+  const hist = (d?.lastBosses || []) as any[];
+  const body = [
+    `⚖️ <b>[${esc(clan.tag)}] ${esc(clan.name)}</b> · nível ${fmt(clan.level)} · ${fmt(clan.members)} membros`,
+    `💪 Poder do clã: <b>${fmt(clan.power)}</b> · tier <b>${esc(p.scaling_tier || s.tier || "—")}</b>`,
+    `📈 DPS efetivo: <b>${fmt(Math.round(Number(s.effectiveDps ?? p.effective_dps ?? 0)))}</b>/s · capacidade 24h <b>${fmt(Math.round(Number(s.capacity24h ?? 0)))}</b>`,
+    "",
+    "🧬 <b>PRÓXIMO BOSS (cálculo atual)</b>",
+    `❤️ HP <b>${fmt(Math.round(Number(s.effectiveHp ?? 0)))}</b> (base ${fmt(s.baseHp)} × x${Number(s.hpMultiplier ?? 0).toFixed(2)})`,
+    `🛡 DEF <b>${fmt(Math.round(Number(s.effectiveDef ?? 0)))}</b> · ⚔️ ATK <b>${fmt(Math.round(Number(s.effectiveAtk ?? 0)))}</b> · 🔮 poder ${fmt(Math.round(Number(s.bossPower ?? 0)))}`,
+    `⏳ Duração prevista: <b>${cbHours(s.expectedDurationSeconds)}</b> · modo ${esc(s.mode || "—")}`,
+    "",
+    cur
+      ? `⚔️ <b>BOSS ATIVO</b> · ciclo #${cur.cycle}\n❤️ ${fmt(Math.round(cur.currentHp))}/${fmt(Math.round(cur.maxHp))} · 🛡 ${fmt(Math.round(cur.def ?? 0))} · ⚔️ ${fmt(Math.round(cur.atk ?? 0))}\n🎯 alvo ${cbHours(cur.targetDuration)} · ciclo termina ${String(cur.cycleEndsAt || "").slice(0, 16).replace("T", " ")}`
+      : `⏸ Nenhum boss ativo. ${lock.locked ? `Trava de ciclo: falta ${cbHours(lock.secondsRemaining)}.` : "Livre para nascer."}`,
+    "",
+    "📜 <b>ÚLTIMOS CICLOS</b>",
+    hist
+      .slice(0, 6)
+      .map(
+        (h: any) =>
+          `• #${h.cycle} · HP ${fmt(Math.round(Number(h.effectiveHp ?? 0)))} · real ${cbHours(h.actual)} / alvo ${cbHours(h.target)} · ${esc(h.quality || "—")}`,
+      )
+      .join("\n") || "—",
+  ].join("\n");
+  const rows = [
+    [{ t: "🔄 RECALCULAR ESTE CLÃ", d: `cb:balrecalc:${clanId}` }],
+    [{ t: "🏰 PAINEL DO CLÃ", d: `cb:clan:${clanId}` }],
+    [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, body.slice(0, 3800), kb(rows)) : send(ctx, body.slice(0, 3800), kb(rows));
+}
+
+async function cbBalReport(ctx: Ctx, kind: "dur" | "easy" | "out") {
+  if (kind === "dur") {
+    const rows = ((await cbBalCall(ctx, "DURATION_REPORT")) || []) as any[];
+    const list =
+      rows
+        .slice(0, 20)
+        .map(
+          (x: any) =>
+            `• ${esc(x.clan)} · #${x.cycle} · real <b>${cbHours(x.actual)}</b> / alvo ${cbHours(x.target)} · ${esc(x.quality || "—")}`,
+        )
+        .join("\n") || "Nenhum ciclo concluído nos últimos 14 dias.";
+    return edit(
+      ctx,
+      `📊 <b>DURAÇÕES REAIS (14 DIAS)</b>\nQuanto tempo cada Clan Boss sobreviveu vs o alvo de 24h.\n\n${list.slice(0, 3500)}`,
+      kb([[{ t: "🔄 ATUALIZAR", d: "cb:baldur" }], [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }], nav()]),
+    );
+  }
+  if (kind === "easy") {
+    const rows = ((await cbBalCall(ctx, "TOO_EASY")) || []) as any[];
+    const list =
+      rows
+        .slice(0, 15)
+        .map(
+          (x: any) =>
+            `• ${esc(x.clan)} · <b>${fmt(x.kills24h)}</b> abates em 24h · DPS ${fmt(Math.round(Number(x.dps ?? 0)))}/s\n   HP recomendado: <b>${fmt(Math.round(Number(x.recommendedHp ?? 0)))}</b>`,
+        )
+        .join("\n") || "Nenhum clã matando bosses rápido demais. 👌";
+    return edit(
+      ctx,
+      `⚡ <b>CLÃS COM BOSS FÁCIL DEMAIS</b>\n\n${list.slice(0, 3500)}`,
+      kb([
+        [{ t: "🔄 RECALCULAR TODOS", d: "cb:balrecalcall" }],
+        [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }],
+        nav(),
+      ]),
+    );
+  }
+  const rows = ((await cbBalCall(ctx, "OUTLIERS")) || []) as any[];
+  const list =
+    rows
+      .slice(0, 20)
+      .map((x: any) => `• ${esc(x.clan)} · ${fmt(x.outlierAttacks)} ataques ignorados · teto ${fmt(Math.round(Number(x.cap ?? 0)))}`)
+      .join("\n") || "Nenhum outlier de dano detectado.";
+  return edit(
+    ctx,
+    `🚨 <b>OUTLIERS DE DANO</b>\nAtaques anormais são excluídos do cálculo de DPS para não inflar o HP do boss.\n\n${list.slice(0, 3500)}`,
+    kb([[{ t: "🔄 ATUALIZAR", d: "cb:balout" }], [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }], nav()]),
+  );
+}
+
 
 async function cbCallback(ctx: Ctx, rest: string[]) {
   const [sub, a] = [rest[0], rest[1] || ""];
