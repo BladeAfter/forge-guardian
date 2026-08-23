@@ -149,6 +149,34 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     );
   }
 
+  // 24h CYCLE LOCK (server-side): the clan already had its rewarding boss for
+  // this cycle. Killing it faster never unlocks a new farmable boss.
+  if (!boss && data.cycleLocked) {
+    const remaining = Math.max(0, data.nextBossInSeconds ?? 0);
+    const hours = Math.floor(remaining / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    const lastDuration = data.lastBoss?.durationSeconds ?? null;
+    return (
+      <Frame onClose={onClose} clan={data.clan}>
+        <div className="mt-16 rounded-3xl border border-amber-300/30 bg-black/70 p-6 text-center">
+          <Trophy className="mx-auto h-10 w-10 text-amber-300" />
+          <p className="mt-4 text-[12px] font-black tracking-[.18em] text-amber-200">{t('clanBoss.cycleLocked')}</p>
+          <p className="mt-5 text-[9px] font-black tracking-[.28em] text-violet-200/80">{t('clanBoss.nextBossIn')}</p>
+          <p className="mt-1 text-3xl font-black tracking-[.08em] text-white">
+            {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m
+          </p>
+          {lastDuration ? (
+            <p className="mt-4 text-[9px] tracking-[.2em] text-violet-200/70">
+              {t('clanBoss.lastDuration')}: {Math.floor(lastDuration / 3600)}h {Math.floor((lastDuration % 3600) / 60)}m
+            </p>
+          ) : null}
+          <p className="mt-4 text-[9px] leading-relaxed tracking-[.12em] text-violet-200/60">{t('clanBoss.cycleLockedHint')}</p>
+          <button type="button" onClick={() => void refetch()} className="mt-5 w-full rounded-xl border border-violet-300/40 bg-violet-500/20 py-3 text-[10px] font-black text-violet-100">{t('clanBoss.tryAgain')}</button>
+        </div>
+      </Frame>
+    );
+  }
+
   // In a clan, but the backend has no active instance for THIS clan (cycle settled,
   // creation pending). Never an endless spinner: show the state plus a retry.
   if (!boss) {
@@ -162,6 +190,7 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
       </Frame>
     );
   }
+
 
 
   return (

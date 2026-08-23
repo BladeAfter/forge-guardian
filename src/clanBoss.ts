@@ -61,7 +61,22 @@ export type ClanBossState = {
   bossName?: string;
   /** How many bosses exist in the cycle progression (currently 10). */
   totalBosses?: number;
+  /** Server-side 24h cycle lock: at most one rewarding clan boss per cycle. */
+  cycleLocked?: boolean;
+  nextBossAt?: string | null;
+  nextBossInSeconds?: number;
+  lastBoss?: {
+    name?: string;
+    cycle?: number;
+    status?: string;
+    maxHp?: number;
+    totalDamage?: number;
+    bossPower?: number;
+    finishedAt?: string | null;
+    durationSeconds?: number | null;
+  } | null;
   clan?: { id: string; name: string; tag: string; level: number; emblem: Record<string, string> };
+
   boss?: {
     id: string;
     key: string;
