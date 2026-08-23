@@ -2470,6 +2470,140 @@ async function clanAudit(ctx: Ctx, ref?: string) {
 }
 
 /** Every clan callback. Mutations always re-render the affected menu with fresh server data. */
+/** 🛡 CLAN ANTI-ABUSE: cooldowns, clan boss single-clan lock, audits and manual clears. */
+async function aaRpc(ctx: Ctx, action = "get", value: string | null = null, target: string | null = null) {
+  return (await rpc("admin_clan_anti_abuse", {
+    p_admin_id: ctx.adminId,
+    p_action: action,
+    p_value: value,
+    p_target: target,
+  })) as any;
+}
+
+const AA_HOURS = ["0", "12", "24", "48", "72"];
+
+async function clanAntiAbuseView(ctx: Ctx, action = "get", value?: string) {
+  const d = await aaRpc(ctx, action, value ?? null);
+  return edit(
+    ctx,
+    [
+      "🛡 <b>CLAN ANTI-ABUSE</b>",
+      "",
+      `STATUS: <b>${d.enabled ? "ACTIVE" : "OFF"}</b>`,
+      `VOLUNTARY LEAVE COOLDOWN: <b>${d.leaveCooldownHours}h</b>`,
+      `KICK COOLDOWN: <b>${d.kickCooldownHours}h</b>`,
+      `CLAN BOSS SINGLE-CLAN LOCK: <b>${d.bossLockEnabled ? "ON" : "OFF"}</b>`,
+      "",
+      `⏳ Cooldowns ativos: <b>${fmt(d.activeCooldownCount ?? 0)}</b>`,
+      `🔒 Boss locks ativos: <b>${fmt(d.bossLockCount ?? 0)}</b>`,
+      "",
+      "Global Boss, PvP e Clan War não são afetados por estas regras.",
+    ].join("\n"),
+    kb([
+      AA_HOURS.map((h) => ({ t: `SAIR ${h}h`, d: `cl:aaleave:${h}` })),
+      AA_HOURS.map((h) => ({ t: `KICK ${h}h`, d: `cl:aakick:${h}` })),
+      [
+        { t: d.enabled ? "🔴 DESATIVAR" : "🟢 ATIVAR", d: "cl:aatg" },
+        { t: d.bossLockEnabled ? "🔓 BOSS LOCK OFF" : "🔒 BOSS LOCK ON", d: "cl:aatgl" },
+      ],
+      [
+        { t: "⏳ VIEW COOLDOWNS", d: "cl:aacds" },
+        { t: "🔒 VIEW BOSS LOCKS", d: "cl:aalocks" },
+      ],
+      [
+        { t: "🚩 CLAN HOPPING", d: "cl:aaflags" },
+        { t: "🔎 PLAYER AUDIT", d: "ask:claaudit" },
+      ],
+      nav("m:clans"),
+    ]),
+  );
+}
+
+async function clanAntiAbuseList(ctx: Ctx, kind: "cooldowns" | "locks" | "flags") {
+  const d = await aaRpc(ctx);
+  const rows =
+    kind === "cooldowns"
+      ? (d.activeCooldowns || []).map(
+          (c: any) =>
+            `⏳ <b>${esc(c.name)}</b> · <code>${esc(String(c.telegramId ?? "—"))}</code>\n   até ${esc(String(c.until).slice(0, 16).replace("T", " "))} · ${esc(c.reason ?? "—")} · trocas 24h ${fmt(c.changes24h ?? 0)}`,
+        )
+      : kind === "locks"
+        ? (d.bossLocks || []).map(
+            (l: any) =>
+              `🔒 <b>${esc(l.name)}</b> · <code>${esc(String(l.telegramId ?? "—"))}</code>\n   clã ${esc(l.clan ?? "—")} · até ${esc(String(l.until).slice(0, 16).replace("T", " "))}`,
+          )
+        : (d.flags || []).map(
+            (f: any) =>
+              `🚩 <b>${esc(f.name)}</b> · <code>${esc(String(f.telegramId ?? "—"))}</code>\n   ${esc(f.flag)} · ${esc(String(f.at).slice(0, 16).replace("T", " "))}`,
+          );
+  const title = kind === "cooldowns" ? "⏳ <b>ACTIVE COOLDOWNS</b>" : kind === "locks" ? "🔒 <b>ACTIVE BOSS LOCKS</b>" : "🚩 <b>SUSPICIOUS CLAN HOPPING</b>";
+  return edit(
+    ctx,
+    `${title}\n\n${rows.length ? rows.join("\n\n").slice(0, 3400) : "Nada registrado."}`,
+    kb([[{ t: "🔎 PLAYER AUDIT", d: "ask:claaudit" }], nav("cl:aa")]),
+  );
+}
+
+async function clanAntiAbuseConfirm(ctx: Ctx, target: string, kind: "cooldown" | "lock") {
+  const d = await aaRpc(ctx, "get", null, target);
+  const name = d.audit?.notFound ? esc(target) : esc(String(d.audit?.name ?? target));
+  return edit(
+    ctx,
+    `⚠️ <b>CLEAR CLAN ${kind === "cooldown" ? "COOLDOWN" : "BOSS LOCK"} FOR ${name}?</b>\n\nA ação fica registrada na auditoria administrativa.`,
+    kb([
+      [
+        { t: "✅ CONFIRM", d: `cl:${kind === "cooldown" ? "aaclrcd" : "aaclrlk"}:${target}` },
+        { t: "❌ CANCEL", d: `cl:aaudit:${target}` },
+      ],
+      nav("cl:aa"),
+    ]),
+  );
+}
+
+async function clanAntiAbuseAudit(ctx: Ctx, target: string, action = "get") {
+  const d = await aaRpc(ctx, action, null, target);
+  const a = d.audit;
+  if (!a || a.notFound) {
+    return edit(ctx, `🔎 <b>CLAN ABUSE AUDIT</b>\n\nJogador não encontrado: <code>${esc(target)}</code>`, kb([[{ t: "🔎 BUSCAR OUTRO", d: "ask:claaudit" }], nav("cl:aa")]));
+  }
+  const history = (a.history || [])
+    .slice(0, 8)
+    .map(
+      (h: any) =>
+        `• ${esc(h.clan ?? "—")} · entrou ${esc(String(h.joinedAt).slice(0, 16).replace("T", " "))}${h.leftAt ? ` · saiu ${esc(String(h.leftAt).slice(0, 16).replace("T", " "))} (${esc(h.reason ?? "—")})` : " · <b>ativo</b>"}`,
+    )
+    .join("\n");
+  const damage = (a.bossDamage || [])
+    .slice(0, 6)
+    .map((x: any) => `• ${esc(x.clan ?? "—")} · ${fmt(x.damage)} dano · ${esc(x.status ?? "ELIGIBLE")}`)
+    .join("\n");
+  return edit(
+    ctx,
+    [
+      `🔎 <b>CLAN ABUSE AUDIT</b> — ${esc(String(a.name))}`,
+      `🆔 <code>${esc(String(a.telegramId ?? "—"))}</code>`,
+      `Clã atual: <b>${esc(a.currentClan ?? "—")}</b>`,
+      `Recompensas de Clan Boss recebidas: <b>${fmt(a.rewards ?? 0)}</b>`,
+      "",
+      `⏳ Cooldown: <b>${a.cooldown?.active ? `${Math.ceil((a.cooldown.remainingSeconds ?? 0) / 60)} min` : "livre"}</b>`,
+      `🔒 Boss lock: <b>${a.bossLock?.active ? `${Math.ceil((a.bossLock.remainingSeconds ?? 0) / 60)} min` : "livre"}</b>`,
+      `🚩 Flags: <b>${fmt((a.flags || []).length)}</b>`,
+      "",
+      `<b>HISTÓRICO</b>\n${history || "—"}`,
+      "",
+      `<b>CLAN BOSS</b>\n${damage || "—"}`,
+    ].join("\n").slice(0, 3800),
+    kb([
+      [
+        { t: "🧹 CLEAR COOLDOWN", d: `cl:aacfcd:${a.telegramId}` },
+        { t: "🧹 CLEAR BOSS LOCK", d: `cl:aacflk:${a.telegramId}` },
+      ],
+      [{ t: "🔎 BUSCAR OUTRO", d: "ask:claaudit" }],
+      nav("cl:aa"),
+    ]),
+  );
+}
+
 async function clansCallback(ctx: Ctx, rest: string[]) {
   const [op, a, b] = rest;
   switch (op) {
