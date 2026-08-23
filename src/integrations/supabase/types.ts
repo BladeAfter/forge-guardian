@@ -994,6 +994,71 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_abuse_flags: {
+        Row: {
+          created_at: string
+          details: Json
+          flag: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          flag: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          flag?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_abuse_flags_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_anti_abuse_settings: {
+        Row: {
+          boss_lock_enabled: boolean
+          boss_lock_min_hours: number
+          enabled: boolean
+          hopping_threshold_24h: number
+          id: number
+          kick_cooldown_hours: number
+          leave_cooldown_hours: number
+          updated_at: string
+        }
+        Insert: {
+          boss_lock_enabled?: boolean
+          boss_lock_min_hours?: number
+          enabled?: boolean
+          hopping_threshold_24h?: number
+          id?: number
+          kick_cooldown_hours?: number
+          leave_cooldown_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          boss_lock_enabled?: boolean
+          boss_lock_min_hours?: number
+          enabled?: boolean
+          hopping_threshold_24h?: number
+          id?: number
+          kick_cooldown_hours?: number
+          leave_cooldown_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clan_boss_attack_log: {
         Row: {
           attack_type: string
@@ -1227,6 +1292,7 @@ export type Database = {
           clan_id: string
           created_at: string
           damage: number
+          eligibility_status: string
           id: string
           instance_id: string
           last_attack_at: string | null
@@ -1237,6 +1303,7 @@ export type Database = {
           clan_id: string
           created_at?: string
           damage?: number
+          eligibility_status?: string
           id?: string
           instance_id: string
           last_attack_at?: string | null
@@ -1247,6 +1314,7 @@ export type Database = {
           clan_id?: string
           created_at?: string
           damage?: number
+          eligibility_status?: string
           id?: string
           instance_id?: string
           last_attack_at?: string | null
@@ -1402,6 +1470,44 @@ export type Database = {
           },
         ]
       }
+      clan_boss_player_locks: {
+        Row: {
+          clan_id: string
+          cycle: number | null
+          instance_id: string | null
+          locked_at: string
+          locked_until: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          cycle?: number | null
+          instance_id?: string | null
+          locked_at?: string
+          locked_until: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          cycle?: number | null
+          instance_id?: string | null
+          locked_at?: string
+          locked_until?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_player_locks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_boss_templates: {
         Row: {
           background_url: string | null
@@ -1458,6 +1564,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      clan_join_cooldowns: {
+        Row: {
+          changes_24h: number
+          changes_7d: number
+          cooldown_until: string
+          reason: string
+          source_clan_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          changes_24h?: number
+          changes_7d?: number
+          cooldown_until: string
+          reason?: string
+          source_clan_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          changes_24h?: number
+          changes_7d?: number
+          cooldown_until?: string
+          reason?: string
+          source_clan_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_join_cooldowns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clan_join_requests: {
         Row: {
@@ -1541,6 +1685,50 @@ export type Database = {
             foreignKeyName: "clan_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_membership_history: {
+        Row: {
+          clan_id: string
+          clan_name: string | null
+          created_at: string
+          id: string
+          joined_at: string
+          leave_reason: string | null
+          left_at: string | null
+          removed_by: string | null
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          clan_name?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string
+          leave_reason?: string | null
+          left_at?: string | null
+          removed_by?: string | null
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          clan_name?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string
+          leave_reason?: string | null
+          left_at?: string | null
+          removed_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_membership_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
           },
@@ -15256,6 +15444,27 @@ export type Database = {
         Returns: Json
       }
       claim_starter_pack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_anti_abuse_cfg: {
+        Args: never
+        Returns: {
+          boss_lock_enabled: boolean
+          boss_lock_min_hours: number
+          enabled: boolean
+          hopping_threshold_24h: number
+          id: number
+          kick_cooldown_hours: number
+          leave_cooldown_hours: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_anti_abuse_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_anti_abuse_state: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_assert_can_join: { Args: { p_user_id: string }; Returns: undefined }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
       clan_boss_auto_attack_state_json: {
         Args: { p_user: string }
@@ -15320,6 +15529,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_boss_lock_acquire: {
+        Args: {
+          p_clan_id: string
+          p_cycle: number
+          p_ends_at: string
+          p_instance_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      clan_boss_lock_json: { Args: { p_user_id: string }; Returns: Json }
       clan_boss_scaled_hp: {
         Args: { p_clan_id: string; p_cycle: number }
         Returns: number
@@ -15368,6 +15588,7 @@ export type Database = {
         }
         Returns: Json
       }
+      clan_join_cooldown_json: { Args: { p_user_id: string }; Returns: Json }
       clan_level_xp: { Args: { p_level: number }; Returns: number }
       clan_manage: {
         Args: {
@@ -15379,6 +15600,19 @@ export type Database = {
         Returns: Json
       }
       clan_member_limit: { Args: { p_level: number }; Returns: number }
+      clan_membership_close: {
+        Args: {
+          p_clan_id: string
+          p_reason: string
+          p_removed_by?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      clan_membership_open: {
+        Args: { p_clan_id: string; p_user_id: string }
+        Returns: undefined
+      }
       clan_online_minutes: { Args: never; Returns: number }
       clan_player_power: { Args: { p_user_id: string }; Returns: number }
       clan_public: {
