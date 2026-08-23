@@ -2745,6 +2745,8 @@ async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
   switch (key) {
     case "clsearch":
       return clansList(ctx, "search", text);
+    case "claaudit":
+      return clanAntiAbuseAudit(ctx, text.trim());
     case "clcost": {
       const value = Math.round(parseAmount(text.replace(/[^\d.,-]/g, "")));
       if (!Number.isFinite(value) || value < 0)
