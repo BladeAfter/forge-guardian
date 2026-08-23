@@ -75,7 +75,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
     directEnabled: summary?.depositConfig?.directEnabled ?? true,
     minFcTon: summary?.depositConfig?.minFcTon ?? MIN_DEPOSIT_TON,
-    minDirectTon: summary?.depositConfig?.minDirectTon ?? 0.1,
+    minDirectTon: summary?.depositConfig?.minDirectTon ?? MIN_DEPOSIT_TON,
     fcPerTon: summary?.depositConfig?.fcPerTon ?? FC_PER_TON
   }), [summary?.depositConfig]);
   const minDepositTon = depositMode === 'ton_balance' ? depositConfig.minDirectTon : depositConfig.minFcTon;
