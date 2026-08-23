@@ -83,7 +83,28 @@ export type ClanDashboard = {
   canManageMembers?: boolean;
   onlineThresholdMinutes?: number;
   stats?: ClanAdminStats;
+  antiAbuse?: ClanAntiAbuseState | null;
 };
+
+/** Server-owned anti-abuse state: join cooldown after leaving and clan boss eligibility lock. */
+export type ClanAntiAbuseState = {
+  enabled: boolean;
+  leaveCooldownHours: number;
+  kickCooldownHours: number;
+  bossLockEnabled: boolean;
+  cooldown: { active: boolean; remainingSeconds: number; until?: string | null; reason?: string | null; changes24h?: number };
+  bossLock: { active: boolean; remainingSeconds: number; sameClan: boolean; clanId?: string | null; until?: string | null };
+  serverTime?: string;
+};
+
+/** "18h 42m 15s" countdown label used by the clan cooldown card. */
+export function cooldownLabel(seconds: number): string {
+  const total = Math.max(0, Math.floor(seconds));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return h > 0 ? `${h}h ${m}m ${s}s` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
 
 /** Friendly "8m / 3h / 2d" label plus a tone bucket used for the activity dot. */
 export function activityAge(lastActive?: string | null): { minutes: number | null; short: string; tone: 'online' | 'fresh' | 'warm' | 'stale' | 'cold' } {
@@ -118,6 +139,9 @@ const CLAN_ERRORS: Record<string, string> = {
   PLAYER_NOT_FOUND: 'clan.error.playerNotFound',
   BACKEND_BUSY: 'clan.error.busy',
   CLAN_BACKEND_OFFLINE: 'clan.error.offline',
+  CLAN_JOIN_COOLDOWN_ACTIVE: 'clan.error.joinCooldown',
+  CLAN_BOSS_ELIGIBILITY_LOCKED: 'clan.error.bossLocked',
+  TARGET_CLAN_JOIN_COOLDOWN: 'clan.error.targetCooldown',
 };
 
 

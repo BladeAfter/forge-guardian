@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { ArrowLeft, Castle, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertTriangle, ArrowLeft, Castle, Hourglass, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
 import { useClanDashboard } from '../hooks';
-import { clanErrorKey, clanRequest, type ClanMessage, type ClanSummary } from '../clans';
+import { clanErrorKey, clanRequest, cooldownLabel, type ClanMessage, type ClanSummary } from '../clans';
 import { ClanCrest } from '../components/ClanHall';
 import { ClanMembersList, ClanRequestCard } from '../components/ClanMembersPanel';
 import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
@@ -29,6 +29,9 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   const [busy, setBusy] = useState(false);
   // The clan boss lives on its own fullscreen surface (exclusive creature, HP, ranking and rewards).
   const [bossOpen, setBossOpen] = useState(false);
+  // Leaving a clan is irreversible for the cycle, so it always asks for confirmation first.
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const cooldownActive = Boolean(data?.antiAbuse?.cooldown?.active);
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['clan-dashboard'] });
@@ -121,9 +124,13 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           <p className="mt-1 text-xs text-slate-300">{t('clan.tagline')}</p>
           <div className="mt-4 grid gap-2">
             <button onClick={() => setCreating(false)} className="rounded-xl border border-amber-300/30 bg-black/50 py-3 text-xs font-black text-amber-200">{t('clan.find')}</button>
-            <button onClick={() => setCreating(true)} className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black">{t('clan.create')}</button>
+            <button disabled={cooldownActive} onClick={() => setCreating(true)} className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black disabled:opacity-40">{t('clan.create')}</button>
           </div>
         </section>
+
+        {/* Server-owned cooldown after leaving a clan: joining and creating stay blocked. */}
+        {cooldownActive ? <ClanCooldownCard seconds={data.antiAbuse!.cooldown.remainingSeconds} /> : null}
+
 
         {creating ? (
           <section className="mt-3 space-y-2 rounded-3xl border border-white/10 bg-black/60 p-4">
@@ -166,7 +173,14 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           <>
             <h3 className="mb-2 mt-5 text-[10px] font-black tracking-[.2em] text-amber-200">{t('clan.recommended')}</h3>
             <div className="space-y-2 pb-10">
-              {(data.recommended ?? []).map((clan) => <ClanCard key={clan.id} clan={clan} onJoin={() => void run({ action: 'join', clanId: clan.id }, 'clan.joined')} />)}
+              {(data.recommended ?? []).map((clan) => (
+                <ClanCard
+                  key={clan.id}
+                  clan={clan}
+                  disabled={cooldownActive}
+                  onJoin={() => void run({ action: 'join', clanId: clan.id }, 'clan.joined')}
+                />
+              ))}
             </div>
           </>
         )}
@@ -223,7 +237,18 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
               busy={busy}
               onAction={(action, targetId) => void run({ action: 'manage', manageAction: action, targetId })}
             />
-            <button onClick={() => void run({ action: 'leave' }, 'clan.left')} className="mt-2 w-full rounded-xl border border-rose-400/30 py-3 text-[10px] font-black text-rose-300">{t('clan.leave')}</button>
+            <button onClick={() => setConfirmLeave(true)} className="mt-2 w-full rounded-xl border border-rose-400/30 py-3 text-[10px] font-black text-rose-300">{t('clan.leave')}</button>
+            {confirmLeave ? (
+              <LeaveClanConfirm
+                hours={data.antiAbuse?.leaveCooldownHours ?? 24}
+                busy={busy}
+                onCancel={() => setConfirmLeave(false)}
+                onConfirm={async () => {
+                  setConfirmLeave(false);
+                  await run({ action: 'leave' }, 'clan.left');
+                }}
+              />
+            ) : null}
           </>
         ) : null}
 
@@ -294,7 +319,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   );
 }
 
-function ClanCard({ clan, onJoin }: { clan: ClanSummary; onJoin: () => void }) {
+function ClanCard({ clan, onJoin, disabled }: { clan: ClanSummary; onJoin: () => void; disabled?: boolean }) {
   const t = useT();
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/55 p-3">
@@ -304,7 +329,7 @@ function ClanCard({ clan, onJoin }: { clan: ClanSummary; onJoin: () => void }) {
         <p className="text-[9px] text-slate-400">[{clan.tag}] · Lv. {clan.level} · {clan.members}/{clan.memberLimit}</p>
         <p className="text-[9px] text-cyan-300">{t('clan.power')}: {clan.power.toLocaleString()}</p>
       </div>
-      <button onClick={onJoin} className="rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-[9px] font-black text-amber-200">{clan.joinType === 'approval' ? t('clan.requested') : t('clan.join')}</button>
+      <button disabled={disabled} onClick={onJoin} className="rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-[9px] font-black text-amber-200 disabled:opacity-40">{clan.joinType === 'approval' ? t('clan.requested') : t('clan.join')}</button>
     </div>
   );
 }
@@ -343,5 +368,47 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
         {children}
       </div>
     </div>
+  );
+}
+
+/** Premium confirmation before leaving: the cooldown and reward loss are stated up front. */
+function LeaveClanConfirm({ hours, busy, onCancel, onConfirm }: { hours: number; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+  const t = useT();
+  return (
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/80 p-4">
+      <div className="w-full max-w-[360px] rounded-[1.75rem] border border-rose-400/40 bg-gradient-to-br from-[#1b0d14] via-[#0b0a12] to-black p-5 text-center">
+        <AlertTriangle className="mx-auto h-10 w-10 text-rose-300" />
+        <h3 className="mt-2 text-sm font-black text-rose-100">{t('clan.leaveConfirm.title')}</h3>
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{t('clan.leaveConfirm.body')}</p>
+        <div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-3">
+          <p className="text-[9px] uppercase tracking-[.25em] text-slate-400">{t('clan.leaveConfirm.cooldown')}</p>
+          <b className="text-lg text-amber-300">{hours}h</b>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button onClick={onCancel} className="rounded-xl border border-white/15 bg-black/60 py-3 text-[10px] font-black text-slate-200">{t('clan.leaveConfirm.cancel')}</button>
+          <button disabled={busy} onClick={onConfirm} className="rounded-xl bg-gradient-to-b from-rose-400 to-rose-600 py-3 text-[10px] font-black text-black disabled:opacity-50">{t('clan.leaveConfirm.confirm')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Live countdown for the join cooldown; the server value is the source of truth. */
+function ClanCooldownCard({ seconds }: { seconds: number }) {
+  const t = useT();
+  const [left, setLeft] = useState(seconds);
+  useEffect(() => {
+    setLeft(seconds);
+    const timer = window.setInterval(() => setLeft((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [seconds]);
+  return (
+    <section className="mt-3 rounded-3xl border border-amber-300/30 bg-black/60 p-4 text-center">
+      <Hourglass className="mx-auto h-8 w-8 text-amber-300" />
+      <h3 className="mt-1 text-[11px] font-black tracking-[.2em] text-amber-200">{t('clan.cooldown.title')}</h3>
+      <p className="mt-1 text-[10px] text-slate-300">{t('clan.cooldown.body')}</p>
+      <p className="mt-2 text-[9px] uppercase tracking-[.2em] text-slate-400">{t('clan.cooldown.in')}</p>
+      <b className="text-xl text-amber-300">{cooldownLabel(left)}</b>
+    </section>
   );
 }
