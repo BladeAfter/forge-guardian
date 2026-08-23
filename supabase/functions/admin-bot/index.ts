@@ -2493,6 +2493,27 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
       return clanAudit(ctx, a);
     case "cfg":
       return clanSettingsView(ctx);
+    // 🛡 Anti-abuse: join cooldown, clan boss single-clan lock, audits and manual clears.
+    case "aa":
+      return clanAntiAbuseView(ctx);
+    case "aatg":
+      return clanAntiAbuseView(ctx, "toggle");
+    case "aatgl":
+      return clanAntiAbuseView(ctx, "toggle_boss_lock");
+    case "aaleave":
+      return clanAntiAbuseView(ctx, "set_leave", a);
+    case "aakick":
+      return clanAntiAbuseView(ctx, "set_kick", a);
+    case "aacds":
+      return clanAntiAbuseList(ctx, "cooldowns");
+    case "aalocks":
+      return clanAntiAbuseList(ctx, "locks");
+    case "aaflags":
+      return clanAntiAbuseList(ctx, "flags");
+    case "aaclrcd":
+      return clanAntiAbuseAudit(ctx, String(a ?? ""), "clear_cooldown");
+    case "aaclrlk":
+      return clanAntiAbuseAudit(ctx, String(a ?? ""), "clear_boss_lock");
     case "costgo": {
       const r = (await rpc("admin_clan_settings", {
         p_admin_id: ctx.adminId,
