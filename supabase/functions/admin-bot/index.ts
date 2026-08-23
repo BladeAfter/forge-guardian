@@ -3936,6 +3936,7 @@ const PROMPTS: Record<string, string> = {
   giftfc: "Digite a quantidade de FC que deseja enviar.\nEx.: <code>50000</code>",
   giftqty: "Digite a quantidade que deseja enviar.\nEx.: <code>1</code>",
   clsearch: "Envie o nome (ou parte) ou a <b>tag</b> do clã. Ex.: <code>dragões</code> ou <code>DRG</code>",
+  claaudit: "🔎 Envie <b>Telegram ID</b>, <b>@username</b> ou ID interno para auditar clãs e Clan Boss.",
 
   clxp: "Envie o XP a adicionar ou remover do clã. Ex.: <code>25000</code> ou <code>-5000</code>",
   cllvl: "Envie o novo nível do clã (mínimo 1). Ex.: <code>10</code>",
