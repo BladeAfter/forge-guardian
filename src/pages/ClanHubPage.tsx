@@ -370,3 +370,45 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
     </div>
   );
 }
+
+/** Premium confirmation before leaving: the cooldown and reward loss are stated up front. */
+function LeaveClanConfirm({ hours, busy, onCancel, onConfirm }: { hours: number; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
+  const t = useT();
+  return (
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/80 p-4">
+      <div className="w-full max-w-[360px] rounded-[1.75rem] border border-rose-400/40 bg-gradient-to-br from-[#1b0d14] via-[#0b0a12] to-black p-5 text-center">
+        <AlertTriangle className="mx-auto h-10 w-10 text-rose-300" />
+        <h3 className="mt-2 text-sm font-black text-rose-100">{t('clan.leaveConfirm.title')}</h3>
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-300">{t('clan.leaveConfirm.body')}</p>
+        <div className="mt-3 rounded-2xl border border-white/10 bg-black/60 p-3">
+          <p className="text-[9px] uppercase tracking-[.25em] text-slate-400">{t('clan.leaveConfirm.cooldown')}</p>
+          <b className="text-lg text-amber-300">{hours}h</b>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button onClick={onCancel} className="rounded-xl border border-white/15 bg-black/60 py-3 text-[10px] font-black text-slate-200">{t('clan.leaveConfirm.cancel')}</button>
+          <button disabled={busy} onClick={onConfirm} className="rounded-xl bg-gradient-to-b from-rose-400 to-rose-600 py-3 text-[10px] font-black text-black disabled:opacity-50">{t('clan.leaveConfirm.confirm')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Live countdown for the join cooldown; the server value is the source of truth. */
+function ClanCooldownCard({ seconds }: { seconds: number }) {
+  const t = useT();
+  const [left, setLeft] = useState(seconds);
+  useEffect(() => {
+    setLeft(seconds);
+    const timer = window.setInterval(() => setLeft((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [seconds]);
+  return (
+    <section className="mt-3 rounded-3xl border border-amber-300/30 bg-black/60 p-4 text-center">
+      <Hourglass className="mx-auto h-8 w-8 text-amber-300" />
+      <h3 className="mt-1 text-[11px] font-black tracking-[.2em] text-amber-200">{t('clan.cooldown.title')}</h3>
+      <p className="mt-1 text-[10px] text-slate-300">{t('clan.cooldown.body')}</p>
+      <p className="mt-2 text-[9px] uppercase tracking-[.2em] text-slate-400">{t('clan.cooldown.in')}</p>
+      <b className="text-xl text-amber-300">{cooldownLabel(left)}</b>
+    </section>
+  );
+}
