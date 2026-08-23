@@ -185,7 +185,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     mutationFn: async () => {
       if (!telegramInitData) throw new Error(t('wallet.errors.openFromTelegram'));
       if (!depositModeEnabled) throw new Error(t('wallet.errors.depositModeDisabled'));
-      if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit'));
+      if (!depositAmountValid) throw new Error(depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit', { ton: formatTon(minDepositTon) }));
       const walletAddress = await ensureWalletAddress();
       const intent = await createDepositIntent(telegramInitData, depositTon, walletAddress, crypto.randomUUID(), depositMode);
       await sendTonPayment(intent, (tx) => tonConnectUI.sendTransaction(tx));
@@ -337,7 +337,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
             ? t('wallet.minimumDirectDepositNote', { ton: formatTon(minDepositTon) })
             : t('wallet.minimumDepositNote', { ton: formatTon(minDepositTon), fc: FC_PER_TON.toLocaleString('pt-BR') })}
         </p>
-        {!depositAmountValid ? <p className="mt-1 text-[9px] font-bold text-rose-300">{depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit')}</p> : null}
+        {!depositAmountValid ? <p className="mt-1 text-[9px] font-bold text-rose-300">{depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit', { ton: formatTon(minDepositTon) })}</p> : null}
         <Result
           label={t('wallet.youWillReceive')}
           value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
