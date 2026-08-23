@@ -121,9 +121,13 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           <p className="mt-1 text-xs text-slate-300">{t('clan.tagline')}</p>
           <div className="mt-4 grid gap-2">
             <button onClick={() => setCreating(false)} className="rounded-xl border border-amber-300/30 bg-black/50 py-3 text-xs font-black text-amber-200">{t('clan.find')}</button>
-            <button onClick={() => setCreating(true)} className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black">{t('clan.create')}</button>
+            <button disabled={cooldownActive} onClick={() => setCreating(true)} className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-600 py-3 text-xs font-black text-black disabled:opacity-40">{t('clan.create')}</button>
           </div>
         </section>
+
+        {/* Server-owned cooldown after leaving a clan: joining and creating stay blocked. */}
+        {cooldownActive ? <ClanCooldownCard seconds={data.antiAbuse!.cooldown.remainingSeconds} /> : null}
+
 
         {creating ? (
           <section className="mt-3 space-y-2 rounded-3xl border border-white/10 bg-black/60 p-4">
