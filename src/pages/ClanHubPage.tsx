@@ -29,6 +29,9 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   const [busy, setBusy] = useState(false);
   // The clan boss lives on its own fullscreen surface (exclusive creature, HP, ranking and rewards).
   const [bossOpen, setBossOpen] = useState(false);
+  // Leaving a clan is irreversible for the cycle, so it always asks for confirmation first.
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const cooldownActive = Boolean(data?.antiAbuse?.cooldown?.active);
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['clan-dashboard'] });
