@@ -1253,7 +1253,7 @@ export const tr: Dict = {
   "wallet.errors.insufficientBalance": "Yetersiz FC bakiyesi.",
   "wallet.errors.insufficientTon": "Yeterli çekilebilir TON yok.",
   "wallet.errors.invalidDeposit": "Geçerli bir yatırım miktarı gir.",
-  "wallet.errors.minDeposit": "Minimum yatırım 1 TON'dur.",
+  "wallet.errors.minDeposit": "Minimum yatırım {ton} TON'dur.",
   "wallet.errors.minWithdraw": "Minimum çekim 100.000 FC'dir.",
   "wallet.errors.depositRequired": "Çekim, en az {ton} TON yatırdıktan sonra açılır.",
   "wallet.depositRequirementNote": "Çekim en az {ton} TON yatırımdan sonra açılır. Şu ana kadar yatırılan: {total} TON.",
