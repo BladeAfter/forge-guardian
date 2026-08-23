@@ -16852,6 +16852,7 @@ export type Database = {
       }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
+      player_ton_deposit_total: { Args: { p_user_id: string }; Returns: number }
       pool_credit_pending_rewards: {
         Args: { p_history_id: string }
         Returns: Json
@@ -17587,6 +17588,7 @@ export type Database = {
         Args: { p_user: string }
         Returns: number
       }
+      withdraw_min_deposit_ton: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
