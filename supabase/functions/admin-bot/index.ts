@@ -1492,6 +1492,7 @@ async function clansHub(ctx: Ctx) {
       ],
       [{ t: "📈 CLAN RANKING", d: "cl:rank" }],
       [{ t: "⚙️ CONFIGURAÇÃO DO CLÃ", d: "cl:cfg" }],
+      [{ t: "🛡 CLAN ANTI-ABUSE", d: "cl:aa" }],
       [{ t: "📜 AUDIT", d: "cl:audit" }],
       nav(),
     ]),
