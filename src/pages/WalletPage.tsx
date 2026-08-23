@@ -54,6 +54,10 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const availableTon = tonWallet?.availableTon ?? 0;
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
+  // Nova regra: saque só liberado para quem já depositou o mínimo em TON (servidor decide).
+  const depositRequirementTon = tonWallet?.depositRequirementTon ?? 1;
+  const depositTotalTon = tonWallet?.depositTotalTon ?? 0;
+  const depositRequirementMet = tonWallet?.depositRequirementMet ?? depositTotalTon >= depositRequirementTon;
   const [depositTon, setDepositTon] = useState(1);
   // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
   const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
@@ -65,7 +69,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
-  const canWithdraw = withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+  const canWithdraw = depositRequirementMet && withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
   // Minimums and toggles are server-side settings; the client only mirrors them.
   const depositConfig = useMemo<WalletDepositConfig>(() => ({
     fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
@@ -200,6 +204,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const withdrawal = useMutation({
     mutationFn: async () => {
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
+      if (!depositRequirementMet) throw new Error(t('wallet.errors.depositRequired', { ton: formatTon(depositRequirementTon) }));
       if (withdrawTon < minWithdrawTon) throw new Error(t('wallet.errors.minWithdrawTon', { ton: formatTon(minWithdrawTon) }));
       if (withdrawTon > availableTon) throw new Error(t('wallet.errors.insufficientTon'));
       return requestTonWithdrawal(telegramInitData, withdrawTon, address, crypto.randomUUID());
@@ -348,6 +353,11 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         <div className="grid grid-cols-4 gap-1">{[1,5,10].map(value => <Quick key={value} active={withdrawTon===value} onClick={() => setWithdrawTon(value)}>{value} TON</Quick>)}<Quick active={withdrawTon===availableTon && availableTon>0} onClick={() => setWithdrawTon(availableTon)}>{t('wallet.max')}</Quick></div>
         <input type="number" min={minWithdrawTon} step="0.1" value={withdrawTon} onChange={event => setWithdrawTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
         <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minWithdrawTonNote', { ton: formatTon(minWithdrawTon) })}</p>
+        {!depositRequirementMet ? (
+          <p className="mt-2 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-[9px] font-semibold leading-relaxed text-amber-200">
+            {t('wallet.depositRequirementNote', { ton: formatTon(depositRequirementTon), total: formatTon(depositTotalTon) })}
+          </p>
+        ) : null}
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
           <Line label={t('wallet.available')} value={`${formatTon(availableTon)} TON`} />
           <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
