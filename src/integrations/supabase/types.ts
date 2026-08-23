@@ -1147,6 +1147,8 @@ export type Database = {
           id: string
           instance_id: string
           payload: Json
+          reversal_status: string | null
+          reversed_at: string | null
           user_id: string
         }
         Insert: {
@@ -1156,6 +1158,8 @@ export type Database = {
           id?: string
           instance_id: string
           payload?: Json
+          reversal_status?: string | null
+          reversed_at?: string | null
           user_id: string
         }
         Update: {
@@ -1165,6 +1169,8 @@ export type Database = {
           id?: string
           instance_id?: string
           payload?: Json
+          reversal_status?: string | null
+          reversed_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1564,6 +1570,158 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      clan_exploit_audit_runs: {
+        Row: {
+          admin_telegram_id: number | null
+          created_at: string
+          id: string
+          mode: string
+          scope: string
+          stats: Json
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          created_at?: string
+          id?: string
+          mode?: string
+          scope?: string
+          stats?: Json
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          created_at?: string
+          id?: string
+          mode?: string
+          scope?: string
+          stats?: Json
+        }
+        Relationships: []
+      }
+      clan_exploit_participations: {
+        Row: {
+          boss_name: string | null
+          claim_id: string
+          clan_id: string | null
+          classification: string
+          created_at: string
+          cycle: number | null
+          first_attack_at: string | null
+          instance_id: string | null
+          legit_claim_id: string | null
+          reward_payload: Json
+          run_id: string | null
+          updated_at: string
+          user_id: string
+          window_end: string | null
+          window_start: string | null
+        }
+        Insert: {
+          boss_name?: string | null
+          claim_id: string
+          clan_id?: string | null
+          classification: string
+          created_at?: string
+          cycle?: number | null
+          first_attack_at?: string | null
+          instance_id?: string | null
+          legit_claim_id?: string | null
+          reward_payload?: Json
+          run_id?: string | null
+          updated_at?: string
+          user_id: string
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          boss_name?: string | null
+          claim_id?: string
+          clan_id?: string | null
+          classification?: string
+          created_at?: string
+          cycle?: number | null
+          first_attack_at?: string | null
+          instance_id?: string | null
+          legit_claim_id?: string | null
+          reward_payload?: Json
+          run_id?: string | null
+          updated_at?: string
+          user_id?: string
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_exploit_participations_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: true
+            referencedRelation: "clan_boss_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_exploit_participations_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "clan_exploit_audit_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_exploit_reversals: {
+        Row: {
+          admin_telegram_id: number | null
+          claim_id: string
+          clan_id: string | null
+          created_at: string
+          debt: Json
+          executed_at: string | null
+          id: string
+          illicit: Json
+          instance_id: string | null
+          notes: Json
+          recovered: Json
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_telegram_id?: number | null
+          claim_id: string
+          clan_id?: string | null
+          created_at?: string
+          debt?: Json
+          executed_at?: string | null
+          id?: string
+          illicit?: Json
+          instance_id?: string | null
+          notes?: Json
+          recovered?: Json
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_telegram_id?: number | null
+          claim_id?: string
+          clan_id?: string | null
+          created_at?: string
+          debt?: Json
+          executed_at?: string | null
+          id?: string
+          illicit?: Json
+          instance_id?: string | null
+          notes?: Json
+          recovered?: Json
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_exploit_reversals_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: true
+            referencedRelation: "clan_boss_claims"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clan_join_cooldowns: {
         Row: {
@@ -2981,6 +3139,119 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      exploit_manual_reviews: {
+        Row: {
+          claim_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claim_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claim_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exploit_recovery_debts: {
+        Row: {
+          amount: number
+          asset_id: string | null
+          asset_type: string
+          created_at: string
+          id: string
+          reason: string
+          source_reward_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          asset_id?: string | null
+          asset_type: string
+          created_at?: string
+          id?: string
+          reason?: string
+          source_reward_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string | null
+          asset_type?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          source_reward_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exploit_reversal_ledger: {
+        Row: {
+          amount: number
+          asset_id: string | null
+          asset_type: string
+          balance_after: number | null
+          created_at: string
+          id: string
+          kind: string
+          reversal_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asset_id?: string | null
+          asset_type: string
+          balance_after?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          reversal_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string | null
+          asset_type?: string
+          balance_after?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          reversal_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exploit_reversal_ledger_reversal_id_fkey"
+            columns: ["reversal_id"]
+            isOneToOne: false
+            referencedRelation: "clan_exploit_reversals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       founder_pack_config: {
         Row: {
@@ -15595,6 +15866,16 @@ export type Database = {
           p_message_id?: string
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      clan_exploit_dry_run: { Args: { p_user_id: string }; Returns: Json }
+      clan_exploit_execute: {
+        Args: { p_admin_id: number; p_user_id: string }
+        Returns: Json
+      }
+      clan_exploit_holdings: { Args: { p_user_id: string }; Returns: Json }
+      clan_exploit_scan: {
+        Args: { p_admin_id?: number; p_user_id?: string }
         Returns: Json
       }
       clan_join_cooldown_json: { Args: { p_user_id: string }; Returns: Json }
