@@ -2510,6 +2510,12 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
       return clanAntiAbuseList(ctx, "locks");
     case "aaflags":
       return clanAntiAbuseList(ctx, "flags");
+    case "aaudit":
+      return clanAntiAbuseAudit(ctx, String(a ?? ""));
+    case "aacfcd":
+      return clanAntiAbuseConfirm(ctx, String(a ?? ""), "cooldown");
+    case "aacflk":
+      return clanAntiAbuseConfirm(ctx, String(a ?? ""), "lock");
     case "aaclrcd":
       return clanAntiAbuseAudit(ctx, String(a ?? ""), "clear_cooldown");
     case "aaclrlk":
