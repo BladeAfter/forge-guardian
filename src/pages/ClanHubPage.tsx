@@ -305,7 +305,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   );
 }
 
-function ClanCard({ clan, onJoin }: { clan: ClanSummary; onJoin: () => void }) {
+function ClanCard({ clan, onJoin, disabled }: { clan: ClanSummary; onJoin: () => void; disabled?: boolean }) {
   const t = useT();
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/55 p-3">
@@ -315,7 +315,7 @@ function ClanCard({ clan, onJoin }: { clan: ClanSummary; onJoin: () => void }) {
         <p className="text-[9px] text-slate-400">[{clan.tag}] · Lv. {clan.level} · {clan.members}/{clan.memberLimit}</p>
         <p className="text-[9px] text-cyan-300">{t('clan.power')}: {clan.power.toLocaleString()}</p>
       </div>
-      <button onClick={onJoin} className="rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-[9px] font-black text-amber-200">{clan.joinType === 'approval' ? t('clan.requested') : t('clan.join')}</button>
+      <button disabled={disabled} onClick={onJoin} className="rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-[9px] font-black text-amber-200 disabled:opacity-40">{clan.joinType === 'approval' ? t('clan.requested') : t('clan.join')}</button>
     </div>
   );
 }
