@@ -139,6 +139,9 @@ const CLAN_ERRORS: Record<string, string> = {
   PLAYER_NOT_FOUND: 'clan.error.playerNotFound',
   BACKEND_BUSY: 'clan.error.busy',
   CLAN_BACKEND_OFFLINE: 'clan.error.offline',
+  CLAN_JOIN_COOLDOWN_ACTIVE: 'clan.error.joinCooldown',
+  CLAN_BOSS_ELIGIBILITY_LOCKED: 'clan.error.bossLocked',
+  TARGET_CLAN_JOIN_COOLDOWN: 'clan.error.targetCooldown',
 };
 
 
