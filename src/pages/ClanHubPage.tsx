@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { ArrowLeft, Castle, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AlertTriangle, ArrowLeft, Castle, Hourglass, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
 import { useClanDashboard } from '../hooks';
-import { clanErrorKey, clanRequest, type ClanMessage, type ClanSummary } from '../clans';
+import { clanErrorKey, clanRequest, cooldownLabel, type ClanMessage, type ClanSummary } from '../clans';
 import { ClanCrest } from '../components/ClanHall';
 import { ClanMembersList, ClanRequestCard } from '../components/ClanMembersPanel';
 import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
