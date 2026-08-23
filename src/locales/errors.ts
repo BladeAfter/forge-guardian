@@ -122,7 +122,7 @@ export const errors: LocaleBundle = {
     'errors.PLAYER_NOT_FOUND': 'Jugador no encontrado.',
     'errors.WALLET_NOT_CONNECTED': 'Conecta tu cartera TON primero.',
     'errors.WITHDRAW_MIN': 'Monto por debajo del retiro mínimo.',
-    'errors.WITHDRAWAL_REQUIRES_DEPOSIT': 'Saque liberado somente após um depósito de no mínimo 1 TON.',
+    'errors.WITHDRAWAL_REQUIRES_DEPOSIT': 'El retiro se desbloquea tras depositar al menos 1 TON.',
     'errors.WITHDRAW_PENDING': 'Ya tienes un retiro en curso.',
     'errors.PAYMENT_NOT_FOUND': 'Pago aún no localizado. Inténtalo en un momento.',
     'errors.PASS_ALREADY_OWNED': 'Ya tienes este pase.',
