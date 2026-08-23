@@ -13604,6 +13604,15 @@ export type Database = {
         Returns: Json
       }
       admin_chest_diagnostics: { Args: { p_admin_id: number }; Returns: Json }
+      admin_clan_anti_abuse: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_target?: string
+          p_value?: string
+        }
+        Returns: Json
+      }
       admin_clan_boss: {
         Args: {
           p_action?: string
