@@ -1657,6 +1657,57 @@ export type Database = {
           },
         ]
       }
+      clan_boss_reward_rollback_log: {
+        Row: {
+          clan_boss_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          original_quantity: number
+          preserved_quantity: number
+          reason: string
+          removed_quantity: number
+          reward_at: string | null
+          reward_id: string | null
+          reward_type: string
+          rollback_id: string
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          clan_boss_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          original_quantity?: number
+          preserved_quantity?: number
+          reason?: string
+          removed_quantity?: number
+          reward_at?: string | null
+          reward_id?: string | null
+          reward_type: string
+          rollback_id: string
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          clan_boss_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          original_quantity?: number
+          preserved_quantity?: number
+          reason?: string
+          removed_quantity?: number
+          reward_at?: string | null
+          reward_id?: string | null
+          reward_type?: string
+          rollback_id?: string
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       clan_boss_scaling_config: {
         Row: {
           atk_ratio: number
