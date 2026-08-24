@@ -3611,6 +3611,126 @@ export type Database = {
           },
         ]
       }
+      familiar_hunt_missions: {
+        Row: {
+          background: string | null
+          code: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          enemies: Json
+          id: string
+          max_runs_per_day: number
+          name: string
+          rarity: string
+          recommended_power: number
+          reward_pool: Json
+          sort_order: number
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          background?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          enemies?: Json
+          id?: string
+          max_runs_per_day?: number
+          name: string
+          rarity?: string
+          recommended_power?: number
+          reward_pool?: Json
+          sort_order?: number
+          theme: string
+          updated_at?: string
+        }
+        Update: {
+          background?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          enemies?: Json
+          id?: string
+          max_runs_per_day?: number
+          name?: string
+          rarity?: string
+          recommended_power?: number
+          reward_pool?: Json
+          sort_order?: number
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      familiar_hunt_runs: {
+        Row: {
+          battle_log: Json
+          created_at: string
+          game_day: string
+          id: string
+          idempotency_key: string | null
+          mission_id: string
+          pet_ids: string[]
+          rewards: Json
+          rounds: number
+          team_power: number
+          total_damage: number
+          updated_at: string
+          user_id: string
+          victory: boolean
+        }
+        Insert: {
+          battle_log?: Json
+          created_at?: string
+          game_day?: string
+          id?: string
+          idempotency_key?: string | null
+          mission_id: string
+          pet_ids: string[]
+          rewards?: Json
+          rounds?: number
+          team_power?: number
+          total_damage?: number
+          updated_at?: string
+          user_id: string
+          victory?: boolean
+        }
+        Update: {
+          battle_log?: Json
+          created_at?: string
+          game_day?: string
+          id?: string
+          idempotency_key?: string | null
+          mission_id?: string
+          pet_ids?: string[]
+          rewards?: Json
+          rounds?: number
+          team_power?: number
+          total_damage?: number
+          updated_at?: string
+          user_id?: string
+          victory?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "familiar_hunt_runs_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "familiar_hunt_missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "familiar_hunt_runs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       founder_pack_config: {
         Row: {
           badge_enabled: boolean
@@ -16746,6 +16866,16 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: number
       }
+      familiar_hunt_battle: {
+        Args: {
+          p_idempotency_key?: string
+          p_mission_id: string
+          p_pet_ids: string[]
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      familiar_hunt_state: { Args: { p_telegram_id: number }; Returns: Json }
       feed_pet: {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
         Returns: Json

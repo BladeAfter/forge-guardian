@@ -2383,7 +2383,28 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * 🐾⚔️ FAMILIAR HUNT — new pet COMBAT mode (fully separate from `expeditions`).
+   * The battle itself, the victory check and every reward are resolved server-side.
+   */
+  'familiar-hunt': async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'familiar_hunt_state', { p_telegram_id: user.id });
+    if (action === 'battle') {
+      const petIds = Array.isArray(body.petIds) ? body.petIds.map(String) : [];
+      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
+      if (petIds.length !== 3 || petIds.some((id) => !isUuid(id))) throw new Error('TEAM_MUST_HAVE_3_PETS');
+      if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
+      const key = String(body.idempotencyKey || '').slice(0, 80) || null;
+      return rpc(db, 'familiar_hunt_battle', {
+        p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds, p_idempotency_key: key,
+      });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
 };
+
 
 
 
