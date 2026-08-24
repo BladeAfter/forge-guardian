@@ -16,13 +16,16 @@ const PageFallback = () => (
   </div>
 );
 
-function lazyPage<P extends object>(factory: () => Promise<{ default: ComponentType<P> }>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyPage<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>): T {
   const Loaded = lazy(factory);
-  return (props: P) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Wrapped = (props: any) => (
     <Suspense fallback={<PageFallback />}>
       <Loaded {...props} />
     </Suspense>
   );
+  return Wrapped as unknown as T;
 }
 
 export const ReferralPage = lazyPage(() =>
