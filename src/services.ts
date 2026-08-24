@@ -650,6 +650,10 @@ const NFT_ERRORS:Record<string,string>={
   CLAIM_TOO_SMALL:'Nenhum TON disponível para resgate ainda.',
   POOL_INSUFFICIENT:'Nenhum TON disponível para resgate ainda.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
+  INSUFFICIENT_FC:'FC insuficiente para pagar a entrada.',
+  INSUFFICIENT_TON:'TON interno insuficiente. Deposite TON na carteira.',
+  ENTRY_CURRENCY_UNAVAILABLE:'Esta missão não aceita esta moeda.',
+  INVALID_CURRENCY:'Moeda de entrada inválida.',
 };
 
 const nftError=(code:string,fallback:string)=>NFT_ERRORS[code]??fallback;
@@ -1080,8 +1084,8 @@ export const cancelAuction=(initData:string,auctionId:string)=>auctionRequest<{o
 export type FamiliarHuntPet={playerPetId:string;name:string;image:string|null;rarity:string;level:number;power:number;isSubNft:boolean;stage:string|null};
 export type FamiliarHuntEnemy={name:string;image:string|null;hp:number;maxHp?:number;atk:number;elite?:boolean};
 export type FamiliarHuntReward={type:string;code:string;quantity:number;min?:number;max?:number;chance?:number;rarity?:string};
-export type FamiliarHuntMission={id:string;code:string;name:string;theme:string;rarity:string;description:string|null;background:string|null;recommendedPower:number;maxRunsPerDay:number;runsToday:number;enemies:FamiliarHuntEnemy[];rewards:FamiliarHuntReward[]};
-export type FamiliarHuntState={gameDay:string;pets:FamiliarHuntPet[];missions:FamiliarHuntMission[];history:{id:string;missionName:string;victory:boolean;rounds:number;totalDamage:number;rewards:FamiliarHuntReward[];createdAt:string}[]};
+export type FamiliarHuntMission={id:string;code:string;name:string;theme:string;rarity:string;description:string|null;background:string|null;recommendedPower:number;maxRunsPerDay:number;runsToday:number;entryCostFc:number;entryCostTon:number;enemies:FamiliarHuntEnemy[];rewards:FamiliarHuntReward[]};
+export type FamiliarHuntState={gameDay:string;balances:{fc:number;ton:number};pets:FamiliarHuntPet[];missions:FamiliarHuntMission[];history:{id:string;missionName:string;victory:boolean;rounds:number;totalDamage:number;rewards:FamiliarHuntReward[];createdAt:string}[]};
 export type FamiliarHuntEvent={round:number;side:'pet'|'enemy';actor:number;target:number;damage:number;crit:boolean;ko:boolean;targetHp:number;targetMax:number};
 export type FamiliarHuntResult={ok:boolean;runId:string;victory:boolean;rounds:number;teamPower:number;totalDamage:number;rewards:FamiliarHuntReward[];log:FamiliarHuntEvent[];team:{name:string;image:string|null;maxHp:number;hp:number;atk:number;power:number}[];enemies:{name:string;image:string|null;maxHp:number;hp:number;atk:number;elite:boolean}[];runsToday:number;maxRunsPerDay:number};
 
@@ -1106,5 +1110,5 @@ async function huntCall<T>(initData:string,body:Record<string,unknown>):Promise<
 }
 
 export const fetchFamiliarHuntState=(initData:string)=>huntCall<FamiliarHuntState>(initData,{action:'state'});
-export const startFamiliarHunt=(initData:string,missionId:string,petIds:string[],idempotencyKey:string)=>
-  huntCall<FamiliarHuntResult>(initData,{action:'battle',missionId,petIds,idempotencyKey});
+export const startFamiliarHunt=(initData:string,missionId:string,petIds:string[],idempotencyKey:string,currency:'fc'|'ton'='fc')=>
+  huntCall<FamiliarHuntResult>(initData,{action:'battle',missionId,petIds,idempotencyKey,currency});
