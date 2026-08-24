@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Crown, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
+import { Check, ChevronUp, Crown, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Swords, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard, useMythUtility } from '../hooks';
@@ -17,6 +17,7 @@ import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
 import BreedingSection from '../components/BreedingSection';
 import ExpeditionsSection from '../components/ExpeditionsSection';
+import FamiliarHuntSection from '../components/FamiliarHuntSection';
 import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { MythBalanceHint, MythPayButton } from '../components/MythPayButton';
 import { mythFeatureEnabled, mythPrice, formatMyth, type MythUtilityState } from '../mythUtility';
@@ -25,7 +26,7 @@ import { useT, useLanguage } from '../LanguageContext';
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions';
+type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions' | 'hunt';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
@@ -225,6 +226,15 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
     return (
       <Shell onClose={onClose} section={section} onSection={setSection}>
         <ExpeditionsSection initData={telegramInitData} />
+      </Shell>
+    );
+  }
+
+  // 🐾⚔️ FAMILIAR HUNT lives in its OWN tab: the classic Expeditions above stay untouched.
+  if (section === 'hunt') {
+    return (
+      <Shell onClose={onClose} section={section} onSection={setSection}>
+        <FamiliarHuntSection initData={telegramInitData} />
       </Shell>
     );
   }
@@ -551,6 +561,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
   const secondary: [Section, string, React.ReactNode, string][] = [
     ['breeding', 'BREEDING', <Dna key="breeding" className="h-3.5 w-3.5" />, 'violet'],
     ['expeditions', 'EXPEDITIONS', <Map key="expeditions" className="h-3.5 w-3.5" />, 'sky'],
+    ['hunt', 'FAMILIAR HUNT', <Swords key="hunt" className="h-3.5 w-3.5" />, 'amber'],
   ];
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
@@ -606,7 +617,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
               <div className="flex items-center justify-center gap-3">
                 {secondary.map(([key, label, icon, tone]) => {
                   const on = section === key;
-                  const idle = tone === 'violet' ? 'border-violet-400/25 text-violet-200/80' : 'border-sky-400/25 text-sky-200/80';
+                  const idle = tone === 'violet' ? 'border-violet-400/25 text-violet-200/80' : tone === 'amber' ? 'border-amber-400/30 text-amber-200/80' : 'border-sky-400/25 text-sky-200/80';
                   return (
                     <button
                       key={key}
