@@ -16872,26 +16872,16 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: number
       }
-      familiar_hunt_battle:
-        | {
-            Args: {
-              p_idempotency_key?: string
-              p_mission_id: string
-              p_pet_ids: string[]
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_currency?: string
-              p_idempotency_key?: string
-              p_mission_id: string
-              p_pet_ids: string[]
-              p_telegram_id: number
-            }
-            Returns: Json
-          }
+      familiar_hunt_battle: {
+        Args: {
+          p_currency?: string
+          p_idempotency_key?: string
+          p_mission_id: string
+          p_pet_ids: string[]
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       familiar_hunt_state: { Args: { p_telegram_id: number }; Returns: Json }
       feed_pet: {
         Args: { p_food: number; p_player_pet_id: string; p_telegram_id: number }
