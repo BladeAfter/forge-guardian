@@ -95,12 +95,19 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
   if (!data || !mission) return null;
 
   if (stage === 'battle' && result) {
-    return <FamiliarHuntBattle result={result} onFinished={() => setStage('result')} />;
+    return (
+      <FamiliarHuntBattle
+        result={result}
+        missionName={mission.name}
+        onFinished={() => setStage('result')}
+        onExit={() => setStage('result')}
+      />
+    );
   }
 
   if (stage === 'result' && result) {
     return (
-      <div className="space-y-4 pb-6">
+      <div className="fixed inset-0 z-[140] flex flex-col justify-center gap-4 overflow-y-auto bg-[#03060d]/98 px-4 py-[max(env(safe-area-inset-top),1.25rem)] backdrop-blur-sm">
         <div className={`relative overflow-hidden rounded-[26px] border p-6 text-center ${result.victory ? 'border-amber-300/50 bg-gradient-to-b from-amber-500/15 to-black/80' : 'border-rose-400/40 bg-gradient-to-b from-rose-900/30 to-black/80'}`}>
           <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-56 -translate-x-1/2 rounded-full bg-amber-300/20 blur-3xl" />
           <p className="relative text-[9px] font-black uppercase tracking-[.3em] text-slate-400">{mission.name}</p>
