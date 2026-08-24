@@ -425,14 +425,26 @@ async function handlePvp(db: Db, user: TelegramUser, body: Record<string, any>) 
     const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
     if (player.error) throw new Error(player.error.message);
     if (!player.data?.id) return { heroes: [] };
-    const heroes = await db
-      .from('player_heroes')
-      .select('id,hero_key,name,rarity,level,xp,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id,veteran_line,premium_source,mining_daily_myth')
-      .eq('user_id', player.data.id)
-      // Heroes listed on the marketplace are held in escrow: they must not appear in the collection.
-      .or('market_locked.is.null,market_locked.eq.false')
-      .order('created_at', { ascending: false });
-    if (heroes.error) throw new Error(heroes.error.message);
+    // PostgREST caps a single response at 1000 rows: page through everything so rare
+    // heroes (mythic / NFT Exclusive, usually the oldest ones) are never cut off.
+    const heroRows: any[] = [];
+    const pageSize = 1000;
+    for (let page = 0; page < 40; page += 1) {
+      const chunk = await db
+        .from('player_heroes')
+        .select('id,hero_key,name,rarity,level,xp,image,archetype,final_atk,final_hp,fusion_level,locked,is_season_exclusive,exclusive_badge,is_nft_exclusive,nft_serial,nft_instance_id,veteran_line,premium_source,mining_daily_myth')
+        .eq('user_id', player.data.id)
+        // Heroes listed on the marketplace are held in escrow: they must not appear in the collection.
+        .or('market_locked.is.null,market_locked.eq.false')
+        .order('created_at', { ascending: false })
+        .range(page * pageSize, page * pageSize + pageSize - 1);
+      if (chunk.error) throw new Error(chunk.error.message);
+      const rows = chunk.data ?? [];
+      heroRows.push(...rows);
+      if (rows.length < pageSize) break;
+    }
+    const heroes = { data: heroRows };
+
     // Level progression (XP curve, per-hero daily cap) is owned by the server.
     const progression = await rpc(db, 'hero_progression_json', { p_user_id: player.data.id }).catch(() => null) as
       | { maxLevel?: number; dailyXpCapPerHero?: number; heroes?: Array<{ heroId: string; xp: number; xpToNext: number; dailyXp: number }> }
