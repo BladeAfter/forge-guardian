@@ -802,7 +802,6 @@ async function verifyEggPurchases(db: Db, user: TelegramUser) {
       });
       if (!match) {
         stillPending.push(order.id);
-        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
         continue;
       }
       const txHash = String(match.hash || match.in_msg?.hash || '');
@@ -865,7 +864,6 @@ async function verifyNftPurchases(db: Db, user: TelegramUser) {
       });
       if (!match) {
         stillPending.push(order.id);
-        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
         continue;
       }
       const txHash = String(match.hash || match.in_msg?.hash || '');
@@ -924,7 +922,6 @@ async function verifyNftHeroPurchases(db: Db, user: TelegramUser) {
       });
       if (!match) {
         stillPending.push(order.id);
-        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
         continue;
       }
       const txHash = String(match.hash || match.in_msg?.hash || '');
@@ -983,7 +980,6 @@ async function verifyNftEquipmentPurchases(db: Db, user: TelegramUser) {
       });
       if (!match) {
         stillPending.push(order.id);
-        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
         continue;
       }
       const txHash = String(match.hash || match.in_msg?.hash || '');
