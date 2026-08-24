@@ -2392,8 +2392,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (petIds.length !== 3 || petIds.some((id) => !isUuid(id))) throw new Error('TEAM_MUST_HAVE_3_PETS');
       if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
       const key = String(body.idempotencyKey || '').slice(0, 80) || null;
+      // entry cost currency: FC or the player's INTERNAL TON balance (never the external wallet)
+      const currency = String(body.currency || 'fc').toLowerCase();
+      if (currency !== 'fc' && currency !== 'ton') throw new Error('INVALID_CURRENCY');
       return rpc(db, 'familiar_hunt_battle', {
         p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds, p_idempotency_key: key,
+        p_currency: currency,
       });
     }
     throw new Error('INVALID_ACTION');

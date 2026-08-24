@@ -1,0 +1,1 @@
+drop function if exists public.familiar_hunt_battle(bigint, uuid, uuid[], text);

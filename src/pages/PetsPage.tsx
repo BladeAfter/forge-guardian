@@ -59,7 +59,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
 
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
-export function PetsPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInitData: string; onClose: () => void; onWallet?: () => void }) {
   const t = useT();
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
@@ -234,7 +234,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   if (section === 'hunt') {
     return (
       <Shell onClose={onClose} section={section} onSection={setSection}>
-        <FamiliarHuntSection initData={telegramInitData} />
+        <FamiliarHuntSection initData={telegramInitData} onWallet={onWallet} />
       </Shell>
     );
   }

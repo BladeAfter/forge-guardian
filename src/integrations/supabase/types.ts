@@ -3619,6 +3619,8 @@ export type Database = {
           description: string | null
           enabled: boolean
           enemies: Json
+          entry_cost_fc: number
+          entry_cost_ton: number
           id: string
           max_runs_per_day: number
           name: string
@@ -3636,6 +3638,8 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           enemies?: Json
+          entry_cost_fc?: number
+          entry_cost_ton?: number
           id?: string
           max_runs_per_day?: number
           name: string
@@ -3653,6 +3657,8 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           enemies?: Json
+          entry_cost_fc?: number
+          entry_cost_ton?: number
           id?: string
           max_runs_per_day?: number
           name?: string
@@ -16868,6 +16874,7 @@ export type Database = {
       }
       familiar_hunt_battle: {
         Args: {
+          p_currency?: string
           p_idempotency_key?: string
           p_mission_id: string
           p_pet_ids: string[]

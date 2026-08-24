@@ -853,7 +853,7 @@ function App() {
   };
 
   if(activePage==='invites'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ReferralPage telegramInitData={telegramInitData} languageCode={languageCode} onClose={closeInternal}/></>;
-  if(activePage==='pets'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><PetsPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='pets'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><PetsPage telegramInitData={telegramInitData} onClose={closeInternal} onWallet={()=>{closeInternal();setTab('wallet')}}/></>;
   if(activePage==='pvp'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><PvpPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
