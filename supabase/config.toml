@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.game-api]
 verify_jwt = false
+
+[functions.clan-boss-auto-tick]
+verify_jwt = false

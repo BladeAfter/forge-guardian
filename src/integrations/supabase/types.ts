@@ -16063,9 +16063,14 @@ export type Database = {
         Returns: number
       }
       clan_boss_attack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_boss_auto_attack_one: { Args: { p_user: string }; Returns: Json }
       clan_boss_auto_attack_state_json: {
         Args: { p_user: string }
         Returns: Json
+      }
+      clan_boss_auto_due_users: {
+        Args: { p_limit?: number }
+        Returns: string[]
       }
       clan_boss_cfg: {
         Args: never
