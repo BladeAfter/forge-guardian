@@ -1669,6 +1669,7 @@ export type Database = {
           def_share: number
           enabled: boolean
           engagement_factor: number
+          fixed_hp: number
           hp_scaling: number
           hp_share: number
           id: number
@@ -1700,6 +1701,7 @@ export type Database = {
           def_share?: number
           enabled?: boolean
           engagement_factor?: number
+          fixed_hp?: number
           hp_scaling?: number
           hp_share?: number
           id?: number
@@ -1731,6 +1733,7 @@ export type Database = {
           def_share?: number
           enabled?: boolean
           engagement_factor?: number
+          fixed_hp?: number
           hp_scaling?: number
           hp_share?: number
           id?: number
@@ -16187,6 +16190,7 @@ export type Database = {
           def_share: number
           enabled: boolean
           engagement_factor: number
+          fixed_hp: number
           hp_scaling: number
           hp_share: number
           id: number
