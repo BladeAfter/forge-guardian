@@ -1672,6 +1672,7 @@ export type Database = {
           hp_scaling: number
           hp_share: number
           id: number
+          max_hp_cap: number
           max_scale_down_per_cycle: number
           max_scale_up_per_cycle: number
           min_effective_damage_pct: number
@@ -1702,6 +1703,7 @@ export type Database = {
           hp_scaling?: number
           hp_share?: number
           id?: number
+          max_hp_cap?: number
           max_scale_down_per_cycle?: number
           max_scale_up_per_cycle?: number
           min_effective_damage_pct?: number
@@ -1732,6 +1734,7 @@ export type Database = {
           hp_scaling?: number
           hp_share?: number
           id?: number
+          max_hp_cap?: number
           max_scale_down_per_cycle?: number
           max_scale_up_per_cycle?: number
           min_effective_damage_pct?: number
@@ -16182,6 +16185,7 @@ export type Database = {
           hp_scaling: number
           hp_share: number
           id: number
+          max_hp_cap: number
           max_scale_down_per_cycle: number
           max_scale_up_per_cycle: number
           min_effective_damage_pct: number
