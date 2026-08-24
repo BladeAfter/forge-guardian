@@ -7,20 +7,20 @@
  * change.
  */
 import abyssalWarlord from './assets/clan-boss/abyssal-warlord.webp';
-import frostTyrant from './assets/clan-boss/frost-tyrant.png';
-import shadowDevourer from './assets/clan-boss/shadow-devourer.png';
-import moltenColossus from './assets/clan-boss/molten-colossus.png';
-import plagueMonarch from './assets/clan-boss/plague-monarch.png';
-import stormReaper from './assets/clan-boss/storm-reaper.png';
-import voidExecutioner from './assets/clan-boss/void-executioner.png';
-import crimsonBehemoth from './assets/clan-boss/crimson-behemoth.png';
-import soulbreakerKing from './assets/clan-boss/soulbreaker-king.png';
-import eternalOverlord from './assets/clan-boss/eternal-overlord.png';
-import obsidianLeviathan from './assets/clan-boss/obsidian-leviathan.png';
-import sunkenOracle from './assets/clan-boss/sunken-oracle.png';
-import ashenWarbringer from './assets/clan-boss/ashen-warbringer.png';
-import celestialInquisitor from './assets/clan-boss/celestial-inquisitor.png';
-import nightmareSovereign from './assets/clan-boss/nightmare-sovereign.png';
+import frostTyrant from './assets/clan-boss/frost-tyrant.webp';
+import shadowDevourer from './assets/clan-boss/shadow-devourer.webp';
+import moltenColossus from './assets/clan-boss/molten-colossus.webp';
+import plagueMonarch from './assets/clan-boss/plague-monarch.webp';
+import stormReaper from './assets/clan-boss/storm-reaper.webp';
+import voidExecutioner from './assets/clan-boss/void-executioner.webp';
+import crimsonBehemoth from './assets/clan-boss/crimson-behemoth.webp';
+import soulbreakerKing from './assets/clan-boss/soulbreaker-king.webp';
+import eternalOverlord from './assets/clan-boss/eternal-overlord.webp';
+import obsidianLeviathan from './assets/clan-boss/obsidian-leviathan.webp';
+import sunkenOracle from './assets/clan-boss/sunken-oracle.webp';
+import ashenWarbringer from './assets/clan-boss/ashen-warbringer.webp';
+import celestialInquisitor from './assets/clan-boss/celestial-inquisitor.webp';
+import nightmareSovereign from './assets/clan-boss/nightmare-sovereign.webp';
 
 /** Ambient particle layer rendered over the arena art. */
 export type ClanBossFx = 'ember' | 'snow' | 'mist' | 'spore' | 'spark' | 'gold';

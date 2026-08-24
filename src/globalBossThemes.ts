@@ -125,7 +125,7 @@ export const GLOBAL_BOSS_THEMES: Record<string, GlobalBossTheme> = {
     border: 'border-cyan-300/25', accent: 'text-cyan-200',
   },
   crimson_behemoth: {
-    key: 'crimson_behemoth', art: art('crimson-behemoth.png'),
+    key: 'crimson_behemoth', art: art('crimson-behemoth.webp'),
     arena: arena('crimson-behemoth'),
     stage: 'radial-gradient(120% 90% at 50% 12%, #4c0511 0%, #26060c 48%, #08060a 100%)',
     aura: 'radial-gradient(circle, rgba(244,63,94,.45) 0%, rgba(90,5,20,0) 68%)',

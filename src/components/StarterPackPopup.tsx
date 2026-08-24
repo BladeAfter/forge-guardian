@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Loader2, Check } from 'lucide-react';
 import { useT } from '../LanguageContext';
-import EMBLEM from '../assets/starter/emblem.png';
+import EMBLEM from '../assets/starter/emblem.webp';
 import PANEL_BG from '../assets/starter/panel-bg.jpg';
-import COINS_ART from '../assets/starter/coins.png';
-import EGG_ART from '../assets/starter/egg.png';
-import CHEST_ART from '../assets/starter/chest.png';
+import COINS_ART from '../assets/starter/coins.webp';
+import EGG_ART from '../assets/starter/egg.webp';
+import CHEST_ART from '../assets/starter/chest.webp';
 
 type Props = {
   /** Server-side delivery. Must resolve only after the backend confirmed the claim. */

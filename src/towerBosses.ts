@@ -5,12 +5,12 @@
  * strong it is; this map only decides how it looks.
  */
 import abyssalWarden from './assets/clan-boss/abyssal-warlord.webp';
-import frostTyrant from './assets/clan-boss/frost-tyrant.png';
-import shadowQueen from './assets/clan-boss/shadow-devourer.png';
-import ironJuggernaut from './assets/clan-boss/molten-colossus.png';
-import venomHydra from './assets/clan-boss/plague-monarch.png';
-import celestialReaper from './assets/clan-boss/void-executioner.png';
-import ancientTreant from './assets/tower-boss/ancient-treant.png';
+import frostTyrant from './assets/clan-boss/frost-tyrant.webp';
+import shadowQueen from './assets/clan-boss/shadow-devourer.webp';
+import ironJuggernaut from './assets/clan-boss/molten-colossus.webp';
+import venomHydra from './assets/clan-boss/plague-monarch.webp';
+import celestialReaper from './assets/clan-boss/void-executioner.webp';
+import ancientTreant from './assets/tower-boss/ancient-treant.webp';
 
 const globalArt = (file: string) => `/assets/game/global-boss/${file}`;
 const arena = (file: string) => `/assets/game/global-boss/arena-${file}.jpg`;
@@ -140,7 +140,7 @@ export const TOWER_BOSS_THEMES: Record<string, TowerBossTheme> = {
     border: 'border-yellow-300/30', accent: 'text-yellow-200',
   },
   crimson_behemoth: {
-    art: globalArt('crimson-behemoth.png'), arena: arena('crimson-behemoth'),
+    art: globalArt('crimson-behemoth.webp'), arena: arena('crimson-behemoth'),
     stage: 'radial-gradient(120% 90% at 50% 12%, #4c0a12 0%, #26060c 48%, #08070a 100%)',
     aura: 'radial-gradient(circle, rgba(248,113,113,.45) 0%, rgba(110,10,20,0) 68%)',
     glow: 'drop-shadow(0 0 30px rgba(248,113,113,.6))',

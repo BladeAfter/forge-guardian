@@ -1,5 +1,5 @@
 import { useT } from '../LanguageContext';
-import GIVEAWAY_ART from '../assets/giveaway/giveaway-art.png';
+import GIVEAWAY_ART from '../assets/giveaway/giveaway-art.webp';
 
 type Props = {
   /** Opens the Telegram group and records `clicked_join_at` server-side. */
