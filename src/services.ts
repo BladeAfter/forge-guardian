@@ -1092,6 +1092,10 @@ const HUNT_ERRORS:Record<string,string>={
   PET_NOT_YOURS:'Este pet não é seu.',
   HUNT_DAILY_LIMIT:'Limite diário de caçadas desta missão atingido.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
+  INSUFFICIENT_FC:'FC insuficiente para pagar a entrada desta caçada.',
+  INSUFFICIENT_TON:'TON interno insuficiente. Deposite TON na carteira.',
+  ENTRY_CURRENCY_UNAVAILABLE:'Esta missão não aceita esta moeda.',
+  INVALID_CURRENCY:'Moeda de entrada inválida.',
 };
 
 async function huntCall<T>(initData:string,body:Record<string,unknown>):Promise<T>{
