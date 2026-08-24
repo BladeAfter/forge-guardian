@@ -21,15 +21,15 @@ const equipmentArtFromCode = (code: string) => {
 
 /** Official chest art, keyed by the rarity token found in the item code. */
 const CHEST_BY_RARITY: Record<string, string> = {
-  common: chestArt('common-chest.png'),
-  uncommon: chestArt('common-chest.png'),
-  rare: chestArt('rare-chest.png'),
-  improved: chestArt('rare-chest.png'),
-  epic: chestArt('epic-chest.png'),
-  special: chestArt('epic-chest.png'),
-  legendary: chestArt('legendary-chest.png'),
-  mythic: chestArt('legendary-chest.png'),
-  ancestral: chestArt('legendary-chest.png'),
+  common: chestArt('common-chest.webp'),
+  uncommon: chestArt('common-chest.webp'),
+  rare: chestArt('rare-chest.webp'),
+  improved: chestArt('rare-chest.webp'),
+  epic: chestArt('epic-chest.webp'),
+  special: chestArt('epic-chest.webp'),
+  legendary: chestArt('legendary-chest.webp'),
+  mythic: chestArt('legendary-chest.webp'),
+  ancestral: chestArt('legendary-chest.webp'),
 };
 
 const FRAGMENT_ART = ui('season-fragments.png');
@@ -49,8 +49,8 @@ const BY_CODE: Record<string, string> = {
   void_key: ui('void-key.png'),
   celestial_key: ui('celestial-key.png'),
   // Premium Legend Chest art (opens a random legendary equipment).
-  'legend-chest': chestArt('legend-chest.png'),
-  legend_chest: chestArt('legend-chest.png'),
+  'legend-chest': chestArt('legend-chest.webp'),
+  legend_chest: chestArt('legend-chest.webp'),
 };
 
 /** Pet egg art (same files served by `pet_eggs.image_url`), keyed by slug. */

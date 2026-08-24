@@ -8,7 +8,7 @@ import { startVeteranV2Purchase, verifyVeteranV2Purchases } from '../services';
 import { sendTonPayment } from '../tonPayment';
 import { veteranV2DailyMyth, veteranV2ErrorText } from '../veteranVaultV2';
 import { formatTon } from '../economy';
-import vaultArt from '../assets/veteran-vault-v2.jpg';
+import vaultArt from '../assets/veteran-vault-v2.webp';
 
 const myth = (value: number) => Math.round(Number(value || 0)).toLocaleString('pt-BR');
 

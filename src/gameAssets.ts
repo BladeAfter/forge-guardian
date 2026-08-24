@@ -75,8 +75,8 @@ export const bossHeroes = [
 ] as const;
 
 export const chests = [
-  gameAsset('chests/common-chest.png'),
-  gameAsset('chests/rare-chest.png'),
-  gameAsset('chests/epic-chest.png'),
-  gameAsset('chests/legendary-chest.png')
+  gameAsset('chests/common-chest.webp'),
+  gameAsset('chests/rare-chest.webp'),
+  gameAsset('chests/epic-chest.webp'),
+  gameAsset('chests/legendary-chest.webp')
 ];

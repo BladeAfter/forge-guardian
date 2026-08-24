@@ -197,7 +197,6 @@ Deno.serve(async req => {
         return BigInt(String(inMsg.value ?? '0')) >= minNano;
       });
       if (!match) {
-        await db.from('ton_payment_logs').insert({ ...logRow, blockchain_status: 'not_found', fulfillment_status: 'pending' });
         continue;
       }
       const txHash = txHashOf(match);

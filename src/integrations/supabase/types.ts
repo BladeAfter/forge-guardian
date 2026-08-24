@@ -17991,6 +17991,7 @@ export type Database = {
         Args: { p_limit?: number }
         Returns: Json
       }
+      prune_ton_payment_logs: { Args: never; Returns: number }
       pvp_ad_view_begin: { Args: { p_telegram_id: number }; Returns: Json }
       pvp_ad_view_reward: {
         Args: { p_source?: string; p_telegram_id: number; p_view_id?: string }

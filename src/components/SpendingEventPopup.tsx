@@ -1,6 +1,6 @@
 import{useEffect,useMemo,useState}from'react';
 import{X}from'lucide-react';
-import treasure from'../assets/spending-event-treasure.png';
+import treasure from'../assets/spending-event-treasure.webp';
 import{abbreviatePoints,countdownLabel,spendingCountdown}from'../spendingEvent';
 import type{SpendingEventPopup as SpendingEventPopupData}from'../spendingEvent';
 import{useT}from'../LanguageContext';

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Flame, Gift, Info, RefreshCw, Sparkles, Trophy, UserPlus, Users } from 'lucide-react';
-import championshipTrophy from '../assets/referral-championship-trophy.png';
+import championshipTrophy from '../assets/referral-championship-trophy.webp';
 import { useSpecialEvents } from '../hooks';
 import { describeDistribution, eventCountdown, formatEventTon } from '../specialEvents';
 import { useT, useLanguage } from '../LanguageContext';
