@@ -234,7 +234,7 @@ export function PetsPage({ telegramInitData, onClose }: { telegramInitData: stri
   if (section === 'hunt') {
     return (
       <Shell onClose={onClose} section={section} onSection={setSection}>
-        <FamiliarHuntSection initData={telegramInitData} />
+        <FamiliarHuntSection initData={telegramInitData} onWallet={onWallet} />
       </Shell>
     );
   }
