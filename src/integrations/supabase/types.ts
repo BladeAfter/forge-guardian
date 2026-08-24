@@ -1663,6 +1663,7 @@ export type Database = {
           atk_scaling: number
           cycle_hours: number
           cycle_lock_enabled: boolean
+          cycle_lock_hours: number
           def_mitigation_cap: number
           def_scaling: number
           def_share: number
@@ -1692,6 +1693,7 @@ export type Database = {
           atk_scaling?: number
           cycle_hours?: number
           cycle_lock_enabled?: boolean
+          cycle_lock_hours?: number
           def_mitigation_cap?: number
           def_scaling?: number
           def_share?: number
@@ -1721,6 +1723,7 @@ export type Database = {
           atk_scaling?: number
           cycle_hours?: number
           cycle_lock_enabled?: boolean
+          cycle_lock_hours?: number
           def_mitigation_cap?: number
           def_scaling?: number
           def_share?: number
@@ -16170,6 +16173,7 @@ export type Database = {
           atk_scaling: number
           cycle_hours: number
           cycle_lock_enabled: boolean
+          cycle_lock_hours: number
           def_mitigation_cap: number
           def_scaling: number
           def_share: number
