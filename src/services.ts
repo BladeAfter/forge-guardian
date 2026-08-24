@@ -650,10 +650,6 @@ const NFT_ERRORS:Record<string,string>={
   CLAIM_TOO_SMALL:'Nenhum TON disponível para resgate ainda.',
   POOL_INSUFFICIENT:'Nenhum TON disponível para resgate ainda.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
-  INSUFFICIENT_FC:'FC insuficiente para pagar a entrada.',
-  INSUFFICIENT_TON:'TON interno insuficiente. Deposite TON na carteira.',
-  ENTRY_CURRENCY_UNAVAILABLE:'Esta missão não aceita esta moeda.',
-  INVALID_CURRENCY:'Moeda de entrada inválida.',
 };
 
 const nftError=(code:string,fallback:string)=>NFT_ERRORS[code]??fallback;
