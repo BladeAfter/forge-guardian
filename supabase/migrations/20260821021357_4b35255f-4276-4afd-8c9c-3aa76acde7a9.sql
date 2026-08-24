@@ -40,7 +40,7 @@ BEGIN
       (2000000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 300, 10, 'nfteq_weapon_ms02', '["1 Exclusive Hero Chest","300 Universal Fragments","10 PvP Tickets","NFT Weapon: Myth Reaver"]'::jsonb),
       (3000000::bigint, 'mythic-egg', 'pet_egg', 400, 12, NULL::text, '["1 Exclusive Pet Egg","400 Universal Fragments","12 PvP Tickets"]'::jsonb),
       (4000000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 500, 15, 'nfteq_weapon_ms03', '["1 Exclusive Hero Chest","500 Universal Fragments","15 PvP Tickets","NFT Weapon: Scepter of Eternity"]'::jsonb),
-      (5000000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 650, 20, NULL::text, '["1 Exclusive Hero Chest","650 Universal Fragments","20 PvP Tickets"]'::jsonb),
+      (500000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 650, 20, NULL::text, '["1 Exclusive Hero Chest","650 Universal Fragments","20 PvP Tickets"]'::jsonb),
       (6000000::bigint, 'mythic-egg', 'pet_egg', 800, 25, 'nfteq_weapon_ms04', '["1 Exclusive Pet Egg","800 Universal Fragments","25 PvP Tickets","NFT Weapon: Mythveil Longbow"]'::jsonb),
       (7000000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 1000, 30, NULL::text, '["1 Exclusive Hero Chest","1000 Universal Fragments","30 PvP Tickets"]'::jsonb),
       (8000000::bigint, 'exclusive-hero-chest', 'exclusive_chest', 1300, 35, 'nfteq_weapon_ms05', '["1 Exclusive Hero Chest","1300 Universal Fragments","35 PvP Tickets","NFT Weapon: Mythsong Staff"]'::jsonb),
