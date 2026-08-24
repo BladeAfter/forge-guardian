@@ -1072,3 +1072,39 @@ export const fetchAuctionMine=(initData:string)=>auctionRequest<import('./auctio
 export const createAuction=(initData:string,input:{itemType:string;itemInstanceId:string;startingBidTon:number;durationHours:number})=>auctionRequest<{ok:boolean;auctionId:string}>(initData,{action:'create',...input});
 export const placeAuctionBid=(initData:string,auctionId:string,amountTon:number,idempotencyKey?:string)=>auctionRequest<{ok:boolean;bidTon:number;availableTon?:number}>(initData,{action:'bid',auctionId,amountTon,idempotencyKey});
 export const cancelAuction=(initData:string,auctionId:string)=>auctionRequest<{ok:boolean}>(initData,{action:'cancel',auctionId});
+
+/**
+ * 🐾⚔️ FAMILIAR HUNT — new pet COMBAT mode. Completely separate from the classic
+ * AFK expeditions: the server simulates the fight and returns the full battle log.
+ */
+export type FamiliarHuntPet={playerPetId:string;name:string;image:string|null;rarity:string;level:number;power:number;isSubNft:boolean;stage:string|null};
+export type FamiliarHuntEnemy={name:string;image:string|null;hp:number;maxHp?:number;atk:number;elite?:boolean};
+export type FamiliarHuntReward={type:string;code:string;quantity:number;min?:number;max?:number;chance?:number;rarity?:string};
+export type FamiliarHuntMission={id:string;code:string;name:string;theme:string;rarity:string;description:string|null;background:string|null;recommendedPower:number;maxRunsPerDay:number;runsToday:number;enemies:FamiliarHuntEnemy[];rewards:FamiliarHuntReward[]};
+export type FamiliarHuntState={gameDay:string;pets:FamiliarHuntPet[];missions:FamiliarHuntMission[];history:{id:string;missionName:string;victory:boolean;rounds:number;totalDamage:number;rewards:FamiliarHuntReward[];createdAt:string}[]};
+export type FamiliarHuntEvent={round:number;side:'pet'|'enemy';actor:number;target:number;damage:number;crit:boolean;ko:boolean;targetHp:number;targetMax:number};
+export type FamiliarHuntResult={ok:boolean;runId:string;victory:boolean;rounds:number;teamPower:number;totalDamage:number;rewards:FamiliarHuntReward[];log:FamiliarHuntEvent[];team:{name:string;image:string|null;maxHp:number;hp:number;atk:number;power:number}[];enemies:{name:string;image:string|null;maxHp:number;hp:number;atk:number;elite:boolean}[];runsToday:number;maxRunsPerDay:number};
+
+const HUNT_ERRORS:Record<string,string>={
+  MISSION_NOT_FOUND:'Missão de caça indisponível.',
+  TEAM_MUST_HAVE_3_PETS:'Selecione exatamente 3 pets.',
+  DUPLICATED_PET:'Não repita o mesmo pet na equipe.',
+  PET_NOT_YOURS:'Este pet não é seu.',
+  HUNT_DAILY_LIMIT:'Limite diário de caçadas desta missão atingido.',
+  PLAYER_NOT_FOUND:'Jogador não encontrado.',
+};
+
+async function huntCall<T>(initData:string,body:Record<string,unknown>):Promise<T>{
+  const response=await forgeFetch('familiar-hunt',{initData,...body});
+  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Familiar Hunt.');
+  const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
+  if(!response.ok||!payload){
+    const raw=payload?.error||'';
+    throw new Error(HUNT_ERRORS[raw]||raw||'Não foi possível processar a caçada.');
+  }
+  return payload;
+}
+
+export const fetchFamiliarHuntState=(initData:string)=>huntCall<FamiliarHuntState>(initData,{action:'state'});
+export const startFamiliarHunt=(initData:string,missionId:string,petIds:string[],idempotencyKey:string)=>
+  huntCall<FamiliarHuntResult>(initData,{action:'battle',missionId,petIds,idempotencyKey});
