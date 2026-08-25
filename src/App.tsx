@@ -725,6 +725,7 @@ function App() {
       backendOfficial={backendEnabled}
       telegramInitData={telegramInitData}
       onOpenSeasonPass={()=>openInternal('season-pass')}
+      onWallet={()=>{closeInternal();setTab('wallet')}}
       onEquipHero={async(heroId,slot)=>{
         if(backendEnabled)return equipHeroMutation.mutateAsync({heroId,slot});
         setGame(current=>{
