@@ -60,11 +60,12 @@ export async function buildDeviceIdentity(): Promise<DeviceIdentity> {
 }
 
 export type DeviceAccess = {
-  access: 'allowed' | 'blocked';
+  access: 'allowed' | 'blocked' | 'banned';
   status?: string;
   reason?: string | null;
   code?: string | null;
   pendingReview?: boolean;
+  bannedAt?: string | null;
 };
 
 /** Boot check. A network/backend failure never blocks the player (fail-open by design). */
@@ -73,9 +74,16 @@ export async function checkDeviceAccess(initData: string): Promise<{ result: Dev
     const identity = await buildDeviceIdentity();
     const response = await forgeFetch('device', { initData, action: 'check', ...identity });
     const payload = (await response.json()) as DeviceAccess | null;
-    if (response.status === 403) return { result: { access: 'blocked', reason: 'MULTIPLE_ACCOUNTS_DETECTED', code: 'MULTI_ACCOUNT_LIMIT' }, identity };
+    if (response.status === 403) {
+      // Two distinct server verdicts share the 403: account ban and device multi-account block.
+      if (payload?.code === 'ACCOUNT_BANNED' || payload?.access === 'banned') {
+        return { result: { access: 'banned', code: 'ACCOUNT_BANNED', reason: payload?.reason ?? null, bannedAt: payload?.bannedAt ?? null }, identity };
+      }
+      return { result: { access: 'blocked', reason: 'MULTIPLE_ACCOUNTS_DETECTED', code: 'MULTI_ACCOUNT_LIMIT' }, identity };
+    }
     if (!response.ok || !payload) return { result: { access: 'allowed', status: 'unverified' }, identity };
-    return { result: { ...payload, access: payload.access === 'blocked' ? 'blocked' : 'allowed' }, identity };
+    const access = payload.access === 'banned' ? 'banned' : payload.access === 'blocked' ? 'blocked' : 'allowed';
+    return { result: { ...payload, access }, identity };
   } catch (error) {
     console.error('[ANTI FAKE] device check failed', error);
     return { result: { access: 'allowed', status: 'unverified' }, identity: null };

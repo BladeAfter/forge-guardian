@@ -35,6 +35,7 @@ import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
 import { HeroXpToasts } from './HeroXpToasts';
 import AccessDeniedScreen from './components/AccessDeniedScreen';
+import BannedScreen from './components/BannedScreen';
 import { checkDeviceAccess, type DeviceAccess, type DeviceIdentity } from './antiFake';
 import { HERO_CATALOG, RARITY_COLORS, RARITY_ODDS, type HeroRarity, type ShopHero } from './heroCatalog';
 import type {TelegramPlayerProfile} from './playerProfile';
@@ -405,7 +406,7 @@ function App() {
       if (cancelled) return;
       setDeviceIdentity(identity);
       setDeviceAccess(result);
-      if (result.access === 'blocked') console.error('[ANTI FAKE] access blocked', { code: result.code });
+      if (result.access !== 'allowed') console.error('[ACCESS GATE] blocked', { code: result.code, access: result.access });
     });
     return () => { cancelled = true; };
   }, [telegramInitData]);
@@ -667,6 +668,11 @@ function App() {
 
   if (outsideTelegram) {
     return <OpenInTelegramGate />;
+  }
+
+  // Banned account: hard stop, nothing of the game is rendered or fetched.
+  if (deviceAccess?.access === 'banned') {
+    return <BannedScreen language={languageCode} reason={deviceAccess.reason ?? null} bannedAt={deviceAccess.bannedAt ?? null} />;
   }
 
   // Blocked device: no Village, Wallet, PvP or Market is ever rendered/loaded.

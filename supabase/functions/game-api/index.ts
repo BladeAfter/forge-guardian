@@ -2544,6 +2544,25 @@ Deno.serve(async (req) => {
 
   try {
     const db = serviceClient();
+    // BAN gate: a banned account reaches NO feature at all (including `device`), so the
+    // ban applied in the admin bot is real and the client shows the BANNED card.
+    {
+      const ban = await db
+        .from('game_players')
+        .select('banned, ban_reason, banned_at')
+        .eq('telegram_id', user.id)
+        .maybeSingle();
+      if (!ban.error && ban.data?.banned === true) {
+        console.error('[ACCOUNT BANNED]', { feature, telegramId: user.id });
+        return json({
+          access: 'banned',
+          code: 'ACCOUNT_BANNED',
+          reason: ban.data.ban_reason ?? null,
+          bannedAt: ban.data.banned_at ?? null,
+          error: 'ACCOUNT_BANNED',
+        }, 403);
+      }
+    }
     // ANTI-FAKE gate: a device that already reached the account limit can only talk to
     // the `device` route (status + review request). Every other feature is server-blocked.
     if (feature !== 'device') {
@@ -2553,6 +2572,7 @@ Deno.serve(async (req) => {
         return json({ access: 'blocked', reason: 'MULTIPLE_ACCOUNTS_DETECTED', code: 'MULTI_ACCOUNT_LIMIT', error: 'MULTIPLE_ACCOUNTS_DETECTED' }, 403);
       }
     }
+
     // Real activity only: every authenticated call refreshes last_seen_at, throttled server-side
     // to once per minute. The client never sends a timestamp.
     void db.rpc('touch_player_activity', { p_telegram_id: user.id });
