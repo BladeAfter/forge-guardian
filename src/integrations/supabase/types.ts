@@ -5441,6 +5441,9 @@ export type Database = {
           mining_currency: string
           myth_per_day: number
           pass_exclusive_myth_per_day: number
+          pass_gate_cutoff_at: string
+          pass_gate_enabled: boolean
+          pass_gate_price_ton: number
           updated_at: string
         }
         Insert: {
@@ -5452,6 +5455,9 @@ export type Database = {
           mining_currency?: string
           myth_per_day?: number
           pass_exclusive_myth_per_day?: number
+          pass_gate_cutoff_at?: string
+          pass_gate_enabled?: boolean
+          pass_gate_price_ton?: number
           updated_at?: string
         }
         Update: {
@@ -5463,6 +5469,9 @@ export type Database = {
           mining_currency?: string
           myth_per_day?: number
           pass_exclusive_myth_per_day?: number
+          pass_gate_cutoff_at?: string
+          pass_gate_enabled?: boolean
+          pass_gate_price_ton?: number
           updated_at?: string
         }
         Relationships: []
@@ -13321,6 +13330,53 @@ export type Database = {
         }
         Relationships: []
       }
+      ton_mining_access: {
+        Row: {
+          access_type: string
+          created_at: string
+          expires_at: string | null
+          granted_at: string | null
+          mining_access_granted_at: string | null
+          note: string | null
+          revoked_at: string | null
+          source: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_type?: string
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          mining_access_granted_at?: string | null
+          note?: string | null
+          revoked_at?: string | null
+          source?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_type?: string
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          mining_access_granted_at?: string | null
+          note?: string | null
+          revoked_at?: string | null
+          source?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mining_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ton_payment_logs: {
         Row: {
           blockchain_status: string | null
@@ -16167,6 +16223,31 @@ export type Database = {
         Args: { p_admin_id: number; p_telegram_id: number }
         Returns: Json
       }
+      admin_ton_mining_gate: { Args: { p_admin_id: number }; Returns: Json }
+      admin_ton_mining_gate_audit: {
+        Args: { p_admin_id: number; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_ton_mining_gate_cutoff: {
+        Args: { p_admin_id: number; p_cutoff: string }
+        Returns: Json
+      }
+      admin_ton_mining_gate_grant: {
+        Args: { p_admin_id: number; p_note?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_ton_mining_gate_revoke: {
+        Args: { p_admin_id: number; p_note?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_ton_mining_gate_set: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
+      admin_ton_mining_gate_users: {
+        Args: { p_admin_id: number; p_limit?: number; p_type: string }
+        Returns: Json
+      }
       admin_ton_reward_history: {
         Args: { p_admin_id: number; p_limit?: number; p_user_id?: string }
         Returns: Json
@@ -16629,6 +16710,7 @@ export type Database = {
         }
         Returns: Json
       }
+      can_access_ton_mining: { Args: { p_user_id: string }; Returns: string }
       check_device_access: {
         Args: {
           p_device_hash: string
@@ -19046,6 +19128,17 @@ export type Database = {
       ton_absorb_duplicate_payment: {
         Args: { p_amount_nano: string; p_comment: string; p_tx_hash: string }
         Returns: Json
+      }
+      ton_mining_access_allowed: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      ton_mining_access_sync: { Args: { p_user_id: string }; Returns: string }
+      ton_mining_gate_cutoff: { Args: never; Returns: string }
+      ton_mining_gate_enabled: { Args: never; Returns: boolean }
+      ton_mining_pass_confirmed_at: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
