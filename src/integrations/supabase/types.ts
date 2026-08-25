@@ -1745,6 +1745,7 @@ export type Database = {
           easy_pct: number
           enabled: boolean
           fc_pool_pct: number
+          fixed_fc_pool: number
           hard_pct: number
           history_samples: number
           id: number
@@ -1772,6 +1773,7 @@ export type Database = {
           easy_pct?: number
           enabled?: boolean
           fc_pool_pct?: number
+          fixed_fc_pool?: number
           hard_pct?: number
           history_samples?: number
           id?: number
@@ -1799,6 +1801,7 @@ export type Database = {
           easy_pct?: number
           enabled?: boolean
           fc_pool_pct?: number
+          fixed_fc_pool?: number
           hard_pct?: number
           history_samples?: number
           id?: number
@@ -14845,6 +14848,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_clan_boss_personal_set_fc: {
+        Args: { p_admin_id: number; p_value: number }
+        Returns: Json
+      }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -16833,6 +16840,7 @@ export type Database = {
           easy_pct: number
           enabled: boolean
           fc_pool_pct: number
+          fixed_fc_pool: number
           hard_pct: number
           history_samples: number
           id: number
