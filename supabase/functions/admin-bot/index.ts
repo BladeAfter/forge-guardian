@@ -7661,7 +7661,7 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 👹 Clan Boss module (Abyssal Warlord) — fully independent from the 👑 global boss panel.
   if (head === "cb") {
-    if (rest[0] !== "ask") await clearSession(ctx);
+    if (!["ask", "cask"].includes(rest[0])) await clearSession(ctx);
     return cbCallback(ctx, rest);
   }
 
@@ -9554,7 +9554,32 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
   }
 }
 
-async function cbPrompt(ctx: Ctx, key: string, text: string) {
+async function cbPrompt(ctx: Ctx, key: string, text: string, args: string[] = []) {
+  const clanId = args[0] || "";
+  if (key === "cbcrw" && clanId) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error('KEEP_SESSION::⚠️ JSON inválido. Ex.: <code>{"fcPool":1000000}</code>');
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      throw new Error("KEEP_SESSION::⚠️ Envie um objeto JSON de recompensas.");
+    await cbClanCall(ctx, clanId, "set_rewards_json", { rewards: parsed });
+    await clearSession(ctx);
+    await send(ctx, "✅ Recompensas deste clã atualizadas e aplicadas ao chefe ativo.");
+    return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
+  if (CB_CLAN_FIELDS[key] && clanId) {
+    const f = CB_CLAN_FIELDS[key];
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0)
+      throw new Error(`KEEP_SESSION::⚠️ Envie um número válido para ${f.label}.`);
+    await cbClanCall(ctx, clanId, f.action, { value });
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>${esc(f.label)}</b> deste clã atualizado e aplicado imediatamente.`);
+    return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
   if (key === "cbclan") {
     const rows = await db
       .from("clans")
@@ -10939,7 +10964,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("cl")) return clansPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("sp") && ["spname", "spdays", "spreward", "spratet", "spratef"].includes(key))
     return spendPrompt(ctx, key, text);
-  if (key.startsWith("cb")) return cbPrompt(ctx, key, text);
+  if (key.startsWith("cb")) return cbPrompt(ctx, key, text, args);
   if (key.startsWith("pt") && key !== "ptr") return partnersPrompt(ctx, key, args, text);
   if (key === "prsearch") return prSearch(ctx, text);
   if (key.startsWith("af")) return afPrompt(ctx, key, text);
