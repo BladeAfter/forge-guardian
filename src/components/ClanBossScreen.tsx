@@ -149,9 +149,35 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
     );
   }
 
+  // PERSONAL DAILY LIMIT (server-side): only DEFEATED bosses consume it, never
+  // attacks or failed attempts. Per player / per day — clan hopping never resets it.
+  if (!boss && data.daily?.limitReached) {
+    const remaining = Math.max(0, data.daily.secondsToReset ?? data.nextBossInSeconds ?? 0);
+    const hours = Math.floor(remaining / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    return (
+      <Frame onClose={onClose} clan={data.clan}>
+        <div className="mt-16 rounded-3xl border border-amber-300/30 bg-black/70 p-6 text-center">
+          <Trophy className="mx-auto h-10 w-10 text-amber-300" />
+          <p className="mt-4 text-[12px] font-black tracking-[.18em] text-amber-200">{t('clanBoss.dailyLimitReached')}</p>
+          <p className="mt-2 text-[11px] font-black tracking-[.14em] text-white">
+            {data.daily.defeated} / {data.daily.limit} {t('clanBoss.dailyDefeated')}
+          </p>
+          <p className="mt-5 text-[9px] font-black tracking-[.28em] text-violet-200/80">{t('clanBoss.dailyNextReset')}</p>
+          <p className="mt-1 text-3xl font-black tracking-[.08em] text-white">
+            {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m
+          </p>
+          <p className="mt-4 text-[9px] leading-relaxed tracking-[.12em] text-violet-200/60">{t('clanBoss.dailyLimitHint')}</p>
+          <button type="button" onClick={() => void refetch()} className="mt-5 w-full rounded-xl border border-violet-300/40 bg-violet-500/20 py-3 text-[10px] font-black text-violet-100">{t('clanBoss.tryAgain')}</button>
+        </div>
+      </Frame>
+    );
+  }
+
   // 24h CYCLE LOCK (server-side): the clan already had its rewarding boss for
   // this cycle. Killing it faster never unlocks a new farmable boss.
   if (!boss && data.cycleLocked) {
+
     const remaining = Math.max(0, data.nextBossInSeconds ?? 0);
     const hours = Math.floor(remaining / 3600);
     const minutes = Math.floor((remaining % 3600) / 60);
