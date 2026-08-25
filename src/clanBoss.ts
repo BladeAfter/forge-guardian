@@ -111,6 +111,11 @@ export type ClanBossState = {
     bossNumberToday?: number;
     maxHp: number;
     currentHp: number;
+    /** Boss stats locked at spawn. */
+    def?: number;
+    atk?: number;
+    power?: number;
+
 
 
     status: 'active' | 'defeated' | 'expired' | string;
