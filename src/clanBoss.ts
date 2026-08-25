@@ -53,10 +53,25 @@ export type ClanBossAutoAttackState = {
   reason?: 'no_pass' | 'disabled' | 'no_team' | 'no_clan' | 'no_boss' | null;
 };
 
+export type ClanBossDaily = {
+  defeated: number;
+  limit: number;
+  globalLimit?: number;
+  override?: number | null;
+  limitReached: boolean;
+  resetAt?: string | null;
+  secondsToReset?: number;
+};
+
 export type ClanBossState = {
   inClan: boolean;
+  /** Personal Clan Boss: every member fights his own adaptive instance. */
+  personal?: boolean;
+  /** Server-side daily DEFEATED counter (per player, never per clan). */
+  daily?: ClanBossDaily | null;
   /** Season Pass offline Auto ATK state for the clan boss (server-driven). */
   autoAttack?: ClanBossAutoAttackState | null;
+
 
   bossName?: string;
   /** How many bosses exist in the cycle progression (currently 10). */
