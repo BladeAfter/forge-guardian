@@ -770,7 +770,60 @@ async function hotWalletAddress(db: Db): Promise<string> {
  * Step 1 — the database delivers every order whose payment is already confirmed (idempotent, never charges again).
  * Step 2 — only orders that are genuinely awaiting payment are looked up on-chain.
  */
+/**
+ * 🐾⚔️ FAMILIAR HUNT — external TonConnect reconciler.
+ * A hunt paid on-chain becomes a battle only after the transfer is found, and each
+ * hunt instance can be settled exactly once (double click / refresh / two tabs safe).
+ */
+async function verifyFamiliarHuntPayments(db: Db, user: TelegramUser) {
+  const state = await rpc(db, 'familiar_hunt_pending_payments', { p_telegram_id: user.id }) as any;
+  const settled: any[] = [];
+  const pending: string[] = [];
+
+  // step 1 — hunts already paid but never resolved (PAID_PENDING_HUNT recovery)
+  for (const id of (state?.paidPendingHunt ?? [])) {
+    try { settled.push(await rpc(db, 'familiar_hunt_resolve', { p_instance_id: String(id) })); }
+    catch (error) { console.error('[FORGE ERROR] familiar-hunt-recover', { id, error: String(error) }); }
+  }
+
+  // step 2 — hunts still waiting for the blockchain
+  const orders: any[] = Array.isArray(state?.awaitingPayment) ? state.awaitingPayment : [];
+  if (orders.length) {
+    const hotWallet = await hotWalletAddress(db);
+    const transactions = await fetchHotWalletIncoming(hotWallet);
+    for (const order of orders) {
+      const comment = String(order.paymentComment || '').trim();
+      const expectedNano = BigInt(String(order.amountNano || '0'));
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
+      });
+      if (!match) { pending.push(String(order.id)); continue; }
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      try {
+        await rpc(db, 'familiar_hunt_mark_paid', { p_instance_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+        settled.push(await rpc(db, 'familiar_hunt_resolve', { p_instance_id: order.id }));
+        await db.from('ton_payment_logs').insert({
+          order_kind: 'familiar_hunt', order_id: order.id, telegram_id: user.id,
+          product_id: `stage:${order.stage}`, expected_amount_nano: expectedNano.toString(),
+          destination_wallet: hotWallet, payment_reference: comment, tx_hash: txHash,
+          received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'completed',
+        });
+      } catch (error) {
+        // never lose a payment: the hunt stays recoverable on the next verification
+        console.error('[FORGE ERROR] familiar-hunt-confirm', { orderId: order.id, error: String(error) });
+        pending.push(String(order.id));
+      }
+    }
+  }
+
+  return { checked: orders.length + settled.length, settled, pending };
+}
+
 async function verifyEggPurchases(db: Db, user: TelegramUser) {
+
   const state = await rpc(db, 'reconcile_pet_egg_orders', { p_telegram_id: user.id }) as any;
   const completed: string[] = [...(state?.delivered ?? [])].map(String);
   const alreadyDelivered: string[] = [...(state?.alreadyDelivered ?? [])].map(String);
@@ -2380,28 +2433,31 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
-   * 🐾⚔️ FAMILIAR HUNT — new pet COMBAT mode (fully separate from `expeditions`).
-   * The battle itself, the victory check and every reward are resolved server-side.
+   * 🐾⚔️ FAMILIAR HUNT — LINEAR stage progression (fully separate from `expeditions`).
+   * The stage, the entry payment, the fight and every reward roll are resolved server-side.
+   * FC / internal TON are charged atomically with the hunt; an external TonConnect payment
+   * only becomes a battle after the transfer is found on-chain (idempotent recovery).
    */
   'familiar-hunt': async (db, user, body) => {
     const action = String(body.action || 'state');
     if (action === 'state') return rpc(db, 'familiar_hunt_state', { p_telegram_id: user.id });
-    if (action === 'battle') {
+    if (action === 'start') {
       const petIds = Array.isArray(body.petIds) ? body.petIds.map(String) : [];
-      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
       if (petIds.length !== 3 || petIds.some((id) => !isUuid(id))) throw new Error('TEAM_MUST_HAVE_3_PETS');
       if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
       const key = String(body.idempotencyKey || '').slice(0, 80) || null;
-      // entry cost currency: FC or the player's INTERNAL TON balance (never the external wallet)
+      // entry currency: FC or TON. Internal TON is used only when it covers 100% of the entry;
+      // otherwise the DB returns a payment intent for the FULL amount (never a mixed payment).
       const currency = String(body.currency || 'fc').toLowerCase();
       if (currency !== 'fc' && currency !== 'ton') throw new Error('INVALID_CURRENCY');
-      return rpc(db, 'familiar_hunt_battle', {
-        p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds, p_idempotency_key: key,
-        p_currency: currency,
+      return rpc(db, 'familiar_hunt_start', {
+        p_telegram_id: user.id, p_pet_ids: petIds, p_currency: currency, p_idempotency_key: key,
       });
     }
+    if (action === 'verify-payments') return await verifyFamiliarHuntPayments(db, user);
     throw new Error('INVALID_ACTION');
   },
+
 
 };
 

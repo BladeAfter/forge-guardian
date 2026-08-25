@@ -1074,28 +1074,43 @@ export const placeAuctionBid=(initData:string,auctionId:string,amountTon:number,
 export const cancelAuction=(initData:string,auctionId:string)=>auctionRequest<{ok:boolean}>(initData,{action:'cancel',auctionId});
 
 /**
- * 🐾⚔️ FAMILIAR HUNT — new pet COMBAT mode. Completely separate from the classic
- * AFK expeditions: the server simulates the fight and returns the full battle log.
+ * 🐾⚔️ FAMILIAR HUNT — LINEAR stage progression pet combat mode. Completely separate
+ * from the classic AFK expeditions. The server owns the stage, the payment, the fight
+ * and every reward roll: the client only renders what came back.
  */
 export type FamiliarHuntPet={playerPetId:string;name:string;image:string|null;rarity:string;level:number;power:number;isSubNft:boolean;stage:string|null};
 export type FamiliarHuntEnemy={name:string;image:string|null;hp:number;maxHp?:number;atk:number;elite?:boolean};
-export type FamiliarHuntReward={type:string;code:string;quantity:number;min?:number;max?:number;chance?:number;rarity?:string};
-export type FamiliarHuntMission={id:string;code:string;name:string;theme:string;rarity:string;description:string|null;background:string|null;recommendedPower:number;maxRunsPerDay:number;runsToday:number;entryCostFc:number;entryCostTon:number;enemies:FamiliarHuntEnemy[];rewards:FamiliarHuntReward[]};
-export type FamiliarHuntState={gameDay:string;balances:{fc:number;ton:number};pets:FamiliarHuntPet[];missions:FamiliarHuntMission[];history:{id:string;missionName:string;victory:boolean;rounds:number;totalDamage:number;rewards:FamiliarHuntReward[];createdAt:string}[]};
+export type FamiliarHuntReward={type:string;code:string;quantity:number;rarity?:string|null};
+export type FamiliarHuntLootOption=Array<{type:string;code?:string;rarity?:string;min?:number;max?:number}>;
+export type FamiliarHuntLootTier={label:string;weight:number;options:FamiliarHuntLootOption[]};
+export type FamiliarHuntStage={stage:number;name:string;theme:string|null;background:string|null;isBoss:boolean;recommendedPower:number;defReduction:number;enemies:FamiliarHuntEnemy[]};
+export type FamiliarHuntState={
+  enabled:boolean;
+  balances:{fc:number;ton:number};
+  entry:{fc:number;ton:number;lootTableVersion:number};
+  progress:{currentStage:number;highestStageCompleted:number};
+  stage:FamiliarHuntStage;
+  dropRates:{fc:FamiliarHuntLootTier[];ton:FamiliarHuntLootTier[]};
+  pets:FamiliarHuntPet[];
+  history:{id:string;stage:number;stageName:string|null;victory:boolean;rounds:number;totalDamage:number;rewards:FamiliarHuntReward[];currency:string;amount:number;createdAt:string}[];
+};
 export type FamiliarHuntEvent={round:number;side:'pet'|'enemy';actor:number;target:number;damage:number;crit:boolean;ko:boolean;targetHp:number;targetMax:number};
-export type FamiliarHuntResult={ok:boolean;runId:string;victory:boolean;rounds:number;teamPower:number;totalDamage:number;rewards:FamiliarHuntReward[];log:FamiliarHuntEvent[];team:{name:string;image:string|null;maxHp:number;hp:number;atk:number;power:number}[];enemies:{name:string;image:string|null;maxHp:number;hp:number;atk:number;elite:boolean}[];runsToday:number;maxRunsPerDay:number};
+export type FamiliarHuntResult={ok:boolean;runId:string;stage:number;stageName:string|null;isBoss:boolean;victory:boolean;rounds:number;teamPower:number;recommendedPower:number;totalDamage:number;lootTier:string|null;rewards:FamiliarHuntReward[];log:FamiliarHuntEvent[];paymentCurrency:string;paymentAmount:number;team:{name:string;image:string|null;maxHp:number;hp:number;atk:number;power:number}[];enemies:{name:string;image:string|null;maxHp:number;hp:number;atk:number;elite:boolean}[]};
+/** Returned when the internal TON balance does not cover the entry: TonConnect pays the FULL amount. */
+export type FamiliarHuntPaymentIntent={ok:boolean;needsPayment:true;huntId:string;stage:number;paymentAddress:string;paymentComment:string;amountNano:string;amountTon:number};
+export type FamiliarHuntStartResponse=FamiliarHuntResult|FamiliarHuntPaymentIntent;
 
 const HUNT_ERRORS:Record<string,string>={
-  MISSION_NOT_FOUND:'Missão de caça indisponível.',
+  FAMILIAR_HUNT_DISABLED:'A Familiar Hunt está temporariamente desativada.',
   TEAM_MUST_HAVE_3_PETS:'Selecione exatamente 3 pets.',
   DUPLICATED_PET:'Não repita o mesmo pet na equipe.',
   PET_NOT_YOURS:'Este pet não é seu.',
-  HUNT_DAILY_LIMIT:'Limite diário de caçadas desta missão atingido.',
   PLAYER_NOT_FOUND:'Jogador não encontrado.',
   INSUFFICIENT_FC:'FC insuficiente para pagar a entrada desta caçada.',
-  INSUFFICIENT_TON:'TON interno insuficiente. Deposite TON na carteira.',
-  ENTRY_CURRENCY_UNAVAILABLE:'Esta missão não aceita esta moeda.',
   INVALID_CURRENCY:'Moeda de entrada inválida.',
+  TON_HOT_WALLET_MISSING:'Pagamento TON indisponível no momento.',
+  TON_AMOUNT_TOO_LOW:'O valor recebido é menor que a entrada.',
+  HUNT_NOT_PAID:'Esta caçada ainda não foi paga.',
 };
 
 async function huntCall<T>(initData:string,body:Record<string,unknown>):Promise<T>{
@@ -1109,6 +1124,14 @@ async function huntCall<T>(initData:string,body:Record<string,unknown>):Promise<
   return payload;
 }
 
+export const isFamiliarHuntPayment=(payload:FamiliarHuntStartResponse):payload is FamiliarHuntPaymentIntent =>
+  Boolean((payload as FamiliarHuntPaymentIntent).needsPayment);
+
 export const fetchFamiliarHuntState=(initData:string)=>huntCall<FamiliarHuntState>(initData,{action:'state'});
-export const startFamiliarHunt=(initData:string,missionId:string,petIds:string[],idempotencyKey:string,currency:'fc'|'ton'='fc')=>
-  huntCall<FamiliarHuntResult>(initData,{action:'battle',missionId,petIds,idempotencyKey,currency});
+/** The stage is decided server-side; the client only chooses the team and the currency. */
+export const startFamiliarHunt=(initData:string,petIds:string[],idempotencyKey:string,currency:'fc'|'ton'='fc')=>
+  huntCall<FamiliarHuntStartResponse>(initData,{action:'start',petIds,idempotencyKey,currency});
+/** Confirms external TON transfers on-chain and resolves every paid hunt exactly once. */
+export const verifyFamiliarHuntPayments=(initData:string)=>
+  huntCall<{checked:number;settled:FamiliarHuntResult[];pending:string[]}>(initData,{action:'verify-payments'});
+
