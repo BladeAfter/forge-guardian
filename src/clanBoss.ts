@@ -110,6 +110,8 @@ export type ClanBossState = {
     difficulty?: string | null;
     bossNumberToday?: number;
     maxHp: number;
+    currentHp: number;
+
 
     status: 'active' | 'defeated' | 'expired' | string;
     startsAt: string;
