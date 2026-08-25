@@ -3767,6 +3767,11 @@ const PROMPTS: Record<string, string> = {
   cbperday: "👹 Envie quantos <b>chefes por dia</b> cada guilda pode enfrentar (1 a 48).\nEx.: <code>4</code>",
   cbfcpool: "🎁 Envie o <b>pool de FC</b> pago ao derrotar o Clan Boss.\nEx.: <code>1000000</code>",
   cbclan: "🏰 Envie o <b>nome ou tag</b> do clã para configurar HP e recompensa individuais.\nEx.: <code>MythBR</code>",
+  cbpglobal:
+    "👹 Envie o <b>LIMITE DIÁRIO PADRÃO</b> de chefes DERROTADOS por jogador (0 a 50).\nEx.: <code>4</code>\n<i>Ataques e tentativas falhas nunca consomem o limite.</i>",
+  cbpreset: "🕒 Envie a <b>hora oficial do reset diário</b> em UTC (0 a 23).\nEx.: <code>0</code> para 00:00 UTC",
+  cbpsearch: "🔍 Envie o <b>Telegram ID</b>, @usuário ou ID interno do jogador para gerenciar o chefe pessoal e o limite diário.",
+  cbplimit: "🎯 Envie o <b>limite individual</b> de chefes derrotados por dia deste jogador (0 a 50).\nEx.: <code>6</code>",
 
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
@@ -9209,6 +9214,7 @@ async function cbHub(ctx: Ctx, editing = true) {
       { t: "⚔️ CHEFES ATIVOS", d: "cb:active" },
       { t: "🏰 GERENCIAR CLÃ", d: "cb:ask:cbclan" },
     ],
+    [{ t: "🎯 LIMITE DIÁRIO / JOGADORES", d: "cb:pers" }],
     [{ t: "⚖️ BALANCEAMENTO 24H", d: "cb:bal" }],
     [{ t: "📜 HISTÓRICO", d: "cb:audit" }],
 
@@ -9647,6 +9653,29 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
       await send(ctx, "♻️ Configuração individual removida: este clã voltou a usar a configuração global.");
       return cbClanCard({ ...ctx, messageId: undefined }, a, false);
     }
+    case "pers":
+      return cbpHub(ctx);
+    case "pp":
+      return cbpPlayer(ctx, a);
+    case "pphist":
+      return cbpHistory(ctx, a);
+    case "pplim":
+      return ask(ctx, `cbplimit|${a}`, PROMPTS.cbplimit);
+    case "ppclr": {
+      await cbpCall(ctx, "clear_limit", a);
+      await send(ctx, "♻️ Override removido: o jogador voltou ao limite diário global.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "pprst": {
+      await cbpCall(ctx, "reset_daily", a);
+      await send(ctx, "🔄 Contagem de chefes derrotados de hoje zerada para este jogador.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "pprec": {
+      await cbpCall(ctx, "recalculate", a);
+      await send(ctx, "🧮 Perfil recalculado: o próximo chefe pessoal nasce com HP/DEF/ATK adaptados.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
+    }
     case "clan":
       return cbClanCard(ctx, a);
 
@@ -9696,6 +9725,32 @@ async function cbPrompt(ctx: Ctx, key: string, text: string, args: string[] = []
     await clearSession(ctx);
     await send(ctx, `✅ <b>${esc(f.label)}</b> deste clã atualizado e aplicado imediatamente.`);
     return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
+  if (key === "cbpglobal" || key === "cbpreset") {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    await cbpCall(ctx, "set", key === "cbpglobal" ? "daily_limit" : "reset_hour_utc", { value });
+    await clearSession(ctx);
+    await send(
+      ctx,
+      key === "cbpglobal"
+        ? `✅ Limite diário padrão atualizado para <b>${fmt(Math.round(value))}</b> chefes derrotados por jogador/dia. Jogadores sem override passam a usar esse valor imediatamente.`
+        : `✅ Reset diário oficial definido para <b>${String(Math.round(value)).padStart(2, "0")}:00 UTC</b>.`,
+    );
+    return cbpHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "cbpsearch") {
+    await clearSession(ctx);
+    return cbpPlayer({ ...ctx, messageId: undefined }, text.trim(), false);
+  }
+  if (key === "cbplimit") {
+    const uid = args[0] || "";
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido (0 a 50).");
+    await cbpCall(ctx, "set_limit", uid, { value });
+    await clearSession(ctx);
+    await send(ctx, `✅ Limite individual definido: <b>${fmt(Math.round(value))}</b> chefes derrotados por dia.`);
+    return cbpPlayer({ ...ctx, messageId: undefined }, uid, false);
   }
   if (key === "cbclan") {
     const rows = await db
