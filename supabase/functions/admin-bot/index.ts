@@ -10889,7 +10889,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
+  if (key.startsWith("fh")) return fhPrompt(ctx, key, text);
   if (key.startsWith("fp")) return fpPrompt(ctx, key, text);
+
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
