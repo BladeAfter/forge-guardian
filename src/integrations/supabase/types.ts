@@ -1336,6 +1336,33 @@ export type Database = {
           },
         ]
       }
+      clan_boss_daily_counters: {
+        Row: {
+          created_at: string
+          defeated_count: number
+          last_defeat_at: string | null
+          reset_day: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          defeated_count?: number
+          last_defeat_at?: string | null
+          reset_day: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          defeated_count?: number
+          last_defeat_at?: string | null
+          reset_day?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clan_boss_damage: {
         Row: {
           attacks: number
@@ -1405,6 +1432,7 @@ export type Database = {
           boss_def: number
           boss_key: string
           boss_name: string
+          boss_number_today: number
           boss_power: number
           clan_id: string
           clan_power_snapshot: number | null
@@ -1415,16 +1443,21 @@ export type Database = {
           cycle_ends_at: string | null
           cycle_started_at: string | null
           def_multiplier: number
+          difficulty: string | null
           duration_quality: string | null
           ends_at: string
           finished_at: string | null
           historical_dps_snapshot: number | null
           hp_multiplier: number
           id: string
+          is_personal: boolean
           level: number
           max_hp: number
           min_damage_required: number
           participants: number
+          performance_snapshot: Json
+          player_power_snapshot: number | null
+          reset_day: string | null
           rewards_snapshot: Json
           scaling_snapshot: Json
           scaling_version: number
@@ -1433,6 +1466,7 @@ export type Database = {
           target_duration_seconds: number | null
           top_user_id: string | null
           total_damage: number
+          user_id: string | null
         }
         Insert: {
           active_members_snapshot?: number | null
@@ -1444,6 +1478,7 @@ export type Database = {
           boss_def?: number
           boss_key?: string
           boss_name?: string
+          boss_number_today?: number
           boss_power?: number
           clan_id: string
           clan_power_snapshot?: number | null
@@ -1454,16 +1489,21 @@ export type Database = {
           cycle_ends_at?: string | null
           cycle_started_at?: string | null
           def_multiplier?: number
+          difficulty?: string | null
           duration_quality?: string | null
           ends_at: string
           finished_at?: string | null
           historical_dps_snapshot?: number | null
           hp_multiplier?: number
           id?: string
+          is_personal?: boolean
           level?: number
           max_hp: number
           min_damage_required?: number
           participants?: number
+          performance_snapshot?: Json
+          player_power_snapshot?: number | null
+          reset_day?: string | null
           rewards_snapshot?: Json
           scaling_snapshot?: Json
           scaling_version?: number
@@ -1472,6 +1512,7 @@ export type Database = {
           target_duration_seconds?: number | null
           top_user_id?: string | null
           total_damage?: number
+          user_id?: string | null
         }
         Update: {
           active_members_snapshot?: number | null
@@ -1483,6 +1524,7 @@ export type Database = {
           boss_def?: number
           boss_key?: string
           boss_name?: string
+          boss_number_today?: number
           boss_power?: number
           clan_id?: string
           clan_power_snapshot?: number | null
@@ -1493,16 +1535,21 @@ export type Database = {
           cycle_ends_at?: string | null
           cycle_started_at?: string | null
           def_multiplier?: number
+          difficulty?: string | null
           duration_quality?: string | null
           ends_at?: string
           finished_at?: string | null
           historical_dps_snapshot?: number | null
           hp_multiplier?: number
           id?: string
+          is_personal?: boolean
           level?: number
           max_hp?: number
           min_damage_required?: number
           participants?: number
+          performance_snapshot?: Json
+          player_power_snapshot?: number | null
+          reset_day?: string | null
           rewards_snapshot?: Json
           scaling_snapshot?: Json
           scaling_version?: number
@@ -1511,6 +1558,7 @@ export type Database = {
           target_duration_seconds?: number | null
           top_user_id?: string | null
           total_damage?: number
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1576,15 +1624,19 @@ export type Database = {
           active_members_snapshot: number | null
           actual_duration_seconds: number | null
           atk_multiplier: number | null
+          attack_count: number | null
+          avg_damage_per_attack: number | null
           base_atk: number | null
           base_def: number | null
           base_hp: number | null
+          boss_number_today: number | null
           boss_power: number | null
           clan_id: string
           clan_power_snapshot: number | null
           created_at: string
           cycle: number | null
           def_multiplier: number | null
+          difficulty: string | null
           effective_atk: number | null
           effective_def: number | null
           effective_hp: number | null
@@ -1593,25 +1645,32 @@ export type Database = {
           hp_multiplier: number | null
           id: string
           instance_id: string
+          max_hit: number | null
           participants: number | null
+          player_power: number | null
           quality: string | null
           scaling_version: number | null
           target_duration_seconds: number | null
           total_damage: number | null
+          user_id: string | null
         }
         Insert: {
           active_members_snapshot?: number | null
           actual_duration_seconds?: number | null
           atk_multiplier?: number | null
+          attack_count?: number | null
+          avg_damage_per_attack?: number | null
           base_atk?: number | null
           base_def?: number | null
           base_hp?: number | null
+          boss_number_today?: number | null
           boss_power?: number | null
           clan_id: string
           clan_power_snapshot?: number | null
           created_at?: string
           cycle?: number | null
           def_multiplier?: number | null
+          difficulty?: string | null
           effective_atk?: number | null
           effective_def?: number | null
           effective_hp?: number | null
@@ -1620,25 +1679,32 @@ export type Database = {
           hp_multiplier?: number | null
           id?: string
           instance_id: string
+          max_hit?: number | null
           participants?: number | null
+          player_power?: number | null
           quality?: string | null
           scaling_version?: number | null
           target_duration_seconds?: number | null
           total_damage?: number | null
+          user_id?: string | null
         }
         Update: {
           active_members_snapshot?: number | null
           actual_duration_seconds?: number | null
           atk_multiplier?: number | null
+          attack_count?: number | null
+          avg_damage_per_attack?: number | null
           base_atk?: number | null
           base_def?: number | null
           base_hp?: number | null
+          boss_number_today?: number | null
           boss_power?: number | null
           clan_id?: string
           clan_power_snapshot?: number | null
           created_at?: string
           cycle?: number | null
           def_multiplier?: number | null
+          difficulty?: string | null
           effective_atk?: number | null
           effective_def?: number | null
           effective_hp?: number | null
@@ -1647,11 +1713,14 @@ export type Database = {
           hp_multiplier?: number | null
           id?: string
           instance_id?: string
+          max_hit?: number | null
           participants?: number | null
+          player_power?: number | null
           quality?: string | null
           scaling_version?: number | null
           target_duration_seconds?: number | null
           total_damage?: number | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1662,6 +1731,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clan_boss_personal_config: {
+        Row: {
+          atk_ratio: number
+          balanced_pct: number
+          boss_duration_hours: number
+          capacity_ceiling: number
+          capacity_floor: number
+          daily_limit: number
+          def_mitigation_target: number
+          difficulty_bonus_enabled: boolean
+          easy_pct: number
+          enabled: boolean
+          fc_pool_pct: number
+          hard_pct: number
+          history_samples: number
+          id: number
+          max_hp: number
+          max_scale_down: number
+          max_scale_up: number
+          min_hp: number
+          outlier_median_factor: number
+          reset_hour_utc: number
+          scaling_version: number
+          target_attacks_per_boss: number
+          updated_at: string
+          very_easy_pct: number
+          very_hard_pct: number
+        }
+        Insert: {
+          atk_ratio?: number
+          balanced_pct?: number
+          boss_duration_hours?: number
+          capacity_ceiling?: number
+          capacity_floor?: number
+          daily_limit?: number
+          def_mitigation_target?: number
+          difficulty_bonus_enabled?: boolean
+          easy_pct?: number
+          enabled?: boolean
+          fc_pool_pct?: number
+          hard_pct?: number
+          history_samples?: number
+          id?: number
+          max_hp?: number
+          max_scale_down?: number
+          max_scale_up?: number
+          min_hp?: number
+          outlier_median_factor?: number
+          reset_hour_utc?: number
+          scaling_version?: number
+          target_attacks_per_boss?: number
+          updated_at?: string
+          very_easy_pct?: number
+          very_hard_pct?: number
+        }
+        Update: {
+          atk_ratio?: number
+          balanced_pct?: number
+          boss_duration_hours?: number
+          capacity_ceiling?: number
+          capacity_floor?: number
+          daily_limit?: number
+          def_mitigation_target?: number
+          difficulty_bonus_enabled?: boolean
+          easy_pct?: number
+          enabled?: boolean
+          fc_pool_pct?: number
+          hard_pct?: number
+          history_samples?: number
+          id?: number
+          max_hp?: number
+          max_scale_down?: number
+          max_scale_up?: number
+          min_hp?: number
+          outlier_median_factor?: number
+          reset_hour_utc?: number
+          scaling_version?: number
+          target_attacks_per_boss?: number
+          updated_at?: string
+          very_easy_pct?: number
+          very_hard_pct?: number
+        }
+        Relationships: []
       }
       clan_boss_player_locks: {
         Row: {
@@ -1700,6 +1853,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clan_boss_player_profile: {
+        Row: {
+          created_at: string
+          daily_limit_override: number | null
+          difficulty_rating: string | null
+          effective_power: number
+          last_quality: string | null
+          metrics: Json
+          official_power: number
+          recent_avg_attacks: number | null
+          recent_avg_clear_time: number | null
+          recent_avg_damage: number
+          recent_max_hit: number
+          recommended_atk: number
+          recommended_def: number
+          recommended_hp: number
+          samples: number
+          scaling_version: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit_override?: number | null
+          difficulty_rating?: string | null
+          effective_power?: number
+          last_quality?: string | null
+          metrics?: Json
+          official_power?: number
+          recent_avg_attacks?: number | null
+          recent_avg_clear_time?: number | null
+          recent_avg_damage?: number
+          recent_max_hit?: number
+          recommended_atk?: number
+          recommended_def?: number
+          recommended_hp?: number
+          samples?: number
+          scaling_version?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit_override?: number | null
+          difficulty_rating?: string | null
+          effective_power?: number
+          last_quality?: string | null
+          metrics?: Json
+          official_power?: number
+          recent_avg_attacks?: number | null
+          recent_avg_clear_time?: number | null
+          recent_avg_damage?: number
+          recent_max_hit?: number
+          recommended_atk?: number
+          recommended_def?: number
+          recommended_hp?: number
+          samples?: number
+          scaling_version?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       clan_boss_reward_rollback_log: {
         Row: {
@@ -14620,6 +14836,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_clan_boss_personal: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_payload?: Json
+          p_ref?: string
+        }
+        Returns: Json
+      }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -16538,6 +16763,7 @@ export type Database = {
           boss_def: number
           boss_key: string
           boss_name: string
+          boss_number_today: number
           boss_power: number
           clan_id: string
           clan_power_snapshot: number | null
@@ -16548,16 +16774,21 @@ export type Database = {
           cycle_ends_at: string | null
           cycle_started_at: string | null
           def_multiplier: number
+          difficulty: string | null
           duration_quality: string | null
           ends_at: string
           finished_at: string | null
           historical_dps_snapshot: number | null
           hp_multiplier: number
           id: string
+          is_personal: boolean
           level: number
           max_hp: number
           min_damage_required: number
           participants: number
+          performance_snapshot: Json
+          player_power_snapshot: number | null
+          reset_day: string | null
           rewards_snapshot: Json
           scaling_snapshot: Json
           scaling_version: number
@@ -16566,6 +16797,7 @@ export type Database = {
           target_duration_seconds: number | null
           top_user_id: string | null
           total_damage: number
+          user_id: string | null
         }
         SetofOptions: {
           from: "*"
@@ -16586,10 +16818,107 @@ export type Database = {
       }
       clan_boss_lock_json: { Args: { p_user_id: string }; Returns: Json }
       clan_boss_metrics: { Args: { p_clan_id: string }; Returns: Json }
+      clan_boss_next_reset_at: { Args: { p_at?: string }; Returns: string }
+      clan_boss_personal_cfg: {
+        Args: never
+        Returns: {
+          atk_ratio: number
+          balanced_pct: number
+          boss_duration_hours: number
+          capacity_ceiling: number
+          capacity_floor: number
+          daily_limit: number
+          def_mitigation_target: number
+          difficulty_bonus_enabled: boolean
+          easy_pct: number
+          enabled: boolean
+          fc_pool_pct: number
+          hard_pct: number
+          history_samples: number
+          id: number
+          max_hp: number
+          max_scale_down: number
+          max_scale_up: number
+          min_hp: number
+          outlier_median_factor: number
+          reset_hour_utc: number
+          scaling_version: number
+          target_attacks_per_boss: number
+          updated_at: string
+          very_easy_pct: number
+          very_hard_pct: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_personal_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_boss_personal_daily: { Args: { p_user: string }; Returns: Json }
+      clan_boss_personal_ensure: {
+        Args: { p_clan: string; p_user: string }
+        Returns: {
+          active_members_snapshot: number | null
+          actual_duration_seconds: number | null
+          atk_multiplier: number
+          attacks: number
+          base_hp: number | null
+          boss_atk: number
+          boss_def: number
+          boss_key: string
+          boss_name: string
+          boss_number_today: number
+          boss_power: number
+          clan_id: string
+          clan_power_snapshot: number | null
+          clan_xp_awarded: number
+          created_at: string
+          current_hp: number
+          cycle: number
+          cycle_ends_at: string | null
+          cycle_started_at: string | null
+          def_multiplier: number
+          difficulty: string | null
+          duration_quality: string | null
+          ends_at: string
+          finished_at: string | null
+          historical_dps_snapshot: number | null
+          hp_multiplier: number
+          id: string
+          is_personal: boolean
+          level: number
+          max_hp: number
+          min_damage_required: number
+          participants: number
+          performance_snapshot: Json
+          player_power_snapshot: number | null
+          reset_day: string | null
+          rewards_snapshot: Json
+          scaling_snapshot: Json
+          scaling_version: number
+          starts_at: string
+          status: string
+          target_duration_seconds: number | null
+          top_user_id: string | null
+          total_damage: number
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_boss_instances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_boss_personal_scaling: { Args: { p_user: string }; Returns: Json }
+      clan_boss_player_metrics: { Args: { p_user: string }; Returns: Json }
+      clan_boss_profile_persist: { Args: { p_user: string }; Returns: Json }
       clan_boss_record_performance: {
         Args: { p_instance_id: string; p_status: string }
         Returns: undefined
       }
+      clan_boss_reset_day: { Args: { p_at?: string }; Returns: string }
       clan_boss_scaled_hp: {
         Args: { p_clan_id: string; p_cycle: number }
         Returns: number

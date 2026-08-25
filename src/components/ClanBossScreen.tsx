@@ -299,9 +299,15 @@ export function ClanBossScreen({ telegramInitData, onClose }: { telegramInitData
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2">
-        <Stat label={t('clanBoss.participants')} value={String(boss?.participants ?? 0)} tone="violet" />
+        <Stat label="DIFFICULTY" value={String(boss?.difficulty ?? '—')} tone="violet" />
         <Stat label={t('clanBoss.power')} value={abbreviateDamage(me?.power)} tone="cyan" />
       </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <Stat label="BOSS POWER" value={abbreviateDamage(boss?.power)} tone="amber" />
+        <Stat label="DAILY" value={`${data.daily?.defeated ?? 0} / ${data.daily?.limit ?? 4}`} tone="rose" />
+      </div>
+
 
       {/* Season Pass benefit: offline Auto ATK (independent from the Global Boss) */}
       {(
