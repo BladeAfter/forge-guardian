@@ -7604,7 +7604,14 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   // 👑 FOUNDER PACK — preço, janela de contas novas, conteúdo do pacote e cosméticos.
+  // 🐾 FAMILIAR HUNT — ON/OFF, custos, dificuldade e loot tables.
+  if (head === "fh") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return fhCallback(ctx, rest);
+  }
+
   if (head === "fp") {
+
     if (rest[0] !== "ask") await clearSession(ctx);
     return fpCallback(ctx, rest);
   }
