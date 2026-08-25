@@ -3762,6 +3762,12 @@ const PROMPTS: Record<string, string> = {
     "🐾 Envie o JSON da <b>loot table TON</b> (premium).\nEx.: <code>[{\"type\":\"fc\",\"min\":50000,\"max\":150000,\"weight\":30}]</code>",
   fhpool: "🐾 Envie o JSON do <b>stage pool</b> (nomes/temas/artes dos inimigos).",
 
+  cbfixhp:
+    "❤️ Envie o <b>HP fixo</b> do Clan Boss para todas as guildas (0 = usar escala automática).\nEx.: <code>100000000</code> para 100M",
+  cbperday: "👹 Envie quantos <b>chefes por dia</b> cada guilda pode enfrentar (1 a 48).\nEx.: <code>4</code>",
+  cbfcpool: "🎁 Envie o <b>pool de FC</b> pago ao derrotar o Clan Boss.\nEx.: <code>1000000</code>",
+  cbclan: "🏰 Envie o <b>nome ou tag</b> do clã para configurar HP e recompensa individuais.\nEx.: <code>MythBR</code>",
+
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
   gwurl: "🎁 Envie o <b>link do grupo</b> do Telegram.\nEx.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>",
@@ -7661,7 +7667,7 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 👹 Clan Boss module (Abyssal Warlord) — fully independent from the 👑 global boss panel.
   if (head === "cb") {
-    if (rest[0] !== "ask") await clearSession(ctx);
+    if (!["ask", "cask"].includes(rest[0])) await clearSession(ctx);
     return cbCallback(ctx, rest);
   }
 
@@ -9135,6 +9141,9 @@ const CB_FIELDS: Record<string, { ref: string; label: string }> = {
   cbcool: { ref: "cooldown_seconds", label: "cooldown (segundos)" },
   cbxp: { ref: "clan_xp_reward", label: "XP de clã" },
   cbmindmg: { ref: "min_damage_pct", label: "% mínimo de dano" },
+  cbfixhp: { ref: "fixed_hp", label: "HP fixo global" },
+  cbperday: { ref: "bosses_per_day", label: "chefes por dia (global)" },
+  cbfcpool: { ref: "fc_pool", label: "pool de FC global" },
 };
 
 const cbCall = (ctx: Ctx, action = "overview", ref: string | null = null, payload: Record<string, unknown> = {}) =>
@@ -9150,7 +9159,9 @@ async function cbHub(ctx: Ctx, editing = true) {
     "Cada clã tem o seu próprio chefe, ciclo, cooldown e ranking interno. Independente do 👑 Global Boss.",
     "",
     `🏷 Nome: <b>${esc(c.bossName)}</b> · chave <code>${esc(c.bossKey)}</code>`,
-    `❤️ HP base: <b>${fmt(c.baseHp)}</b>`,
+    `❤️ HP FIXO global: <b>${Number(c.fixedHp) > 0 ? fmt(Math.round(Number(c.fixedHp))) : "desligado"}</b> · HP base ${fmt(c.baseHp)}`,
+    `👹 Chefes por dia: <b>${fmt(c.bossesPerDay)}</b> · 🕒 ciclo global ${fmt(c.cycleHours)}h`,
+    `🎁 Pool de FC ao derrotar: <b>${fmt(Math.round(Number(rw.fcPool || 0)))}</b>`,
     `📈 +${Number(c.hpPerClanLevelPct ?? 0)}% por nível do clã · +${Number(c.hpPerMemberPct ?? 0)}% por membro · +${Number(c.hpPerCyclePct ?? 0)}% por ciclo`,
     `🕒 Ciclo: <b>${fmt(c.durationHours)}h</b> · ⏱ cooldown <b>${fmt(c.cooldownSeconds)}s</b>`,
     `⭐ XP de clã ao derrotar: <b>${fmt(c.clanXpReward)}</b> · 🎯 dano mínimo <b>${Number(c.minDamagePct ?? 0)}%</b>`,
@@ -9167,8 +9178,16 @@ async function cbHub(ctx: Ctx, editing = true) {
   ].join("\n");
   const rows = [
     [
-      { t: "❤️ HP BASE", d: "cb:ask:cbbasehp" },
+      { t: "❤️ HP FIXO GLOBAL", d: "cb:ask:cbfixhp" },
+      { t: "🎁 FC AO DERROTAR", d: "cb:ask:cbfcpool" },
+    ],
+    [
+      { t: "👹 CHEFES / DIA", d: "cb:ask:cbperday" },
       { t: "🏷 NOME", d: "cb:ask:cbname" },
+    ],
+    [
+      { t: "❤️ HP BASE", d: "cb:ask:cbbasehp" },
+      { t: "🏰 CONFIG POR GUILDA", d: "cb:ask:cbclan" },
     ],
     [
       { t: "📈 % NÍVEL", d: "cb:ask:cbclanlvl" },
@@ -9236,36 +9255,92 @@ async function cbAudit(ctx: Ctx) {
   );
 }
 
+// Per-clan Clan Boss control: HP, FC reward, bosses/day and cycle reset — all live,
+// no deploy needed (admin_clan_boss_clan applies to the running boss immediately).
+const cbClanCall = (ctx: Ctx, clanId: string, action = "overview", payload: Record<string, unknown> = {}) =>
+  rpc("admin_clan_boss_clan", {
+    p_admin_id: ctx.adminId,
+    p_clan_id: clanId,
+    p_action: action,
+    p_payload: payload,
+  }) as Promise<any>;
+
 async function cbClanCard(ctx: Ctx, clanId: string, editing = true) {
-  const clan = await db.from("clans").select("id, name, tag, level, member_count").eq("id", clanId).maybeSingle();
-  if (!clan.data) return cbHub(ctx, editing);
-  const inst = await db
-    .from("clan_boss_instances")
-    .select("cycle, level, max_hp, current_hp, participants, total_damage, status, ends_at")
-    .eq("clan_id", clanId)
-    .eq("status", "active")
-    .maybeSingle();
-  const b: any = inst.data;
+  const d = await cbClanCall(ctx, clanId);
+  if (!d || d.error) return cbHub(ctx, editing);
+  const clan = d.clan || {};
+  const s = d.settings || {};
+  const b = d.active;
+  const lock = d.lock || {};
   const body = [
-    `🏰 <b>[${esc(clan.data.tag)}] ${esc(clan.data.name)}</b> · nível ${fmt(clan.data.level)}`,
+    `🏰 <b>[${esc(clan.tag)}] ${esc(clan.name)}</b> · nível ${fmt(clan.level)} · ${fmt(clan.members)} membros`,
+    "",
+    `❤️ HP do chefe: <b>${fmt(Math.round(Number(s.fixedHp || 0)))}</b>${Number(s.fixedHp) > 0 ? "" : " (usando escala automática)"}`,
+    `🎁 Recompensa FC (pool): <b>${fmt(Math.round(Number(s.rewardFcPool || 0)))}</b>`,
+    `👹 Chefes por dia: <b>${fmt(s.bossesPerDay)}</b> · 🕒 ciclo <b>${fmt(s.durationHours)}h</b>`,
+    `📊 Iniciados nas últimas 24h: <b>${fmt(lock.startedLast24h ?? 0)}</b> · derrotados <b>${fmt(d.killedLast24h ?? 0)}</b>`,
+    lock.locked
+      ? `🔒 Bloqueado (${esc(lock.reason || "")}) · libera em ${Math.ceil(Number(lock.secondsRemaining || 0) / 60)} min`
+      : "🔓 Liberado para iniciar novo chefe",
+    s.hasOverride ? "⚙️ Este clã usa configuração <b>individual</b>." : "⚙️ Este clã usa a configuração <b>global</b>.",
+    "",
     b
-      ? `👹 Ciclo #${b.cycle} · ${fmt(Math.round(b.current_hp))}/${fmt(Math.round(b.max_hp))} HP\n⚔️ Dano ${fmt(Math.round(b.total_damage))} · ${fmt(b.participants)} membros · até ${String(b.ends_at).slice(0, 16).replace("T", " ")}`
+      ? `👹 Ciclo #${b.cycle} · ${fmt(Math.round(Number(b.currentHp)))}/${fmt(Math.round(Number(b.maxHp)))} HP\n⚔️ Dano ${fmt(Math.round(Number(b.totalDamage || 0)))} · ${fmt(b.participants)} membros · pool ${fmt(Math.round(Number(b.fcPool || 0)))} FC\n⏳ até ${String(b.endsAt).slice(0, 16).replace("T", " ")}`
       : "👹 Nenhum ciclo ativo para este clã.",
   ].join("\n");
   return (editing ? edit : send)(
     ctx,
     body,
     kb([
+      [
+        { t: "❤️ HP DESTE CLÃ", d: `cb:cask:cbchp:${clanId}` },
+        { t: "🎁 FC DESTE CLÃ", d: `cb:cask:cbcfc:${clanId}` },
+      ],
+      [
+        { t: "👹 CHEFES / DIA", d: `cb:cask:cbcday:${clanId}` },
+        { t: "🕒 DURAÇÃO CICLO", d: `cb:cask:cbcdur:${clanId}` },
+      ],
+      [
+        { t: "🎁 JSON RECOMPENSAS", d: `cb:cask:cbcrw:${clanId}` },
+        { t: "♻️ USAR GLOBAL", d: `cb:cclear:${clanId}` },
+      ],
+      [{ t: "🔄 RESETAR CICLO AGORA", d: `cb:creset:${clanId}` }],
       [{ t: "▶️ INICIAR NOVO CICLO", d: `cb:start:${clanId}` }],
       [
         { t: "⏹ ENCERRAR SEM PRÊMIO", d: `cb:end:${clanId}` },
         { t: "🏆 ENCERRAR COM PRÊMIO", d: `cb:endrw:${clanId}` },
       ],
+      [{ t: "🔄 ATUALIZAR", d: `cb:clan:${clanId}` }],
       [{ t: "⬅️ CLAN BOSS", d: "cb:hub" }],
       nav(),
     ]),
   );
 }
+
+const CB_CLAN_FIELDS: Record<string, { action: string; label: string; prompt: string }> = {
+  cbchp: {
+    action: "set_hp",
+    label: "HP do chefe",
+    prompt:
+      "❤️ Envie o <b>HP total</b> do Clan Boss deste clã (0 = usar escala automática).\nEx.: <code>100000000</code> para 100M",
+  },
+  cbcfc: {
+    action: "set_reward",
+    label: "recompensa em FC",
+    prompt: "🎁 Envie o <b>pool de FC</b> pago ao derrotar o chefe deste clã.\nEx.: <code>1000000</code>",
+  },
+  cbcday: {
+    action: "set_per_day",
+    label: "chefes por dia",
+    prompt: "👹 Envie quantos <b>chefes por dia</b> este clã pode enfrentar (1 a 48).\nEx.: <code>4</code>",
+  },
+  cbcdur: {
+    action: "set_duration",
+    label: "duração do ciclo",
+    prompt: "🕒 Envie a <b>duração do ciclo</b> em horas (1 a 168).\nEx.: <code>6</code>",
+  },
+};
+
 
 // ---- ⚖️ CLAN BOSS BALANCE (dynamic 24h scaling per guild)
 // Every number here is computed server-side by clan_boss_compute_scaling; the bot
@@ -9453,8 +9528,30 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
       return cbAudit(ctx);
     case "ask":
       return ask(ctx, a, PROMPTS[a] || "Envie o valor.");
+    case "cask": {
+      const clanId = rest[2] || "";
+      const f = CB_CLAN_FIELDS[a];
+      const prompt =
+        f?.prompt ??
+        '🎁 Envie o JSON de recompensas deste clã.\nEx.: <code>{"fcPool":1000000,"participant":{"fc":80000}}</code>';
+      return ask(ctx, `${a}|${clanId}`, prompt);
+    }
+    case "creset": {
+      await cbClanCall(ctx, a, "reset_cycle");
+      await send(
+        ctx,
+        "🔄 Ciclo resetado: chefe atual encerrado sem prêmio, limite diário e travas liberados e novo chefe iniciado.",
+      );
+      return cbClanCard({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "cclear": {
+      await cbClanCall(ctx, a, "clear");
+      await send(ctx, "♻️ Configuração individual removida: este clã voltou a usar a configuração global.");
+      return cbClanCard({ ...ctx, messageId: undefined }, a, false);
+    }
     case "clan":
       return cbClanCard(ctx, a);
+
     case "start": {
       await cbCall(ctx, "force_start", a);
       await send(ctx, "▶️ Novo ciclo do chefe do clã iniciado com HP recalculado.");
@@ -9476,7 +9573,32 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
   }
 }
 
-async function cbPrompt(ctx: Ctx, key: string, text: string) {
+async function cbPrompt(ctx: Ctx, key: string, text: string, args: string[] = []) {
+  const clanId = args[0] || "";
+  if (key === "cbcrw" && clanId) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error('KEEP_SESSION::⚠️ JSON inválido. Ex.: <code>{"fcPool":1000000}</code>');
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      throw new Error("KEEP_SESSION::⚠️ Envie um objeto JSON de recompensas.");
+    await cbClanCall(ctx, clanId, "set_rewards_json", { rewards: parsed });
+    await clearSession(ctx);
+    await send(ctx, "✅ Recompensas deste clã atualizadas e aplicadas ao chefe ativo.");
+    return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
+  if (CB_CLAN_FIELDS[key] && clanId) {
+    const f = CB_CLAN_FIELDS[key];
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0)
+      throw new Error(`KEEP_SESSION::⚠️ Envie um número válido para ${f.label}.`);
+    await cbClanCall(ctx, clanId, f.action, { value });
+    await clearSession(ctx);
+    await send(ctx, `✅ <b>${esc(f.label)}</b> deste clã atualizado e aplicado imediatamente.`);
+    return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
   if (key === "cbclan") {
     const rows = await db
       .from("clans")
@@ -10861,7 +10983,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("cl")) return clansPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("sp") && ["spname", "spdays", "spreward", "spratet", "spratef"].includes(key))
     return spendPrompt(ctx, key, text);
-  if (key.startsWith("cb")) return cbPrompt(ctx, key, text);
+  if (key.startsWith("cb")) return cbPrompt(ctx, key, text, args);
   if (key.startsWith("pt") && key !== "ptr") return partnersPrompt(ctx, key, args, text);
   if (key === "prsearch") return prSearch(ctx, text);
   if (key.startsWith("af")) return afPrompt(ctx, key, text);
