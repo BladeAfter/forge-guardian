@@ -137,7 +137,9 @@ const MAIN_MENU = kb([
   [{ t: "📣 POOL MARKETING", d: "mp:hub" }],
   [{ t: "🏰 CLAN WAR (20V20)", d: "cw:hub" }],
   [{ t: "🪙 MYTH TOKEN", d: "my:hub" }],
+  [{ t: "🐾 FAMILIAR HUNT", d: "fh:hub" }],
   [{ t: "👑 FOUNDER PACK", d: "fp:hub" }],
+
   [{ t: "⚔️ VETERAN VAULT", d: "vv:hub" }],
   [{ t: "⚔️ VETERAN VAULT (PREMIUM)", d: "v2:hub" }],
   [{ t: "🎁 OFERTAS PREMIUM (POPUPS)", d: "po:hub" }],
