@@ -106,8 +106,11 @@ export type ClanBossState = {
     rewardFc?: number;
     cycle: number;
     level: number;
+    /** Personal difficulty rating computed at spawn (locked). */
+    difficulty?: string | null;
+    bossNumberToday?: number;
     maxHp: number;
-    currentHp: number;
+
     status: 'active' | 'defeated' | 'expired' | string;
     startsAt: string;
     endsAt: string;
