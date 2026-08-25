@@ -9509,8 +9509,30 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
       return cbAudit(ctx);
     case "ask":
       return ask(ctx, a, PROMPTS[a] || "Envie o valor.");
+    case "cask": {
+      const clanId = rest[2] || "";
+      const f = CB_CLAN_FIELDS[a];
+      const prompt =
+        f?.prompt ??
+        '🎁 Envie o JSON de recompensas deste clã.\nEx.: <code>{"fcPool":1000000,"participant":{"fc":80000}}</code>';
+      return ask(ctx, `${a}|${clanId}`, prompt);
+    }
+    case "creset": {
+      await cbClanCall(ctx, a, "reset_cycle");
+      await send(
+        ctx,
+        "🔄 Ciclo resetado: chefe atual encerrado sem prêmio, limite diário e travas liberados e novo chefe iniciado.",
+      );
+      return cbClanCard({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "cclear": {
+      await cbClanCall(ctx, a, "clear");
+      await send(ctx, "♻️ Configuração individual removida: este clã voltou a usar a configuração global.");
+      return cbClanCard({ ...ctx, messageId: undefined }, a, false);
+    }
     case "clan":
       return cbClanCard(ctx, a);
+
     case "start": {
       await cbCall(ctx, "force_start", a);
       await send(ctx, "▶️ Novo ciclo do chefe do clã iniciado com HP recalculado.");
