@@ -1197,6 +1197,50 @@ export type Database = {
           },
         ]
       }
+      clan_boss_clan_settings: {
+        Row: {
+          bosses_per_day: number | null
+          clan_id: string
+          created_at: string
+          duration_hours: number | null
+          fixed_hp: number
+          notes: string | null
+          reward_fc_pool: number | null
+          rewards: Json | null
+          updated_at: string
+        }
+        Insert: {
+          bosses_per_day?: number | null
+          clan_id: string
+          created_at?: string
+          duration_hours?: number | null
+          fixed_hp?: number
+          notes?: string | null
+          reward_fc_pool?: number | null
+          rewards?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          bosses_per_day?: number | null
+          clan_id?: string
+          created_at?: string
+          duration_hours?: number | null
+          fixed_hp?: number
+          notes?: string | null
+          reward_fc_pool?: number | null
+          rewards?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_boss_clan_settings_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_boss_config: {
         Row: {
           base_hp: number
@@ -1712,6 +1756,7 @@ export type Database = {
         Row: {
           atk_ratio: number
           atk_scaling: number
+          bosses_per_day: number
           cycle_hours: number
           cycle_lock_enabled: boolean
           cycle_lock_hours: number
@@ -1744,6 +1789,7 @@ export type Database = {
         Insert: {
           atk_ratio?: number
           atk_scaling?: number
+          bosses_per_day?: number
           cycle_hours?: number
           cycle_lock_enabled?: boolean
           cycle_lock_hours?: number
@@ -1776,6 +1822,7 @@ export type Database = {
         Update: {
           atk_ratio?: number
           atk_scaling?: number
+          bosses_per_day?: number
           cycle_hours?: number
           cycle_lock_enabled?: boolean
           cycle_lock_hours?: number
@@ -14564,6 +14611,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_clan_boss_clan: {
+        Args: {
+          p_action?: string
+          p_admin_id: number
+          p_clan_id: string
+          p_payload?: Json
+        }
+        Returns: Json
+      }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -16459,6 +16515,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_boss_clan_cfg: { Args: { p_clan_id: string }; Returns: Json }
       clan_boss_compute_scaling: {
         Args: { p_clan_id: string; p_cycle?: number }
         Returns: Json
@@ -16542,6 +16599,7 @@ export type Database = {
         Returns: {
           atk_ratio: number
           atk_scaling: number
+          bosses_per_day: number
           cycle_hours: number
           cycle_lock_enabled: boolean
           cycle_lock_hours: number
