@@ -2406,7 +2406,7 @@ async function clanBossMenu(ctx: Ctx, ref: string) {
         { t: "▶️ 5M HP", d: `cl:bossgo:${c.id}:5000000` },
       ],
       [
-        { t: "▶️ 10M HP", d: `cl:bossgo:${c.id}:10000000` },
+        { t: "▶️ 5M HP", d: `cl:bossgo:${c.id}:5000000` },
         { t: "✏️ HP MANUAL", d: `cl:ask:clbosshp:${c.id}` },
       ],
       nav(`cl:d:${c.id}`),
@@ -2536,7 +2536,12 @@ async function clanAntiAbuseList(ctx: Ctx, kind: "cooldowns" | "locks" | "flags"
             (f: any) =>
               `🚩 <b>${esc(f.name)}</b> · <code>${esc(String(f.telegramId ?? "—"))}</code>\n   ${esc(f.flag)} · ${esc(String(f.at).slice(0, 16).replace("T", " "))}`,
           );
-  const title = kind === "cooldowns" ? "⏳ <b>ACTIVE COOLDOWNS</b>" : kind === "locks" ? "🔒 <b>ACTIVE BOSS LOCKS</b>" : "🚩 <b>SUSPICIOUS CLAN HOPPING</b>";
+  const title =
+    kind === "cooldowns"
+      ? "⏳ <b>ACTIVE COOLDOWNS</b>"
+      : kind === "locks"
+        ? "🔒 <b>ACTIVE BOSS LOCKS</b>"
+        : "🚩 <b>SUSPICIOUS CLAN HOPPING</b>";
   return edit(
     ctx,
     `${title}\n\n${rows.length ? rows.join("\n\n").slice(0, 3400) : "Nada registrado."}`,
@@ -2564,7 +2569,11 @@ async function clanAntiAbuseAudit(ctx: Ctx, target: string, action = "get") {
   const d = await aaRpc(ctx, action, null, target);
   const a = d.audit;
   if (!a || a.notFound) {
-    return edit(ctx, `🔎 <b>CLAN ABUSE AUDIT</b>\n\nJogador não encontrado: <code>${esc(target)}</code>`, kb([[{ t: "🔎 BUSCAR OUTRO", d: "ask:claaudit" }], nav("cl:aa")]));
+    return edit(
+      ctx,
+      `🔎 <b>CLAN ABUSE AUDIT</b>\n\nJogador não encontrado: <code>${esc(target)}</code>`,
+      kb([[{ t: "🔎 BUSCAR OUTRO", d: "ask:claaudit" }], nav("cl:aa")]),
+    );
   }
   const history = (a.history || [])
     .slice(0, 8)
@@ -2592,7 +2601,9 @@ async function clanAntiAbuseAudit(ctx: Ctx, target: string, action = "get") {
       `<b>HISTÓRICO</b>\n${history || "—"}`,
       "",
       `<b>CLAN BOSS</b>\n${damage || "—"}`,
-    ].join("\n").slice(0, 3800),
+    ]
+      .join("\n")
+      .slice(0, 3800),
     kb([
       [
         { t: "🧹 CLEAR COOLDOWN", d: `cl:aacfcd:${a.telegramId}` },
@@ -9169,7 +9180,12 @@ const CB_BAL_FIELDS: Record<string, { ref: string; label: string; hours?: boolea
 };
 
 const cbBalCall = (ctx: Ctx, action = "OVERVIEW", ref: string | null = null, payload: Record<string, unknown> = {}) =>
-  rpc("admin_clan_boss_balance", { p_admin_id: ctx.adminId, p_action: action, p_ref: ref, p_payload: payload }) as Promise<any>;
+  rpc("admin_clan_boss_balance", {
+    p_admin_id: ctx.adminId,
+    p_action: action,
+    p_ref: ref,
+    p_payload: payload,
+  }) as Promise<any>;
 
 const cbHours = (seconds: unknown) => {
   const s = Number(seconds ?? 0);
@@ -9251,7 +9267,11 @@ async function cbBalClan(ctx: Ctx, clanId: string, editing = true) {
     `⏳ Duração prevista: <b>${cbHours(s.expectedDurationSeconds)}</b> · modo ${esc(s.mode || "—")}`,
     "",
     cur
-      ? `⚔️ <b>BOSS ATIVO</b> · ciclo #${cur.cycle}\n❤️ ${fmt(Math.round(cur.currentHp))}/${fmt(Math.round(cur.maxHp))} · 🛡 ${fmt(Math.round(cur.def ?? 0))} · ⚔️ ${fmt(Math.round(cur.atk ?? 0))}\n🎯 alvo ${cbHours(cur.targetDuration)} · ciclo termina ${String(cur.cycleEndsAt || "").slice(0, 16).replace("T", " ")}`
+      ? `⚔️ <b>BOSS ATIVO</b> · ciclo #${cur.cycle}\n❤️ ${fmt(Math.round(cur.currentHp))}/${fmt(Math.round(cur.maxHp))} · 🛡 ${fmt(Math.round(cur.def ?? 0))} · ⚔️ ${fmt(Math.round(cur.atk ?? 0))}\n🎯 alvo ${cbHours(cur.targetDuration)} · ciclo termina ${String(
+          cur.cycleEndsAt || "",
+        )
+          .slice(0, 16)
+          .replace("T", " ")}`
       : `⏸ Nenhum boss ativo. ${lock.locked ? `Trava de ciclo: falta ${cbHours(lock.secondsRemaining)}.` : "Livre para nascer."}`,
     "",
     "📜 <b>ÚLTIMOS CICLOS</b>",
@@ -9302,18 +9322,17 @@ async function cbBalReport(ctx: Ctx, kind: "dur" | "easy" | "out") {
     return edit(
       ctx,
       `⚡ <b>CLÃS COM BOSS FÁCIL DEMAIS</b>\n\n${list.slice(0, 3500)}`,
-      kb([
-        [{ t: "🔄 RECALCULAR TODOS", d: "cb:balrecalcall" }],
-        [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }],
-        nav(),
-      ]),
+      kb([[{ t: "🔄 RECALCULAR TODOS", d: "cb:balrecalcall" }], [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }], nav()]),
     );
   }
   const rows = ((await cbBalCall(ctx, "OUTLIERS")) || []) as any[];
   const list =
     rows
       .slice(0, 20)
-      .map((x: any) => `• ${esc(x.clan)} · ${fmt(x.outlierAttacks)} ataques ignorados · teto ${fmt(Math.round(Number(x.cap ?? 0)))}`)
+      .map(
+        (x: any) =>
+          `• ${esc(x.clan)} · ${fmt(x.outlierAttacks)} ataques ignorados · teto ${fmt(Math.round(Number(x.cap ?? 0)))}`,
+      )
       .join("\n") || "Nenhum outlier de dano detectado.";
   return edit(
     ctx,
@@ -9321,7 +9340,6 @@ async function cbBalReport(ctx: Ctx, kind: "dur" | "easy" | "out") {
     kb([[{ t: "🔄 ATUALIZAR", d: "cb:balout" }], [{ t: "⬅️ BALANCEAMENTO", d: "cb:bal" }], nav()]),
   );
 }
-
 
 async function cbCallback(ctx: Ctx, rest: string[]) {
   const [sub, a] = [rest[0], rest[1] || ""];
@@ -10078,14 +10096,12 @@ async function nftRegistry(ctx: Ctx, offset: number, ownedOnly = false) {
           `• ${esc(u.pet)} ${nftSerial(u.serial)} — ${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}${u.owner ? ` · ${esc(u.owner.name)}` : ""}`,
       )
       .join("\n") || "sem unidades nesta página";
-  const rows = units
-    .slice(0, 10)
-    .map((u) => [
-      {
-        t: `${u.pet} ${nftSerial(u.serial)}${u.status === "OWNED" ? " 👤" : ""}`,
-        d: ownedOnly ? `nft:rev:${u.id}` : `nft:unit:${u.id}`,
-      },
-    ]);
+  const rows = units.slice(0, 10).map((u) => [
+    {
+      t: `${u.pet} ${nftSerial(u.serial)}${u.status === "OWNED" ? " 👤" : ""}`,
+      d: ownedOnly ? `nft:rev:${u.id}` : `nft:unit:${u.id}`,
+    },
+  ]);
   const pager: any[] = [];
   if (offset > 0)
     pager.push({ t: "⬅️ Anterior", d: `nft:${ownedOnly ? "revlist" : "list"}:${Math.max(0, offset - 15)}` });
@@ -10536,14 +10552,12 @@ async function nfthRegistry(ctx: Ctx, offset: number, ownedOnly = false) {
           `• ${esc(u.hero)} ${nftSerial(u.serial)} — ${NFT_STATUS_LABEL[u.status] ?? esc(u.status)}${u.owner ? ` · ${esc(u.owner.name)}` : ""}`,
       )
       .join("\n") || "sem unidades nesta página";
-  const rows = units
-    .slice(0, 10)
-    .map((u) => [
-      {
-        t: `${u.hero} ${nftSerial(u.serial)}${u.status === "OWNED" ? " 👤" : ""}`,
-        d: ownedOnly ? `nfth:rev:${u.id}` : `nfth:unit:${u.id}`,
-      },
-    ]);
+  const rows = units.slice(0, 10).map((u) => [
+    {
+      t: `${u.hero} ${nftSerial(u.serial)}${u.status === "OWNED" ? " 👤" : ""}`,
+      d: ownedOnly ? `nfth:rev:${u.id}` : `nfth:unit:${u.id}`,
+    },
+  ]);
   const pager: any[] = [];
   if (offset > 0)
     pager.push({ t: "⬅️ Anterior", d: `nfth:${ownedOnly ? "revlist" : "list"}:${Math.max(0, offset - 15)}` });
