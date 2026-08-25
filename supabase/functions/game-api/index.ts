@@ -2544,9 +2544,9 @@ Deno.serve(async (req) => {
 
   try {
     const db = serviceClient();
-    // BAN gate: a banned account can only reach the `device` route. Every other
-    // feature is server-blocked, so the ban applied in the admin bot is real.
-    if (feature !== 'device') {
+    // BAN gate: a banned account reaches NO feature at all (including `device`), so the
+    // ban applied in the admin bot is real and the client shows the BANNED card.
+    {
       const ban = await db
         .from('game_players')
         .select('banned, ban_reason, banned_at')
