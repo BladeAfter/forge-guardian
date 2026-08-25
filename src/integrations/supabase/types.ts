@@ -3611,6 +3611,104 @@ export type Database = {
           },
         ]
       }
+      familiar_hunt_instances: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          is_boss: boolean
+          loot_pool: string
+          loot_table_version: number
+          payment_address: string | null
+          payment_amount: number
+          payment_amount_nano: number
+          payment_comment: string | null
+          payment_currency: string
+          received_amount_nano: number | null
+          recommended_power: number
+          result_json: Json | null
+          rewards: Json
+          rounds: number | null
+          settled_at: string | null
+          stage: number
+          stage_name: string | null
+          status: string
+          team_power: number
+          team_snapshot: Json
+          total_damage: number | null
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+          victory: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          is_boss?: boolean
+          loot_pool?: string
+          loot_table_version?: number
+          payment_address?: string | null
+          payment_amount?: number
+          payment_amount_nano?: number
+          payment_comment?: string | null
+          payment_currency: string
+          received_amount_nano?: number | null
+          recommended_power?: number
+          result_json?: Json | null
+          rewards?: Json
+          rounds?: number | null
+          settled_at?: string | null
+          stage: number
+          stage_name?: string | null
+          status?: string
+          team_power?: number
+          team_snapshot?: Json
+          total_damage?: number | null
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+          victory?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          is_boss?: boolean
+          loot_pool?: string
+          loot_table_version?: number
+          payment_address?: string | null
+          payment_amount?: number
+          payment_amount_nano?: number
+          payment_comment?: string | null
+          payment_currency?: string
+          received_amount_nano?: number | null
+          recommended_power?: number
+          result_json?: Json | null
+          rewards?: Json
+          rounds?: number | null
+          settled_at?: string | null
+          stage?: number
+          stage_name?: string | null
+          status?: string
+          team_power?: number
+          team_snapshot?: Json
+          total_damage?: number | null
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          victory?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "familiar_hunt_instances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       familiar_hunt_missions: {
         Row: {
           background: string | null
@@ -3670,6 +3768,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      familiar_hunt_progress: {
+        Row: {
+          created_at: string
+          current_familiar_hunt_stage: number
+          highest_stage_completed: number
+          total_runs: number
+          total_wins: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_familiar_hunt_stage?: number
+          highest_stage_completed?: number
+          total_runs?: number
+          total_wins?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_familiar_hunt_stage?: number
+          highest_stage_completed?: number
+          total_runs?: number
+          total_wins?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "familiar_hunt_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       familiar_hunt_runs: {
         Row: {
@@ -3736,6 +3872,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      familiar_hunt_settings: {
+        Row: {
+          created_at: string
+          difficulty: Json
+          enabled: boolean
+          entry_fc: number
+          entry_ton: number
+          fc_loot: Json
+          id: boolean
+          loot_table_version: number
+          stage_pool: Json
+          ton_loot: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: Json
+          enabled?: boolean
+          entry_fc?: number
+          entry_ton?: number
+          fc_loot?: Json
+          id?: boolean
+          loot_table_version?: number
+          stage_pool?: Json
+          ton_loot?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: Json
+          enabled?: boolean
+          entry_fc?: number
+          entry_ton?: number
+          fc_loot?: Json
+          id?: boolean
+          loot_table_version?: number
+          stage_pool?: Json
+          ton_loot?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       founder_pack_config: {
         Row: {
@@ -14469,6 +14647,11 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_familiar_hunt_overview: { Args: never; Returns: Json }
+      admin_familiar_hunt_set: {
+        Args: { p_key: string; p_value: string }
+        Returns: Json
+      }
       admin_founder_pack_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -16872,11 +17055,32 @@ export type Database = {
         Args: { p_user_id?: string }
         Returns: number
       }
-      familiar_hunt_battle: {
+      familiar_hunt_grant: {
+        Args: { p_reward: Json; p_user: string }
+        Returns: Json
+      }
+      familiar_hunt_mark_paid: {
+        Args: {
+          p_amount_nano: number
+          p_instance_id: string
+          p_tx_hash: string
+        }
+        Returns: Json
+      }
+      familiar_hunt_pending_payments: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      familiar_hunt_resolve: { Args: { p_instance_id: string }; Returns: Json }
+      familiar_hunt_roll_loot: {
+        Args: { p_is_boss?: boolean; p_pool: string; p_user: string }
+        Returns: Json
+      }
+      familiar_hunt_stage_def: { Args: { p_stage: number }; Returns: Json }
+      familiar_hunt_start: {
         Args: {
           p_currency?: string
           p_idempotency_key?: string
-          p_mission_id: string
           p_pet_ids: string[]
           p_telegram_id: number
         }
