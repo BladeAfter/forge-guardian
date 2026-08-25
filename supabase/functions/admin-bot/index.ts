@@ -137,7 +137,9 @@ const MAIN_MENU = kb([
   [{ t: "📣 POOL MARKETING", d: "mp:hub" }],
   [{ t: "🏰 CLAN WAR (20V20)", d: "cw:hub" }],
   [{ t: "🪙 MYTH TOKEN", d: "my:hub" }],
+  [{ t: "🐾 FAMILIAR HUNT", d: "fh:hub" }],
   [{ t: "👑 FOUNDER PACK", d: "fp:hub" }],
+
   [{ t: "⚔️ VETERAN VAULT", d: "vv:hub" }],
   [{ t: "⚔️ VETERAN VAULT (PREMIUM)", d: "v2:hub" }],
   [{ t: "🎁 OFERTAS PREMIUM (POPUPS)", d: "po:hub" }],
@@ -3750,6 +3752,16 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  fhfc: "🐾 Envie o <b>custo em FC</b> por caçada.\nEx.: <code>100000</code>",
+  fhton: "🐾 Envie o <b>custo em TON</b> por caçada.\nEx.: <code>5</code>",
+  fhdiff:
+    "🐾 Envie o JSON de <b>dificuldade</b>.\nEx.: <code>{\"hp_base\":9000,\"hp_growth\":1.18,\"atk_base\":700,\"atk_growth\":1.15,\"boss_every\":5,\"boss_mult\":1.8}</code>",
+  fhfcloot:
+    "🐾 Envie o JSON da <b>loot table FC</b> (sem moedas — só itens).\nEx.: <code>[{\"type\":\"pet_food\",\"code\":\"basic_food\",\"min\":1,\"max\":3,\"weight\":40}]</code>",
+  fhtonloot:
+    "🐾 Envie o JSON da <b>loot table TON</b> (premium).\nEx.: <code>[{\"type\":\"fc\",\"min\":50000,\"max\":150000,\"weight\":30}]</code>",
+  fhpool: "🐾 Envie o JSON do <b>stage pool</b> (nomes/temas/artes dos inimigos).",
+
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
   gwurl: "🎁 Envie o <b>link do grupo</b> do Telegram.\nEx.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>",
@@ -6213,7 +6225,89 @@ async function mythPrompt(ctx: Ctx, key: string, text: string) {
   return mythHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- 🐾 FAMILIAR HUNT (progressão linear)
+// Modo de caçada linear dos pets: ON/OFF, custos (FC / TON), curvas de dificuldade e loot tables
+// vivem em `familiar_hunt_settings`. O bot só configura — todo loot é sorteado no servidor.
+async function fhHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_familiar_hunt_overview", {})) as any;
+  const diff = d.difficulty ?? {};
+  const recent = (d.recent ?? []) as any[];
+  const stages = (d.topStages ?? []) as any[];
+  const rewards = (d.rewardsDistributed ?? []) as any[];
+  const text = [
+    "🐾 <b>FAMILIAR HUNT</b>",
+    "<i>Progressão linear · 1 estágio por vez · loot 100% server-side</i>",
+    "",
+    `<b>Status:</b> ${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"} · <b>Loot v</b>${fmt(d.lootTableVersion)}`,
+    `<b>Entrada:</b> ⚔ ${fmt(d.entryFc)} FC · 💎 ${fmt(d.entryTon)} TON`,
+    `<b>Dificuldade:</b> HP ${fmt(diff.hp_base ?? 0)} (x${esc(String(diff.hp_growth ?? "—"))}) · ATK ${fmt(diff.atk_base ?? 0)} (x${esc(String(diff.atk_growth ?? "—"))}) · BOSS a cada ${fmt(diff.boss_every ?? 0)} (x${esc(String(diff.boss_mult ?? "—"))})`,
+    "",
+    `<b>Caçadas:</b> ${fmt(d.runs)} (24h: ${fmt(d.runs24h)}) · <b>Vitórias:</b> ${fmt(d.wins)}`,
+    `<b>FC gasto:</b> ${fmt(d.fcSpent)} · <b>TON pago:</b> ${fmt(d.tonPaid)} (externo ${fmt(d.tonExternal)})`,
+    `<b>Pendentes:</b> pagamento ${fmt(d.pendingPayments)} · caçada ${fmt(d.paidPendingHunt)}`,
+    "",
+    `<b>JOGADORES POR ESTÁGIO</b>\n${stages.map((s) => `• Stage ${fmt(s.stage)} — ${fmt(s.players)} jogador(es)`).join("\n") || "sem progresso ainda"}`,
+    "",
+    `<b>LOOT ENTREGUE</b>\n${rewards.map((r) => `• ${esc(r.type ?? "—")} — ${fmt(r.times)}x (total ${fmt(r.total)})`).join("\n") || "nenhum loot ainda"}`,
+    "",
+    `<b>ÚLTIMAS CAÇADAS</b>\n${recent.map((r) => `• Stage ${fmt(r.stage)} ${r.victory ? "✅" : "❌"} — ${esc(r.username ?? "—")} (<code>${r.telegram_id}</code>) · ${fmt(r.amount)} ${esc(String(r.currency ?? "").toUpperCase())}`).join("\n") || "nenhuma caçada ainda"}`,
+  ].join("\n");
+  const rows = [
+    [{ t: d.enabled ? "⛔ DESATIVAR MODO" : "✅ ATIVAR MODO", d: `fh:on:${d.enabled ? 0 : 1}` }],
+    [
+      { t: "⚔ CUSTO FC", d: "fh:ask:fhfc" },
+      { t: "💎 CUSTO TON", d: "fh:ask:fhton" },
+    ],
+    [{ t: "📈 DIFICULDADE (JSON)", d: "fh:ask:fhdiff" }],
+    [
+      { t: "🎁 LOOT FC", d: "fh:ask:fhfcloot" },
+      { t: "💠 LOOT TON", d: "fh:ask:fhtonloot" },
+    ],
+    [{ t: "🗺 STAGE POOL (JSON)", d: "fh:ask:fhpool" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function fhCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "on") await rpc("admin_familiar_hunt_set", { p_key: "enabled", p_value: a });
+  return fhHub(ctx);
+}
+
+const FH_FIELDS: Record<string, string> = {
+  fhfc: "entry_fc",
+  fhton: "entry_ton",
+  fhdiff: "difficulty",
+  fhfcloot: "fc_loot",
+  fhtonloot: "ton_loot",
+  fhpool: "stage_pool",
+};
+
+async function fhPrompt(ctx: Ctx, key: string, text: string) {
+  const field = FH_FIELDS[key];
+  if (!field) return fhHub({ ...ctx, messageId: undefined }, false);
+  let value = text.trim();
+  if (field === "entry_fc" || field === "entry_ton") {
+    const num = field === "entry_ton" ? Number(value.replace(",", ".").replace(/[^\d.]/g, "")) : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    value = String(num);
+  } else {
+    try {
+      JSON.parse(value);
+    } catch {
+      throw new Error("KEEP_SESSION::⚠️ JSON inválido. Envie um JSON válido.");
+    }
+  }
+  await rpc("admin_familiar_hunt_set", { p_key: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `🐾 Familiar Hunt atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return fhHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 👑 MYTHREON FOUNDER PACK (25 TON)
+
 // Pacote único para contas novas. Preço, janela, conteúdo e cosméticos vivem no banco:
 // tudo aqui é leitura/escrita de configuração — nenhuma recompensa é entregue pelo bot.
 async function fpHub(ctx: Ctx, useEdit = true) {
@@ -7510,7 +7604,14 @@ async function handleCallback(ctx: Ctx, data: string) {
 
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   // 👑 FOUNDER PACK — preço, janela de contas novas, conteúdo do pacote e cosméticos.
+  // 🐾 FAMILIAR HUNT — ON/OFF, custos, dificuldade e loot tables.
+  if (head === "fh") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return fhCallback(ctx, rest);
+  }
+
   if (head === "fp") {
+
     if (rest[0] !== "ask") await clearSession(ctx);
     return fpCallback(ctx, rest);
   }
@@ -10788,7 +10889,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
+  if (key.startsWith("fh")) return fhPrompt(ctx, key, text);
   if (key.startsWith("fp")) return fpPrompt(ctx, key, text);
+
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
