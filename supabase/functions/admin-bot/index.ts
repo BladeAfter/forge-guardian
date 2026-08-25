@@ -6225,7 +6225,89 @@ async function mythPrompt(ctx: Ctx, key: string, text: string) {
   return mythHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- 🐾 FAMILIAR HUNT (progressão linear)
+// Modo de caçada linear dos pets: ON/OFF, custos (FC / TON), curvas de dificuldade e loot tables
+// vivem em `familiar_hunt_settings`. O bot só configura — todo loot é sorteado no servidor.
+async function fhHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_familiar_hunt_overview", {})) as any;
+  const diff = d.difficulty ?? {};
+  const recent = (d.recent ?? []) as any[];
+  const stages = (d.topStages ?? []) as any[];
+  const rewards = (d.rewardsDistributed ?? []) as any[];
+  const text = [
+    "🐾 <b>FAMILIAR HUNT</b>",
+    "<i>Progressão linear · 1 estágio por vez · loot 100% server-side</i>",
+    "",
+    `<b>Status:</b> ${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"} · <b>Loot v</b>${fmt(d.lootTableVersion)}`,
+    `<b>Entrada:</b> ⚔ ${fmt(d.entryFc)} FC · 💎 ${fmt(d.entryTon)} TON`,
+    `<b>Dificuldade:</b> HP ${fmt(diff.hp_base ?? 0)} (x${esc(String(diff.hp_growth ?? "—"))}) · ATK ${fmt(diff.atk_base ?? 0)} (x${esc(String(diff.atk_growth ?? "—"))}) · BOSS a cada ${fmt(diff.boss_every ?? 0)} (x${esc(String(diff.boss_mult ?? "—"))})`,
+    "",
+    `<b>Caçadas:</b> ${fmt(d.runs)} (24h: ${fmt(d.runs24h)}) · <b>Vitórias:</b> ${fmt(d.wins)}`,
+    `<b>FC gasto:</b> ${fmt(d.fcSpent)} · <b>TON pago:</b> ${fmt(d.tonPaid)} (externo ${fmt(d.tonExternal)})`,
+    `<b>Pendentes:</b> pagamento ${fmt(d.pendingPayments)} · caçada ${fmt(d.paidPendingHunt)}`,
+    "",
+    `<b>JOGADORES POR ESTÁGIO</b>\n${stages.map((s) => `• Stage ${fmt(s.stage)} — ${fmt(s.players)} jogador(es)`).join("\n") || "sem progresso ainda"}`,
+    "",
+    `<b>LOOT ENTREGUE</b>\n${rewards.map((r) => `• ${esc(r.type ?? "—")} — ${fmt(r.times)}x (total ${fmt(r.total)})`).join("\n") || "nenhum loot ainda"}`,
+    "",
+    `<b>ÚLTIMAS CAÇADAS</b>\n${recent.map((r) => `• Stage ${fmt(r.stage)} ${r.victory ? "✅" : "❌"} — ${esc(r.username ?? "—")} (<code>${r.telegram_id}</code>) · ${fmt(r.amount)} ${esc(String(r.currency ?? "").toUpperCase())}`).join("\n") || "nenhuma caçada ainda"}`,
+  ].join("\n");
+  const rows = [
+    [{ t: d.enabled ? "⛔ DESATIVAR MODO" : "✅ ATIVAR MODO", d: `fh:on:${d.enabled ? 0 : 1}` }],
+    [
+      { t: "⚔ CUSTO FC", d: "fh:ask:fhfc" },
+      { t: "💎 CUSTO TON", d: "fh:ask:fhton" },
+    ],
+    [{ t: "📈 DIFICULDADE (JSON)", d: "fh:ask:fhdiff" }],
+    [
+      { t: "🎁 LOOT FC", d: "fh:ask:fhfcloot" },
+      { t: "💠 LOOT TON", d: "fh:ask:fhtonloot" },
+    ],
+    [{ t: "🗺 STAGE POOL (JSON)", d: "fh:ask:fhpool" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function fhCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "on") await rpc("admin_familiar_hunt_set", { p_key: "enabled", p_value: a });
+  return fhHub(ctx);
+}
+
+const FH_FIELDS: Record<string, string> = {
+  fhfc: "entry_fc",
+  fhton: "entry_ton",
+  fhdiff: "difficulty",
+  fhfcloot: "fc_loot",
+  fhtonloot: "ton_loot",
+  fhpool: "stage_pool",
+};
+
+async function fhPrompt(ctx: Ctx, key: string, text: string) {
+  const field = FH_FIELDS[key];
+  if (!field) return fhHub({ ...ctx, messageId: undefined }, false);
+  let value = text.trim();
+  if (field === "entry_fc" || field === "entry_ton") {
+    const num = field === "entry_ton" ? Number(value.replace(",", ".").replace(/[^\d.]/g, "")) : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    value = String(num);
+  } else {
+    try {
+      JSON.parse(value);
+    } catch {
+      throw new Error("KEEP_SESSION::⚠️ JSON inválido. Envie um JSON válido.");
+    }
+  }
+  await rpc("admin_familiar_hunt_set", { p_key: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `🐾 Familiar Hunt atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return fhHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 👑 MYTHREON FOUNDER PACK (25 TON)
+
 // Pacote único para contas novas. Preço, janela, conteúdo e cosméticos vivem no banco:
 // tudo aqui é leitura/escrita de configuração — nenhuma recompensa é entregue pelo bot.
 async function fpHub(ctx: Ctx, useEdit = true) {
