@@ -3770,6 +3770,7 @@ const PROMPTS: Record<string, string> = {
   cbpglobal:
     "👹 Envie o <b>LIMITE DIÁRIO PADRÃO</b> de chefes DERROTADOS por jogador (0 a 50).\nEx.: <code>4</code>\n<i>Ataques e tentativas falhas nunca consomem o limite.</i>",
   cbpreset: "🕒 Envie a <b>hora oficial do reset diário</b> em UTC (0 a 23).\nEx.: <code>0</code> para 00:00 UTC",
+  cbpfc: "🎁 Envie o <b>POOL DE FC FIXO</b> pago ao derrotar cada chefe individual (0 = usar o pool do clã/template).\nEx.: <code>400000</code> para 400k FC",
   cbpsearch: "🔍 Envie o <b>Telegram ID</b>, @usuário ou ID interno do jogador para gerenciar o chefe pessoal e o limite diário.",
   cbplimit: "🎯 Envie o <b>limite individual</b> de chefes derrotados por dia deste jogador (0 a 50).\nEx.: <code>6</code>",
 
@@ -9545,6 +9546,7 @@ async function cbpHub(ctx: Ctx, editing = true) {
     `👹 LIMITE DIÁRIO PADRÃO: <b>${fmt(c.daily_limit ?? 4)}</b> chefes derrotados/dia`,
     `🕒 Reset oficial do servidor: <b>${String(c.reset_hour_utc ?? 0).padStart(2, "0")}:00 UTC</b>`,
     `🎯 Ataques-alvo por chefe: <b>${fmt(c.target_attacks_per_boss ?? 12)}</b> · sistema ${c.enabled === false ? "DESLIGADO" : "ATIVO"}`,
+    `🎁 POOL DE FC FIXO POR CHEFE: <b>${fmt(Math.round(Number(c.fixed_fc_pool ?? 0)))} FC</b>${Number(c.fixed_fc_pool ?? 0) > 0 ? " (vale para TODOS os chefes individuais)" : " (desligado — usa clã/template)"}`,
     `🎁 Bônus por dificuldade: <b>${c.difficulty_bonus_enabled ? "ON" : "OFF"}</b>`,
     "",
     "<b>TOP JOGADORES (HP recomendado)</b>",
@@ -9559,6 +9561,7 @@ async function cbpHub(ctx: Ctx, editing = true) {
   const rows = [
     [{ t: "👹 LIMITE DIÁRIO PADRÃO", d: "cb:ask:cbpglobal" }],
     [{ t: "🕒 HORA DO RESET (UTC)", d: "cb:ask:cbpreset" }],
+    [{ t: "🎁 POOL DE FC FIXO", d: "cb:ask:cbpfc" }],
     [{ t: "🔍 CONFIGURAR JOGADOR", d: "cb:ask:cbpsearch" }],
     ...players.slice(0, 6).map((p: any) => [
       {
@@ -9736,6 +9739,19 @@ async function cbPrompt(ctx: Ctx, key: string, text: string, args: string[] = []
       key === "cbpglobal"
         ? `✅ Limite diário padrão atualizado para <b>${fmt(Math.round(value))}</b> chefes derrotados por jogador/dia. Jogadores sem override passam a usar esse valor imediatamente.`
         : `✅ Reset diário oficial definido para <b>${String(Math.round(value)).padStart(2, "0")}:00 UTC</b>.`,
+    );
+    return cbpHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "cbpfc") {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido de FC.");
+    await rpc("admin_clan_boss_personal_set_fc", { p_admin_id: ctx.adminId, p_value: value });
+    await clearSession(ctx);
+    await send(
+      ctx,
+      value > 0
+        ? `✅ Pool de FC fixo dos chefes individuais definido em <b>${fmt(Math.round(value))} FC</b>. Aplicado imediatamente a todos os chefes ativos, sem deploy.`
+        : "✅ Pool fixo desligado. Os chefes individuais voltam a usar o pool do clã/template.",
     );
     return cbpHub({ ...ctx, messageId: undefined }, false);
   }
