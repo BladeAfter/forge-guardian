@@ -2380,28 +2380,31 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
-   * 🐾⚔️ FAMILIAR HUNT — new pet COMBAT mode (fully separate from `expeditions`).
-   * The battle itself, the victory check and every reward are resolved server-side.
+   * 🐾⚔️ FAMILIAR HUNT — LINEAR stage progression (fully separate from `expeditions`).
+   * The stage, the entry payment, the fight and every reward roll are resolved server-side.
+   * FC / internal TON are charged atomically with the hunt; an external TonConnect payment
+   * only becomes a battle after the transfer is found on-chain (idempotent recovery).
    */
   'familiar-hunt': async (db, user, body) => {
     const action = String(body.action || 'state');
     if (action === 'state') return rpc(db, 'familiar_hunt_state', { p_telegram_id: user.id });
-    if (action === 'battle') {
+    if (action === 'start') {
       const petIds = Array.isArray(body.petIds) ? body.petIds.map(String) : [];
-      if (!isUuid(body.missionId)) throw new Error('MISSION_NOT_FOUND');
       if (petIds.length !== 3 || petIds.some((id) => !isUuid(id))) throw new Error('TEAM_MUST_HAVE_3_PETS');
       if (new Set(petIds).size !== 3) throw new Error('DUPLICATED_PET');
       const key = String(body.idempotencyKey || '').slice(0, 80) || null;
-      // entry cost currency: FC or the player's INTERNAL TON balance (never the external wallet)
+      // entry currency: FC or TON. Internal TON is used only when it covers 100% of the entry;
+      // otherwise the DB returns a payment intent for the FULL amount (never a mixed payment).
       const currency = String(body.currency || 'fc').toLowerCase();
       if (currency !== 'fc' && currency !== 'ton') throw new Error('INVALID_CURRENCY');
-      return rpc(db, 'familiar_hunt_battle', {
-        p_telegram_id: user.id, p_mission_id: body.missionId, p_pet_ids: petIds, p_idempotency_key: key,
-        p_currency: currency,
+      return rpc(db, 'familiar_hunt_start', {
+        p_telegram_id: user.id, p_pet_ids: petIds, p_currency: currency, p_idempotency_key: key,
       });
     }
+    if (action === 'verify-payments') return await verifyFamiliarHuntPayments(db, user);
     throw new Error('INVALID_ACTION');
   },
+
 
 };
 
