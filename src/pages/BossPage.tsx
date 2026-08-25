@@ -15,16 +15,17 @@ import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
 import { TowerOfEternityPanel } from '../components/TowerOfEternityPanel';
+import FamiliarHuntSection from '../components/FamiliarHuntSection';
 
-type BossMode='global'|'tower';
+type BossMode='global'|'tower'|'hunt';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number;isNft?:boolean};
-type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onOpenSeasonPass?:()=>void;onClaimReward:()=>Promise<void>|void};
+type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onOpenSeasonPass?:()=>void;onWallet?:()=>void;onClaimReward:()=>Promise<void>|void};
 const RARITY_KEYS:HeroRarity[]=['common','uncommon','rare','epic','legendary','mythic','ancestral'];
 const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroRarity>={common:'common',comum:'common',uncommon:'uncommon',incomum:'uncommon',rare:'rare',raro:'rare',epic:'epic',epico:'epic','épico':'epic',legendary:'legendary',lendario:'legendary','lendário':'legendary',mythic:'mythic','mítico':'mythic',mitico:'mythic',ancestral:'ancestral'};return map[String(value??'').trim().toLowerCase()]??'common'};
 const compact=(value:number)=>Math.floor(value).toLocaleString();
 
-export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onOpenSeasonPass,onClaimReward}:Props){
+export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onOpenSeasonPass,onWallet,onClaimReward}:Props){
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
@@ -103,12 +104,13 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
-  const modeSelector=<div className="grid grid-cols-2 gap-1 rounded-2xl border border-amber-400/25 bg-black/60 p-1">
-    {([['global','🌍 GLOBAL BOSS'],['tower','🏰 TOWER']] as Array<[BossMode,string]>).map(([value,label])=>{
+  const modeSelector=<div className="grid grid-cols-3 gap-1 rounded-2xl border border-amber-400/25 bg-black/60 p-1">
+    {([['global','🌍 GLOBAL BOSS'],['tower','🏰 TOWER'],['hunt','🐾 FAMILIAR HUNT']] as Array<[BossMode,string]>).map(([value,label])=>{
       const active=bossMode===value;
       return <button type="button" key={value} onClick={()=>setBossMode(value)} className={`min-h-9 rounded-xl text-[10px] font-black uppercase tracking-wide transition ${active?'border border-amber-300/70 bg-gradient-to-b from-amber-500/25 to-amber-900/40 text-amber-100':'text-slate-400'}`}>{label}</button>;
     })}
   </div>;
+  if(bossMode==='hunt')return <section className="space-y-3">{modeSelector}<FamiliarHuntSection initData={telegramInitData??''} onWallet={onWallet}/></section>;
   if(bossMode==='tower')return <section className="space-y-3">{modeSelector}<TowerOfEternityPanel balance={game.balance} collection={collection} collectionLoading={collectionLoading} telegramInitData={telegramInitData}/></section>;
   return <section className="space-y-3">{modeSelector}<div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
 
