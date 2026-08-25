@@ -191,7 +191,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
       <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/95 via-black/70 to-transparent" />
 
       {/* ── top bar ────────────────────────────────────── */}
-      <header className="relative z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.9rem)]">
+      <header className="relative z-10 flex flex-none items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.75rem)]">
         <div className="min-w-0">
           <p className="truncate text-[10px] font-black uppercase tracking-[.24em] text-amber-200/90">{missionName || 'FAMILIAR HUNT'}</p>
           <p className="text-[9px] font-bold uppercase tracking-[.2em] text-slate-500">RODADA {round}</p>
@@ -226,8 +226,9 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
         </div>
       </header>
 
-      {/* ── enemies ────────────────────────────────────── */}
-      <section className="relative z-10 mt-4 px-4">
+      {/* ── stage: enemies + banner + team, always fits the viewport ── */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-between gap-1 py-2">
+      <section className="relative z-10 flex-none px-4">
         <div className="flex items-end justify-center gap-3">
           {result.enemies.map((enemy, index) => {
             const unit = `e${index}`;
@@ -243,7 +244,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
                   <img
                     src={enemy.image}
                     alt={enemy.name}
-                    className={`mx-auto object-contain drop-shadow-[0_0_26px_rgba(244,63,94,.5)] ${enemy.elite ? 'h-36' : 'h-24'}`}
+                    className={`mx-auto object-contain drop-shadow-[0_0_26px_rgba(244,63,94,.5)] ${enemy.elite ? 'h-[15vh] max-h-36 min-h-16' : 'h-[11vh] max-h-24 min-h-12'}`}
                   />
                 ) : null}
                 <p className="truncate text-center text-[8px] font-black uppercase tracking-[.12em] text-rose-200">{enemy.name}</p>
@@ -256,7 +257,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
       </section>
 
       {/* ── banner ─────────────────────────────────────── */}
-      <div className="relative z-10 mt-3 flex h-8 items-center justify-center px-6">
+      <div className="relative z-10 flex h-7 flex-none items-center justify-center px-6">
         {banner ? (
           <p className="animate-[scale-in_.2s_ease-out] rounded-full border border-amber-300/40 bg-black/70 px-4 py-1.5 text-center text-[9px] font-black uppercase tracking-[.2em] text-amber-100 shadow-[0_0_24px_-8px_rgba(251,191,36,.8)]">
             {banner}
@@ -264,10 +265,10 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
         ) : null}
       </div>
 
-      <div className="relative z-10 mx-auto h-px w-2/3 bg-gradient-to-r from-transparent via-amber-300/45 to-transparent shadow-[0_0_18px_rgba(251,191,36,.6)]" />
+      <div className="relative z-10 mx-auto h-px w-2/3 flex-none bg-gradient-to-r from-transparent via-amber-300/45 to-transparent shadow-[0_0_18px_rgba(251,191,36,.6)]" />
 
       {/* ── player team ───────────────────────────────── */}
-      <section className="relative z-10 mt-auto px-4">
+      <section className="relative z-10 flex-none px-4">
         <div className="flex items-end justify-center gap-2.5">
           {result.team.map((pet, index) => {
             const unit = `p${index}`;
@@ -289,7 +290,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
                 {active ? <div className={`pointer-events-none absolute inset-x-3 bottom-10 top-3 -z-0 rounded-full ${tone.flash} blur-2xl`} /> : null}
                 {hit === unit ? <div className="pointer-events-none absolute inset-0 z-10 rounded-2xl bg-white/30 mix-blend-screen" /> : null}
                 {pet.image ? (
-                  <img src={pet.image} alt={pet.name} className="relative mx-auto h-20 object-contain drop-shadow-[0_0_18px_rgba(56,189,248,.5)]" />
+                  <img src={pet.image} alt={pet.name} className="relative mx-auto h-[11vh] max-h-24 min-h-12 object-contain drop-shadow-[0_0_18px_rgba(56,189,248,.5)]" />
                 ) : null}
                 <p className="relative truncate text-center text-[8px] font-black uppercase tracking-[.08em] text-slate-100">{pet.name}</p>
                 <Bar value={hp} max={petMax[index] ?? 1} tone="emerald" />
@@ -304,9 +305,10 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
           })}
         </div>
       </section>
+      </div>
 
       {/* ── skill panel — only the ACTIVE pet's 3 abilities ── */}
-      <footer className="relative z-10 mt-3 px-3 pb-[max(env(safe-area-inset-bottom),0.9rem)]">
+      <footer className="relative z-10 flex-none border-t border-white/10 bg-black/70 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 backdrop-blur-sm">
         {phase === 'pets' && kit && activePet ? (
           <>
             <p className="mb-1.5 text-center text-[8px] font-black uppercase tracking-[.24em] text-slate-500">
@@ -334,7 +336,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
             </div>
           </>
         ) : (
-          <div className="grid h-[86px] place-items-center">
+          <div className="grid h-[78px] place-items-center">
             <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-500">
               {phase === 'enemy' ? 'INIMIGOS ATACANDO...' : 'BATALHA ENCERRADA'}
             </p>
