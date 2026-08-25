@@ -3762,6 +3762,12 @@ const PROMPTS: Record<string, string> = {
     "🐾 Envie o JSON da <b>loot table TON</b> (premium).\nEx.: <code>[{\"type\":\"fc\",\"min\":50000,\"max\":150000,\"weight\":30}]</code>",
   fhpool: "🐾 Envie o JSON do <b>stage pool</b> (nomes/temas/artes dos inimigos).",
 
+  cbfixhp:
+    "❤️ Envie o <b>HP fixo</b> do Clan Boss para todas as guildas (0 = usar escala automática).\nEx.: <code>100000000</code> para 100M",
+  cbperday: "👹 Envie quantos <b>chefes por dia</b> cada guilda pode enfrentar (1 a 48).\nEx.: <code>4</code>",
+  cbfcpool: "🎁 Envie o <b>pool de FC</b> pago ao derrotar o Clan Boss.\nEx.: <code>1000000</code>",
+  cbclan: "🏰 Envie o <b>nome ou tag</b> do clã para configurar HP e recompensa individuais.\nEx.: <code>MythBR</code>",
+
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
   gwurl: "🎁 Envie o <b>link do grupo</b> do Telegram.\nEx.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>",
@@ -9135,6 +9141,9 @@ const CB_FIELDS: Record<string, { ref: string; label: string }> = {
   cbcool: { ref: "cooldown_seconds", label: "cooldown (segundos)" },
   cbxp: { ref: "clan_xp_reward", label: "XP de clã" },
   cbmindmg: { ref: "min_damage_pct", label: "% mínimo de dano" },
+  cbfixhp: { ref: "fixed_hp", label: "HP fixo global" },
+  cbperday: { ref: "bosses_per_day", label: "chefes por dia (global)" },
+  cbfcpool: { ref: "fc_pool", label: "pool de FC global" },
 };
 
 const cbCall = (ctx: Ctx, action = "overview", ref: string | null = null, payload: Record<string, unknown> = {}) =>
@@ -9150,7 +9159,9 @@ async function cbHub(ctx: Ctx, editing = true) {
     "Cada clã tem o seu próprio chefe, ciclo, cooldown e ranking interno. Independente do 👑 Global Boss.",
     "",
     `🏷 Nome: <b>${esc(c.bossName)}</b> · chave <code>${esc(c.bossKey)}</code>`,
-    `❤️ HP base: <b>${fmt(c.baseHp)}</b>`,
+    `❤️ HP FIXO global: <b>${Number(c.fixedHp) > 0 ? fmt(Math.round(Number(c.fixedHp))) : "desligado"}</b> · HP base ${fmt(c.baseHp)}`,
+    `👹 Chefes por dia: <b>${fmt(c.bossesPerDay)}</b> · 🕒 ciclo global ${fmt(c.cycleHours)}h`,
+    `🎁 Pool de FC ao derrotar: <b>${fmt(Math.round(Number(rw.fcPool || 0)))}</b>`,
     `📈 +${Number(c.hpPerClanLevelPct ?? 0)}% por nível do clã · +${Number(c.hpPerMemberPct ?? 0)}% por membro · +${Number(c.hpPerCyclePct ?? 0)}% por ciclo`,
     `🕒 Ciclo: <b>${fmt(c.durationHours)}h</b> · ⏱ cooldown <b>${fmt(c.cooldownSeconds)}s</b>`,
     `⭐ XP de clã ao derrotar: <b>${fmt(c.clanXpReward)}</b> · 🎯 dano mínimo <b>${Number(c.minDamagePct ?? 0)}%</b>`,
@@ -9167,8 +9178,16 @@ async function cbHub(ctx: Ctx, editing = true) {
   ].join("\n");
   const rows = [
     [
-      { t: "❤️ HP BASE", d: "cb:ask:cbbasehp" },
+      { t: "❤️ HP FIXO GLOBAL", d: "cb:ask:cbfixhp" },
+      { t: "🎁 FC AO DERROTAR", d: "cb:ask:cbfcpool" },
+    ],
+    [
+      { t: "👹 CHEFES / DIA", d: "cb:ask:cbperday" },
       { t: "🏷 NOME", d: "cb:ask:cbname" },
+    ],
+    [
+      { t: "❤️ HP BASE", d: "cb:ask:cbbasehp" },
+      { t: "🏰 CONFIG POR GUILDA", d: "cb:ask:cbclan" },
     ],
     [
       { t: "📈 % NÍVEL", d: "cb:ask:cbclanlvl" },
