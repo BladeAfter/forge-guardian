@@ -35,13 +35,19 @@ const rewardLine = (reward: FamiliarHuntReward) => {
   return `${fmt(reward.quantity)} ${REWARD_LABEL[reward.type] ?? reward.type}`;
 };
 
-const lootOptionLine = (option: Array<{ type: string; code?: string; rarity?: string; min?: number; max?: number }>) =>
-  option.map((line) => {
-    const range = line.min === line.max || line.max == null ? fmt(line.min ?? 1) : `${fmt(line.min ?? 1)}–${fmt(line.max)}`;
-    if (line.type === 'chest') return CHEST_LABEL[line.code ?? ''] ?? 'Baú';
-    if (line.type === 'equipment') return `Equipamento ${String(line.rarity ?? '').toUpperCase()}`;
-    return `${range} ${REWARD_LABEL[line.type] ?? line.type}`;
-  }).join(' + ');
+type LootLine = { type: string; code?: string; rarity?: string; min?: number; max?: number };
+
+/** Tolerant: an option may come as a list of lines OR as a single line object. */
+const lootOptionLine = (option: LootLine | LootLine[] | null | undefined) =>
+  (Array.isArray(option) ? option : option ? [option] : [])
+    .map((line) => {
+      const range = line.min === line.max || line.max == null ? fmt(line.min ?? 1) : `${fmt(line.min ?? 1)}–${fmt(line.max)}`;
+      if (line.type === 'chest') return CHEST_LABEL[line.code ?? ''] ?? 'Baú';
+      if (line.type === 'equipment') return `Equipamento ${String(line.rarity ?? '').toUpperCase()}`;
+      return `${range} ${REWARD_LABEL[line.type] ?? line.type}`;
+    })
+    .join(' + ');
+
 
 /**
  * 🐾⚔️ FAMILIAR HUNT — LINEAR progression. ONE clean screen: the CURRENT stage only.
