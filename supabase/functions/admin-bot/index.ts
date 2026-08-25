@@ -3750,6 +3750,16 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 
 // ---------------------------------------------------------------- prompts
 const PROMPTS: Record<string, string> = {
+  fhfc: "🐾 Envie o <b>custo em FC</b> por caçada.\nEx.: <code>100000</code>",
+  fhton: "🐾 Envie o <b>custo em TON</b> por caçada.\nEx.: <code>5</code>",
+  fhdiff:
+    "🐾 Envie o JSON de <b>dificuldade</b>.\nEx.: <code>{\"hp_base\":9000,\"hp_growth\":1.18,\"atk_base\":700,\"atk_growth\":1.15,\"boss_every\":5,\"boss_mult\":1.8}</code>",
+  fhfcloot:
+    "🐾 Envie o JSON da <b>loot table FC</b> (sem moedas — só itens).\nEx.: <code>[{\"type\":\"pet_food\",\"code\":\"basic_food\",\"min\":1,\"max\":3,\"weight\":40}]</code>",
+  fhtonloot:
+    "🐾 Envie o JSON da <b>loot table TON</b> (premium).\nEx.: <code>[{\"type\":\"fc\",\"min\":50000,\"max\":150000,\"weight\":30}]</code>",
+  fhpool: "🐾 Envie o JSON do <b>stage pool</b> (nomes/temas/artes dos inimigos).",
+
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
   gwurl: "🎁 Envie o <b>link do grupo</b> do Telegram.\nEx.: <code>https://t.me/+sy4Y6cd7cuIyNmEx</code>",
