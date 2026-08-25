@@ -3767,6 +3767,11 @@ const PROMPTS: Record<string, string> = {
   cbperday: "👹 Envie quantos <b>chefes por dia</b> cada guilda pode enfrentar (1 a 48).\nEx.: <code>4</code>",
   cbfcpool: "🎁 Envie o <b>pool de FC</b> pago ao derrotar o Clan Boss.\nEx.: <code>1000000</code>",
   cbclan: "🏰 Envie o <b>nome ou tag</b> do clã para configurar HP e recompensa individuais.\nEx.: <code>MythBR</code>",
+  cbpglobal:
+    "👹 Envie o <b>LIMITE DIÁRIO PADRÃO</b> de chefes DERROTADOS por jogador (0 a 50).\nEx.: <code>4</code>\n<i>Ataques e tentativas falhas nunca consomem o limite.</i>",
+  cbpreset: "🕒 Envie a <b>hora oficial do reset diário</b> em UTC (0 a 23).\nEx.: <code>0</code> para 00:00 UTC",
+  cbpsearch: "🔍 Envie o <b>Telegram ID</b>, @usuário ou ID interno do jogador para gerenciar o chefe pessoal e o limite diário.",
+  cbplimit: "🎯 Envie o <b>limite individual</b> de chefes derrotados por dia deste jogador (0 a 50).\nEx.: <code>6</code>",
 
   gwcamp:
     "🎁 Envie o novo <b>campaign_id</b>. Ao trocar, todos os jogadores voltam a ver o popup uma única vez.\nEx.: <code>mythreon_giveaway_sep2026</code>",
@@ -9209,6 +9214,7 @@ async function cbHub(ctx: Ctx, editing = true) {
       { t: "⚔️ CHEFES ATIVOS", d: "cb:active" },
       { t: "🏰 GERENCIAR CLÃ", d: "cb:ask:cbclan" },
     ],
+    [{ t: "🎯 LIMITE DIÁRIO / JOGADORES", d: "cb:pers" }],
     [{ t: "⚖️ BALANCEAMENTO 24H", d: "cb:bal" }],
     [{ t: "📜 HISTÓRICO", d: "cb:audit" }],
 
@@ -9517,6 +9523,104 @@ async function cbBalReport(ctx: Ctx, kind: "dur" | "easy" | "out") {
   );
 }
 
+// ---- 🎯 PERSONAL CLAN BOSS (boss individual + limite diário de chefes DERROTADOS)
+// Todas as mudanças valem na hora, sem deploy (admin_clan_boss_personal).
+const cbpCall = (ctx: Ctx, action = "report", ref = "", payload: Record<string, unknown> = {}) =>
+  rpc("admin_clan_boss_personal", {
+    p_admin_id: ctx.adminId,
+    p_action: action,
+    p_ref: ref,
+    p_payload: payload,
+  }) as Promise<any>;
+
+async function cbpHub(ctx: Ctx, editing = true) {
+  const d = await cbpCall(ctx, "report", "", { limit: 10 });
+  const c = d?.config || {};
+  const players: any[] = d?.players || [];
+  const body = [
+    "🎯 <b>PERSONAL CLAN BOSS — LIMITE DIÁRIO</b>",
+    "Cada membro tem o seu próprio chefe adaptativo. O limite conta apenas <b>chefes DERROTADOS</b> — ataques e tentativas falhas nunca consomem o limite.",
+    "O contador é POR JOGADOR / POR DIA: trocar de clã, sair, ser expulso, reabrir o app ou trocar de aparelho nunca zera.",
+    "",
+    `👹 LIMITE DIÁRIO PADRÃO: <b>${fmt(c.daily_limit ?? 4)}</b> chefes derrotados/dia`,
+    `🕒 Reset oficial do servidor: <b>${String(c.reset_hour_utc ?? 0).padStart(2, "0")}:00 UTC</b>`,
+    `🎯 Ataques-alvo por chefe: <b>${fmt(c.target_attacks_per_boss ?? 12)}</b> · sistema ${c.enabled === false ? "DESLIGADO" : "ATIVO"}`,
+    `🎁 Bônus por dificuldade: <b>${c.difficulty_bonus_enabled ? "ON" : "OFF"}</b>`,
+    "",
+    "<b>TOP JOGADORES (HP recomendado)</b>",
+    players
+      .slice(0, 10)
+      .map(
+        (p) =>
+          `• ${esc(p.name || p.username || p.userId)} · poder ${fmt(Math.round(Number(p.power || 0)))} · boss ${fmt(Math.round(Number(p.recommendedHp || 0)))} HP · hoje ${fmt(p.bossesToday || 0)}/${fmt(p.override ?? c.daily_limit ?? 4)}${p.override ? " (override)" : ""}`,
+      )
+      .join("\n") || "Nenhum perfil calculado ainda.",
+  ].join("\n");
+  const rows = [
+    [{ t: "👹 LIMITE DIÁRIO PADRÃO", d: "cb:ask:cbpglobal" }],
+    [{ t: "🕒 HORA DO RESET (UTC)", d: "cb:ask:cbpreset" }],
+    [{ t: "🔍 CONFIGURAR JOGADOR", d: "cb:ask:cbpsearch" }],
+    ...players.slice(0, 6).map((p: any) => [
+      {
+        t: `👤 ${String(p.name || p.username || "jogador").slice(0, 18)} · ${p.bossesToday || 0}/${p.override ?? c.daily_limit ?? 4}`,
+        d: `cb:pp:${p.userId}`,
+      },
+    ]),
+    [{ t: "🔄 ATUALIZAR", d: "cb:pers" }],
+    [{ t: "⬅️ CLAN BOSS", d: "cb:hub" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
+}
+
+async function cbpPlayer(ctx: Ctx, ref: string, editing = true) {
+  const d = await cbpCall(ctx, "view", ref);
+  if (!d || d.error)
+    return send(ctx, "🔍 Jogador não encontrado.", kb([[{ t: "⬅️ LIMITE DIÁRIO", d: "cb:pers" }], nav()]));
+  const dl = d.daily || {};
+  const body = [
+    `👤 <b>${esc(d.name || d.username || "jogador")}</b>${d.username ? ` · @${esc(d.username)}` : ""}`,
+    `🆔 Telegram: <code>${esc(String(d.telegramId ?? "—"))}</code> · 🏰 Clã: <b>${esc(d.clan || "sem clã")}</b>`,
+    "",
+    `💪 Poder oficial: <b>${fmt(Math.round(Number(d.officialPower || 0)))}</b>`,
+    `👹 Poder do chefe: <b>${fmt(Math.round(Number(d.bossPower || 0)))}</b>`,
+    `❤️ Chefe atual: <b>${fmt(Math.round(Number(d.currentBossHp || 0)))}/${fmt(Math.round(Number(d.currentBossMaxHp || 0)))}</b> HP · ${esc(String(d.difficulty || "—"))}`,
+    `📈 HP recomendado no próximo: <b>${fmt(Math.round(Number(d.recommendedHp || 0)))}</b>`,
+    `⏱ Tempo médio de kill: <b>${d.avgClearSeconds ? `${Math.floor(Number(d.avgClearSeconds) / 60)}m ${Math.round(Number(d.avgClearSeconds) % 60)}s` : "—"}</b> · dano médio/ataque ${fmt(Math.round(Number(d.avgDamage || 0)))}`,
+    "",
+    `🗓 CHEFES DERROTADOS HOJE: <b>${fmt(dl.defeated ?? 0)} / ${fmt(dl.limit ?? d.globalLimit ?? 4)}</b>`,
+    `👹 Limite padrão global: <b>${fmt(d.globalLimit ?? 4)}</b>`,
+    `🎯 Override individual: <b>${d.override == null ? "NENHUM" : fmt(d.override)}</b>`,
+  ].join("\n");
+  const rows = [
+    [{ t: "🎯 DEFINIR LIMITE INDIVIDUAL", d: `cb:pplim:${d.userId}` }],
+    [{ t: "♻️ REMOVER OVERRIDE", d: `cb:ppclr:${d.userId}` }],
+    [{ t: "🔄 ZERAR CONTAGEM DE HOJE", d: `cb:pprst:${d.userId}` }],
+    [{ t: "🧮 RECALCULAR CHEFE", d: `cb:pprec:${d.userId}` }],
+    [{ t: "📜 HISTÓRICO DE PERFORMANCE", d: `cb:pphist:${d.userId}` }],
+    [{ t: "⬅️ LIMITE DIÁRIO", d: "cb:pers" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, body, kb(rows)) : send(ctx, body, kb(rows));
+}
+
+async function cbpHistory(ctx: Ctx, uid: string) {
+  const d = await cbpCall(ctx, "history", uid);
+  const list =
+    (d?.history || [])
+      .map(
+        (h: any) =>
+          `• #${h.bossNumber ?? "?"} · ${fmt(Math.round(Number(h.hp || 0)))} HP · ${h.status === "defeated" ? "✅" : "❌"} ${esc(String(h.quality || ""))} · ${fmt(h.attacks || 0)} atk · ${h.clearSeconds ? `${Math.floor(Number(h.clearSeconds) / 60)}m` : "—"} · média ${fmt(Math.round(Number(h.avgDamage || 0)))}`,
+      )
+      .join("\n") || "Sem histórico de performance ainda.";
+  return edit(
+    ctx,
+    `📜 <b>PERFORMANCE — ${esc(d?.username || uid)}</b>\n\n${list.slice(0, 3400)}`,
+    kb([[{ t: "⬅️ JOGADOR", d: `cb:pp:${uid}` }], nav()]),
+  );
+}
+
+
 async function cbCallback(ctx: Ctx, rest: string[]) {
   const [sub, a] = [rest[0], rest[1] || ""];
   switch (sub) {
@@ -9548,6 +9652,29 @@ async function cbCallback(ctx: Ctx, rest: string[]) {
       await cbClanCall(ctx, a, "clear");
       await send(ctx, "♻️ Configuração individual removida: este clã voltou a usar a configuração global.");
       return cbClanCard({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "pers":
+      return cbpHub(ctx);
+    case "pp":
+      return cbpPlayer(ctx, a);
+    case "pphist":
+      return cbpHistory(ctx, a);
+    case "pplim":
+      return ask(ctx, `cbplimit|${a}`, PROMPTS.cbplimit);
+    case "ppclr": {
+      await cbpCall(ctx, "clear_limit", a);
+      await send(ctx, "♻️ Override removido: o jogador voltou ao limite diário global.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "pprst": {
+      await cbpCall(ctx, "reset_daily", a);
+      await send(ctx, "🔄 Contagem de chefes derrotados de hoje zerada para este jogador.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
+    }
+    case "pprec": {
+      await cbpCall(ctx, "recalculate", a);
+      await send(ctx, "🧮 Perfil recalculado: o próximo chefe pessoal nasce com HP/DEF/ATK adaptados.");
+      return cbpPlayer({ ...ctx, messageId: undefined }, a, false);
     }
     case "clan":
       return cbClanCard(ctx, a);
@@ -9598,6 +9725,32 @@ async function cbPrompt(ctx: Ctx, key: string, text: string, args: string[] = []
     await clearSession(ctx);
     await send(ctx, `✅ <b>${esc(f.label)}</b> deste clã atualizado e aplicado imediatamente.`);
     return cbClanCard({ ...ctx, messageId: undefined }, clanId, false);
+  }
+  if (key === "cbpglobal" || key === "cbpreset") {
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    await cbpCall(ctx, "set", key === "cbpglobal" ? "daily_limit" : "reset_hour_utc", { value });
+    await clearSession(ctx);
+    await send(
+      ctx,
+      key === "cbpglobal"
+        ? `✅ Limite diário padrão atualizado para <b>${fmt(Math.round(value))}</b> chefes derrotados por jogador/dia. Jogadores sem override passam a usar esse valor imediatamente.`
+        : `✅ Reset diário oficial definido para <b>${String(Math.round(value)).padStart(2, "0")}:00 UTC</b>.`,
+    );
+    return cbpHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "cbpsearch") {
+    await clearSession(ctx);
+    return cbpPlayer({ ...ctx, messageId: undefined }, text.trim(), false);
+  }
+  if (key === "cbplimit") {
+    const uid = args[0] || "";
+    const value = parseAmount(text);
+    if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido (0 a 50).");
+    await cbpCall(ctx, "set_limit", uid, { value });
+    await clearSession(ctx);
+    await send(ctx, `✅ Limite individual definido: <b>${fmt(Math.round(value))}</b> chefes derrotados por dia.`);
+    return cbpPlayer({ ...ctx, messageId: undefined }, uid, false);
   }
   if (key === "cbclan") {
     const rows = await db
