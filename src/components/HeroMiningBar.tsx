@@ -43,6 +43,35 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   }, [feedback]);
 
   if (!state) return null;
+
+  /**
+   * PASS GATE (server decided): new players (created after the cutoff) need the
+   * official 5 TON Mythreon Pass. The card stays visible but locked, without any
+   * real mining data and without CLAIM. Legacy players are never gated.
+   */
+  if (state.accessLocked || state.miningAccess === 'LOCKED_PASS_REQUIRED') {
+    const price = Number(state.passGate?.priceTon ?? 5);
+    return (
+      <section className="mt-2 overflow-hidden rounded-2xl border border-amber-300/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/40 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-black uppercase tracking-[.14em] text-amber-200">
+            <Pickaxe size={12} /> {t('mining.locked.title')}
+          </p>
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-[.12em] text-amber-200">
+            <Lock size={9} /> {t('mining.locked.badge')}
+          </span>
+        </div>
+        <p className="mt-2 text-center text-[10px] leading-snug text-slate-300">{t('mining.locked.desc')}</p>
+        <button
+          onClick={() => { window.location.href = '/season-pass'; }}
+          className="mt-2.5 flex min-h-[36px] w-full items-center justify-center rounded-xl border border-amber-300/50 bg-gradient-to-r from-amber-400/20 to-cyan-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-100"
+        >
+          {t('mining.locked.cta', { price: String(price) })}
+        </button>
+      </section>
+    );
+  }
+
   /**
    * Visibility gate: the mining card only exists for players that actually own a
    * yielding NFT (hero, pet or equipment). Ownership is proven by the server-side
@@ -56,6 +85,7 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
     || Number(state.lifetimeTon || 0) > 0
     || Number(state.lifetimeMyth || 0) > 0;
   if (!unlocked) return null;
+
 
   // Mining is per-NFT: sold units keep TON, units with a MYTH rate mine MYTH.
   const tonRate = miningStateRate(state);

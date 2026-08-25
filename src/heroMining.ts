@@ -7,10 +7,17 @@
  */
 export type HeroMiningClaim = { id: string; amountTon: number; amountMyth?: number; currency?: 'ton' | 'myth'; heroCount: number; ratePerDay: number; createdAt: string };
 
+export type TonMiningAccess = 'LEGACY_GRANTED' | 'PASS_GRANTED' | 'MANUAL_GRANTED' | 'LOCKED_PASS_REQUIRED';
+
 export type HeroMiningState = {
   enabled: boolean;
+  /** Server authorization for NFT mining (Pass gate). Never decided on the client. */
+  miningAccess?: TonMiningAccess;
+  accessLocked?: boolean;
+  passGate?: { enabled: boolean; cutoffAt: string; priceTon: number };
   /** Active mining currency (server controlled through the Admin Bot). */
   miningCurrency?: 'ton' | 'myth';
+
   currencyChangedAt?: string | null;
   /** Daily rate in the ACTIVE currency. */
   dailyRate?: number;
