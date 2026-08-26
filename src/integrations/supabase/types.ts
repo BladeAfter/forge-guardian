@@ -18579,6 +18579,10 @@ export type Database = {
         }
         Returns: Json
       }
+      pet_egg_move_from_inventory: {
+        Args: { p_egg_id: string; p_user_id: string }
+        Returns: boolean
+      }
       pet_evolution_cost: { Args: { r: string; v: number }; Returns: number }
       pet_evolution_stage: { Args: { v: number }; Returns: string }
       pet_hatch_result_json: {
