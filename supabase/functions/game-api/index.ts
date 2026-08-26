@@ -351,9 +351,28 @@ async function handlePets(db: Db, user: TelegramUser, body: Record<string, any>)
     args.p_idempotency_key = requestKey('pet_evolve');
     args.p_currency = mythOpt();
   } else if (action === 'hatch') {
-    if (!isUuid(body.eggId)) throw new Error('Ovo inválido.');
+    // Eggs can be referenced by UUID (pet shop) or by their stable code/slug
+    // (`mythic-egg`, from generic inventory rewards). Both must open the same way.
+    let eggId = String(body.eggId ?? '');
+    if (!isUuid(eggId)) {
+      const code = eggId.trim().toLowerCase().replace(/_/g, '-');
+      if (!/^[a-z0-9-]{3,60}$/.test(code)) throw new Error('Ovo inválido.');
+      const found = await db.from('pet_eggs').select('id').eq('slug', code).maybeSingle();
+      if (found.error) throw new Error(found.error.message);
+      if (!found.data?.id) throw new Error('Ovo inválido.');
+      eggId = String(found.data.id);
+    }
+    // Reward eggs live in the generic inventory: move one into the pet stock first.
+    const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+    if (player.data?.id) {
+      const stock = await db.from('player_pet_inventory').select('quantity')
+        .eq('user_id', player.data.id).eq('item_type', 'egg').eq('item_id', eggId).maybeSingle();
+      if (!stock.data || Number(stock.data.quantity ?? 0) < 1) {
+        await rpc(db, 'pet_egg_move_from_inventory', { p_user_id: player.data.id, p_egg_id: eggId });
+      }
+    }
     fn = 'hatch_pet_egg';
-    args.p_egg_id = body.eggId;
+    args.p_egg_id = eggId;
     args.p_idempotency_key = requestKey('pet_hatch');
   } else if (action === 'recover-hatch') {
     fn = 'get_pet_egg_opening';
