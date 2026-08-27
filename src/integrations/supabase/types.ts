@@ -5041,6 +5041,280 @@ export type Database = {
         }
         Relationships: []
       }
+      global_roulette_awards: {
+        Row: {
+          amount: number | null
+          created_at: string
+          cycle_id: string | null
+          id: string
+          payload: Json
+          reward_class: string
+          reward_key: string | null
+          source_type: string
+          spin_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          cycle_id?: string | null
+          id?: string
+          payload?: Json
+          reward_class: string
+          reward_key?: string | null
+          source_type: string
+          spin_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          cycle_id?: string | null
+          id?: string
+          payload?: Json
+          reward_class?: string
+          reward_key?: string | null
+          source_type?: string
+          spin_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_roulette_awards_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_roulette_awards_spin_id_fkey"
+            columns: ["spin_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_spins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_roulette_awards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_roulette_cycles: {
+        Row: {
+          completed_at: string | null
+          config_snapshot: Json
+          created_at: string
+          cycle_number: number
+          global_spend_nanoton: number
+          id: string
+          started_at: string
+          status: string
+          target_reference_cost_nanoton: number
+          target_reward_id: string
+          target_reward_type: string
+          threshold_reached_at: string | null
+          updated_at: string
+          winner_user_id: string | null
+          winning_spin_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          config_snapshot?: Json
+          created_at?: string
+          cycle_number?: number
+          global_spend_nanoton?: number
+          id?: string
+          started_at?: string
+          status?: string
+          target_reference_cost_nanoton: number
+          target_reward_id: string
+          target_reward_type: string
+          threshold_reached_at?: string | null
+          updated_at?: string
+          winner_user_id?: string | null
+          winning_spin_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          config_snapshot?: Json
+          created_at?: string
+          cycle_number?: number
+          global_spend_nanoton?: number
+          id?: string
+          started_at?: string
+          status?: string
+          target_reference_cost_nanoton?: number
+          target_reward_id?: string
+          target_reward_type?: string
+          threshold_reached_at?: string | null
+          updated_at?: string
+          winner_user_id?: string | null
+          winning_spin_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_roulette_cycles_winner_user_id_fkey"
+            columns: ["winner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_roulette_cycles_winning_spin_fkey"
+            columns: ["winning_spin_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_spins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_roulette_settings: {
+        Row: {
+          celestial_threshold_nanoton: number
+          created_at: string
+          enabled: boolean
+          id: boolean
+          myth_shortage_behavior: string
+          normal_weight_equipment: number
+          normal_weight_myth: number
+          paused: boolean
+          payment_ttl_minutes: number
+          spin_cost_nanoton: number
+          updated_at: string
+          weight_celestial: number
+          weight_mythic: number
+          weight_nft_hero: number
+        }
+        Insert: {
+          celestial_threshold_nanoton?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          myth_shortage_behavior?: string
+          normal_weight_equipment?: number
+          normal_weight_myth?: number
+          paused?: boolean
+          payment_ttl_minutes?: number
+          spin_cost_nanoton?: number
+          updated_at?: string
+          weight_celestial?: number
+          weight_mythic?: number
+          weight_nft_hero?: number
+        }
+        Update: {
+          celestial_threshold_nanoton?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          myth_shortage_behavior?: string
+          normal_weight_equipment?: number
+          normal_weight_myth?: number
+          paused?: boolean
+          payment_ttl_minutes?: number
+          spin_cost_nanoton?: number
+          updated_at?: string
+          weight_celestial?: number
+          weight_mythic?: number
+          weight_nft_hero?: number
+        }
+        Relationships: []
+      }
+      global_roulette_spins: {
+        Row: {
+          amount_nanoton: number
+          created_at: string
+          cycle_id: string | null
+          expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          normal_reward_amount: number | null
+          normal_reward_json: Json | null
+          normal_reward_type: string | null
+          paid_at: string | null
+          payment_address: string | null
+          payment_comment: string | null
+          payment_source: string
+          premium_reward_awarded: boolean
+          premium_reward_id: string | null
+          premium_reward_type: string | null
+          received_nanoton: number | null
+          result_json: Json | null
+          settled_at: string | null
+          status: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_nanoton: number
+          created_at?: string
+          cycle_id?: string | null
+          expires_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          normal_reward_amount?: number | null
+          normal_reward_json?: Json | null
+          normal_reward_type?: string | null
+          paid_at?: string | null
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_source: string
+          premium_reward_awarded?: boolean
+          premium_reward_id?: string | null
+          premium_reward_type?: string | null
+          received_nanoton?: number | null
+          result_json?: Json | null
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_nanoton?: number
+          created_at?: string
+          cycle_id?: string | null
+          expires_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          normal_reward_amount?: number | null
+          normal_reward_json?: Json | null
+          normal_reward_type?: string | null
+          paid_at?: string | null
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_source?: string
+          premium_reward_awarded?: boolean
+          premium_reward_id?: string | null
+          premium_reward_type?: string | null
+          received_nanoton?: number | null
+          result_json?: Json | null
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_roulette_spins_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_roulette_spins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hero_catalog: {
         Row: {
           available_from: string | null
@@ -11932,6 +12206,121 @@ export type Database = {
           },
         ]
       }
+      roulette_celestial_awards: {
+        Row: {
+          awarded_at: string
+          cycle_id: string | null
+          hero_key: string
+          player_hero_id: string | null
+          spin_id: string | null
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          cycle_id?: string | null
+          hero_key: string
+          player_hero_id?: string | null
+          spin_id?: string | null
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          cycle_id?: string | null
+          hero_key?: string
+          player_hero_id?: string | null
+          spin_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roulette_celestial_awards_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roulette_celestial_awards_spin_id_fkey"
+            columns: ["spin_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_spins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roulette_celestial_awards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roulette_myth_reserve: {
+        Row: {
+          allocated_myth: number
+          distributed_myth: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          allocated_myth?: number
+          distributed_myth?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          allocated_myth?: number
+          distributed_myth?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roulette_reward_config: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          label: string
+          metadata: Json
+          quantity: number
+          reference_cost_nanoton: number
+          requires_global_threshold: boolean
+          reward_class: string
+          reward_key: string
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          metadata?: Json
+          quantity?: number
+          reference_cost_nanoton?: number
+          requires_global_threshold?: boolean
+          reward_class: string
+          reward_key: string
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          metadata?: Json
+          quantity?: number
+          reference_cost_nanoton?: number
+          requires_global_threshold?: boolean
+          reward_class?: string
+          reward_key?: string
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       season_exclusive_deliveries: {
         Row: {
           created_at: string
@@ -15808,6 +16197,33 @@ export type Database = {
         Args: { p_admin_id: number; p_exclude?: string; p_rarity: string }
         Returns: Json
       }
+      admin_roulette_cycle_cancel: {
+        Args: { p_admin_id: number; p_reason?: string }
+        Returns: Json
+      }
+      admin_roulette_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_roulette_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_roulette_reward_list: {
+        Args: { p_admin_id: number; p_class: string }
+        Returns: Json
+      }
+      admin_roulette_reward_set: {
+        Args: {
+          p_admin_id: number
+          p_class: string
+          p_field: string
+          p_key: string
+          p_value: string
+        }
+        Returns: Json
+      }
+      admin_roulette_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_search_heroes: {
         Args: { p_admin_id: number; p_limit?: number; p_query?: string }
         Returns: Json
@@ -18897,6 +19313,67 @@ export type Database = {
         Returns: string
       }
       roll_universal_fragment_rarity: { Args: never; Returns: string }
+      roulette_grant_premium: {
+        Args: { p_cycle: string; p_spin: string; p_user: string }
+        Returns: Json
+      }
+      roulette_lock_open_cycle: {
+        Args: never
+        Returns: {
+          completed_at: string | null
+          config_snapshot: Json
+          created_at: string
+          cycle_number: number
+          global_spend_nanoton: number
+          id: string
+          started_at: string
+          status: string
+          target_reference_cost_nanoton: number
+          target_reward_id: string
+          target_reward_type: string
+          threshold_reached_at: string | null
+          updated_at: string
+          winner_user_id: string | null
+          winning_spin_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "global_roulette_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      roulette_mark_paid: {
+        Args: { p_amount_nano: string; p_spin_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      roulette_open_cycle: { Args: never; Returns: string }
+      roulette_pay_myth: {
+        Args: { p_amount: number; p_user: string }
+        Returns: boolean
+      }
+      roulette_pending_payments: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      roulette_reconcile: {
+        Args: { p_max_age_minutes?: number }
+        Returns: Json
+      }
+      roulette_resolve: { Args: { p_spin_id: string }; Returns: Json }
+      roulette_roll_normal: {
+        Args: { p_cycle: string; p_spin: string; p_user: string }
+        Returns: Json
+      }
+      roulette_spin: {
+        Args: { p_idempotency_key?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      roulette_state: { Args: { p_telegram_id: number }; Returns: Json }
+      roulette_user_has_celestial: {
+        Args: { p_user: string }
+        Returns: boolean
+      }
       row_count_of_last: { Args: never; Returns: number }
       save_pvp_team_slot: {
         Args: {

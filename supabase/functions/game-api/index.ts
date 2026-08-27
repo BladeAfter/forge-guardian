@@ -841,6 +841,57 @@ async function verifyFamiliarHuntPayments(db: Db, user: TelegramUser) {
   return { checked: orders.length + settled.length, settled, pending };
 }
 
+/**
+ * 🎡 GLOBAL MYSTERY ROULETTE — on-chain settlement.
+ * A spin only becomes real after the transfer is FOUND on-chain with the exact
+ * reference comment and at least the expected amount. A confirmed payment whose
+ * spin failed stays recoverable (PAID) and is finished here without charging again.
+ */
+async function verifyRoulettePayments(db: Db, user: TelegramUser) {
+  const state = await rpc(db, 'roulette_pending_payments', { p_telegram_id: user.id }) as any;
+  const settled: any[] = [];
+  const pending: string[] = [];
+
+  for (const id of (state?.paidPendingSpin ?? [])) {
+    try { settled.push(await rpc(db, 'roulette_resolve', { p_spin_id: String(id) })); }
+    catch (error) { console.error('[FORGE ERROR] roulette-recover', { id, error: String(error) }); }
+  }
+
+  const orders: any[] = Array.isArray(state?.awaitingPayment) ? state.awaitingPayment : [];
+  if (orders.length) {
+    const hotWallet = await hotWalletAddress(db);
+    const transactions = await fetchHotWalletIncoming(hotWallet);
+    for (const order of orders) {
+      const comment = String(order.paymentComment || '').trim();
+      const expectedNano = BigInt(String(order.amountNano || '0'));
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
+      });
+      if (!match) { pending.push(String(order.id)); continue; }
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      try {
+        await rpc(db, 'roulette_mark_paid', { p_spin_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+        settled.push(await rpc(db, 'roulette_resolve', { p_spin_id: order.id }));
+        await db.from('ton_payment_logs').insert({
+          order_kind: 'global_roulette', order_id: order.id, telegram_id: user.id,
+          product_id: 'roulette_spin', expected_amount_nano: expectedNano.toString(),
+          destination_wallet: hotWallet, payment_reference: comment, tx_hash: txHash,
+          received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'completed',
+        });
+      } catch (error) {
+        console.error('[FORGE ERROR] roulette-confirm', { spinId: order.id, error: String(error) });
+        pending.push(String(order.id));
+      }
+    }
+  }
+
+  return { checked: orders.length + settled.length, settled, pending };
+}
+
+
 async function verifyEggPurchases(db: Db, user: TelegramUser) {
 
   const state = await rpc(db, 'reconcile_pet_egg_orders', { p_telegram_id: user.id }) as any;
@@ -2477,8 +2528,25 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * 🎡 GLOBAL MYSTERY ROULETTE. Every decision (reward, cycle spend, premium eligibility,
+   * winner) is taken by the database inside a single locked transaction. The client can
+   * only ask for a spin and render the result the backend already committed.
+   */
+  roulette: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'roulette_state', { p_telegram_id: user.id });
+    if (action === 'spin') {
+      const key = String(body.idempotencyKey || '').slice(0, 80);
+      if (key.length < 8) throw new Error('INVALID_REQUEST_KEY');
+      return rpc(db, 'roulette_spin', { p_telegram_id: user.id, p_idempotency_key: key });
+    }
+    if (action === 'verify-payments') return await verifyRoulettePayments(db, user);
+    throw new Error('INVALID_ACTION');
+  },
 
 };
+
 
 
 
