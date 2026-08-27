@@ -973,6 +973,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             buyDisabled={buyMutation.isPending}
           />
         ) : null}
+
+        {rouletteOpen ? (
+          <RouletteOverlay telegramInitData={telegramInitData} onClose={() => setRouletteOpen(false)} />
+        ) : null}
       </div>
     </div>
   );
