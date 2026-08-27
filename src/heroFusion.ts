@@ -180,6 +180,9 @@ export type RarityFusionHistoryEntry = {
 export type RarityFusionDashboard = {
   config: RarityFusionConfig;
   balance: number;
+  /** MYTH wallet: total balance and the spendable part (total minus staking). */
+  mythBalance?: number;
+  mythAvailable?: number;
   fragments: number;
   heroes: RarityFusionHero[];
   counts: Record<string, number>;
