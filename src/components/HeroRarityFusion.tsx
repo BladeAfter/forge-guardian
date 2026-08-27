@@ -98,9 +98,11 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
   const chosen = selected.map((id) => byId.get(id) ?? null).filter(Boolean) as RarityFusionHero[];
   const sourceRarity = chosen[0]?.rarity ?? null;
   const tier = sourceRarity ? tiers[sourceRarity] : null;
-  const cost = tier?.cost_fc ?? 0;
+  // Rarity fusion is MYTH-only: the cost is burned, never charged in FC.
+  const cost = tier?.cost_myth ?? 0;
+  const mythAvailable = Number(data.mythAvailable ?? data.mythBalance ?? 0);
   const complete = selected.length === required;
-  const notEnoughFc = complete && data.balance < cost;
+  const notEnoughFc = complete && mythAvailable < cost;
   const fusionEnabled = config?.enabled !== false;
 
   useEffect(() => {
