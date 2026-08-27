@@ -324,7 +324,14 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
 
         {tab === 'war' ? <ClanWarPanel telegramInitData={telegramInitData} /> : null}
 
-        {tab === 'hub' ? <ClanCollectivePanel telegramInitData={telegramInitData} /> : null}
+        {tab === 'hub' ? (
+          <ClanCollectivePanel
+            telegramInitData={telegramInitData}
+            pendingRequests={canManage ? requests.length : 0}
+            onOpenWar={() => setTab('war')}
+          />
+        ) : null}
+
       </div>
     </Shell>
   );
