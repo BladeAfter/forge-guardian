@@ -1,5 +1,5 @@
 import { REWARD_CATEGORIES, type RewardCategory, type RewardCategoryId } from './RouletteRewardKit';
-import wheelArt from '@/assets/roulette/wheel-ref.png';
+import wheelArt from '../assets/roulette/wheel-ref.png';
 
 /**
  * Slice layout of the wheel artwork (clockwise). Dividers sit at the top,
