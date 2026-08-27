@@ -181,6 +181,7 @@ export function ClanCollectivePanel({
     </>
   );
 
+  // Collective resources are spent here, so only leader/vice see an actionable button.
   const constructions = (
     <div className="space-y-1.5">
       {(state.upgrades ?? []).map((u) => (
@@ -189,14 +190,59 @@ export function ClanCollectivePanel({
             <div className="truncate text-[11px] font-black text-slate-100">{u.label} <span className="text-amber-300">Nv {u.level}/{u.maxLevel}</span></div>
             <div className="truncate text-[9px] text-slate-500">{u.description}</div>
           </div>
-          <button disabled={busy || u.level >= u.maxLevel} onClick={() => void run({ action: 'upgrade-buy', code: u.code }, 'Construção evoluída!')}
-            className="shrink-0 rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200 disabled:opacity-40">
-            {u.level >= u.maxLevel ? 'MÁX' : `${formatCurrency(u.nextCost)} FC`}
-          </button>
+          {u.level >= u.maxLevel ? (
+            <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[10px] font-black text-slate-400">NÍVEL MÁX</span>
+          ) : canManageUpgrades ? (
+            <button disabled={busy} onClick={() => setConfirmUpgrade(u)}
+              className="shrink-0 rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200 disabled:opacity-40">
+              {formatCurrency(u.nextCost)} FC
+            </button>
+          ) : (
+            <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
+              Líder / Vice
+            </span>
+          )}
         </div>
       ))}
     </div>
   );
+
+  const upgradeConfirm = confirmUpgrade ? (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4" onClick={() => setConfirmUpgrade(null)}>
+      <div className="w-full max-w-xs rounded-2xl border border-amber-500/30 bg-slate-950 p-4" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-center text-sm font-black uppercase tracking-widest text-amber-200">Evoluir {confirmUpgrade.label}?</h3>
+        <div className="mt-3 space-y-1 text-[11px] text-slate-300">
+          <div className="flex justify-between"><span className="text-slate-500">Atual</span><span className="font-bold">Nv {confirmUpgrade.level}</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Próximo</span><span className="font-bold text-amber-300">Nv {confirmUpgrade.level + 1}</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Custo</span><span className="font-bold">{formatCurrency(confirmUpgrade.nextCost)} FC</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Tesouro do clã</span><span className="font-bold">{formatCurrency(state.treasury?.fc ?? 0)} FC</span></div>
+        </div>
+        {(state.treasury?.fc ?? 0) < confirmUpgrade.nextCost ? (
+          <p className="mt-2 text-center text-[10px] font-black uppercase text-rose-300">Fundos do clã insuficientes</p>
+        ) : null}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            disabled={busy || (state.treasury?.fc ?? 0) < confirmUpgrade.nextCost}
+            onClick={() => {
+              const code = confirmUpgrade.code;
+              const level = confirmUpgrade.level;
+              setConfirmUpgrade(null);
+              // Idempotency key is bound to the level being bought: a second
+              // simultaneous click can never pay the old price twice.
+              void run({ action: 'upgrade-buy', code, clientKey: `${code}-${level}-${Date.now()}` }, 'Construção evoluída!');
+            }}
+            className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-700 py-2 text-[10px] font-black uppercase tracking-widest text-black disabled:opacity-40"
+          >
+            Confirmar
+          </button>
+          <button onClick={() => setConfirmUpgrade(null)} className="rounded-xl bg-white/10 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
 
   const buffsList = (
     <div className="space-y-1.5">
