@@ -296,14 +296,19 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
             {blocked ? 'INDISPONÍVEL' : busy ? 'GIRANDO...' : `SPIN • ${cost} TON`}
           </button>
           {history.length ? (
-            <p className="mt-2 truncate text-center text-[9px] uppercase tracking-[0.14em] text-slate-500">
-              Último: {history[0].premium
-                ? '👑 Prêmio lendário'
-                : String(history[0].normal?.class) === 'MYTH'
-                  ? `🪙 ${formatCurrency(Number(history[0].normal?.amount ?? 0))} MYTH`
-                  : `🛡 ${history[0].normal?.label ?? 'Equipamento NFT'}`}
-            </p>
+            (() => {
+              const last = rewardCategory(resultCategoryId(history[0]));
+              return (
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                  <RewardMedallion category={last} size={20} onClick={() => setPreview(last)} />
+                  <span className={`truncate text-[9px] font-black uppercase tracking-[0.14em] ${last.text}`}>
+                    Último: {rewardTitle(history[0])}
+                  </span>
+                </div>
+              );
+            })()
           ) : null}
+
         </div>
       </div>
 
