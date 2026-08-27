@@ -2596,6 +2596,8 @@ async function clanRaidSettingsView(ctx: Ctx) {
         { t: s.raid_full_kill_required ? "🎁 KILL OPCIONAL" : "🎁 KILL OBRIGATÓRIO", d: `cl:rst:raid_full_kill_required:${s.raid_full_kill_required ? 0 : 1}` },
       ],
       [10, 15, 20, 30].map((v) => ({ t: `CATCH ${v}%`, d: `cl:rst:raid_catchup_max_pct:${v}` })),
+      [50_000_000_000, 100_000_000_000, 500_000_000_000].map((v) => ({ t: `HP CAP ${fmt(v / 1_000_000_000)}B`, d: `cl:rst:raid_hp_max:${v}` })),
+      [{ t: "♻️ REBASE HP DAS RAIDS ATIVAS", d: "cl:rbz" }],
       [{ t: "🔄 ATUALIZAR", d: "cl:rs" }],
       nav("cl:hub"),
     ]),
@@ -2841,6 +2843,13 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     }
     case "ra":
       return clanRaidAuditView(ctx, String(a ?? ""));
+
+    // ♻️ Rebase: recalcula HP das raids ativas preservando o dano legítimo já causado.
+    case "rbz": {
+      const res = (await rpc("clan_raid_rebase_all", { p_reason: "admin_bot_rebase" })) as any;
+      await answer(ctx, `Rebase aplicado em ${res?.raids ?? 0} raid(s).`);
+      return clanRaidSettingsView(ctx);
+    }
 
     // 💰 Donation limits: global defaults and hard caps for per-clan treasury rules.
     case "ds":
