@@ -2455,6 +2455,7 @@ export type Database = {
           raid_hp_per_power: number
           raid_max_hp_decrease_pct: number
           raid_max_hp_increase_pct: number
+          raid_min_kill_days: number
           raid_rewards: Json
           raid_safety_factor: number
           raid_target_kill_days: number
@@ -2498,6 +2499,7 @@ export type Database = {
           raid_hp_per_power?: number
           raid_max_hp_decrease_pct?: number
           raid_max_hp_increase_pct?: number
+          raid_min_kill_days?: number
           raid_rewards?: Json
           raid_safety_factor?: number
           raid_target_kill_days?: number
@@ -2541,6 +2543,7 @@ export type Database = {
           raid_hp_per_power?: number
           raid_max_hp_decrease_pct?: number
           raid_max_hp_increase_pct?: number
+          raid_min_kill_days?: number
           raid_rewards?: Json
           raid_safety_factor?: number
           raid_target_kill_days?: number
@@ -3281,7 +3284,9 @@ export type Database = {
           ends_at: string
           gates_enabled: boolean
           id: string
+          kill_unlock_at: string | null
           max_hp: number
+          min_kill_days: number
           participants: number
           performance_class: string | null
           raid_key: string
@@ -3311,7 +3316,9 @@ export type Database = {
           ends_at: string
           gates_enabled?: boolean
           id?: string
+          kill_unlock_at?: string | null
           max_hp: number
+          min_kill_days?: number
           participants?: number
           performance_class?: string | null
           raid_key: string
@@ -3341,7 +3348,9 @@ export type Database = {
           ends_at?: string
           gates_enabled?: boolean
           id?: string
+          kill_unlock_at?: string | null
           max_hp?: number
+          min_kill_days?: number
           participants?: number
           performance_class?: string | null
           raid_key?: string
@@ -3359,6 +3368,67 @@ export type Database = {
             columns: ["clan_id"]
             isOneToOne: false
             referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_raid_participation: {
+        Row: {
+          attacks: number
+          clan_id: string
+          created_at: string
+          effective_damage: number
+          first_attack_at: string
+          id: string
+          last_attack_at: string
+          raid_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attacks?: number
+          clan_id: string
+          created_at?: string
+          effective_damage?: number
+          first_attack_at?: string
+          id?: string
+          last_attack_at?: string
+          raid_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attacks?: number
+          clan_id?: string
+          created_at?: string
+          effective_damage?: number
+          first_attack_at?: string
+          id?: string
+          last_attack_at?: string
+          raid_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_raid_participation_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_participation_raid_id_fkey"
+            columns: ["raid_id"]
+            isOneToOne: false
+            referencedRelation: "clan_raid_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_participation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
             referencedColumns: ["id"]
           },
         ]
@@ -18996,6 +19066,7 @@ export type Database = {
           raid_hp_per_power: number
           raid_max_hp_decrease_pct: number
           raid_max_hp_increase_pct: number
+          raid_min_kill_days: number
           raid_rewards: Json
           raid_safety_factor: number
           raid_target_kill_days: number
@@ -19134,7 +19205,9 @@ export type Database = {
           ends_at: string
           gates_enabled: boolean
           id: string
+          kill_unlock_at: string | null
           max_hp: number
+          min_kill_days: number
           participants: number
           performance_class: string | null
           raid_key: string
@@ -19152,6 +19225,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      clan_raid_kill_unlock_at: {
+        Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
+        Returns: string
       }
       clan_raid_phase_floor: {
         Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
