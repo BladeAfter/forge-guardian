@@ -1,4 +1,4 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive' | 'celestial';
 
 export type ShopHero = {
   id: string;

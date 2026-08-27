@@ -1,4 +1,4 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive' | 'celestial';
 
 export const HERO_RARITY_STATS = {
   common: { baseAtk: 1.875, baseHp: 100, timeReductionMinutes: 48 },
@@ -8,11 +8,12 @@ export const HERO_RARITY_STATS = {
   legendary: { baseAtk: 2.68, baseHp: 300, timeReductionMinutes: 120 },
   mythic: { baseAtk: 3.02, baseHp: 400, timeReductionMinutes: 145 },
   ancestral: { baseAtk: 3.42, baseHp: 530, timeReductionMinutes: 175 },
-  nft_exclusive: { baseAtk: 4.45, baseHp: 689, timeReductionMinutes: 200 }
+  nft_exclusive: { baseAtk: 4.45, baseHp: 689, timeReductionMinutes: 200 },
+  celestial: { baseAtk: 5.2, baseHp: 780, timeReductionMinutes: 220 }
 } as const;
 
 export const RARITY_DAMAGE_RESISTANCE: Record<HeroRarity, number> = {
-  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8, mythic: .75, ancestral: .7, nft_exclusive: .62
+  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8, mythic: .75, ancestral: .7, nft_exclusive: .62, celestial: .58
 };
 export const BASE_BOSS_DURATION_SECONDS = 86_400;
 export const MIN_BOSS_DURATION_SECONDS = 14_400;
@@ -104,7 +105,7 @@ export function normalizeRarity(rarity?: string | null): HeroRarity {
     lendario: 'legendary', 'lendária': 'legendary', lendaria: 'legendary',
     mythic: 'mythic', 'mítico': 'mythic', mitico: 'mythic', 'mítica': 'mythic', mitica: 'mythic',
     ancestral: 'ancestral', ancient: 'ancestral',
-    nft_exclusive: 'nft_exclusive', nft: 'nft_exclusive', 'nft-exclusive': 'nft_exclusive'
+    nft_exclusive: 'nft_exclusive', nft: 'nft_exclusive', 'nft-exclusive': 'nft_exclusive', celestial: 'celestial', celeste: 'celestial'
   };
   return aliases[value] ?? 'common';
 }
