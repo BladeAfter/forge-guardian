@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowLeft, Castle, Hourglass, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Castle, Flame, Hourglass, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
@@ -9,9 +9,10 @@ import { ClanCrest } from '../components/ClanHall';
 import { ClanMembersList, ClanRequestCard } from '../components/ClanMembersPanel';
 import { ClanBossScreen, ClanBossTeaser } from '../components/ClanBossScreen';
 import { ClanWarPanel } from '../components/ClanWarPanel';
+import { ClanCollectivePanel } from '../components/ClanCollectivePanel';
 import { formatCurrency } from '../utils';
 
-type Tab = 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'boss' | 'war';
+type Tab = 'hub' | 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'boss' | 'war';
 
 /**
  * ClanHub: the single clan surface. Both the Clan Hall building and the compact
@@ -212,6 +213,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
       </section>
 
       <div className="mt-3 grid grid-cols-3 gap-2">
+        <TabButton active={tab === 'hub'} onClick={() => setTab('hub')} icon={<Flame className="h-4 w-4" />} label="HUB" />
         <TabButton active={tab === 'members'} onClick={() => setTab('members')} icon={<Users className="h-4 w-4" />} label={t('clan.members')} />
         <TabButton active={tab === 'chat'} onClick={() => void openChat()} icon={<MessageSquare className="h-4 w-4" />} label={t('clan.chat')} />
         <TabButton active={tab === 'missions'} onClick={() => setTab('missions')} icon={<Target className="h-4 w-4" />} label={t('clan.missions')} />
@@ -314,6 +316,8 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         {tab === 'boss' ? <ClanBossTeaser onOpen={() => setBossOpen(true)} /> : null}
 
         {tab === 'war' ? <ClanWarPanel telegramInitData={telegramInitData} /> : null}
+
+        {tab === 'hub' ? <ClanCollectivePanel telegramInitData={telegramInitData} /> : null}
       </div>
     </Shell>
   );
