@@ -16,7 +16,7 @@ const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
   emerald: { top: '#2fbd91', bottom: '#062018' },
 };
 
-const SYMBOLS: Record<string, string> = { dragon: '🐲', sword: '⚔️', wolf: '🐺', crown: '👑', flame: '🔥', skull: '💀' };
+
 
 /** Heraldic palette per emblem background: gem + inner field colours of the crest. */
 const CREST_COLORS: Record<string, { deep: string; mid: string; gem: string; glow: string }> = {
