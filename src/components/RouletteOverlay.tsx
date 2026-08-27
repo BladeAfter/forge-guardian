@@ -29,12 +29,20 @@ import { formatCurrency } from '../utils';
 type Props = { telegramInitData: string | null; onClose: () => void };
 
 /** Reward identity is derived ONLY from what the backend already granted — never a prediction. */
-const resultCategoryId = (result: RouletteSpinResult): RewardCategoryId => {
+type RewardLike = {
+  normal?: RouletteSpinResult['normal'] | null;
+  premium?: RouletteSpinResult['premium'] | boolean | null;
+};
+
+const premiumTag = (premium: RewardLike['premium']) => {
+  if (!premium || typeof premium === 'boolean') return '';
+  const p = premium as { name?: string; label?: string; class?: string };
+  return `${p.name ?? ''} ${p.label ?? ''} ${p.class ?? ''}`.toLowerCase();
+};
+
+const resultCategoryId = (result: RewardLike): RewardCategoryId => {
   if (result.premium) {
-    const tag = `${result.premium.name ?? ''} ${result.premium.label ?? ''} ${
-      (result.premium as { class?: string }).class ?? ''
-    }`.toLowerCase();
-    return tag.includes('celestial') ? 'CELESTIAL' : 'MYSTERY';
+    return premiumTag(result.premium).includes('celestial') ? 'CELESTIAL' : 'MYSTERY';
   }
   const cls = String(result.normal?.class ?? '').toUpperCase();
   if (cls === 'MYTH') return 'MYTH';
@@ -42,13 +50,17 @@ const resultCategoryId = (result: RouletteSpinResult): RewardCategoryId => {
   return 'GEAR';
 };
 
-const rewardTitle = (result: RouletteSpinResult) => {
-  if (result.premium) return String(result.premium.name || result.premium.label || 'PRÊMIO LENDÁRIO');
+const rewardTitle = (result: RewardLike) => {
+  if (result.premium) {
+    const p = typeof result.premium === 'boolean' ? null : (result.premium as { name?: string; label?: string });
+    return String(p?.name || p?.label || 'HERÓI MISTERIOSO');
+  }
   const reward = result.normal;
   if (!reward) return 'RECOMPENSA ENTREGUE';
   if (String(reward.class) === 'MYTH') return `${formatCurrency(Number(reward.amount ?? 0))} MYTH`;
   return String(reward.label || 'EQUIPAMENTO NFT');
 };
+
 
 
 export function RouletteOverlay({ telegramInitData, onClose }: Props) {
