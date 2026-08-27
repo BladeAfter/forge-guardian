@@ -196,27 +196,47 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
 
   return (
     <Shell onClose={onClose}>
-      {/* COMPACT CLAN HEADER — same data, single horizontal row + slim XP bar */}
-      <section className="rounded-[1.5rem] border border-amber-300/30 bg-gradient-to-br from-[#101d35] via-[#0a1220] to-black p-3">
-        <div className="flex items-center gap-3">
-          <ClanCrest emblem={clan.emblem} size={44} />
+      {/* PREMIUM GUILD PROFILE PANEL — large crest, identity block, stats block, XP bar */}
+      <section className="relative overflow-hidden rounded-[1.5rem] border border-amber-300/40 bg-gradient-to-br from-[#132445] via-[#0a1220] to-black p-3 shadow-[0_16px_40px_rgba(0,0,0,.6)]">
+        <span aria-hidden className="pointer-events-none absolute -left-10 -top-14 h-32 w-32 rounded-full bg-cyan-400/10 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-amber-400/10 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/60 to-transparent" />
+
+        <div className="relative flex items-start gap-3">
+          <ClanCrest emblem={clan.emblem} size={72} initials={clan.tag} />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-base font-black leading-tight text-amber-100">{clan.name}</h2>
-            <p className="text-[9px] font-black text-slate-400">[{clan.tag}] · {t('clan.level')} {clan.level} · {clan.members}/{clan.memberLimit} {t('clan.members')}</p>
+            <h2 className="truncate text-lg font-black leading-none tracking-wide text-amber-100 drop-shadow-[0_2px_6px_rgba(0,0,0,.8)]">{clan.name}</h2>
+            <p className="mt-1 inline-flex items-center gap-1.5">
+              <span className="rounded-md border border-amber-300/40 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-amber-200">[{clan.tag}]</span>
+              <span className="rounded-md border border-white/10 bg-black/50 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-slate-300">{t('clan.level')} {clan.level}</span>
+            </p>
+            <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+              {clan.members}/{clan.memberLimit} {t('clan.members')}
+            </p>
           </div>
-          <div className="shrink-0 text-right">
-            <p className="text-[8px] uppercase tracking-widest text-slate-500">{t('clan.power')}</p>
-            <b className="text-xs text-cyan-300">{clan.power.toLocaleString()}</b>
+          <div className="shrink-0 space-y-1 text-right">
+            <div className="rounded-xl border border-cyan-300/25 bg-black/50 px-2 py-1">
+              <p className="text-[7px] uppercase tracking-widest text-slate-500">{t('clan.power')}</p>
+              <b className="text-[11px] font-black text-cyan-300">{clan.power.toLocaleString()}</b>
+            </div>
+            <div className="rounded-xl border border-amber-300/25 bg-black/50 px-2 py-1">
+              <p className="text-[7px] uppercase tracking-widest text-slate-500">{t('clan.points')}</p>
+              <b className="text-[11px] font-black text-amber-300">{(data.me?.clanPoints ?? 0).toLocaleString()}</b>
+            </div>
           </div>
         </div>
-        <div className="mt-2">
-          <div className="flex justify-between text-[8px] text-slate-400">
-            <span>{t('clan.xp')} {clan.xp.toLocaleString()} / {clan.xpNeeded.toLocaleString()}</span>
-            <span>{t('clan.points')}: <b className="text-amber-300">{(data.me?.clanPoints ?? 0).toLocaleString()}</b></span>
+
+        <div className="relative mt-2.5">
+          <div className="flex items-baseline justify-between text-[8px] font-bold uppercase tracking-widest text-slate-400">
+            <span>{t('clan.xp')}</span>
+            <span className="text-slate-300">{clan.xp.toLocaleString()} / {clan.xpNeeded.toLocaleString()}</span>
           </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-amber-600 to-yellow-200" style={{ width: `${Math.min(100, (clan.xp / Math.max(1, clan.xpNeeded)) * 100)}%` }} /></div>
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-black/60 ring-1 ring-amber-300/20">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-300 to-yellow-100 shadow-[0_0_10px_rgba(251,191,36,.6)]" style={{ width: `${Math.min(100, (clan.xp / Math.max(1, clan.xpNeeded)) * 100)}%` }} />
+          </div>
         </div>
       </section>
+
 
 
       <div className="mt-3 grid grid-cols-3 gap-2">
