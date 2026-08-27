@@ -262,7 +262,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
               <b style={{ color: RARITY_COLOR[sourceRarity] }}>{t(`rarity.${sourceRarity}`)}</b> → <b style={{ color: RARITY_COLOR[tier.target] }}>{t(`rarity.${tier.target}`)}</b> · {t('fusion.chanceFail', { chance: tier.chance, fragments: fmt(tier.fragments) })}
             </>
           ) : (
-            <>MYTH disponível: {fmt(mythAvailable)}</>
+            <>{t('fusion.selectN', { count: required })}</>
           )}
         </p>
         <p className="text-[9px] text-fuchsia-200/80">MYTH disponível: {fmt(mythAvailable)}</p>
