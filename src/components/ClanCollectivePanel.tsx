@@ -113,6 +113,8 @@ export function ClanCollectivePanel({
   const [busy, setBusy] = useState(false);
   const [donation, setDonation] = useState('');
   const [sub, setSub] = useState<SubTab>('hub');
+  const [confirmUpgrade, setConfirmUpgrade] = useState<NonNullable<HubState['upgrades']>[number] | null>(null);
+
 
   const load = useCallback(async () => {
     try {
