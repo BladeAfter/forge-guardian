@@ -97,10 +97,9 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
       else toast.success(`Dano causado: ${formatCurrency(result.damage)}`);
       await load();
     } catch (error) {
-      const raw = error instanceof Error ? error.message : '';
-      const key = Object.keys(ERRORS).find((k) => raw.includes(k));
-      toast.error(key ? ERRORS[key] : 'Ataque indisponível.');
+      toast.error(clanErrorMessage(error, 'Ataque indisponível.'));
       await load();
+
     } finally {
       setBusy(false);
     }
