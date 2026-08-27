@@ -2,6 +2,11 @@ import { Plus, Shield } from 'lucide-react';
 import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
 import { buildings } from '../gameAssets';
+import crestNavy from '../assets/clan-crest-navy.png';
+import crestPurple from '../assets/clan-crest-purple.png';
+import crestCrimson from '../assets/clan-crest-crimson.png';
+import crestEmerald from '../assets/clan-crest-emerald.png';
+
 
 /** Banner colours mirror the clan emblem background so the flags read as clan colours. */
 const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
@@ -22,112 +27,67 @@ const CREST_COLORS: Record<string, { deep: string; mid: string; gem: string; glo
 };
 
 /**
- * PREMIUM CLAN CREST — real heraldic badge instead of a flat square icon.
- * Layered gold frame + shield field + crown, magical gem, laurel wings, runes and the
- * clan initials. Rendered as inline SVG so any clan gets a unique crest from its own
- * saved emblem config (background / symbol / border) with zero assets to load.
+ * Plaque geometry of each rendered crest artwork (percentages of the image box),
+ * so the clan initials sit exactly inside the engraved nameplate of the art.
+ */
+const CREST_ART: Record<string, { src: string; x: number; y: number; w: number; ink: string; shadow: string }> = {
+  navy: { src: crestNavy, x: 50, y: 76.5, w: 27, ink: '#bfe4ff', shadow: 'rgba(0,0,0,.85)' },
+  purple: { src: crestPurple, x: 50, y: 55.5, w: 24, ink: '#2b1405', shadow: 'rgba(255,236,170,.55)' },
+  crimson: { src: crestCrimson, x: 50, y: 70, w: 33, ink: '#2b1a02', shadow: 'rgba(255,236,170,.55)' },
+  emerald: { src: crestEmerald, x: 50, y: 63.5, w: 26, ink: '#d8ffe9', shadow: 'rgba(0,0,0,.8)' },
+};
+
+/**
+ * PREMIUM CLAN CREST — AAA rendered heraldic emblem artwork (gold shield, crown,
+ * dragon, laurels and arcane gem) instead of a flat icon. The clan initials are
+ * typeset into the engraved nameplate of the artwork for each colour variant.
  */
 export function ClanCrest({
-  emblem, size = 44, initials, shape = 'shield',
+  emblem, size = 44, initials,
 }: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
-  const c = CREST_COLORS[emblem?.background ?? 'navy'] ?? CREST_COLORS.navy;
-  const silver = emblem?.border === 'silver';
-  const frameA = silver ? '#f1f5f9' : '#ffe89a';
-  const frameB = silver ? '#7c8798' : '#b07d1c';
-  const uid = `${emblem?.background ?? 'navy'}-${emblem?.symbol ?? 'dragon'}-${silver ? 's' : 'g'}-${shape}`;
+  const key = emblem?.background ?? 'navy';
+  const c = CREST_COLORS[key] ?? CREST_COLORS.navy;
+  const art = CREST_ART[key] ?? CREST_ART.navy;
   const mark = (initials ?? '').replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
-  const symbol = SYMBOLS[emblem?.symbol ?? 'dragon'] ?? SYMBOLS.dragon;
-  const outline =
-    shape === 'badge'
-      ? 'M50 4 90 26 90 74 50 96 10 74 10 26Z'
-      : 'M50 4C68 10 80 12 92 12v40c0 24-18 38-42 48C26 90 8 76 8 52V12c12 0 24-2 42-8Z';
 
   return (
     <span
-      style={{ width: size, height: size, filter: `drop-shadow(0 0 ${size * 0.16}px ${c.glow})` }}
+      style={{ width: size, height: size, filter: `drop-shadow(0 0 ${size * 0.18}px ${c.glow})` }}
       className="relative inline-block shrink-0 align-middle"
       aria-hidden
     >
-      <svg viewBox="0 0 100 104" width={size} height={size} style={{ overflow: 'visible' }}>
-        <defs>
-          <linearGradient id={`gold-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={frameA} />
-            <stop offset="45%" stopColor={silver ? '#cbd5e1' : '#e0a52c'} />
-            <stop offset="100%" stopColor={frameB} />
-          </linearGradient>
-          <linearGradient id={`field-${uid}`} x1="0" y1="0" x2="0.3" y2="1">
-            <stop offset="0%" stopColor={c.mid} />
-            <stop offset="100%" stopColor={c.deep} />
-          </linearGradient>
-          <radialGradient id={`gem-${uid}`} cx="0.35" cy="0.25" r="0.9">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="55%" stopColor={c.gem} />
-            <stop offset="100%" stopColor={silver ? '#64748b' : '#8c5f10'} />
-          </radialGradient>
-        </defs>
-
-        {/* outer frame + inner field */}
-        <path d={outline} fill={`url(#gold-${uid})`} />
-        <path d={outline} fill="none" stroke="#00000066" strokeWidth="1.6" />
-        <g transform="translate(50 52) scale(0.86) translate(-50 -52)">
-          <path d={outline} fill={`url(#field-${uid})`} stroke={frameB} strokeWidth="1.5" />
-        </g>
-
-        {/* laurel sprigs framing the lower field */}
-        <g stroke={frameA} fill="none" opacity="0.5" strokeLinecap="round" strokeWidth="1.1">
-          <path d="M23 55c-3 9-1 17 5 23" />
-          <path d="M77 55c3 9 1 17-5 23" />
-          <g fill={frameA} opacity="0.7" stroke="none">
-            <ellipse cx="20.5" cy="60" rx="2.5" ry="1.3" transform="rotate(-28 20.5 60)" />
-            <ellipse cx="21.5" cy="68" rx="2.4" ry="1.3" transform="rotate(-12 21.5 68)" />
-            <ellipse cx="25" cy="76" rx="2.3" ry="1.2" transform="rotate(14 25 76)" />
-            <ellipse cx="79.5" cy="60" rx="2.5" ry="1.3" transform="rotate(28 79.5 60)" />
-            <ellipse cx="78.5" cy="68" rx="2.4" ry="1.3" transform="rotate(12 78.5 68)" />
-            <ellipse cx="75" cy="76" rx="2.3" ry="1.2" transform="rotate(-14 75 76)" />
-          </g>
-        </g>
-
-        {/* magical runes */}
-        <g opacity="0.45" fill={c.gem}>
-          <circle cx="31" cy="40" r="1.1" /><circle cx="69" cy="40" r="1.1" />
-        </g>
-
-        {/* central gem plaque with the clan initials */}
-        <ellipse cx="50" cy="52" rx="18" ry="13" fill={`url(#gem-${uid})`} />
-        <ellipse cx="50" cy="52" rx="18" ry="13" fill="none" stroke={frameA} strokeWidth="1.3" />
-        <ellipse cx="50" cy="47" rx="12.5" ry="5" fill="#ffffff" opacity="0.26" />
-        {mark ? (
-          <text
-            x="50" y="57.5" textAnchor="middle" fontSize={mark.length > 2 ? 15 : 18}
-            fontWeight="900" fill="#0b1020" letterSpacing="0.4"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-          >
-            {mark}
-          </text>
-        ) : null}
-
-        {/* crown, drawn above the frame so its points stay crisp */}
-        <g fill={`url(#gold-${uid})`} stroke="#00000055" strokeWidth="0.9" strokeLinejoin="round">
-          <path d="M31 26 36 12l7 9 7-13 7 13 7-9 5 14-4 5H35Z" />
-          <rect x="33" y="29" width="34" height="5" rx="2" />
-        </g>
-        <circle cx="50" cy="12" r="2.6" fill={c.gem} stroke={frameA} strokeWidth="0.7" />
-        <circle cx="36" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
-        <circle cx="64" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
-
-        {/* heraldic seal under the plaque */}
-        <g transform="translate(50 76)">
-          <path d="M0 -5 4.5 0 0 5 -4.5 0Z" fill={`url(#gold-${uid})`} stroke="#00000055" strokeWidth="0.6" />
-          <circle cx="0" cy="0" r="1.5" fill={c.gem} />
-        </g>
-
-        {/* cinematic rim light */}
-        <path d={outline} fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.16" />
-      </svg>
-
+      <img
+        src={art.src}
+        alt=""
+        width={1024}
+        height={1024}
+        loading="lazy"
+        className="absolute inset-0 h-full w-full select-none object-contain"
+        draggable={false}
+      />
+      {mark && size >= 34 ? (
+        <span
+          className="absolute font-black leading-none"
+          style={{
+            left: `${art.x}%`,
+            top: `${art.y}%`,
+            width: `${art.w}%`,
+            transform: 'translate(-50%,-50%)',
+            fontSize: size * (art.w / 100) * (mark.length > 2 ? 0.42 : 0.56),
+            letterSpacing: '0.02em',
+            textAlign: 'center',
+            color: art.ink,
+            textShadow: `0 1px 1px ${art.shadow}`,
+            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+          }}
+        >
+          {mark}
+        </span>
+      ) : null}
     </span>
   );
 }
+
 
 
 /**
