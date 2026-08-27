@@ -2570,6 +2570,8 @@ async function clanRaidSettingsView(ctx: Ctx) {
       "",
       `RAID: <b>${s.raid_enabled ? "ON" : "OFF"}</b> · HEALTH GATES: <b>${s.raid_health_gates_enabled ? "ON" : "OFF"}</b>`,
       `TARGET KILL: <b>${s.raid_target_kill_days} dias</b> · DEADLINE: <b>${s.raid_deadline_days} dias</b>`,
+      `DURAÇÃO MÍNIMA (KILL UNLOCK): <b>${s.raid_min_kill_days ?? 5} dias</b>`,
+
       `ATAQUES/DIA: <b>${s.raid_attacks_per_day}</b>`,
       `SAFETY FACTOR: <b>${s.raid_safety_factor}</b>`,
       `PESOS DPS: 24h <b>${s.raid_dps_weight_24h}</b> · 3d <b>${s.raid_dps_weight_3d}</b> · 7d <b>${s.raid_dps_weight_7d}</b>`,
