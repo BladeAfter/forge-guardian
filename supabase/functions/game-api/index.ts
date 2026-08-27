@@ -1863,6 +1863,21 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'donation-state') {
       return rpc(db, 'clan_donation_state', { p_telegram_id: user.id });
     }
+    // Real treasury donation history: FC and MYTH kept separate, aggregated server-side.
+    if (action === 'contribution-summary') {
+      const period = String(body.period || 'week').toLowerCase();
+      return rpc(db, 'clan_contribution_summary', { p_telegram_id: user.id, p_period: ['today', 'week', 'total'].includes(period) ? period : 'week' });
+    }
+    if (action === 'contribution-detail') {
+      return rpc(db, 'clan_contribution_detail', { p_telegram_id: user.id, p_target: body.userId ? String(body.userId) : null });
+    }
+    if (action === 'contribution-history') {
+      return rpc(db, 'clan_contribution_history', {
+        p_telegram_id: user.id,
+        p_target: body.userId ? String(body.userId) : null,
+        p_limit: Math.max(1, Math.min(100, Number(body.limit) || 50)),
+      });
+    }
     if (action === 'contribution-limits-set') {
       const asset = String(body.asset || 'FC').toUpperCase();
       if (!['FC', 'MYTH'].includes(asset)) throw new Error('INVALID_ASSET');

@@ -3,13 +3,6 @@ import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
 import { buildings } from '../gameAssets';
 
-const BACKGROUNDS: Record<string, string> = {
-  navy: 'from-[#12224a] to-[#070c18]',
-  purple: 'from-[#3a1d5e] to-[#120a20]',
-  crimson: 'from-[#5c1420] to-[#1b0709]',
-  emerald: 'from-[#0f4034] to-[#06140f]',
-};
-
 /** Banner colours mirror the clan emblem background so the flags read as clan colours. */
 const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
   navy: { top: '#3b6ad4', bottom: '#0b1631' },
@@ -20,19 +13,105 @@ const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
 
 const SYMBOLS: Record<string, string> = { dragon: '🐲', sword: '⚔️', wolf: '🐺', crown: '👑', flame: '🔥', skull: '💀' };
 
-/** Emblem is built from saved config (shield/background/symbol/border) — no manual upload needed. */
-export function ClanCrest({ emblem, size = 44 }: { emblem?: ClanEmblem | null; size?: number }) {
-  const background = BACKGROUNDS[emblem?.background ?? 'navy'] ?? BACKGROUNDS.navy;
-  const border = emblem?.border === 'silver' ? 'border-slate-300/70' : 'border-amber-300/70';
+/** Heraldic palette per emblem background: gem + inner field colours of the crest. */
+const CREST_COLORS: Record<string, { deep: string; mid: string; gem: string; glow: string }> = {
+  navy: { deep: '#050b18', mid: '#16305f', gem: '#57c8ff', glow: 'rgba(87,200,255,.55)' },
+  purple: { deep: '#0d0618', mid: '#3d1d68', gem: '#c084fc', glow: 'rgba(192,132,252,.5)' },
+  crimson: { deep: '#170406', mid: '#63161f', gem: '#ff6b7f', glow: 'rgba(255,107,127,.5)' },
+  emerald: { deep: '#03130e', mid: '#0f4436', gem: '#4ade9b', glow: 'rgba(74,222,155,.5)' },
+};
+
+/**
+ * PREMIUM CLAN CREST — real heraldic badge instead of a flat square icon.
+ * Layered gold frame + shield field + crown, magical gem, laurel wings, runes and the
+ * clan initials. Rendered as inline SVG so any clan gets a unique crest from its own
+ * saved emblem config (background / symbol / border) with zero assets to load.
+ */
+export function ClanCrest({
+  emblem, size = 44, initials, shape = 'shield',
+}: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
+  const c = CREST_COLORS[emblem?.background ?? 'navy'] ?? CREST_COLORS.navy;
+  const silver = emblem?.border === 'silver';
+  const frameA = silver ? '#f1f5f9' : '#ffe89a';
+  const frameB = silver ? '#7c8798' : '#b07d1c';
+  const uid = `${emblem?.background ?? 'navy'}-${emblem?.symbol ?? 'dragon'}-${silver ? 's' : 'g'}-${shape}`;
+  const mark = (initials ?? '').replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
+  const symbol = SYMBOLS[emblem?.symbol ?? 'dragon'] ?? SYMBOLS.dragon;
+  const outline =
+    shape === 'badge'
+      ? 'M50 4 90 26 90 74 50 96 10 74 10 26Z'
+      : 'M50 4C68 10 80 12 92 12v40c0 24-18 38-42 48C26 90 8 76 8 52V12c12 0 24-2 42-8Z';
+
   return (
     <span
-      style={{ width: size, height: size }}
-      className={`grid shrink-0 place-items-center rounded-xl border-2 bg-gradient-to-br ${background} ${border} shadow-[0_0_14px_rgba(0,0,0,.6)]`}
+      style={{ width: size, height: size, filter: `drop-shadow(0 0 ${size * 0.16}px ${c.glow})` }}
+      className="relative inline-block shrink-0 align-middle"
+      aria-hidden
     >
-      <span style={{ fontSize: size * 0.5 }} className="leading-none">{SYMBOLS[emblem?.symbol ?? 'dragon'] ?? SYMBOLS.dragon}</span>
+      <svg viewBox="0 0 100 100" width={size} height={size}>
+        <defs>
+          <linearGradient id={`gold-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={frameA} />
+            <stop offset="45%" stopColor={silver ? '#cbd5e1' : '#e0a52c'} />
+            <stop offset="100%" stopColor={frameB} />
+          </linearGradient>
+          <linearGradient id={`field-${uid}`} x1="0" y1="0" x2="0.3" y2="1">
+            <stop offset="0%" stopColor={c.mid} />
+            <stop offset="100%" stopColor={c.deep} />
+          </linearGradient>
+          <radialGradient id={`gem-${uid}`} cx="0.4" cy="0.3" r="0.8">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="35%" stopColor={c.gem} />
+            <stop offset="100%" stopColor={c.deep} />
+          </radialGradient>
+        </defs>
+
+        {/* outer gold frame + inner field */}
+        <path d={outline} fill={`url(#gold-${uid})`} />
+        <path d={outline} fill="none" stroke="#00000055" strokeWidth="1.5" />
+        <g transform="translate(50 50) scale(0.87) translate(-50 -50)">
+          <path d={outline} fill={`url(#field-${uid})`} stroke={frameB} strokeWidth="1.6" />
+        </g>
+        {/* magical runes framing the field */}
+        <g opacity="0.5" fill={c.gem}>
+          <circle cx="22" cy="34" r="1.3" /><circle cx="78" cy="34" r="1.3" />
+          <circle cx="26" cy="58" r="1" /><circle cx="74" cy="58" r="1" />
+        </g>
+        {/* laurel wings */}
+        <g stroke={frameA} strokeWidth="1.4" fill="none" opacity="0.7" strokeLinecap="round">
+          <path d="M20 46c-5 6-5 14 0 20" /><path d="M80 46c5 6 5 14 0 20" />
+        </g>
+        {/* crown */}
+        <g fill={`url(#gold-${uid})`} stroke="#00000044" strokeWidth="0.8">
+          <path d="M32 26 38 16l6 8 6-11 6 11 6-8 6 10-3 6H35Z" />
+        </g>
+        <circle cx="50" cy="16" r="2.4" fill={c.gem} />
+        {/* central gem + initials or symbol */}
+        <ellipse cx="50" cy="45" rx="12" ry="13" fill={`url(#gem-${uid})`} opacity="0.95" />
+        <ellipse cx="50" cy="45" rx="12" ry="13" fill="none" stroke={frameA} strokeWidth="1.2" opacity="0.85" />
+        {mark ? (
+          <text
+            x="50" y="50" textAnchor="middle" fontSize={mark.length > 2 ? 12 : 15}
+            fontWeight="900" fill="#0b1020" letterSpacing="0.5"
+          >
+            {mark}
+          </text>
+        ) : null}
+        {/* cinematic highlight */}
+        <path d={outline} fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.18" />
+      </svg>
+      {!mark ? (
+        <span
+          style={{ fontSize: size * 0.28 }}
+          className="pointer-events-none absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 leading-none"
+        >
+          {symbol}
+        </span>
+      ) : null}
     </span>
   );
 }
+
 
 /**
  * Legacy compact chip. No longer rendered in the village (the Clan Hall building is
