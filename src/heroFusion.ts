@@ -191,7 +191,7 @@ export type RarityFusionDashboard = {
 
 export type RarityFusionResult = {
   success: boolean; sourceRarity: string; targetRarity: string;
-  costFc: number; chance: number; balance: number; consumed: number;
+  costFc: number; costMyth?: number; mythBalance?: number; chance: number; balance: number; consumed: number;
   fragments: number; fragmentsTotal: number;
   hero: { heroId: string; heroKey: string; name: string; rarity: string; level: number; imageUrl: string | null; finalAtk: number; finalHp: number; power: number } | null;
   dashboard: RarityFusionDashboard;
