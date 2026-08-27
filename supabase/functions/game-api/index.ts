@@ -1859,6 +1859,21 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!Number.isFinite(amount) || amount <= 0) throw new Error('INVALID_AMOUNT');
       return rpc(db, 'clan_treasury_donate', { p_telegram_id: user.id, p_asset: asset, p_amount: amount });
     }
+    // Per-clan daily donation limits: state is read-only, the setter is leader-only in SQL.
+    if (action === 'donation-state') {
+      return rpc(db, 'clan_donation_state', { p_telegram_id: user.id });
+    }
+    if (action === 'contribution-limits-set') {
+      const asset = String(body.asset || 'FC').toUpperCase();
+      if (!['FC', 'MYTH'].includes(asset)) throw new Error('INVALID_ASSET');
+      const min = Math.floor(Number(body.min));
+      const max = Math.floor(Number(body.max));
+      if (!Number.isFinite(min) || !Number.isFinite(max)) throw new Error('INVALID_AMOUNT');
+      return rpc(db, 'clan_contribution_limits_set', {
+        p_telegram_id: user.id, p_asset: asset, p_min: min, p_max: max,
+      });
+    }
+
     if (action === 'upgrade-buy') {
       // Leader/vice check and treasury debit both live server-side in the RPC.
       return rpc(db, 'clan_upgrade_buy', {
