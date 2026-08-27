@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Castle, ChevronDown, Coins, Flame, Gem, Hammer, Loader2, Shield, ShoppingBag, Sparkles, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { clanRequest } from '../clans';
+import { clanErrorMessage } from '../lib/clanErrors';
 import { formatCurrency } from '../utils';
 import { ClanRaidScreen } from './ClanRaidScreen';
 
@@ -159,7 +160,7 @@ export function ClanCollectivePanel({
       await load();
       if (sub === 'shop') await loadShop();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Ação indisponível.');
+      toast.error(clanErrorMessage(error));
     } finally {
       setBusy(false);
     }
