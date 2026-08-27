@@ -2791,6 +2791,19 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     case "hbrreset":
       await csRpc(ctx, "reset_raid", {});
       return clanHubView(ctx);
+    // ⚔ Clan Raid: pacing, health gates and auto-calibration of the collective boss.
+    case "rs":
+      return clanRaidSettingsView(ctx);
+    case "rst": {
+      const field = String(a ?? "");
+      const boolFields = ["raid_enabled", "raid_health_gates_enabled", "raid_catchup_enabled", "raid_full_kill_required"];
+      const value = boolFields.includes(field) ? String(b) === "1" : Number(b);
+      await csRpc(ctx, "set_setting", { field, value });
+      return clanRaidSettingsView(ctx);
+    }
+    case "ra":
+      return clanRaidAuditView(ctx, String(a ?? ""));
+
     case "aaflags":
       return clanAntiAbuseList(ctx, "flags");
     case "aaudit":
