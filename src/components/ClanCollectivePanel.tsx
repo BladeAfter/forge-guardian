@@ -402,20 +402,40 @@ export function ClanCollectivePanel({
 
 
       {sub === 'shop' ? (
-        <Section icon={<ShoppingBag className="h-3.5 w-3.5" />} title="Loja do Clã" right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} coins</span>}>
+        <Section
+          icon={<ShoppingBag className="h-3.5 w-3.5" />}
+          title="Loja do Clã"
+          right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(shop?.coins ?? state.me?.coins ?? 0)} coins</span>}
+        >
+          {shop ? (
+            <div className="mb-1.5 flex items-center justify-between rounded-lg bg-black/40 px-2 py-1 text-[9px] text-slate-400">
+              <span>Semana {shop.weeklyEarned}/{shop.weeklyCap} coins</span>
+              <span>Preços x{shop.priceMultiplier.toFixed(2)} · {shop.effectiveActive} ativos</span>
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-1.5">
-            {(state.shop ?? []).map((s) => (
-              <button key={s.code} disabled={busy || (s.dailyLimit > 0 && s.boughtToday >= s.dailyLimit)}
-                onClick={() => void run({ action: 'clan-shop-buy', code: s.code, quantity: 1, clientKey: `${s.code}-${Date.now()}` }, 'Compra realizada!')}
-                className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-left disabled:opacity-40">
-                <div className="truncate text-[10px] font-black text-slate-100">{s.label}</div>
-                <div className="text-[10px] text-amber-300"><Coins className="mr-1 inline h-3 w-3" />{formatCurrency(s.cost)}</div>
-                {s.dailyLimit > 0 ? <div className="text-[9px] text-slate-500">hoje {s.boughtToday}/{s.dailyLimit}</div> : null}
-              </button>
-            ))}
+            {(shop?.items ?? []).map((s) => {
+              const dayFull = s.dailyLimit > 0 && s.boughtToday >= s.dailyLimit;
+              const weekFull = s.weeklyLimit > 0 && s.boughtWeek >= s.weeklyLimit;
+              const noStock = s.clanStock !== null && s.clanStock !== undefined && s.clanStock <= 0;
+              return (
+                <button key={s.code} disabled={busy || dayFull || weekFull || noStock}
+                  onClick={() => void run({ action: 'clan-shop-buy', code: s.code, quantity: 1, clientKey: `${s.code}-${Date.now()}` }, 'Compra realizada!')}
+                  className="rounded-xl border border-white/10 bg-black/40 p-1.5 text-left disabled:opacity-40">
+                  <div className="truncate text-[10px] font-black text-slate-100">{s.label}</div>
+                  <div className="text-[10px] text-amber-300"><Coins className="mr-1 inline h-3 w-3" />{formatCurrency(s.price)}</div>
+                  <div className="text-[9px] leading-tight text-slate-500">
+                    {s.dailyLimit > 0 ? <div>hoje {s.boughtToday}/{s.dailyLimit}</div> : null}
+                    {s.weeklyLimit > 0 ? <div>você {s.boughtWeek}/{s.weeklyLimit}</div> : null}
+                    {s.clanStockTotal ? <div>clã {s.clanStock}/{s.clanStockTotal}</div> : null}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </Section>
       ) : null}
+
 
       {sub === 'hub' && onOpenWar ? (
         <button onClick={onOpenWar} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-400/30 bg-black/50 py-2 text-[10px] font-black uppercase tracking-widest text-rose-200">
