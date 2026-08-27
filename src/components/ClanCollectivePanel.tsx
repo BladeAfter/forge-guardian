@@ -148,7 +148,11 @@ export function ClanCollectivePanel({
 
   const weekly = state.weekly;
   const raid = state.raid;
+  // Mirrors the server rule clan_can_manage_upgrades(): leader + vice only.
+  const canManageUpgrades = ['leader', 'co-leader', 'vice-leader', 'vice', 'deputy']
+    .includes(String(state.me?.role ?? '').toLowerCase().replace(/_/g, '-'));
   const canAttack = Boolean(raid && raid.status === 'ACTIVE' && raid.attacksUsed < raid.attacksPerDay);
+
 
   const attackButton = (
     <button
