@@ -2528,8 +2528,25 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * 🎡 GLOBAL MYSTERY ROULETTE. Every decision (reward, cycle spend, premium eligibility,
+   * winner) is taken by the database inside a single locked transaction. The client can
+   * only ask for a spin and render the result the backend already committed.
+   */
+  roulette: async (db, user, body) => {
+    const action = String(body.action || 'state');
+    if (action === 'state') return rpc(db, 'roulette_state', { p_telegram_id: user.id });
+    if (action === 'spin') {
+      const key = String(body.idempotencyKey || '').slice(0, 80);
+      if (key.length < 8) throw new Error('INVALID_REQUEST_KEY');
+      return rpc(db, 'roulette_spin', { p_telegram_id: user.id, p_idempotency_key: key });
+    }
+    if (action === 'verify-payments') return await verifyRoulettePayments(db, user);
+    throw new Error('INVALID_ACTION');
+  },
 
 };
+
 
 
 
