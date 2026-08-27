@@ -978,6 +978,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         ) : null}
 
       </div>
+    </div>
+
 
       {/* Fullscreen exclusive mode: portals to body, shop above stays display:none. */}
       {rouletteOpen ? (
