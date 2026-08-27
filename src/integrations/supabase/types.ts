@@ -3442,6 +3442,62 @@ export type Database = {
           },
         ]
       }
+      clan_upgrade_audit: {
+        Row: {
+          clan_id: string
+          cost: number
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          new_level: number
+          old_level: number
+          performed_by: string | null
+          performed_by_role: string | null
+          resource_type: string
+          treasury_after: number
+          treasury_before: number
+          upgrade_code: string
+        }
+        Insert: {
+          clan_id: string
+          cost?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          new_level: number
+          old_level: number
+          performed_by?: string | null
+          performed_by_role?: string | null
+          resource_type?: string
+          treasury_after?: number
+          treasury_before?: number
+          upgrade_code: string
+        }
+        Update: {
+          clan_id?: string
+          cost?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          new_level?: number
+          old_level?: number
+          performed_by?: string | null
+          performed_by_role?: string | null
+          resource_type?: string
+          treasury_after?: number
+          treasury_before?: number
+          upgrade_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_upgrade_audit_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_upgrade_config: {
         Row: {
           base_cost_fc: number
@@ -18474,6 +18530,10 @@ export type Database = {
         Args: { p_clan: string; p_code: string }
         Returns: number
       }
+      clan_can_manage_upgrades: {
+        Args: { p_clan?: string; p_user: string }
+        Returns: boolean
+      }
       clan_chat: {
         Args: {
           p_action?: string
@@ -18673,7 +18733,7 @@ export type Database = {
         Returns: number
       }
       clan_upgrade_buy: {
-        Args: { p_code: string; p_telegram_id: number }
+        Args: { p_code: string; p_key?: string; p_telegram_id: number }
         Returns: Json
       }
       clan_upgrade_level: {
