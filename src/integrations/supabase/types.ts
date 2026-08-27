@@ -16197,6 +16197,33 @@ export type Database = {
         Args: { p_admin_id: number; p_exclude?: string; p_rarity: string }
         Returns: Json
       }
+      admin_roulette_cycle_cancel: {
+        Args: { p_admin_id: number; p_reason?: string }
+        Returns: Json
+      }
+      admin_roulette_history: {
+        Args: { p_admin_id: number; p_limit?: number }
+        Returns: Json
+      }
+      admin_roulette_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_roulette_reward_list: {
+        Args: { p_admin_id: number; p_class: string }
+        Returns: Json
+      }
+      admin_roulette_reward_set: {
+        Args: {
+          p_admin_id: number
+          p_class: string
+          p_field: string
+          p_key: string
+          p_value: string
+        }
+        Returns: Json
+      }
+      admin_roulette_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_search_heroes: {
         Args: { p_admin_id: number; p_limit?: number; p_query?: string }
         Returns: Json
