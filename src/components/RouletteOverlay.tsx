@@ -214,45 +214,14 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           </button>
         </div>
 
-        {/* WHEEL — dominant focus, with a static reward-identity ring */}
+        {/* WHEEL — the five real reward slices live inside the wheel itself */}
         <div className="flex w-full flex-1 items-center justify-center py-2">
           <div className="relative aspect-square w-[min(86vw,340px)]">
             <div className="absolute inset-2 rounded-full bg-sky-500/20 blur-3xl" />
-            <img
-              src={wheelImage}
-              alt="Roleta mística"
-              className="relative h-full w-full select-none drop-shadow-[0_0_46px_rgba(0,0,0,0.65)]"
-              style={{ transform: `rotate(${angle}deg)`, transition: 'transform 2.6s cubic-bezier(0.16,1,0.3,1)' }}
-            />
-
-            {/* Reward identity medallions — do not rotate, always readable */}
-            {!result
-              ? REWARD_CATEGORIES.map((category, index) => {
-                  const step = 360 / REWARD_CATEGORIES.length;
-                  const deg = -90 + step * index + step / 2;
-                  const rad = (deg * Math.PI) / 180;
-                  const radius = 50;
-                  return (
-                    <div
-                      key={category.id}
-                      className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
-                      style={{
-                        left: `${50 + Math.cos(rad) * radius}%`,
-                        top: `${50 + Math.sin(rad) * radius}%`,
-                      }}
-                    >
-                      <RewardMedallion category={category} size={36} onClick={() => setPreview(category)} />
-                      <span
-                        className={`rounded-full bg-[#04060d]/85 px-1 text-[6.5px] font-black uppercase leading-[10px] tracking-[0.06em] ${category.text}`}
-                      >
-                        {category.short}
-                      </span>
-                    </div>
-                  );
-                })
-              : null}
+            <RouletteWheel angle={angle} spinning={spinning} onSelect={setPreview} />
 
             <div className="pointer-events-none absolute -top-1 left-1/2 h-5 w-5 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-amber-300" />
+
 
             {/* RESULT REVEAL — clear category identity + name */}
             {result
