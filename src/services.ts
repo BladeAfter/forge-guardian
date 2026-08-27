@@ -1135,3 +1135,68 @@ export const startFamiliarHunt=(initData:string,petIds:string[],idempotencyKey:s
 export const verifyFamiliarHuntPayments=(initData:string)=>
   huntCall<{checked:number;settled:FamiliarHuntResult[];pending:string[]}>(initData,{action:'verify-payments'});
 
+
+// ---------------------------------------------------------------- 🎡 GLOBAL MYSTERY ROULETTE
+// The player never learns the current cycle target, the global spend or how close the premium
+// prize is: the backend only returns what was actually won. Nothing here decides rewards.
+export type RouletteReward = { class: string; key?: string; label?: string; amount?: number };
+export type RouletteState = {
+  enabled: boolean;
+  paused: boolean;
+  spinCostTon: number;
+  spinCostNano: string;
+  internalTon: number;
+  normalRewards: RouletteReward[];
+  mysteryCategories: string[];
+  mySpins: Array<{ id: string; at: string | null; normal: RouletteReward | null; premium: boolean }>;
+};
+export type RouletteSpinResult = {
+  ok: true;
+  spinId: string;
+  amountTon: number;
+  paymentSource: string;
+  normal: RouletteReward | null;
+  premium: { type?: string; name?: string; label?: string } | null;
+  replay?: boolean;
+};
+export type RoulettePaymentIntent = {
+  ok: true;
+  needsPayment: true;
+  spinId: string;
+  paymentAddress: string;
+  paymentComment: string;
+  amountNano: string;
+  amountTon: number;
+};
+export type RouletteSpinResponse = RouletteSpinResult | RoulettePaymentIntent;
+
+const ROULETTE_ERRORS: Record<string, string> = {
+  ROULETTE_DISABLED: 'A roleta está indisponível neste momento.',
+  ROULETTE_PAUSED: 'A roleta está pausada pela administração.',
+  PLAYER_NOT_FOUND: 'Perfil do jogador não encontrado.',
+  TON_HOT_WALLET_MISSING: 'Pagamento TON indisponível no momento.',
+  SPIN_NOT_PAID: 'Este giro ainda não foi pago.',
+  INVALID_REQUEST_KEY: 'Requisição inválida. Tente novamente.',
+};
+
+async function rouletteCall<T>(initData: string, body: Record<string, unknown>): Promise<T> {
+  const response = await forgeFetch('roulette', { initData, ...body });
+  if (response.status === 404) throw new Error('Backend indisponível: não foi possível contatar a roleta.');
+  const payload = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
+  if (!response.ok || !payload) {
+    const raw = payload?.error || '';
+    throw new Error(ROULETTE_ERRORS[raw] || raw || 'Não foi possível girar a roleta.');
+  }
+  return payload;
+}
+
+export const isRoulettePayment = (payload: RouletteSpinResponse): payload is RoulettePaymentIntent =>
+  Boolean((payload as RoulettePaymentIntent).needsPayment);
+
+export const fetchRouletteState = (initData: string) => rouletteCall<RouletteState>(initData, { action: 'state' });
+/** The reward is drawn server-side; the client only asks for the spin. */
+export const spinRoulette = (initData: string, idempotencyKey: string) =>
+  rouletteCall<RouletteSpinResponse>(initData, { action: 'spin', idempotencyKey });
+/** Confirms wallet transfers on-chain and settles every paid spin exactly once. */
+export const verifyRoulettePayments = (initData: string) =>
+  rouletteCall<{ checked: number; settled: RouletteSpinResult[]; pending: string[] }>(initData, { action: 'verify-payments' });
