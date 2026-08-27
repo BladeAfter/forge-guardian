@@ -2280,6 +2280,147 @@ export type Database = {
           },
         ]
       }
+      clan_coin_ledger: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          capped: number
+          clan_id: string | null
+          created_at: string
+          cycle_key: string
+          day_key: string
+          id: string
+          requested: number
+          source_id: string | null
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          capped?: number
+          clan_id?: string | null
+          created_at?: string
+          cycle_key?: string
+          day_key?: string
+          id?: string
+          requested?: number
+          source_id?: string | null
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          capped?: number
+          clan_id?: string | null
+          created_at?: string
+          cycle_key?: string
+          day_key?: string
+          id?: string
+          requested?: number
+          source_id?: string | null
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_coin_ledger_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_coin_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_coin_settings: {
+        Row: {
+          boss_coins: number[]
+          enabled: boolean
+          id: boolean
+          milestone_coins: Json
+          personal_weekly_cap: number
+          price_multiplier_max: number
+          price_multiplier_min: number
+          raid_defeat: number
+          raid_participation: number
+          raid_top_bonus: number[]
+          target_coins_per_active: number
+          updated_at: string
+          war_participation: number
+          war_victory: number
+        }
+        Insert: {
+          boss_coins?: number[]
+          enabled?: boolean
+          id?: boolean
+          milestone_coins?: Json
+          personal_weekly_cap?: number
+          price_multiplier_max?: number
+          price_multiplier_min?: number
+          raid_defeat?: number
+          raid_participation?: number
+          raid_top_bonus?: number[]
+          target_coins_per_active?: number
+          updated_at?: string
+          war_participation?: number
+          war_victory?: number
+        }
+        Update: {
+          boss_coins?: number[]
+          enabled?: boolean
+          id?: boolean
+          milestone_coins?: Json
+          personal_weekly_cap?: number
+          price_multiplier_max?: number
+          price_multiplier_min?: number
+          raid_defeat?: number
+          raid_participation?: number
+          raid_top_bonus?: number[]
+          target_coins_per_active?: number
+          updated_at?: string
+          war_participation?: number
+          war_victory?: number
+        }
+        Relationships: []
+      }
+      clan_coin_source_caps: {
+        Row: {
+          daily_cap: number
+          enabled: boolean
+          label: string
+          source_type: string
+          updated_at: string
+          weekly_cap: number
+        }
+        Insert: {
+          daily_cap?: number
+          enabled?: boolean
+          label: string
+          source_type: string
+          updated_at?: string
+          weekly_cap?: number
+        }
+        Update: {
+          daily_cap?: number
+          enabled?: boolean
+          label?: string
+          source_type?: string
+          updated_at?: string
+          weekly_cap?: number
+        }
+        Relationships: []
+      }
       clan_collective_settings: {
         Row: {
           active_member_days: number
@@ -3259,6 +3400,7 @@ export type Database = {
       }
       clan_shop_config: {
         Row: {
+          clan_weekly_stock: number
           code: string
           cost_coins: number
           daily_limit: number
@@ -3268,12 +3410,14 @@ export type Database = {
           label: string
           quantity: number
           required_clan_level: number
+          scale_stock: boolean
           season_limit: number
           sort_order: number
           updated_at: string
           weekly_limit: number
         }
         Insert: {
+          clan_weekly_stock?: number
           code: string
           cost_coins?: number
           daily_limit?: number
@@ -3283,12 +3427,14 @@ export type Database = {
           label: string
           quantity?: number
           required_clan_level?: number
+          scale_stock?: boolean
           season_limit?: number
           sort_order?: number
           updated_at?: string
           weekly_limit?: number
         }
         Update: {
+          clan_weekly_stock?: number
           code?: string
           cost_coins?: number
           daily_limit?: number
@@ -3298,6 +3444,7 @@ export type Database = {
           label?: string
           quantity?: number
           required_clan_level?: number
+          scale_stock?: boolean
           season_limit?: number
           sort_order?: number
           updated_at?: string
@@ -3305,40 +3452,105 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_shop_cycles: {
+        Row: {
+          clan_id: string
+          created_at: string
+          effective_active_members: number
+          forecast_emission: number
+          id: string
+          price_multiplier: number
+          reference_emission: number
+          total_members: number
+          week_key: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          effective_active_members?: number
+          forecast_emission?: number
+          id?: string
+          price_multiplier?: number
+          reference_emission?: number
+          total_members?: number
+          week_key?: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          effective_active_members?: number
+          forecast_emission?: number
+          id?: string
+          price_multiplier?: number
+          reference_emission?: number
+          total_members?: number
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_shop_cycles_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_shop_purchases: {
         Row: {
           clan_id: string
+          clan_stock_after: number | null
+          clan_stock_before: number | null
           code: string
           cost_coins: number
           created_at: string
+          cycle_key: string
           id: string
           idempotency_key: string | null
+          personal_after: number | null
+          personal_before: number | null
+          price_multiplier: number
           purchase_day: string
           quantity: number
+          unit_price: number
           user_id: string
           week_key: string
         }
         Insert: {
           clan_id: string
+          clan_stock_after?: number | null
+          clan_stock_before?: number | null
           code: string
           cost_coins?: number
           created_at?: string
+          cycle_key?: string
           id?: string
           idempotency_key?: string | null
+          personal_after?: number | null
+          personal_before?: number | null
+          price_multiplier?: number
           purchase_day?: string
           quantity?: number
+          unit_price?: number
           user_id: string
           week_key?: string
         }
         Update: {
           clan_id?: string
+          clan_stock_after?: number | null
+          clan_stock_before?: number | null
           code?: string
           cost_coins?: number
           created_at?: string
+          cycle_key?: string
           id?: string
           idempotency_key?: string | null
+          personal_after?: number | null
+          personal_before?: number | null
+          price_multiplier?: number
           purchase_day?: string
           quantity?: number
+          unit_price?: number
           user_id?: string
           week_key?: string
         }
@@ -3355,6 +3567,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_shop_stock: {
+        Row: {
+          clan_id: string
+          code: string
+          stock_total: number
+          stock_used: number
+          updated_at: string
+          week_key: string
+        }
+        Insert: {
+          clan_id: string
+          code: string
+          stock_total?: number
+          stock_used?: number
+          updated_at?: string
+          week_key?: string
+        }
+        Update: {
+          clan_id?: string
+          code?: string
+          stock_total?: number
+          stock_used?: number
+          updated_at?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_shop_stock_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
             referencedColumns: ["id"]
           },
         ]
@@ -18216,6 +18463,7 @@ export type Database = {
       clan_award_contribution: {
         Args: {
           p_amount: number
+          p_coins?: number
           p_source_id?: string
           p_source_type: string
           p_user: string
@@ -18543,6 +18791,40 @@ export type Database = {
         }
         Returns: Json
       }
+      clan_coin_award: {
+        Args: {
+          p_amount: number
+          p_source: string
+          p_source_id: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      clan_coin_cfg: {
+        Args: never
+        Returns: {
+          boss_coins: number[]
+          enabled: boolean
+          id: boolean
+          milestone_coins: Json
+          personal_weekly_cap: number
+          price_multiplier_max: number
+          price_multiplier_min: number
+          raid_defeat: number
+          raid_participation: number
+          raid_top_bonus: number[]
+          target_coins_per_active: number
+          updated_at: string
+          war_participation: number
+          war_victory: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_coin_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       clan_collective_cfg: {
         Args: never
         Returns: {
@@ -18709,6 +18991,27 @@ export type Database = {
         Args: { p_item: string; p_quantity?: number; p_telegram_id: number }
         Returns: Json
       }
+      clan_shop_cycle_ensure: {
+        Args: { p_clan: string }
+        Returns: {
+          clan_id: string
+          created_at: string
+          effective_active_members: number
+          forecast_emission: number
+          id: string
+          price_multiplier: number
+          reference_emission: number
+          total_members: number
+          week_key: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_shop_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_shop_effective_active: { Args: { p_clan: string }; Returns: number }
       clan_shop_purchase: {
         Args: {
           p_code: string
@@ -18718,6 +19021,7 @@ export type Database = {
         }
         Returns: Json
       }
+      clan_shop_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_treasury_donate: {
         Args: { p_amount: number; p_asset: string; p_telegram_id: number }
         Returns: Json
