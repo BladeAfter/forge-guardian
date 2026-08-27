@@ -161,7 +161,8 @@ export const RARITY_LABEL: Record<string, string> = {
   mythic: 'MYTHIC', ancestral: 'ANCESTRAL',
 };
 
-export type RarityFusionTier = { target: string; cost_fc: number; chance: number; fragments: number };
+/** Rarity fusion is paid ONLY in MYTH (burned). `cost_fc` is legacy and always 0. */
+export type RarityFusionTier = { target: string; cost_myth: number; cost_fc?: number; chance: number; fragments: number };
 export type RarityFusionConfig = { enabled: boolean; required_heroes: number; tiers: Record<string, RarityFusionTier> };
 
 export type RarityFusionHero = {
