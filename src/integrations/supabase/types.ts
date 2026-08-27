@@ -18408,6 +18408,7 @@ export type Database = {
         Args: { p_perm: string; p_user: string }
         Returns: boolean
       }
+      clan_hub_prepare: { Args: { p_telegram_id: number }; Returns: undefined }
       clan_hub_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_join_cooldown_json: { Args: { p_user_id: string }; Returns: Json }
       clan_level_xp: { Args: { p_level: number }; Returns: number }
