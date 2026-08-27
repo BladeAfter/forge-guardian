@@ -398,6 +398,9 @@ export function ClanCollectivePanel({
         </>
       ) : null}
 
+      {upgradeConfirm}
+
+
       {sub === 'shop' ? (
         <Section icon={<ShoppingBag className="h-3.5 w-3.5" />} title="Loja do Clã" right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} coins</span>}>
           <div className="grid grid-cols-2 gap-1.5">
