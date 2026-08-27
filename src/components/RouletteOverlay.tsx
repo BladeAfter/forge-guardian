@@ -126,91 +126,162 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
   }, [telegramInitData, busy, tonUI, settle]);
 
   const history = useMemo(() => (data?.mySpins ?? []).slice(0, 6), [data]);
-  const blocked = data && (!data.enabled || data.paused);
+  const blocked = Boolean(data && (!data.enabled || data.paused));
 
-  return (
-    <div className="fixed inset-0 z-[130] overflow-y-auto">
-      <img src={backdropImage} alt="" className="fixed inset-0 h-full w-full object-cover opacity-70" />
-      <div className="fixed inset-0 bg-gradient-to-b from-background/85 via-background/70 to-background" />
+  /** Body scroll is frozen while the exclusive fullscreen mode is mounted. */
+  useEffect(() => {
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevTouch = body.style.touchAction;
+    body.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+    return () => {
+      body.style.overflow = prevOverflow;
+      body.style.touchAction = prevTouch;
+    };
+  }, []);
 
-      <div className="forge-safe-page relative mx-auto flex w-full max-w-md flex-col items-center gap-5 px-4 pb-10 pt-4">
-        <div className="flex w-full items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-primary">MYTHREON</p>
-            <h1 className="text-lg font-black uppercase tracking-widest text-foreground">Global Mystery Roulette</h1>
+  const balanceLabel = `${internalTon.toLocaleString('en-US', { maximumFractionDigits: 3 })} TON`;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[300] flex flex-col overflow-y-auto bg-[#04060d]"
+      style={{ height: '100dvh', overscrollBehavior: 'contain' }}
+    >
+      {/* Opaque own scenery — nothing from the hero shop can bleed through. */}
+      <div className="pointer-events-none absolute inset-0">
+        <img src={backdropImage} alt="" className="h-full w-full object-cover opacity-45" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(56,120,255,0.28),transparent_62%),linear-gradient(to_bottom,#04060d_0%,rgba(4,6,13,0.45)_38%,#04060d_100%)]" />
+      </div>
+
+      <div
+        className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center px-4"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.9rem)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
+        }}
+      >
+        {/* HEADER (own) */}
+        <div className="flex w-full items-start justify-between">
+          <div className="min-w-0">
+            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">MYTHREON</p>
+            <h1 className="truncate text-base font-black uppercase tracking-[0.14em] text-sky-100">
+              Global Mystery Roulette
+            </h1>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded-full border border-border/60 bg-card/70 p-2 text-muted-foreground">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-300/30 bg-black/50 text-amber-200"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="relative flex h-72 w-72 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl" />
-          <img
-            src={wheelImage}
-            alt="Roleta mística"
-            className="relative h-full w-full select-none drop-shadow-[0_0_40px_rgba(0,0,0,0.6)]"
-            style={{ transform: `rotate(${angle}deg)`, transition: 'transform 2.6s cubic-bezier(0.16,1,0.3,1)' }}
-          />
-          <div className="pointer-events-none absolute -top-1 h-6 w-6 rotate-45 border-b-2 border-r-2 border-primary" />
-          {result ? (
-            <div className="absolute inset-8 flex flex-col items-center justify-center gap-2 rounded-full border border-primary/40 bg-background/85 p-4 text-center backdrop-blur">
-              <img src={result.premium ? mysteryHeroImage : rewardArt(result.normal)} alt="" className="h-20 w-20 object-contain" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                {result.premium ? 'PRÊMIO LENDÁRIO' : 'RECOMPENSA'}
-              </p>
-              <p className="text-sm font-black uppercase text-foreground">{rewardTitle(result)}</p>
-            </div>
-          ) : null}
+        {/* WHEEL — dominant focus */}
+        <div className="flex w-full flex-1 items-center justify-center py-2">
+          <div className="relative aspect-square w-[min(86vw,340px)]">
+            <div className="absolute inset-2 rounded-full bg-sky-500/20 blur-3xl" />
+            <img
+              src={wheelImage}
+              alt="Roleta mística"
+              className="relative h-full w-full select-none drop-shadow-[0_0_46px_rgba(0,0,0,0.65)]"
+              style={{ transform: `rotate(${angle}deg)`, transition: 'transform 2.6s cubic-bezier(0.16,1,0.3,1)' }}
+            />
+            <div className="pointer-events-none absolute -top-1 left-1/2 h-5 w-5 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-amber-300" />
+            {result ? (
+              <div className="absolute inset-[18%] flex flex-col items-center justify-center gap-1.5 rounded-full border border-amber-300/40 bg-[#04060d]/90 p-3 text-center">
+                <img src={result.premium ? mysteryHeroImage : rewardArt(result.normal)} alt="" className="h-16 w-16 object-contain" />
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-300">
+                  {result.premium ? 'PRÊMIO LENDÁRIO' : 'RECOMPENSA'}
+                </p>
+                <p className="text-[13px] font-black uppercase leading-tight text-sky-50">{rewardTitle(result)}</p>
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="w-full rounded-2xl border border-border/60 bg-card/80 p-4 backdrop-blur">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold uppercase tracking-widest text-muted-foreground">Custo do giro</span>
-            <span className="font-black text-foreground">💎 {cost} TON</span>
+        {/* POSSIBLE REWARDS — compact strip */}
+        <div className="w-full">
+          <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Possible rewards</p>
+          <div className="mt-2 flex items-center justify-center gap-1.5">
+            {['MYTH', 'NFT EQUIPMENT', 'MYSTERY HERO'].map((label) => (
+              <span
+                key={label}
+                className="rounded-full border border-sky-300/25 bg-black/45 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-sky-200"
+              >
+                {label}
+              </span>
+            ))}
           </div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>Saldo interno</span>
-            <span>💎 {internalTon.toLocaleString('en-US', { maximumFractionDigits: 3 })} TON</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={spin}
-            disabled={Boolean(busy || blocked || !telegramInitData)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-black uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-          >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : usesWallet ? <Wallet className="h-4 w-4" /> : <Sparkle className="h-4 w-4" />}
-            {blocked ? 'ROLETA INDISPONÍVEL' : busy ? 'GIRANDO...' : usesWallet ? `PAGAR ${cost} TON E GIRAR` : 'GIRAR AGORA'}
-          </button>
-          <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">
-            Todo giro entrega uma recompensa. Prêmios lendários surgem de forma imprevisível e são sorteados
-            exclusivamente pelo servidor.
+          <p className="mt-1.5 text-center text-[9px] uppercase tracking-[0.16em] text-slate-500">
+            Mystery Hero <span className="text-amber-300">?</span> — Mythic • NFT • Celestial
           </p>
         </div>
 
-        <div className="w-full rounded-2xl border border-border/60 bg-card/70 p-4 backdrop-blur">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Seus últimos giros</p>
-          <div className="mt-2 space-y-1 text-[11px]">
-            {history.length === 0 ? (
-              <p className="text-muted-foreground">Nenhum giro ainda.</p>
-            ) : (
-              history.map((spinEntry) => (
-                <div key={spinEntry.id} className="flex items-center justify-between gap-2">
-                  <span className="truncate text-foreground">
-                    {spinEntry.premium ? '👑 Prêmio lendário' : String(spinEntry.normal?.class) === 'MYTH'
-                      ? `🪙 ${formatCurrency(Number(spinEntry.normal?.amount ?? 0))} MYTH`
-                      : `🛡 ${spinEntry.normal?.label ?? 'Equipamento NFT'}`}
-                  </span>
-                  <span className="shrink-0 text-muted-foreground">
-                    {spinEntry.at ? new Date(spinEntry.at).toLocaleDateString('pt-BR') : '—'}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+        {/* SPIN AREA — minimal */}
+        <div className="mt-3 w-full">
+          <p className="mb-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            Balance: <span className="text-sky-200">{balanceLabel}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={Boolean(busy || blocked || !telegramInitData)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-400 to-amber-300 py-3 text-[13px] font-black uppercase tracking-[0.16em] text-[#1b1204] disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : usesWallet ? <Wallet className="h-4 w-4" /> : <Sparkle className="h-4 w-4" />}
+            {blocked ? 'INDISPONÍVEL' : busy ? 'GIRANDO...' : `SPIN • ${cost} TON`}
+          </button>
+          {history.length ? (
+            <p className="mt-2 truncate text-center text-[9px] uppercase tracking-[0.14em] text-slate-500">
+              Último: {history[0].premium
+                ? '👑 Prêmio lendário'
+                : String(history[0].normal?.class) === 'MYTH'
+                  ? `🪙 ${formatCurrency(Number(history[0].normal?.amount ?? 0))} MYTH`
+                  : `🛡 ${history[0].normal?.label ?? 'Equipamento NFT'}`}
+            </p>
+          ) : null}
         </div>
       </div>
-    </div>
+
+      {/* Small confirmation modal */}
+      {confirmOpen ? (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 px-6">
+          <div className="w-full max-w-[280px] rounded-2xl border border-amber-300/30 bg-[#080c16] p-4 text-center">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">Spin roulette?</p>
+            <div className="mt-3 space-y-1 text-[11px]">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="uppercase tracking-[0.12em]">Cost</span>
+                <span className="font-black text-sky-100">💎 {cost} TON</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="uppercase tracking-[0.12em]">Balance</span>
+                <span className="font-black text-sky-100">💎 {balanceLabel}</span>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => { setConfirmOpen(false); void spin(); }}
+                className="flex-1 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#1b1204]"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>,
+    document.body,
   );
 }
+
