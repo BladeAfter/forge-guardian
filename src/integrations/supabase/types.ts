@@ -19013,8 +19013,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_contribution_detail: {
+        Args: { p_target?: string; p_telegram_id: number }
+        Returns: Json
+      }
       clan_contribution_from_personal_boss: {
         Args: { p_instance: string; p_user: string }
+        Returns: Json
+      }
+      clan_contribution_history: {
+        Args: { p_limit?: number; p_target?: string; p_telegram_id: number }
         Returns: Json
       }
       clan_contribution_limits_set: {
@@ -19026,9 +19034,17 @@ export type Database = {
         }
         Returns: Json
       }
+      clan_contribution_summary: {
+        Args: { p_period?: string; p_telegram_id: number }
+        Returns: Json
+      }
       clan_donation_limits: {
         Args: { p_asset: string; p_clan: string }
         Returns: Json
+      }
+      clan_donation_reason_valid: {
+        Args: { p_reason: string }
+        Returns: boolean
       }
       clan_donation_state: { Args: { p_telegram_id: string }; Returns: Json }
       clan_exploit_dry_run: { Args: { p_user_id: string }; Returns: Json }
@@ -19077,6 +19093,7 @@ export type Database = {
         Returns: Json
       }
       clan_online_minutes: { Args: never; Returns: number }
+      clan_period_start: { Args: { p_period: string }; Returns: string }
       clan_player_power: { Args: { p_user_id: string }; Returns: number }
       clan_public: {
         Args: { p_clan: Database["public"]["Tables"]["clans"]["Row"] }
