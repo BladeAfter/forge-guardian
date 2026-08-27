@@ -254,7 +254,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
         <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-[480px] rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
         <div className="flex items-center justify-between gap-2 text-[9px]">
           <span className="font-black uppercase tracking-[.12em] text-amber-200">{t('fusion.selectedCount', { selected: selected.length, required })}</span>
-          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} FC` : t('fusion.costNA') })}</span>
+          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-fuchsia-200'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} MYTH` : t('fusion.costNA') })}</span>
         </div>
         <p className="text-[9px] text-slate-400">
           {tier && sourceRarity ? (
