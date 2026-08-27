@@ -2427,6 +2427,12 @@ export type Database = {
           boss_points: number[]
           clan_xp_per_contribution: number
           coins_per_contribution: number
+          donation_default_max_fc: number
+          donation_default_max_myth: number
+          donation_default_min_fc: number
+          donation_default_min_myth: number
+          donation_hard_max_fc: number
+          donation_hard_max_myth: number
           enabled: boolean
           id: boolean
           milestones: Json
@@ -2464,6 +2470,12 @@ export type Database = {
           boss_points?: number[]
           clan_xp_per_contribution?: number
           coins_per_contribution?: number
+          donation_default_max_fc?: number
+          donation_default_max_myth?: number
+          donation_default_min_fc?: number
+          donation_default_min_myth?: number
+          donation_hard_max_fc?: number
+          donation_hard_max_myth?: number
           enabled?: boolean
           id?: boolean
           milestones?: Json
@@ -2501,6 +2513,12 @@ export type Database = {
           boss_points?: number[]
           clan_xp_per_contribution?: number
           coins_per_contribution?: number
+          donation_default_max_fc?: number
+          donation_default_max_myth?: number
+          donation_default_min_fc?: number
+          donation_default_min_myth?: number
+          donation_hard_max_fc?: number
+          donation_hard_max_myth?: number
           enabled?: boolean
           id?: boolean
           milestones?: Json
@@ -2589,6 +2607,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_daily_contributions: {
+        Row: {
+          asset: string
+          clan_id: string
+          created_at: string
+          donations: number
+          game_day: string
+          id: string
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset: string
+          clan_id: string
+          created_at?: string
+          donations?: number
+          game_day: string
+          id?: string
+          total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset?: string
+          clan_id?: string
+          created_at?: string
+          donations?: number
+          game_day?: string
+          id?: string
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_daily_contributions_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
             referencedColumns: ["id"]
           },
         ]
@@ -4395,6 +4457,10 @@ export type Database = {
         Row: {
           clan_points: number
           created_at: string
+          daily_contribution_max_fc: number | null
+          daily_contribution_max_myth: number | null
+          daily_contribution_min_fc: number | null
+          daily_contribution_min_myth: number | null
           description: string
           emblem_config: Json
           id: string
@@ -4418,6 +4484,10 @@ export type Database = {
         Insert: {
           clan_points?: number
           created_at?: string
+          daily_contribution_max_fc?: number | null
+          daily_contribution_max_myth?: number | null
+          daily_contribution_min_fc?: number | null
+          daily_contribution_min_myth?: number | null
           description?: string
           emblem_config?: Json
           id?: string
@@ -4441,6 +4511,10 @@ export type Database = {
         Update: {
           clan_points?: number
           created_at?: string
+          daily_contribution_max_fc?: number | null
+          daily_contribution_max_myth?: number | null
+          daily_contribution_min_fc?: number | null
+          daily_contribution_min_myth?: number | null
           description?: string
           emblem_config?: Json
           id?: string
@@ -18832,6 +18906,12 @@ export type Database = {
           boss_points: number[]
           clan_xp_per_contribution: number
           coins_per_contribution: number
+          donation_default_max_fc: number
+          donation_default_max_myth: number
+          donation_default_min_fc: number
+          donation_default_min_myth: number
+          donation_hard_max_fc: number
+          donation_hard_max_myth: number
           enabled: boolean
           id: boolean
           milestones: Json
@@ -18875,6 +18955,20 @@ export type Database = {
         Args: { p_instance: string; p_user: string }
         Returns: Json
       }
+      clan_contribution_limits_set: {
+        Args: {
+          p_asset: string
+          p_max: number
+          p_min: number
+          p_telegram_id: string
+        }
+        Returns: Json
+      }
+      clan_donation_limits: {
+        Args: { p_asset: string; p_clan: string }
+        Returns: Json
+      }
+      clan_donation_state: { Args: { p_telegram_id: string }; Returns: Json }
       clan_exploit_dry_run: { Args: { p_user_id: string }; Returns: Json }
       clan_exploit_execute: {
         Args: { p_admin_id: number; p_user_id: string }
@@ -19022,10 +19116,15 @@ export type Database = {
         Returns: Json
       }
       clan_shop_state: { Args: { p_telegram_id: number }; Returns: Json }
-      clan_treasury_donate: {
-        Args: { p_amount: number; p_asset: string; p_telegram_id: number }
-        Returns: Json
-      }
+      clan_treasury_donate:
+        | {
+            Args: { p_amount: number; p_asset: string; p_telegram_id: number }
+            Returns: Json
+          }
+        | {
+            Args: { p_amount: number; p_asset: string; p_telegram_id: string }
+            Returns: Json
+          }
       clan_treasury_move: {
         Args: {
           p_amount: number
