@@ -125,7 +125,7 @@ export function ClanCollectivePanel({
   const [donation, setDonation] = useState('');
   const [sub, setSub] = useState<SubTab>('hub');
   const [confirmUpgrade, setConfirmUpgrade] = useState<NonNullable<HubState['upgrades']>[number] | null>(null);
-
+  const [shop, setShop] = useState<ShopState | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -138,7 +138,17 @@ export function ClanCollectivePanel({
     }
   }, [telegramInitData]);
 
+  // Shop prices/stock are cycle-locked server state, loaded when the tab opens.
+  const loadShop = useCallback(async () => {
+    try {
+      const data = await clanRequest<ShopState>(telegramInitData, { action: 'clan-shop-state' });
+      if (data?.inClan) setShop(data);
+    } catch { /* silent: the hub tab stays usable */ }
+  }, [telegramInitData]);
+
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (sub === 'shop') void loadShop(); }, [sub, loadShop]);
+
 
   const run = async (input: Record<string, unknown>, success: string) => {
     if (busy) return;
