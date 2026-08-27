@@ -301,7 +301,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const selectedOption = sellOptions.find((option) => option.id === selected?.id && option.code === selected?.code) ?? null;
 
   return (
-    <div className="fullscreen-page flex items-center justify-center p-3">
+    <>
+    <div className={`fullscreen-page flex items-center justify-center p-3 ${rouletteOpen ? 'hidden' : ''}`}>
+
+
       <div className="relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl">
         <div className="flex items-center justify-between px-4 pt-4">
           <div>
@@ -974,10 +977,15 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
           />
         ) : null}
 
-        {rouletteOpen ? (
-          <RouletteOverlay telegramInitData={telegramInitData} onClose={() => setRouletteOpen(false)} />
-        ) : null}
       </div>
     </div>
+
+
+      {/* Fullscreen exclusive mode: portals to body, shop above stays display:none. */}
+      {rouletteOpen ? (
+        <RouletteOverlay telegramInitData={telegramInitData} onClose={() => setRouletteOpen(false)} />
+      ) : null}
+    </>
   );
 }
+
