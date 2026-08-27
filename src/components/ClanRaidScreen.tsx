@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Clock, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { clanRequest } from '../clans';
 import { clanErrorMessage } from '../lib/clanErrors';
