@@ -1871,7 +1871,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'buff-activate') {
       return rpc(db, 'clan_buff_activate', { p_telegram_id: user.id, p_code: String(body.code || '').slice(0, 40) });
     }
+    // Weekly-locked prices, personal limits and per-clan stock all come from the server.
+    if (action === 'clan-shop-state') {
+      return rpc(db, 'clan_shop_state', { p_telegram_id: user.id });
+    }
     if (action === 'clan-shop-buy') {
+
       return rpc(db, 'clan_shop_purchase', {
         p_telegram_id: user.id,
         p_code: String(body.code || '').slice(0, 40),
