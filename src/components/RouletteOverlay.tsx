@@ -233,7 +233,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
                   const grand = category.id === 'CELESTIAL';
                   return (
                     <div
-                      className={`absolute ${grand ? 'inset-[6%]' : 'inset-[13%]'} flex flex-col items-center justify-center gap-1.5 rounded-full border bg-[#04060d]/94 p-3 text-center animate-scale-in ${category.ring} ${category.glow}`}
+                      className={`absolute ${grand ? 'inset-[20%]' : 'inset-[24%]'} flex flex-col items-center justify-center gap-1.5 rounded-full border bg-[#04060d]/94 p-3 text-center animate-scale-in ${category.ring} ${category.glow}`}
                     >
                       <span
                         className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.chip} opacity-50`}
@@ -246,7 +246,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
                         src={category.icon}
                         alt={category.name}
                         loading="lazy"
-                        className={`relative object-contain ${grand ? 'h-28 w-28' : 'h-20 w-20'} ${category.anim}`}
+                        className={`relative object-contain ${grand ? 'h-16 w-16' : 'h-12 w-12'} ${category.anim}`}
                       />
                       <p className={`relative text-[10px] font-black uppercase tracking-[0.2em] ${category.text}`}>
                         {category.name}
