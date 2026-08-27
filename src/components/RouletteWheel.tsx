@@ -24,19 +24,28 @@ export function rotationForSlice(currentAngle: number, id: RewardCategoryId, ext
   return base + delta;
 }
 
+export const SPIN_DURATION_MS = 5000;
+
 export function RouletteWheel({
   angle,
   spinning,
+  durationMs = SPIN_DURATION_MS,
   onSelect,
 }: {
   angle: number;
   spinning: boolean;
+  durationMs?: number;
   onSelect: (category: RewardCategory) => void;
 }) {
   return (
     <div
-      className="absolute inset-0"
-      style={{ transform: `rotate(${angle}deg)`, transition: 'transform 2.6s cubic-bezier(0.16,1,0.3,1)' }}
+      className="absolute inset-0 will-change-transform"
+      style={{
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: 'center center',
+        transition: `transform ${durationMs}ms cubic-bezier(0.12, 0.8, 0.18, 1)`,
+        backfaceVisibility: 'hidden',
+      }}
     >
       <img
         src={wheelArt}

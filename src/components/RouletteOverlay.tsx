@@ -15,7 +15,7 @@ import {
   type RewardCategory,
   type RewardCategoryId,
 } from './RouletteRewardKit';
-import { RouletteWheel, rotationForSlice } from './RouletteWheel';
+import { RouletteWheel, rotationForSlice, SPIN_DURATION_MS } from './RouletteWheel';
 import { RouletteRewardReveal, buildReveal } from './RouletteRewardReveal';
 
 import {
@@ -124,13 +124,13 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
 
   /** The animation only REPRESENTS the server-side result: the pointer lands on its slice. */
   const settle = useCallback((res: RouletteSpinResult) => {
-    setAngle((current) => rotationForSlice(current, resultCategoryId(res)));
+    setAngle((current) => rotationForSlice(current, resultCategoryId(res), 5));
     setSpinning(true);
     window.setTimeout(() => {
       setSpinning(false);
       setResult(res);
       refreshAll();
-    }, 2600);
+    }, SPIN_DURATION_MS + 220);
   }, [refreshAll]);
 
 
@@ -140,7 +140,6 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
     const key = idempotencyRef.current ?? `rl-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     idempotencyRef.current = key;
     setSpinning(true);
-    setAngle((current) => current + 720);
     try {
       const response = await spinRoulette(telegramInitData, key);
       if (isRoulettePayment(response)) {
@@ -231,8 +230,8 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
         </div>
 
         {/* WHEEL — the five real reward slices live inside the wheel itself */}
-        <div className="flex w-full flex-1 items-center justify-center py-2">
-          <div className="relative aspect-square w-[min(86vw,340px)]">
+        <div className="flex w-full flex-1 items-center justify-center overflow-hidden py-2">
+          <div className="relative aspect-square w-[min(86vw,340px)] shrink-0">
             <div className="absolute inset-2 rounded-full bg-sky-500/20 blur-3xl" />
             <RouletteWheel angle={angle} spinning={spinning} onSelect={setPreview} />
 
