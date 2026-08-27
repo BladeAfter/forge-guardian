@@ -22,7 +22,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error: loadError, refetch } = useClanDashboard(telegramInitData, true);
-  const [tab, setTab] = useState<Tab>('members');
+  const [tab, setTab] = useState<Tab>('hub');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: '', tag: '', description: '', joinType: 'open', minimumTrophies: 0, symbol: 'dragon', background: 'navy' });
   const [messages, setMessages] = useState<ClanMessage[] | null>(null);
@@ -196,21 +196,28 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
 
   return (
     <Shell onClose={onClose}>
-      <section className="rounded-[2rem] border border-amber-300/30 bg-gradient-to-br from-[#101d35] via-[#0a1220] to-black p-4 text-center">
-        <div className="flex items-center justify-center"><ClanCrest emblem={clan.emblem} size={56} /></div>
-        <h2 className="mt-2 text-xl font-black text-amber-100">{clan.name}</h2>
-        <p className="text-[10px] font-black text-slate-400">[{clan.tag}]</p>
-        <p className="mt-2 text-[10px] uppercase tracking-[.2em] text-amber-300">{t('clan.level')} {clan.level}</p>
-        <p className="text-[10px] text-slate-300">{clan.members} / {clan.memberLimit} {t('clan.members')}</p>
-        <div className="mt-3 text-left">
-          <div className="flex justify-between text-[9px] text-slate-400"><span>{t('clan.xp')}</span><b>{clan.xp.toLocaleString()} / {clan.xpNeeded.toLocaleString()}</b></div>
-          <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-amber-600 to-yellow-200" style={{ width: `${Math.min(100, (clan.xp / Math.max(1, clan.xpNeeded)) * 100)}%` }} /></div>
+      {/* COMPACT CLAN HEADER — same data, single horizontal row + slim XP bar */}
+      <section className="rounded-[1.5rem] border border-amber-300/30 bg-gradient-to-br from-[#101d35] via-[#0a1220] to-black p-3">
+        <div className="flex items-center gap-3">
+          <ClanCrest emblem={clan.emblem} size={44} />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-base font-black leading-tight text-amber-100">{clan.name}</h2>
+            <p className="text-[9px] font-black text-slate-400">[{clan.tag}] · {t('clan.level')} {clan.level} · {clan.members}/{clan.memberLimit} {t('clan.members')}</p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-[8px] uppercase tracking-widest text-slate-500">{t('clan.power')}</p>
+            <b className="text-xs text-cyan-300">{clan.power.toLocaleString()}</b>
+          </div>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-left">
-          <Stat label={t('clan.points')} value={(data.me?.clanPoints ?? 0).toLocaleString()} />
-          <Stat label={t('clan.power')} value={clan.power.toLocaleString()} />
+        <div className="mt-2">
+          <div className="flex justify-between text-[8px] text-slate-400">
+            <span>{t('clan.xp')} {clan.xp.toLocaleString()} / {clan.xpNeeded.toLocaleString()}</span>
+            <span>{t('clan.points')}: <b className="text-amber-300">{(data.me?.clanPoints ?? 0).toLocaleString()}</b></span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-amber-600 to-yellow-200" style={{ width: `${Math.min(100, (clan.xp / Math.max(1, clan.xpNeeded)) * 100)}%` }} /></div>
         </div>
       </section>
+
 
       <div className="mt-3 grid grid-cols-3 gap-2">
         <TabButton active={tab === 'hub'} onClick={() => setTab('hub')} icon={<Flame className="h-4 w-4" />} label="HUB" />
@@ -317,7 +324,14 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
 
         {tab === 'war' ? <ClanWarPanel telegramInitData={telegramInitData} /> : null}
 
-        {tab === 'hub' ? <ClanCollectivePanel telegramInitData={telegramInitData} /> : null}
+        {tab === 'hub' ? (
+          <ClanCollectivePanel
+            telegramInitData={telegramInitData}
+            pendingRequests={canManage ? requests.length : 0}
+            onOpenWar={() => setTab('war')}
+          />
+        ) : null}
+
       </div>
     </Shell>
   );
@@ -347,9 +361,6 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl border border-white/10 bg-black/55 p-2"><p className="text-[8px] uppercase text-slate-400">{label}</p><b className="text-xs text-white">{value}</b></div>;
-}
 
 function TabButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
