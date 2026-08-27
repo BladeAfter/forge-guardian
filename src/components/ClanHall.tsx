@@ -32,7 +32,7 @@ const CREST_COLORS: Record<string, { deep: string; mid: string; gem: string; glo
  */
 const CREST_ART: Record<string, { src: string; x: number; y: number; w: number; ink: string; shadow: string }> = {
   navy: { src: crestNavy, x: 50, y: 76.5, w: 27, ink: '#bfe4ff', shadow: 'rgba(0,0,0,.85)' },
-  purple: { src: crestPurple, x: 50, y: 55.5, w: 24, ink: '#2b1405', shadow: 'rgba(255,236,170,.55)' },
+  purple: { src: crestPurple, x: 50, y: 63, w: 22, ink: '#2b1405', shadow: 'rgba(255,236,170,.55)' },
   crimson: { src: crestCrimson, x: 50, y: 70, w: 33, ink: '#2b1a02', shadow: 'rgba(255,236,170,.55)' },
   emerald: { src: crestEmerald, x: 50, y: 63.5, w: 26, ink: '#d8ffe9', shadow: 'rgba(0,0,0,.8)' },
 };
