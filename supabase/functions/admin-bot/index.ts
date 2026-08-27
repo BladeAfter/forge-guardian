@@ -2331,9 +2331,9 @@ async function clanCard(ctx: Ctx, ref: string, editing = true) {
     [
       { t: "👑 CLAN BOSS", d: `cl:boss:${c.id}` },
       { t: "🔎 RAID AUDIT", d: `cl:ra:${c.id}` },
-
       { t: "📜 AUDIT", d: `cl:audit:${c.id}` },
     ],
+
     [
       { t: c.suspended ? "✅ REATIVAR" : "⛔ SUSPEND", d: `cl:susp:${c.id}` },
       { t: "🗑 DELETE", d: `cl:del:${c.id}` },
