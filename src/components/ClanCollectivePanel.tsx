@@ -5,6 +5,7 @@ import { clanRequest } from '../clans';
 import { clanErrorMessage } from '../lib/clanErrors';
 import { formatCurrency } from '../utils';
 import { ClanRaidScreen } from './ClanRaidScreen';
+import { ClanContributionHistory } from './ClanContributionHistory';
 
 /**
  * Collective clan layer as a COMPACT DASHBOARD.
@@ -138,6 +139,8 @@ export function ClanCollectivePanel({
   const [don, setDon] = useState<DonationState | null>(null);
   const [editLimit, setEditLimit] = useState<{ asset: string; min: string; max: string; hardMax: number } | null>(null);
   const [, setClock] = useState(0);
+  // Bumped after every clan action so the contribution ranking refreshes live.
+  const [contribKey, setContribKey] = useState(0);
 
   const load = useCallback(async () => {
     try {
@@ -184,6 +187,7 @@ export function ClanCollectivePanel({
       await load();
       if (sub === 'shop') await loadShop();
       await loadDonation();
+      setContribKey((v) => v + 1);
     } catch (error) {
       toast.error(clanErrorMessage(error));
     } finally {
@@ -468,13 +472,8 @@ export function ClanCollectivePanel({
             {donationRow}
             <p className="mt-2 text-[9px] text-slate-500">O tesouro não pode ser sacado: financia construções e buffs coletivos.</p>
           </Section>
-          <Collapsible icon={<Shield className="h-3.5 w-3.5" />} title="Histórico de Contribuição">
-            <div className="grid grid-cols-3 gap-1.5">
-              <Chip label="Hoje" value={formatCurrency(state.me?.contributionToday ?? 0)} />
-              <Chip label="Semana" value={formatCurrency(state.me?.contributionWeek ?? 0)} tone="amber" />
-              <Chip label="Total" value={formatCurrency(state.me?.contributionAllTime ?? 0)} />
-            </div>
-            <div className="mt-2">{contributors()}</div>
+          <Collapsible icon={<Shield className="h-3.5 w-3.5" />} title="Histórico de Contribuição" defaultOpen>
+            <ClanContributionHistory telegramInitData={telegramInitData} refreshKey={contribKey} />
           </Collapsible>
         </>
       ) : null}
