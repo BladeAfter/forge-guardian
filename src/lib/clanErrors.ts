@@ -24,7 +24,9 @@ const CLAN_ERRORS: Record<string, string> = {
 
 // Donation limit errors carry numbers: CODE|a|b|asset
 function limitMessage(raw: string): string | null {
-  const [code, a, b, asset] = raw.trim().split('|');
+  const m = raw.match(/(BELOW_MINIMUM_CONTRIBUTION|DAILY_LIMIT_REACHED|DAILY_LIMIT_EXCEEDED)\|([^|]*)\|([^|]*)(?:\|([^|"']*))?/);
+  if (!m) return null;
+  const [, code, a, b, asset] = m;
   const n = (v: string) => Number(v || 0).toLocaleString('pt-BR');
   if (code === 'BELOW_MINIMUM_CONTRIBUTION') return `Contribuição mínima: ${n(a)} ${b || asset || ''}`.trim();
   if (code === 'DAILY_LIMIT_REACHED') return `Limite diário atingido: ${n(a)} / ${n(b)} ${asset || ''}`.trim();
