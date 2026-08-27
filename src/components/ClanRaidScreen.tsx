@@ -110,7 +110,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
   const hpPct = raid && raid.maxHp > 0 ? Math.max(0, (raid.currentHp / raid.maxHp) * 100) : 0;
   const floorPct = raid && raid.maxHp > 0 ? Math.max(0, (raid.phaseFloor / raid.maxHp) * 100) : 0;
   const outOfAttacks = raid ? raid.attacksUsed >= raid.attacksPerDay : true;
-  const canAttack = Boolean(raid && raid.status === 'ACTIVE' && !raid.phaseLocked && !outOfAttacks);
+  const canAttack = Boolean(raid && raid.status === 'ACTIVE' && !outOfAttacks);
   const ranking = raid ? (showAll ? raid.ranking : raid.ranking.slice(0, 3)) : [];
 
   return (
