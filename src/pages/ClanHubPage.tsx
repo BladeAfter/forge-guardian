@@ -22,7 +22,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
   const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error: loadError, refetch } = useClanDashboard(telegramInitData, true);
-  const [tab, setTab] = useState<Tab>('members');
+  const [tab, setTab] = useState<Tab>('hub');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: '', tag: '', description: '', joinType: 'open', minimumTrophies: 0, symbol: 'dragon', background: 'navy' });
   const [messages, setMessages] = useState<ClanMessage[] | null>(null);
