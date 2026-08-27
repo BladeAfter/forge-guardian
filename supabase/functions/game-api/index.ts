@@ -1836,6 +1836,37 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!['pet_food', 'pvp_ticket', 'fragments', 'hero_chest'].includes(item)) throw new Error('INVALID_ITEM');
       return rpc(db, 'clan_shop_buy', { p_telegram_id: user.id, p_item: item, p_quantity: Math.max(1, Math.min(20, Number(body.quantity) || 1)) });
     }
+
+    // ═══ COLLECTIVE LAYER — Personal Boss stays individual; these are the shared systems ═══
+    if (action === 'hub') {
+      await rpc(db, 'clan_hub_prepare', { p_telegram_id: user.id }).catch(() => null);
+      return rpc(db, 'clan_hub_state', { p_telegram_id: user.id });
+    }
+    if (action === 'milestone-claim') {
+      return rpc(db, 'clan_milestone_claim', { p_telegram_id: user.id, p_pct: Number(body.pct) || 0 });
+    }
+    if (action === 'raid-attack') return rpc(db, 'clan_raid_attack', { p_telegram_id: user.id });
+    if (action === 'treasury-donate') {
+      const asset = String(body.asset || 'FC').toUpperCase();
+      if (!['FC', 'MYTH'].includes(asset)) throw new Error('INVALID_ASSET');
+      const amount = Number(body.amount);
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error('INVALID_AMOUNT');
+      return rpc(db, 'clan_treasury_donate', { p_telegram_id: user.id, p_asset: asset, p_amount: amount });
+    }
+    if (action === 'upgrade-buy') {
+      return rpc(db, 'clan_upgrade_buy', { p_telegram_id: user.id, p_code: String(body.code || '').slice(0, 40) });
+    }
+    if (action === 'buff-activate') {
+      return rpc(db, 'clan_buff_activate', { p_telegram_id: user.id, p_code: String(body.code || '').slice(0, 40) });
+    }
+    if (action === 'clan-shop-buy') {
+      return rpc(db, 'clan_shop_purchase', {
+        p_telegram_id: user.id,
+        p_code: String(body.code || '').slice(0, 40),
+        p_quantity: Math.max(1, Math.min(20, Number(body.quantity) || 1)),
+        p_idempotency_key: typeof body.clientKey === 'string' ? body.clientKey.slice(0, 64) : null,
+      });
+    }
     throw new Error('Ação inválida.');
   },
 
