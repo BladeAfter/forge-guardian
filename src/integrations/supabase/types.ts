@@ -2292,12 +2292,25 @@ export type Database = {
           min_weekly_contribution: number
           myth_milestone_rewards: boolean
           raid_attacks_per_day: number
+          raid_boss_name: string
+          raid_catchup_enabled: boolean
+          raid_catchup_max_pct: number
+          raid_deadline_days: number
+          raid_dps_weight_24h: number
+          raid_dps_weight_3d: number
+          raid_dps_weight_7d: number
           raid_duration_days: number
           raid_enabled: boolean
+          raid_full_kill_required: boolean
+          raid_health_gates_enabled: boolean
           raid_hp_max: number
           raid_hp_min: number
           raid_hp_per_power: number
+          raid_max_hp_decrease_pct: number
+          raid_max_hp_increase_pct: number
           raid_rewards: Json
+          raid_safety_factor: number
+          raid_target_kill_days: number
           treasury_assets: string[]
           treasury_ton_enabled: boolean
           updated_at: string
@@ -2316,12 +2329,25 @@ export type Database = {
           min_weekly_contribution?: number
           myth_milestone_rewards?: boolean
           raid_attacks_per_day?: number
+          raid_boss_name?: string
+          raid_catchup_enabled?: boolean
+          raid_catchup_max_pct?: number
+          raid_deadline_days?: number
+          raid_dps_weight_24h?: number
+          raid_dps_weight_3d?: number
+          raid_dps_weight_7d?: number
           raid_duration_days?: number
           raid_enabled?: boolean
+          raid_full_kill_required?: boolean
+          raid_health_gates_enabled?: boolean
           raid_hp_max?: number
           raid_hp_min?: number
           raid_hp_per_power?: number
+          raid_max_hp_decrease_pct?: number
+          raid_max_hp_increase_pct?: number
           raid_rewards?: Json
+          raid_safety_factor?: number
+          raid_target_kill_days?: number
           treasury_assets?: string[]
           treasury_ton_enabled?: boolean
           updated_at?: string
@@ -2340,12 +2366,25 @@ export type Database = {
           min_weekly_contribution?: number
           myth_milestone_rewards?: boolean
           raid_attacks_per_day?: number
+          raid_boss_name?: string
+          raid_catchup_enabled?: boolean
+          raid_catchup_max_pct?: number
+          raid_deadline_days?: number
+          raid_dps_weight_24h?: number
+          raid_dps_weight_3d?: number
+          raid_dps_weight_7d?: number
           raid_duration_days?: number
           raid_enabled?: boolean
+          raid_full_kill_required?: boolean
+          raid_health_gates_enabled?: boolean
           raid_hp_max?: number
           raid_hp_min?: number
           raid_hp_per_power?: number
+          raid_max_hp_decrease_pct?: number
+          raid_max_hp_increase_pct?: number
           raid_rewards?: Json
+          raid_safety_factor?: number
+          raid_target_kill_days?: number
           treasury_assets?: string[]
           treasury_ton_enabled?: boolean
           updated_at?: string
@@ -2966,7 +3005,9 @@ export type Database = {
           created_at: string
           damage: number
           id: string
+          idempotency_key: string | null
           payload: Json
+          phase: number
           raid_id: string
           user_id: string
         }
@@ -2976,7 +3017,9 @@ export type Database = {
           created_at?: string
           damage?: number
           id?: string
+          idempotency_key?: string | null
           payload?: Json
+          phase?: number
           raid_id: string
           user_id: string
         }
@@ -2986,7 +3029,9 @@ export type Database = {
           created_at?: string
           damage?: number
           id?: string
+          idempotency_key?: string | null
           payload?: Json
+          phase?: number
           raid_id?: string
           user_id?: string
         }
@@ -3016,62 +3061,92 @@ export type Database = {
       }
       clan_raid_cycles: {
         Row: {
+          active_members_snapshot: number
           boss_atk: number
           boss_def: number
           boss_name: string
           boss_theme: string
+          boss_tier: string
+          catchup_pct: number
           clan_id: string
+          clan_power_snapshot: number
+          cleared_in_hours: number | null
           created_at: string
           current_hp: number
+          deadline_days: number
+          effective_dps_snapshot: number
           ends_at: string
+          gates_enabled: boolean
           id: string
           max_hp: number
           participants: number
+          performance_class: string | null
           raid_key: string
           rewards_snapshot: Json
           settled_at: string | null
           started_at: string
           status: string
+          target_days: number
           total_damage: number
           updated_at: string
         }
         Insert: {
+          active_members_snapshot?: number
           boss_atk?: number
           boss_def?: number
           boss_name?: string
           boss_theme?: string
+          boss_tier?: string
+          catchup_pct?: number
           clan_id: string
+          clan_power_snapshot?: number
+          cleared_in_hours?: number | null
           created_at?: string
           current_hp: number
+          deadline_days?: number
+          effective_dps_snapshot?: number
           ends_at: string
+          gates_enabled?: boolean
           id?: string
           max_hp: number
           participants?: number
+          performance_class?: string | null
           raid_key: string
           rewards_snapshot?: Json
           settled_at?: string | null
           started_at?: string
           status?: string
+          target_days?: number
           total_damage?: number
           updated_at?: string
         }
         Update: {
+          active_members_snapshot?: number
           boss_atk?: number
           boss_def?: number
           boss_name?: string
           boss_theme?: string
+          boss_tier?: string
+          catchup_pct?: number
           clan_id?: string
+          clan_power_snapshot?: number
+          cleared_in_hours?: number | null
           created_at?: string
           current_hp?: number
+          deadline_days?: number
+          effective_dps_snapshot?: number
           ends_at?: string
+          gates_enabled?: boolean
           id?: string
           max_hp?: number
           participants?: number
+          performance_class?: string | null
           raid_key?: string
           rewards_snapshot?: Json
           settled_at?: string | null
           started_at?: string
           status?: string
+          target_days?: number
           total_damage?: number
           updated_at?: string
         }
@@ -3084,6 +3159,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clan_raid_performance: {
+        Row: {
+          clan_id: string
+          cleared_in_hours: number | null
+          created_at: string
+          damage_done: number
+          effective_dps: number
+          id: string
+          max_hp: number
+          performance_class: string
+          raid_id: string
+          status: string
+          suggested_next_hp: number
+          target_days: number
+        }
+        Insert: {
+          clan_id: string
+          cleared_in_hours?: number | null
+          created_at?: string
+          damage_done: number
+          effective_dps: number
+          id?: string
+          max_hp: number
+          performance_class: string
+          raid_id: string
+          status: string
+          suggested_next_hp: number
+          target_days: number
+        }
+        Update: {
+          clan_id?: string
+          cleared_in_hours?: number | null
+          created_at?: string
+          damage_done?: number
+          effective_dps?: number
+          id?: string
+          max_hp?: number
+          performance_class?: string
+          raid_id?: string
+          status?: string
+          suggested_next_hp?: number
+          target_days?: number
+        }
+        Relationships: []
       }
       clan_raid_rewards: {
         Row: {
@@ -16116,6 +16236,12 @@ export type Database = {
         Args: { p_admin_id: number; p_value: number }
         Returns: Json
       }
+      admin_clan_raid_audit: { Args: { p_clan: string }; Returns: Json }
+      admin_clan_raid_set: {
+        Args: { p_field: string; p_value: number }
+        Returns: Json
+      }
+      admin_clan_raid_settings: { Args: never; Returns: Json }
       admin_clan_settings: {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
@@ -18370,12 +18496,25 @@ export type Database = {
           min_weekly_contribution: number
           myth_milestone_rewards: boolean
           raid_attacks_per_day: number
+          raid_boss_name: string
+          raid_catchup_enabled: boolean
+          raid_catchup_max_pct: number
+          raid_deadline_days: number
+          raid_dps_weight_24h: number
+          raid_dps_weight_3d: number
+          raid_dps_weight_7d: number
           raid_duration_days: number
           raid_enabled: boolean
+          raid_full_kill_required: boolean
+          raid_health_gates_enabled: boolean
           raid_hp_max: number
           raid_hp_min: number
           raid_hp_per_power: number
+          raid_max_hp_decrease_pct: number
+          raid_max_hp_increase_pct: number
           raid_rewards: Json
+          raid_safety_factor: number
+          raid_target_kill_days: number
           treasury_assets: string[]
           treasury_ton_enabled: boolean
           updated_at: string
@@ -18445,26 +18584,45 @@ export type Database = {
         Args: { p_clan: Database["public"]["Tables"]["clans"]["Row"] }
         Returns: Json
       }
-      clan_raid_attack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_raid_attack:
+        | { Args: { p_telegram_id: number }; Returns: Json }
+        | { Args: { p_key?: string; p_telegram_id: number }; Returns: Json }
+      clan_raid_catchup_pct: {
+        Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
+        Returns: number
+      }
+      clan_raid_damage_today: { Args: { p_raid: string }; Returns: number }
+      clan_raid_day: { Args: { p_started: string }; Returns: number }
+      clan_raid_effective_dps: { Args: { p_clan: string }; Returns: number }
       clan_raid_ensure: {
         Args: { p_clan: string }
         Returns: {
+          active_members_snapshot: number
           boss_atk: number
           boss_def: number
           boss_name: string
           boss_theme: string
+          boss_tier: string
+          catchup_pct: number
           clan_id: string
+          clan_power_snapshot: number
+          cleared_in_hours: number | null
           created_at: string
           current_hp: number
+          deadline_days: number
+          effective_dps_snapshot: number
           ends_at: string
+          gates_enabled: boolean
           id: string
           max_hp: number
           participants: number
+          performance_class: string | null
           raid_key: string
           rewards_snapshot: Json
           settled_at: string | null
           started_at: string
           status: string
+          target_days: number
           total_damage: number
           updated_at: string
         }
@@ -18475,7 +18633,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_raid_phase_floor: {
+        Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
+        Returns: number
+      }
+      clan_raid_record_performance: {
+        Args: { p_raid: string }
+        Returns: undefined
+      }
       clan_raid_settle: { Args: { p_raid: string }; Returns: Json }
+      clan_raid_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_resolve_user: { Args: { p_telegram_id: number }; Returns: string }
       clan_role_rank: { Args: { p_role: string }; Returns: number }
       clan_shop_buy: {
