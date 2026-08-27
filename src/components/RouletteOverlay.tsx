@@ -109,8 +109,9 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
       .catch(() => undefined);
   }, [telegramInitData, refreshAll]);
 
+  /** The animation only REPRESENTS the server-side result: the pointer lands on its slice. */
   const settle = useCallback((res: RouletteSpinResult) => {
-    setAngle((current) => current + 1440 + Math.floor(Math.random() * 360));
+    setAngle((current) => rotationForSlice(current, resultCategoryId(res)));
     setSpinning(true);
     window.setTimeout(() => {
       setSpinning(false);
@@ -118,6 +119,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
       refreshAll();
     }, 2600);
   }, [refreshAll]);
+
 
   const spin = useCallback(async () => {
     if (!telegramInitData || busy) return;
