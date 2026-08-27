@@ -2554,7 +2554,7 @@ async function clanDonationSettingsView(ctx: Ctx) {
       [100, 500, 1_000, 2_500].map((v) => ({ t: `MYTH MIN ${fmt(v)}`, d: `cl:dst:donation_default_min_myth:${v}` })),
       [5_000, 10_000, 25_000, 50_000].map((v) => ({ t: `MYTH MAX ${fmt(v)}`, d: `cl:dst:donation_default_max_myth:${v}` })),
       [50_000, 100_000, 250_000, 500_000].map((v) => ({ t: `MYTH CAP ${fmt(v)}`, d: `cl:dst:donation_hard_max_myth:${v}` })),
-      nav("cl:hb"),
+      nav("cl:hub"),
     ]),
   );
 }
@@ -2841,6 +2841,13 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     }
     case "ra":
       return clanRaidAuditView(ctx, String(a ?? ""));
+
+    // 💰 Donation limits: global defaults and hard caps for per-clan treasury rules.
+    case "ds":
+      return clanDonationSettingsView(ctx);
+    case "dst":
+      await csRpc(ctx, "set_setting", { field: String(a ?? ""), value: Number(b) });
+      return clanDonationSettingsView(ctx);
 
     case "aaflags":
       return clanAntiAbuseList(ctx, "flags");
