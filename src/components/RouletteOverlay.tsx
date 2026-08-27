@@ -58,6 +58,8 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
   const [awaitingPayment, setAwaitingPayment] = useState(false);
   const [result, setResult] = useState<RouletteSpinResult | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [preview, setPreview] = useState<RewardCategory | null>(null);
+
 
   const [angle, setAngle] = useState(0);
   const idempotencyRef = useRef<string | null>(null);
