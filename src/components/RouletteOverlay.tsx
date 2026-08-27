@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
 import { X, Loader2, Sparkle, Wallet } from 'lucide-react';
