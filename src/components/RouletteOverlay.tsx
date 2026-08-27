@@ -7,9 +7,15 @@ import { toast } from 'sonner';
 import { X, Loader2, Sparkle, Wallet } from 'lucide-react';
 import wheelImage from '../assets/roulette/wheel.png';
 import backdropImage from '../assets/roulette/backdrop.jpg';
-import mysteryHeroImage from '../assets/roulette/mystery-hero.png';
-import mythPrizeImage from '../assets/roulette/myth-prize.png';
-import equipmentPrizeImage from '../assets/roulette/equipment-prize.png';
+import {
+  PossibleRewards,
+  REWARD_CATEGORIES,
+  RewardMedallion,
+  RewardPreviewPopup,
+  rewardCategory,
+  type RewardCategory,
+  type RewardCategoryId,
+} from './RouletteRewardKit';
 import {
   fetchRouletteState,
   isRoulettePayment,
@@ -22,9 +28,19 @@ import { formatCurrency } from '../utils';
 
 type Props = { telegramInitData: string | null; onClose: () => void };
 
-/** Reward art is chosen ONLY from what the backend already granted — never a prediction. */
-const rewardArt = (reward: RouletteSpinResult['normal']) =>
-  String(reward?.class ?? '') === 'NFT_EQUIPMENT' ? equipmentPrizeImage : mythPrizeImage;
+/** Reward identity is derived ONLY from what the backend already granted — never a prediction. */
+const resultCategoryId = (result: RouletteSpinResult): RewardCategoryId => {
+  if (result.premium) {
+    const tag = `${result.premium.name ?? ''} ${result.premium.label ?? ''} ${
+      (result.premium as { class?: string }).class ?? ''
+    }`.toLowerCase();
+    return tag.includes('celestial') ? 'CELESTIAL' : 'MYSTERY';
+  }
+  const cls = String(result.normal?.class ?? '').toUpperCase();
+  if (cls === 'MYTH') return 'MYTH';
+  if (cls.includes('CHEST') || cls.includes('EGG')) return 'CHEST';
+  return 'GEAR';
+};
 
 const rewardTitle = (result: RouletteSpinResult) => {
   if (result.premium) return String(result.premium.name || result.premium.label || 'PRÊMIO LENDÁRIO');
@@ -33,6 +49,7 @@ const rewardTitle = (result: RouletteSpinResult) => {
   if (String(reward.class) === 'MYTH') return `${formatCurrency(Number(reward.amount ?? 0))} MYTH`;
   return String(reward.label || 'EQUIPAMENTO NFT');
 };
+
 
 export function RouletteOverlay({ telegramInitData, onClose }: Props) {
   const queryClient = useQueryClient();
