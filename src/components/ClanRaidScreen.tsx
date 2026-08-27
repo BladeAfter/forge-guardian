@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, Clock, Flame, Loader2, Lock, Shield, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { clanRequest } from '../clans';
+import { clanErrorMessage } from '../lib/clanErrors';
 import { formatCurrency } from '../utils';
 import bossArt from '../assets/clan-raid-boss.jpg';
 
@@ -41,15 +42,6 @@ type Raid = {
   myDamage: number;
   clearedInHours: number | null;
   ranking: Ranking[];
-};
-
-const ERRORS: Record<string, string> = {
-  RAID_PHASE_LOCKED: 'Fase do dia concluída. O próximo trecho de HP abre amanhã.',
-  RAID_DAILY_LIMIT: 'Você já usou todos os ataques de hoje.',
-  RAID_NOT_ACTIVE: 'Nenhuma raid ativa no momento.',
-  RAID_EXPIRED: 'O prazo desta raid terminou.',
-  RAID_DISABLED: 'Clan Raid está desativada.',
-  NOT_IN_CLAN: 'Você precisa estar em um clã.',
 };
 
 function countdown(target: string) {
