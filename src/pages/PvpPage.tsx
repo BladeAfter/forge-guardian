@@ -16,7 +16,7 @@ import{PlayerTag}from'../premiumTitles';
 
 const templateOf=(h:{templateId?:string;heroKey?:string;name:string;heroId:string})=>String(h.templateId||h.heroKey||h.name||h.heroId).toLowerCase();
 type Team='attack'|'defense';type View='teams'|'history'|'ranking';type Mode='classic'|'tactical';
-const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f472b6',ancestral:'#f97316',nft_exclusive:'#22d3ee'};
+const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f472b6',ancestral:'#f97316',nft_exclusive:'#22d3ee', celestial: '#fde68a',};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
  const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false),[mode,setMode]=useState<Mode>('classic');

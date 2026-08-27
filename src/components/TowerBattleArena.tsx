@@ -23,7 +23,7 @@ const GEAR_SLOT_KEYS: Record<string, string> = { weapon: 'tower.gearWeapon', arm
  */
 const rarityColor: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
-  legendary: '#fbbf24', mythic: '#f472b6', ancestral: '#fb923c', nft_exclusive: '#fbbf24',
+  legendary: '#fbbf24', mythic: '#f472b6', ancestral: '#fb923c', nft_exclusive: '#fbbf24', celestial: '#fde68a',
 };
 
 type Fighter = { heroId: string; name: string; imageUrl: string; rarity: string; maxHp: number; hp: number };
