@@ -33,6 +33,11 @@ type Raid = {
   phaseFloor: number;
   phaseLocked: boolean;
   nextPhaseAt: string;
+  unlockedPct: number;
+  allowedDamage: number;
+  damageDealt: number;
+  remainingAllowed: number;
+
   catchupPct: number;
   totalDamage: number;
   participants: number;
