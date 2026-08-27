@@ -33,6 +33,11 @@ type Raid = {
   phaseFloor: number;
   phaseLocked: boolean;
   nextPhaseAt: string;
+  unlockedPct: number;
+  allowedDamage: number;
+  damageDealt: number;
+  remainingAllowed: number;
+
   catchupPct: number;
   totalDamage: number;
   participants: number;
@@ -152,9 +157,29 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                   <span>ALVO DE MORTE: DIA {raid.targetDays}</span>
                 </div>
 
+                {/* Daily health gate progress: cumulative unlocked damage for the current phase */}
+                <div className="mt-2 rounded-xl border border-amber-300/20 bg-black/40 p-2">
+                  <div className="flex items-baseline justify-between text-[10px]">
+                    <span className="font-black uppercase tracking-widest text-amber-200">Progresso do dia</span>
+                    <span className="text-slate-300">
+                      {((raid.allowedDamage > 0 ? Math.min(1, raid.damageDealt / raid.allowedDamage) : 0) * (raid.unlockedPct ?? 0)).toFixed(1)}% / {(raid.unlockedPct ?? 0).toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/60 ring-1 ring-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
+                      style={{ width: `${raid.allowedDamage > 0 ? Math.min(100, (raid.damageDealt / raid.allowedDamage) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-[9px] text-slate-500">
+                    Liberado hoje: {formatCurrency(raid.allowedDamage)} · resta {formatCurrency(Math.max(0, raid.remainingAllowed))}
+                  </p>
+                </div>
+
                 <div className="mt-2.5 grid grid-cols-4 gap-1.5 text-center">
                   <Cell label="Fase" value={`${raid.phase}/${raid.phases}`} />
                   <Cell label="Ataques" value={`${raid.attacksUsed}/${raid.attacksPerDay}`} />
+
                   <Cell label="Participantes" value={`${raid.participants}/${raid.memberCount}`} />
                   <Cell label="Encerra" value={countdown(raid.endsAt)} />
                 </div>
