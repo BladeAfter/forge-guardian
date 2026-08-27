@@ -28,7 +28,18 @@ type HubState = {
   bossPoints?: number[];
 };
 
+type ShopItem = {
+  code: string; label: string; quantity: number; price: number; basePrice: number;
+  dailyLimit: number; weeklyLimit: number; boughtToday: number; boughtWeek: number;
+  clanStock: number | null; clanStockTotal: number | null;
+};
+type ShopState = {
+  inClan: boolean; coins: number; weeklyEarned: number; weeklyCap: number;
+  priceMultiplier: number; effectiveActive: number; items: ShopItem[];
+};
+
 type SubTab = 'hub' | 'raid' | 'treasury' | 'upgrades' | 'shop';
+
 
 const pctOf = (a: number, b: number) => (b > 0 ? Math.min(100, Math.round((a / b) * 100)) : 0);
 
