@@ -17,7 +17,7 @@ import {
 import type { TacticalDashboard, TacticalHero, TacticalSkill } from '../tactical';
 import { TacticalBattleScreen } from './TacticalBattleScreen';
 
-const RARITY: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#f472b6', ancestral: '#f97316', nft_exclusive: '#22d3ee' };
+const RARITY: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#f472b6', ancestral: '#f97316', nft_exclusive: '#22d3ee', celestial: '#fde68a', };
 type View = 'team' | 'deck' | 'history' | 'ranking';
 
 function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: React.ReactNode; hint?: string }) {

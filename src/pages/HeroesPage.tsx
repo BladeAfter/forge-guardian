@@ -15,7 +15,7 @@ import { VETERAN_LINE_COLOR, VETERAN_LINE_LABEL, isVeteranLine } from '../vetera
 import { useT, useLanguage } from '../LanguageContext';
 
 
-const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee' };
+const color: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee', celestial: '#fde68a', };
 
 
 export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {

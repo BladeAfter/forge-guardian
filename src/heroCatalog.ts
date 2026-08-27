@@ -1,4 +1,4 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive' | 'celestial';
 
 export type ShopHero = {
   id: string;
@@ -50,11 +50,11 @@ export const RARITY_ODDS: Array<{ rarity: HeroRarity; chance: number }> = [
 
 export const RARITY_COLORS: Record<HeroRarity, string> = {
   common: '#94a3b8', uncommon: '#4ade80', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24',
-  mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee'
+  mythic: '#fb7185', ancestral: '#f472b6', nft_exclusive: '#22d3ee', celestial: '#fde68a'
 };
 
 export const RARITY_DAMAGE: Record<HeroRarity, number> = {
-  common: 0.15, uncommon: 0.25, rare: 0.4, epic: 0.7, legendary: 1.2, mythic: 1.8, ancestral: 2.6, nft_exclusive: 3.4
+  common: 0.15, uncommon: 0.25, rare: 0.4, epic: 0.7, legendary: 1.2, mythic: 1.8, ancestral: 2.6, nft_exclusive: 3.4, celestial: 4.2
 };
 
 export const DEFAULT_BOSS_TEAM = ['common-1', 'uncommon-1', 'rare-1', 'epic-1', 'legendary-1'];
