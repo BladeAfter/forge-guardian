@@ -98,9 +98,11 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
   const chosen = selected.map((id) => byId.get(id) ?? null).filter(Boolean) as RarityFusionHero[];
   const sourceRarity = chosen[0]?.rarity ?? null;
   const tier = sourceRarity ? tiers[sourceRarity] : null;
-  const cost = tier?.cost_fc ?? 0;
+  // Rarity fusion is MYTH-only: the cost is burned, never charged in FC.
+  const cost = tier?.cost_myth ?? 0;
+  const mythAvailable = Number(data.mythAvailable ?? data.mythBalance ?? 0);
   const complete = selected.length === required;
-  const notEnoughFc = complete && data.balance < cost;
+  const notEnoughFc = complete && mythAvailable < cost;
   const fusionEnabled = config?.enabled !== false;
 
   useEffect(() => {
@@ -252,7 +254,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
         <div className="fixed inset-x-0 bottom-0 z-[95] mx-auto w-full max-w-[480px] rounded-t-xl border-t border-amber-300/25 bg-[#04070d]/95 px-2 pt-2 backdrop-blur" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
         <div className="flex items-center justify-between gap-2 text-[9px]">
           <span className="font-black uppercase tracking-[.12em] text-amber-200">{t('fusion.selectedCount', { selected: selected.length, required })}</span>
-          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-slate-300'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} FC` : t('fusion.costNA') })}</span>
+          <span className={notEnoughFc ? 'font-black text-rose-300' : 'text-fuchsia-200'}>{t('fusion.cost', { cost: tier ? `${fmt(cost)} MYTH` : t('fusion.costNA') })}</span>
         </div>
         <p className="text-[9px] text-slate-400">
           {tier && sourceRarity ? (
@@ -260,9 +262,10 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
               <b style={{ color: RARITY_COLOR[sourceRarity] }}>{t(`rarity.${sourceRarity}`)}</b> → <b style={{ color: RARITY_COLOR[tier.target] }}>{t(`rarity.${tier.target}`)}</b> · {t('fusion.chanceFail', { chance: tier.chance, fragments: fmt(tier.fragments) })}
             </>
           ) : (
-            <>{t('fusion.balance', { balance: fmt(data.balance) })}</>
+            <>{t('fusion.selectN', { count: required })}</>
           )}
         </p>
+        <p className="text-[9px] text-fuchsia-200/80">MYTH disponível: {fmt(mythAvailable)}</p>
         <button
           disabled={!complete || notEnoughFc || !fusionEnabled || phase === 'fusing'}
           onClick={() => setConfirming(true)}
@@ -311,7 +314,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
               <Row label={t('fusion.currentRarity')} value={sourceRarity ? t(`rarity.${sourceRarity}`) : ''} />
               <Row label={t('fusion.possibleResult')} value={t(`rarity.${tier.target}`)} color={RARITY_COLOR[tier.target]} />
               <Row label={t('fusion.chance')} value={`${tier.chance}%`} />
-              <Row label={t('fusion.costLabel')} value={`${fmt(cost)} FC`} />
+              <Row label={t('fusion.costLabel')} value={`${fmt(cost)} MYTH`} color="#f0abfc" />
               <Row label={t('fusion.compensation')} value={t('fusion.universalFragments', { count: fmt(tier.fragments) })} />
             </div>
             <p className="mt-2 flex items-center gap-1 text-[10px] font-black text-rose-300"><ShieldAlert size={12} /> {t('fusion.undoWarning')}</p>
@@ -375,7 +378,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
                 <p className="text-lg font-black text-amber-200">{t('fusion.universalFragments', { count: fmt(result.fragments) })}</p>
               </>
             )}
-            <p className="mt-2 text-[10px] text-slate-400">{t('fusion.balance', { balance: fmt(result.balance) })}</p>
+            <p className="mt-2 text-[10px] text-fuchsia-200/80">MYTH restante: {fmt(Number(result.mythBalance ?? result.dashboard?.mythAvailable ?? 0))}</p>
             <button onClick={() => { setPhase('idle'); setResult(null); }} className="mt-3 min-h-[44px] w-full rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">
               {t('common.continue')}
             </button>

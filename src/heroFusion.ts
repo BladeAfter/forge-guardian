@@ -161,7 +161,8 @@ export const RARITY_LABEL: Record<string, string> = {
   mythic: 'MYTHIC', ancestral: 'ANCESTRAL',
 };
 
-export type RarityFusionTier = { target: string; cost_fc: number; chance: number; fragments: number };
+/** Rarity fusion is paid ONLY in MYTH (burned). `cost_fc` is legacy and always 0. */
+export type RarityFusionTier = { target: string; cost_myth: number; cost_fc?: number; chance: number; fragments: number };
 export type RarityFusionConfig = { enabled: boolean; required_heroes: number; tiers: Record<string, RarityFusionTier> };
 
 export type RarityFusionHero = {
@@ -179,6 +180,9 @@ export type RarityFusionHistoryEntry = {
 export type RarityFusionDashboard = {
   config: RarityFusionConfig;
   balance: number;
+  /** MYTH wallet: total balance and the spendable part (total minus staking). */
+  mythBalance?: number;
+  mythAvailable?: number;
   fragments: number;
   heroes: RarityFusionHero[];
   counts: Record<string, number>;
@@ -187,7 +191,7 @@ export type RarityFusionDashboard = {
 
 export type RarityFusionResult = {
   success: boolean; sourceRarity: string; targetRarity: string;
-  costFc: number; chance: number; balance: number; consumed: number;
+  costFc: number; costMyth?: number; mythBalance?: number; chance: number; balance: number; consumed: number;
   fragments: number; fragmentsTotal: number;
   hero: { heroId: string; heroKey: string; name: string; rarity: string; level: number; imageUrl: string | null; finalAtk: number; finalHp: number; power: number } | null;
   dashboard: RarityFusionDashboard;

@@ -805,7 +805,7 @@ async function rarityFusionView(ctx: Ctx) {
   const tiers = cfg.tiers || {};
   const rows = RF_SOURCES.filter((k) => tiers[k]).map((k) => {
     const t = tiers[k];
-    return `${RF_LABEL[k]} → ${RF_LABEL[t.target] || String(t.target).toUpperCase()}\n   Custo: <b>${fmt(Number(t.cost_fc || 0))} FC</b> · Chance: <b>${pct(t.chance)}%</b> · Falha: <b>${fmt(Number(t.fragments || 0))} frag.</b>`;
+    return `${RF_LABEL[k]} → ${RF_LABEL[t.target] || String(t.target).toUpperCase()}\n   Custo: <b>${fmt(Number(t.cost_myth || 0))} MYTH</b> · Chance: <b>${pct(t.chance)}%</b> · Falha: <b>${fmt(Number(t.fragments || 0))} frag.</b>`;
   });
   const off = (d.pool || []).filter((h: any) => !h.enabled);
   const text = [
@@ -11769,7 +11769,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n)) || parts[1] < 0 || parts[1] > 100) {
         return send(
           ctx,
-          "⚠️ Envie 3 números: <code>custo_fc chance fragmentos</code>. Ex.: <code>10000 80 10</code>",
+          "⚠️ Envie 3 números: <code>custo_myth chance fragmentos</code>. Ex.: <code>30000 40 40</code>",
           kb([[{ t: "⚗️ RARITY FUSION", d: "rf:home" }], nav()]),
         );
       }
@@ -11782,7 +11782,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
       });
       await send(
         ctx,
-        `✅ ${RF_LABEL[source]} atualizado — ${fmt(parts[0])} FC · ${pct(parts[1])}% · ${fmt(Math.round(parts[2]))} frag.`,
+        `✅ ${RF_LABEL[source]} atualizado — ${fmt(parts[0])} MYTH · ${pct(parts[1])}% · ${fmt(Math.round(parts[2]))} frag.`,
       );
       return rarityFusionView(ctx);
     }
