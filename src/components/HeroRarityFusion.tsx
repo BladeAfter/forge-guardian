@@ -314,7 +314,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
               <Row label={t('fusion.currentRarity')} value={sourceRarity ? t(`rarity.${sourceRarity}`) : ''} />
               <Row label={t('fusion.possibleResult')} value={t(`rarity.${tier.target}`)} color={RARITY_COLOR[tier.target]} />
               <Row label={t('fusion.chance')} value={`${tier.chance}%`} />
-              <Row label={t('fusion.costLabel')} value={`${fmt(cost)} FC`} />
+              <Row label={t('fusion.costLabel')} value={`${fmt(cost)} MYTH`} color="#f0abfc" />
               <Row label={t('fusion.compensation')} value={t('fusion.universalFragments', { count: fmt(tier.fragments) })} />
             </div>
             <p className="mt-2 flex items-center gap-1 text-[10px] font-black text-rose-300"><ShieldAlert size={12} /> {t('fusion.undoWarning')}</p>
