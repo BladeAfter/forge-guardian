@@ -9,13 +9,14 @@ import wheelImage from '../assets/roulette/wheel.png';
 import backdropImage from '../assets/roulette/backdrop.jpg';
 import {
   PossibleRewards,
-  REWARD_CATEGORIES,
   RewardMedallion,
   RewardPreviewPopup,
   rewardCategory,
   type RewardCategory,
   type RewardCategoryId,
 } from './RouletteRewardKit';
+import { RouletteWheel, rotationForSlice } from './RouletteWheel';
+
 import {
   fetchRouletteState,
   isRoulettePayment,
