@@ -2517,7 +2517,9 @@ async function clanHubView(ctx: Ctx) {
       ],
       [1, 2, 3, 5].map((v) => ({ t: `RAID ${v}/dia`, d: `cl:hbatk:${v}` })),
       [{ t: "⚔ CLAN RAID SETTINGS", d: "cl:rs" }],
+      [{ t: "💰 LIMITES DE DOAÇÃO", d: "cl:ds" }],
       [{ t: "♻️ ENCERRAR RAIDS ATIVAS", d: "cl:hbrreset" }],
+
 
       nav("m:clans"),
     ]),
