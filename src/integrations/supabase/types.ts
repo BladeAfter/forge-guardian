@@ -2195,6 +2195,224 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_buff_config: {
+        Row: {
+          bonus_pct: number
+          code: string
+          cost_fc: number
+          duration_hours: number
+          enabled: boolean
+          label: string
+          max_pct: number
+          required_research_level: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_pct?: number
+          code: string
+          cost_fc?: number
+          duration_hours?: number
+          enabled?: boolean
+          label: string
+          max_pct?: number
+          required_research_level?: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_pct?: number
+          code?: string
+          cost_fc?: number
+          duration_hours?: number
+          enabled?: boolean
+          label?: string
+          max_pct?: number
+          required_research_level?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clan_buffs: {
+        Row: {
+          activated_by: string | null
+          bonus_pct: number
+          clan_id: string
+          code: string
+          expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          activated_by?: string | null
+          bonus_pct?: number
+          clan_id: string
+          code: string
+          expires_at: string
+          updated_at?: string
+        }
+        Update: {
+          activated_by?: string | null
+          bonus_pct?: number
+          clan_id?: string
+          code?: string
+          expires_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_buffs_activated_by_fkey"
+            columns: ["activated_by"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_buffs_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_buffs_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "clan_buff_config"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      clan_collective_settings: {
+        Row: {
+          active_member_days: number
+          boss_points: number[]
+          clan_xp_per_contribution: number
+          coins_per_contribution: number
+          enabled: boolean
+          id: boolean
+          milestones: Json
+          min_weekly_contribution: number
+          myth_milestone_rewards: boolean
+          raid_attacks_per_day: number
+          raid_duration_days: number
+          raid_enabled: boolean
+          raid_hp_max: number
+          raid_hp_min: number
+          raid_hp_per_power: number
+          raid_rewards: Json
+          treasury_assets: string[]
+          treasury_ton_enabled: boolean
+          updated_at: string
+          weekly_target_max: number
+          weekly_target_min: number
+          weekly_target_per_active: number
+        }
+        Insert: {
+          active_member_days?: number
+          boss_points?: number[]
+          clan_xp_per_contribution?: number
+          coins_per_contribution?: number
+          enabled?: boolean
+          id?: boolean
+          milestones?: Json
+          min_weekly_contribution?: number
+          myth_milestone_rewards?: boolean
+          raid_attacks_per_day?: number
+          raid_duration_days?: number
+          raid_enabled?: boolean
+          raid_hp_max?: number
+          raid_hp_min?: number
+          raid_hp_per_power?: number
+          raid_rewards?: Json
+          treasury_assets?: string[]
+          treasury_ton_enabled?: boolean
+          updated_at?: string
+          weekly_target_max?: number
+          weekly_target_min?: number
+          weekly_target_per_active?: number
+        }
+        Update: {
+          active_member_days?: number
+          boss_points?: number[]
+          clan_xp_per_contribution?: number
+          coins_per_contribution?: number
+          enabled?: boolean
+          id?: boolean
+          milestones?: Json
+          min_weekly_contribution?: number
+          myth_milestone_rewards?: boolean
+          raid_attacks_per_day?: number
+          raid_duration_days?: number
+          raid_enabled?: boolean
+          raid_hp_max?: number
+          raid_hp_min?: number
+          raid_hp_per_power?: number
+          raid_rewards?: Json
+          treasury_assets?: string[]
+          treasury_ton_enabled?: boolean
+          updated_at?: string
+          weekly_target_max?: number
+          weekly_target_min?: number
+          weekly_target_per_active?: number
+        }
+        Relationships: []
+      }
+      clan_contribution_ledger: {
+        Row: {
+          amount: number
+          clan_id: string
+          created_at: string
+          cycle_id: string | null
+          game_day: string
+          id: string
+          source_id: string | null
+          source_type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          clan_id: string
+          created_at?: string
+          cycle_id?: string | null
+          game_day?: string
+          id?: string
+          source_id?: string | null
+          source_type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          clan_id?: string
+          created_at?: string
+          cycle_id?: string | null
+          game_day?: string
+          id?: string
+          source_id?: string | null
+          source_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_contribution_ledger_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_contribution_ledger_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "clan_weekly_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_contribution_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_exploit_audit_runs: {
         Row: {
           admin_telegram_id: number | null
@@ -2431,6 +2649,7 @@ export type Database = {
           contribution: number
           id: string
           joined_at: string
+          permissions: string[]
           role: string
           updated_at: string
           user_id: string
@@ -2441,6 +2660,7 @@ export type Database = {
           contribution?: number
           id?: string
           joined_at?: string
+          permissions?: string[]
           role?: string
           updated_at?: string
           user_id: string
@@ -2451,6 +2671,7 @@ export type Database = {
           contribution?: number
           id?: string
           joined_at?: string
+          permissions?: string[]
           role?: string
           updated_at?: string
           user_id?: string
@@ -2557,6 +2778,58 @@ export type Database = {
           },
           {
             foreignKeyName: "clan_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_milestone_claims: {
+        Row: {
+          clan_id: string
+          created_at: string
+          cycle_id: string
+          id: string
+          milestone_pct: number
+          payload: Json
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          cycle_id: string
+          id?: string
+          milestone_pct: number
+          payload?: Json
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          cycle_id?: string
+          id?: string
+          milestone_pct?: number
+          payload?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_milestone_claims_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_milestone_claims_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "clan_weekly_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_milestone_claims_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "game_players"
@@ -2683,6 +2956,450 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "game_players"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_raid_attacks: {
+        Row: {
+          attack_day: string
+          clan_id: string
+          created_at: string
+          damage: number
+          id: string
+          payload: Json
+          raid_id: string
+          user_id: string
+        }
+        Insert: {
+          attack_day?: string
+          clan_id: string
+          created_at?: string
+          damage?: number
+          id?: string
+          payload?: Json
+          raid_id: string
+          user_id: string
+        }
+        Update: {
+          attack_day?: string
+          clan_id?: string
+          created_at?: string
+          damage?: number
+          id?: string
+          payload?: Json
+          raid_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_raid_attacks_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_attacks_raid_id_fkey"
+            columns: ["raid_id"]
+            isOneToOne: false
+            referencedRelation: "clan_raid_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_attacks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_raid_cycles: {
+        Row: {
+          boss_atk: number
+          boss_def: number
+          boss_name: string
+          boss_theme: string
+          clan_id: string
+          created_at: string
+          current_hp: number
+          ends_at: string
+          id: string
+          max_hp: number
+          participants: number
+          raid_key: string
+          rewards_snapshot: Json
+          settled_at: string | null
+          started_at: string
+          status: string
+          total_damage: number
+          updated_at: string
+        }
+        Insert: {
+          boss_atk?: number
+          boss_def?: number
+          boss_name?: string
+          boss_theme?: string
+          clan_id: string
+          created_at?: string
+          current_hp: number
+          ends_at: string
+          id?: string
+          max_hp: number
+          participants?: number
+          raid_key: string
+          rewards_snapshot?: Json
+          settled_at?: string | null
+          started_at?: string
+          status?: string
+          total_damage?: number
+          updated_at?: string
+        }
+        Update: {
+          boss_atk?: number
+          boss_def?: number
+          boss_name?: string
+          boss_theme?: string
+          clan_id?: string
+          created_at?: string
+          current_hp?: number
+          ends_at?: string
+          id?: string
+          max_hp?: number
+          participants?: number
+          raid_key?: string
+          rewards_snapshot?: Json
+          settled_at?: string | null
+          started_at?: string
+          status?: string
+          total_damage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_raid_cycles_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_raid_rewards: {
+        Row: {
+          clan_id: string
+          created_at: string
+          damage: number
+          id: string
+          payload: Json
+          raid_id: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          damage?: number
+          id?: string
+          payload?: Json
+          raid_id: string
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          damage?: number
+          id?: string
+          payload?: Json
+          raid_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_raid_rewards_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_rewards_raid_id_fkey"
+            columns: ["raid_id"]
+            isOneToOne: false
+            referencedRelation: "clan_raid_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_raid_rewards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_shop_config: {
+        Row: {
+          code: string
+          cost_coins: number
+          daily_limit: number
+          enabled: boolean
+          item_code: string
+          item_type: string
+          label: string
+          quantity: number
+          required_clan_level: number
+          season_limit: number
+          sort_order: number
+          updated_at: string
+          weekly_limit: number
+        }
+        Insert: {
+          code: string
+          cost_coins?: number
+          daily_limit?: number
+          enabled?: boolean
+          item_code: string
+          item_type: string
+          label: string
+          quantity?: number
+          required_clan_level?: number
+          season_limit?: number
+          sort_order?: number
+          updated_at?: string
+          weekly_limit?: number
+        }
+        Update: {
+          code?: string
+          cost_coins?: number
+          daily_limit?: number
+          enabled?: boolean
+          item_code?: string
+          item_type?: string
+          label?: string
+          quantity?: number
+          required_clan_level?: number
+          season_limit?: number
+          sort_order?: number
+          updated_at?: string
+          weekly_limit?: number
+        }
+        Relationships: []
+      }
+      clan_shop_purchases: {
+        Row: {
+          clan_id: string
+          code: string
+          cost_coins: number
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          purchase_day: string
+          quantity: number
+          user_id: string
+          week_key: string
+        }
+        Insert: {
+          clan_id: string
+          code: string
+          cost_coins?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          purchase_day?: string
+          quantity?: number
+          user_id: string
+          week_key?: string
+        }
+        Update: {
+          clan_id?: string
+          code?: string
+          cost_coins?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          purchase_day?: string
+          quantity?: number
+          user_id?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_shop_purchases_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_shop_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_treasury: {
+        Row: {
+          clan_id: string
+          fc: number
+          materials: number
+          myth: number
+          updated_at: string
+        }
+        Insert: {
+          clan_id: string
+          fc?: number
+          materials?: number
+          myth?: number
+          updated_at?: string
+        }
+        Update: {
+          clan_id?: string
+          fc?: number
+          materials?: number
+          myth?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_treasury_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: true
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_treasury_ledger: {
+        Row: {
+          amount: number
+          asset: string
+          balance_after: number
+          balance_before: number
+          clan_id: string
+          created_at: string
+          id: string
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          asset: string
+          balance_after?: number
+          balance_before?: number
+          clan_id: string
+          created_at?: string
+          id?: string
+          reason: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          balance_after?: number
+          balance_before?: number
+          clan_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_treasury_ledger_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_treasury_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_upgrade_config: {
+        Row: {
+          base_cost_fc: number
+          bonus_cap: number
+          bonus_kind: string
+          bonus_per_level: number
+          code: string
+          cost_growth: number
+          description: string
+          enabled: boolean
+          label: string
+          max_level: number
+          required_clan_level: number
+          updated_at: string
+        }
+        Insert: {
+          base_cost_fc?: number
+          bonus_cap?: number
+          bonus_kind?: string
+          bonus_per_level?: number
+          code: string
+          cost_growth?: number
+          description?: string
+          enabled?: boolean
+          label: string
+          max_level?: number
+          required_clan_level?: number
+          updated_at?: string
+        }
+        Update: {
+          base_cost_fc?: number
+          bonus_cap?: number
+          bonus_kind?: string
+          bonus_per_level?: number
+          code?: string
+          cost_growth?: number
+          description?: string
+          enabled?: boolean
+          label?: string
+          max_level?: number
+          required_clan_level?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clan_upgrades: {
+        Row: {
+          clan_id: string
+          code: string
+          level: number
+          updated_at: string
+        }
+        Insert: {
+          clan_id: string
+          code: string
+          level?: number
+          updated_at?: string
+        }
+        Update: {
+          clan_id?: string
+          code?: string
+          level?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_upgrades_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_upgrades_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "clan_upgrade_config"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -3097,6 +3814,108 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "clan_war_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_weekly_cycles: {
+        Row: {
+          active_members: number
+          clan_id: string
+          created_at: string
+          ends_at: string | null
+          id: string
+          started_at: string
+          status: string
+          target: number
+          total_contribution: number
+          updated_at: string
+          week_key: string
+        }
+        Insert: {
+          active_members?: number
+          clan_id: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          target?: number
+          total_contribution?: number
+          updated_at?: string
+          week_key: string
+        }
+        Update: {
+          active_members?: number
+          clan_id?: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          target?: number
+          total_contribution?: number
+          updated_at?: string
+          week_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_weekly_cycles_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clan_weekly_member_progress: {
+        Row: {
+          clan_id: string
+          contribution: number
+          cycle_id: string
+          joined_at: string
+          raid_damage: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clan_id: string
+          contribution?: number
+          cycle_id: string
+          joined_at?: string
+          raid_damage?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clan_id?: string
+          contribution?: number
+          cycle_id?: string
+          joined_at?: string
+          raid_damage?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_weekly_member_progress_clan_id_fkey"
+            columns: ["clan_id"]
+            isOneToOne: false
+            referencedRelation: "clans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_weekly_member_progress_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "clan_weekly_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clan_weekly_member_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
             referencedColumns: ["id"]
           },
         ]
