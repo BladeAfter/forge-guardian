@@ -2581,6 +2581,7 @@ async function clanRaidSettingsView(ctx: Ctx) {
       "",
       "HP é calculado por clã: DPS efetivo × target × safety factor.",
       "As fases liberam 1/target do HP por dia — o boss não morre antes do dia alvo.",
+      `A raid nunca cai abaixo de 1 HP antes do DIA ${s.raid_min_kill_days ?? 5} (todos têm chance de atacar).`,
     ].join("\n"),
     kb([
       [
@@ -2588,8 +2589,11 @@ async function clanRaidSettingsView(ctx: Ctx) {
         { t: s.raid_health_gates_enabled ? "🔓 GATES OFF" : "🔒 GATES ON", d: `cl:rst:raid_health_gates_enabled:${s.raid_health_gates_enabled ? 0 : 1}` },
       ],
       [3, 4, 5, 6].map((v) => ({ t: `TARGET ${v}d`, d: `cl:rst:raid_target_kill_days:${v}` })),
+      [1, 2, 3, 4].map((v) => ({ t: `🛡 MÍN ${v}d`, d: `cl:rst:raid_min_kill_days:${v}` })),
+      [5, 6, 7].map((v) => ({ t: `🛡 MÍN ${v}d`, d: `cl:rst:raid_min_kill_days:${v}` })),
       [5, 7, 10, 14].map((v) => ({ t: `PRAZO ${v}d`, d: `cl:rst:raid_deadline_days:${v}` })),
       [1, 2, 3, 5].map((v) => ({ t: `ATK ${v}/dia`, d: `cl:rst:raid_attacks_per_day:${v}` })),
+
       [0.85, 0.95, 1, 1.1].map((v) => ({ t: `SAFE ${v}`, d: `cl:rst:raid_safety_factor:${v}` })),
       [10, 20, 30, 50].map((v) => ({ t: `HP+ ${v}%`, d: `cl:rst:raid_max_hp_increase_pct:${v}` })),
       [10, 25, 40, 50].map((v) => ({ t: `HP− ${v}%`, d: `cl:rst:raid_max_hp_decrease_pct:${v}` })),
