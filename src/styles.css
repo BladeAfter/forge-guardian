@@ -1112,3 +1112,27 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   100%{background-position:-80% 0}
 }
 .forge-veteran-tag{box-shadow:0 0 14px rgba(245,158,11,.5)}
+
+
+/* ===== GLOBAL MYSTERY ROULETTE — reward identity micro-animations =====
+   Purely cosmetic signature effects per reward category (no gameplay impact). */
+@keyframes myth-shine{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(56,140,255,.55));transform:translateY(0)}
+  50%{filter:drop-shadow(0 0 12px rgba(251,191,36,.7));transform:translateY(-2px)}
+}
+@keyframes chest-glow{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(251,191,36,.45))}
+  50%{filter:drop-shadow(0 0 14px rgba(253,224,71,.8))}
+}
+@keyframes rune-pulse{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(192,110,255,.45)) saturate(1)}
+  50%{filter:drop-shadow(0 0 13px rgba(232,180,255,.75)) saturate(1.25)}
+}
+@keyframes mystery-pulse{
+  0%,100%{filter:drop-shadow(0 0 5px rgba(139,92,246,.5));transform:scale(1)}
+  50%{filter:drop-shadow(0 0 16px rgba(196,132,252,.85));transform:scale(1.05)}
+}
+@keyframes celestial-aura{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(190,225,255,.5)) brightness(1)}
+  50%{filter:drop-shadow(0 0 20px rgba(255,236,170,.85)) brightness(1.12)}
+}

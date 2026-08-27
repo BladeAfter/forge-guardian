@@ -7,9 +7,15 @@ import { toast } from 'sonner';
 import { X, Loader2, Sparkle, Wallet } from 'lucide-react';
 import wheelImage from '../assets/roulette/wheel.png';
 import backdropImage from '../assets/roulette/backdrop.jpg';
-import mysteryHeroImage from '../assets/roulette/mystery-hero.png';
-import mythPrizeImage from '../assets/roulette/myth-prize.png';
-import equipmentPrizeImage from '../assets/roulette/equipment-prize.png';
+import {
+  PossibleRewards,
+  REWARD_CATEGORIES,
+  RewardMedallion,
+  RewardPreviewPopup,
+  rewardCategory,
+  type RewardCategory,
+  type RewardCategoryId,
+} from './RouletteRewardKit';
 import {
   fetchRouletteState,
   isRoulettePayment,
@@ -22,17 +28,40 @@ import { formatCurrency } from '../utils';
 
 type Props = { telegramInitData: string | null; onClose: () => void };
 
-/** Reward art is chosen ONLY from what the backend already granted — never a prediction. */
-const rewardArt = (reward: RouletteSpinResult['normal']) =>
-  String(reward?.class ?? '') === 'NFT_EQUIPMENT' ? equipmentPrizeImage : mythPrizeImage;
+/** Reward identity is derived ONLY from what the backend already granted — never a prediction. */
+type RewardLike = {
+  normal?: RouletteSpinResult['normal'] | null;
+  premium?: RouletteSpinResult['premium'] | boolean | null;
+};
 
-const rewardTitle = (result: RouletteSpinResult) => {
-  if (result.premium) return String(result.premium.name || result.premium.label || 'PRÊMIO LENDÁRIO');
+const premiumTag = (premium: RewardLike['premium']) => {
+  if (!premium || typeof premium === 'boolean') return '';
+  const p = premium as { name?: string; label?: string; class?: string };
+  return `${p.name ?? ''} ${p.label ?? ''} ${p.class ?? ''}`.toLowerCase();
+};
+
+const resultCategoryId = (result: RewardLike): RewardCategoryId => {
+  if (result.premium) {
+    return premiumTag(result.premium).includes('celestial') ? 'CELESTIAL' : 'MYSTERY';
+  }
+  const cls = String(result.normal?.class ?? '').toUpperCase();
+  if (cls === 'MYTH') return 'MYTH';
+  if (cls.includes('CHEST') || cls.includes('EGG')) return 'CHEST';
+  return 'GEAR';
+};
+
+const rewardTitle = (result: RewardLike) => {
+  if (result.premium) {
+    const p = typeof result.premium === 'boolean' ? null : (result.premium as { name?: string; label?: string });
+    return String(p?.name || p?.label || 'HERÓI MISTERIOSO');
+  }
   const reward = result.normal;
   if (!reward) return 'RECOMPENSA ENTREGUE';
   if (String(reward.class) === 'MYTH') return `${formatCurrency(Number(reward.amount ?? 0))} MYTH`;
   return String(reward.label || 'EQUIPAMENTO NFT');
 };
+
+
 
 export function RouletteOverlay({ telegramInitData, onClose }: Props) {
   const queryClient = useQueryClient();
@@ -41,6 +70,8 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
   const [awaitingPayment, setAwaitingPayment] = useState(false);
   const [result, setResult] = useState<RouletteSpinResult | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [preview, setPreview] = useState<RewardCategory | null>(null);
+
 
   const [angle, setAngle] = useState(0);
   const idempotencyRef = useRef<string | null>(null);
@@ -183,7 +214,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           </button>
         </div>
 
-        {/* WHEEL — dominant focus */}
+        {/* WHEEL — dominant focus, with a static reward-identity ring */}
         <div className="flex w-full flex-1 items-center justify-center py-2">
           <div className="relative aspect-square w-[min(86vw,340px)]">
             <div className="absolute inset-2 rounded-full bg-sky-500/20 blur-3xl" />
@@ -193,36 +224,74 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
               className="relative h-full w-full select-none drop-shadow-[0_0_46px_rgba(0,0,0,0.65)]"
               style={{ transform: `rotate(${angle}deg)`, transition: 'transform 2.6s cubic-bezier(0.16,1,0.3,1)' }}
             />
+
+            {/* Reward identity medallions — do not rotate, always readable */}
+            {!result
+              ? REWARD_CATEGORIES.map((category, index) => {
+                  const step = 360 / REWARD_CATEGORIES.length;
+                  const deg = -90 + step * index + step / 2;
+                  const rad = (deg * Math.PI) / 180;
+                  const radius = 50;
+                  return (
+                    <div
+                      key={category.id}
+                      className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
+                      style={{
+                        left: `${50 + Math.cos(rad) * radius}%`,
+                        top: `${50 + Math.sin(rad) * radius}%`,
+                      }}
+                    >
+                      <RewardMedallion category={category} size={36} onClick={() => setPreview(category)} />
+                      <span
+                        className={`rounded-full bg-[#04060d]/85 px-1 text-[6.5px] font-black uppercase leading-[10px] tracking-[0.06em] ${category.text}`}
+                      >
+                        {category.short}
+                      </span>
+                    </div>
+                  );
+                })
+              : null}
+
             <div className="pointer-events-none absolute -top-1 left-1/2 h-5 w-5 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-amber-300" />
-            {result ? (
-              <div className="absolute inset-[18%] flex flex-col items-center justify-center gap-1.5 rounded-full border border-amber-300/40 bg-[#04060d]/90 p-3 text-center">
-                <img src={result.premium ? mysteryHeroImage : rewardArt(result.normal)} alt="" className="h-16 w-16 object-contain" />
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-300">
-                  {result.premium ? 'PRÊMIO LENDÁRIO' : 'RECOMPENSA'}
-                </p>
-                <p className="text-[13px] font-black uppercase leading-tight text-sky-50">{rewardTitle(result)}</p>
-              </div>
-            ) : null}
+
+            {/* RESULT REVEAL — clear category identity + name */}
+            {result
+              ? (() => {
+                  const category = rewardCategory(resultCategoryId(result));
+                  const grand = category.id === 'CELESTIAL';
+                  return (
+                    <div
+                      className={`absolute ${grand ? 'inset-[6%]' : 'inset-[13%]'} flex flex-col items-center justify-center gap-1.5 rounded-full border bg-[#04060d]/94 p-3 text-center animate-scale-in ${category.ring} ${category.glow}`}
+                    >
+                      <span
+                        className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.chip} opacity-50`}
+                        aria-hidden
+                      />
+                      <p className="relative text-[9px] font-black uppercase tracking-[0.34em] text-amber-300">
+                        You won
+                      </p>
+                      <img
+                        src={category.icon}
+                        alt={category.name}
+                        loading="lazy"
+                        className={`relative object-contain ${grand ? 'h-28 w-28' : 'h-20 w-20'} ${category.anim}`}
+                      />
+                      <p className={`relative text-[10px] font-black uppercase tracking-[0.2em] ${category.text}`}>
+                        {category.name}
+                      </p>
+                      <p className="relative px-2 text-[13px] font-black uppercase leading-tight text-sky-50">
+                        {rewardTitle(result)}
+                      </p>
+                    </div>
+                  );
+                })()
+              : null}
           </div>
         </div>
 
-        {/* POSSIBLE REWARDS — compact strip */}
-        <div className="w-full">
-          <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Possible rewards</p>
-          <div className="mt-2 flex items-center justify-center gap-1.5">
-            {['MYTH', 'NFT EQUIPMENT', 'MYSTERY HERO'].map((label) => (
-              <span
-                key={label}
-                className="rounded-full border border-sky-300/25 bg-black/45 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-sky-200"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-          <p className="mt-1.5 text-center text-[9px] uppercase tracking-[0.16em] text-slate-500">
-            Mystery Hero <span className="text-amber-300">?</span> — Mythic • NFT • Celestial
-          </p>
-        </div>
+        {/* POSSIBLE REWARDS — compact, tap for preview */}
+        <PossibleRewards onSelect={setPreview} />
+
 
         {/* SPIN AREA — minimal */}
         <div className="mt-3 w-full">
@@ -239,14 +308,19 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
             {blocked ? 'INDISPONÍVEL' : busy ? 'GIRANDO...' : `SPIN • ${cost} TON`}
           </button>
           {history.length ? (
-            <p className="mt-2 truncate text-center text-[9px] uppercase tracking-[0.14em] text-slate-500">
-              Último: {history[0].premium
-                ? '👑 Prêmio lendário'
-                : String(history[0].normal?.class) === 'MYTH'
-                  ? `🪙 ${formatCurrency(Number(history[0].normal?.amount ?? 0))} MYTH`
-                  : `🛡 ${history[0].normal?.label ?? 'Equipamento NFT'}`}
-            </p>
+            (() => {
+              const last = rewardCategory(resultCategoryId(history[0]));
+              return (
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                  <RewardMedallion category={last} size={20} onClick={() => setPreview(last)} />
+                  <span className={`truncate text-[9px] font-black uppercase tracking-[0.14em] ${last.text}`}>
+                    Último: {rewardTitle(history[0])}
+                  </span>
+                </div>
+              );
+            })()
           ) : null}
+
         </div>
       </div>
 
@@ -284,6 +358,10 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           </div>
         </div>
       ) : null}
+
+      {/* Elegant reward preview — no odds, no internal rules */}
+      {preview ? <RewardPreviewPopup category={preview} onClose={() => setPreview(null)} /> : null}
+
     </div>,
     document.body,
   );
