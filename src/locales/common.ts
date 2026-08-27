@@ -162,6 +162,7 @@ export const common: LocaleBundle = {
     'rarity.mythic': 'Mítico',
     'rarity.ancestral': 'Ancestral',
     'rarity.nft_exclusive': 'NFT Exclusivo',
+    'rarity.celestial': 'Celestial',
 
     'gate.title': 'O MYTHREON funciona dentro do Telegram',
     'gate.button': 'ABRIR NO TELEGRAM',
@@ -242,6 +243,7 @@ export const common: LocaleBundle = {
     'rarity.mythic': 'Mítico',
     'rarity.ancestral': 'Ancestral',
     'rarity.nft_exclusive': 'NFT Exclusivo',
+    'rarity.celestial': 'Celestial',
 
     'gate.title': 'MYTHREON funciona dentro de Telegram',
     'gate.button': 'ABRIR EN TELEGRAM',
