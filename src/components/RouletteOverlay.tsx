@@ -346,6 +346,10 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           </div>
         </div>
       ) : null}
+
+      {/* Elegant reward preview — no odds, no internal rules */}
+      {preview ? <RewardPreviewPopup category={preview} onClose={() => setPreview(null)} /> : null}
+
     </div>,
     document.body,
   );
