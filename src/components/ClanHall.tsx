@@ -73,33 +73,32 @@ export function ClanCrest({
           <path d={outline} fill={`url(#field-${uid})`} stroke={frameB} strokeWidth="1.5" />
         </g>
 
-        {/* laurel sprigs hugging the field */}
-        <g stroke={frameA} fill="none" opacity="0.55" strokeLinecap="round" strokeWidth="1.2">
-          <path d="M24 48c-4 8-3 17 2 24" />
-          <path d="M76 48c4 8 3 17-2 24" />
-          <g fill={frameA} opacity="0.75" stroke="none">
-            <ellipse cx="22" cy="53" rx="2.6" ry="1.4" transform="rotate(-30 22 53)" />
-            <ellipse cx="22" cy="61" rx="2.6" ry="1.4" transform="rotate(-15 22 61)" />
-            <ellipse cx="24" cy="69" rx="2.4" ry="1.3" />
-            <ellipse cx="78" cy="53" rx="2.6" ry="1.4" transform="rotate(30 78 53)" />
-            <ellipse cx="78" cy="61" rx="2.6" ry="1.4" transform="rotate(15 78 61)" />
-            <ellipse cx="76" cy="69" rx="2.4" ry="1.3" />
+        {/* laurel sprigs framing the lower field */}
+        <g stroke={frameA} fill="none" opacity="0.5" strokeLinecap="round" strokeWidth="1.1">
+          <path d="M23 55c-3 9-1 17 5 23" />
+          <path d="M77 55c3 9 1 17-5 23" />
+          <g fill={frameA} opacity="0.7" stroke="none">
+            <ellipse cx="20.5" cy="60" rx="2.5" ry="1.3" transform="rotate(-28 20.5 60)" />
+            <ellipse cx="21.5" cy="68" rx="2.4" ry="1.3" transform="rotate(-12 21.5 68)" />
+            <ellipse cx="25" cy="76" rx="2.3" ry="1.2" transform="rotate(14 25 76)" />
+            <ellipse cx="79.5" cy="60" rx="2.5" ry="1.3" transform="rotate(28 79.5 60)" />
+            <ellipse cx="78.5" cy="68" rx="2.4" ry="1.3" transform="rotate(12 78.5 68)" />
+            <ellipse cx="75" cy="76" rx="2.3" ry="1.2" transform="rotate(-14 75 76)" />
           </g>
         </g>
 
         {/* magical runes */}
         <g opacity="0.45" fill={c.gem}>
-          <circle cx="34" cy="34" r="1.1" /><circle cx="66" cy="34" r="1.1" />
-          <circle cx="50" cy="80" r="1.1" />
+          <circle cx="31" cy="40" r="1.1" /><circle cx="69" cy="40" r="1.1" />
         </g>
 
         {/* central gem plaque with the clan initials */}
-        <ellipse cx="50" cy="53" rx="21" ry="14" fill={`url(#gem-${uid})`} />
-        <ellipse cx="50" cy="53" rx="21" ry="14" fill="none" stroke={frameA} strokeWidth="1.4" />
-        <ellipse cx="50" cy="47.5" rx="15" ry="5.5" fill="#ffffff" opacity="0.28" />
+        <ellipse cx="50" cy="52" rx="18" ry="13" fill={`url(#gem-${uid})`} />
+        <ellipse cx="50" cy="52" rx="18" ry="13" fill="none" stroke={frameA} strokeWidth="1.3" />
+        <ellipse cx="50" cy="47" rx="12.5" ry="5" fill="#ffffff" opacity="0.26" />
         {mark ? (
           <text
-            x="50" y="58.5" textAnchor="middle" fontSize={mark.length > 2 ? 15 : 18}
+            x="50" y="57.5" textAnchor="middle" fontSize={mark.length > 2 ? 15 : 18}
             fontWeight="900" fill="#0b1020" letterSpacing="0.4"
             fontFamily="ui-sans-serif, system-ui, sans-serif"
           >
@@ -116,16 +115,15 @@ export function ClanCrest({
         <circle cx="36" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
         <circle cx="64" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
 
+        {/* heraldic seal under the plaque */}
+        <g transform="translate(50 76)">
+          <path d="M0 -5 4.5 0 0 5 -4.5 0Z" fill={`url(#gold-${uid})`} stroke="#00000055" strokeWidth="0.6" />
+          <circle cx="0" cy="0" r="1.5" fill={c.gem} />
+        </g>
+
         {/* cinematic rim light */}
         <path d={outline} fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.16" />
       </svg>
-      {/* faction symbol as a small seal under the plaque */}
-      <span
-        style={{ fontSize: size * 0.2 }}
-        className="pointer-events-none absolute left-1/2 top-[72%] -translate-x-1/2 -translate-y-1/2 leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,.9)]"
-      >
-        {symbol}
-      </span>
 
     </span>
   );
