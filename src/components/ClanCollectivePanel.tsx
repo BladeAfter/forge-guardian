@@ -189,12 +189,31 @@ export function ClanCollectivePanel({
   );
 
 
+  const fcLimit = don?.assets?.find((a) => a.asset === 'FC');
+  const mythLimit = don?.assets?.find((a) => a.asset === 'MYTH');
+
+  const limitLine = (l: AssetLimit) => (
+    <div key={l.asset} className="rounded-xl bg-black/40 px-2 py-1.5 text-[9px] leading-tight text-slate-400">
+      <div className="flex items-center justify-between">
+        <span className="font-black uppercase tracking-wider text-slate-300">Hoje ({l.asset})</span>
+        <span className={l.reached ? 'font-black text-rose-300' : 'font-black text-emerald-300'}>
+          {formatCurrency(l.today)} / {formatCurrency(l.max)}
+        </span>
+      </div>
+      <div className="mt-0.5 flex items-center justify-between">
+        <span>Mín. por doação {formatCurrency(l.min)}</span>
+        {l.reached ? <span className="text-rose-300">LIMITE ATINGIDO · reset {resetIn}</span> : <span>Resta {formatCurrency(l.remaining)}</span>}
+      </div>
+    </div>
+  );
+
   const donationRow = (
     <>
       <div className="mb-2 grid grid-cols-2 gap-2 text-center text-[11px]">
         <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-amber-300">{formatCurrency(state.treasury?.fc ?? 0)}</div><div className="text-[9px] text-slate-500">FC</div></div>
         <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-violet-300">{formatCurrency(state.treasury?.myth ?? 0)}</div><div className="text-[9px] text-slate-500">MYTH</div></div>
       </div>
+      <div className="mb-2 space-y-1">{(don?.assets ?? []).map(limitLine)}</div>
       <div className="flex gap-1.5">
         <input
           value={donation}
@@ -203,13 +222,31 @@ export function ClanCollectivePanel({
           inputMode="numeric"
           className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none"
         />
-        <button disabled={busy || !donation} onClick={() => void run({ action: 'treasury-donate', asset: 'FC', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
+        <button disabled={busy || !donation || fcLimit?.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'FC', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
           className="rounded-xl bg-amber-500/20 px-2.5 text-[10px] font-black text-amber-200 disabled:opacity-40">DOAR FC</button>
-        <button disabled={busy || !donation} onClick={() => void run({ action: 'treasury-donate', asset: 'MYTH', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
-          className="rounded-xl bg-violet-500/20 px-2.5 text-[10px] font-black text-violet-200 disabled:opacity-40">MYTH</button>
+        {mythLimit ? (
+          <button disabled={busy || !donation || mythLimit.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'MYTH', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
+            className="rounded-xl bg-violet-500/20 px-2.5 text-[10px] font-black text-violet-200 disabled:opacity-40">MYTH</button>
+        ) : null}
       </div>
+      {don?.isLeader ? (
+        <div className="mt-2 space-y-1">
+          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500">Limites de contribuição diária</div>
+          {(don.assets ?? []).map((l) => (
+            <div key={`cfg-${l.asset}`} className="flex items-center justify-between rounded-xl border border-amber-400/20 bg-black/40 px-2 py-1.5">
+              <div className="text-[9px] text-slate-400">
+                <span className="font-black text-slate-200">{l.asset}</span> · mín {formatCurrency(l.min)} · máx {formatCurrency(l.max)}
+                <div className="text-[8px] text-slate-500">Teto global {formatCurrency(l.hardMax)}/dia</div>
+              </div>
+              <button onClick={() => setEditLimit({ asset: l.asset, min: String(l.min), max: String(l.max), hardMax: l.hardMax })}
+                className="rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200">EDITAR</button>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </>
   );
+
 
   // Collective resources are spent here, so only leader/vice see an actionable button.
   const constructions = (
