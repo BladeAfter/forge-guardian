@@ -95,9 +95,9 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
       if (isRoulettePayment(response)) {
         setSpinning(false);
         setAwaitingPayment(true);
-        toast.info(`Confirme ${response.amountTon} TON na carteira para girar.`);
+        toast(`Confirme ${response.amountTon} TON na carteira para girar.`);
         await sendTonPayment(response, (tx) => tonUI.sendTransaction(tx as never));
-        toast.loading('Aguardando confirmação na blockchain...', { id: 'rl-pay' });
+        toast('Aguardando confirmação na blockchain...', { id: 'rl-pay' });
         for (let attempt = 0; attempt < 30; attempt += 1) {
           await new Promise((resolve) => window.setTimeout(resolve, 4000));
           const check = await verifyRoulettePayments(telegramInitData).catch(() => null);
