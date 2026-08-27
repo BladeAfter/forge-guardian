@@ -18005,6 +18005,7 @@ export type Database = {
         Returns: Json
       }
       claim_starter_pack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_active_members: { Args: { p_clan: string }; Returns: number }
       clan_anti_abuse_cfg: {
         Args: never
         Returns: {
@@ -18026,6 +18027,15 @@ export type Database = {
       }
       clan_anti_abuse_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_assert_can_join: { Args: { p_user_id: string }; Returns: undefined }
+      clan_award_contribution: {
+        Args: {
+          p_amount: number
+          p_source_id?: string
+          p_source_type: string
+          p_user: string
+        }
+        Returns: Json
+      }
       clan_boss_apply_def: {
         Args: { p_def: number; p_power: number; p_raw: number }
         Returns: number
@@ -18326,6 +18336,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_buff_activate: {
+        Args: { p_code: string; p_telegram_id: number }
+        Returns: Json
+      }
+      clan_buff_pct: {
+        Args: { p_clan: string; p_code: string }
+        Returns: number
+      }
       clan_chat: {
         Args: {
           p_action?: string
@@ -18333,6 +18351,43 @@ export type Database = {
           p_message_id?: string
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      clan_collective_cfg: {
+        Args: never
+        Returns: {
+          active_member_days: number
+          boss_points: number[]
+          clan_xp_per_contribution: number
+          coins_per_contribution: number
+          enabled: boolean
+          id: boolean
+          milestones: Json
+          min_weekly_contribution: number
+          myth_milestone_rewards: boolean
+          raid_attacks_per_day: number
+          raid_duration_days: number
+          raid_enabled: boolean
+          raid_hp_max: number
+          raid_hp_min: number
+          raid_hp_per_power: number
+          raid_rewards: Json
+          treasury_assets: string[]
+          treasury_ton_enabled: boolean
+          updated_at: string
+          weekly_target_max: number
+          weekly_target_min: number
+          weekly_target_per_active: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_collective_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_contribution_from_personal_boss: {
+        Args: { p_instance: string; p_user: string }
         Returns: Json
       }
       clan_exploit_dry_run: { Args: { p_user_id: string }; Returns: Json }
@@ -18345,6 +18400,11 @@ export type Database = {
         Args: { p_admin_id?: number; p_user_id?: string }
         Returns: Json
       }
+      clan_has_permission: {
+        Args: { p_perm: string; p_user: string }
+        Returns: boolean
+      }
+      clan_hub_state: { Args: { p_telegram_id: number }; Returns: Json }
       clan_join_cooldown_json: { Args: { p_user_id: string }; Returns: Json }
       clan_level_xp: { Args: { p_level: number }; Returns: number }
       clan_manage: {
@@ -18370,17 +18430,83 @@ export type Database = {
         Args: { p_clan_id: string; p_user_id: string }
         Returns: undefined
       }
+      clan_milestone_claim: {
+        Args: { p_pct: number; p_telegram_id: number }
+        Returns: Json
+      }
       clan_online_minutes: { Args: never; Returns: number }
       clan_player_power: { Args: { p_user_id: string }; Returns: number }
       clan_public: {
         Args: { p_clan: Database["public"]["Tables"]["clans"]["Row"] }
         Returns: Json
       }
+      clan_raid_attack: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_raid_ensure: {
+        Args: { p_clan: string }
+        Returns: {
+          boss_atk: number
+          boss_def: number
+          boss_name: string
+          boss_theme: string
+          clan_id: string
+          created_at: string
+          current_hp: number
+          ends_at: string
+          id: string
+          max_hp: number
+          participants: number
+          raid_key: string
+          rewards_snapshot: Json
+          settled_at: string | null
+          started_at: string
+          status: string
+          total_damage: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_raid_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clan_raid_settle: { Args: { p_raid: string }; Returns: Json }
       clan_resolve_user: { Args: { p_telegram_id: number }; Returns: string }
       clan_role_rank: { Args: { p_role: string }; Returns: number }
       clan_shop_buy: {
         Args: { p_item: string; p_quantity?: number; p_telegram_id: number }
         Returns: Json
+      }
+      clan_shop_purchase: {
+        Args: {
+          p_code: string
+          p_idempotency_key?: string
+          p_quantity?: number
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      clan_treasury_donate: {
+        Args: { p_amount: number; p_asset: string; p_telegram_id: number }
+        Returns: Json
+      }
+      clan_treasury_move: {
+        Args: {
+          p_amount: number
+          p_asset: string
+          p_clan: string
+          p_reason: string
+          p_user: string
+        }
+        Returns: number
+      }
+      clan_upgrade_buy: {
+        Args: { p_code: string; p_telegram_id: number }
+        Returns: Json
+      }
+      clan_upgrade_level: {
+        Args: { p_clan: string; p_code: string }
+        Returns: number
       }
       clan_war_active: {
         Args: { p_clan: string }
@@ -18469,6 +18595,28 @@ export type Database = {
       clan_war_settle: { Args: { p_war: string }; Returns: undefined }
       clan_war_tick: { Args: never; Returns: Json }
       clan_week_key: { Args: never; Returns: string }
+      clan_weekly_cycle_ensure: {
+        Args: { p_clan: string }
+        Returns: {
+          active_members: number
+          clan_id: string
+          created_at: string
+          ends_at: string | null
+          id: string
+          started_at: string
+          status: string
+          target: number
+          total_contribution: number
+          updated_at: string
+          week_key: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clan_weekly_cycles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       confirm_pass_locked_reward_order: {
         Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
         Returns: Json
