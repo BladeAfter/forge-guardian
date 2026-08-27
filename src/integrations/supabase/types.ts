@@ -3408,6 +3408,68 @@ export type Database = {
         }
         Relationships: []
       }
+      clan_raid_rebase_audit: {
+        Row: {
+          clan_id: string
+          created_at: string
+          daily_capacity: number
+          damage_preserved: number
+          day_index: number
+          id: string
+          new_current_hp: number
+          new_max_hp: number
+          old_current_hp: number
+          old_max_hp: number
+          raid_id: string
+          reason: string
+          safety_factor: number
+          target_days: number
+          unlocked_pct: number
+        }
+        Insert: {
+          clan_id: string
+          created_at?: string
+          daily_capacity: number
+          damage_preserved: number
+          day_index: number
+          id?: string
+          new_current_hp: number
+          new_max_hp: number
+          old_current_hp: number
+          old_max_hp: number
+          raid_id: string
+          reason?: string
+          safety_factor: number
+          target_days: number
+          unlocked_pct: number
+        }
+        Update: {
+          clan_id?: string
+          created_at?: string
+          daily_capacity?: number
+          damage_preserved?: number
+          day_index?: number
+          id?: string
+          new_current_hp?: number
+          new_max_hp?: number
+          old_current_hp?: number
+          old_max_hp?: number
+          raid_id?: string
+          reason?: string
+          safety_factor?: number
+          target_days?: number
+          unlocked_pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clan_raid_rebase_audit_raid_id_fkey"
+            columns: ["raid_id"]
+            isOneToOne: false
+            referencedRelation: "clan_raid_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clan_raid_rewards: {
         Row: {
           clan_id: string
@@ -19020,11 +19082,16 @@ export type Database = {
         Args: { p_clan: Database["public"]["Tables"]["clans"]["Row"] }
         Returns: Json
       }
-      clan_raid_attack:
-        | { Args: { p_telegram_id: number }; Returns: Json }
-        | { Args: { p_key?: string; p_telegram_id: number }; Returns: Json }
+      clan_raid_attack: {
+        Args: { p_key?: string; p_telegram_id: number }
+        Returns: Json
+      }
       clan_raid_catchup_pct: {
         Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
+        Returns: number
+      }
+      clan_raid_daily_capacity: {
+        Args: { p_clan: string; p_raid?: string }
         Returns: number
       }
       clan_raid_damage_today: { Args: { p_raid: string }; Returns: number }
@@ -19073,12 +19140,21 @@ export type Database = {
         Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
         Returns: number
       }
+      clan_raid_rebase: {
+        Args: { p_raid: string; p_reason?: string }
+        Returns: Json
+      }
+      clan_raid_rebase_all: { Args: { p_reason?: string }; Returns: Json }
       clan_raid_record_performance: {
         Args: { p_raid: string }
         Returns: undefined
       }
       clan_raid_settle: { Args: { p_raid: string }; Returns: Json }
       clan_raid_state: { Args: { p_telegram_id: number }; Returns: Json }
+      clan_raid_target_hp: {
+        Args: { p_clan: string; p_raid?: string }
+        Returns: number
+      }
       clan_resolve_user: { Args: { p_telegram_id: number }; Returns: string }
       clan_role_rank: { Args: { p_role: string }; Returns: number }
       clan_shop_buy: {
