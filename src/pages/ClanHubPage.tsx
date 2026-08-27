@@ -361,9 +361,6 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl border border-white/10 bg-black/55 p-2"><p className="text-[8px] uppercase text-slate-400">{label}</p><b className="text-xs text-white">{value}</b></div>;
-}
 
 function TabButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
