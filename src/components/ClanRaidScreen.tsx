@@ -265,7 +265,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
             </section>
 
             <p className="pb-8 text-center text-[9px] leading-relaxed text-slate-600">
-              HP calculado pela força real do clã · alvo de {raid.targetDays} dias · prazo de {raid.deadlineDays} dias ·
+              HP calculado pela força real do clã · morte libera no DIA {raid.minKillDays} · prazo de {raid.deadlineDays} dias ·
               {' '}{raid.phases} fases de {Math.round(100 / raid.phases)}% liberadas por dia.
             </p>
           </div>
