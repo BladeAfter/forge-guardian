@@ -2525,6 +2525,40 @@ async function clanHubView(ctx: Ctx) {
     ]),
   );
 }
+/** 💰 DONATION LIMITS: global defaults and hard caps for per-clan treasury contribution rules. */
+async function clanDonationSettingsView(ctx: Ctx) {
+  const d = await csRpc(ctx, "overview");
+  const s = d.settings || {};
+  return edit(
+    ctx,
+    [
+      "💰 <b>LIMITES DE DOAÇÃO DO TESOURO</b>",
+      "",
+      "<b>FC</b>",
+      `MÍNIMO PADRÃO: <b>${fmt(s.donation_default_min_fc ?? 0)}</b>`,
+      `MÁXIMO DIÁRIO PADRÃO: <b>${fmt(s.donation_default_max_fc ?? 0)}</b>`,
+      `HARD CAP GLOBAL: <b>${fmt(s.donation_hard_max_fc ?? 0)}</b>`,
+      "",
+      "<b>MYTH</b>",
+      `MÍNIMO PADRÃO: <b>${fmt(s.donation_default_min_myth ?? 0)}</b>`,
+      `MÁXIMO DIÁRIO PADRÃO: <b>${fmt(s.donation_default_max_myth ?? 0)}</b>`,
+      `HARD CAP GLOBAL: <b>${fmt(s.donation_hard_max_myth ?? 0)}</b>`,
+      "",
+      "Os padrões valem para clãs que ainda não configuraram limites próprios.",
+      "O hard cap é o teto que nenhum líder pode ultrapassar.",
+    ].join("\n"),
+    kb([
+      [5_000, 10_000, 25_000, 50_000].map((v) => ({ t: `FC MIN ${fmt(v)}`, d: `cl:dst:donation_default_min_fc:${v}` })),
+      [500_000, 1_000_000, 2_000_000, 5_000_000].map((v) => ({ t: `FC MAX ${fmt(v)}`, d: `cl:dst:donation_default_max_fc:${v}` })),
+      [5_000_000, 10_000_000, 25_000_000, 50_000_000].map((v) => ({ t: `FC CAP ${fmt(v)}`, d: `cl:dst:donation_hard_max_fc:${v}` })),
+      [100, 500, 1_000, 2_500].map((v) => ({ t: `MYTH MIN ${fmt(v)}`, d: `cl:dst:donation_default_min_myth:${v}` })),
+      [5_000, 10_000, 25_000, 50_000].map((v) => ({ t: `MYTH MAX ${fmt(v)}`, d: `cl:dst:donation_default_max_myth:${v}` })),
+      [50_000, 100_000, 250_000, 500_000].map((v) => ({ t: `MYTH CAP ${fmt(v)}`, d: `cl:dst:donation_hard_max_myth:${v}` })),
+      nav("cl:hb"),
+    ]),
+  );
+}
+
 
 /** ⚔ CLAN RAID SETTINGS: collective boss target/deadline, health gates, pacing and calibration. */
 async function clanRaidSettingsView(ctx: Ctx) {
