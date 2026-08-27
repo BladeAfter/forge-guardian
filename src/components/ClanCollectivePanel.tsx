@@ -157,12 +157,14 @@ export function ClanCollectivePanel({
       await clanRequest(telegramInitData, input);
       toast.success(success);
       await load();
+      if (sub === 'shop') await loadShop();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Ação indisponível.');
     } finally {
       setBusy(false);
     }
   };
+
 
   if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>;
   if (!state?.inClan) return <p className="py-8 text-center text-sm text-slate-400">Entre em um clã para acessar a progressão coletiva.</p>;
