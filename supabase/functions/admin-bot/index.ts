@@ -2846,8 +2846,7 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
 
     // ♻️ Rebase: recalcula HP das raids ativas preservando o dano legítimo já causado.
     case "rbz": {
-      const res = (await rpc("clan_raid_rebase_all", { p_reason: "admin_bot_rebase" })) as any;
-      await answer(ctx, `Rebase aplicado em ${res?.raids ?? 0} raid(s).`);
+      await rpc("clan_raid_rebase_all", { p_reason: "admin_bot_rebase" });
       return clanRaidSettingsView(ctx);
     }
 
