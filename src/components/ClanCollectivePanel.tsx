@@ -3,6 +3,7 @@ import { Castle, ChevronDown, Coins, Flame, Gem, Hammer, Loader2, Shield, Shoppi
 import { toast } from 'sonner';
 import { clanRequest } from '../clans';
 import { formatCurrency } from '../utils';
+import { ClanRaidScreen } from './ClanRaidScreen';
 
 /**
  * Collective clan layer as a COMPACT DASHBOARD.
@@ -18,7 +19,7 @@ type HubState = {
   clan?: { name: string; tag: string; level: number; xp: number; nextLevelXp: number; members: number; activeMembers: number };
   me?: { role: string; coins: number; contributionWeek: number; contributionToday: number; contributionAllTime: number };
   weekly?: { target: number; total: number; endsAt: string; minContribution: number; milestones: Milestone[] } | null;
-  raid?: { name: string; maxHp: number; currentHp: number; status: string; endsAt: string; totalDamage: number; participants: number; attacksPerDay: number; attacksUsed: number; top: { username: string; damage: number }[] } | null;
+  raid?: { id: string; name: string; maxHp: number; currentHp: number; status: string; endsAt: string; totalDamage: number; participants: number; attacksPerDay: number; attacksUsed: number; top: { username: string; damage: number }[] } | null;
   treasury?: { fc: number; myth: number };
   upgrades?: { code: string; label: string; description: string; level: number; maxLevel: number; nextCost: number; requiredClanLevel: number }[];
   buffs?: { code: string; label: string; pct: number; costFc: number; hours: number; activePct: number; expiresAt: string | null }[];
@@ -150,12 +151,13 @@ export function ClanCollectivePanel({
   const attackButton = (
     <button
       disabled={busy || !canAttack}
-      onClick={() => void run({ action: 'raid-attack' }, 'Ataque desferido!')}
+      onClick={() => void run({ action: 'raid-attack', clientKey: `${raid?.id ?? 'raid'}-${Date.now()}` }, 'Ataque desferido!')}
       className="w-full rounded-xl bg-gradient-to-r from-rose-600 to-red-700 py-2 text-[11px] font-black uppercase tracking-widest text-white disabled:opacity-40"
     >
       <Swords className="mr-1 inline h-3.5 w-3.5" />{raid?.status === 'ACTIVE' ? 'Atacar Raid' : 'Raid encerrada'}
     </button>
   );
+
 
   const donationRow = (
     <>
@@ -310,38 +312,11 @@ export function ClanCollectivePanel({
         </>
       ) : null}
 
+      {/* RAID opens its own dedicated collective-boss screen instead of stacking here. */}
       {sub === 'raid' ? (
-        <>
-          <Section icon={<Flame className="h-3.5 w-3.5" />} title="Clan Raid" right={raid ? <span className="text-[9px] font-bold text-slate-400">{raid.attacksUsed}/{raid.attacksPerDay} hoje</span> : null}>
-            {raid ? (
-              <>
-                <div className="mb-1 flex items-baseline justify-between text-[11px]">
-                  <span className="truncate font-black text-rose-200">{raid.name}</span>
-                  <span className="shrink-0 text-slate-400">{formatCurrency(raid.currentHp)} / {formatCurrency(raid.maxHp)} HP</span>
-                </div>
-                <Bar value={pctOf(raid.currentHp, raid.maxHp)} tone="red" />
-                <div className="mt-2 grid grid-cols-3 gap-1.5">
-                  <Chip label="Dano total" value={formatCurrency(raid.totalDamage)} tone="rose" />
-                  <Chip label="Participantes" value={String(raid.participants)} />
-                  <Chip label="Encerra" value={new Date(raid.endsAt).toLocaleDateString()} />
-                </div>
-                <div className="mt-2">{attackButton}</div>
-              </>
-            ) : <p className="text-xs text-slate-400">Nenhuma raid ativa.</p>}
-          </Section>
-          <Collapsible icon={<Trophy className="h-3.5 w-3.5" />} title="Ranking da Raid" defaultOpen right={<span className="text-[9px] text-slate-500">{raid?.top.length ?? 0}</span>}>
-            <div className="space-y-1">
-              {(raid?.top ?? []).map((p, i) => (
-                <div key={p.username} className="flex justify-between text-[11px] text-slate-300">
-                  <span className="truncate">{i + 1}. {p.username}</span>
-                  <span className="shrink-0 font-bold text-rose-300">{formatCurrency(p.damage)}</span>
-                </div>
-              ))}
-              {!(raid?.top ?? []).length ? <p className="text-[10px] text-slate-500">Nenhum ataque registrado ainda.</p> : null}
-            </div>
-          </Collapsible>
-        </>
+        <ClanRaidScreen telegramInitData={telegramInitData} onClose={() => { setSub('hub'); void load(); }} />
       ) : null}
+
 
       {sub === 'treasury' ? (
         <>

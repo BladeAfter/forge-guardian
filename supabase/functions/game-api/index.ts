@@ -1845,7 +1845,13 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'milestone-claim') {
       return rpc(db, 'clan_milestone_claim', { p_telegram_id: user.id, p_pct: Number(body.pct) || 0 });
     }
-    if (action === 'raid-attack') return rpc(db, 'clan_raid_attack', { p_telegram_id: user.id });
+    // Dedicated collective raid screen: boss, HP, day/phase, ranking. Server is the only authority.
+    if (action === 'raid-state') return rpc(db, 'clan_raid_state', { p_telegram_id: user.id });
+    if (action === 'raid-attack') {
+      const key = typeof body.clientKey === 'string' ? body.clientKey.slice(0, 80) : null;
+      return rpc(db, 'clan_raid_attack', { p_telegram_id: user.id, p_key: key });
+    }
+
     if (action === 'treasury-donate') {
       const asset = String(body.asset || 'FC').toUpperCase();
       if (!['FC', 'MYTH'].includes(asset)) throw new Error('INVALID_ASSET');

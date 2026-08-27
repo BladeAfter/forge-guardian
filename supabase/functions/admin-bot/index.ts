@@ -2330,8 +2330,10 @@ async function clanCard(ctx: Ctx, ref: string, editing = true) {
     ],
     [
       { t: "👑 CLAN BOSS", d: `cl:boss:${c.id}` },
+      { t: "🔎 RAID AUDIT", d: `cl:ra:${c.id}` },
       { t: "📜 AUDIT", d: `cl:audit:${c.id}` },
     ],
+
     [
       { t: c.suspended ? "✅ REATIVAR" : "⛔ SUSPEND", d: `cl:susp:${c.id}` },
       { t: "🗑 DELETE", d: `cl:del:${c.id}` },
@@ -2514,11 +2516,79 @@ async function clanHubView(ctx: Ctx) {
         { t: "PTS 20/30/50/80", d: "cl:hbpts:20-30-50-80" },
       ],
       [1, 2, 3, 5].map((v) => ({ t: `RAID ${v}/dia`, d: `cl:hbatk:${v}` })),
+      [{ t: "⚔ CLAN RAID SETTINGS", d: "cl:rs" }],
       [{ t: "♻️ ENCERRAR RAIDS ATIVAS", d: "cl:hbrreset" }],
+
       nav("m:clans"),
     ]),
   );
 }
+
+/** ⚔ CLAN RAID SETTINGS: collective boss target/deadline, health gates, pacing and calibration. */
+async function clanRaidSettingsView(ctx: Ctx) {
+  const s = ((await rpc("admin_clan_raid_settings", {})) as any) || {};
+  return edit(
+    ctx,
+    [
+      "⚔ <b>CLAN RAID SETTINGS</b>",
+      "",
+      `RAID: <b>${s.raid_enabled ? "ON" : "OFF"}</b> · HEALTH GATES: <b>${s.raid_health_gates_enabled ? "ON" : "OFF"}</b>`,
+      `TARGET KILL: <b>${s.raid_target_kill_days} dias</b> · DEADLINE: <b>${s.raid_deadline_days} dias</b>`,
+      `ATAQUES/DIA: <b>${s.raid_attacks_per_day}</b>`,
+      `SAFETY FACTOR: <b>${s.raid_safety_factor}</b>`,
+      `PESOS DPS: 24h <b>${s.raid_dps_weight_24h}</b> · 3d <b>${s.raid_dps_weight_3d}</b> · 7d <b>${s.raid_dps_weight_7d}</b>`,
+      `HP MAX +: <b>${s.raid_max_hp_increase_pct}%</b> · HP MAX −: <b>${s.raid_max_hp_decrease_pct}%</b>`,
+      `CATCH-UP: <b>${s.raid_catchup_enabled ? "ON" : "OFF"}</b> (cap ${s.raid_catchup_max_pct}%)`,
+      `FULL KILL REQUIRED: <b>${s.raid_full_kill_required ? "ON" : "OFF"}</b>`,
+      "",
+      "HP é calculado por clã: DPS efetivo × target × safety factor.",
+      "As fases liberam 1/target do HP por dia — o boss não morre antes do dia alvo.",
+    ].join("\n"),
+    kb([
+      [
+        { t: s.raid_enabled ? "🔴 RAID OFF" : "🟢 RAID ON", d: `cl:rst:raid_enabled:${s.raid_enabled ? 0 : 1}` },
+        { t: s.raid_health_gates_enabled ? "🔓 GATES OFF" : "🔒 GATES ON", d: `cl:rst:raid_health_gates_enabled:${s.raid_health_gates_enabled ? 0 : 1}` },
+      ],
+      [3, 4, 5, 6].map((v) => ({ t: `TARGET ${v}d`, d: `cl:rst:raid_target_kill_days:${v}` })),
+      [5, 7, 10, 14].map((v) => ({ t: `PRAZO ${v}d`, d: `cl:rst:raid_deadline_days:${v}` })),
+      [1, 2, 3, 5].map((v) => ({ t: `ATK ${v}/dia`, d: `cl:rst:raid_attacks_per_day:${v}` })),
+      [0.85, 0.95, 1, 1.1].map((v) => ({ t: `SAFE ${v}`, d: `cl:rst:raid_safety_factor:${v}` })),
+      [10, 20, 30, 50].map((v) => ({ t: `HP+ ${v}%`, d: `cl:rst:raid_max_hp_increase_pct:${v}` })),
+      [10, 25, 40, 50].map((v) => ({ t: `HP− ${v}%`, d: `cl:rst:raid_max_hp_decrease_pct:${v}` })),
+      [
+        { t: s.raid_catchup_enabled ? "🔴 CATCH-UP OFF" : "🟢 CATCH-UP ON", d: `cl:rst:raid_catchup_enabled:${s.raid_catchup_enabled ? 0 : 1}` },
+        { t: s.raid_full_kill_required ? "🎁 KILL OPCIONAL" : "🎁 KILL OBRIGATÓRIO", d: `cl:rst:raid_full_kill_required:${s.raid_full_kill_required ? 0 : 1}` },
+      ],
+      [10, 15, 20, 30].map((v) => ({ t: `CATCH ${v}%`, d: `cl:rst:raid_catchup_max_pct:${v}` })),
+      [{ t: "🔄 ATUALIZAR", d: "cl:rs" }],
+      nav("cl:hub"),
+    ]),
+  );
+}
+
+/** Per-clan raid audit: power, active members, effective DPS, expected vs actual progress. */
+async function clanRaidAuditView(ctx: Ctx, clanId: string) {
+  const d = ((await rpc("admin_clan_raid_audit", { p_clan: clanId })) as any) || {};
+  return edit(
+    ctx,
+    [
+      "🔎 <b>CLAN RAID AUDIT</b>",
+      "",
+      `CLAN POWER: <b>${fmt(Number(d.clanPower ?? 0))}</b>`,
+      `ACTIVE MEMBERS: <b>${fmt(Number(d.activeMembers ?? 0))}</b>`,
+      `EFFECTIVE DAILY DPS: <b>${fmt(Math.round(Number(d.effectiveDps ?? 0)))}</b>`,
+      `RAID HP: <b>${fmt(Number(d.currentHp ?? 0))} / ${fmt(Number(d.maxHp ?? 0))}</b>`,
+      `TARGET CLEAR: <b>${d.targetDays ?? "-"}d</b> · DEADLINE: <b>${d.deadlineDays ?? "-"}d</b>`,
+      `CURRENT DAY: <b>${d.day ?? 0}/${d.deadlineDays ?? 7}</b>`,
+      `EXPECTED PROGRESS: <b>${d.expectedProgress ?? 0}%</b>`,
+      `ACTUAL PROGRESS: <b>${d.actualProgress ?? 0}%</b>`,
+      `STATUS: <b>${d.status ?? "-"}</b>`,
+    ].join("\n"),
+    kb([[{ t: "🔄 ATUALIZAR", d: `cl:ra:${clanId}` }], nav(`cl:d:${clanId}`)]),
+  );
+}
+
+
 
 /** 🛡 CLAN ANTI-ABUSE: cooldowns, clan boss single-clan lock, audits and manual clears. */
 async function aaRpc(ctx: Ctx, action = "get", value: string | null = null, target: string | null = null) {
@@ -2723,6 +2793,19 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
     case "hbrreset":
       await csRpc(ctx, "reset_raid", {});
       return clanHubView(ctx);
+    // ⚔ Clan Raid: pacing, health gates and auto-calibration of the collective boss.
+    case "rs":
+      return clanRaidSettingsView(ctx);
+    case "rst": {
+      const field = String(a ?? "");
+      const boolFields = ["raid_enabled", "raid_health_gates_enabled", "raid_catchup_enabled", "raid_full_kill_required"];
+      const value = boolFields.includes(field) ? String(b) === "1" : Number(b);
+      await csRpc(ctx, "set_setting", { field, value });
+      return clanRaidSettingsView(ctx);
+    }
+    case "ra":
+      return clanRaidAuditView(ctx, String(a ?? ""));
+
     case "aaflags":
       return clanAntiAbuseList(ctx, "flags");
     case "aaudit":
