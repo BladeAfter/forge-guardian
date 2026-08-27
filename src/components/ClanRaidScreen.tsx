@@ -28,10 +28,15 @@ type Raid = {
   day: number;
   deadlineDays: number;
   targetDays: number;
+  minKillDays: number;
+  killUnlockAt: string;
+  killProtected: boolean;
+  myFirstAttackAt: string | null;
   phase: number;
   phases: number;
   phaseFloor: number;
   phaseLocked: boolean;
+
   nextPhaseAt: string;
   unlockedPct: number;
   allowedDamage: number;
