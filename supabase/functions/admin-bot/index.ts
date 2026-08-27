@@ -138,6 +138,8 @@ const MAIN_MENU = kb([
   [{ t: "🏰 CLAN WAR (20V20)", d: "cw:hub" }],
   [{ t: "🪙 MYTH TOKEN", d: "my:hub" }],
   [{ t: "🐾 FAMILIAR HUNT", d: "fh:hub" }],
+  [{ t: "🎡 GLOBAL ROULETTE", d: "rl:hub" }],
+
   [{ t: "👑 FOUNDER PACK", d: "fp:hub" }],
 
   [{ t: "⚔️ VETERAN VAULT", d: "vv:hub" }],
@@ -3751,7 +3753,203 @@ async function handleWithdrawal(ctx: Ctx, head: string, id: string) {
 }
 
 // ---------------------------------------------------------------- prompts
+// ---------------------------------------------------------------- 🎡 GLOBAL MYSTERY ROULETTE
+// TUDO aqui é ADMIN-ONLY: o ciclo atual (categoria secreta, herói alvo, meta e gasto global)
+// NUNCA é exposto ao jogador. O bot apenas lê/escreve configuração — nenhum prêmio é entregue aqui.
+const RL_CLASSES: Record<string, string> = {
+  mh: "MYTHIC_HERO",
+  nh: "NFT_HERO",
+  ch: "CELESTIAL_HERO",
+  my: "MYTH",
+  eq: "NFT_EQUIPMENT",
+};
+
+async function rlHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_roulette_overview", { p_admin_id: ctx.adminId })) as any;
+  const s = d.settings ?? {};
+  const c = d.cycle ?? null;
+  const a = d.audit ?? {};
+  const dist = d.distributed ?? {};
+  const res = d.mythReserve ?? {};
+  const text = [
+    "🎡 <b>GLOBAL MYSTERY ROULETTE</b>",
+    "<i>Ciclo global · prêmio premium secreto · 100% server-side</i>",
+    "",
+    `<b>Status:</b> ${s.enabled ? "✅ ATIVA" : "⛔ DESATIVADA"}${s.paused ? " · ⏸ PAUSADA" : ""}`,
+    `<b>Giro:</b> 💎 ${fmt(s.spinCostTon)} TON · <b>Meta Celestial:</b> 💎 ${fmt(s.celestialThresholdTon)} TON`,
+    `<b>Pesos mystery:</b> Mítico ${fmt(s.weightMythic)} · NFT ${fmt(s.weightNftHero)} · Celestial ${fmt(s.weightCelestial)}`,
+    `<b>Pesos normais:</b> MYTH ${fmt(s.normalWeightMyth)} · Equip NFT ${fmt(s.normalWeightEquipment)}`,
+    `<b>Reserva MYTH:</b> ${fmt(res.available)} disponível (de ${fmt(res.allocated)})`,
+    "",
+    c
+      ? [
+          `<b>CICLO #${fmt(c.number)}</b> — ${esc(String(c.status))}`,
+          `Alvo: <b>${esc(String(c.targetType))}</b> · ${esc(String(c.targetName ?? c.targetId))}`,
+          `Meta: 💎 ${fmt(c.requiredTon)} TON · Gasto: 💎 ${fmt(c.spentTon)} TON · Falta: 💎 ${fmt(c.remainingTon)} TON`,
+        ].join("\n")
+      : "<b>CICLO:</b> nenhum ciclo aberto",
+    "",
+    `<b>Giros:</b> ${fmt(a.totalSpins)} · <b>TON recebido:</b> ${fmt(a.totalTonReceived)}`,
+    `<b>Pendentes:</b> pagamento ${fmt(a.pendingPayments)} · travados ${fmt(a.stuck)}`,
+    `<b>Entregas:</b> MYTH ${fmt(dist.mythTotal)} · Equip ${fmt(dist.equipment)} · Mítico ${fmt(dist.mythicHeroes)} · NFT ${fmt(dist.nftHeroes)} · Celestial ${fmt(dist.celestials)}`,
+    `<b>Ciclos concluídos:</b> ${fmt(d.cyclesAwarded)}`,
+  ].join("\n");
+  const rows = [
+    [{ t: s.enabled ? "⛔ DESATIVAR" : "✅ ATIVAR", d: `rl:set:enabled:${s.enabled ? 0 : 1}` }],
+    [{ t: s.paused ? "▶️ RETOMAR" : "⏸ PAUSAR", d: `rl:set:paused:${s.paused ? 0 : 1}` }],
+    [
+      { t: "💎 CUSTO DO GIRO", d: "rl:ask:rlcost" },
+      { t: "👑 META CELESTIAL", d: "rl:ask:rlcel" },
+    ],
+    [
+      { t: "⚖️ PESOS MYSTERY", d: "rl:ask:rlwm" },
+      { t: "⚖️ PESOS NORMAIS", d: "rl:ask:rlwn" },
+    ],
+    [{ t: "🪙 RESERVA MYTH", d: "rl:ask:rlres" }],
+    [
+      { t: "🪙 MYTH TIERS", d: "rl:pool:my" },
+      { t: "🛡 EQUIP NFT", d: "rl:pool:eq" },
+    ],
+    [
+      { t: "🔮 MÍTICOS", d: "rl:pool:mh" },
+      { t: "💎 HERÓIS NFT", d: "rl:pool:nh" },
+    ],
+    [{ t: "👑 CELESTIAIS", d: "rl:pool:ch" }],
+    [
+      { t: "📜 HISTÓRICO / AUDITORIA", d: "rl:hist" },
+      { t: "🛠 RECUPERAR GIROS", d: "rl:fix" },
+    ],
+    [{ t: "❌ CANCELAR CICLO ATUAL", d: "rl:cancel" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function rlPool(ctx: Ctx, code: string) {
+  const cls = RL_CLASSES[code] ?? "MYTH";
+  const list = (await rpc("admin_roulette_reward_list", { p_admin_id: ctx.adminId, p_class: cls })) as any[];
+  const text = [
+    `🎡 <b>${esc(cls)}</b>`,
+    "",
+    list
+      .map((r) =>
+        [
+          `${r.enabled ? "✅" : "⛔"} <b>${esc(String(r.label || r.key))}</b> <code>${esc(String(r.key))}</code>`,
+          `   peso ${fmt(r.weight)}${r.quantity ? ` · qtd ${fmt(r.quantity)}` : ""}${
+            r.referenceTon ? ` · ref 💎 ${fmt(r.referenceTon)} TON` : ""
+          }${r.stock !== null && r.stock !== undefined ? ` · estoque ${fmt(r.stock)}` : ""}${
+            r.isActiveTarget ? " · 🎯 ALVO DO CICLO" : ""
+          }`,
+        ].join("\n"),
+      )
+      .join("\n") || "pool vazio",
+    "",
+    "<i>Use os botões para editar por chave.</i>",
+  ].join("\n");
+  const rows = [
+    [{ t: "✏️ PESO", d: `rl:ask:rlw:${code}` }],
+    cls === "MYTH" ? [{ t: "✏️ QUANTIDADE MYTH", d: `rl:ask:rlq:${code}` }] : [{ t: "✏️ CUSTO DE REFERÊNCIA (TON)", d: `rl:ask:rlref:${code}` }],
+    [{ t: "🔁 ATIVAR / DESATIVAR", d: `rl:ask:rle:${code}` }],
+    [{ t: "⬅️ VOLTAR", d: "rl:hub" }],
+  ];
+  return edit(ctx, text, kb(rows));
+}
+
+async function rlHist(ctx: Ctx) {
+  const d = (await rpc("admin_roulette_history", { p_admin_id: ctx.adminId, p_limit: 15 })) as any;
+  const cycles = (d.cycles ?? []) as any[];
+  const winners = (d.celestialWinners ?? []) as any[];
+  const intents = (d.pendingIntents ?? []) as any[];
+  const text = [
+    "🎡 <b>HISTÓRICO / AUDITORIA</b>",
+    "",
+    `<b>CICLOS</b>\n${
+      cycles
+        .map(
+          (c) =>
+            `• #${fmt(c.number)} ${esc(String(c.status))} · ${esc(String(c.targetType))} ${esc(String(c.targetId))} · 💎 ${fmt(
+              c.spentTon,
+            )}/${fmt(c.requiredTon)} TON${c.winner ? ` · 🏆 ${esc(String(c.winner))}` : ""}`,
+        )
+        .join("\n") || "nenhum ciclo"
+    }`,
+    "",
+    `<b>CELESTIAIS ENTREGUES</b>\n${
+      winners.map((w) => `• ${esc(String(w.player))} — ${esc(String(w.hero))}`).join("\n") || "nenhum ainda"
+    }`,
+    "",
+    `<b>PAGAMENTOS / GIROS PENDENTES</b>\n${
+      intents
+        .map((i) => `• ${esc(String(i.player))} · ${esc(String(i.status))} · 💎 ${fmt(i.ton)} TON`)
+        .join("\n") || "nenhum"
+    }`,
+  ].join("\n");
+  return edit(ctx, text, kb([[{ t: "⬅️ VOLTAR", d: "rl:hub" }], nav()]));
+}
+
+async function rlCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.", b ? [b] : []);
+  if (sub === "pool") return rlPool(ctx, a);
+  if (sub === "hist") return rlHist(ctx);
+  if (sub === "cancel") {
+    const r = (await rpc("admin_roulette_cycle_cancel", { p_admin_id: ctx.adminId, p_reason: "admin bot" })) as any;
+    await send(ctx, `🎡 Ciclo #${fmt(r.cancelled)} cancelado e auditado. Novo ciclo aberto.`);
+    return rlHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === "fix") {
+    const r = (await rpc("roulette_reconcile", { p_max_age_minutes: 4320 })) as any;
+    await send(ctx, `🛠 Recuperação: ${fmt(r?.resolved ?? 0)} giro(s) concluído(s).`);
+    return rlHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === "set") await rpc("admin_roulette_set", { p_admin_id: ctx.adminId, p_field: a, p_value: b });
+  return rlHub(ctx);
+}
+
+async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  const value = text.trim();
+  const cls = RL_CLASSES[args[0] ?? ""] ?? "MYTH";
+  const simple: Record<string, string> = {
+    rlcost: "spin_cost_ton",
+    rlcel: "celestial_threshold_ton",
+    rlres: "myth_reserve",
+  };
+  if (simple[key]) {
+    await rpc("admin_roulette_set", { p_admin_id: ctx.adminId, p_field: simple[key], p_value: value });
+  } else if (key === "rlwm" || key === "rlwn") {
+    const parts = value.split(/[\s,;/]+/).filter(Boolean);
+    const fields = key === "rlwm"
+      ? ["weight_mythic", "weight_nft_hero", "weight_celestial"]
+      : ["normal_weight_myth", "normal_weight_equipment"];
+    if (parts.length !== fields.length) throw new Error(`KEEP_SESSION::⚠️ Envie ${fields.length} números separados por espaço.`);
+    for (let i = 0; i < fields.length; i += 1) {
+      await rpc("admin_roulette_set", { p_admin_id: ctx.adminId, p_field: fields[i], p_value: parts[i] });
+    }
+  } else {
+    // "<chave> <valor>" — ex.: "cel-aetherion 300"
+    const [rewardKey, ...restValue] = value.split(/\s+/);
+    const field = key === "rlw" ? "weight" : key === "rlq" ? "quantity" : key === "rlref" ? "reference_ton" : "enabled";
+    if (!rewardKey || restValue.length === 0) throw new Error("KEEP_SESSION::⚠️ Formato: <code>chave valor</code>");
+    await rpc("admin_roulette_reward_set", {
+      p_admin_id: ctx.adminId, p_class: cls, p_key: rewardKey, p_field: field, p_value: restValue.join(" "),
+    });
+  }
+  await clearSession(ctx);
+  await send(ctx, "🎡 Roleta atualizada.");
+  return rlHub({ ...ctx, messageId: undefined }, false);
+}
+
 const PROMPTS: Record<string, string> = {
+  rlcost: "🎡 Envie o <b>custo do giro em TON</b>.\nEx.: <code>5</code>",
+  rlcel: "👑 Envie a <b>meta global do Celestial</b> em TON.\nEx.: <code>300</code>",
+  rlres: "🪙 Envie a <b>reserva de MYTH</b> disponível para a roleta.\nEx.: <code>1000000</code>",
+  rlwm: "⚖️ Envie 3 pesos: <b>MÍTICO NFT CELESTIAL</b>.\nEx.: <code>55 35 10</code>",
+  rlwn: "⚖️ Envie 2 pesos: <b>MYTH EQUIP</b>.\nEx.: <code>70 30</code>",
+  rlw: "✏️ Envie <code>chave peso</code>.\nEx.: <code>cel-aetherion 2</code>",
+  rlq: "✏️ Envie <code>chave quantidade</code>.\nEx.: <code>myth_small 5000</code>",
+  rlref: "✏️ Envie <code>chave custo_ton</code>.\nEx.: <code>mx_aurenya 20</code>",
+  rle: "🔁 Envie <code>chave on|off</code>.\nEx.: <code>cel-aetherion off</code>",
+
   fhfc: "🐾 Envie o <b>custo em FC</b> por caçada.\nEx.: <code>100000</code>",
   fhton: "🐾 Envie o <b>custo em TON</b> por caçada.\nEx.: <code>5</code>",
   fhdiff:
@@ -7617,7 +7815,14 @@ async function handleCallback(ctx: Ctx, data: string) {
   // 🪙 MYTH TOKEN — decorativo: supply, saldos manuais, visibilidade e nome. Sem preço/trade/saque.
   // 👑 FOUNDER PACK — preço, janela de contas novas, conteúdo do pacote e cosméticos.
   // 🐾 FAMILIAR HUNT — ON/OFF, custos, dificuldade e loot tables.
+  // 🎡 GLOBAL MYSTERY ROULETTE — custo do giro, meta Celestial, pesos, pools e ciclo atual (privado).
+  if (head === "rl") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return rlCallback(ctx, rest);
+  }
+
   if (head === "fh") {
+
     if (rest[0] !== "ask") await clearSession(ctx);
     return fhCallback(ctx, rest);
   }
@@ -11180,7 +11385,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
+  if (key.startsWith("rl")) return rlPrompt(ctx, key, args, text);
   if (key.startsWith("fh")) return fhPrompt(ctx, key, text);
+
   if (key.startsWith("fp")) return fpPrompt(ctx, key, text);
 
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
