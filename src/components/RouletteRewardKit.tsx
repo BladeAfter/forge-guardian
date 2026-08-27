@@ -27,7 +27,7 @@ export const REWARD_CATEGORIES: RewardCategory[] = [
     icon: iconMyth,
     short: 'MYTH',
     name: 'MYTH TOKEN',
-    blurb: 'Ganhe tokens MYTH direto na sua conta.',
+    blurb: 'Bônus instantâneo de tokens MYTH direto na sua conta, disponível em qualquer giro.',
     ring: 'border-sky-300/60',
     glow: 'shadow-[0_0_18px_rgba(56,140,255,0.45)]',
     text: 'text-sky-200',
