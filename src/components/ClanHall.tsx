@@ -3,13 +3,6 @@ import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
 import { buildings } from '../gameAssets';
 
-const BACKGROUNDS: Record<string, string> = {
-  navy: 'from-[#12224a] to-[#070c18]',
-  purple: 'from-[#3a1d5e] to-[#120a20]',
-  crimson: 'from-[#5c1420] to-[#1b0709]',
-  emerald: 'from-[#0f4034] to-[#06140f]',
-};
-
 /** Banner colours mirror the clan emblem background so the flags read as clan colours. */
 const BANNER_COLORS: Record<string, { top: string; bottom: string }> = {
   navy: { top: '#3b6ad4', bottom: '#0b1631' },
