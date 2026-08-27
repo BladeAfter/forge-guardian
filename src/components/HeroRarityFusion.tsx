@@ -378,7 +378,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
                 <p className="text-lg font-black text-amber-200">{t('fusion.universalFragments', { count: fmt(result.fragments) })}</p>
               </>
             )}
-            <p className="mt-2 text-[10px] text-slate-400">{t('fusion.balance', { balance: fmt(result.balance) })}</p>
+            <p className="mt-2 text-[10px] text-fuchsia-200/80">MYTH restante: {fmt(Number(result.mythBalance ?? result.dashboard?.mythAvailable ?? 0))}</p>
             <button onClick={() => { setPhase('idle'); setResult(null); }} className="mt-3 min-h-[44px] w-full rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">
               {t('common.continue')}
             </button>
