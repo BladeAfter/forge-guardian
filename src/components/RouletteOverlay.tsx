@@ -16,6 +16,7 @@ import {
   type RewardCategoryId,
 } from './RouletteRewardKit';
 import { RouletteWheel, rotationForSlice } from './RouletteWheel';
+import { RouletteRewardReveal, buildReveal } from './RouletteRewardReveal';
 
 import {
   fetchRouletteState,
@@ -49,6 +50,18 @@ const resultCategoryId = (result: RewardLike): RewardCategoryId => {
   if (cls === 'MYTH') return 'MYTH';
   if (cls.includes('CHEST') || cls.includes('EGG')) return 'CHEST';
   return 'GEAR';
+};
+
+/** Reward headline for the cinematic reveal — amount is rendered separately. */
+const rewardName = (result: RewardLike) => {
+  if (result.premium) {
+    const p = typeof result.premium === 'boolean' ? null : (result.premium as { name?: string; label?: string });
+    return String(p?.name || p?.label || 'HERÓI MISTERIOSO');
+  }
+  const reward = result.normal;
+  if (!reward) return 'RECOMPENSA ENTREGUE';
+  if (String(reward.class) === 'MYTH') return 'MYTH TOKEN';
+  return String(reward.label || 'EQUIPAMENTO NFT');
 };
 
 const rewardTitle = (result: RewardLike) => {
@@ -226,43 +239,11 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
             <div className="pointer-events-none absolute -top-1 left-1/2 h-5 w-5 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-amber-300" />
 
 
-            {/* RESULT REVEAL — clear category identity + name */}
-            {result
-              ? (() => {
-                  const category = rewardCategory(resultCategoryId(result));
-                  const grand = category.id === 'CELESTIAL';
-                  return (
-                    <div
-                      className={`absolute ${grand ? 'inset-[20%]' : 'inset-[24%]'} flex flex-col items-center justify-center gap-1.5 rounded-full border bg-[#04060d]/94 p-3 text-center animate-scale-in ${category.ring} ${category.glow}`}
-                    >
-                      <span
-                        className={`absolute inset-0 rounded-full bg-gradient-to-br ${category.chip} opacity-50`}
-                        aria-hidden
-                      />
-                      <p className="relative text-[9px] font-black uppercase tracking-[0.34em] text-amber-300">
-                        You won
-                      </p>
-                      <img
-                        src={category.icon}
-                        alt={category.name}
-                        loading="lazy"
-                        className={`relative object-contain ${grand ? 'h-16 w-16' : 'h-12 w-12'} ${category.anim}`}
-                      />
-                      <p className={`relative text-[10px] font-black uppercase tracking-[0.2em] ${category.text}`}>
-                        {category.name}
-                      </p>
-                      <p className="relative px-2 text-[13px] font-black uppercase leading-tight text-sky-50">
-                        {rewardTitle(result)}
-                      </p>
-                    </div>
-                  );
-                })()
-              : null}
           </div>
         </div>
 
         {/* POSSIBLE REWARDS — compact, tap for preview */}
-        <PossibleRewards onSelect={setPreview} />
+        {result ? null : <PossibleRewards onSelect={setPreview} />}
 
 
         {/* SPIN AREA — minimal */}
@@ -295,6 +276,22 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
 
         </div>
       </div>
+
+      {/* CINEMATIC FULLSCREEN REVEAL — takes over the scene after the spin */}
+      {result && !spinning ? (
+        <RouletteRewardReveal
+          reward={buildReveal(resultCategoryId(result), {
+            name: rewardName(result),
+            amount: Number(result.normal?.amount ?? 0),
+          })}
+          cost={cost}
+          busy={busy}
+          usesWallet={usesWallet}
+          canSpin={Boolean(telegramInitData) && !blocked}
+          onClaim={() => { setResult(null); refreshAll(); }}
+          onSpinAgain={() => { setResult(null); setConfirmOpen(true); }}
+        />
+      ) : null}
 
       {/* Small confirmation modal */}
       {confirmOpen ? (
