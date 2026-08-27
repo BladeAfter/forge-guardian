@@ -1860,8 +1860,14 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       return rpc(db, 'clan_treasury_donate', { p_telegram_id: user.id, p_asset: asset, p_amount: amount });
     }
     if (action === 'upgrade-buy') {
-      return rpc(db, 'clan_upgrade_buy', { p_telegram_id: user.id, p_code: String(body.code || '').slice(0, 40) });
+      // Leader/vice check and treasury debit both live server-side in the RPC.
+      return rpc(db, 'clan_upgrade_buy', {
+        p_telegram_id: user.id,
+        p_code: String(body.code || '').slice(0, 40),
+        p_key: body.clientKey ? String(body.clientKey).slice(0, 80) : null,
+      });
     }
+
     if (action === 'buff-activate') {
       return rpc(db, 'clan_buff_activate', { p_telegram_id: user.id, p_code: String(body.code || '').slice(0, 40) });
     }
