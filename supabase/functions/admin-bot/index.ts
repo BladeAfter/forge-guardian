@@ -1497,6 +1497,7 @@ async function clansHub(ctx: Ctx) {
       [{ t: "📈 CLAN RANKING", d: "cl:rank" }],
       [{ t: "⚙️ CONFIGURAÇÃO DO CLÃ", d: "cl:cfg" }],
       [{ t: "🛡 CLAN ANTI-ABUSE", d: "cl:aa" }],
+      [{ t: "🔥 CLAN HUB (COLETIVO)", d: "cl:hub" }],
       [{ t: "📜 AUDIT", d: "cl:audit" }],
       nav(),
     ]),
@@ -2474,6 +2475,51 @@ async function clanAudit(ctx: Ctx, ref?: string) {
 }
 
 /** Every clan callback. Mutations always re-render the affected menu with fresh server data. */
+
+/** 🔥 CLAN HUB: collective layer (weekly goal, raid, treasury, upgrades, buffs, shop). */
+async function csRpc(ctx: Ctx, action: string, payload: Record<string, unknown> = {}) {
+  return (await rpc("admin_clan_system", { p_action: action, p_payload: payload })) as any;
+}
+
+async function clanHubView(ctx: Ctx) {
+  const d = await csRpc(ctx, "overview");
+  const s = d.settings || {};
+  const st = d.stats || {};
+  return edit(
+    ctx,
+    [
+      "🔥 <b>CLAN HUB — PROGRESSÃO COLETIVA</b>",
+      "",
+      `STATUS: <b>${s.enabled ? "ATIVO" : "OFF"}</b> · RAID: <b>${s.raid_enabled ? "ON" : "OFF"}</b>`,
+      `PONTOS POR BOSS PESSOAL: <b>${(s.boss_points || []).join(" / ")}</b>`,
+      `META SEMANAL POR MEMBRO ATIVO: <b>${fmt(s.weekly_target_per_active ?? 0)}</b>`,
+      `CLAN COINS POR PONTO: <b>${s.coins_per_contribution}</b> · XP: <b>${s.clan_xp_per_contribution}</b>`,
+      `RAID: <b>${s.raid_attacks_per_day}</b> ataques/dia · <b>${s.raid_duration_days}</b> dias`,
+      "",
+      `📊 Clãs com ciclo: <b>${fmt(st.clansWithCycle ?? 0)}</b>`,
+      `🎯 Contribuição da semana: <b>${fmt(st.weeklyContribution ?? 0)}</b>`,
+      `👹 Raids ativas: <b>${fmt(st.activeRaids ?? 0)}</b>`,
+      `💰 Tesouro total: <b>${fmt(st.treasuryFc ?? 0)} FC</b>`,
+      "",
+      "O Boss Pessoal continua individual — aqui só ajustamos a camada coletiva.",
+    ].join("\n"),
+    kb([
+      [
+        { t: s.enabled ? "🔴 DESATIVAR" : "🟢 ATIVAR", d: `cl:hbtg:${s.enabled ? 0 : 1}` },
+        { t: s.raid_enabled ? "👹 RAID OFF" : "👹 RAID ON", d: `cl:hbraid:${s.raid_enabled ? 0 : 1}` },
+      ],
+      [300, 500, 800, 1200].map((v) => ({ t: `META ${v}`, d: `cl:hbtarget:${v}` })),
+      [
+        { t: "PTS 10/15/25/40", d: "cl:hbpts:10-15-25-40" },
+        { t: "PTS 20/30/50/80", d: "cl:hbpts:20-30-50-80" },
+      ],
+      [1, 2, 3, 5].map((v) => ({ t: `RAID ${v}/dia`, d: `cl:hbatk:${v}` })),
+      [{ t: "♻️ ENCERRAR RAIDS ATIVAS", d: "cl:hbrreset" }],
+      nav("m:clans"),
+    ]),
+  );
+}
+
 /** 🛡 CLAN ANTI-ABUSE: cooldowns, clan boss single-clan lock, audits and manual clears. */
 async function aaRpc(ctx: Ctx, action = "get", value: string | null = null, target: string | null = null) {
   return (await rpc("admin_clan_anti_abuse", {
@@ -2657,6 +2703,26 @@ async function clansCallback(ctx: Ctx, rest: string[]) {
       return clanAntiAbuseList(ctx, "cooldowns");
     case "aalocks":
       return clanAntiAbuseList(ctx, "locks");
+    case "hub":
+      return clanHubView(ctx);
+    case "hbtg":
+      await csRpc(ctx, "set_setting", { field: "enabled", value: String(a) === "1" });
+      return clanHubView(ctx);
+    case "hbraid":
+      await csRpc(ctx, "set_setting", { field: "raid_enabled", value: String(a) === "1" });
+      return clanHubView(ctx);
+    case "hbtarget":
+      await csRpc(ctx, "set_setting", { field: "weekly_target_per_active", value: Number(a) });
+      return clanHubView(ctx);
+    case "hbatk":
+      await csRpc(ctx, "set_setting", { field: "raid_attacks_per_day", value: Number(a) });
+      return clanHubView(ctx);
+    case "hbpts":
+      await csRpc(ctx, "set_setting", { field: "boss_points", value: String(a).split("-").map((n) => Number(n)) });
+      return clanHubView(ctx);
+    case "hbrreset":
+      await csRpc(ctx, "reset_raid", {});
+      return clanHubView(ctx);
     case "aaflags":
       return clanAntiAbuseList(ctx, "flags");
     case "aaudit":
