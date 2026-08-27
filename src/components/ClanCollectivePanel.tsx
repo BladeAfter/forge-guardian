@@ -39,6 +39,14 @@ type ShopState = {
   priceMultiplier: number; effectiveActive: number; items: ShopItem[];
 };
 
+type AssetLimit = {
+  asset: string; min: number; max: number; hardMax: number;
+  today: number; remaining: number; reached: boolean;
+};
+type DonationState = {
+  inClan: boolean; isLeader: boolean; gameDay: string; nextResetAt: string; assets: AssetLimit[];
+};
+
 type SubTab = 'hub' | 'raid' | 'treasury' | 'upgrades' | 'shop';
 
 
@@ -127,6 +135,9 @@ export function ClanCollectivePanel({
   const [sub, setSub] = useState<SubTab>('hub');
   const [confirmUpgrade, setConfirmUpgrade] = useState<NonNullable<HubState['upgrades']>[number] | null>(null);
   const [shop, setShop] = useState<ShopState | null>(null);
+  const [don, setDon] = useState<DonationState | null>(null);
+  const [editLimit, setEditLimit] = useState<{ asset: string; min: string; max: string; hardMax: number } | null>(null);
+  const [, setClock] = useState(0);
 
   const load = useCallback(async () => {
     try {
@@ -147,8 +158,21 @@ export function ClanCollectivePanel({
     } catch { /* silent: the hub tab stays usable */ }
   }, [telegramInitData]);
 
+  // Daily donation limits are per-clan server state (min per donation + max total per day).
+  const loadDonation = useCallback(async () => {
+    try {
+      const data = await clanRequest<DonationState>(telegramInitData, { action: 'donation-state' });
+      if (data?.inClan) setDon(data);
+    } catch { /* silent: treasury balances still render */ }
+  }, [telegramInitData]);
+
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (sub === 'shop') void loadShop(); }, [sub, loadShop]);
+  useEffect(() => { void loadDonation(); }, [loadDonation]);
+  useEffect(() => {
+    const t = setInterval(() => setClock((v) => v + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
 
 
   const run = async (input: Record<string, unknown>, success: string) => {
@@ -159,6 +183,7 @@ export function ClanCollectivePanel({
       toast.success(success);
       await load();
       if (sub === 'shop') await loadShop();
+      await loadDonation();
     } catch (error) {
       toast.error(clanErrorMessage(error));
     } finally {
@@ -175,6 +200,12 @@ export function ClanCollectivePanel({
   // Mirrors the server rule clan_can_manage_upgrades(): leader + vice only.
   const canManageUpgrades = ['leader', 'co-leader', 'vice-leader', 'vice', 'deputy']
     .includes(String(state.me?.role ?? '').toLowerCase().replace(/_/g, '-'));
+  const resetIn = (() => {
+    const target = don?.nextResetAt ? new Date(don.nextResetAt).getTime() : 0;
+    const ms = target - Date.now();
+    if (!target || ms <= 0) return '00h 00m';
+    return `${String(Math.floor(ms / 3600000)).padStart(2, '0')}h ${String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0')}m`;
+  })();
   const canAttack = Boolean(raid && raid.status === 'ACTIVE' && raid.attacksUsed < raid.attacksPerDay);
 
 
@@ -503,6 +534,41 @@ export function ClanCollectivePanel({
           <Castle className="h-3.5 w-3.5" />Abrir Guerra de Clãs
           <Users className="h-3.5 w-3.5 opacity-40" />
         </button>
+      ) : null}
+
+      {editLimit ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setEditLimit(null)}>
+          <div className="w-full max-w-xs rounded-2xl border border-amber-400/30 bg-slate-950 p-3" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 text-[11px] font-black uppercase tracking-widest text-amber-200">
+              Limites de contribuição · {editLimit.asset}
+            </div>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">Doação mínima</label>
+            <input value={editLimit.min} inputMode="numeric"
+              onChange={(e) => setEditLimit({ ...editLimit, min: e.target.value.replace(/[^\d]/g, '') })}
+              className="mb-2 w-full rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none" />
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">Máximo diário por membro</label>
+            <input value={editLimit.max} inputMode="numeric"
+              onChange={(e) => setEditLimit({ ...editLimit, max: e.target.value.replace(/[^\d]/g, '') })}
+              className="w-full rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none" />
+            <div className="mt-1 text-[9px] text-slate-500">Teto global: {formatCurrency(editLimit.hardMax)}/dia</div>
+            <div className="mt-3 flex gap-2">
+              <button onClick={() => setEditLimit(null)}
+                className="flex-1 rounded-xl bg-white/5 py-1.5 text-[10px] font-black text-slate-300">CANCELAR</button>
+              <button disabled={busy}
+                onClick={() => {
+                  const min = Number(editLimit.min);
+                  const max = Number(editLimit.max);
+                  if (!Number.isFinite(max) || max <= 0) return toast.error('Máximo deve ser maior que zero.');
+                  if (min > max) return toast.error('O MÍNIMO NÃO PODE EXCEDER O MÁXIMO.');
+                  if (max > editLimit.hardMax) return toast.error('Acima do teto global de contribuição do clã.');
+                  const asset = editLimit.asset;
+                  setEditLimit(null);
+                  void run({ action: 'contribution-limits-set', asset, min, max }, 'Limites atualizados!');
+                }}
+                className="flex-1 rounded-xl bg-amber-500/20 py-1.5 text-[10px] font-black text-amber-200 disabled:opacity-40">SALVAR</button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );
