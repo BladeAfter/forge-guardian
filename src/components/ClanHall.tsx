@@ -48,7 +48,7 @@ export function ClanCrest({
       className="relative inline-block shrink-0 align-middle"
       aria-hidden
     >
-      <svg viewBox="0 0 100 100" width={size} height={size}>
+      <svg viewBox="0 0 100 104" width={size} height={size} style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id={`gold-${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={frameA} />
@@ -59,55 +59,74 @@ export function ClanCrest({
             <stop offset="0%" stopColor={c.mid} />
             <stop offset="100%" stopColor={c.deep} />
           </linearGradient>
-          <radialGradient id={`gem-${uid}`} cx="0.4" cy="0.3" r="0.8">
+          <radialGradient id={`gem-${uid}`} cx="0.35" cy="0.25" r="0.9">
             <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="35%" stopColor={c.gem} />
-            <stop offset="100%" stopColor={c.deep} />
+            <stop offset="55%" stopColor={c.gem} />
+            <stop offset="100%" stopColor={silver ? '#64748b' : '#8c5f10'} />
           </radialGradient>
         </defs>
 
-        {/* outer gold frame + inner field */}
+        {/* outer frame + inner field */}
         <path d={outline} fill={`url(#gold-${uid})`} />
-        <path d={outline} fill="none" stroke="#00000055" strokeWidth="1.5" />
-        <g transform="translate(50 50) scale(0.87) translate(-50 -50)">
-          <path d={outline} fill={`url(#field-${uid})`} stroke={frameB} strokeWidth="1.6" />
+        <path d={outline} fill="none" stroke="#00000066" strokeWidth="1.6" />
+        <g transform="translate(50 52) scale(0.86) translate(-50 -52)">
+          <path d={outline} fill={`url(#field-${uid})`} stroke={frameB} strokeWidth="1.5" />
         </g>
-        {/* magical runes framing the field */}
-        <g opacity="0.5" fill={c.gem}>
-          <circle cx="22" cy="34" r="1.3" /><circle cx="78" cy="34" r="1.3" />
-          <circle cx="26" cy="58" r="1" /><circle cx="74" cy="58" r="1" />
+
+        {/* laurel sprigs hugging the field */}
+        <g stroke={frameA} fill="none" opacity="0.55" strokeLinecap="round" strokeWidth="1.2">
+          <path d="M24 48c-4 8-3 17 2 24" />
+          <path d="M76 48c4 8 3 17-2 24" />
+          <g fill={frameA} opacity="0.75" stroke="none">
+            <ellipse cx="22" cy="53" rx="2.6" ry="1.4" transform="rotate(-30 22 53)" />
+            <ellipse cx="22" cy="61" rx="2.6" ry="1.4" transform="rotate(-15 22 61)" />
+            <ellipse cx="24" cy="69" rx="2.4" ry="1.3" />
+            <ellipse cx="78" cy="53" rx="2.6" ry="1.4" transform="rotate(30 78 53)" />
+            <ellipse cx="78" cy="61" rx="2.6" ry="1.4" transform="rotate(15 78 61)" />
+            <ellipse cx="76" cy="69" rx="2.4" ry="1.3" />
+          </g>
         </g>
-        {/* laurel wings */}
-        <g stroke={frameA} strokeWidth="1.4" fill="none" opacity="0.7" strokeLinecap="round">
-          <path d="M20 46c-5 6-5 14 0 20" /><path d="M80 46c5 6 5 14 0 20" />
+
+        {/* magical runes */}
+        <g opacity="0.45" fill={c.gem}>
+          <circle cx="34" cy="34" r="1.1" /><circle cx="66" cy="34" r="1.1" />
+          <circle cx="50" cy="80" r="1.1" />
         </g>
-        {/* crown */}
-        <g fill={`url(#gold-${uid})`} stroke="#00000044" strokeWidth="0.8">
-          <path d="M32 26 38 16l6 8 6-11 6 11 6-8 6 10-3 6H35Z" />
-        </g>
-        <circle cx="50" cy="16" r="2.4" fill={c.gem} />
-        {/* central gem + initials or symbol */}
-        <ellipse cx="50" cy="45" rx="12" ry="13" fill={`url(#gem-${uid})`} opacity="0.95" />
-        <ellipse cx="50" cy="45" rx="12" ry="13" fill="none" stroke={frameA} strokeWidth="1.2" opacity="0.85" />
+
+        {/* central gem plaque with the clan initials */}
+        <ellipse cx="50" cy="53" rx="21" ry="14" fill={`url(#gem-${uid})`} />
+        <ellipse cx="50" cy="53" rx="21" ry="14" fill="none" stroke={frameA} strokeWidth="1.4" />
+        <ellipse cx="50" cy="47.5" rx="15" ry="5.5" fill="#ffffff" opacity="0.28" />
         {mark ? (
           <text
-            x="50" y="50" textAnchor="middle" fontSize={mark.length > 2 ? 12 : 15}
-            fontWeight="900" fill="#0b1020" letterSpacing="0.5"
+            x="50" y="58.5" textAnchor="middle" fontSize={mark.length > 2 ? 15 : 18}
+            fontWeight="900" fill="#0b1020" letterSpacing="0.4"
+            fontFamily="ui-sans-serif, system-ui, sans-serif"
           >
             {mark}
           </text>
         ) : null}
-        {/* cinematic highlight */}
-        <path d={outline} fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.18" />
+
+        {/* crown, drawn above the frame so its points stay crisp */}
+        <g fill={`url(#gold-${uid})`} stroke="#00000055" strokeWidth="0.9" strokeLinejoin="round">
+          <path d="M31 26 36 12l7 9 7-13 7 13 7-9 5 14-4 5H35Z" />
+          <rect x="33" y="29" width="34" height="5" rx="2" />
+        </g>
+        <circle cx="50" cy="12" r="2.6" fill={c.gem} stroke={frameA} strokeWidth="0.7" />
+        <circle cx="36" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
+        <circle cx="64" cy="12.5" r="1.5" fill={c.gem} opacity="0.9" />
+
+        {/* cinematic rim light */}
+        <path d={outline} fill="none" stroke="#ffffff" strokeWidth="1" opacity="0.16" />
       </svg>
-      {!mark ? (
-        <span
-          style={{ fontSize: size * 0.28 }}
-          className="pointer-events-none absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 leading-none"
-        >
-          {symbol}
-        </span>
-      ) : null}
+      {/* faction symbol as a small seal under the plaque */}
+      <span
+        style={{ fontSize: size * 0.2 }}
+        className="pointer-events-none absolute left-1/2 top-[72%] -translate-x-1/2 -translate-y-1/2 leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,.9)]"
+      >
+        {symbol}
+      </span>
+
     </span>
   );
 }
