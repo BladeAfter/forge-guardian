@@ -341,6 +341,22 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
           ) : tab === 'recruit' ? (
             <div>
 
+              {/* 🎡 GLOBAL MYSTERY ROULETTE — entrada premium. Nada do ciclo global é exposto aqui. */}
+              <button
+                type="button"
+                onClick={() => setRouletteOpen(true)}
+                className="mb-3 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),rgba(0,0,0,0.6))] p-3 text-left"
+              >
+                <img src={rouletteWheel} alt="" className="h-14 w-14 shrink-0 object-contain drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-black uppercase tracking-[0.12em] text-amber-300">Global Mystery Roulette</span>
+                  <span className="block text-[9px] uppercase tracking-[0.18em] text-slate-400">Gire e receba recompensas reais</span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-amber-300" />
+              </button>
+
+
+
               <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
                 <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
                 <p className="mt-0.5 text-[8px] uppercase tracking-[0.2em] text-slate-400">{t('market.recruitSubtitle')}</p>
