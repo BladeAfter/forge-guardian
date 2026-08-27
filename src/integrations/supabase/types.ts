@@ -16120,6 +16120,10 @@ export type Database = {
         Args: { p_action?: string; p_admin_id: number; p_value?: number }
         Returns: Json
       }
+      admin_clan_system: {
+        Args: { p_action: string; p_payload?: Json }
+        Returns: Json
+      }
       admin_clan_war_action: {
         Args: {
           p_action: string
