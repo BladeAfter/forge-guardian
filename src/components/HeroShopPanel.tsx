@@ -24,6 +24,8 @@ import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSecti
 import { AuctionPanel } from './AuctionPanel';
 import { ItemDetailsModal } from './ItemDetailsModal';
 import { sendTonPayment } from '../tonPayment';
+import { RouletteOverlay } from './RouletteOverlay';
+import rouletteWheel from '../assets/roulette/wheel.png';
 
 
 type Props = {
@@ -63,6 +65,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const [detailsId, setDetailsId] = useState<string | null>(null);
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
   const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
+  // 🎡 Global Mystery Roulette lives inside the hero shop (fullscreen overlay).
+  const [rouletteOpen, setRouletteOpen] = useState(false);
 
   // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
   const [section, setSection] = useState<'market' | 'auction'>('market');
