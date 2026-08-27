@@ -24,6 +24,8 @@ import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSecti
 import { AuctionPanel } from './AuctionPanel';
 import { ItemDetailsModal } from './ItemDetailsModal';
 import { sendTonPayment } from '../tonPayment';
+import { RouletteOverlay } from './RouletteOverlay';
+import rouletteWheel from '../assets/roulette/wheel.png';
 
 
 type Props = {
@@ -63,6 +65,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const [detailsId, setDetailsId] = useState<string | null>(null);
   // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
   const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
+  // 🎡 Global Mystery Roulette lives inside the hero shop (fullscreen overlay).
+  const [rouletteOpen, setRouletteOpen] = useState(false);
 
   // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
   const [section, setSection] = useState<'market' | 'auction'>('market');
@@ -340,6 +344,22 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             telegramInitData ? <NftHeroShopSection telegramInitData={telegramInitData} /> : null
           ) : tab === 'recruit' ? (
             <div>
+
+              {/* 🎡 GLOBAL MYSTERY ROULETTE — entrada premium. Nada do ciclo global é exposto aqui. */}
+              <button
+                type="button"
+                onClick={() => setRouletteOpen(true)}
+                className="mb-3 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),rgba(0,0,0,0.6))] p-3 text-left"
+              >
+                <img src={rouletteWheel} alt="" className="h-14 w-14 shrink-0 object-contain drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-black uppercase tracking-[0.12em] text-amber-300">Global Mystery Roulette</span>
+                  <span className="block text-[9px] uppercase tracking-[0.18em] text-slate-400">Gire e receba recompensas reais</span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-amber-300" />
+              </button>
+
+
 
               <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
                 <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
@@ -952,6 +972,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             buyLabel={t('market.buy')}
             buyDisabled={buyMutation.isPending}
           />
+        ) : null}
+
+        {rouletteOpen ? (
+          <RouletteOverlay telegramInitData={telegramInitData} onClose={() => setRouletteOpen(false)} />
         ) : null}
       </div>
     </div>
