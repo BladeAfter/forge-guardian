@@ -196,13 +196,17 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                 ) : null}
 
                 {raid.status === 'ACTIVE' ? (
-                  raid.phaseLocked ? (
-                    <div className="mt-2.5 rounded-xl border border-amber-400/40 bg-amber-400/10 p-2.5 text-center">
-                      <p className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-amber-200"><Lock className="h-3.5 w-3.5" />Fase concluída</p>
-                      <p className="mt-1 flex items-center justify-center gap-1 text-[10px] text-slate-300"><Clock className="h-3 w-3" />Próxima fase em {countdown(raid.nextPhaseAt)}</p>
-                      <p className="mt-1 text-[9px] text-slate-500">Nenhum ataque é consumido durante o bloqueio.</p>
-                    </div>
-                  ) : (
+                  <>
+                    {raid.killProtected ? (
+                      <div className="mt-2.5 rounded-xl border border-sky-400/40 bg-sky-500/10 px-2.5 py-2 text-center">
+                        <p className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-sky-200">
+                          <ShieldCheck className="h-3.5 w-3.5" />Raid protegida
+                        </p>
+                        <p className="mt-0.5 text-[9px] text-slate-400">
+                          Não pode ser derrotada antes do DIA {raid.minKillDays} · libera em {countdown(raid.killUnlockAt)}
+                        </p>
+                      </div>
+                    ) : null}
                     <button
                       disabled={busy || !canAttack}
                       onClick={() => void attack()}
@@ -210,8 +214,9 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                     >
                       {busy ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <><Swords className="mr-1.5 inline h-4 w-4" />{outOfAttacks ? 'Sem ataques hoje' : 'Atacar Raid'}</>}
                     </button>
-                  )
+                  </>
                 ) : (
+
                   <div className="mt-2.5 rounded-xl border border-white/15 bg-black/60 p-2.5 text-center">
                     <p className="text-[11px] font-black uppercase tracking-widest text-amber-200">
                       {raid.status === 'DEFEATED' || raid.status === 'SETTLED' ? 'Clan Raid derrotada' : 'Raid expirada'}
