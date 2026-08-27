@@ -93,7 +93,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
         action: 'raid-attack',
         clientKey: `${raid.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
-      if (result.status === 'duplicate') toast.info('Ataque já registrado.');
+      if (result.status === 'duplicate') toast('Ataque já registrado.');
       else toast.success(`Dano causado: ${formatCurrency(result.damage)}`);
       await load();
     } catch (error) {
