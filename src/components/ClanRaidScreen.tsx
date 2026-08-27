@@ -159,7 +159,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                 </div>
                 <div className="mt-1 flex justify-between text-[9px] text-slate-500">
                   <span>{hpPct.toFixed(1)}% restante</span>
-                  <span>ALVO DE MORTE: DIA {raid.targetDays}</span>
+                  <span>MORTE LIBERA: DIA {raid.minKillDays}</span>
                 </div>
 
                 {/* Daily health gate progress: cumulative unlocked damage for the current phase */}
