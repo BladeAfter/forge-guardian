@@ -119,37 +119,31 @@ export function RewardMedallion({
   );
 }
 
-/** Compact "POSSIBLE REWARDS" strip — icon + short name per category. */
+/** Compact single-line "POSSIBLE REWARDS" caption — the wheel is the protagonist. */
 export function PossibleRewards({ onSelect }: { onSelect: (category: RewardCategory) => void }) {
   return (
     <div className="w-full">
       <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
         Possible rewards
       </p>
-      <div className="mt-2 grid grid-cols-5 gap-1.5">
-        {REWARD_CATEGORIES.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            onClick={() => onSelect(category)}
-            className={`flex flex-col items-center gap-1 rounded-xl border bg-black/50 px-1 py-1.5 ${category.ring}`}
-          >
-            <span className={`relative grid h-8 w-8 place-items-center rounded-lg ${category.anim}`}>
-              <span
-                className={`absolute inset-0 rounded-lg bg-gradient-to-br ${category.chip} opacity-70`}
-                aria-hidden
-              />
-              <img src={category.icon} alt="" loading="lazy" className="relative h-7 w-7 object-contain" />
-            </span>
-            <span className={`text-[7px] font-black uppercase leading-none tracking-[0.04em] ${category.text}`}>
+      <div className="mt-1 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+        {REWARD_CATEGORIES.map((category, index) => (
+          <span key={category.id} className="flex items-center gap-1.5">
+            {index ? <span className="text-[8px] text-slate-600">•</span> : null}
+            <button
+              type="button"
+              onClick={() => onSelect(category)}
+              className={`text-[9px] font-black uppercase tracking-[0.08em] ${category.text}`}
+            >
               {category.short}
-            </span>
-          </button>
+            </button>
+          </span>
         ))}
       </div>
     </div>
   );
 }
+
 
 /** Elegant tap preview — no odds, no unlock rules. */
 export function RewardPreviewPopup({
