@@ -4202,6 +4202,15 @@ const PROMPTS: Record<string, string> = {
     "🪙 Envie o valor mínimo de resgate da mineração em MYTH (<code>0</code> libera qualquer valor).\nEx.: <code>100</code>",
   hmpool:
     "🪙 Envie a <b>alocação total</b> da MYTH MINING POOL. Ex.: <code>5000000</code>\n<i>Não pode passar do supply total nem ficar abaixo do já distribuído.</i>",
+  rmbudget:
+    "🎯 Envie o <b>GLOBAL DAILY BUDGET</b> de MYTH para os Heróis Raros. Ex.: <code>10000</code>\n<i>Esse é o teto total emitido por dia, não importa quantos raros existam.</i>",
+  rmcap:
+    "🛡 Envie o <b>PLAYER DAILY CAP</b> em MYTH (segunda proteção por jogador). Ex.: <code>100</code>",
+  rmmin: "🪙 Envie o resgate mínimo do RARE MINING em MYTH. Ex.: <code>10</code>",
+  rmtier:
+    "📉 Envie <code>tier porcentagem</code> do peso.\n1 = raros 1–20 · 2 = 21–50 · 3 = 51–100 · 4 = 101+\nEx.: <code>2 25</code>",
+  rmpool:
+    "➕ Envie quanto MYTH <b>adicionar</b> à reserva de mineração. Ex.: <code>1000000</code>\n<i>Sai do supply oficial já existente — nada é criado.</i>",
 
   afsearch: "🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.",
   afunblock: "🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.",
