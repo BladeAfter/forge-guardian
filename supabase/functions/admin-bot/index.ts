@@ -126,6 +126,7 @@ const MAIN_MENU = kb([
   [{ t: "🤝 PARTNERS", d: "m:partners" }],
   [{ t: "💎 NFT PETS", d: "nft:hub" }],
   [{ t: "⛏ MINERAÇÃO TON", d: "hm:hub" }],
+  [{ t: "⛏ MINAS DE TON", d: "tm:hub" }],
   [{ t: "🧩 FRAGMENTOS", d: "fg:hub" }],
   [{ t: "🗺 EXPEDIÇÕES", d: "xe:hub" }],
   [{ t: "🎁 GIVEAWAY POPUP", d: "gw:hub" }],
@@ -4146,6 +4147,20 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  tmprice: "💰 Envie <code>chave preço_ton</code>.\nEx.: <code>iron 5</code>",
+  tmdaily: "⛏ Envie <code>chave ton_por_dia</code>.\nEx.: <code>iron 0.11</code>",
+  tmstore: "📦 Envie <code>chave dias_de_armazenamento</code> (1 a 60).\nEx.: <code>iron 7</code>",
+  tmmaxper: "🔢 Envie <code>chave limite_por_jogador</code>.\nEx.: <code>iron 1</code>",
+  tmname: "✏️ Envie <code>chave novo nome</code>.\nEx.: <code>iron Mina de Ferro Arcano</code>",
+  tmdesc: "📝 Envie <code>chave descrição</code>.\nEx.: <code>iron Veios de ferro encantado...</code>",
+  tmimage: "🖼 Envie <code>chave url_da_imagem</code>.\nEx.: <code>iron /__l5e/assets-v1/.../mine-iron.jpg</code>",
+  tmtoggle: "🔁 Envie <code>chave on|off</code> para exibir ou ocultar a mina.\nEx.: <code>celestial off</code>",
+  tmcreate: "➕ Envie <code>chave Nome da mina</code>.\nEx.: <code>void Mina do Vazio</code>",
+  tmbonus30: "🎁 Envie o <b>bônus de fidelidade de 30 dias</b> em %.\nEx.: <code>5</code>",
+  tmbonus60: "🎁 Envie o <b>bônus de fidelidade de 60 dias</b> em %.\nEx.: <code>10</code>",
+  tmmaxtotal: "🔢 Envie o <b>limite total de minas</b> por jogador.\nEx.: <code>4</code>",
+  tmallow: "➕ Envie o <b>Telegram ID</b> que poderá ver as MINAS DE TON.\nEx.: <code>8118569391</code>",
+  tmdeny: "➖ Envie o <b>Telegram ID</b> que perderá o acesso às MINAS DE TON.",
   rlcost: "🎡 Envie o <b>custo do giro em TON</b>.\nEx.: <code>5</code>",
   rlcel: "👑 Envie a <b>meta global do Celestial</b> em TON.\nEx.: <code>300</code>",
   rlres: "🪙 Envie a <b>reserva de MYTH</b> disponível para a roleta.\nEx.: <code>1000000</code>",
@@ -8181,6 +8196,11 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] !== "ask") await clearSession(ctx);
     return nfthCallback(ctx, rest);
   }
+  // ⛏ MINAS DE TON (preço, rendimento, armazenamento, fidelidade e visibilidade).
+  if (head === "tm") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return tmCallback(ctx, rest);
+  }
   // ⛏ Hero TON mining (rates, global pause, per-player audit).
   if (head === "hm") {
     if (rest[0] !== "ask") await clearSession(ctx);
@@ -11864,6 +11884,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
   if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
+  if (key.startsWith("tm")) return tmPrompt(ctx, key, text);
 
   if (key.startsWith("nprc")) return nftPricePrompt(ctx, key, args, text);
   if (key === "hpset" || key === "hpcurve" || key === "hpquest") return heroProgressionPrompt(ctx, key, args, text);
