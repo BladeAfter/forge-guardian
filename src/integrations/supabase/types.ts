@@ -15332,6 +15332,286 @@ export type Database = {
         }
         Relationships: []
       }
+      ton_mine_claims: {
+        Row: {
+          amount_ton: number
+          claim_type: string
+          created_at: string
+          holding_id: string | null
+          id: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_ton: number
+          claim_type?: string
+          created_at?: string
+          holding_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          claim_type?: string
+          created_at?: string
+          holding_id?: string | null
+          id?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mine_claims_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "ton_mine_holdings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ton_mine_claims_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ton_mine_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ton_mine_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_mine_holdings: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          last_accrual_at: string
+          paid_ton: number
+          purchased_at: string
+          stored_ton: number
+          template_id: string
+          total_claimed_ton: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          last_accrual_at?: string
+          paid_ton?: number
+          purchased_at?: string
+          stored_ton?: number
+          template_id: string
+          total_claimed_ton?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          last_accrual_at?: string
+          paid_ton?: number
+          purchased_at?: string
+          stored_ton?: number
+          template_id?: string
+          total_claimed_ton?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mine_holdings_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ton_mine_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ton_mine_holdings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_mine_orders: {
+        Row: {
+          amount_nano: string
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expires_at: string
+          holding_id: string | null
+          id: string
+          idempotency_key: string | null
+          paid_at: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status: string
+          template_id: string
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_nano: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          holding_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          paid_at?: string | null
+          payment_address: string
+          payment_comment: string
+          price_ton: number
+          status?: string
+          template_id: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_nano?: string
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expires_at?: string
+          holding_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          paid_at?: string | null
+          payment_address?: string
+          payment_comment?: string
+          price_ton?: number
+          status?: string
+          template_id?: string
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mine_orders_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ton_mine_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ton_mine_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_mine_settings: {
+        Row: {
+          admin_only: boolean
+          allowed_telegram_ids: number[]
+          bonus_30_pct: number
+          bonus_60_pct: number
+          created_at: string
+          enabled: boolean
+          id: boolean
+          loyalty_enabled: boolean
+          max_total_per_player: number
+          paused: boolean
+          payment_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          admin_only?: boolean
+          allowed_telegram_ids?: number[]
+          bonus_30_pct?: number
+          bonus_60_pct?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          loyalty_enabled?: boolean
+          max_total_per_player?: number
+          paused?: boolean
+          payment_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_only?: boolean
+          allowed_telegram_ids?: number[]
+          bonus_30_pct?: number
+          bonus_60_pct?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          loyalty_enabled?: boolean
+          max_total_per_player?: number
+          paused?: boolean
+          payment_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ton_mine_templates: {
+        Row: {
+          created_at: string
+          daily_ton: number
+          description: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_per_player: number
+          mine_key: string
+          name: string
+          paused: boolean
+          price_ton: number
+          sort_order: number
+          storage_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_ton: number
+          description?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_per_player?: number
+          mine_key: string
+          name: string
+          paused?: boolean
+          price_ton: number
+          sort_order?: number
+          storage_days?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_ton?: number
+          description?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_per_player?: number
+          mine_key?: string
+          name?: string
+          paused?: boolean
+          price_ton?: number
+          sort_order?: number
+          storage_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ton_mining_access: {
         Row: {
           access_type: string
@@ -18280,6 +18560,28 @@ export type Database = {
       }
       admin_ton_lookup: {
         Args: { p_admin_id: number; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_ton_mine_set: {
+        Args: {
+          p_admin_id: number
+          p_field: string
+          p_key: string
+          p_value: string
+        }
+        Returns: Json
+      }
+      admin_ton_mines_allow: {
+        Args: { p_add: boolean; p_admin_id: number; p_telegram_id: number }
+        Returns: Json
+      }
+      admin_ton_mines_flag: {
+        Args: { p_admin_id: number; p_field: string; p_value: boolean }
+        Returns: Json
+      }
+      admin_ton_mines_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_ton_mines_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
         Returns: Json
       }
       admin_ton_mining_gate: { Args: { p_admin_id: number }; Returns: Json }
@@ -21600,6 +21902,89 @@ export type Database = {
         Args: { p_amount_nano: string; p_comment: string; p_tx_hash: string }
         Returns: Json
       }
+      ton_mine_accrue: {
+        Args: { p_holding_id: string }
+        Returns: {
+          active: boolean
+          created_at: string
+          id: string
+          last_accrual_at: string
+          paid_ton: number
+          purchased_at: string
+          stored_ton: number
+          template_id: string
+          total_claimed_ton: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ton_mine_holdings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ton_mine_assert_can_buy: {
+        Args: {
+          p_telegram_id: number
+          p_template_id: string
+          p_user_id: string
+        }
+        Returns: {
+          created_at: string
+          daily_ton: number
+          description: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_per_player: number
+          mine_key: string
+          name: string
+          paused: boolean
+          price_ton: number
+          sort_order: number
+          storage_days: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ton_mine_templates"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ton_mine_buy_with_balance: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_template_id: string
+        }
+        Returns: Json
+      }
+      ton_mine_claim: {
+        Args: { p_holding_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      ton_mine_confirm_purchase: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      ton_mine_create_order: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_template_id: string
+        }
+        Returns: Json
+      }
+      ton_mine_deliver_order: { Args: { p_order_id: string }; Returns: Json }
+      ton_mine_multiplier: { Args: { p_purchased_at: string }; Returns: number }
+      ton_mine_reconcile_orders: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      ton_mine_visible: { Args: { p_telegram_id: number }; Returns: boolean }
+      ton_mines_state: { Args: { p_telegram_id: number }; Returns: Json }
       ton_mining_access_allowed: {
         Args: { p_user_id: string }
         Returns: boolean
