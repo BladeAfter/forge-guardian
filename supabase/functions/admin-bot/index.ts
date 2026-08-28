@@ -126,6 +126,7 @@ const MAIN_MENU = kb([
   [{ t: "🤝 PARTNERS", d: "m:partners" }],
   [{ t: "💎 NFT PETS", d: "nft:hub" }],
   [{ t: "⛏ MINERAÇÃO TON", d: "hm:hub" }],
+  [{ t: "⛏ MINAS DE TON", d: "tm:hub" }],
   [{ t: "🧩 FRAGMENTOS", d: "fg:hub" }],
   [{ t: "🗺 EXPEDIÇÕES", d: "xe:hub" }],
   [{ t: "🎁 GIVEAWAY POPUP", d: "gw:hub" }],
@@ -4146,6 +4147,20 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  tmprice: "💰 Envie <code>chave preço_ton</code>.\nEx.: <code>iron 5</code>",
+  tmdaily: "⛏ Envie <code>chave ton_por_dia</code>.\nEx.: <code>iron 0.11</code>",
+  tmstore: "📦 Envie <code>chave dias_de_armazenamento</code> (1 a 60).\nEx.: <code>iron 7</code>",
+  tmmaxper: "🔢 Envie <code>chave limite_por_jogador</code>.\nEx.: <code>iron 1</code>",
+  tmname: "✏️ Envie <code>chave novo nome</code>.\nEx.: <code>iron Mina de Ferro Arcano</code>",
+  tmdesc: "📝 Envie <code>chave descrição</code>.\nEx.: <code>iron Veios de ferro encantado...</code>",
+  tmimage: "🖼 Envie <code>chave url_da_imagem</code>.\nEx.: <code>iron /__l5e/assets-v1/.../mine-iron.jpg</code>",
+  tmtoggle: "🔁 Envie <code>chave on|off</code> para exibir ou ocultar a mina.\nEx.: <code>celestial off</code>",
+  tmcreate: "➕ Envie <code>chave Nome da mina</code>.\nEx.: <code>void Mina do Vazio</code>",
+  tmbonus30: "🎁 Envie o <b>bônus de fidelidade de 30 dias</b> em %.\nEx.: <code>5</code>",
+  tmbonus60: "🎁 Envie o <b>bônus de fidelidade de 60 dias</b> em %.\nEx.: <code>10</code>",
+  tmmaxtotal: "🔢 Envie o <b>limite total de minas</b> por jogador.\nEx.: <code>4</code>",
+  tmallow: "➕ Envie o <b>Telegram ID</b> que poderá ver as MINAS DE TON.\nEx.: <code>8118569391</code>",
+  tmdeny: "➖ Envie o <b>Telegram ID</b> que perderá o acesso às MINAS DE TON.",
   rlcost: "🎡 Envie o <b>custo do giro em TON</b>.\nEx.: <code>5</code>",
   rlcel: "👑 Envie a <b>meta global do Celestial</b> em TON.\nEx.: <code>300</code>",
   rlres: "🪙 Envie a <b>reserva de MYTH</b> disponível para a roleta.\nEx.: <code>1000000</code>",
@@ -6389,6 +6404,160 @@ async function rmPrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
+// ---------------------------------------------------------------- ⛏ MINAS DE TON
+// Passive TON investment. Every value (price, daily yield, storage, loyalty bonus,
+// limits and who can even see the building) is controlled here in real time.
+const tmTon = (v: unknown) => Number(v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 4 });
+
+async function tmHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_ton_mines_overview", { p_admin_id: ctx.adminId })) as any;
+  const mines =
+    arr<any>(d.mines)
+      .map(
+        (m) =>
+          `• <b>${esc(String(m.name))}</b> <code>${esc(String(m.key))}</code>\n` +
+          `   ${tmTon(m.priceTon)} TON · ${tmTon(m.dailyTon)} TON/dia · ROI ${m.roiDays ?? "—"}d · armazena ${m.storageDays}d · limite ${m.maxPerPlayer}\n` +
+          `   vendidas: <b>${fmt(m.sold)}</b> · ${m.enabled ? (m.paused ? "⏸ pausada" : "🟢 ativa") : "🔴 oculta"}`,
+      )
+      .join("\n") || "nenhuma mina cadastrada";
+  const top =
+    arr<any>(d.topOwners)
+      .map(
+        (o) =>
+          `• ${esc(String(o.name ?? "—"))} <code>${o.telegramId}</code> · ${fmt(o.mines)} minas · investiu <b>${tmTon(o.investedTon)} TON</b> · ${tmTon(o.dailyTon)}/dia`,
+      )
+      .join("\n") || "nenhum investidor ainda";
+  const allowed = arr<any>(d.allowedIds).map((id) => `<code>${id}</code>`).join(", ") || "—";
+  const text =
+    `⛏ <b>MINAS DE TON</b>\n` +
+    `STATUS: <b>${d.enabled ? (d.paused ? "⏸ PAUSADO" : "🟢 ATIVO") : "🔴 DESATIVADO"}</b>\n` +
+    `VISIBILIDADE: <b>${d.adminOnly ? "🔒 APENAS IDS LIBERADOS" : "🌍 TODOS OS JOGADORES"}</b>\n` +
+    `IDs liberados: ${allowed}\n` +
+    `Limite total por jogador: <b>${fmt(d.maxTotalPerPlayer)}</b>\n` +
+    `Fidelidade: ${d.loyaltyEnabled ? `🟢 +${d.bonus30}% (30d) / +${d.bonus60}% (60d)` : "🔴 desligada"}\n\n` +
+    `<b>ECONOMIA</b>\n` +
+    `Minas ativas: <b>${fmt(d.activeMines)}</b> · vendas: <b>${tmTon(d.salesTon)} TON</b>\n` +
+    `Saída diária: <b>${tmTon(d.dailyTon)} TON/dia</b> · projeção 30d: <b>${tmTon(d.projection30Ton)} TON</b>\n` +
+    `Gerado total: ${tmTon(d.generatedTon)} TON (coletado ${tmTon(d.claimedTon)} · pendente ${tmTon(d.unclaimedTon)})\n\n` +
+    `<b>CATÁLOGO</b>\n${mines}\n\n` +
+    `<b>TOP INVESTIDORES</b>\n${top}`;
+  const rows = [
+    [
+      { t: "💰 PREÇO DA MINA", d: "tm:ask:tmprice" },
+      { t: "⛏ RENDIMENTO/DIA", d: "tm:ask:tmdaily" },
+    ],
+    [
+      { t: "📦 DIAS DE ARMAZENAMENTO", d: "tm:ask:tmstore" },
+      { t: "🔢 LIMITE POR JOGADOR", d: "tm:ask:tmmaxper" },
+    ],
+    [
+      { t: "✏️ NOME", d: "tm:ask:tmname" },
+      { t: "📝 DESCRIÇÃO", d: "tm:ask:tmdesc" },
+    ],
+    [
+      { t: "🖼 IMAGEM", d: "tm:ask:tmimage" },
+      { t: "🔁 ATIVAR/OCULTAR MINA", d: "tm:ask:tmtoggle" },
+    ],
+    [{ t: "➕ CRIAR NOVA MINA", d: "tm:ask:tmcreate" }],
+    [
+      { t: "🎁 BÔNUS 30 DIAS", d: "tm:ask:tmbonus30" },
+      { t: "🎁 BÔNUS 60 DIAS", d: "tm:ask:tmbonus60" },
+    ],
+    [
+      { t: "🔢 LIMITE TOTAL", d: "tm:ask:tmmaxtotal" },
+      { t: d.loyaltyEnabled ? "⏸ DESLIGAR FIDELIDADE" : "▶️ LIGAR FIDELIDADE", d: `tm:flag:loyalty:${d.loyaltyEnabled ? "0" : "1"}` },
+    ],
+    [
+      { t: "➕ LIBERAR ID", d: "tm:ask:tmallow" },
+      { t: "➖ REMOVER ID", d: "tm:ask:tmdeny" },
+    ],
+    [{ t: d.adminOnly ? "🌍 LIBERAR PARA TODOS" : "🔒 RESTRINGIR AOS IDS", d: `tm:flag:adminonly:${d.adminOnly ? "0" : "1"}` }],
+    [{ t: d.paused ? "▶️ RETOMAR MINAS" : "⏸ PAUSAR MINAS", d: `tm:flag:paused:${d.paused ? "0" : "1"}` }],
+    [{ t: d.enabled ? "🔴 DESATIVAR SISTEMA" : "🟢 ATIVAR SISTEMA", d: `tm:flag:enabled:${d.enabled ? "0" : "1"}` }],
+    [{ t: "🔄 ATUALIZAR", d: "tm:hub" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function tmPrompt(ctx: Ctx, key: string, text: string) {
+  const num = (raw: string) => Number(String(raw).replace(/\s/g, "").replace(",", "."));
+  /** Per-mine edits always arrive as `chave valor`. */
+  const pair = () => {
+    const [mineKey, ...rest] = text.trim().split(/\s+/);
+    const value = rest.join(" ").trim();
+    if (!mineKey || !value) throw new Error("KEEP_SESSION::⚠️ Envie <code>chave valor</code>. Ex.: <code>iron 5</code>");
+    return { mineKey, value };
+  };
+  const fieldMap: Record<string, string> = {
+    tmprice: "price",
+    tmdaily: "daily",
+    tmstore: "storage",
+    tmmaxper: "maxper",
+    tmname: "name",
+    tmdesc: "desc",
+    tmimage: "image",
+    tmtoggle: "enabled",
+  };
+
+  if (fieldMap[key]) {
+    const { mineKey, value } = pair();
+    await rpc("admin_ton_mine_set", { p_admin_id: ctx.adminId, p_key: mineKey, p_field: fieldMap[key], p_value: value });
+    await clearSession(ctx);
+    await send(ctx, `⛏ Mina <code>${esc(mineKey)}</code> atualizada.`);
+    return tmHub({ ...ctx, messageId: undefined }, false);
+  }
+
+  switch (key) {
+    case "tmcreate": {
+      const { mineKey, value } = pair();
+      await rpc("admin_ton_mine_set", { p_admin_id: ctx.adminId, p_key: mineKey, p_field: "create", p_value: value });
+      await clearSession(ctx);
+      await send(ctx, `➕ Mina criada: <b>${esc(value)}</b> (<code>${esc(mineKey)}</code>). Defina preço e rendimento.`);
+      return tmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case "tmbonus30":
+    case "tmbonus60":
+    case "tmmaxtotal": {
+      const value = num(text);
+      if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>10</code>");
+      const field = key === "tmbonus30" ? "bonus30" : key === "tmbonus60" ? "bonus60" : "maxtotal";
+      await rpc("admin_ton_mines_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+      await clearSession(ctx);
+      await send(ctx, `✅ Atualizado: <b>${value}</b>.`);
+      return tmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case "tmallow":
+    case "tmdeny": {
+      const id = Number(String(text).replace(/\D/g, ""));
+      if (!Number.isFinite(id) || id <= 0) throw new Error("KEEP_SESSION::⚠️ Envie um Telegram ID numérico. Ex.: <code>8118569391</code>");
+      await rpc("admin_ton_mines_allow", { p_admin_id: ctx.adminId, p_telegram_id: id, p_add: key === "tmallow" });
+      await clearSession(ctx);
+      await send(ctx, key === "tmallow" ? `➕ ID <code>${id}</code> liberado.` : `➖ ID <code>${id}</code> removido.`);
+      return tmHub({ ...ctx, messageId: undefined }, false);
+    }
+    default:
+      return tmHub({ ...ctx, messageId: undefined }, false);
+  }
+}
+
+async function tmCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "flag") {
+    try {
+      await rpc("admin_ton_mines_flag", { p_admin_id: ctx.adminId, p_field: a, p_value: b === "1" });
+    } catch (err) {
+      console.error("[admin-bot] ton_mines_flag failed", err);
+      await send(ctx, "⚠️ Não foi possível alterar as MINAS DE TON.");
+    }
+    return tmHub({ ...ctx, messageId: undefined }, false);
+  }
+  return tmHub(ctx);
+}
+
+
+
 async function hmCallback(ctx: Ctx, rest: string[]) {
   const [sub, a] = rest;
   switch (sub) {
@@ -8026,6 +8195,11 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === "nfth") {
     if (rest[0] !== "ask") await clearSession(ctx);
     return nfthCallback(ctx, rest);
+  }
+  // ⛏ MINAS DE TON (preço, rendimento, armazenamento, fidelidade e visibilidade).
+  if (head === "tm") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return tmCallback(ctx, rest);
   }
   // ⛏ Hero TON mining (rates, global pause, per-player audit).
   if (head === "hm") {
@@ -11710,6 +11884,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
   if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
+  if (key.startsWith("tm")) return tmPrompt(ctx, key, text);
 
   if (key.startsWith("nprc")) return nftPricePrompt(ctx, key, args, text);
   if (key === "hpset" || key === "hpcurve" || key === "hpquest") return heroProgressionPrompt(ctx, key, args, text);

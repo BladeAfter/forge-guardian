@@ -1068,6 +1068,63 @@ async function verifyNftHeroPurchases(db: Db, user: TelegramUser) {
 }
 
 /**
+ * Reconciler for MINAS DE TON purchases paid with TON Connect. Identical guarantees
+ * as the NFT flows: the database delivers confirmed orders (atomic + idempotent) and
+ * only orders genuinely awaiting payment are looked up on-chain by payment comment.
+ */
+async function verifyTonMinePurchases(db: Db, user: TelegramUser) {
+  const state = await rpc(db, 'ton_mine_reconcile_orders', { p_telegram_id: user.id }) as any;
+  const completed: string[] = [...(state?.delivered ?? [])].map(String);
+  const alreadyDelivered: string[] = [...(state?.alreadyDelivered ?? [])].map(String);
+  const results: any[] = Array.isArray(state?.results) ? [...state.results] : [];
+  const orders: any[] = Array.isArray(state?.awaitingPayment) ? state.awaitingPayment : [];
+  const stillPending: string[] = [];
+
+  if (orders.length) {
+    const hotWallet = await hotWalletAddress(db);
+    const transactions = await fetchHotWalletIncoming(hotWallet);
+    for (const order of orders) {
+      const comment = String(order.paymentComment || '').trim();
+      const expectedNano = BigInt(String(order.amountNano || '0'));
+      const logRow: Record<string, unknown> = {
+        order_kind: 'ton_mine',
+        order_id: order.id,
+        telegram_id: user.id,
+        product_id: String(order.mineName ?? ''),
+        expected_amount_nano: expectedNano.toString(),
+        destination_wallet: hotWallet,
+        payment_reference: comment,
+      };
+      const match = transactions.find((tx: any) => {
+        const inMsg = tx?.in_msg;
+        if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+        return BigInt(String(inMsg.value ?? '0')) >= (expectedNano * 97n) / 100n;
+      });
+      if (!match) {
+        stillPending.push(order.id);
+        continue;
+      }
+      const txHash = String(match.hash || match.in_msg?.hash || '');
+      const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+      try {
+        const outcome = await rpc(db, 'ton_mine_confirm_purchase', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano }) as any;
+        results.push({ ...outcome, mineName: order.mineName, priceTon: order.priceTon });
+        if (outcome?.status === 'already_delivered') alreadyDelivered.push(order.id);
+        else completed.push(order.id);
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: String(outcome?.status ?? 'completed') });
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        console.error('[FORGE ERROR] ton-mine-purchase-confirm', { orderId: order.id, txHash, receivedNano, reason });
+        await db.from('ton_payment_logs').insert({ ...logRow, tx_hash: txHash, received_amount_nano: receivedNano, blockchain_status: 'found', fulfillment_status: 'failed', error_detail: reason });
+        stillPending.push(order.id);
+      }
+    }
+  }
+
+  return { checked: orders.length + completed.length + alreadyDelivered.length, completed, alreadyDelivered, pending: stillPending, results };
+}
+
+/**
  * Reconciler for NFT EXCLUSIVE EQUIPMENT purchases paid with TON Connect.
  * Same guarantees as the pet/hero flows: the database delivers confirmed orders
  * (atomic + idempotent) and only orders genuinely awaiting payment are looked up
@@ -2432,8 +2489,47 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
+  /**
+   * MINAS DE TON: permanent passive TON investment. Every number (accrual, storage
+   * cap, loyalty bonus, limits and visibility) is resolved server-side; the client
+   * only renders the returned state.
+   */
+  'ton-mines': async (db, user, body) => {
+    const action = String(body.action || 'state');
+    try {
+      if (action === 'state') return await rpc(db, 'ton_mines_state', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.mineId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_template_id: body.mineId,
+          p_idempotency_key: `tonmine:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.mineId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_create_order', {
+          p_telegram_id: user.id,
+          p_template_id: body.mineId,
+          p_idempotency_key: `tonmine:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyTonMinePurchases(db, user);
+      if (action === 'claim') {
+        const holdingId = body.holdingId ? String(body.holdingId) : null;
+        if (holdingId && !isUuid(holdingId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_claim', { p_telegram_id: user.id, p_holding_id: holdingId });
+      }
+    } catch (error) {
+      console.error('[TON MINES]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
+    }
+    throw new Error('Ação inválida.');
+  },
+
   /** MYTHREON ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
   arsenal: async (db, user) => await rpc(db, 'arsenal_json', { p_telegram_id: user.id }),
+
 
   /**
    * NFT EXCLUSIVE EQUIPMENT store (1/1 supply each). Class validation for weapons,
