@@ -3207,9 +3207,16 @@ export type Database = {
       clan_raid_attacks: {
         Row: {
           attack_day: string
+          attack_number: number | null
+          boss_hp_after: number | null
+          boss_hp_before: number | null
           clan_id: string
+          combat_damage: number
           created_at: string
+          daily_hp_remaining_after: number | null
+          daily_hp_remaining_before: number | null
           damage: number
+          hp_damage_applied: number
           id: string
           idempotency_key: string | null
           payload: Json
@@ -3219,9 +3226,16 @@ export type Database = {
         }
         Insert: {
           attack_day?: string
+          attack_number?: number | null
+          boss_hp_after?: number | null
+          boss_hp_before?: number | null
           clan_id: string
+          combat_damage?: number
           created_at?: string
+          daily_hp_remaining_after?: number | null
+          daily_hp_remaining_before?: number | null
           damage?: number
+          hp_damage_applied?: number
           id?: string
           idempotency_key?: string | null
           payload?: Json
@@ -3231,9 +3245,16 @@ export type Database = {
         }
         Update: {
           attack_day?: string
+          attack_number?: number | null
+          boss_hp_after?: number | null
+          boss_hp_before?: number | null
           clan_id?: string
+          combat_damage?: number
           created_at?: string
+          daily_hp_remaining_after?: number | null
+          daily_hp_remaining_before?: number | null
           damage?: number
+          hp_damage_applied?: number
           id?: string
           idempotency_key?: string | null
           payload?: Json
@@ -3277,6 +3298,7 @@ export type Database = {
           clan_id: string
           clan_power_snapshot: number
           cleared_in_hours: number | null
+          combat_damage: number
           created_at: string
           current_hp: number
           deadline_days: number
@@ -3309,6 +3331,7 @@ export type Database = {
           clan_id: string
           clan_power_snapshot?: number
           cleared_in_hours?: number | null
+          combat_damage?: number
           created_at?: string
           current_hp: number
           deadline_days?: number
@@ -3341,6 +3364,7 @@ export type Database = {
           clan_id?: string
           clan_power_snapshot?: number
           cleared_in_hours?: number | null
+          combat_damage?: number
           created_at?: string
           current_hp?: number
           deadline_days?: number
@@ -3376,6 +3400,7 @@ export type Database = {
         Row: {
           attacks: number
           clan_id: string
+          combat_damage: number
           created_at: string
           effective_damage: number
           first_attack_at: string
@@ -3388,6 +3413,7 @@ export type Database = {
         Insert: {
           attacks?: number
           clan_id: string
+          combat_damage?: number
           created_at?: string
           effective_damage?: number
           first_attack_at?: string
@@ -3400,6 +3426,7 @@ export type Database = {
         Update: {
           attacks?: number
           clan_id?: string
+          combat_damage?: number
           created_at?: string
           effective_damage?: number
           first_attack_at?: string
@@ -19198,6 +19225,7 @@ export type Database = {
           clan_id: string
           clan_power_snapshot: number
           cleared_in_hours: number | null
+          combat_damage: number
           created_at: string
           current_hp: number
           deadline_days: number
