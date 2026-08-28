@@ -1863,6 +1863,7 @@ export type Database = {
           daily_limit_override: number | null
           difficulty_rating: string | null
           effective_power: number
+          fixed_fc_pool_override: number | null
           last_quality: string | null
           metrics: Json
           official_power: number
@@ -1883,6 +1884,7 @@ export type Database = {
           daily_limit_override?: number | null
           difficulty_rating?: string | null
           effective_power?: number
+          fixed_fc_pool_override?: number | null
           last_quality?: string | null
           metrics?: Json
           official_power?: number
@@ -1903,6 +1905,7 @@ export type Database = {
           daily_limit_override?: number | null
           difficulty_rating?: string | null
           effective_power?: number
+          fixed_fc_pool_override?: number | null
           last_quality?: string | null
           metrics?: Json
           official_power?: number
@@ -16907,6 +16910,10 @@ export type Database = {
         Args: { p_admin_id: number; p_value: number }
         Returns: Json
       }
+      admin_clan_boss_personal_set_player_fc: {
+        Args: { p_admin_id: number; p_telegram_id: number; p_value: number }
+        Returns: Json
+      }
       admin_clan_raid_audit: { Args: { p_clan: string }; Returns: Json }
       admin_clan_raid_set: {
         Args: { p_field: string; p_value: number }
@@ -19064,6 +19071,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_boss_personal_fc_pool: { Args: { p_user: string }; Returns: number }
       clan_boss_personal_scaling: { Args: { p_user: string }; Returns: Json }
       clan_boss_player_metrics: { Args: { p_user: string }; Returns: Json }
       clan_boss_profile_persist: { Args: { p_user: string }; Returns: Json }
