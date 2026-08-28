@@ -932,11 +932,8 @@ function App() {
 
           <ClanHall clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
 
-          {telegramInitData ? (
-            <div className="mt-3 w-full">
-              <TonMinesEntryCard telegramInitData={telegramInitData}/>
-            </div>
-          ) : null}
+          {telegramInitData ? <TonMinesEntryCard telegramInitData={telegramInitData}/> : null}
+
 
 
           <div className="flex w-full items-start justify-between">
