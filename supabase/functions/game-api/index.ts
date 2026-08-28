@@ -2324,6 +2324,10 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'status');
     if (action === 'status') return rpc(db, 'get_hero_mining_state', { p_telegram_id: user.id });
     if (action === 'claim') return rpc(db, 'claim_hero_mining', { p_telegram_id: user.id });
+    // RARE HERO MYTH MINING: proportional slice of a fixed daily budget with
+    // diminishing returns. Rates/units/emission are computed server-side only.
+    if (action === 'rare-status') return rpc(db, 'rare_myth_mining_state', { p_telegram_id: user.id });
+    if (action === 'rare-claim') return rpc(db, 'rare_myth_mining_claim', { p_telegram_id: user.id });
     throw new Error('INVALID_ACTION');
   },
 
