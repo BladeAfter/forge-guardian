@@ -80,6 +80,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
 
         <HeroMiningBar telegramInitData={telegramInitData} state={mining} />
+        <RareMythMiningCard telegramInitData={telegramInitData} />
 
         <section className="mt-2 rounded-2xl border border-white/10 bg-black/45 p-2.5">
           <div className="flex items-center justify-between gap-2">
