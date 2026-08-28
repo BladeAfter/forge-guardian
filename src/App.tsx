@@ -15,6 +15,7 @@ import { BossPage } from './pages/BossPage';
 import { WalletPage } from './pages/WalletPage';
 import { ProfilePage } from './pages/ProfilePage';
 import {ClanHall}from'./components/ClanHall';
+import {TonMinesEntryCard}from'./components/TonMinesEntryCard';
 import {PartnersModal}from'./components/PartnersModal';
 import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
