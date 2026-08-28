@@ -1136,3 +1136,32 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   0%,100%{filter:drop-shadow(0 0 6px rgba(190,225,255,.5)) brightness(1)}
   50%{filter:drop-shadow(0 0 20px rgba(255,236,170,.85)) brightness(1.12)}
 }
+
+/* ============ MINAS DE TON (prédio do cenário, abaixo do Salão do Clã) ============ */
+.ton-mine{position:absolute;left:50%;top:76%;z-index:1;display:flex;width:clamp(118px,31vw,148px);max-width:calc(100vw - 240px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
+.ton-mine:active{transform:scale(.98)}
+.ton-mine-ground{position:absolute;bottom:10px;left:14%;width:72%;height:16px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
+.ton-mine-shape{position:relative;display:block;width:100%;line-height:0}
+.ton-mine-art{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 14px 16px rgba(0,0,0,.85)) drop-shadow(0 0 12px rgba(56,170,230,.26)) saturate(1.04) brightness(.98)}
+.ton-mine:hover .ton-mine-art{filter:drop-shadow(0 14px 16px rgba(0,0,0,.85)) drop-shadow(0 0 18px rgba(94,214,255,.4)) brightness(1.06)}
+.ton-mine-glow{position:absolute;inset:44% 34% 22% 34%;border-radius:40% 40% 22% 22%;background:radial-gradient(ellipse at center,rgba(94,214,255,.32),transparent 70%);opacity:.6;animation:ton-mine-pulse 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes ton-mine-pulse{0%,100%{opacity:.45}50%{opacity:.9}}
+.ton-mine-torch{position:absolute;bottom:26%;width:8%;aspect-ratio:1;pointer-events:none}
+.ton-mine-torch--left{left:24%}
+.ton-mine-torch--right{right:26%}
+.ton-mine-torch i{position:absolute;inset:24%;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 62%,#fff7d1,#fbbf24 42%,rgba(249,115,22,.25) 70%,transparent 78%);filter:blur(1px);animation:ton-mine-flame 1.5s ease-in-out infinite}
+.ton-mine-torch--right i{animation-delay:.5s}
+@keyframes ton-mine-flame{0%,100%{transform:scale(1) translateY(0);opacity:.85}50%{transform:scale(1.2) translateY(-8%);opacity:1}}
+.ton-mine-motes{position:absolute;inset:0;pointer-events:none}
+.ton-mine-motes i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(147,224,255,.9);box-shadow:0 0 6px rgba(59,190,246,.8);opacity:0;animation:ton-mine-mote 6.5s ease-in-out infinite}
+.ton-mine-motes i:nth-child(1){left:30%;bottom:34%}
+.ton-mine-motes i:nth-child(2){left:56%;bottom:26%;animation-delay:2.1s}
+.ton-mine-motes i:nth-child(3){left:72%;bottom:40%;animation-delay:4.3s}
+@keyframes ton-mine-mote{0%{opacity:0;transform:translateY(0)}30%{opacity:.9}100%{opacity:0;transform:translateY(-30px)}}
+.ton-mine-ready{position:absolute;top:-2%;left:50%;translate:-50% 0;padding:2px 7px;border-radius:999px;border:1px solid rgba(94,214,255,.6);background:rgba(4,12,20,.9);font-size:7.5px;font-weight:900;letter-spacing:.1em;line-height:1.4;text-transform:uppercase;color:#a5e9ff;white-space:nowrap;box-shadow:0 0 12px rgba(56,170,230,.45)}
+.ton-mine-sign{position:relative;z-index:2;display:inline-flex;align-items:center;gap:5px;margin-top:-2px;max-width:100%;padding:2px 7px;border:1px solid rgba(198,157,74,.75);border-radius:4px;background:linear-gradient(#2a1a0e,#160d06);box-shadow:0 4px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,214,140,.18)}
+.ton-mine-sign-text{display:block;min-width:0;text-align:center}
+.ton-mine-sign-text b{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
+.ton-mine-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fd6f0}
+@media (max-width:380px){.ton-mine{width:clamp(104px,28vw,126px);top:74%}}
+@media (prefers-reduced-motion:reduce){.ton-mine-torch i,.ton-mine-motes i,.ton-mine-glow{animation:none}.ton-mine-motes{display:none}}
