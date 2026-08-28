@@ -5,7 +5,6 @@ import { buildings, characters } from '../gameAssets';
 import { FounderPackCard } from '../components/FounderPackCard';
 import { VeteranVaultCard } from '../components/VeteranVaultCard';
 import { VeteranVaultV2Card } from '../components/VeteranVaultV2Card';
-import { TonMinesEntryCard } from '../components/TonMinesEntryCard';
 
 
 type VillagePageProps = {

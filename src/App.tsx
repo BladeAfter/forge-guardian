@@ -931,6 +931,12 @@ function App() {
 
           <ClanHall clan={clanDashboard?.clan??null} onOpen={()=>openInternal('clan')}/>
 
+          {telegramInitData ? (
+            <div className="mt-3 w-full">
+              <TonMinesEntryCard telegramInitData={telegramInitData}/>
+            </div>
+          ) : null}
+
 
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
