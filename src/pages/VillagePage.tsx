@@ -21,7 +21,6 @@ export function VillagePage({ game, onUpgrade, lang, telegramInitData }: Village
       {telegramInitData ? <FounderPackCard telegramInitData={telegramInitData} /> : null}
       {telegramInitData ? <VeteranVaultCard telegramInitData={telegramInitData} /> : null}
       {telegramInitData ? <VeteranVaultV2Card telegramInitData={telegramInitData} /> : null}
-      {telegramInitData ? <TonMinesEntryCard telegramInitData={telegramInitData} /> : null}
 
       <div className="rounded-3xl border border-white/10 bg-forge-black/80 p-4 shadow-card">
         <div className="relative mb-4 flex min-h-24 items-center justify-between overflow-hidden">
