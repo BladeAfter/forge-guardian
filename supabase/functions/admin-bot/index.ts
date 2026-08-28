@@ -6240,6 +6240,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
       { t: "⚙️ ALTERAR TAXA TON", d: "hm:ask:hmrate" },
       { t: "💠 MÍNIMO TON", d: "hm:ask:hmmin" },
     ],
+    [{ t: "💜 RARE HERO MYTH MINING", d: "hm:rare" }],
     [{ t: "📜 MINING HISTORY", d: "hm:hist" }],
     [{ t: d.enabled ? "⏸ PAUSAR MINERAÇÃO" : "▶️ ATIVAR MINERAÇÃO", d: `hm:toggle:${d.enabled ? "0" : "1"}` }],
     [{ t: "👤 CONSULTAR JOGADOR", d: "hm:ask:hmuser" }],
