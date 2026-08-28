@@ -11709,6 +11709,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
+  if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
 
   if (key.startsWith("nprc")) return nftPricePrompt(ctx, key, args, text);
   if (key === "hpset" || key === "hpcurve" || key === "hpquest") return heroProgressionPrompt(ctx, key, args, text);
