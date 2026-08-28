@@ -862,7 +862,7 @@ export async function verifyNftEquipmentPurchases(telegramInitData:string):Promi
  * Hero TON mining. Rates, elapsed time and claimable amount are ALL server-side;
  * the client only reads the state and asks for a claim.
  */
-export async function miningRequest<T=HeroMiningState>(initData:string,action:'status'|'claim'):Promise<T>{
+export async function miningRequest<T=HeroMiningState>(initData:string,action:'status'|'claim'|'rare-status'|'rare-claim'):Promise<T>{
   const response=await forgeFetch('mining',{initData,action});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a mineração.');
   const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;
