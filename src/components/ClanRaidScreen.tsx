@@ -42,6 +42,9 @@ type Raid = {
   allowedDamage: number;
   damageDealt: number;
   remainingAllowed: number;
+  hpGateReached?: boolean;
+  hpDamageTotal?: number;
+
 
   catchupPct: number;
   totalDamage: number;
