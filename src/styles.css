@@ -1138,7 +1138,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 
 /* ============ MINAS DE TON (prédio do cenário, abaixo do Salão do Clã) ============ */
-.ton-mine{position:absolute;left:50%;top:76%;z-index:1;display:flex;width:clamp(118px,31vw,148px);max-width:calc(100vw - 240px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
+.ton-mine{position:absolute;left:50%;top:84%;z-index:1;display:flex;width:clamp(118px,31vw,148px);max-width:calc(100vw - 240px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
 .ton-mine:active{transform:scale(.98)}
 .ton-mine-ground{position:absolute;bottom:10px;left:14%;width:72%;height:16px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
 .ton-mine-shape{position:relative;display:block;width:100%;line-height:0}
@@ -1163,5 +1163,5 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .ton-mine-sign-text{display:block;min-width:0;text-align:center}
 .ton-mine-sign-text b{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
 .ton-mine-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fd6f0}
-@media (max-width:380px){.ton-mine{width:clamp(104px,28vw,126px);top:74%}}
+@media (max-width:380px){.ton-mine{width:clamp(104px,28vw,126px);top:82%}}
 @media (prefers-reduced-motion:reduce){.ton-mine-torch i,.ton-mine-motes i,.ton-mine-glow{animation:none}.ton-mine-motes{display:none}}
