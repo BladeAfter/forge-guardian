@@ -7,6 +7,7 @@ import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
 import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
 import { HeroMiningBar } from '../components/HeroMiningBar';
+import { RareMythMiningCard } from '../components/RareMythMiningCard';
 import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
@@ -79,6 +80,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
             <div className={`w-1/3 shrink-0 pr-1 ${tab !== 'collection' ? 'pointer-events-none' : ''}`}>
 
         <HeroMiningBar telegramInitData={telegramInitData} state={mining} />
+        <RareMythMiningCard telegramInitData={telegramInitData} />
 
         <section className="mt-2 rounded-2xl border border-white/10 bg-black/45 p-2.5">
           <div className="flex items-center justify-between gap-2">

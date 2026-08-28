@@ -4202,6 +4202,15 @@ const PROMPTS: Record<string, string> = {
     "🪙 Envie o valor mínimo de resgate da mineração em MYTH (<code>0</code> libera qualquer valor).\nEx.: <code>100</code>",
   hmpool:
     "🪙 Envie a <b>alocação total</b> da MYTH MINING POOL. Ex.: <code>5000000</code>\n<i>Não pode passar do supply total nem ficar abaixo do já distribuído.</i>",
+  rmbudget:
+    "🎯 Envie o <b>GLOBAL DAILY BUDGET</b> de MYTH para os Heróis Raros. Ex.: <code>10000</code>\n<i>Esse é o teto total emitido por dia, não importa quantos raros existam.</i>",
+  rmcap:
+    "🛡 Envie o <b>PLAYER DAILY CAP</b> em MYTH (segunda proteção por jogador). Ex.: <code>100</code>",
+  rmmin: "🪙 Envie o resgate mínimo do RARE MINING em MYTH. Ex.: <code>10</code>",
+  rmtier:
+    "📉 Envie <code>tier porcentagem</code> do peso.\n1 = raros 1–20 · 2 = 21–50 · 3 = 51–100 · 4 = 101+\nEx.: <code>2 25</code>",
+  rmpool:
+    "➕ Envie quanto MYTH <b>adicionar</b> à reserva de mineração. Ex.: <code>1000000</code>\n<i>Sai do supply oficial já existente — nada é criado.</i>",
 
   afsearch: "🛡 Envie o <b>Telegram ID</b>, @usuário ou nome do jogador para consultar dispositivos.",
   afunblock: "🛡 Envie o <b>Telegram ID</b> (ou o identificador do dispositivo) que deve ser desbloqueado.",
@@ -6240,6 +6249,7 @@ async function hmHub(ctx: Ctx, useEdit = true) {
       { t: "⚙️ ALTERAR TAXA TON", d: "hm:ask:hmrate" },
       { t: "💠 MÍNIMO TON", d: "hm:ask:hmmin" },
     ],
+    [{ t: "💜 RARE HERO MYTH MINING", d: "hm:rare" }],
     [{ t: "📜 MINING HISTORY", d: "hm:hist" }],
     [{ t: d.enabled ? "⏸ PAUSAR MINERAÇÃO" : "▶️ ATIVAR MINERAÇÃO", d: `hm:toggle:${d.enabled ? "0" : "1"}` }],
     [{ t: "👤 CONSULTAR JOGADOR", d: "hm:ask:hmuser" }],
@@ -6293,6 +6303,92 @@ async function hmUserCard(ctx: Ctx, ref: string, useEdit = true) {
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
 
+// ---------------------------------------------------------------- 💜 RARE HERO MYTH MINING
+// Rare heroes mine MYTH as a PROPORTIONAL SLICE of a fixed global daily budget, with
+// diminishing returns per rare count and a per-player hard cap. Nothing is minted:
+// every reward is paid from the pre-allocated MYTH MINING POOL.
+async function rmHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_rare_myth_mining_overview", { p_admin_id: ctx.adminId })) as any;
+  const pool = (d.pool ?? {}) as any;
+  const tiers = arr<any>(d.tiers)
+    .map((t) => `• <b>${esc(String(t.label))}</b> raros → ${Math.round(Number(t.weight ?? 0) * 100)}% do peso`)
+    .join("\n");
+  const top =
+    arr<any>(d.topMiners)
+      .map(
+        (m) =>
+          `• ${esc(String(m.name ?? "—"))} <code>${m.telegramId}</code> · ${fmt(m.rareCount)} raros · ${m.units} un · <b>${hmMyth(m.emitted)} MYTH</b>`,
+      )
+      .join("\n") || "sem emissão hoje";
+  const text =
+    `💜 <b>RARE HERO MYTH MINING</b>\n` +
+    `STATUS: <b>${d.enabled ? "🟢 ACTIVE" : "🔴 PAUSED"}</b>\n` +
+    `GLOBAL DAILY BUDGET: <b>${hmMyth(d.dailyBudgetMyth)} MYTH</b>\n` +
+    `PLAYER DAILY CAP: <b>${hmMyth(d.playerDailyCapMyth)} MYTH</b>\n` +
+    `Resgate mínimo: ${hmMyth(d.minClaimMyth)} MYTH\n\n` +
+    `<b>DIMINISHING RETURNS</b>\n${tiers}\n\n` +
+    `<b>SNAPSHOT DE HOJE</b>\nMineradores: <b>${fmt(d.miners)}</b> · unidades efetivas globais: <b>${hmMyth(d.globalUnits)}</b>\n` +
+    `Emitido hoje: <b>${hmMyth(d.emittedToday)} MYTH</b> · 7d ${hmMyth(d.emitted7d)} · 30d ${hmMyth(d.emitted30d)}\n` +
+    `Não coletado: ${hmMyth(d.unclaimedMyth)} MYTH\n\n` +
+    `<b>REWARD POOL</b>\nAllocated ${hmMyth(pool.allocated)} · Distributed ${hmMyth(pool.distributed)} · Available <b>${hmMyth(pool.available)}</b>\n` +
+    `<i>Nenhum MYTH é criado: a emissão sai da reserva dentro do supply de 100M.</i>\n\n` +
+    `<b>TOP MINERS (hoje)</b>\n${top}`;
+  const rows = [
+    [{ t: "🎯 DAILY BUDGET", d: "hm:ask:rmbudget" }],
+    [
+      { t: "🛡 PLAYER DAILY CAP", d: "hm:ask:rmcap" },
+      { t: "🪙 MÍNIMO MYTH", d: "hm:ask:rmmin" },
+    ],
+    [{ t: "📉 ALTERAR TIER %", d: "hm:ask:rmtier" }],
+    [{ t: "➕ ADD ALLOCATION À POOL", d: "hm:ask:rmpool" }],
+    [{ t: d.enabled ? "⏸ PAUSAR RARE MINING" : "▶️ ATIVAR RARE MINING", d: `hm:rtoggle:${d.enabled ? "0" : "1"}` }],
+    [{ t: "🔄 ATUALIZAR", d: "hm:rare" }],
+    nav("hm:hub"),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function rmPrompt(ctx: Ctx, key: string, text: string) {
+  const num = (raw: string) => Number(String(raw).replace(/[.\s]/g, "").replace(",", ".").trim());
+  switch (key) {
+    case "rmbudget":
+    case "rmcap":
+    case "rmmin": {
+      const value = num(text);
+      if (!Number.isFinite(value) || value < 0)
+        throw new Error("KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>10000</code>");
+      const field = key === "rmbudget" ? "budget" : key === "rmcap" ? "playercap" : "minclaim";
+      await rpc("admin_rare_myth_mining_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+      await clearSession(ctx);
+      await send(ctx, `💜 Atualizado: <b>${hmMyth(value)} MYTH</b>.`);
+      return rmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case "rmtier": {
+      const [tier, raw] = text.trim().split(/\s+/);
+      const value = Number(String(raw ?? "").replace(",", "."));
+      const map: Record<string, string> = { "1": "tier1", "2": "tier2", "3": "tier3", "4": "tier4" };
+      const field = map[String(tier ?? "").trim()];
+      if (!field || !Number.isFinite(value) || value < 0 || value > 100)
+        throw new Error("KEEP_SESSION::⚠️ Envie <code>tier porcentagem</code>. Ex.: <code>2 25</code>");
+      await rpc("admin_rare_myth_mining_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+      await clearSession(ctx);
+      await send(ctx, `📉 TIER ${tier} definido em <b>${value}%</b> do peso.`);
+      return rmHub({ ...ctx, messageId: undefined }, false);
+    }
+    case "rmpool": {
+      const value = num(text);
+      if (!Number.isFinite(value) || value <= 0)
+        throw new Error("KEEP_SESSION::⚠️ Envie um número válido em MYTH. Ex.: <code>1000000</code>");
+      await rpc("admin_rare_myth_pool_add", { p_admin_id: ctx.adminId, p_amount: value });
+      await clearSession(ctx);
+      await send(ctx, `➕ Alocação adicionada: <b>${hmMyth(value)} MYTH</b> na reserva de mineração.`);
+      return rmHub({ ...ctx, messageId: undefined }, false);
+    }
+    default:
+      return rmHub({ ...ctx, messageId: undefined }, false);
+  }
+}
+
 async function hmCallback(ctx: Ctx, rest: string[]) {
   const [sub, a] = rest;
   switch (sub) {
@@ -6316,6 +6412,20 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
 
+    case "rare":
+      return rmHub(ctx);
+    case "rtoggle": {
+      const next = a === "1";
+      try {
+        await rpc("admin_rare_myth_mining_toggle", { p_admin_id: ctx.adminId, p_enabled: next });
+      } catch (err) {
+        console.error("[admin-bot] rare_myth_mining_toggle failed", err);
+        await send(ctx, "⚠️ Não foi possível alterar o RARE HERO MYTH MINING.");
+        return rmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next ? "✅ RARE HERO MYTH MINING ativado." : "⏸ RARE HERO MYTH MINING pausado.");
+      return rmHub({ ...ctx, messageId: undefined }, false);
+    }
     case "hist":
       return hmHistory(ctx);
     // Currency switch: the RPC settles the previous currency at now() and only then flips,
@@ -11599,6 +11709,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
+  if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
 
   if (key.startsWith("nprc")) return nftPricePrompt(ctx, key, args, text);
   if (key === "hpset" || key === "hpcurve" || key === "hpquest") return heroProgressionPrompt(ctx, key, args, text);

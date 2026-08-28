@@ -862,7 +862,7 @@ export async function verifyNftEquipmentPurchases(telegramInitData:string):Promi
  * Hero TON mining. Rates, elapsed time and claimable amount are ALL server-side;
  * the client only reads the state and asks for a claim.
  */
-export async function miningRequest<T=HeroMiningState>(initData:string,action:'status'|'claim'):Promise<T>{
+export async function miningRequest<T=HeroMiningState>(initData:string,action:'status'|'claim'|'rare-status'|'rare-claim'):Promise<T>{
   const response=await forgeFetch('mining',{initData,action});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a mineração.');
   const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;
@@ -875,6 +875,10 @@ export async function miningRequest<T=HeroMiningState>(initData:string,action:'s
 }
 export const fetchHeroMining=(initData:string)=>miningRequest<HeroMiningState>(initData,'status');
 export const claimHeroMining=(initData:string)=>miningRequest<HeroMiningClaimResult>(initData,'claim');
+/** Rare hero MYTH mining: the estimated daily rate varies with the global pool share. */
+export type RareMythMiningState={enabled:boolean;rareCount:number;effectiveUnits:number;globalUnits:number;estimatedDailyMyth:number;emittedToday:number;playerDailyCapMyth:number;globalDailyBudgetMyth:number;globalEmittedToday:number;unclaimedMyth:number;lifetimeMyth:number;minClaimMyth:number;poolAvailable:number;nextResetAt:string|null;tiers:{from:number;to:number|null;weight:number}[];claimedMyth?:number};
+export const fetchRareMythMining=(initData:string)=>miningRequest<RareMythMiningState>(initData,'rare-status');
+export const claimRareMythMining=(initData:string)=>miningRequest<RareMythMiningState>(initData,'rare-claim');
 
 
 /**
