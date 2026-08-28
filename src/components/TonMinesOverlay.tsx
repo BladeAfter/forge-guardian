@@ -128,7 +128,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
       toast.success(
         data.mode === 'internal'
           ? `✓ ${mine.name} ativada — ${ton2(mine.priceTon)} TON pagos com saldo interno.`
-          : 'Pagamento enviado! Ativando a mina após a confirmação на blockchain.'.replace('на', 'na'),
+          : 'Pagamento enviado! A mina é ativada após a confirmação na blockchain.',
       );
       await refresh();
     },
