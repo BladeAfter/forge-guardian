@@ -1204,3 +1204,90 @@ export const spinRoulette = (initData: string, idempotencyKey: string) =>
 /** Confirms wallet transfers on-chain and settles every paid spin exactly once. */
 export const verifyRoulettePayments = (initData: string) =>
   rouletteCall<{ checked: number; settled: RouletteSpinResult[]; pending: string[] }>(initData, { action: 'verify-payments' });
+
+
+/**
+ * MINAS DE TON — investimento passivo permanente em TON.
+ * Todo o rendimento, teto de armazenamento, bônus de fidelidade e limites são
+ * calculados no servidor; o cliente só lê o estado e pede compra/coleta.
+ */
+export type TonMineHolding = {
+  id: string;
+  purchasedAt: string;
+  storedTon: number;
+  totalClaimedTon: number;
+  paidTon: number;
+  multiplier: number;
+  dailyTon: number;
+  capacityTon: number;
+  daysHeld: number;
+  fullAt: string | null;
+};
+export type TonMineTemplate = {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  priceTon: number;
+  dailyTon: number;
+  storageDays: number;
+  maxPerPlayer: number;
+  sortOrder: number;
+  paused: boolean;
+  roiDays: number | null;
+  ownedCount: number;
+  status: 'OWNED' | 'AVAILABLE' | 'LOCKED';
+  holdings: TonMineHolding[];
+};
+export type TonMinesState = {
+  visible: boolean;
+  enabled: boolean;
+  paused: boolean;
+  loyalty: { enabled: boolean; bonus30: number; bonus60: number };
+  maxTotalPerPlayer: number;
+  ownedTotal: number;
+  balanceTon: number;
+  summary: { investedTon: number; activeMines: number; dailyTon: number; unclaimedTon: number; lifetimeClaimedTon: number };
+  mines: TonMineTemplate[];
+  claims: { id: string; mineName: string | null; mineKey: string | null; amountTon: number; claimType: string; createdAt: string }[];
+  claimedTon?: number;
+};
+export type TonMineOrder = { id: string; paymentAddress: string; amountNano: string; amountTon: number; paymentComment: string; expiresAt: string };
+
+const TON_MINE_ERRORS: Record<string, string> = {
+  TON_MINES_DISABLED: 'As MINAS DE TON não estão disponíveis para você.',
+  TON_MINES_PAUSED: 'As MINAS DE TON estão temporariamente pausadas.',
+  MINE_NOT_FOUND: 'Mina não encontrada.',
+  MINE_PAUSED: 'Esta mina está temporariamente indisponível.',
+  MINE_LIMIT_REACHED: 'Você já possui o limite desta mina.',
+  MINE_TOTAL_LIMIT_REACHED: 'Você atingiu o limite total de minas.',
+  INSUFFICIENT_TON_BALANCE: 'Saldo TON insuficiente. Deposite TON ou pague pela carteira.',
+  NOTHING_TO_CLAIM: 'Nada para coletar ainda.',
+  TON_HOT_WALLET_MISSING: 'Carteira de pagamentos indisponível. Tente mais tarde.',
+  PAYMENT_NOT_CONFIRMED: 'Pagamento ainda não confirmado na blockchain.',
+  TX_ALREADY_USED: 'Esta transação já foi utilizada.',
+  PLAYER_NOT_FOUND: 'Jogador não encontrado.',
+};
+
+async function tonMinesCall<T>(initData: string, body: Record<string, unknown>): Promise<T> {
+  const response = await forgeFetch('ton-mines', { initData, ...body });
+  if (response.status === 404) throw new Error('Backend indisponível: não foi possível contatar as MINAS DE TON.');
+  const payload = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
+  if (!response.ok || !payload) {
+    const raw = payload?.error || '';
+    throw new Error(TON_MINE_ERRORS[raw] || raw || 'Não foi possível processar as MINAS DE TON.');
+  }
+  return payload;
+}
+
+export const fetchTonMines = (initData: string) => tonMinesCall<TonMinesState>(initData, { action: 'state' });
+export const buyTonMineWithBalance = (initData: string, mineId: string, idempotencyKey: string) =>
+  tonMinesCall<{ status: string; mineName?: string; priceTon?: number }>(initData, { action: 'buy-balance', mineId, idempotencyKey });
+export const createTonMineOrder = (initData: string, mineId: string, idempotencyKey: string) =>
+  tonMinesCall<TonMineOrder>(initData, { action: 'order', mineId, idempotencyKey });
+export const verifyTonMinePurchases = (initData: string) =>
+  tonMinesCall<{ checked: number; completed: string[]; alreadyDelivered: string[]; pending: string[]; results: { mineName?: string }[] }>(initData, { action: 'verify-purchases' });
+/** `holdingId` ausente = COLETAR TUDO. */
+export const claimTonMine = (initData: string, holdingId?: string) =>
+  tonMinesCall<TonMinesState>(initData, { action: 'claim', holdingId });
