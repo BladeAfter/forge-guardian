@@ -6403,6 +6403,20 @@ async function hmCallback(ctx: Ctx, rest: string[]) {
       return hmHub({ ...ctx, messageId: undefined }, false);
     }
 
+    case "rare":
+      return rmHub(ctx);
+    case "rtoggle": {
+      const next = a === "1";
+      try {
+        await rpc("admin_rare_myth_mining_toggle", { p_admin_id: ctx.adminId, p_enabled: next });
+      } catch (err) {
+        console.error("[admin-bot] rare_myth_mining_toggle failed", err);
+        await send(ctx, "⚠️ Não foi possível alterar o RARE HERO MYTH MINING.");
+        return rmHub({ ...ctx, messageId: undefined }, false);
+      }
+      await send(ctx, next ? "✅ RARE HERO MYTH MINING ativado." : "⏸ RARE HERO MYTH MINING pausado.");
+      return rmHub({ ...ctx, messageId: undefined }, false);
+    }
     case "hist":
       return hmHistory(ctx);
     // Currency switch: the RPC settles the previous currency at now() and only then flips,
