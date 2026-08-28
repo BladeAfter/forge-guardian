@@ -2432,8 +2432,47 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
+  /**
+   * MINAS DE TON: permanent passive TON investment. Every number (accrual, storage
+   * cap, loyalty bonus, limits and visibility) is resolved server-side; the client
+   * only renders the returned state.
+   */
+  'ton-mines': async (db, user, body) => {
+    const action = String(body.action || 'state');
+    try {
+      if (action === 'state') return await rpc(db, 'ton_mines_state', { p_telegram_id: user.id });
+      if (action === 'buy-balance') {
+        if (!isUuid(body.mineId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_buy_with_balance', {
+          p_telegram_id: user.id,
+          p_template_id: body.mineId,
+          p_idempotency_key: `tonmine:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'order') {
+        if (!isUuid(body.mineId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_create_order', {
+          p_telegram_id: user.id,
+          p_template_id: body.mineId,
+          p_idempotency_key: `tonmine:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+        });
+      }
+      if (action === 'verify-purchases') return await verifyTonMinePurchases(db, user);
+      if (action === 'claim') {
+        const holdingId = body.holdingId ? String(body.holdingId) : null;
+        if (holdingId && !isUuid(holdingId)) throw new Error('INVALID_MINE');
+        return await rpc(db, 'ton_mine_claim', { p_telegram_id: user.id, p_holding_id: holdingId });
+      }
+    } catch (error) {
+      console.error('[TON MINES]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
+    }
+    throw new Error('Ação inválida.');
+  },
+
   /** MYTHREON ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
   arsenal: async (db, user) => await rpc(db, 'arsenal_json', { p_telegram_id: user.id }),
+
 
   /**
    * NFT EXCLUSIVE EQUIPMENT store (1/1 supply each). Class validation for weapons,
