@@ -19286,15 +19286,10 @@ export type Database = {
         Returns: Json
       }
       clan_shop_state: { Args: { p_telegram_id: number }; Returns: Json }
-      clan_treasury_donate:
-        | {
-            Args: { p_amount: number; p_asset: string; p_telegram_id: number }
-            Returns: Json
-          }
-        | {
-            Args: { p_amount: number; p_asset: string; p_telegram_id: string }
-            Returns: Json
-          }
+      clan_treasury_donate: {
+        Args: { p_amount: number; p_asset: string; p_telegram_id: string }
+        Returns: Json
+      }
       clan_treasury_move: {
         Args: {
           p_amount: number
