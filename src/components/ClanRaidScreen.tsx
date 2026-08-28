@@ -42,6 +42,9 @@ type Raid = {
   allowedDamage: number;
   damageDealt: number;
   remainingAllowed: number;
+  hpGateReached?: boolean;
+  hpDamageTotal?: number;
+
 
   catchupPct: number;
   totalDamage: number;
@@ -91,12 +94,14 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
     if (busy || !raid) return;
     setBusy(true);
     try {
-      const result = await clanRequest<{ status: string; damage: number }>(telegramInitData, {
+      const result = await clanRequest<{ status: string; damage: number; hpProtected?: boolean }>(telegramInitData, {
         action: 'raid-attack',
         clientKey: `${raid.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
       if (result.status === 'duplicate') toast('Ataque já registrado.');
+      else if (result.hpProtected) toast.success(`Dano causado: ${formatCurrency(result.damage)} · contabilizado no ranking (HP protegido)`);
       else toast.success(`Dano causado: ${formatCurrency(result.damage)}`);
+
       await load();
     } catch (error) {
       toast.error(clanErrorMessage(error, 'Ataque indisponível.'));
@@ -197,16 +202,18 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
 
                 {raid.status === 'ACTIVE' ? (
                   <>
-                    {raid.killProtected ? (
+                    {raid.killProtected || raid.hpGateReached ? (
                       <div className="mt-2.5 rounded-xl border border-sky-400/40 bg-sky-500/10 px-2.5 py-2 text-center">
                         <p className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-sky-200">
                           <ShieldCheck className="h-3.5 w-3.5" />Raid protegida
                         </p>
                         <p className="mt-0.5 text-[9px] text-slate-400">
-                          Não pode ser derrotada antes do DIA {raid.minKillDays} · libera em {countdown(raid.killUnlockAt)}
+                          Dano contabilizado no ranking · HP protegido até a próxima liberação
+                          {raid.killProtected ? ` · morte libera no DIA ${raid.minKillDays} (${countdown(raid.killUnlockAt)})` : ''}
                         </p>
                       </div>
                     ) : null}
+
                     <button
                       disabled={busy || !canAttack}
                       onClick={() => void attack()}
