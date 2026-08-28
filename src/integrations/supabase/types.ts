@@ -19249,7 +19249,19 @@ export type Database = {
         Args: { p_clan: string; p_raid?: string }
         Returns: number
       }
-      clan_resolve_user: { Args: { p_telegram_id: number }; Returns: string }
+      clan_resolve_user:
+        | {
+            Args: { p_telegram_id: number }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.clan_resolve_user(p_telegram_id => int8), public.clan_resolve_user(p_telegram_id => text). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { p_telegram_id: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.clan_resolve_user(p_telegram_id => int8), public.clan_resolve_user(p_telegram_id => text). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       clan_role_rank: { Args: { p_role: string }; Returns: number }
       clan_shop_buy: {
         Args: { p_item: string; p_quantity?: number; p_telegram_id: number }
