@@ -7,6 +7,7 @@ import { HeroRarityFusion } from '../components/HeroRarityFusion';
 import { InventoryPanel } from '../components/InventoryPanel';
 import { HeroDetailsPanel } from '../components/HeroDetailsPanel';
 import { HeroMiningBar } from '../components/HeroMiningBar';
+import { RareMythMiningCard } from '../components/RareMythMiningCard';
 import { DEFAULT_HERO_FILTERS, HERO_FILTER_CLASSES, HERO_FILTER_RARITIES, applyHeroFilters, isDefaultHeroFilters, type HeroFilters, type SortDir } from '../heroFilters';
 import type { PvpHero } from '../pvp';
 import { GIFT_HERO_LABEL, isGiftHero } from '../giftHeroes';
