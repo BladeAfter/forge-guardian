@@ -94,12 +94,14 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
     if (busy || !raid) return;
     setBusy(true);
     try {
-      const result = await clanRequest<{ status: string; damage: number }>(telegramInitData, {
+      const result = await clanRequest<{ status: string; damage: number; hpProtected?: boolean }>(telegramInitData, {
         action: 'raid-attack',
         clientKey: `${raid.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
       if (result.status === 'duplicate') toast('Ataque já registrado.');
+      else if (result.hpProtected) toast.success(`Dano causado: ${formatCurrency(result.damage)} · contabilizado no ranking (HP protegido)`);
       else toast.success(`Dano causado: ${formatCurrency(result.damage)}`);
+
       await load();
     } catch (error) {
       toast.error(clanErrorMessage(error, 'Ataque indisponível.'));
