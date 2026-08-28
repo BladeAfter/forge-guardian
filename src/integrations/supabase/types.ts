@@ -13289,6 +13289,141 @@ export type Database = {
         }
         Relationships: []
       }
+      rare_myth_mining_balances: {
+        Row: {
+          last_claim_at: string | null
+          lifetime_myth: number
+          unclaimed_myth: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_claim_at?: string | null
+          lifetime_myth?: number
+          unclaimed_myth?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_claim_at?: string | null
+          lifetime_myth?: number
+          unclaimed_myth?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rare_myth_mining_daily: {
+        Row: {
+          day_key: string
+          effective_units: number
+          emitted_myth: number
+          last_accrued_at: string
+          rare_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          day_key: string
+          effective_units?: number
+          emitted_myth?: number
+          last_accrued_at?: string
+          rare_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          day_key?: string
+          effective_units?: number
+          emitted_myth?: number
+          last_accrued_at?: string
+          rare_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rare_myth_mining_settings: {
+        Row: {
+          created_at: string
+          daily_budget_myth: number
+          enabled: boolean
+          id: boolean
+          min_claim_myth: number
+          player_daily_cap_myth: number
+          tier1_max: number
+          tier1_weight: number
+          tier2_max: number
+          tier2_weight: number
+          tier3_max: number
+          tier3_weight: number
+          tier4_weight: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_budget_myth?: number
+          enabled?: boolean
+          id?: boolean
+          min_claim_myth?: number
+          player_daily_cap_myth?: number
+          tier1_max?: number
+          tier1_weight?: number
+          tier2_max?: number
+          tier2_weight?: number
+          tier3_max?: number
+          tier3_weight?: number
+          tier4_weight?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_budget_myth?: number
+          enabled?: boolean
+          id?: boolean
+          min_claim_myth?: number
+          player_daily_cap_myth?: number
+          tier1_max?: number
+          tier1_weight?: number
+          tier2_max?: number
+          tier2_weight?: number
+          tier3_max?: number
+          tier3_weight?: number
+          tier4_weight?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rare_myth_mining_snapshots: {
+        Row: {
+          created_at: string
+          daily_budget_myth: number
+          day_key: string
+          emitted_myth: number
+          global_units: number
+          players: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_budget_myth?: number
+          day_key: string
+          emitted_myth?: number
+          global_units?: number
+          players?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_budget_myth?: number
+          day_key?: string
+          emitted_myth?: number
+          global_units?: number
+          players?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_bonus_claims: {
         Row: {
           amount_fc: number
@@ -17604,6 +17739,22 @@ export type Database = {
         Returns: Json
       }
       admin_quests_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_rare_myth_mining_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_rare_myth_mining_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: Json
+      }
+      admin_rare_myth_mining_toggle: {
+        Args: { p_admin_id: number; p_enabled: boolean }
+        Returns: Json
+      }
+      admin_rare_myth_pool_add: {
+        Args: { p_admin_id: number; p_amount: number }
+        Returns: Json
+      }
       admin_rarity_fusion_audit: {
         Args: { p_admin_id: number; p_limit?: number; p_ref?: string }
         Returns: Json
@@ -20975,6 +21126,30 @@ export type Database = {
       pvp_ticket_shop_state: { Args: { p_user_id: string }; Returns: Json }
       quest_timezone: { Args: never; Returns: string }
       quest_today: { Args: never; Returns: string }
+      rare_myth_effective_units: { Args: { p_count: number }; Returns: number }
+      rare_myth_mining_accrue: { Args: { p_user_id: string }; Returns: Json }
+      rare_myth_mining_claim: { Args: { p_telegram_id: number }; Returns: Json }
+      rare_myth_mining_state: { Args: { p_telegram_id: number }; Returns: Json }
+      rare_myth_rare_count: { Args: { p_user_id: string }; Returns: number }
+      rare_myth_reserved: { Args: never; Returns: number }
+      rare_myth_snapshot_ensure: {
+        Args: never
+        Returns: {
+          created_at: string
+          daily_budget_myth: number
+          day_key: string
+          emitted_myth: number
+          global_units: number
+          players: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "rare_myth_mining_snapshots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       rarity_base_atk: { Args: { r: string }; Returns: number }
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
