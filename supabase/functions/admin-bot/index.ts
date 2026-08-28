@@ -4428,7 +4428,7 @@ const PROMPTS: Record<string, string> = {
     'Envie o JSON da fusão (merge parcial). Ex.:\n<code>{"max_stars":5,"bonus_percent":{"1":5,"2":5,"3":7,"4":8,"5":10},"cost_fc":{"1":5000,"2":15000,"3":35000,"4":75000,"5":150000},"duplicates":{"1":5,"2":5,"3":5,"4":5,"5":5},"level_cap":{"0":20,"1":20,"2":25,"3":25,"4":30,"5":35}}</code>',
   rfcommon: "COMMON → UNCOMMON — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>10000 80 10</code>",
   rfuncommon: "UNCOMMON → RARE — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>25000 60 20</code>",
-  rfrare: "RARE → EPIC — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>60000 40 40</code>",
+  rfrare: "RARE → EPIC — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>30000 60 40</code>",
   rfepic: "EPIC → LEGENDARY — envie: <code>custo_fc chance fragmentos</code>\nEx.: <code>150000 20 80</code>",
   rfpool: "Envie: <code>hero_key on|off</code> para incluir/excluir o herói do sorteio da Rarity Fusion.",
   rfaudit: "Envie Telegram ID, @usuário, nome, carteira ou ID interno para filtrar a auditoria de fusões.",
