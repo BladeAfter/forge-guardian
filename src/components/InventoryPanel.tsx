@@ -238,13 +238,29 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 <p className="text-[10px] text-slate-400">{selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
                 {(selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.action === 'open-resource-chest' || selected.itemType === 'resource_chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
-                  <button
-                    disabled={busy}
-                    onClick={() => openChest.mutate(selected)}
-                    className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
-                  >
-                    {openChest.isPending ? t('inventory.opening') : t('inventory.open')}
-                  </button>
+                  <div className="mt-3 space-y-1.5">
+                    {/* Bulk open: 1 / 5 / 10 / MAX — always limited by the real stack size. */}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[1, 5, 10, selected.quantity].map((amount, index) => {
+                        const count = Math.min(amount, selected.quantity);
+                        const label = index === 3 ? `MAX (${selected.quantity})` : `x${count}`;
+                        return (
+                          <button
+                            key={index === 3 ? 'max' : amount}
+                            disabled={busy || selected.quantity < (index === 3 ? 1 : amount)}
+                            onClick={() => openChest.mutate({ item: selected, count })}
+                            className={`min-h-[38px] rounded-xl border text-[9px] font-black uppercase tracking-[.1em] disabled:opacity-40 ${index === 3 ? 'border-amber-300/60 bg-gradient-to-b from-amber-300/25 to-orange-500/15 text-amber-100' : 'border-amber-300/40 bg-amber-300/12 text-amber-200'}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-center text-[9px] font-black uppercase tracking-[.14em] text-slate-400">
+                      {batch ? `${t('inventory.opening')} ${batch.done}/${batch.total}` : t('inventory.open')}
+                    </p>
+                  </div>
+
                 ) : selected.itemType === 'egg' || selected.itemType === 'pet_egg' || selected.category === 'eggs' ? (
                   <button
                     disabled={busy}
