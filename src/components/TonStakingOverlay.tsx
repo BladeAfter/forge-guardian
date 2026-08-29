@@ -444,14 +444,29 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                   <button
                     type="button"
                     disabled={withdraw.isPending || (!matured && !state?.earlyUnstakeAllowed)}
-                    onClick={() => withdraw.mutate(position.id)}
+                    onClick={() => {
+                      if (!matured) {
+                        const pct = state?.earlyUnstakePenaltyPercent ?? 0;
+                        const ok = window.confirm(
+                          `Resgate antecipado: você perde ${pct}% do valor bloqueado e todo o rendimento acumulado desta posição. Continuar?`,
+                        );
+                        if (!ok) return;
+                      }
+                      withdraw.mutate(position.id);
+                    }}
                     className="flex items-center justify-center gap-1 rounded-lg py-1.5 text-[9px] font-black uppercase tracking-wide disabled:opacity-40"
                     style={{ border: '1px solid rgba(212,175,55,.35)', color: '#f6e3ab' }}
                   >
                     {matured ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />} Resgatar
                   </button>
                 </div>
+                {!matured && state?.earlyUnstakeAllowed ? (
+                  <p className="mt-1 text-[9px]" style={{ color: 'rgba(248,180,120,.85)' }}>
+                    Resgate antes do prazo: −{state.earlyUnstakePenaltyPercent}% do principal e perda do rendimento acumulado.
+                  </p>
+                ) : null}
               </article>
+
             );
           })}
           {state && state.positions.length === 0 ? (
