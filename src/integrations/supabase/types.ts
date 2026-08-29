@@ -16095,6 +16095,7 @@ export type Database = {
           auto_stake_min_ton: number
           early_unstake_allowed: boolean
           early_unstake_penalty_percent: number
+          early_unstake_reward_forfeit_percent: number
           enabled: boolean
           id: boolean
           max_stake_ton: number
@@ -16114,6 +16115,7 @@ export type Database = {
           auto_stake_min_ton?: number
           early_unstake_allowed?: boolean
           early_unstake_penalty_percent?: number
+          early_unstake_reward_forfeit_percent?: number
           enabled?: boolean
           id?: boolean
           max_stake_ton?: number
@@ -16133,6 +16135,7 @@ export type Database = {
           auto_stake_min_ton?: number
           early_unstake_allowed?: boolean
           early_unstake_penalty_percent?: number
+          early_unstake_reward_forfeit_percent?: number
           enabled?: boolean
           id?: boolean
           max_stake_ton?: number
