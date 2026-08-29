@@ -43,6 +43,13 @@
       "when": 1787968952836,
       "tag": "0005_ton_staking_rpcs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787969737780,
+      "tag": "0006_ton_staking_economy_guardrails",
+      "breakpoints": true
     }
   ]
 }
