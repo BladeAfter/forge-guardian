@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchTonMines, type TonMinesState } from '../services';
 import { TonMinesOverlay } from './TonMinesOverlay';
 import mineArt from '../assets/mines/mine-building.png.asset.json';
+import { useT } from '../LanguageContext';
 
 const ton = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -13,6 +14,7 @@ const ton = (value: number) => Number(value || 0).toLocaleString('pt-BR', { mini
  * A visibilidade continua decidida pelo servidor (`visible`).
  */
 export function TonMinesEntryCard({ telegramInitData }: { telegramInitData: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const { data: state } = useQuery<TonMinesState>({
     queryKey: ['ton-mines'],
@@ -31,7 +33,7 @@ export function TonMinesEntryCard({ telegramInitData }: { telegramInitData: stri
         tabIndex={0}
         onClick={() => setOpen(true)}
         onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setOpen(true); } }}
-        aria-label="Minas de TON"
+        aria-label={t('tonMines.entryLabel')}
         className="ton-mine"
       >
         <span className="ton-mine-ground" aria-hidden />
@@ -46,8 +48,8 @@ export function TonMinesEntryCard({ telegramInitData }: { telegramInitData: stri
 
         <span className="ton-mine-sign">
           <span className="ton-mine-sign-text">
-            <b>Minas de TON</b>
-            <i>{state.summary.activeMines > 0 ? `${ton(state.summary.dailyTon)} TON / dia` : 'Investir agora'}</i>
+            <b>{t('tonMines.entryLabel')}</b>
+            <i>{state.summary.activeMines > 0 ? t('tonMines.entryPerDay', { value: ton(state.summary.dailyTon) }) : t('tonMines.entryInvest')}</i>
           </span>
         </span>
       </div>

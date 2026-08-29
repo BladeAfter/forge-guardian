@@ -12,6 +12,8 @@ import {
   type TonStakingPlan,
   type TonStakingState,
 } from '../services';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 
 const ton = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const ton2 = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -22,13 +24,13 @@ const GOLD_FRAME = {
   boxShadow: '0 0 18px rgba(212, 175, 55, 0.08), inset 0 0 16px rgba(255, 190, 60, 0.04)',
 } as const;
 
-function unlockLabel(unlockAt: string): string {
+function unlockLabel(unlockAt: string, t: Translator): string {
   const diff = new Date(unlockAt).getTime() - Date.now();
-  if (!Number.isFinite(diff) || diff <= 0) return 'Liberado';
+  if (!Number.isFinite(diff) || diff <= 0) return t('tonStaking.unlocked');
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(hours / 24);
-  if (days >= 1) return `Libera em ${days}d ${hours % 24}h`;
-  return `Libera em ${hours}h ${Math.floor((diff % 3_600_000) / 60_000)}m`;
+  if (days >= 1) return t('tonStaking.unlockInDays', { days, hours: hours % 24 });
+  return t('tonStaking.unlockInHours', { hours, minutes: Math.floor((diff % 3_600_000) / 60_000) });
 }
 
 /**
@@ -39,6 +41,7 @@ function unlockLabel(unlockAt: string): string {
  * datas de liberação, rendimento acumulado, auto-staking das Minas e compound.
  */
 export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const t = useT();
   const client = useQueryClient();
   const [planId, setPlanId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
@@ -68,16 +71,16 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
 
   const stake = useMutation({
     mutationFn: async () => {
-      if (!plan) throw new Error('Selecione um plano.');
+      if (!plan) throw new Error(t('tonStaking.selectPlan'));
       const value = Number(String(amount).replace(',', '.'));
-      if (!Number.isFinite(value) || value <= 0) throw new Error('Informe um valor válido em TON.');
+      if (!Number.isFinite(value) || value <= 0) throw new Error(t('tonStaking.invalidAmount'));
       if (!stakeKey.current) stakeKey.current = `stk:${Date.now()}`;
       return stakeTon(telegramInitData, plan.id, value, compound, stakeKey.current);
     },
     onSuccess: async result => {
       stakeKey.current = '';
       setAmount('');
-      toast.success(`✓ ${ton(result.stakedTon || 0)} TON em staking por ${plan?.lockDays ?? 0} dias.`);
+      toast.success(t('tonStaking.stakedToast', { value: ton(result.stakedTon || 0), days: plan?.lockDays ?? 0 }));
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -86,7 +89,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
   const claim = useMutation({
     mutationFn: (positionId?: string) => claimTonStaking(telegramInitData, positionId, `clm:${Date.now()}`),
     onSuccess: async result => {
-      toast.success(`+${ton(result.claimedTon || 0)} TON creditados no saldo interno.`);
+      toast.success(t('tonStaking.claimedToast', { value: ton(result.claimedTon || 0) }));
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -95,7 +98,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
   const withdraw = useMutation({
     mutationFn: (positionId: string) => unstakeTon(telegramInitData, positionId, `uns:${positionId}`),
     onSuccess: async result => {
-      toast.success(`+${ton(result.returnedTon || 0)} TON resgatados.`);
+      toast.success(t('tonStaking.unstakedToast', { value: ton(result.returnedTon || 0) }));
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -105,7 +108,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
     mutationFn: (next: { enabled: boolean; percent: number; autoCompound: boolean }) =>
       setTonStakingPreferences(telegramInitData, { ...next, planId: plan?.id ?? null }),
     onSuccess: async () => {
-      toast.success('Auto-staking atualizado.');
+      toast.success(t('tonStaking.prefsSaved'));
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -141,15 +144,15 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
             </span>
             <div>
               <h1 className="text-base font-black uppercase tracking-wider" style={{ color: '#f6e3ab', textShadow: '0 0 14px rgba(212,175,55,.35)' }}>
-                TON Staking
+                {t('tonStaking.title')}
               </h1>
-              <p className="text-[10px] text-muted-foreground">Bloqueie TON interno · rende offline 24h</p>
+              <p className="text-[10px] text-muted-foreground">{t('tonStaking.subtitle')}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t('tonMines.close')}
             className="rounded-full p-1.5 text-muted-foreground transition hover:text-amber-100"
             style={GOLD_FRAME}
           >
@@ -164,10 +167,10 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
         >
           <div className="grid grid-cols-4 gap-1.5">
             {[
-              { label: 'Em stake', value: ton2(summary?.totalStakedTon ?? 0), icon: Lock },
-              { label: 'Mensal', value: ton(summary?.monthlyEstimateTon ?? 0), icon: TrendingUp },
-              { label: 'Posições', value: String(summary?.activePositions ?? 0), icon: Coins },
-              { label: 'Ganho', value: ton2(summary?.totalEarnedTon ?? 0), icon: Gem },
+              { label: t('tonStaking.staked'), value: ton2(summary?.totalStakedTon ?? 0), icon: Lock },
+              { label: t('tonStaking.monthly'), value: ton(summary?.monthlyEstimateTon ?? 0), icon: TrendingUp },
+              { label: t('tonStaking.positions'), value: String(summary?.activePositions ?? 0), icon: Coins },
+              { label: t('tonStaking.earned'), value: ton2(summary?.totalEarnedTon ?? 0), icon: Gem },
             ].map(item => (
               <div
                 key={item.label}
@@ -187,7 +190,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
             style={{ border: '1px solid rgba(52,211,153,.28)', background: 'linear-gradient(120deg, rgba(16,185,129,.14), rgba(6,9,18,.6))' }}
           >
             <div className="min-w-0">
-              <p className="text-[8px] uppercase tracking-wider text-emerald-200/80">Rendimento disponível</p>
+              <p className="text-[8px] uppercase tracking-wider text-emerald-200/80">{t('tonStaking.availableYield')}</p>
               <p className="truncate text-sm font-black text-emerald-300" style={{ textShadow: '0 0 12px rgba(52,211,153,.35)' }}>
                 {ton(summary?.unclaimedTon ?? 0)} TON
               </p>
@@ -204,7 +207,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                 boxShadow: canClaimAll ? '0 0 16px rgba(16,185,129,.35)' : 'none',
               }}
             >
-              {claim.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Coletar'}
+              {claim.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t('tonStaking.collect')}
             </button>
           </div>
 
@@ -216,11 +219,11 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
               >
                 T
               </span>
-              Saldo interno: <span className="font-black text-sky-200">{ton(balance)} TON</span>
+              {t('tonMines.internalBalance')} <span className="font-black text-sky-200">{ton(balance)} TON</span>
             </p>
             {summary?.nextMaturityDays != null ? (
               <p className="flex items-center gap-1 text-[10px]" style={{ color: '#e2c57a' }}>
-                <Sparkles className="h-3 w-3" /> Próxima liberação em {summary.nextMaturityDays}d
+                <Sparkles className="h-3 w-3" /> {t('tonStaking.nextUnlock', { days: summary.nextMaturityDays })}
               </p>
             ) : null}
           </div>
@@ -232,7 +235,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
 
         {state && !state.enabled ? (
           <p className="rounded-xl p-3 text-center text-xs text-muted-foreground" style={GOLD_FRAME}>
-            O TON STAKING está temporariamente indisponível.
+            {t('tonStaking.disabled')}
           </p>
         ) : null}
 
@@ -242,7 +245,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
             className="space-y-2 rounded-xl p-2.5"
             style={{ ...GOLD_FRAME, background: 'linear-gradient(140deg, rgba(10,13,24,.96), rgba(3,5,12,.98))' }}
           >
-            <h2 className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>Novo stake</h2>
+            <h2 className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>{t('tonStaking.newStake')}</h2>
 
             <div className="grid grid-cols-5 gap-1.5">
               {plans.map(item => {
@@ -258,8 +261,8 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                       : { border: '1px solid rgba(212,175,55,.22)', background: 'rgba(212,175,55,.04)' }}
                   >
                     <p className="text-[10px] font-black" style={{ color: active ? '#f6e3ab' : 'rgba(226,197,122,.8)' }}>{item.lockDays}d</p>
-                    <p className="text-[8px]" style={{ color: '#7dd3fc' }}>{pct(item.effectiveMonthlyRate)}%/mês</p>
-                    {item.bonusRate > 0 ? <p className="text-[7px]" style={{ color: '#34d399' }}>+{pct(item.bonusRate)}% bônus</p> : null}
+                    <p className="text-[8px]" style={{ color: '#7dd3fc' }}>{t('tonStaking.perMonth', { value: pct(item.effectiveMonthlyRate) })}</p>
+                    {item.bonusRate > 0 ? <p className="text-[7px]" style={{ color: '#34d399' }}>{t('tonStaking.bonus', { value: pct(item.bonusRate) })}</p> : null}
                   </button>
                 );
               })}
@@ -270,7 +273,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                 inputMode="decimal"
                 value={amount}
                 onChange={event => setAmount(event.target.value.replace(/[^\d.,]/g, ''))}
-                placeholder={`Mín. ${ton2(plan?.minStakeTon ?? state.minStakeTon)} TON`}
+                placeholder={t('tonStaking.minPlaceholder', { value: ton2(plan?.minStakeTon ?? state.minStakeTon) })}
                 className="min-w-0 flex-1 rounded-lg bg-transparent px-2.5 py-2 text-sm font-black text-sky-100 outline-none placeholder:text-[11px] placeholder:font-normal placeholder:text-muted-foreground"
                 style={{ border: '1px solid rgba(56,189,248,.32)' }}
               />
@@ -289,8 +292,8 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
 
             <div className="flex items-center justify-between gap-2 text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>
               <span>
-                Estimativa: <span className="font-black text-emerald-300">{ton(monthlyPreview)} TON/mês</span>
-                {plan ? <> · {ton(termPreview)} TON em {plan.lockDays}d</> : null}
+                {t('tonStaking.estimate')} <span className="font-black text-emerald-300">{t('tonStaking.perMonthValue', { value: ton(monthlyPreview) })}</span>
+                {plan ? <> · {t('tonStaking.inDays', { value: ton(termPreview), days: plan.lockDays })}</> : null}
               </span>
               {plan?.autoCompoundAllowed ? (
                 <button
@@ -301,7 +304,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                     ? { border: '1px solid rgba(52,211,153,.5)', color: '#6ee7b7', background: 'rgba(16,185,129,.12)' }
                     : { border: '1px solid rgba(212,175,55,.25)', color: 'rgba(226,197,122,.8)' }}
                 >
-                  <Repeat className="h-3 w-3" /> Compound
+                  <Repeat className="h-3 w-3" /> {t('tonStaking.compound')}
                 </button>
               ) : null}
             </div>
@@ -318,7 +321,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                 boxShadow: '0 0 18px rgba(212,175,55,.22)',
               }}
             >
-              {stake.isPending ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : state.newStakesOpen ? '💎 Fazer stake com saldo interno' : 'Novos stakes pausados'}
+              {stake.isPending ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : state.newStakesOpen ? t('tonStaking.stakeCta') : t('tonStaking.paused')}
             </button>
           </section>
         ) : null}
@@ -330,14 +333,13 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
             style={{ ...GOLD_FRAME, background: 'linear-gradient(140deg, rgba(10,13,24,.96), rgba(3,5,12,.98))' }}
           >
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>Auto-staking das minas</h2>
+              <h2 className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>{t('tonStaking.autoTitle')}</h2>
               <span className="text-[9px]" style={{ color: 'rgba(203,213,225,.65)' }}>
-                Buffer: {ton(prefs?.pendingAutoStakeTon ?? 0)} TON
+                {t('tonStaking.buffer', { value: ton(prefs?.pendingAutoStakeTon ?? 0) })}
               </span>
             </div>
             <p className="text-[9px]" style={{ color: 'rgba(203,213,225,.65)' }}>
-              Uma parte do que você coleta nas MINAS DE TON entra direto em staking (plano selecionado acima).
-              Acumula até {ton2(state.autoStakeMinTon)} TON antes de abrir uma nova posição.
+              {t('tonStaking.autoInfo', { value: ton2(state.autoStakeMinTon) })}
             </p>
             <div className="grid grid-cols-5 gap-1.5">
               {[0, ...state.allowedPercents].map(percent => {
@@ -372,7 +374,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                   ? { border: '1px solid rgba(52,211,153,.5)', color: '#6ee7b7', background: 'rgba(16,185,129,.12)' }
                   : { border: '1px solid rgba(212,175,55,.25)', color: 'rgba(226,197,122,.8)' }}
               >
-                <Repeat className="h-3 w-3" /> Compound automático nas novas posições
+                <Repeat className="h-3 w-3" /> {t('tonStaking.autoCompound')}
               </button>
             ) : null}
           </section>
@@ -394,9 +396,9 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="truncate text-[11px] font-black uppercase tracking-wide" style={{ color: '#f6e3ab' }}>
-                      {position.planName} · {pct(position.effectiveMonthlyRate)}%/mês
+                      {position.planName} · {t('tonStaking.perMonth', { value: pct(position.effectiveMonthlyRate) })}
                     </h3>
-                    <p className="mt-0.5 text-[11px] font-black" style={{ color: '#7dd3fc' }}>{ton(position.principalTon)} TON em stake</p>
+                    <p className="mt-0.5 text-[11px] font-black" style={{ color: '#7dd3fc' }}>{t('tonStaking.stakedIn', { value: ton(position.principalTon) })}</p>
                   </div>
                   <span
                     className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide"
@@ -404,7 +406,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                       ? { color: '#04140d', background: 'linear-gradient(160deg,#6ee7b7,#059669)' }
                       : { color: 'rgba(226,197,122,.9)', border: '1px solid rgba(212,175,55,.3)' }}
                   >
-                    {matured ? 'Liberado' : unlockLabel(position.unlockAt)}
+                    {matured ? t('tonStaking.unlocked') : unlockLabel(position.unlockAt, t)}
                   </span>
                 </div>
 
@@ -416,8 +418,8 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                 </div>
 
                 <div className="mt-1 flex items-center justify-between text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>
-                  <span>Acumulado: <span className="font-black text-emerald-300">{ton(position.accruedTon)} TON</span></span>
-                  <span>Total ganho: {ton(position.earnedTon)} TON{position.compoundedTon > 0 ? ` · reinvestido ${ton(position.compoundedTon)}` : ''}</span>
+                  <span>{t('tonStaking.accrued')} <span className="font-black text-emerald-300">{ton(position.accruedTon)} TON</span></span>
+                  <span>{t('tonStaking.totalEarned', { value: ton(position.earnedTon) })}{position.compoundedTon > 0 ? t('tonStaking.reinvested', { value: ton(position.compoundedTon) }) : ''}</span>
                 </div>
 
                 <div className="mt-1.5 grid grid-cols-3 gap-1.5">
@@ -428,7 +430,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                     className="rounded-lg py-1.5 text-[9px] font-black uppercase tracking-wide transition active:scale-[0.97] disabled:opacity-40"
                     style={{ color: '#04140d', background: 'linear-gradient(160deg,#6ee7b7,#059669)' }}
                   >
-                    Coletar
+                    {t('tonStaking.collect')}
                   </button>
                   <button
                     type="button"
@@ -446,10 +448,8 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                     disabled={withdraw.isPending || (!matured && !state?.earlyUnstakeAllowed)}
                     onClick={() => {
                       if (!matured) {
-                        const pct = state?.earlyUnstakePenaltyPercent ?? 0;
-                        const ok = window.confirm(
-                          `Resgate antecipado: você perde ${pct}% do valor bloqueado e todo o rendimento acumulado desta posição. Continuar?`,
-                        );
+                        const penalty = state?.earlyUnstakePenaltyPercent ?? 0;
+                        const ok = window.confirm(t('tonStaking.earlyConfirm', { percent: penalty }));
                         if (!ok) return;
                       }
                       withdraw.mutate(position.id);
@@ -457,12 +457,12 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                     className="flex items-center justify-center gap-1 rounded-lg py-1.5 text-[9px] font-black uppercase tracking-wide disabled:opacity-40"
                     style={{ border: '1px solid rgba(212,175,55,.35)', color: '#f6e3ab' }}
                   >
-                    {matured ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />} Resgatar
+                    {matured ? <LockOpen className="h-3 w-3" /> : <Lock className="h-3 w-3" />} {t('tonStaking.withdraw')}
                   </button>
                 </div>
                 {!matured && state?.earlyUnstakeAllowed ? (
                   <p className="mt-1 text-[9px]" style={{ color: 'rgba(248,180,120,.85)' }}>
-                    Resgate antes do prazo: −{state.earlyUnstakePenaltyPercent}% do principal e perda do rendimento acumulado.
+                    {t('tonStaking.earlyWarning', { percent: state.earlyUnstakePenaltyPercent })}
                   </p>
                 ) : null}
               </article>
@@ -471,7 +471,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
           })}
           {state && state.positions.length === 0 ? (
             <p className="rounded-xl p-3 text-center text-[11px] text-muted-foreground" style={GOLD_FRAME}>
-              Você ainda não tem posições em staking. Bloqueie TON interno e receba rendimento diário automático.
+              {t('tonStaking.empty')}
             </p>
           ) : null}
         </div>
@@ -479,7 +479,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
         {/* ── Histórico curto ── */}
         {state?.ledger?.length ? (
           <section className="rounded-xl p-2.5" style={{ ...GOLD_FRAME, background: 'rgba(6,9,18,.9)' }}>
-            <h2 className="mb-1 text-[10px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>Histórico</h2>
+            <h2 className="mb-1 text-[10px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>{t('tonStaking.history')}</h2>
             <div className="space-y-0.5">
               {state.ledger.map(entry => (
                 <p key={entry.id} className="flex items-center justify-between text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>
