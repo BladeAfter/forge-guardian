@@ -13,6 +13,8 @@ import {
   type TonMinesState,
 } from '../services';
 import { sendTonPayment } from '../tonPayment';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 import { TonStakingOverlay } from './TonStakingOverlay';
 
 const ton = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
@@ -36,14 +38,14 @@ function mineGlow(index: number): string {
 }
 
 /** Countdown until the storage is full — after that the mine stops accruing. */
-function fullInLabel(fullAt: string | null): string {
+function fullInLabel(fullAt: string | null, t: Translator): string {
   if (!fullAt) return '—';
   const diff = new Date(fullAt).getTime() - Date.now();
-  if (!Number.isFinite(diff) || diff <= 0) return 'CHEIO';
+  if (!Number.isFinite(diff) || diff <= 0) return t('tonMines.full');
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(hours / 24);
-  if (days >= 1) return `Cheio em ${days}d ${hours % 24}h`;
-  return `Cheio em ${hours}h ${Math.floor((diff % 3_600_000) / 60_000)}m`;
+  if (days >= 1) return t('tonMines.fullInDays', { days, hours: hours % 24 });
+  return t('tonMines.fullInHours', { hours, minutes: Math.floor((diff % 3_600_000) / 60_000) });
 }
 
 type BuyPhase = 'idle' | 'processing' | 'wallet' | 'error';
@@ -60,6 +62,7 @@ type BuyPhase = 'idle' | 'processing' | 'wallet' | 'error';
  * assinado pelo payment intent. Nunca há pagamento misto.
  */
 export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const t = useT();
   const client = useQueryClient();
   const [tonUI] = useTonConnectUI();
   const [tick, setTick] = useState(0);
@@ -88,7 +91,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
   useEffect(() => {
     if (!telegramInitData) return;
     verifyTonMinePurchases(telegramInitData)
-      .then(result => { if (result.completed.length) { toast.success('Mina adquirida! Rendimento iniciado.'); void refresh(); } })
+      .then(result => { if (result.completed.length) { toast.success(t('tonMines.mineAcquired')); void refresh(); } })
       .catch(() => { /* retried on the next open */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [telegramInitData]);
@@ -100,7 +103,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
       const unsubscribe = tonUI.onStatusChange(wallet => {
         if (wallet?.account?.address) { unsubscribe(); resolve(wallet.account.address); }
       });
-      window.setTimeout(() => { unsubscribe(); reject(new Error('Conecte uma carteira TON para continuar.')); }, 120_000);
+      window.setTimeout(() => { unsubscribe(); reject(new Error(t('tonMines.connectWallet'))); }, 120_000);
     });
     await tonUI.openModal();
     return linked;
@@ -129,21 +132,21 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
       setPhase({ mineId: null, state: 'idle' });
       toast.success(
         data.mode === 'internal'
-          ? `✓ ${mine.name} ativada — ${ton2(mine.priceTon)} TON pagos com saldo interno.`
-          : 'Pagamento enviado! A mina é ativada após a confirmação na blockchain.',
+          ? t('tonMines.boughtInternal', { name: mine.name, value: ton2(mine.priceTon) })
+          : t('tonMines.paymentSent'),
       );
       await refresh();
     },
     onError: (error: Error, mine) => {
       setPhase({ mineId: mine.id, state: 'error' });
-      toast.error(/cancel|reject|declin/i.test(error.message) ? 'Compra cancelada.' : error.message);
+      toast.error(/cancel|reject|declin/i.test(error.message) ? t('tonMines.purchaseCanceled') : error.message);
     },
   });
 
   const claim = useMutation({
     mutationFn: (holdingId?: string) => claimTonMine(telegramInitData, holdingId),
     onSuccess: async result => {
-      toast.success(`+${ton(result.claimedTon || 0)} TON coletados!`);
+      toast.success(t('tonMines.claimedToast', { value: ton(result.claimedTon || 0) }));
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -154,11 +157,11 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
   const mines = useMemo(() => state?.mines ?? [], [state]);
 
   const buyLabel = (mine: TonMineTemplate): string => {
-    if (phase.mineId !== mine.id) return `⛏ Comprar • ${ton2(mine.priceTon)} TON`;
-    if (phase.state === 'wallet') return '◇ Confirme na carteira';
-    if (phase.state === 'processing') return '◌ Processando...';
-    if (phase.state === 'error') return 'Tentar novamente';
-    return `⛏ Comprar • ${ton2(mine.priceTon)} TON`;
+    if (phase.mineId !== mine.id) return t('tonMines.buy', { value: ton2(mine.priceTon) });
+    if (phase.state === 'wallet') return t('tonMines.confirmWallet');
+    if (phase.state === 'processing') return t('tonMines.processing');
+    if (phase.state === 'error') return t('tonMines.retry');
+    return t('tonMines.buy', { value: ton2(mine.priceTon) });
   };
 
   return (
@@ -179,15 +182,15 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
             </span>
             <div>
               <h1 className="text-base font-black uppercase tracking-wider" style={{ color: '#f6e3ab', textShadow: '0 0 14px rgba(212,175,55,.35)' }}>
-                Minas de TON
+                {t('tonMines.title')}
               </h1>
-              <p className="text-[10px] text-muted-foreground">Investimento passivo · rende offline 24h</p>
+              <p className="text-[10px] text-muted-foreground">{t('tonMines.subtitle')}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t('tonMines.close')}
             className="rounded-full p-1.5 text-muted-foreground transition hover:text-amber-100"
             style={GOLD_FRAME}
           >
@@ -203,10 +206,10 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
           {/* Linha 1: 4 mini-cards */}
           <div className="grid grid-cols-4 gap-1.5">
             {[
-              { label: 'Investido', value: `${ton2(summary?.investedTon ?? 0)}`, icon: Coins },
-              { label: 'Minas', value: `${summary?.activeMines ?? 0}`, icon: Pickaxe },
-              { label: 'Diário', value: `${ton(summary?.dailyTon ?? 0)}`, icon: TrendingUp },
-              { label: 'Coletado', value: `${ton2(summary?.lifetimeClaimedTon ?? 0)}`, icon: Gem },
+              { label: t('tonMines.invested'), value: `${ton2(summary?.investedTon ?? 0)}`, icon: Coins },
+              { label: t('tonMines.mines'), value: `${summary?.activeMines ?? 0}`, icon: Pickaxe },
+              { label: t('tonMines.daily'), value: `${ton(summary?.dailyTon ?? 0)}`, icon: TrendingUp },
+              { label: t('tonMines.collected'), value: `${ton2(summary?.lifetimeClaimedTon ?? 0)}`, icon: Gem },
             ].map(item => (
               <div
                 key={item.label}
@@ -227,7 +230,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
             style={{ border: '1px solid rgba(52,211,153,.28)', background: 'linear-gradient(120deg, rgba(16,185,129,.14), rgba(6,9,18,.6))' }}
           >
             <div className="min-w-0">
-              <p className="text-[8px] uppercase tracking-wider text-emerald-200/80">Disponível para coletar</p>
+              <p className="text-[8px] uppercase tracking-wider text-emerald-200/80">{t('tonMines.available')}</p>
               <p className="truncate text-sm font-black text-emerald-300" style={{ textShadow: '0 0 12px rgba(52,211,153,.35)' }}>
                 {ton(summary?.unclaimedTon ?? 0)} TON
               </p>
@@ -244,7 +247,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                 boxShadow: canClaimAll ? '0 0 16px rgba(16,185,129,.35)' : 'none',
               }}
             >
-              {claim.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Coletar tudo'}
+              {claim.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t('tonMines.collectAll')}
             </button>
           </div>
 
@@ -257,12 +260,12 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
               >
                 T
               </span>
-              Saldo interno: <span className="font-black text-sky-200">{ton(state?.balanceTon ?? 0)} TON</span>
+              {t('tonMines.internalBalance')} <span className="font-black text-sky-200">{ton(state?.balanceTon ?? 0)} TON</span>
             </p>
             {state?.loyalty.enabled ? (
               <p className="flex items-center gap-1 text-[10px]" style={{ color: '#e2c57a' }}>
                 <Sparkles className="h-3 w-3" />
-                +{state.loyalty.bonus30}% 30d · +{state.loyalty.bonus60}% 60d
+                {t('tonMines.loyalty', { b30: state.loyalty.bonus30, b60: state.loyalty.bonus60 })}
               </p>
             ) : null}
           </div>
@@ -281,8 +284,8 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
             <span className="flex items-center gap-2">
               <Gem className="h-4 w-4" style={{ color: '#7dd3fc' }} />
               <span className="text-left">
-                <span className="block text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>TON Staking</span>
-                <span className="block text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>Bloqueie TON e receba rendimento diário</span>
+                <span className="block text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>{t('tonStaking.title')}</span>
+                <span className="block text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>{t('tonStaking.subtitle')}</span>
               </span>
             </span>
             <span className="text-[10px] font-black" style={{ color: '#7dd3fc' }}>ABRIR ›</span>
@@ -296,7 +299,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
 
         {state && !state.visible ? (
           <p className="rounded-xl p-3 text-center text-xs text-muted-foreground" style={GOLD_FRAME}>
-            As MINAS DE TON ainda não foram liberadas para o seu acesso.
+            {t('tonMines.notReleased')}
           </p>
         ) : null}
 
@@ -348,15 +351,15 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                             ? { color: 'rgba(226,197,122,.6)', border: '1px solid rgba(212,175,55,.25)' }
                             : { color: '#1b1405', background: 'linear-gradient(160deg,#f7dd94,#c79a2e)' }}
                       >
-                        {owned ? 'Ativa' : mine.status === 'LOCKED' ? 'Indisponível' : `${ton2(mine.priceTon)} TON`}
+                        {owned ? t('tonMines.active') : mine.status === 'LOCKED' ? t('tonMines.unavailable') : `${ton2(mine.priceTon)} TON`}
                       </span>
                     </div>
                     <p className="mt-0.5 text-[11px] font-black" style={{ color: '#7dd3fc', textShadow: '0 0 10px rgba(56,189,248,.35)' }}>
-                      {ton(mine.dailyTon)} TON/dia
+                      {t('tonMines.perDay', { value: ton(mine.dailyTon) })}
                     </p>
                     <p className="mt-0.5 truncate text-[9px]" style={{ color: 'rgba(203,213,225,.65)' }}>
-                      ROI {mine.roiDays ? `${mine.roiDays}d` : '—'} · Storage {mine.storageDays}d
-                      {state?.loyalty.enabled ? <span style={{ color: '#e2c57a' }}>{` · +${state.loyalty.bonus30}% Loyalty`}</span> : ''}
+                      {t('tonMines.stats', { roi: mine.roiDays ? `${mine.roiDays}d` : '—', storage: mine.storageDays })}
+                      {state?.loyalty.enabled ? <span style={{ color: '#e2c57a' }}>{t('tonMines.loyaltyTag', { bonus: state.loyalty.bonus30 })}</span> : ''}
                     </p>
                   </div>
 
@@ -365,7 +368,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                       <div className="flex items-center justify-between text-[9px]">
                         <span className="font-bold text-emerald-300">{ton(holding.storedTon)} / {ton(holding.capacityTon)} TON</span>
                         <span style={{ color: 'rgba(203,213,225,.6)' }}>
-                          {fullInLabel(holding.fullAt)} · {holding.daysHeld}d{holding.multiplier > 1 ? ` +${Math.round((holding.multiplier - 1) * 100)}%` : ''}
+                          {fullInLabel(holding.fullAt, t)} · {holding.daysHeld}d{holding.multiplier > 1 ? ` +${Math.round((holding.multiplier - 1) * 100)}%` : ''}
                         </span>
                       </div>
                       <div className="h-1 overflow-hidden rounded-full" style={{ background: 'rgba(212,175,55,.12)' }}>
@@ -383,7 +386,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                           boxShadow: '0 0 14px rgba(16,185,129,.28)',
                         }}
                       >
-                        Coletar · {ton(holding.storedTon)} TON
+                        {t('tonMines.collect', { value: ton(holding.storedTon) })}
                       </button>
                     </div>
                   ) : (
@@ -401,7 +404,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                           boxShadow: '0 0 16px rgba(212,175,55,.28), inset 0 1px 0 rgba(255,255,255,.35)',
                         }}
                     >
-                      {mine.status === 'LOCKED' ? <><Lock className="h-3 w-3" /> Indisponível</> : buyLabel(mine)}
+                      {mine.status === 'LOCKED' ? <><Lock className="h-3 w-3" /> {t('tonMines.unavailable')}</> : buyLabel(mine)}
                     </button>
                   )}
                 </div>
@@ -412,11 +415,11 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
 
         {state?.claims.length ? (
           <section className="rounded-xl p-2.5" style={{ ...GOLD_FRAME, background: 'rgba(4,6,14,.85)' }}>
-            <h3 className="text-[9px] uppercase tracking-[0.3em]" style={{ color: 'rgba(226,197,122,.7)' }}>Últimas coletas</h3>
+            <h3 className="text-[9px] uppercase tracking-[0.3em]" style={{ color: 'rgba(226,197,122,.7)' }}>{t('tonMines.lastClaims')}</h3>
             <ul className="mt-1.5 space-y-1">
               {state.claims.map(item => (
                 <li key={item.id} className="flex items-center justify-between text-[11px]">
-                  <span style={{ color: 'rgba(203,213,225,.7)' }}>{item.mineName ?? 'Mina'}</span>
+                  <span style={{ color: 'rgba(203,213,225,.7)' }}>{item.mineName ?? t('tonMines.mine')}</span>
                   <span className="font-black text-emerald-300">+{ton(item.amountTon)} TON</span>
                 </li>
               ))}
