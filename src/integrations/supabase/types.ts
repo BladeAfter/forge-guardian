@@ -7188,6 +7188,8 @@ export type Database = {
           currency_changed_at: string
           enabled: boolean
           id: boolean
+          legacy_pass20_access: boolean
+          legacy_pass5_access: boolean
           min_claim_myth: number
           min_claim_ton: number
           mining_currency: string
@@ -7196,12 +7198,21 @@ export type Database = {
           pass_gate_cutoff_at: string
           pass_gate_enabled: boolean
           pass_gate_price_ton: number
+          premium_gate_enabled: boolean
+          premium_rule_start_at: string
+          required_deposit_ton: number
+          required_pass_ton: number
+          unlock_by_deposit_ton: boolean
+          unlock_by_nft_hero: boolean
+          unlock_by_nft_pet: boolean
           updated_at: string
         }
         Insert: {
           currency_changed_at?: string
           enabled?: boolean
           id?: boolean
+          legacy_pass20_access?: boolean
+          legacy_pass5_access?: boolean
           min_claim_myth?: number
           min_claim_ton?: number
           mining_currency?: string
@@ -7210,12 +7221,21 @@ export type Database = {
           pass_gate_cutoff_at?: string
           pass_gate_enabled?: boolean
           pass_gate_price_ton?: number
+          premium_gate_enabled?: boolean
+          premium_rule_start_at?: string
+          required_deposit_ton?: number
+          required_pass_ton?: number
+          unlock_by_deposit_ton?: boolean
+          unlock_by_nft_hero?: boolean
+          unlock_by_nft_pet?: boolean
           updated_at?: string
         }
         Update: {
           currency_changed_at?: string
           enabled?: boolean
           id?: boolean
+          legacy_pass20_access?: boolean
+          legacy_pass5_access?: boolean
           min_claim_myth?: number
           min_claim_ton?: number
           mining_currency?: string
@@ -7224,6 +7244,13 @@ export type Database = {
           pass_gate_cutoff_at?: string
           pass_gate_enabled?: boolean
           pass_gate_price_ton?: number
+          premium_gate_enabled?: boolean
+          premium_rule_start_at?: string
+          required_deposit_ton?: number
+          required_pass_ton?: number
+          unlock_by_deposit_ton?: boolean
+          unlock_by_nft_hero?: boolean
+          unlock_by_nft_pet?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -21990,10 +22017,20 @@ export type Database = {
         Returns: boolean
       }
       ton_mining_access_sync: { Args: { p_user_id: string }; Returns: string }
+      ton_mining_deposited_ton: { Args: { p_user_id: string }; Returns: number }
       ton_mining_gate_cutoff: { Args: never; Returns: string }
       ton_mining_gate_enabled: { Args: never; Returns: boolean }
+      ton_mining_owns_nft_hero: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      ton_mining_owns_nft_pet: { Args: { p_user_id: string }; Returns: boolean }
       ton_mining_pass_confirmed_at: {
         Args: { p_user_id: string }
+        Returns: string
+      }
+      ton_mining_pass_tier_at: {
+        Args: { p_tier: string; p_user_id: string }
         Returns: string
       }
       ton_pending_purchase_orders: {
