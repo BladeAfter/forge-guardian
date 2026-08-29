@@ -36,6 +36,13 @@
       "when": 1787968830594,
       "tag": "0004_ton_staking_core",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787968952836,
+      "tag": "0005_ton_staking_rpcs",
+      "breakpoints": true
     }
   ]
 }

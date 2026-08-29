@@ -19004,6 +19004,27 @@ export type Database = {
         Args: { p_admin_id: number; p_limit?: number; p_user_id?: string }
         Returns: Json
       }
+      admin_ton_staking_flag: {
+        Args: { p_admin_id: number; p_field: string; p_value: boolean }
+        Returns: undefined
+      }
+      admin_ton_staking_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_ton_staking_plan_set: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_field: string
+          p_value: string
+        }
+        Returns: undefined
+      }
+      admin_ton_staking_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: undefined
+      }
       admin_ton_withdrawals: {
         Args: { p_admin_id: number; p_limit?: number; p_status?: string }
         Returns: Json
@@ -22433,6 +22454,14 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      ton_staking_claim: {
+        Args: {
+          p_position_id?: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
       ton_staking_flush_pending: {
         Args: { p_user_id: string }
         Returns: number
@@ -22443,6 +22472,43 @@ export type Database = {
       ton_staking_route_mine: {
         Args: { p_amount: number; p_source_id: string; p_user_id: string }
         Returns: number
+      }
+      ton_staking_set_position_compound: {
+        Args: {
+          p_auto_compound: boolean
+          p_position_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_set_preferences: {
+        Args: {
+          p_auto_compound: boolean
+          p_enabled: boolean
+          p_percent: number
+          p_plan_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_stake: {
+        Args: {
+          p_amount: number
+          p_auto_compound?: boolean
+          p_plan_id: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_state: { Args: { p_telegram_id: number }; Returns: Json }
+      ton_staking_unstake: {
+        Args: {
+          p_position_id: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
       }
       touch_player_activity: {
         Args: { p_telegram_id: number }
