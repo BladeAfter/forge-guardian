@@ -22,6 +22,13 @@
       "when": 1787967004502,
       "tag": "0002_roulette_reward_settlement_recovery",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787967624292,
+      "tag": "0003_roulette_exclusive_nft_heroes",
+      "breakpoints": true
     }
   ]
 }

@@ -6896,6 +6896,7 @@ export type Database = {
           recruit_eligible: boolean
           recruit_enabled: boolean
           reward_pool_eligible: boolean
+          roulette_exclusive: boolean
           shop_eligible: boolean
           skill_power: number | null
           skills: Json
@@ -6942,6 +6943,7 @@ export type Database = {
           recruit_eligible?: boolean
           recruit_enabled?: boolean
           reward_pool_eligible?: boolean
+          roulette_exclusive?: boolean
           shop_eligible?: boolean
           skill_power?: number | null
           skills?: Json
@@ -6988,6 +6990,7 @@ export type Database = {
           recruit_eligible?: boolean
           recruit_enabled?: boolean
           reward_pool_eligible?: boolean
+          roulette_exclusive?: boolean
           shop_eligible?: boolean
           skill_power?: number | null
           skills?: Json
