@@ -91,34 +91,62 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   // Chests reuse the SAME server actions used by the calendar/pass screens.
   // Mythic (exclusive) chests have their own server action — opening them as a
   // regular hero chest is what used to fail.
+  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
+
+  // Opens ONE chest using the exact same server actions used by the calendar/pass screens.
+  const openOne = async (item: InventoryItem): Promise<string | null> => {
+    // Legend Chest: dedicated server action that always rolls a LEGENDARY equipment.
+    if (isLegendChest(item)) {
+      const payload = await openLegendChest(telegramInitData, String(item.instanceId));
+      setLegendReward(payload.equipment);
+      return null;
+    }
+    // FOUNDER PACK premium resource chest: its own server action (FC, fragments, tickets, chest).
+    if (item.itemType === 'resource_chest' || item.action === 'open-resource-chest') {
+      const payload = await openResourceChest(telegramInitData, String(item.instanceId));
+      const parts = [payload.rewards.fc ? `${payload.rewards.fc.toLocaleString('pt-BR')} FC` : '', payload.rewards.fragments ? `${payload.rewards.fragments} fragmentos` : '', payload.rewards.pvpTickets ? `${payload.rewards.pvpTickets} tickets PvP` : ''].filter(Boolean);
+      return parts.length ? parts.join(' · ') : null;
+    }
+    if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
+      const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
+      return payload.reward?.name ?? payload.reward?.title ?? null;
+    }
+    const result = await openCalendarChest(telegramInitData, String(item.instanceId), 'shop');
+    return result.hero?.name ?? null;
+  };
+
+  // Bulk open (1 / 5 / 10 / MAX): the server still validates and consumes one
+  // chest per call, so we simply repeat the very same action sequentially.
   const openChest = useMutation({
-    mutationFn: async (item: InventoryItem) => {
-      // Legend Chest: dedicated server action that always rolls a LEGENDARY equipment.
-      if (isLegendChest(item)) {
-        const payload = await openLegendChest(telegramInitData, String(item.instanceId));
-        setLegendReward(payload.equipment);
-        return null;
+    mutationFn: async ({ item, count }: { item: InventoryItem; count: number }) => {
+      const total = Math.max(1, Math.min(count, item.quantity));
+      const names: string[] = [];
+      let opened = 0;
+      setBatch({ done: 0, total });
+      try {
+        for (let index = 0; index < total; index += 1) {
+          const name = await openOne(item);
+          opened += 1;
+          setBatch({ done: opened, total });
+          if (name) names.push(name);
+        }
+      } catch (loopError) {
+        if (opened === 0) throw loopError;
+        toast.error(loopError instanceof Error ? loopError.message : t('inventory.openError'));
+      } finally {
+        setBatch(null);
       }
-      // FOUNDER PACK premium resource chest: its own server action (FC, fragments, tickets, chest).
-      if (item.itemType === 'resource_chest' || item.action === 'open-resource-chest') {
-        const payload = await openResourceChest(telegramInitData, String(item.instanceId));
-        const parts = [payload.rewards.fc ? `${payload.rewards.fc.toLocaleString('pt-BR')} FC` : '', payload.rewards.fragments ? `${payload.rewards.fragments} fragmentos` : '', payload.rewards.pvpTickets ? `${payload.rewards.pvpTickets} tickets PvP` : ''].filter(Boolean);
-        return parts.length ? parts.join(' · ') : null;
-      }
-      if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {
-        const payload = await openExclusiveChest(telegramInitData, String(item.instanceId));
-        return payload.reward?.name ?? payload.reward?.title ?? null;
-      }
-      const result = await openCalendarChest(telegramInitData, String(item.instanceId), 'shop');
-      return result.hero?.name ?? null;
+      return { opened, total, names };
     },
-    onSuccess: async (name) => {
+    onSuccess: async ({ opened, names }) => {
       setSelected(null);
-      if (name) toast.success(name);
+      if (opened > 1) toast.success(t('inventory.bulkOpened', { count: opened }));
+      if (names.length) toast.success(names.slice(0, 5).join(' · '));
       await invalidate(['player-inventory', 'player-heroes', 'player-equipment', 'arsenal', 'hero-fusion', 'rarity-fusion', 'pet-dashboard', 'pets', 'game-state']);
     },
     onError: (openError) => toast.error(openError instanceof Error ? openError.message : t('inventory.openError')),
   });
+
 
 
   // Eggs reuse the exact same hatch action as Pets → Eggs (petRequest 'hatch').
@@ -210,13 +238,29 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 <p className="text-[10px] text-slate-400">{selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
                 {(selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.action === 'open-resource-chest' || selected.itemType === 'resource_chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
-                  <button
-                    disabled={busy}
-                    onClick={() => openChest.mutate(selected)}
-                    className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
-                  >
-                    {openChest.isPending ? t('inventory.opening') : t('inventory.open')}
-                  </button>
+                  <div className="mt-3 space-y-1.5">
+                    {/* Bulk open: 1 / 5 / 10 / MAX — always limited by the real stack size. */}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[1, 5, 10, selected.quantity].map((amount, index) => {
+                        const count = Math.min(amount, selected.quantity);
+                        const label = index === 3 ? `MAX (${selected.quantity})` : `x${count}`;
+                        return (
+                          <button
+                            key={index === 3 ? 'max' : amount}
+                            disabled={busy || selected.quantity < (index === 3 ? 1 : amount)}
+                            onClick={() => openChest.mutate({ item: selected, count })}
+                            className={`min-h-[38px] rounded-xl border text-[9px] font-black uppercase tracking-[.1em] disabled:opacity-40 ${index === 3 ? 'border-amber-300/60 bg-gradient-to-b from-amber-300/25 to-orange-500/15 text-amber-100' : 'border-amber-300/40 bg-amber-300/12 text-amber-200'}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-center text-[9px] font-black uppercase tracking-[.14em] text-slate-400">
+                      {batch ? `${t('inventory.opening')} ${batch.done}/${batch.total}` : t('inventory.open')}
+                    </p>
+                  </div>
+
                 ) : selected.itemType === 'egg' || selected.itemType === 'pet_egg' || selected.category === 'eggs' ? (
                   <button
                     disabled={busy}
