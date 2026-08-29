@@ -1291,3 +1291,138 @@ export const verifyTonMinePurchases = (initData: string) =>
 /** `holdingId` ausente = COLETAR TUDO. */
 export const claimTonMine = (initData: string, holdingId?: string) =>
   tonMinesCall<TonMinesState>(initData, { action: 'claim', holdingId });
+
+/* ─────────────────────────── 💎 TON STAKING ─────────────────────────── */
+
+export type TonStakingPlan = {
+  id: string;
+  code: string;
+  name: string;
+  lockDays: number;
+  monthlyRate: number;
+  bonusRate: number;
+  effectiveMonthlyRate: number;
+  minStakeTon: number;
+  maxStakeTon: number;
+  rewardClaimMode: 'anytime' | 'on_unlock';
+  autoCompoundAllowed: boolean;
+  earlyUnstakeAllowed: boolean;
+};
+export type TonStakingPosition = {
+  id: string;
+  planId: string;
+  planName: string;
+  planCode: string;
+  principalTon: number;
+  initialPrincipalTon: number;
+  monthlyRate: number;
+  bonusRate: number;
+  effectiveMonthlyRate: number;
+  lockDays: number;
+  startedAt: string;
+  unlockAt: string;
+  accruedTon: number;
+  claimedTon: number;
+  compoundedTon: number;
+  earnedTon: number;
+  status: 'ACTIVE' | 'MATURED' | 'WITHDRAWN';
+  autoCompound: boolean;
+  source: string;
+  claimMode: 'anytime' | 'on_unlock';
+  canClaim: boolean;
+  monthlyEstimateTon: number;
+  progressPercent: number;
+};
+export type TonStakingState = {
+  enabled: boolean;
+  newStakesOpen: boolean;
+  paused: boolean;
+  balanceTon: number;
+  minStakeTon: number;
+  maxStakeTon: number;
+  monthDays: number;
+  autoCompoundAllowed: boolean;
+  earlyUnstakeAllowed: boolean;
+  earlyUnstakePenaltyPercent: number;
+  autoStakeMinTon: number;
+  allowedPercents: number[];
+  plans: TonStakingPlan[];
+  positions: TonStakingPosition[];
+  ledger: { id: string; type: string; amountTon: number; createdAt: string }[];
+  preferences: {
+    mineAutoStakeEnabled: boolean;
+    mineAutoStakePercent: number;
+    autoStakePlanId: string | null;
+    autoCompound: boolean;
+    pendingAutoStakeTon: number;
+  };
+  summary: {
+    totalStakedTon: number;
+    monthlyEstimateTon: number;
+    unclaimedTon: number;
+    totalEarnedTon: number;
+    activePositions: number;
+    nextMaturityAt: string | null;
+    nextMaturityDays: number | null;
+  };
+  claimedTon?: number;
+  returnedTon?: number;
+  stakedTon?: number;
+};
+
+const TON_STAKING_ERRORS: Record<string, string> = {
+  STAKING_DISABLED: 'O TON STAKING está indisponível no momento.',
+  STAKING_PAUSED: 'Novos stakes estão temporariamente pausados.',
+  STAKING_POOL_EXHAUSTED: 'O pool de recompensas está esgotado. Tente mais tarde.',
+  PLAN_NOT_FOUND: 'Plano de staking não encontrado.',
+  POSITION_NOT_FOUND: 'Posição de staking não encontrada.',
+  POSITION_CLOSED: 'Esta posição já foi encerrada.',
+  ALREADY_WITHDRAWN: 'Esta posição já foi resgatada.',
+  LOCK_ACTIVE: 'O período de bloqueio ainda não terminou.',
+  INVALID_AMOUNT: 'Informe um valor válido em TON.',
+  AMOUNT_BELOW_MIN: 'Valor abaixo do mínimo permitido.',
+  AMOUNT_ABOVE_MAX: 'Valor acima do máximo permitido.',
+  INSUFFICIENT_TON_BALANCE: 'Saldo TON interno insuficiente. Deposite TON para fazer stake.',
+  NOTHING_TO_CLAIM: 'Nada para coletar ainda.',
+  INVALID_PERCENT: 'Porcentagem de auto-staking inválida.',
+  COMPOUND_DISABLED: 'O reinvestimento automático está desativado.',
+  PLAYER_NOT_FOUND: 'Jogador não encontrado.',
+};
+
+async function tonStakingCall<T>(initData: string, body: Record<string, unknown>): Promise<T> {
+  const response = await forgeFetch('ton-staking', { initData, ...body });
+  if (response.status === 404) throw new Error('Backend indisponível: não foi possível contatar o TON STAKING.');
+  const payload = (await response.json().catch(() => null)) as (T & { error?: string }) | null;
+  if (!response.ok || !payload) {
+    const raw = payload?.error || '';
+    throw new Error(TON_STAKING_ERRORS[raw] || raw || 'Não foi possível processar o TON STAKING.');
+  }
+  return payload;
+}
+
+export const fetchTonStaking = (initData: string) => tonStakingCall<TonStakingState>(initData, { action: 'state' });
+export const stakeTon = (
+  initData: string,
+  planId: string,
+  amountTon: number,
+  autoCompound: boolean,
+  idempotencyKey: string,
+) => tonStakingCall<TonStakingState>(initData, { action: 'stake', planId, amountTon, autoCompound, idempotencyKey });
+/** `positionId` ausente = coletar recompensas de todas as posições. */
+export const claimTonStaking = (initData: string, positionId?: string, idempotencyKey?: string) =>
+  tonStakingCall<TonStakingState>(initData, { action: 'claim', positionId, idempotencyKey });
+export const unstakeTon = (initData: string, positionId: string, idempotencyKey: string) =>
+  tonStakingCall<TonStakingState>(initData, { action: 'unstake', positionId, idempotencyKey });
+export const setTonStakingPreferences = (
+  initData: string,
+  prefs: { enabled: boolean; percent: number; planId?: string | null; autoCompound: boolean },
+) =>
+  tonStakingCall<TonStakingState>(initData, {
+    action: 'preferences',
+    enabled: prefs.enabled,
+    percent: prefs.percent,
+    planId: prefs.planId ?? null,
+    autoCompound: prefs.autoCompound,
+  });
+export const setTonStakingPositionCompound = (initData: string, positionId: string, autoCompound: boolean) =>
+  tonStakingCall<TonStakingState>(initData, { action: 'position-compound', positionId, autoCompound });

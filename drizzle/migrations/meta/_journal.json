@@ -29,6 +29,20 @@
       "when": 1787967624292,
       "tag": "0003_roulette_exclusive_nft_heroes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787968830594,
+      "tag": "0004_ton_staking_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787968952836,
+      "tag": "0005_ton_staking_rpcs",
+      "breakpoints": true
     }
   ]
 }

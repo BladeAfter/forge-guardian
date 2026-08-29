@@ -127,6 +127,7 @@ const MAIN_MENU = kb([
   [{ t: "💎 NFT PETS", d: "nft:hub" }],
   [{ t: "⛏ MINERAÇÃO TON", d: "hm:hub" }],
   [{ t: "⛏ MINAS DE TON", d: "tm:hub" }],
+  [{ t: "💎 TON STAKING", d: "ts:hub" }],
   [{ t: "🧩 FRAGMENTOS", d: "fg:hub" }],
   [{ t: "🗺 EXPEDIÇÕES", d: "xe:hub" }],
   [{ t: "🎁 GIVEAWAY POPUP", d: "gw:hub" }],
@@ -4237,6 +4238,17 @@ const PROMPTS: Record<string, string> = {
   tmbonus30: "🎁 Envie o <b>bônus de fidelidade de 30 dias</b> em %.\nEx.: <code>5</code>",
   tmbonus60: "🎁 Envie o <b>bônus de fidelidade de 60 dias</b> em %.\nEx.: <code>10</code>",
   tmmaxtotal: "🔢 Envie o <b>limite total de minas</b> por jogador.\nEx.: <code>4</code>",
+  tskmin: "💎 Envie o <b>stake mínimo</b> em TON. Ex.: <code>1</code>",
+  tskmax: "💎 Envie o <b>stake máximo</b> por posição em TON (<code>0</code> = sem limite). Ex.: <code>500</code>",
+  tskautomin: "💎 Envie o <b>mínimo do buffer de auto-staking</b> em TON. Ex.: <code>1</code>",
+  tskpool: "🪙 Envie o <b>reward pool</b> total em TON destinado ao staking. Ex.: <code>500</code>",
+  tskpoolmin: "🛡 Envie a <b>reserva mínima</b> do pool em TON (circuit breaker). Ex.: <code>10</code>",
+  tskpenalty: "⚠️ Envie a <b>penalidade de saque antecipado</b> em %. Ex.: <code>10</code>",
+  tskmonth: "🗓 Envie quantos <b>dias</b> equivalem a 1 mês de rendimento. Ex.: <code>30</code>",
+  tskrate: "📈 Envie <code>plano taxa</code> (% ao mês). Ex.: <code>d30 1.2</code>",
+  tskbonus: "🎁 Envie <code>plano bônus</code> (% extra ao mês). Ex.: <code>d90 0.5</code>",
+  tsklock: "🔒 Envie <code>plano dias</code> de bloqueio. Ex.: <code>d60 60</code>",
+  tsktoggle: "🔁 Envie <code>plano on|off</code>. Ex.: <code>d365 off</code>",
   tmallow: "➕ Envie o <b>Telegram ID</b> que poderá ver as MINAS DE TON.\nEx.: <code>8118569391</code>",
   tmdeny: "➖ Envie o <b>Telegram ID</b> que perderá o acesso às MINAS DE TON.",
   rlcost: "🎡 Envie o <b>custo do giro em TON</b>.\nEx.: <code>5</code>",
@@ -6482,6 +6494,103 @@ async function rmPrompt(ctx: Ctx, key: string, text: string) {
   }
 }
 
+// ---------------------------------------------------------------- 💎 TON STAKING
+// Internal TON locked for a period. Rates, lock terms, limits, reward pool and the
+// circuit breaker all live in the database, so changes take effect with no deploy.
+const tsTon = (v: unknown) => Number(v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 4 });
+
+async function tsHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_ton_staking_overview", { p_admin_id: ctx.adminId })) as any;
+  const plans = arr<any>(d.plans)
+    .map(
+      (p) =>
+        `• <code>${esc(String(p.code))}</code> <b>${esc(String(p.name))}</b> · ${p.lockDays}d · ${tsTon(p.effective)}%/mês ` +
+        `(base ${tsTon(p.monthlyRate)} + bônus ${tsTon(p.bonusRate)}) · em stake ${tsTon(p.staked)} TON · ${p.enabled ? "🟢" : "🔴"}`,
+    )
+    .join("\n") || "nenhum plano";
+  const top = arr<any>(d.topStakers)
+    .map((o) => `• ${esc(String(o.name ?? "—"))} <code>${o.telegramId}</code> · ${tsTon(o.stakedTon)} TON · ${fmt(o.positions)} posições`)
+    .join("\n") || "nenhum staker ainda";
+  const text =
+    `💎 <b>TON STAKING</b>\n` +
+    `STATUS: <b>${d.enabled ? (d.paused ? "⏸ NOVOS STAKES PAUSADOS" : "🟢 ATIVO") : "🔴 DESATIVADO"}</b>\n` +
+    `Stake: mín <b>${tsTon(d.minStakeTon)}</b> · máx <b>${tsTon(d.maxStakeTon)}</b> TON (0 = livre)\n` +
+    `Auto-staking mín: <b>${tsTon(d.autoStakeMinTon)} TON</b> · mês = <b>${d.monthDays} dias</b>\n` +
+    `Compound: ${d.autoCompoundAllowed ? "🟢" : "🔴"} · Saque antecipado: ${d.earlyUnstakeAllowed ? `🟢 (penalidade ${tsTon(d.earlyUnstakePenaltyPercent)}%)` : "🔴"}\n` +
+    `Rende após vencer: ${d.accrueAfterMaturity ? "🟢" : "🔴"}\n\n` +
+    `<b>ECONOMIA</b>\n` +
+    `Em stake: <b>${tsTon(d.totalStakedTon)} TON</b> · ${fmt(d.positions)} posições · ${fmt(d.stakers)} jogadores\n` +
+    `Saída mensal: <b>${tsTon(d.monthlyPayoutTon)} TON/mês</b>\n` +
+    `Pendente: ${tsTon(d.outstandingTon)} TON · pago: ${tsTon(d.claimedTon)} TON\n` +
+    `Reward pool: <b>${tsTon(d.rewardPoolTotal)}</b> TON · disponível <b>${tsTon(d.poolAvailable)}</b> · reserva mín ${tsTon(d.rewardPoolMinAvailable)}\n` +
+    `Compromisso total (liability): <b>${tsTon(d.liability)} TON</b>\n` +
+    `Circuit breaker: ${d.poolGateEnabled ? "🟢 LIGADO" : "🔴 DESLIGADO"}\n\n` +
+    `<b>PLANOS</b>\n${plans}\n\n<b>TOP STAKERS</b>\n${top}`;
+  const rows = [
+    [{ t: "📈 TAXA DO PLANO", d: "ts:ask:tskrate" }, { t: "🎁 BÔNUS DO PLANO", d: "ts:ask:tskbonus" }],
+    [{ t: "🔒 DIAS DE BLOQUEIO", d: "ts:ask:tsklock" }, { t: "🔁 ATIVAR/DESATIVAR PLANO", d: "ts:ask:tsktoggle" }],
+    [{ t: "💎 STAKE MÍNIMO", d: "ts:ask:tskmin" }, { t: "💎 STAKE MÁXIMO", d: "ts:ask:tskmax" }],
+    [{ t: "⛏ AUTO-STAKE MÍNIMO", d: "ts:ask:tskautomin" }, { t: "🗓 DIAS POR MÊS", d: "ts:ask:tskmonth" }],
+    [{ t: "🪙 REWARD POOL", d: "ts:ask:tskpool" }, { t: "🛡 RESERVA MÍNIMA", d: "ts:ask:tskpoolmin" }],
+    [{ t: "⚠️ PENALIDADE ANTECIPADA", d: "ts:ask:tskpenalty" },
+     { t: d.earlyUnstakeAllowed ? "🔒 BLOQUEAR SAQUE ANTECIPADO" : "🔓 PERMITIR SAQUE ANTECIPADO", d: `ts:flag:early:${d.earlyUnstakeAllowed ? "0" : "1"}` }],
+    [{ t: d.autoCompoundAllowed ? "🔴 DESLIGAR COMPOUND" : "🟢 LIGAR COMPOUND", d: `ts:flag:compound:${d.autoCompoundAllowed ? "0" : "1"}` },
+     { t: d.accrueAfterMaturity ? "⏹ PARAR APÓS VENCER" : "▶️ RENDER APÓS VENCER", d: `ts:flag:aftermaturity:${d.accrueAfterMaturity ? "0" : "1"}` }],
+    [{ t: d.poolGateEnabled ? "🔴 DESLIGAR CIRCUIT BREAKER" : "🟢 LIGAR CIRCUIT BREAKER", d: `ts:flag:poolgate:${d.poolGateEnabled ? "0" : "1"}` }],
+    [{ t: d.paused ? "▶️ LIBERAR NOVOS STAKES" : "⏸ PAUSAR NOVOS STAKES", d: `ts:flag:paused:${d.paused ? "0" : "1"}` }],
+    [{ t: d.enabled ? "🔴 DESATIVAR SISTEMA" : "🟢 ATIVAR SISTEMA", d: `ts:flag:enabled:${d.enabled ? "0" : "1"}` }],
+    [{ t: "🔄 ATUALIZAR", d: "ts:hub" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function tsPrompt(ctx: Ctx, key: string, text: string) {
+  const num = (raw: string) => Number(String(raw).replace(/\s/g, "").replace(",", "."));
+  const pair = () => {
+    const [code, ...rest] = text.trim().split(/\s+/);
+    const value = rest.join(" ").trim();
+    if (!code || !value) throw new Error("KEEP_SESSION::⚠️ Envie <code>plano valor</code>. Ex.: <code>d30 1.2</code>");
+    return { code, value };
+  };
+  const planFields: Record<string, string> = { tskrate: "rate", tskbonus: "bonus", tsklock: "lock", tsktoggle: "enabled" };
+  if (planFields[key]) {
+    const { code, value } = pair();
+    const normalized = key === "tsktoggle" ? (/^(on|1|true|sim)$/i.test(value) ? "1" : "0") : value;
+    await rpc("admin_ton_staking_plan_set", { p_admin_id: ctx.adminId, p_code: code, p_field: planFields[key], p_value: normalized });
+    await clearSession(ctx);
+    await send(ctx, `💎 Plano <code>${esc(code)}</code> atualizado.`);
+    return tsHub({ ...ctx, messageId: undefined }, false);
+  }
+  const fields: Record<string, string> = {
+    tskmin: "min", tskmax: "max", tskautomin: "automin", tskpool: "pool",
+    tskpoolmin: "poolmin", tskpenalty: "penalty", tskmonth: "monthdays",
+  };
+  const field = fields[key];
+  if (!field) return tsHub({ ...ctx, messageId: undefined }, false);
+  const value = num(text);
+  if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido. Ex.: <code>10</code>");
+  await rpc("admin_ton_staking_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `✅ TON STAKING atualizado: <b>${value}</b>.`);
+  return tsHub({ ...ctx, messageId: undefined }, false);
+}
+
+async function tsCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "flag") {
+    try {
+      await rpc("admin_ton_staking_flag", { p_admin_id: ctx.adminId, p_field: a, p_value: b === "1" });
+    } catch (err) {
+      console.error("[admin-bot] ton_staking_flag failed", err);
+      await send(ctx, "⚠️ Não foi possível alterar o TON STAKING.");
+    }
+    return tsHub({ ...ctx, messageId: undefined }, false);
+  }
+  return tsHub(ctx);
+}
+
 // ---------------------------------------------------------------- ⛏ MINAS DE TON
 // Passive TON investment. Every value (price, daily yield, storage, loyalty bonus,
 // limits and who can even see the building) is controlled here in real time.
@@ -8273,6 +8382,11 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === "nfth") {
     if (rest[0] !== "ask") await clearSession(ctx);
     return nfthCallback(ctx, rest);
+  }
+  // 💎 TON STAKING (planos, taxas, pool, circuit breaker, auto-staking).
+  if (head === "ts") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return tsCallback(ctx, rest);
   }
   // ⛏ MINAS DE TON (preço, rendimento, armazenamento, fidelidade e visibilidade).
   if (head === "tm") {
@@ -11948,6 +12062,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   }
   if (key.startsWith("gbt")) return gbtPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("nm")) return nmPrompt(ctx, key, text);
+  if (key.startsWith("tsk")) return tsPrompt(ctx, key, text);
   if (key.startsWith("stk")) return stakingPrompt(ctx, key, text);
   if (key.startsWith("mu")) return muPrompt(ctx, key, text);
   if (key.startsWith("po")) return poPrompt(ctx, key, text);

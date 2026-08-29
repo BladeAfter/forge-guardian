@@ -15855,6 +15855,298 @@ export type Database = {
           },
         ]
       }
+      ton_staking_idempotency: {
+        Row: {
+          created_at: string
+          key: string
+          result: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          result: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          result?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ton_staking_ledger: {
+        Row: {
+          amount_ton: number
+          created_at: string
+          entry_type: string
+          id: string
+          note: string | null
+          position_id: string | null
+          request_id: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_ton?: number
+          created_at?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          position_id?: string | null
+          request_id?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_ton?: number
+          created_at?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          position_id?: string | null
+          request_id?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ton_staking_plans: {
+        Row: {
+          auto_compound_allowed: boolean
+          bonus_rate: number
+          code: string
+          created_at: string
+          early_unstake_allowed: boolean
+          enabled: boolean
+          id: string
+          lock_days: number
+          max_stake_ton: number
+          min_stake_ton: number
+          monthly_rate: number
+          name: string
+          reward_claim_mode: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          auto_compound_allowed?: boolean
+          bonus_rate?: number
+          code: string
+          created_at?: string
+          early_unstake_allowed?: boolean
+          enabled?: boolean
+          id?: string
+          lock_days: number
+          max_stake_ton?: number
+          min_stake_ton?: number
+          monthly_rate?: number
+          name: string
+          reward_claim_mode?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_compound_allowed?: boolean
+          bonus_rate?: number
+          code?: string
+          created_at?: string
+          early_unstake_allowed?: boolean
+          enabled?: boolean
+          id?: string
+          lock_days?: number
+          max_stake_ton?: number
+          min_stake_ton?: number
+          monthly_rate?: number
+          name?: string
+          reward_claim_mode?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ton_staking_positions: {
+        Row: {
+          accrued_reward_ton: number
+          auto_compound: boolean
+          bonus_snapshot: number
+          claim_mode_snapshot: string
+          claimed_reward_ton: number
+          compounded_ton: number
+          created_at: string
+          id: string
+          initial_principal_ton: number
+          last_accrual_at: string
+          lock_days_snapshot: number
+          plan_id: string
+          principal_ton: number
+          rate_snapshot: number
+          source: string
+          started_at: string
+          status: string
+          total_earned_ton: number
+          unlock_at: string
+          updated_at: string
+          user_id: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          accrued_reward_ton?: number
+          auto_compound?: boolean
+          bonus_snapshot?: number
+          claim_mode_snapshot?: string
+          claimed_reward_ton?: number
+          compounded_ton?: number
+          created_at?: string
+          id?: string
+          initial_principal_ton: number
+          last_accrual_at?: string
+          lock_days_snapshot: number
+          plan_id: string
+          principal_ton: number
+          rate_snapshot: number
+          source?: string
+          started_at?: string
+          status?: string
+          total_earned_ton?: number
+          unlock_at: string
+          updated_at?: string
+          user_id: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          accrued_reward_ton?: number
+          auto_compound?: boolean
+          bonus_snapshot?: number
+          claim_mode_snapshot?: string
+          claimed_reward_ton?: number
+          compounded_ton?: number
+          created_at?: string
+          id?: string
+          initial_principal_ton?: number
+          last_accrual_at?: string
+          lock_days_snapshot?: number
+          plan_id?: string
+          principal_ton?: number
+          rate_snapshot?: number
+          source?: string
+          started_at?: string
+          status?: string
+          total_earned_ton?: number
+          unlock_at?: string
+          updated_at?: string
+          user_id?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_staking_positions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ton_staking_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_staking_preferences: {
+        Row: {
+          auto_compound: boolean
+          auto_stake_plan_id: string | null
+          mine_auto_stake_enabled: boolean
+          mine_auto_stake_percent: number
+          pending_auto_stake_ton: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_compound?: boolean
+          auto_stake_plan_id?: string | null
+          mine_auto_stake_enabled?: boolean
+          mine_auto_stake_percent?: number
+          pending_auto_stake_ton?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_compound?: boolean
+          auto_stake_plan_id?: string | null
+          mine_auto_stake_enabled?: boolean
+          mine_auto_stake_percent?: number
+          pending_auto_stake_ton?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_staking_preferences_auto_stake_plan_id_fkey"
+            columns: ["auto_stake_plan_id"]
+            isOneToOne: false
+            referencedRelation: "ton_staking_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_staking_settings: {
+        Row: {
+          accrue_after_maturity: boolean
+          allowed_percents: number[]
+          auto_compound_allowed: boolean
+          auto_stake_min_ton: number
+          early_unstake_allowed: boolean
+          early_unstake_penalty_percent: number
+          enabled: boolean
+          id: boolean
+          max_stake_ton: number
+          min_stake_ton: number
+          month_days: number
+          paused: boolean
+          pool_gate_enabled: boolean
+          reward_pool_min_available: number
+          reward_pool_paid: number
+          reward_pool_total: number
+          updated_at: string
+        }
+        Insert: {
+          accrue_after_maturity?: boolean
+          allowed_percents?: number[]
+          auto_compound_allowed?: boolean
+          auto_stake_min_ton?: number
+          early_unstake_allowed?: boolean
+          early_unstake_penalty_percent?: number
+          enabled?: boolean
+          id?: boolean
+          max_stake_ton?: number
+          min_stake_ton?: number
+          month_days?: number
+          paused?: boolean
+          pool_gate_enabled?: boolean
+          reward_pool_min_available?: number
+          reward_pool_paid?: number
+          reward_pool_total?: number
+          updated_at?: string
+        }
+        Update: {
+          accrue_after_maturity?: boolean
+          allowed_percents?: number[]
+          auto_compound_allowed?: boolean
+          auto_stake_min_ton?: number
+          early_unstake_allowed?: boolean
+          early_unstake_penalty_percent?: number
+          enabled?: boolean
+          id?: boolean
+          max_stake_ton?: number
+          min_stake_ton?: number
+          month_days?: number
+          paused?: boolean
+          pool_gate_enabled?: boolean
+          reward_pool_min_available?: number
+          reward_pool_paid?: number
+          reward_pool_total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tower_bosses: {
         Row: {
           base_atk: number
@@ -18711,6 +19003,27 @@ export type Database = {
       admin_ton_reward_history: {
         Args: { p_admin_id: number; p_limit?: number; p_user_id?: string }
         Returns: Json
+      }
+      admin_ton_staking_flag: {
+        Args: { p_admin_id: number; p_field: string; p_value: boolean }
+        Returns: undefined
+      }
+      admin_ton_staking_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_ton_staking_plan_set: {
+        Args: {
+          p_admin_id: number
+          p_code: string
+          p_field: string
+          p_value: string
+        }
+        Returns: undefined
+      }
+      admin_ton_staking_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: undefined
       }
       admin_ton_withdrawals: {
         Args: { p_admin_id: number; p_limit?: number; p_status?: string }
@@ -22132,6 +22445,70 @@ export type Database = {
           telegram_id: number
           user_id: string
         }[]
+      }
+      ton_staking_accrue: {
+        Args: { p_position_id: string }
+        Returns: undefined
+      }
+      ton_staking_accrue_user: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      ton_staking_claim: {
+        Args: {
+          p_position_id?: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_flush_pending: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      ton_staking_liability: { Args: never; Returns: number }
+      ton_staking_outstanding: { Args: never; Returns: number }
+      ton_staking_pool_available: { Args: never; Returns: number }
+      ton_staking_route_mine: {
+        Args: { p_amount: number; p_source_id: string; p_user_id: string }
+        Returns: number
+      }
+      ton_staking_set_position_compound: {
+        Args: {
+          p_auto_compound: boolean
+          p_position_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_set_preferences: {
+        Args: {
+          p_auto_compound: boolean
+          p_enabled: boolean
+          p_percent: number
+          p_plan_id: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_stake: {
+        Args: {
+          p_amount: number
+          p_auto_compound?: boolean
+          p_plan_id: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
+      }
+      ton_staking_state: { Args: { p_telegram_id: number }; Returns: Json }
+      ton_staking_unstake: {
+        Args: {
+          p_position_id: string
+          p_request_id?: string
+          p_telegram_id: number
+        }
+        Returns: Json
       }
       touch_player_activity: {
         Args: { p_telegram_id: number }
