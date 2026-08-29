@@ -56,7 +56,7 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
     return (
       <section className="relative mt-2 overflow-hidden rounded-2xl border border-amber-300/45 bg-gradient-to-br from-[#0b0a08] via-[#141008] to-[#1c1206] p-3.5 shadow-[0_0_30px_-10px_rgba(251,191,36,.45)]">
         <span aria-hidden className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full bg-amber-400/15 blur-3xl" />
-        <span aria-hidden className="pointer-events-none absolute -right-8 bottom--6 h-28 w-28 rounded-full bg-amber-200/10 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-8 bottom-0 h-28 w-28 rounded-full bg-amber-200/10 blur-3xl" />
 
         <div className="relative flex items-start justify-between gap-2">
           <div className="min-w-0">

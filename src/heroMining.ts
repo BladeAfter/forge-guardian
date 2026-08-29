@@ -7,7 +7,7 @@
  */
 export type HeroMiningClaim = { id: string; amountTon: number; amountMyth?: number; currency?: 'ton' | 'myth'; heroCount: number; ratePerDay: number; createdAt: string };
 
-export type TonMiningAccess = 'LEGACY_GRANTED' | 'PASS_GRANTED' | 'MANUAL_GRANTED' | 'LOCKED_PASS_REQUIRED';
+export type TonMiningAccess = 'LEGACY_GRANTED' | 'PASS_GRANTED' | 'MANUAL_GRANTED' | 'NFT_GRANTED' | 'DEPOSIT_GRANTED' | 'LOCKED_PASS_REQUIRED';
 
 export type HeroMiningState = {
   enabled: boolean;
