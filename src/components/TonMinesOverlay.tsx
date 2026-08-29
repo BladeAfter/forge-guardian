@@ -13,6 +13,7 @@ import {
   type TonMinesState,
 } from '../services';
 import { sendTonPayment } from '../tonPayment';
+import { TonStakingOverlay } from './TonStakingOverlay';
 
 const ton = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const ton2 = (value: number) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -63,6 +64,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
   const [tonUI] = useTonConnectUI();
   const [tick, setTick] = useState(0);
   const [phase, setPhase] = useState<{ mineId: string | null; state: BuyPhase }>({ mineId: null, state: 'idle' });
+  const [stakingOpen, setStakingOpen] = useState(false);
   /** Idempotency key per mine: reused on retry so a double tap can never buy twice. */
   const purchaseKeys = useRef<Record<string, string>>({});
 
