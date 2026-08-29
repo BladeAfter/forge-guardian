@@ -15,6 +15,13 @@
       "when": 1787966754465,
       "tag": "0001_ton_mining_premium_gate_scheduled_start",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787967004502,
+      "tag": "0002_roulette_reward_settlement_recovery",
+      "breakpoints": true
     }
   ]
 }
