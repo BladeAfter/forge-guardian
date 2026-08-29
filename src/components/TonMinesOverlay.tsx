@@ -264,7 +264,29 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
               </p>
             ) : null}
           </div>
+
+          {/* 💎 TON STAKING — bloqueio premium do TON interno */}
+          <button
+            type="button"
+            onClick={() => setStakingOpen(true)}
+            className="mt-1.5 flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 transition active:scale-[0.98]"
+            style={{
+              border: '1px solid rgba(56,189,248,.42)',
+              background: 'linear-gradient(120deg, rgba(56,189,248,.16), rgba(212,175,55,.10) 60%, rgba(6,9,18,.7))',
+              boxShadow: '0 0 16px rgba(56,189,248,.18)',
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <Gem className="h-4 w-4" style={{ color: '#7dd3fc' }} />
+              <span className="text-left">
+                <span className="block text-[11px] font-black uppercase tracking-wider" style={{ color: '#f6e3ab' }}>TON Staking</span>
+                <span className="block text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>Bloqueie TON e receba rendimento diário</span>
+              </span>
+            </span>
+            <span className="text-[10px] font-black" style={{ color: '#7dd3fc' }}>ABRIR ›</span>
+          </button>
         </section>
+
 
         {isLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" style={{ color: '#e2c57a' }} /></div>
