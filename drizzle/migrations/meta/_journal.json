@@ -50,6 +50,13 @@
       "when": 1787969737780,
       "tag": "0006_ton_staking_economy_guardrails",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787970135203,
+      "tag": "0007_clan_war_roster_selection",
+      "breakpoints": true
     }
   ]
 }

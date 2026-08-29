@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Castle, Crown, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowDownUp, Castle, Crown, Filter, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
@@ -7,10 +7,14 @@ import { useClanWarDashboard, usePlayerHeroes } from '../hooks';
 import {
   attackClanWarDefender,
   clanWarErrorKey,
+  fetchClanWarRosterPicker,
+  setClanWarRoster,
   joinClanWar,
   leaveClanWarQueue,
   setClanWarDefense,
   type ClanWarDashboard,
+  type ClanWarRosterCandidate,
+  type ClanWarRosterPicker,
   type ClanWarSector,
 } from '../clanWar';
 import { ClanCrest } from './ClanHall';
@@ -155,6 +159,7 @@ export function ClanWarPanel({ telegramInitData }: { telegramInitData: string })
 
               {view === 'roster' ? (
                 <div className="space-y-1.5">
+                  {data.canManage ? <RosterManager telegramInitData={telegramInitData} busy={busy} onSaved={() => void refresh()} /> : null}
                   <h3 className="text-[10px] font-black tracking-[.2em] text-amber-200">{t('clanwar.rosterTitle')}</h3>
                   {war.roster.map((member) => (
                     <div key={member.userId} className={`flex items-center gap-2 rounded-2xl border p-2.5 ${member.isMe ? 'border-amber-300/50 bg-amber-400/10' : 'border-white/10 bg-black/55'}`}>
@@ -310,11 +315,19 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
   const t = useT();
   const { data: heroData } = usePlayerHeroes(telegramInitData, true);
   const heroes = heroData?.heroes ?? [];
+  const [rarity, setRarity] = useState<string>('all');
+  const [powerOrder, setPowerOrder] = useState<'desc' | 'asc'>('desc');
   const current = useMemo(() => picked ?? data.war?.me?.defense?.heroIds ?? [], [picked, data.war]);
   const toggle = (heroId: string) => {
     if (current.includes(heroId)) setPicked(current.filter((id) => id !== heroId));
     else if (current.length < 3) setPicked([...current, heroId]);
   };
+
+  const rarities = useMemo(() => Array.from(new Set(heroes.map((hero) => String(hero.rarity)))), [heroes]);
+  const visible = useMemo(() => {
+    const list = heroes.filter((hero) => rarity === 'all' || String(hero.rarity) === rarity);
+    return [...list].sort((a, b) => (powerOrder === 'desc' ? b.power - a.power : a.power - b.power));
+  }, [heroes, rarity, powerOrder]);
 
   return (
     <div className="space-y-2">
@@ -325,8 +338,30 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
           {data.war?.me?.defense ? `${t('clanwar.defensePower')}: ${Number(data.war.me.defense.power ?? 0).toLocaleString()}` : t('clanwar.defenseMissing')}
         </p>
       </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/45 p-2.5">
+        <div className="flex items-center gap-1.5">
+          <Filter className="h-3 w-3 text-amber-300" />
+          <span className="text-[8px] font-black uppercase tracking-[.18em] text-amber-200">{t('clanwar.filterRarity')}</span>
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          <Chip active={rarity === 'all'} onClick={() => setRarity('all')} label={t('clanwar.filterAll')} />
+          {rarities.map((code) => (
+            <Chip key={code} active={rarity === code} onClick={() => setRarity(code)} label={code.replace(/_/g, ' ').toUpperCase()} />
+          ))}
+        </div>
+        <div className="mt-2 flex items-center gap-1.5">
+          <ArrowDownUp className="h-3 w-3 text-cyan-300" />
+          <span className="text-[8px] font-black uppercase tracking-[.18em] text-cyan-200">{t('clanwar.filterPower')}</span>
+          <div className="ml-auto flex gap-1">
+            <Chip active={powerOrder === 'desc'} onClick={() => setPowerOrder('desc')} label={t('clanwar.powerDesc')} />
+            <Chip active={powerOrder === 'asc'} onClick={() => setPowerOrder('asc')} label={t('clanwar.powerAsc')} />
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-1.5">
-        {heroes.map((hero) => {
+        {visible.map((hero) => {
           const active = current.includes(hero.heroId);
           return (
             <button key={hero.heroId} onClick={() => toggle(hero.heroId)}
@@ -335,6 +370,7 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
               <div className="p-1.5">
                 <b className="block truncate text-[9px]">{hero.name}</b>
                 <span className="text-[8px] text-cyan-300">{hero.power.toLocaleString()}</span>
+                <span className="block truncate text-[7px] uppercase tracking-[.12em] text-slate-500">{String(hero.rarity).replace(/_/g, ' ')}</span>
               </div>
             </button>
           );
@@ -356,6 +392,126 @@ function DefenseTab({ telegramInitData, data, picked, setPicked, busy, onSave }:
     </div>
   );
 }
+
+function Chip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button onClick={onClick}
+      className={`rounded-lg border px-2 py-1 text-[7px] font-black uppercase tracking-[.12em] ${active ? 'border-amber-300/60 bg-amber-400/20 text-amber-100' : 'border-white/10 bg-black/50 text-slate-400'}`}>
+      {label}
+    </button>
+  );
+}
+
+/**
+ * Leader / co-leader picker for the 20 war fighters. The RPC owns every rule
+ * (role check, roster size, sector spread, members already in combat).
+ */
+function RosterManager({ telegramInitData, busy, onSaved }: { telegramInitData: string; busy: boolean; onSaved: () => void }) {
+  const t = useT();
+  const [picker, setPicker] = useState<ClanWarRosterPicker | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selection, setSelection] = useState<string[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [order, setOrder] = useState<'desc' | 'asc'>('desc');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const result = await fetchClanWarRosterPicker(telegramInitData);
+      setPicker(result);
+      setSelection(result.members.filter((m) => m.inRoster).map((m) => m.userId));
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : '';
+      if (raw !== 'CLAN_WAR_NOT_ALLOWED') toast.error(t(clanWarErrorKey(raw) || 'clanwar.error.generic'));
+      setPicker(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [telegramInitData]);
+
+  const members = useMemo(() => {
+    const list = picker?.members ?? [];
+    return [...list].sort((a, b) => (order === 'desc' ? b.power - a.power : a.power - b.power));
+  }, [picker, order]);
+
+  if (loading) return <div className="grid place-items-center py-6"><Loader2 className="h-4 w-4 animate-spin text-amber-300" /></div>;
+  if (!picker) return null;
+
+  const chosen = selection ?? [];
+  const size = picker.rosterSize;
+
+  const toggle = (member: ClanWarRosterCandidate) => {
+    if (member.locked) return;
+    if (chosen.includes(member.userId)) setSelection(chosen.filter((id) => id !== member.userId));
+    else if (chosen.length < size) setSelection([...chosen, member.userId]);
+    else toast.error(t('clanwar.error.rosterTooLarge'));
+  };
+
+  const save = async () => {
+    if (saving || busy) return;
+    setSaving(true);
+    try {
+      await setClanWarRoster(telegramInitData, chosen);
+      toast.success(t('clanwar.rosterSaved'));
+      await load();
+      onSaved();
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : '';
+      toast.error(t(clanWarErrorKey(raw) || 'clanwar.error.generic'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5 rounded-2xl border border-amber-300/25 bg-black/55 p-3">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-amber-300" />
+        <b className="text-[10px] tracking-[.18em] text-amber-200">{t('clanwar.rosterManage')}</b>
+        <span className="ml-auto text-[9px] font-black text-cyan-300">{chosen.length}/{size}</span>
+      </div>
+      <p className="text-[9px] text-slate-400">{t('clanwar.rosterManageHint')}</p>
+      <div className="flex items-center gap-1.5">
+        <ArrowDownUp className="h-3 w-3 text-cyan-300" />
+        <span className="text-[8px] font-black uppercase tracking-[.18em] text-cyan-200">{t('clanwar.filterPower')}</span>
+        <div className="ml-auto flex gap-1">
+          <Chip active={order === 'desc'} onClick={() => setOrder('desc')} label={t('clanwar.powerDesc')} />
+          <Chip active={order === 'asc'} onClick={() => setOrder('asc')} label={t('clanwar.powerAsc')} />
+        </div>
+      </div>
+      <div className="max-h-[320px] space-y-1 overflow-y-auto">
+        {members.map((member) => {
+          const active = chosen.includes(member.userId);
+          return (
+            <button key={member.userId} onClick={() => toggle(member)} disabled={!picker.editable}
+              className={`flex w-full items-center gap-2 rounded-xl border p-2 text-left disabled:opacity-60 ${active ? 'border-amber-300/60 bg-amber-400/15' : 'border-white/10 bg-black/50'}`}>
+              {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="h-7 w-7 rounded-full bg-white/10" />}
+              <div className="min-w-0 flex-1">
+                <b className="block truncate text-[10px]">{member.name}</b>
+                <span className="text-[8px] uppercase tracking-[.12em] text-slate-500">{member.role}</span>
+              </div>
+              <div className="text-right">
+                <b className="block text-[10px] text-cyan-300">{member.power.toLocaleString()}</b>
+                {member.locked ? <span className="text-[7px] font-black text-emerald-300">{t('clanwar.rosterLockedBadge')}</span> : null}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {picker.editable ? (
+        <button disabled={saving || busy} onClick={() => void save()}
+          className="w-full rounded-xl border border-amber-300/50 bg-amber-400/20 py-2.5 text-[10px] font-black text-amber-100 disabled:opacity-50">
+          {t('clanwar.rosterSave')} ({chosen.length}/{size})
+        </button>
+      ) : (
+        <p className="text-[9px] text-rose-300">{t('clanwar.error.rosterLocked')}</p>
+      )}
+    </div>
+  );
+}
+
 
 function RankingList({ data }: { data: ClanWarDashboard }) {
   const t = useT();
