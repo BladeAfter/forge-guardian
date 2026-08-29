@@ -1997,8 +1997,13 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
         p_defender: body.defender,
         p_client_key: clientKey,
       }));
+    if (action === 'roster-candidates') return rpc(db, 'clan_war_roster_candidates', { p_telegram_id: user.id });
+    if (action === 'set-roster') {
+      const userIds = Array.isArray(body.userIds) ? body.userIds.filter((id: unknown) => isUuid(id)).slice(0, 40) : [];
+      return rpc(db, 'clan_war_set_roster', { p_telegram_id: user.id, p_user_ids: userIds });
     }
     throw new Error('Ação inválida.');
+
   },
 
 
