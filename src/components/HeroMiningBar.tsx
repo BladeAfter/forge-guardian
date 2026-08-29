@@ -45,32 +45,52 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
   if (!state) return null;
 
   /**
-   * PASS GATE (server decided): new players (created after the cutoff) need the
-   * official 5 TON Mythreon Pass. The card stays visible but locked, without any
-   * real mining data and without CLAIM. Legacy players are never gated.
+   * PREMIUM GATE (server decided): mining stays locked unless the player owns the
+   * legacy 5 TON pass, the 20 TON pass, an NFT hero/pet, or deposited more than
+   * 30 TON. When locked we show ONLY this premium card — never rates, unclaimed
+   * amounts, claim button or mining counters.
    */
   if (state.accessLocked || state.miningAccess === 'LOCKED_PASS_REQUIRED') {
-    const price = Number(state.passGate?.priceTon ?? 5);
+    const price = Number(state.passGate?.priceTon ?? 20);
+    const goToPass = () => { window.location.href = '/season-pass'; };
     return (
-      <section className="mt-2 overflow-hidden rounded-2xl border border-amber-300/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/40 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="flex min-w-0 items-center gap-1.5 truncate text-[10px] font-black uppercase tracking-[.14em] text-amber-200">
-            <Pickaxe size={12} /> {t('mining.locked.title')}
-          </p>
-          <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-[.12em] text-amber-200">
+      <section className="relative mt-2 overflow-hidden rounded-2xl border border-amber-300/45 bg-gradient-to-br from-[#0b0a08] via-[#141008] to-[#1c1206] p-3.5 shadow-[0_0_30px_-10px_rgba(251,191,36,.45)]">
+        <span aria-hidden className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full bg-amber-400/15 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -right-8 bottom--6 h-28 w-28 rounded-full bg-amber-200/10 blur-3xl" />
+
+        <div className="relative flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 truncate text-[11px] font-black uppercase tracking-[.18em] text-amber-100">
+              <Pickaxe size={13} className="text-amber-300" /> {t('mining.locked.title')}
+            </p>
+            <p className="mt-0.5 text-[8px] font-black uppercase tracking-[.22em] text-amber-300/80">{t('mining.locked.subtitle')}</p>
+          </div>
+          <span className="flex shrink-0 items-center gap-1 rounded-full border border-amber-300/50 bg-gradient-to-b from-amber-300/20 to-amber-500/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-[.14em] text-amber-100">
             <Lock size={9} /> {t('mining.locked.badge')}
           </span>
         </div>
-        <p className="mt-2 text-center text-[10px] leading-snug text-slate-300">{t('mining.locked.desc')}</p>
+
+        <div className="relative mt-3 rounded-xl border border-amber-300/25 bg-black/50 px-3 py-2.5">
+          <p className="text-center text-[11px] font-bold leading-snug text-amber-50">{t('mining.locked.desc')}</p>
+          <p className="mt-1.5 text-center text-[9px] leading-relaxed text-slate-400">{t('mining.locked.req')}</p>
+        </div>
+
         <button
-          onClick={() => { window.location.href = '/season-pass'; }}
-          className="mt-2.5 flex min-h-[36px] w-full items-center justify-center rounded-xl border border-amber-300/50 bg-gradient-to-r from-amber-400/20 to-cyan-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-100"
+          onClick={goToPass}
+          className="relative mt-3 flex min-h-[42px] w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200/70 bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-[11px] font-black uppercase tracking-[.16em] text-[#1a1204] shadow-[0_6px_20px_-8px_rgba(251,191,36,.9)]"
         >
-          {t('mining.locked.cta', { price: String(price) })}
+          <Sparkles size={13} /> {t('mining.locked.cta', { price: String(price) })}
+        </button>
+        <button
+          onClick={goToPass}
+          className="relative mt-1.5 w-full text-center text-[9px] font-black uppercase tracking-[.2em] text-amber-300/85 underline decoration-amber-300/40 underline-offset-4"
+        >
+          {t('mining.locked.alt')}
         </button>
       </section>
     );
   }
+
 
   /**
    * Visibility gate: the mining card only exists for players that actually own a
