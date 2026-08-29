@@ -8,6 +8,13 @@
       "when": 1787966537726,
       "tag": "0000_ton_mining_premium_gate",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787966754465,
+      "tag": "0001_ton_mining_premium_gate_scheduled_start",
+      "breakpoints": true
     }
   ]
 }
