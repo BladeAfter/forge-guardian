@@ -3993,8 +3993,14 @@ async function rlHub(ctx: Ctx, useEdit = true) {
           `<b>CICLO #${fmt(c.number)}</b> — ${esc(String(c.status))}`,
           `Alvo: <b>${esc(String(c.targetType))}</b> · ${esc(String(c.targetName ?? c.targetId))}`,
           `Meta: 💎 ${fmt(c.requiredTon)} TON · Gasto: 💎 ${fmt(c.spentTon)} TON · Falta: 💎 ${fmt(c.remainingTon)} TON`,
+          `Prêmio: <b>${esc(rlRewardLabel(String(c.rewardStatus ?? "PENDING")))}</b>${
+            c.rewardDeliveredAt ? ` · ${esc(String(c.rewardDeliveredAt).slice(0, 16).replace("T", " "))}` : ""
+          }${c.rewardError ? `\n⚠️ <code>${esc(String(c.rewardError))}</code>` : ""}`,
         ].join("\n")
       : "<b>CICLO:</b> nenhum ciclo aberto",
+    "",
+    `<b>Prêmios pendentes de recuperação:</b> ${fmt((d.pendingRewards ?? []).length)} · <b>falhas:</b> ${fmt(d.failedRewards)}`,
+
     "",
     `<b>Giros:</b> ${fmt(a.totalSpins)} · <b>TON recebido:</b> ${fmt(a.totalTonReceived)}`,
     `<b>Pendentes:</b> pagamento ${fmt(a.pendingPayments)} · travados ${fmt(a.stuck)}`,
@@ -4026,11 +4032,81 @@ async function rlHub(ctx: Ctx, useEdit = true) {
       { t: "📜 HISTÓRICO / AUDITORIA", d: "rl:hist" },
       { t: "🛠 RECUPERAR GIROS", d: "rl:fix" },
     ],
+    [{ t: "🏆 PRÊMIOS DE META (THRESHOLD)", d: "rl:rw:audit" }],
     [{ t: "❌ CANCELAR CICLO ATUAL", d: "rl:cancel" }],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
+
+function rlRewardLabel(status: string) {
+  const map: Record<string, string> = {
+    PENDING: "⏳ PROCESSANDO",
+    DELIVERING: "⏳ PROCESSANDO",
+    DELIVERED: "✅ ENTREGUE",
+    FAILED: "⚠️ PENDENTE DE RECUPERAÇÃO",
+    MANUAL_REVIEW: "🔎 REVISÃO MANUAL",
+  };
+  return map[status] ?? status;
+}
+
+async function rlRewards(ctx: Ctx, action = "audit", cycle?: string) {
+  const d = (await rpc("admin_roulette_reward_recovery", {
+    p_admin_id: ctx.adminId,
+    p_action: action,
+    p_cycle: cycle ?? null,
+  })) as any;
+  const pending = (d.pending ?? []) as any[];
+  const failed = (d.failed ?? []) as any[];
+  const history = (d.history ?? []) as any[];
+  const text = [
+    "🏆 <b>EVENTO · PRÊMIOS DE META</b>",
+    "<i>Entrega server-side, transacional e idempotente (spent ≥ meta)</i>",
+    "",
+    action !== "audit" ? `<b>Recuperados agora:</b> ${fmt(d.recovered)}\n` : "",
+    `<b>PENDENTES DE RECUPERAÇÃO</b>\n${
+      pending
+        .map((p) =>
+          [
+            `• Ciclo #${fmt(p.cycleNumber)} · ${esc(String(p.rewardType))} — ${esc(String(p.rewardName ?? p.rewardKey))}`,
+            `   Meta 💎 ${fmt(p.targetTon)} · Gasto 💎 ${fmt(p.spentTon)} · Threshold ${p.thresholdReached ? "SIM" : "NÃO"} · Entregue NÃO`,
+            `   Prêmio: ${esc(rlRewardLabel(String(p.rewardStatus)))} · tentativas ${fmt(p.attempts)}${
+              p.lastError ? ` · <code>${esc(String(p.lastError))}</code>` : ""
+            }`,
+            `   <code>${esc(String(p.cycleId))}</code>`,
+          ].join("\n"),
+        )
+        .join("\n") || "nenhum ✅"
+    }`,
+    "",
+    `<b>FALHAS DE ENTREGA</b>\n${
+      failed
+        .map((f) => `• Ciclo #${fmt(f.number)} · ${esc(String(f.rewardStatus))} · <code>${esc(String(f.error ?? "-"))}</code>`)
+        .join("\n") || "nenhuma ✅"
+    }`,
+    "",
+    `<b>HISTÓRICO DE ENTREGAS</b>\n${
+      history
+        .map(
+          (h) =>
+            `• #${fmt(h.number)} · ${esc(String(h.player ?? "-"))} · ${esc(String(h.rewardType))} ${esc(
+              String(h.rewardKey ?? ""),
+            )} · ${esc(String(h.deliveredAt).slice(0, 16).replace("T", " "))}`,
+        )
+        .join("\n") || "nenhuma ainda"
+    }`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const rows = [
+    [{ t: "🔄 FORÇAR RECHECK", d: "rl:rw:recheck" }],
+    [{ t: "♻️ REENTREGAR PENDENTES", d: "rl:rw:retry" }],
+    [{ t: "⬅️ VOLTAR", d: "rl:hub" }],
+    nav(),
+  ];
+  return edit(ctx, text, kb(rows));
+}
+
 
 async function rlPool(ctx: Ctx, code: string) {
   const cls = RL_CLASSES[code] ?? "MYTH";
@@ -4099,6 +4175,8 @@ async function rlCallback(ctx: Ctx, rest: string[]) {
   if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.", b ? [b] : []);
   if (sub === "pool") return rlPool(ctx, a);
   if (sub === "hist") return rlHist(ctx);
+  if (sub === "rw") return rlRewards(ctx, a ?? "audit", b);
+
   if (sub === "cancel") {
     const r = (await rpc("admin_roulette_cycle_cancel", { p_admin_id: ctx.adminId, p_reason: "admin bot" })) as any;
     await send(ctx, `🎡 Ciclo #${fmt(r.cancelled)} cancelado e auditado. Novo ciclo aberto.`);

@@ -6588,6 +6588,11 @@ export type Database = {
           cycle_number: number
           global_spend_nanoton: number
           id: string
+          reward_attempts: number
+          reward_delivered_at: string | null
+          reward_delivery_key: string | null
+          reward_last_error: string | null
+          reward_status: string
           started_at: string
           status: string
           target_reference_cost_nanoton: number
@@ -6605,6 +6610,11 @@ export type Database = {
           cycle_number?: number
           global_spend_nanoton?: number
           id?: string
+          reward_attempts?: number
+          reward_delivered_at?: string | null
+          reward_delivery_key?: string | null
+          reward_last_error?: string | null
+          reward_status?: string
           started_at?: string
           status?: string
           target_reference_cost_nanoton: number
@@ -6622,6 +6632,11 @@ export type Database = {
           cycle_number?: number
           global_spend_nanoton?: number
           id?: string
+          reward_attempts?: number
+          reward_delivered_at?: string | null
+          reward_delivery_key?: string | null
+          reward_last_error?: string | null
+          reward_status?: string
           started_at?: string
           status?: string
           target_reference_cost_nanoton?: number
@@ -6645,6 +6660,56 @@ export type Database = {
             columns: ["winning_spin_id"]
             isOneToOne: false
             referencedRelation: "global_roulette_spins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_roulette_reward_deliveries: {
+        Row: {
+          cycle_id: string
+          delivered_at: string
+          delivery_key: string
+          id: string
+          payload: Json
+          reward_key: string | null
+          reward_slot: string
+          reward_type: string
+          source: string
+          spin_id: string | null
+          user_id: string
+        }
+        Insert: {
+          cycle_id: string
+          delivered_at?: string
+          delivery_key: string
+          id?: string
+          payload?: Json
+          reward_key?: string | null
+          reward_slot?: string
+          reward_type: string
+          source?: string
+          spin_id?: string | null
+          user_id: string
+        }
+        Update: {
+          cycle_id?: string
+          delivered_at?: string
+          delivery_key?: string
+          id?: string
+          payload?: Json
+          reward_key?: string | null
+          reward_slot?: string
+          reward_type?: string
+          source?: string
+          spin_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_roulette_reward_deliveries_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_roulette_cycles"
             referencedColumns: ["id"]
           },
         ]
@@ -18160,6 +18225,10 @@ export type Database = {
         Args: { p_admin_id: number; p_class: string }
         Returns: Json
       }
+      admin_roulette_reward_recovery: {
+        Args: { p_action?: string; p_admin_id: number; p_cycle?: string }
+        Returns: Json
+      }
       admin_roulette_reward_set: {
         Args: {
           p_admin_id: number
@@ -21645,6 +21714,11 @@ export type Database = {
           cycle_number: number
           global_spend_nanoton: number
           id: string
+          reward_attempts: number
+          reward_delivered_at: string | null
+          reward_delivery_key: string | null
+          reward_last_error: string | null
+          reward_status: string
           started_at: string
           status: string
           target_reference_cost_nanoton: number
@@ -21666,6 +21740,10 @@ export type Database = {
         Args: { p_amount_nano: string; p_spin_id: string; p_tx_hash: string }
         Returns: Json
       }
+      roulette_mint_nft_unit: {
+        Args: { p_reason: string; p_template: string }
+        Returns: string
+      }
       roulette_open_cycle: { Args: never; Returns: string }
       roulette_pay_myth: {
         Args: { p_amount: number; p_user: string }
@@ -21680,8 +21758,13 @@ export type Database = {
         Returns: Json
       }
       roulette_resolve: { Args: { p_spin_id: string }; Returns: Json }
+      roulette_reward_recovery_audit: { Args: never; Returns: Json }
       roulette_roll_normal: {
         Args: { p_cycle: string; p_spin: string; p_user: string }
+        Returns: Json
+      }
+      roulette_settle_cycle_reward: {
+        Args: { p_cycle: string; p_spin?: string; p_user?: string }
         Returns: Json
       }
       roulette_spin: {
