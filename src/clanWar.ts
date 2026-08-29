@@ -115,6 +115,26 @@ export const CLAN_WAR_SECTOR_LABEL: Record<ClanWarSectorCode, string> = {
   CLAN_THRONE: 'Clan Throne',
 };
 
+export type ClanWarRosterCandidate = {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  role: string;
+  power: number;
+  inRoster: boolean;
+  /** Already fought in this war: cannot be removed from the roster anymore. */
+  locked: boolean;
+};
+
+export type ClanWarRosterPicker = {
+  rosterSize: number;
+  warId: string | null;
+  status: string | null;
+  editable: boolean;
+  selected: string[];
+  members: ClanWarRosterCandidate[];
+};
+
 export const CLAN_WAR_ERRORS: Record<string, string> = {
   NOT_IN_CLAN: 'clan.error.notInClan',
   CLAN_WAR_DISABLED: 'clanwar.error.disabled',
@@ -127,10 +147,14 @@ export const CLAN_WAR_ERRORS: Record<string, string> = {
   CLAN_WAR_NO_ATTACK_TEAM: 'clanwar.error.noAttackTeam',
   CLAN_WAR_ALREADY_QUEUED: 'clanwar.error.alreadyQueued',
   CLAN_WAR_NOT_ALLOWED: 'clan.error.notAllowed',
+  CLAN_WAR_ROSTER_LOCKED: 'clanwar.error.rosterLocked',
+  CLAN_WAR_ROSTER_EMPTY: 'clanwar.error.rosterEmpty',
+  CLAN_WAR_ROSTER_TOO_LARGE: 'clanwar.error.rosterTooLarge',
   INVALID_TEAM: 'clanwar.error.invalidTeam',
 };
 
 export const clanWarErrorKey = (message: string) => CLAN_WAR_ERRORS[message] ?? '';
+
 
 /** All clan-war traffic goes through the game-api `clan-war` route; the RPCs own every rule. */
 export async function clanWarRequest<T>(initData: string, input: Record<string, unknown> = { action: 'dashboard' }): Promise<T> {
