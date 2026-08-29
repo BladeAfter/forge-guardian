@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Castle, Crown, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowDownUp, Castle, Crown, Filter, Flame, Loader2, Shield, ShieldCheck, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useT } from '../LanguageContext';
@@ -7,10 +7,14 @@ import { useClanWarDashboard, usePlayerHeroes } from '../hooks';
 import {
   attackClanWarDefender,
   clanWarErrorKey,
+  fetchClanWarRosterPicker,
+  setClanWarRoster,
   joinClanWar,
   leaveClanWarQueue,
   setClanWarDefense,
   type ClanWarDashboard,
+  type ClanWarRosterCandidate,
+  type ClanWarRosterPicker,
   type ClanWarSector,
 } from '../clanWar';
 import { ClanCrest } from './ClanHall';
@@ -155,6 +159,7 @@ export function ClanWarPanel({ telegramInitData }: { telegramInitData: string })
 
               {view === 'roster' ? (
                 <div className="space-y-1.5">
+                  {data.canManage ? <RosterManager telegramInitData={telegramInitData} busy={busy} onSaved={() => void refresh()} /> : null}
                   <h3 className="text-[10px] font-black tracking-[.2em] text-amber-200">{t('clanwar.rosterTitle')}</h3>
                   {war.roster.map((member) => (
                     <div key={member.userId} className={`flex items-center gap-2 rounded-2xl border p-2.5 ${member.isMe ? 'border-amber-300/50 bg-amber-400/10' : 'border-white/10 bg-black/55'}`}>
