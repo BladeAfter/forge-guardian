@@ -2527,6 +2527,69 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
+  /**
+   * 💎 TON STAKING: internal TON locked for a period, yielding a server-side
+   * accrual. Rates, lock terms, limits, pool and auto-staking rules are all
+   * resolved in Postgres; the client only renders the returned state.
+   */
+  'ton-staking': async (db, user, body) => {
+    const action = String(body.action || 'state');
+    try {
+      if (action === 'state') return await rpc(db, 'ton_staking_state', { p_telegram_id: user.id });
+      if (action === 'stake') {
+        if (!isUuid(body.planId)) throw new Error('PLAN_NOT_FOUND');
+        const amount = Number(body.amountTon);
+        if (!Number.isFinite(amount) || amount <= 0) throw new Error('INVALID_AMOUNT');
+        return await rpc(db, 'ton_staking_stake', {
+          p_telegram_id: user.id,
+          p_plan_id: body.planId,
+          p_amount: amount,
+          p_auto_compound: Boolean(body.autoCompound),
+          p_request_id: String(body.idempotencyKey || crypto.randomUUID()),
+        });
+      }
+      if (action === 'claim') {
+        const positionId = body.positionId ? String(body.positionId) : null;
+        if (positionId && !isUuid(positionId)) throw new Error('POSITION_NOT_FOUND');
+        return await rpc(db, 'ton_staking_claim', {
+          p_telegram_id: user.id,
+          p_position_id: positionId,
+          p_request_id: String(body.idempotencyKey || crypto.randomUUID()),
+        });
+      }
+      if (action === 'unstake') {
+        if (!isUuid(body.positionId)) throw new Error('POSITION_NOT_FOUND');
+        return await rpc(db, 'ton_staking_unstake', {
+          p_telegram_id: user.id,
+          p_position_id: body.positionId,
+          p_request_id: String(body.idempotencyKey || crypto.randomUUID()),
+        });
+      }
+      if (action === 'preferences') {
+        const planId = body.planId && isUuid(body.planId) ? String(body.planId) : null;
+        return await rpc(db, 'ton_staking_set_preferences', {
+          p_telegram_id: user.id,
+          p_enabled: Boolean(body.enabled),
+          p_percent: Number(body.percent) || 0,
+          p_plan_id: planId,
+          p_auto_compound: Boolean(body.autoCompound),
+        });
+      }
+      if (action === 'position-compound') {
+        if (!isUuid(body.positionId)) throw new Error('POSITION_NOT_FOUND');
+        return await rpc(db, 'ton_staking_set_position_compound', {
+          p_telegram_id: user.id,
+          p_position_id: body.positionId,
+          p_auto_compound: Boolean(body.autoCompound),
+        });
+      }
+    } catch (error) {
+      console.error('[TON STAKING]', { telegramId: user.id, action, error: error instanceof Error ? error.message : error });
+      throw error;
+    }
+    throw new Error('Ação inválida.');
+  },
+
   /** MYTHREON ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
   arsenal: async (db, user) => await rpc(db, 'arsenal_json', { p_telegram_id: user.id }),
 
