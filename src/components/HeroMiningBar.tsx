@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Lock, Pickaxe } from 'lucide-react';
+import { Lock, Pickaxe, Sparkles } from 'lucide-react';
 import { claimHeroMining } from '../services';
 import { miningActive, miningStateMythRate, miningStateRate, projectUnclaimed, projectUnclaimedMyth, type HeroMiningState } from '../heroMining';
 import { formatMiningAmount, miningSymbol } from '../miningCurrency';
