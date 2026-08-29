@@ -20303,9 +20303,17 @@ export type Database = {
       }
       clan_war_leave_queue: { Args: { p_telegram_id: number }; Returns: Json }
       clan_war_member_role: { Args: { p_user: string }; Returns: string }
+      clan_war_roster_candidates: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       clan_war_sector_def: { Args: never; Returns: Json }
       clan_war_set_defense: {
         Args: { p_hero_ids: string[]; p_pet_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      clan_war_set_roster: {
+        Args: { p_telegram_id: number; p_user_ids: string[] }
         Returns: Json
       }
       clan_war_settle: { Args: { p_war: string }; Returns: undefined }
