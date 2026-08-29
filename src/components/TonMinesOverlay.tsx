@@ -424,6 +424,10 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
           </section>
         ) : null}
       </div>
+
+      {stakingOpen ? (
+        <TonStakingOverlay telegramInitData={telegramInitData} onClose={() => setStakingOpen(false)} />
+      ) : null}
     </div>
   );
 }
