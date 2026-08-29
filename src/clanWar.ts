@@ -175,3 +175,7 @@ export const setClanWarDefense = (initData: string, heroIds: string[], petId?: s
   clanWarRequest<{ status: string; power: number }>(initData, { action: 'defense', heroIds, petId: petId ?? null });
 export const attackClanWarDefender = (initData: string, defender: string, clientKey: string) =>
   clanWarRequest<ClanWarAttackResult>(initData, { action: 'attack', defender, clientKey });
+export const fetchClanWarRosterPicker = (initData: string) =>
+  clanWarRequest<ClanWarRosterPicker>(initData, { action: 'roster-candidates' });
+export const setClanWarRoster = (initData: string, userIds: string[]) =>
+  clanWarRequest<{ status: string; selected: number; rosterSize: number }>(initData, { action: 'set-roster', userIds });
