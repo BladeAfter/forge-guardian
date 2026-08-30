@@ -963,12 +963,12 @@ function App() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
-              <button
+              {telegramUser?.id===8118569391&&<button
                 onClick={()=>setRewardsOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-sky-400/40 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-sky-200 shadow-[0_0_18px_rgba(56,189,248,.15)] transition active:scale-95"
               >
                 <Sparkles className="h-3.5 w-3.5" /> {t('adRewards.button')}
-              </button>
+              </button>}
               <button
                 onClick={()=>setPremiumOffersOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
@@ -979,7 +979,7 @@ function App() {
 
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
-          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
+          {rewardsOpen&&telegramInitData&&telegramUser?.id===8118569391?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
           {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
