@@ -52,6 +52,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   useMythRealtime(backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
+  // O servidor grava saques com 6 casas: truncamos (nunca arredondamos para cima)
+  // para o "Máximo" jamais pedir mais do que o saldo real.
+  const maxWithdrawTon = Math.floor(availableTon * 1e6) / 1e6;
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   // Nova regra: saque só liberado para quem já depositou o mínimo em TON (servidor decide).
@@ -350,7 +353,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       </Panel>
 
       <Panel title={t('wallet.withdrawTon')} icon={<ArrowUpFromLine />}>
-        <div className="grid grid-cols-4 gap-1">{[1,5,10].map(value => <Quick key={value} active={withdrawTon===value} onClick={() => setWithdrawTon(value)}>{value} TON</Quick>)}<Quick active={withdrawTon===availableTon && availableTon>0} onClick={() => setWithdrawTon(availableTon)}>{t('wallet.max')}</Quick></div>
+        <div className="grid grid-cols-4 gap-1">{[1,5,10].map(value => <Quick key={value} active={withdrawTon===value} onClick={() => setWithdrawTon(value)}>{value} TON</Quick>)}<Quick active={withdrawTon===maxWithdrawTon && maxWithdrawTon>0} onClick={() => setWithdrawTon(maxWithdrawTon)}>{t('wallet.max')}</Quick></div>
         <input type="number" min={minWithdrawTon} step="0.1" value={withdrawTon} onChange={event => setWithdrawTon(Number(event.target.value))} aria-label={t('wallet.tonAmountLabel')} className="mt-2 w-full rounded-xl border border-white/10 bg-black/45 px-3 py-2 text-sm outline-none focus:border-sky-400" />
         <p className="mt-1 text-[9px] uppercase tracking-wide text-slate-400">{t('wallet.minWithdrawTonNote', { ton: formatTon(minWithdrawTon) })}</p>
         {!depositRequirementMet ? (
