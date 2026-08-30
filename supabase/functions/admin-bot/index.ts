@@ -4636,6 +4636,8 @@ const PROMPTS: Record<string, string> = {
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward:
     'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
+  pooltier:
+    "🏆 Envie: <code>inicio fim percentual</code> para configurar uma faixa do ranking — ex.: <code>4 10 21</code> (posições #4–#10 recebem 21% do Ranking Pool).\n\nA soma de todas as faixas precisa ser exatamente <b>100%</b>.",
   poolset:
     "Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days",
   plset:
