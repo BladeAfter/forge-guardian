@@ -979,7 +979,7 @@ function App() {
 
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
-          {rewardsOpen&&telegramInitData?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
+          {rewardsOpen&&telegramInitData&&telegramUser?.id===8118569391?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
           {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
