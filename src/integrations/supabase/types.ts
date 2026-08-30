@@ -12326,6 +12326,33 @@ export type Database = {
           },
         ]
       }
+      pool_ranking_tiers: {
+        Row: {
+          end_rank: number
+          id: string
+          pool_percent: number
+          reward_mode: string
+          start_rank: number
+          updated_at: string
+        }
+        Insert: {
+          end_rank: number
+          id?: string
+          pool_percent: number
+          reward_mode?: string
+          start_rank: number
+          updated_at?: string
+        }
+        Update: {
+          end_rank?: number
+          id?: string
+          pool_percent?: number
+          reward_mode?: string
+          start_rank?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pool_revenue: {
         Row: {
           amount_ton: number
@@ -18386,6 +18413,16 @@ export type Database = {
         Returns: Json
       }
       admin_pool_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pool_ranking_tier_set: {
+        Args: {
+          p_admin_id: number
+          p_end: number
+          p_percent: number
+          p_start: number
+        }
+        Returns: Json
+      }
+      admin_pool_ranking_tiers: { Args: { p_admin_id: number }; Returns: Json }
       admin_premium_offers_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -21757,6 +21794,18 @@ export type Database = {
         Returns: Json
       }
       pool_eligibility: { Args: { p_user_id: string }; Returns: Json }
+      pool_ranking_allocation: {
+        Args: { p_participants: number; p_ranking_total: number }
+        Returns: {
+          amount_nanoton: number
+          amount_ton: number
+          rank_position: number
+        }[]
+      }
+      pool_ranking_distribution_status: {
+        Args: { p_participants?: number; p_ranking_total?: number }
+        Returns: Json
+      }
       pool_ranking_share: { Args: { p_pos: number }; Returns: number }
       pool_record_revenue: {
         Args: {
