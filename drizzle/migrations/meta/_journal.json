@@ -120,6 +120,13 @@
       "when": 1788132929387,
       "tag": "0016_unify_pet_buffs_all_modes",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788133099961,
+      "tag": "0017_nft_mining_ledger_allow_rare_myth_entries",
+      "breakpoints": true
     }
   ]
 }
