@@ -3287,6 +3287,7 @@ async function module(ctx: Ctx, name: string) {
         `💰 <b>COMMUNITY POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nTaxa de contribuição: <b>${d.contributionPercent}%</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace("T", " ")}\n\n💎 Receita hoje: ${fmt(d.revenueToday)} TON → pool ${fmt(d.poolToday)} TON\n📆 Receita do ciclo: ${fmt(d.revenuePeriod)} TON → pool ${fmt(d.poolPeriod)} TON\n\n<b>ORIGENS HOJE</b>\n${sources}\n\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
         kb([
           [{ t: "⚙️ CONTRIBUTION RATE", d: "ask:poolrate" }],
+          [{ t: "🏆 EVENT REWARD DISTRIBUTION", d: "view:pooltiers" }],
           [
             { t: "➕ VALOR", d: "pool:add" },
             { t: "➖ VALOR", d: "pool:remove" },
