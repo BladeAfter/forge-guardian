@@ -11568,6 +11568,7 @@ export type Database = {
           market_locked: boolean
           mining_daily_myth: number
           mining_last_at: string | null
+          mining_ton_override: number | null
           name: string
           nft_hero_id: string | null
           nft_instance_id: string | null
@@ -11618,6 +11619,7 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          mining_ton_override?: number | null
           name: string
           nft_hero_id?: string | null
           nft_instance_id?: string | null
@@ -11668,6 +11670,7 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          mining_ton_override?: number | null
           name?: string
           nft_hero_id?: string | null
           nft_instance_id?: string | null
@@ -21099,6 +21102,10 @@ export type Database = {
       hero_mining_revoke_investment: {
         Args: { p_reference: string }
         Returns: undefined
+      }
+      hero_mining_row_rate: {
+        Args: { p_nft_hero_id: string; p_override: number; p_rarity: string }
+        Returns: number
       }
       hero_mining_settle_all: { Args: never; Returns: Json }
       hero_mining_sync_invested: {
