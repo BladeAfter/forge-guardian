@@ -3287,6 +3287,7 @@ async function module(ctx: Ctx, name: string) {
         `💰 <b>COMMUNITY POOL</b>\n${esc(p.week_label)} · saldo <b>${fmt(p.balance_ton)} TON</b>\nTaxa de contribuição: <b>${d.contributionPercent}%</b>\nDistribuição: ${String(p.ends_at).slice(0, 16).replace("T", " ")}\n\n💎 Receita hoje: ${fmt(d.revenueToday)} TON → pool ${fmt(d.poolToday)} TON\n📆 Receita do ciclo: ${fmt(d.revenuePeriod)} TON → pool ${fmt(d.poolPeriod)} TON\n\n<b>ORIGENS HOJE</b>\n${sources}\n\nParticipantes ${fmt(d.participants)} · Elegíveis ${fmt(d.eligible)}\nMínimo ${d.settings?.minimum_points} pts · ranking ${d.settings?.ranking_share_percent}% · sorteio ${d.settings?.lottery_share_percent}%`,
         kb([
           [{ t: "⚙️ CONTRIBUTION RATE", d: "ask:poolrate" }],
+          [{ t: "🏆 EVENT REWARD DISTRIBUTION", d: "view:pooltiers" }],
           [
             { t: "➕ VALOR", d: "pool:add" },
             { t: "➖ VALOR", d: "pool:remove" },
@@ -3298,6 +3299,36 @@ async function module(ctx: Ctx, name: string) {
         ]),
       );
     }
+
+    case "pooltiers": {
+      const d = (await rpc("admin_pool_ranking_tiers", { p_admin_id: ctx.adminId })) as any;
+      const r = d.ranking || {};
+      const tiers = (r.tiers || []) as any[];
+      const label = (t: any) => (t.startRank === t.endRank ? `#${t.startRank}` : `#${t.startRank}–${t.endRank}`);
+      const lines =
+        tiers
+          .map(
+            (t) =>
+              `• ${label(t)}: <b>${Number(t.poolPercent)}%</b> → ${fmt(t.rewardPerPlayerTon ?? 0)} TON cada · total ${fmt(t.totalTierAllocationTon ?? 0)} TON`,
+          )
+          .join("\n") || "sem faixas configuradas";
+      const unalloc = Number(r.unallocatedNanoton || 0) / 1e9;
+      const status = r.valid
+        ? "✅ <b>DISTRIBUTION VALID</b>"
+        : `❌ <b>INVALID_DISTRIBUTION</b> · ${fmt(unalloc)} TON UNALLOCATED`;
+      return edit(
+        ctx,
+        `🏆 <b>EVENT REWARD DISTRIBUTION</b>\n\nTOTAL POOL: <b>${fmt(d.totalPoolTon)} TON</b>\nRANKING: <b>${fmt(d.rankingPoolTon)} TON</b>\nRAFFLE: <b>${fmt(d.rafflePoolTon)} TON</b>\n\nRANKING ALLOCATED: <b>${fmt(Number(r.allocatedNanoton || 0) / 1e9)} / ${fmt(r.rankingPoolTon)} TON</b>\nSoma das faixas: <b>${Number(r.tierPercentSum || 0)}%</b>\n\n<b>PREVIEW (${fmt(r.participants)} posições)</b>\n${lines}\n\n${status}`,
+        kb([
+          [{ t: "✏️ EDITAR FAIXA", d: "ask:pooltier" }],
+          [{ t: "🔄 RECALCULAR", d: "view:pooltiers" }],
+          [{ t: "⬅️ POOL", d: "view:pool" }],
+          nav(),
+        ]),
+      );
+    }
+
+
 
     case "invites": {
       const s = await rpc("admin_get_settings", { p_admin_id: ctx.adminId, p_category: "referral" });
@@ -4605,6 +4636,8 @@ const PROMPTS: Record<string, string> = {
   pass: 'Envie JSON com os campos do passe: <code>{"adventurer_price_ton":15,"legendary_price_ton":30,"levels":30,"xp_per_level":1000}</code>',
   passreward:
     'Envie: <code>reward_id {json}</code> — ex.: <code>uuid {"amount":5000,"title":"5.000 FC","enabled":true}</code>',
+  pooltier:
+    "🏆 Envie: <code>inicio fim percentual</code> para configurar uma faixa do ranking — ex.: <code>4 10 21</code> (posições #4–#10 recebem 21% do Ranking Pool).\n\nA soma de todas as faixas precisa ser exatamente <b>100%</b>.",
   poolset:
     "Envie: <code>chave valor</code> — minimum_points, ranking_share_percent, lottery_share_percent, ranking_winner_limit, lottery_winner_count, season_days",
   plset:
@@ -13636,7 +13669,31 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
         kb([[{ t: "📣 POOL MARKETING", d: "mp:hub" }], nav()]),
       );
     }
+    case "pooltier": {
+      const parts = String(text || "").trim().split(/\s+/);
+      const start = Number(parts[0]);
+      const end = Number(parts[1]);
+      const pct = Number(String(parts[2] ?? "").replace(",", "."));
+      if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || !Number.isFinite(pct) || pct < 0)
+        return send(ctx, "⚠️ Formato: <code>inicio fim percentual</code> — ex.: <code>4 10 21</code>", MAIN_MENU);
+      const r = (await rpc("admin_pool_ranking_tier_set", {
+        p_admin_id: ctx.adminId,
+        p_start: start,
+        p_end: end,
+        p_percent: pct,
+      })) as any;
+      const sum = Number(r?.tierPercentSum ?? 0);
+      const ok = r?.valid
+        ? "✅ <b>DISTRIBUTION VALID</b>"
+        : `❌ <b>INVALID_DISTRIBUTION</b> — soma das faixas ${sum}% (precisa ser 100%)`;
+      return send(
+        ctx,
+        `🏆 Faixa <b>#${start}${end > start ? `–${end}` : ""}</b> = <b>${pct}%</b>\nSoma total: <b>${sum}%</b>\n\n${ok}`,
+        kb([[{ t: "🏆 DISTRIBUIÇÃO", d: "view:pooltiers" }], nav()]),
+      );
+    }
     case "poolset": {
+
       const [k, v] = text.split(/\s+/);
       await rpc("admin_set_setting", {
         p_admin_id: ctx.adminId,

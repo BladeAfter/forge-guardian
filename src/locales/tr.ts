@@ -966,6 +966,7 @@ export const tr: Dict = {
   "pool.participants": "Katılımcılar",
   "pool.pointsSuffix": "puan",
   "pool.rafflePool": "Çekiliş havuzu",
+  "pool.allocated": "tahsis edildi",
   "pool.rankingPool": "Sıralama havuzu",
   "pool.rankingTitle": "İLK 100 SIRALAMASI",
   "pool.requirementHeroes": "Kahramanlar",
