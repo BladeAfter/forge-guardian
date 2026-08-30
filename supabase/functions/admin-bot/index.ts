@@ -3300,6 +3300,36 @@ async function module(ctx: Ctx, name: string) {
       );
     }
 
+    case "pooltiers": {
+      const d = (await rpc("admin_pool_ranking_tiers", { p_admin_id: ctx.adminId })) as any;
+      const r = d.ranking || {};
+      const tiers = (r.tiers || []) as any[];
+      const label = (t: any) => (t.startRank === t.endRank ? `#${t.startRank}` : `#${t.startRank}–${t.endRank}`);
+      const lines =
+        tiers
+          .map(
+            (t) =>
+              `• ${label(t)}: <b>${Number(t.poolPercent)}%</b> → ${fmt(t.rewardPerPlayerTon ?? 0)} TON cada · total ${fmt(t.totalTierAllocationTon ?? 0)} TON`,
+          )
+          .join("\n") || "sem faixas configuradas";
+      const unalloc = Number(r.unallocatedNanoton || 0) / 1e9;
+      const status = r.valid
+        ? "✅ <b>DISTRIBUTION VALID</b>"
+        : `❌ <b>INVALID_DISTRIBUTION</b> · ${fmt(unalloc)} TON UNALLOCATED`;
+      return edit(
+        ctx,
+        `🏆 <b>EVENT REWARD DISTRIBUTION</b>\n\nTOTAL POOL: <b>${fmt(d.totalPoolTon)} TON</b>\nRANKING: <b>${fmt(d.rankingPoolTon)} TON</b>\nRAFFLE: <b>${fmt(d.rafflePoolTon)} TON</b>\n\nRANKING ALLOCATED: <b>${fmt(Number(r.allocatedNanoton || 0) / 1e9)} / ${fmt(r.rankingPoolTon)} TON</b>\nSoma das faixas: <b>${Number(r.tierPercentSum || 0)}%</b>\n\n<b>PREVIEW (${fmt(r.participants)} posições)</b>\n${lines}\n\n${status}`,
+        kb([
+          [{ t: "✏️ EDITAR FAIXA", d: "ask:pooltier" }],
+          [{ t: "🔄 RECALCULAR", d: "view:pooltiers" }],
+          [{ t: "⬅️ POOL", d: "view:pool" }],
+          nav(),
+        ]),
+      );
+    }
+
+
+
     case "invites": {
       const s = await rpc("admin_get_settings", { p_admin_id: ctx.adminId, p_category: "referral" });
       return edit(
