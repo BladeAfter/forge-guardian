@@ -92,6 +92,13 @@
       "when": 1788131717534,
       "tag": "0012_pool_dashboard_allocation_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788132139683,
+      "tag": "0013_fix_fusion_myth_available_staking",
+      "breakpoints": true
     }
   ]
 }
