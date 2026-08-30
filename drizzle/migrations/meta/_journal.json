@@ -113,6 +113,13 @@
       "when": 1788132779707,
       "tag": "0015_pass_reward_feedback_and_pvp_ticket_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788132929387,
+      "tag": "0016_unify_pet_buffs_all_modes",
+      "breakpoints": true
     }
   ]
 }
