@@ -52,6 +52,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   useMythRealtime(backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
+  // O servidor grava saques com 6 casas: truncamos (nunca arredondamos para cima)
+  // para o "Máximo" jamais pedir mais do que o saldo real.
+  const maxWithdrawTon = Math.floor(availableTon * 1e6) / 1e6;
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   // Nova regra: saque só liberado para quem já depositou o mínimo em TON (servidor decide).
