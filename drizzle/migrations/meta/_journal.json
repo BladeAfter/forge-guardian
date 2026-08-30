@@ -85,6 +85,13 @@
       "when": 1788131666231,
       "tag": "0011_pool_settlement_exact_pools",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788131717534,
+      "tag": "0012_pool_dashboard_allocation_audit",
+      "breakpoints": true
     }
   ]
 }
