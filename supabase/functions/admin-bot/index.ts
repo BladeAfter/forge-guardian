@@ -13669,7 +13669,31 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
         kb([[{ t: "📣 POOL MARKETING", d: "mp:hub" }], nav()]),
       );
     }
+    case "pooltier": {
+      const parts = String(text || "").trim().split(/\s+/);
+      const start = Number(parts[0]);
+      const end = Number(parts[1]);
+      const pct = Number(String(parts[2] ?? "").replace(",", "."));
+      if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end < start || !Number.isFinite(pct) || pct < 0)
+        return send(ctx, "⚠️ Formato: <code>inicio fim percentual</code> — ex.: <code>4 10 21</code>", MAIN_MENU);
+      const r = (await rpc("admin_pool_ranking_tier_set", {
+        p_admin_id: ctx.adminId,
+        p_start: start,
+        p_end: end,
+        p_percent: pct,
+      })) as any;
+      const sum = Number(r?.tierPercentSum ?? 0);
+      const ok = r?.valid
+        ? "✅ <b>DISTRIBUTION VALID</b>"
+        : `❌ <b>INVALID_DISTRIBUTION</b> — soma das faixas ${sum}% (precisa ser 100%)`;
+      return send(
+        ctx,
+        `🏆 Faixa <b>#${start}${end > start ? `–${end}` : ""}</b> = <b>${pct}%</b>\nSoma total: <b>${sum}%</b>\n\n${ok}`,
+        kb([[{ t: "🏆 DISTRIBUIÇÃO", d: "view:pooltiers" }], nav()]),
+      );
+    }
     case "poolset": {
+
       const [k, v] = text.split(/\s+/);
       await rpc("admin_set_setting", {
         p_admin_id: ctx.adminId,
