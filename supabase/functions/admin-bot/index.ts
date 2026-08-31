@@ -4414,7 +4414,11 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  pvernew:
+    "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
+  pversched: "⏰ Envie a data/hora <b>UTC</b> do lançamento no formato <code>AAAA-MM-DD HH:MM</code>.\nEx.: <code>2026-09-15 00:00</code>",
   tmprice: "💰 Envie <code>chave preço_ton</code>.\nEx.: <code>iron 5</code>",
+
   tmdaily: "⛏ Envie <code>chave ton_por_dia</code>.\nEx.: <code>iron 0.11</code>",
   tmstore: "📦 Envie <code>chave dias_de_armazenamento</code> (1 a 60).\nEx.: <code>iron 7</code>",
   tmmaxper: "🔢 Envie <code>chave limite_por_jogador</code>.\nEx.: <code>iron 1</code>",
