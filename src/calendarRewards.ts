@@ -63,7 +63,10 @@ export type InventoryItem={
  equipped?:boolean;equippedHeroId?:string|null;equippedHeroName?:string|null;listed?:boolean;
  /** Fragment-only metadata: how many units one use costs and the summon odds (server-owned). */
  costPerUse?:number|null;summonRates?:Record<string,number>|null;
+ /** Key chest metadata (Eternity / Void / Celestial): which key it needs and how many the player owns. */
+ premium?:boolean;keyCode?:string|null;keyName?:string|null;keyImage?:string|null;keyQuantity?:number;
 };
+
 
 /** 5 fragments -> 1 random common/uncommon hero (server resolves cost, odds and roll). */
 export type FragmentSummonResult={
