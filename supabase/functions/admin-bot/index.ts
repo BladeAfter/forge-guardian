@@ -507,10 +507,93 @@ async function pvCard(ctx: Ctx, id: string, editing = true) {
     rows.push([{ t: "🚀 ATIVAR AGORA", d: `pver:act:${v.id}` }]);
     rows.push([{ t: "❌ CANCELAR VERSÃO", d: `pver:cancel:${v.id}` }]);
   }
+  rows.push([{ t: "🎁 RECOMPENSAS (50 NÍVEIS)", d: `pver:rw:${v.id}:1` }, { t: "✅ VALIDAR", d: `pver:val:${v.id}` }]);
   rows.push([{ t: "👥 COMPRADORES", d: `pver:buyers:${v.id}` }]);
   rows.push([{ t: "🗂 VERSÕES", d: "pver:hub" }], nav("m:pass"));
   return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
+
+// --------------------------------------- V2 reward track: preview / edit / asset selection
+const PV_RW_PAGE = 10;
+const pvRwLabel = (r: any) =>
+  `${r.highlight ? "⭐" : "•"} LV${r.level}${r.slot > 1 ? `/${r.slot}` : ""} ${r.enabled ? "" : "🚫"} ${esc(String(r.title ?? r.type))}` +
+  (r.requiresAsset ? (r.assetOk ? ` 🧩${esc(String(r.asset))}` : " ⚠️ SEM ASSET") : "");
+
+async function pvRewardTrack(ctx: Ctx, versionId: string) {
+  return (await rpc("admin_pass_reward_track", { p_admin_id: ctx.adminId, p_version_id: versionId })) as any;
+}
+
+async function pvRewards(ctx: Ctx, versionId: string, page = 1, editing = true) {
+  const d = await pvRewardTrack(ctx, versionId);
+  const list = (d.rewards ?? []) as any[];
+  const pages = Math.max(1, Math.ceil(list.length / PV_RW_PAGE));
+  const pg = Math.min(Math.max(1, page), pages);
+  const slice = list.slice((pg - 1) * PV_RW_PAGE, pg * PV_RW_PAGE);
+  const st = (d.status?.tiers ?? {})[d.tier] ?? {};
+  const text = [
+    `🎁 <b>RECOMPENSAS · ${d.tier === "legendary" ? "20 TON PASSE V2" : "5 TON PASSE V2"}</b>`,
+    `Níveis configurados: <b>${st.levelsConfigured ?? 0}/${st.levels ?? 50}</b> · recompensas: <b>${st.rewards ?? 0}</b>`,
+    `Assets pendentes: <b>${((st.pendingAssets ?? []) as any[]).length}</b> · destaques: ${(st.highlights ?? []).join(", ") || "—"}`,
+    `Ativação: ${d.status?.valid ? "✅ LIBERADA" : "⛔ BLOQUEADA (falta asset/nível)"}`,
+    "",
+    ...slice.map(pvRwLabel),
+  ].join("\n");
+  const rows = slice.map((r) => [{ t: `LV${r.level}${r.slot > 1 ? "/" + r.slot : ""} · ${String(r.title ?? "").slice(0, 22)}`, d: `pver:rwc:${r.id}:${pg}` }]);
+  const pager: { t: string; d: string }[] = [];
+  if (pg > 1) pager.push({ t: "⬅️", d: `pver:rw:${versionId}:${pg - 1}` });
+  pager.push({ t: `${pg}/${pages}`, d: `pver:rw:${versionId}:${pg}` });
+  if (pg < pages) pager.push({ t: "➡️", d: `pver:rw:${versionId}:${pg + 1}` });
+  rows.push(pager);
+  rows.push([{ t: "⬅️ VERSÃO", d: `pver:v:${versionId}` }], nav("m:pass"));
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvRewardCard(ctx: Ctx, rewardId: string, page = 1, editing = true) {
+  const r = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: rewardId })) as any;
+  const text = [
+    `🎁 <b>${r.tier === "legendary" ? "20 TON V2" : "5 TON V2"} · NÍVEL ${r.level}${r.slot > 1 ? ` (slot ${r.slot})` : ""}</b>`,
+    `Título: <b>${esc(String(r.title ?? "—"))}</b>`,
+    `Tipo: <code>${r.type}</code> · código: <code>${r.code ?? "—"}</code>`,
+    `Quantidade: <b>${fmt(r.amount)}</b>`,
+    `Asset: <b>${r.asset ? esc(String(r.asset)) : "—"}</b>${r.requiresAsset ? (r.assetOk ? " ✅" : " ⚠️ OBRIGATÓRIO") : ""}`,
+    `Destaque: ${r.highlight ? "⭐ SIM" : "—"} · ativa: ${r.enabled ? "✅" : "🚫"}`,
+  ].join("\n");
+  const rows: { t: string; d: string }[][] = [
+    [{ t: "🔢 QUANTIDADE", d: `pver:rwamt:${rewardId}:${page}` }, { t: "✏️ TÍTULO", d: `pver:rwtitle:${rewardId}:${page}` }],
+    [{ t: "🧩 SELECIONAR ASSET", d: `pver:rwasset:${rewardId}:${page}` }, { t: "🔤 TIPO/CÓDIGO", d: `pver:rwtype:${rewardId}:${page}` }],
+    [
+      { t: r.highlight ? "⭐ REMOVER DESTAQUE" : "⭐ MARCAR DESTAQUE", d: `pver:rwhl:${rewardId}:${page}` },
+      { t: r.enabled ? "🚫 DESATIVAR" : "✅ ATIVAR", d: `pver:rwen:${rewardId}:${page}` },
+    ],
+    [{ t: "⬅️ TRILHA", d: `pver:rw:${r.versionId}:${page}` }],
+    nav("m:pass"),
+  ];
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvValidate(ctx: Ctx, versionId: string) {
+  const d = (await rpc("admin_pass_version_validate", { p_admin_id: ctx.adminId, p_version_id: versionId })) as any;
+  const tiers = d.tiers ?? {};
+  const block = (tier: string, label: string) => {
+    const t = tiers[tier] ?? {};
+    const pend = (t.pendingAssets ?? []) as any[];
+    return [
+      `<b>${label}</b>`,
+      `${t.levelsConfigured ?? 0} / ${t.levels ?? 50} NÍVEIS CONFIGURADOS`,
+      `ASSETS: ${pend.length ? "⚠️ PENDENTES" : "✅ VÁLIDOS"}`,
+      ...pend.slice(0, 8).map((x) => `LEVEL ${x.level} · ${esc(String(x.title ?? x.type))} · ASSET NÃO SELECIONADO`),
+      ((t.missingLevels ?? []) as any[]).length ? `NÍVEIS SEM RECOMPENSA: ${(t.missingLevels ?? []).join(", ")}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  };
+  return edit(
+    ctx,
+    `✅ <b>VALIDAÇÃO DO PASSE V2</b>\n\n${block("adventurer", "5 TON V2")}\n\n${block("legendary", "20 TON V2")}\n\n${d.valid ? "🚀 Pode ativar." : "⛔ Ativação bloqueada até resolver os itens acima."}`,
+    kb([[{ t: "⬅️ VERSÃO", d: `pver:v:${versionId}` }], nav("m:pass")]),
+  );
+}
+
 
 async function pvBuyers(ctx: Ctx, id: string) {
   const d = (await rpc("admin_pass_version_purchases", { p_admin_id: ctx.adminId, p_version_id: id })) as any;
@@ -550,8 +633,58 @@ async function pvCallback(ctx: Ctx, rest: string[]) {
     await send(ctx, "❌ Versão cancelada.");
     return pvHub({ ...ctx, messageId: undefined }, false);
   }
+  if (sub === "rw") return pvRewards(ctx, a, Number(b || 1));
+  if (sub === "val") return pvValidate(ctx, a);
+  if (sub === "rwc") return pvRewardCard(ctx, a, Number(b || 1));
+  if (sub === "rwamt") return ask(ctx, `pverrwamt|${a}|${b || 1}`, PROMPTS.pverrwamt);
+  if (sub === "rwtitle") return ask(ctx, `pverrwtitle|${a}|${b || 1}`, PROMPTS.pverrwtitle);
+  if (sub === "rwtype") return ask(ctx, `pverrwtype|${a}|${b || 1}`, PROMPTS.pverrwtype);
+  if (sub === "rwhl" || sub === "rwen") {
+    const cur = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: a })) as any;
+    await rpc("admin_pass_reward_set", {
+      p_admin_id: ctx.adminId,
+      p_reward_id: a,
+      ...(sub === "rwhl" ? { p_highlight: !cur.highlight } : { p_enabled: !cur.enabled }),
+    });
+    return pvRewardCard(ctx, a, Number(b || 1));
+  }
+  if (sub === "rwasset") return pvAssetPicker(ctx, a, Number(b || 1));
+  if (sub === "rwseta") {
+    // pver:rwseta:<rewardId>:<page>:<assetRef>
+    const [, rewardId, page, ...assetParts] = rest;
+    const asset = assetParts.join(":");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: rewardId, p_asset: asset });
+    await send(ctx, `🧩 Asset definido: <code>${esc(asset)}</code>.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, rewardId, Number(page || 1), false);
+  }
   return pvHub(ctx);
 }
+
+async function pvAssetPicker(ctx: Ctx, rewardId: string, page = 1) {
+  const r = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: rewardId })) as any;
+  const kind =
+    r.type === "hero_random" ? "hero"
+    : r.type === "pet_random" ? "pet"
+    : r.type === "nft_equipment" ? "nft_equipment"
+    : r.type === "nft_pet" ? "nft_pet"
+    : r.type === "equipment" ? "equipment"
+    : r.type === "pet_egg" ? "egg"
+    : "none";
+  if (kind === "none") throw new Error("⚠️ Esta recompensa não usa asset (moedas, tickets, fragmentos, baús).");
+  const rarity = ["hero", "pet", "equipment"].includes(kind) ? r.code ?? null : null;
+  const d = (await rpc("admin_pass_reward_assets", { p_admin_id: ctx.adminId, p_kind: kind, p_rarity: rarity })) as any;
+  const assets = ((d.assets ?? []) as any[]).filter((a) => kind !== "nft_equipment" && kind !== "nft_pet" ? true : Number(a.freeUnits ?? 0) > 0);
+  const rows = assets.slice(0, 24).map((a) => [
+    { t: `${a.name}${a.rarity ? ` · ${a.rarity}` : ""}${a.freeUnits !== undefined ? ` · ${a.freeUnits} livre(s)` : ""}`.slice(0, 60), d: `pver:rwseta:${rewardId}:${page}:${a.ref}` },
+  ]);
+  rows.push([{ t: "⬅️ RECOMPENSA", d: `pver:rwc:${rewardId}:${page}` }], nav("m:pass"));
+  return edit(
+    ctx,
+    `🧩 <b>SELECIONAR ASSET · NÍVEL ${r.level}</b>\nTipo: <code>${r.type}</code>${rarity ? ` · raridade <code>${rarity}</code>` : ""}\nAtual: <b>${r.asset ? esc(String(r.asset)) : "—"}</b>\n\n${assets.length ? "Escolha o template oficial:" : "⚠️ Nenhum asset disponível para este tipo."}`,
+    kb(rows),
+  );
+}
+
 
 async function pvPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   if (key === "pvernew") {
@@ -584,8 +717,37 @@ async function pvPrompt(ctx: Ctx, key: string, args: string[], text: string) {
     await send(ctx, `⏰ Lançamento agendado para <b>${at.toISOString().replace("T", " ").slice(0, 16)} UTC</b>.`);
     return pvCard({ ...ctx, messageId: undefined }, args[0], false);
   }
+  if (key === "pverrwamt") {
+    const n = Number(text.replace(/[^\d.]/g, ""));
+    if (!Number.isFinite(n) || n <= 0) throw new Error("KEEP_SESSION::⚠️ Envie a quantidade (número maior que zero).");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: args[0], p_amount: n });
+    await clearSession(ctx);
+    await send(ctx, `🔢 Quantidade atualizada: <b>${fmt(n)}</b>.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
+  if (key === "pverrwtitle") {
+    if (text.trim().length < 2) throw new Error("KEEP_SESSION::⚠️ Envie o novo título da recompensa.");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: args[0], p_title: text.trim() });
+    await clearSession(ctx);
+    await send(ctx, "✏️ Título atualizado.");
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
+  if (key === "pverrwtype") {
+    const [type, code] = text.trim().split(/\s+/);
+    if (!type) throw new Error("KEEP_SESSION::⚠️ Envie <code>tipo codigo</code>. Ex.: <code>myth</code> ou <code>equipment legendary</code>");
+    await rpc("admin_pass_reward_set", {
+      p_admin_id: ctx.adminId,
+      p_reward_id: args[0],
+      p_reward_type: type,
+      ...(code ? { p_reward_code: code } : {}),
+    });
+    await clearSession(ctx);
+    await send(ctx, `🔤 Tipo atualizado: <code>${esc(type)}</code>${code ? ` · <code>${esc(code)}</code>` : ""}.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
   throw new Error("⚠️ Ação inválida.");
 }
+
 
 // ---------------------------------------------------------------- battle pass (manual activation)
 
@@ -4419,6 +4581,9 @@ const PROMPTS: Record<string, string> = {
   pvernew:
     "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
   pversched: "⏰ Envie a data/hora <b>UTC</b> do lançamento no formato <code>AAAA-MM-DD HH:MM</code>.\nEx.: <code>2026-09-15 00:00</code>",
+  pverrwamt: "🔢 Envie a nova quantidade da recompensa.\nEx.: <code>250000</code>",
+  pverrwtitle: "✏️ Envie o novo título da recompensa.\nEx.: <code>500.000 FC</code>",
+  pverrwtype: "🔤 Envie <code>tipo codigo</code>.\nTipos: <code>fc myth pvp_ticket fragments pet_food chest equipment hero_random pet_random nft_equipment nft_pet pet_egg</code>.\nEx.: <code>equipment legendary</code>",
   tmprice: "💰 Envie <code>chave preço_ton</code>.\nEx.: <code>iron 5</code>",
 
   tmdaily: "⛏ Envie <code>chave ton_por_dia</code>.\nEx.: <code>iron 0.11</code>",
@@ -12240,7 +12405,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("cl")) return clansPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("sp") && ["spname", "spdays", "spreward", "spratet", "spratef"].includes(key))
     return spendPrompt(ctx, key, text);
-  if (key === "pvernew" || key === "pversched") return pvPrompt(ctx, key, args, text);
+  if (key === "pvernew" || key === "pversched" || key.startsWith("pverrw")) return pvPrompt(ctx, key, args, text);
   if (key.startsWith("cb")) return cbPrompt(ctx, key, text, args);
 
   if (key.startsWith("pt") && key !== "ptr") return partnersPrompt(ctx, key, args, text);
