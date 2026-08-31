@@ -204,6 +204,13 @@
       "when": 1788141785528,
       "tag": "0028_private_trade_escrow_reference_collision",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788141832796,
+      "tag": "0029_private_trade_risk_flags_array_fix",
+      "breakpoints": true
     }
   ]
 }
