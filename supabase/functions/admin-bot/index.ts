@@ -4581,6 +4581,9 @@ const PROMPTS: Record<string, string> = {
   pvernew:
     "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
   pversched: "⏰ Envie a data/hora <b>UTC</b> do lançamento no formato <code>AAAA-MM-DD HH:MM</code>.\nEx.: <code>2026-09-15 00:00</code>",
+  pverrwamt: "🔢 Envie a nova quantidade da recompensa.\nEx.: <code>250000</code>",
+  pverrwtitle: "✏️ Envie o novo título da recompensa.\nEx.: <code>500.000 FC</code>",
+  pverrwtype: "🔤 Envie <code>tipo codigo</code>.\nTipos: <code>fc myth pvp_ticket fragments pet_food chest equipment hero_random pet_random nft_equipment nft_pet pet_egg</code>.\nEx.: <code>equipment legendary</code>",
   tmprice: "💰 Envie <code>chave preço_ton</code>.\nEx.: <code>iron 5</code>",
 
   tmdaily: "⛏ Envie <code>chave ton_por_dia</code>.\nEx.: <code>iron 0.11</code>",
