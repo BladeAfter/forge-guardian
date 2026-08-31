@@ -112,8 +112,13 @@ export const PRIVATE_TRADE_ERROR_KEYS: Record<string, string> = {
   ITEM_ALREADY_IN_TRADE: 'privateTrade.errItemInTrade',
   ITEM_NOT_IN_TRADE: 'privateTrade.errItemNotInTrade',
   INSUFFICIENT_FC: 'privateTrade.errFc',
+  NOT_ENOUGH_FORGE_COINS: 'privateTrade.errFc',
   INSUFFICIENT_TON: 'privateTrade.errTon',
+  INSUFFICIENT_TON_BALANCE: 'privateTrade.errTon',
   INSUFFICIENT_MYTH: 'privateTrade.errMyth',
+  INSUFFICIENT_MYTH_BALANCE: 'privateTrade.errMyth',
+  TRADE_NOT_EDITABLE: 'privateTrade.errLocked',
+  TRADE_NOT_CONFIRMED: 'privateTrade.errNotLocked',
   PET_ALREADY_OWNED: 'privateTrade.errPetOwned',
   OWNERSHIP_CHANGED: 'privateTrade.errOwnership',
 };
