@@ -507,10 +507,93 @@ async function pvCard(ctx: Ctx, id: string, editing = true) {
     rows.push([{ t: "🚀 ATIVAR AGORA", d: `pver:act:${v.id}` }]);
     rows.push([{ t: "❌ CANCELAR VERSÃO", d: `pver:cancel:${v.id}` }]);
   }
+  rows.push([{ t: "🎁 RECOMPENSAS (50 NÍVEIS)", d: `pver:rw:${v.id}:1` }, { t: "✅ VALIDAR", d: `pver:val:${v.id}` }]);
   rows.push([{ t: "👥 COMPRADORES", d: `pver:buyers:${v.id}` }]);
   rows.push([{ t: "🗂 VERSÕES", d: "pver:hub" }], nav("m:pass"));
   return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
 }
+
+// --------------------------------------- V2 reward track: preview / edit / asset selection
+const PV_RW_PAGE = 10;
+const pvRwLabel = (r: any) =>
+  `${r.highlight ? "⭐" : "•"} LV${r.level}${r.slot > 1 ? `/${r.slot}` : ""} ${r.enabled ? "" : "🚫"} ${esc(String(r.title ?? r.type))}` +
+  (r.requiresAsset ? (r.assetOk ? ` 🧩${esc(String(r.asset))}` : " ⚠️ SEM ASSET") : "");
+
+async function pvRewardTrack(ctx: Ctx, versionId: string) {
+  return (await rpc("admin_pass_reward_track", { p_admin_id: ctx.adminId, p_version_id: versionId })) as any;
+}
+
+async function pvRewards(ctx: Ctx, versionId: string, page = 1, editing = true) {
+  const d = await pvRewardTrack(ctx, versionId);
+  const list = (d.rewards ?? []) as any[];
+  const pages = Math.max(1, Math.ceil(list.length / PV_RW_PAGE));
+  const pg = Math.min(Math.max(1, page), pages);
+  const slice = list.slice((pg - 1) * PV_RW_PAGE, pg * PV_RW_PAGE);
+  const st = (d.status?.tiers ?? {})[d.tier] ?? {};
+  const text = [
+    `🎁 <b>RECOMPENSAS · ${d.tier === "legendary" ? "20 TON PASSE V2" : "5 TON PASSE V2"}</b>`,
+    `Níveis configurados: <b>${st.levelsConfigured ?? 0}/${st.levels ?? 50}</b> · recompensas: <b>${st.rewards ?? 0}</b>`,
+    `Assets pendentes: <b>${((st.pendingAssets ?? []) as any[]).length}</b> · destaques: ${(st.highlights ?? []).join(", ") || "—"}`,
+    `Ativação: ${d.status?.valid ? "✅ LIBERADA" : "⛔ BLOQUEADA (falta asset/nível)"}`,
+    "",
+    ...slice.map(pvRwLabel),
+  ].join("\n");
+  const rows = slice.map((r) => [{ t: `LV${r.level}${r.slot > 1 ? "/" + r.slot : ""} · ${String(r.title ?? "").slice(0, 22)}`, d: `pver:rwc:${r.id}:${pg}` }]);
+  const pager: { t: string; d: string }[] = [];
+  if (pg > 1) pager.push({ t: "⬅️", d: `pver:rw:${versionId}:${pg - 1}` });
+  pager.push({ t: `${pg}/${pages}`, d: `pver:rw:${versionId}:${pg}` });
+  if (pg < pages) pager.push({ t: "➡️", d: `pver:rw:${versionId}:${pg + 1}` });
+  rows.push(pager);
+  rows.push([{ t: "⬅️ VERSÃO", d: `pver:v:${versionId}` }], nav("m:pass"));
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvRewardCard(ctx: Ctx, rewardId: string, page = 1, editing = true) {
+  const r = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: rewardId })) as any;
+  const text = [
+    `🎁 <b>${r.tier === "legendary" ? "20 TON V2" : "5 TON V2"} · NÍVEL ${r.level}${r.slot > 1 ? ` (slot ${r.slot})` : ""}</b>`,
+    `Título: <b>${esc(String(r.title ?? "—"))}</b>`,
+    `Tipo: <code>${r.type}</code> · código: <code>${r.code ?? "—"}</code>`,
+    `Quantidade: <b>${fmt(r.amount)}</b>`,
+    `Asset: <b>${r.asset ? esc(String(r.asset)) : "—"}</b>${r.requiresAsset ? (r.assetOk ? " ✅" : " ⚠️ OBRIGATÓRIO") : ""}`,
+    `Destaque: ${r.highlight ? "⭐ SIM" : "—"} · ativa: ${r.enabled ? "✅" : "🚫"}`,
+  ].join("\n");
+  const rows: { t: string; d: string }[][] = [
+    [{ t: "🔢 QUANTIDADE", d: `pver:rwamt:${rewardId}:${page}` }, { t: "✏️ TÍTULO", d: `pver:rwtitle:${rewardId}:${page}` }],
+    [{ t: "🧩 SELECIONAR ASSET", d: `pver:rwasset:${rewardId}:${page}` }, { t: "🔤 TIPO/CÓDIGO", d: `pver:rwtype:${rewardId}:${page}` }],
+    [
+      { t: r.highlight ? "⭐ REMOVER DESTAQUE" : "⭐ MARCAR DESTAQUE", d: `pver:rwhl:${rewardId}:${page}` },
+      { t: r.enabled ? "🚫 DESATIVAR" : "✅ ATIVAR", d: `pver:rwen:${rewardId}:${page}` },
+    ],
+    [{ t: "⬅️ TRILHA", d: `pver:rw:${r.versionId}:${page}` }],
+    nav("m:pass"),
+  ];
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvValidate(ctx: Ctx, versionId: string) {
+  const d = (await rpc("admin_pass_version_validate", { p_admin_id: ctx.adminId, p_version_id: versionId })) as any;
+  const tiers = d.tiers ?? {};
+  const block = (tier: string, label: string) => {
+    const t = tiers[tier] ?? {};
+    const pend = (t.pendingAssets ?? []) as any[];
+    return [
+      `<b>${label}</b>`,
+      `${t.levelsConfigured ?? 0} / ${t.levels ?? 50} NÍVEIS CONFIGURADOS`,
+      `ASSETS: ${pend.length ? "⚠️ PENDENTES" : "✅ VÁLIDOS"}`,
+      ...pend.slice(0, 8).map((x) => `LEVEL ${x.level} · ${esc(String(x.title ?? x.type))} · ASSET NÃO SELECIONADO`),
+      ((t.missingLevels ?? []) as any[]).length ? `NÍVEIS SEM RECOMPENSA: ${(t.missingLevels ?? []).join(", ")}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  };
+  return edit(
+    ctx,
+    `✅ <b>VALIDAÇÃO DO PASSE V2</b>\n\n${block("adventurer", "5 TON V2")}\n\n${block("legendary", "20 TON V2")}\n\n${d.valid ? "🚀 Pode ativar." : "⛔ Ativação bloqueada até resolver os itens acima."}`,
+    kb([[{ t: "⬅️ VERSÃO", d: `pver:v:${versionId}` }], nav("m:pass")]),
+  );
+}
+
 
 async function pvBuyers(ctx: Ctx, id: string) {
   const d = (await rpc("admin_pass_version_purchases", { p_admin_id: ctx.adminId, p_version_id: id })) as any;
