@@ -12713,6 +12713,349 @@ export type Database = {
         }
         Relationships: []
       }
+      private_trade_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          details: Json
+          event: string
+          id: string
+          trade_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json
+          event: string
+          id?: string
+          trade_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json
+          event?: string
+          id?: string
+          trade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_trade_events_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "private_trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_trade_idempotency: {
+        Row: {
+          action: string
+          created_at: string
+          request_id: string
+          result: Json
+          trade_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          request_id: string
+          result?: Json
+          trade_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          request_id?: string
+          result?: Json
+          trade_id?: string | null
+        }
+        Relationships: []
+      }
+      private_trade_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_code: string | null
+          item_instance_id: string | null
+          item_type: string
+          owner_user_id: string
+          quantity: number
+          side: string
+          snapshot: Json
+          trade_id: string
+          value_fc: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type: string
+          owner_user_id: string
+          quantity?: number
+          side: string
+          snapshot?: Json
+          trade_id: string
+          value_fc?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_instance_id?: string | null
+          item_type?: string
+          owner_user_id?: string
+          quantity?: number
+          side?: string
+          snapshot?: Json
+          trade_id?: string
+          value_fc?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_trade_items_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_trade_items_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "private_trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_trade_ledger: {
+        Row: {
+          created_at: string
+          fc: number
+          from_user_id: string | null
+          id: string
+          items: Json
+          myth: number
+          risk_flags: string[]
+          risk_score: number
+          to_user_id: string | null
+          ton: number
+          trade_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fc?: number
+          from_user_id?: string | null
+          id?: string
+          items?: Json
+          myth?: number
+          risk_flags?: string[]
+          risk_score?: number
+          to_user_id?: string | null
+          ton?: number
+          trade_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fc?: number
+          from_user_id?: string | null
+          id?: string
+          items?: Json
+          myth?: number
+          risk_flags?: string[]
+          risk_score?: number
+          to_user_id?: string | null
+          ton?: number
+          trade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_trade_ledger_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "private_trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_trade_settings: {
+        Row: {
+          admin_only: boolean
+          enabled: boolean
+          expire_hours: number
+          fee_percent: number
+          high_rarity_risk: number
+          high_value_min_deposit_ton: number
+          id: number
+          max_items: number
+          min_account_days: number
+          new_account_risk: number
+          nft_transfer_risk: number
+          one_sided_risk: number
+          repeated_pair_risk: number
+          require_deposit_for_high_value: boolean
+          risk_critical: number
+          risk_high: number
+          risk_medium: number
+          same_device_risk: number
+          same_network_risk: number
+          same_wallet_risk: number
+          suspicious_cooldown_hours: number
+          updated_at: string
+        }
+        Insert: {
+          admin_only?: boolean
+          enabled?: boolean
+          expire_hours?: number
+          fee_percent?: number
+          high_rarity_risk?: number
+          high_value_min_deposit_ton?: number
+          id?: number
+          max_items?: number
+          min_account_days?: number
+          new_account_risk?: number
+          nft_transfer_risk?: number
+          one_sided_risk?: number
+          repeated_pair_risk?: number
+          require_deposit_for_high_value?: boolean
+          risk_critical?: number
+          risk_high?: number
+          risk_medium?: number
+          same_device_risk?: number
+          same_network_risk?: number
+          same_wallet_risk?: number
+          suspicious_cooldown_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_only?: boolean
+          enabled?: boolean
+          expire_hours?: number
+          fee_percent?: number
+          high_rarity_risk?: number
+          high_value_min_deposit_ton?: number
+          id?: number
+          max_items?: number
+          min_account_days?: number
+          new_account_risk?: number
+          nft_transfer_risk?: number
+          one_sided_risk?: number
+          repeated_pair_risk?: number
+          require_deposit_for_high_value?: boolean
+          risk_critical?: number
+          risk_high?: number
+          risk_medium?: number
+          same_device_risk?: number
+          same_network_risk?: number
+          same_wallet_risk?: number
+          suspicious_cooldown_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      private_trades: {
+        Row: {
+          admin_note: string | null
+          cancel_reason: string | null
+          cancelled_by: string | null
+          code: string
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          initiator_confirmed: boolean
+          initiator_escrowed: boolean
+          initiator_fc: number
+          initiator_locked: boolean
+          initiator_myth: number
+          initiator_ton: number
+          initiator_user_id: string
+          recipient_confirmed: boolean
+          recipient_escrowed: boolean
+          recipient_fc: number
+          recipient_locked: boolean
+          recipient_myth: number
+          recipient_ton: number
+          recipient_user_id: string
+          risk_flags: string[]
+          risk_score: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          code?: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          initiator_confirmed?: boolean
+          initiator_escrowed?: boolean
+          initiator_fc?: number
+          initiator_locked?: boolean
+          initiator_myth?: number
+          initiator_ton?: number
+          initiator_user_id: string
+          recipient_confirmed?: boolean
+          recipient_escrowed?: boolean
+          recipient_fc?: number
+          recipient_locked?: boolean
+          recipient_myth?: number
+          recipient_ton?: number
+          recipient_user_id: string
+          risk_flags?: string[]
+          risk_score?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          cancel_reason?: string | null
+          cancelled_by?: string | null
+          code?: string
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          initiator_confirmed?: boolean
+          initiator_escrowed?: boolean
+          initiator_fc?: number
+          initiator_locked?: boolean
+          initiator_myth?: number
+          initiator_ton?: number
+          initiator_user_id?: string
+          recipient_confirmed?: boolean
+          recipient_escrowed?: boolean
+          recipient_fc?: number
+          recipient_locked?: boolean
+          recipient_myth?: number
+          recipient_ton?: number
+          recipient_user_id?: string
+          risk_flags?: string[]
+          risk_score?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_trades_initiator_user_id_fkey"
+            columns: ["initiator_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_trades_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       processed_ton_transactions: {
         Row: {
           amount_nano: number
@@ -18439,6 +18782,27 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_private_trade_action: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_note?: string
+          p_trade: string
+        }
+        Returns: Json
+      }
+      admin_private_trade_detail: {
+        Args: { p_admin_id: number; p_trade: string }
+        Returns: Json
+      }
+      admin_private_trade_overview: {
+        Args: { p_admin_id: number; p_limit?: number; p_status?: string }
+        Returns: Json
+      }
+      admin_private_trade_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: Json
+      }
       admin_pvp_league_activate: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_cancel: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_configure: {
@@ -21834,6 +22198,120 @@ export type Database = {
       }
       premium_offer_timezone: { Args: never; Returns: string }
       premium_offers_state: { Args: { p_telegram_id: number }; Returns: Json }
+      private_trade_add_item: {
+        Args: {
+          p_instance_id: string
+          p_item_code: string
+          p_item_type: string
+          p_quantity?: number
+          p_telegram_id: number
+          p_trade: string
+        }
+        Returns: Json
+      }
+      private_trade_cancel: {
+        Args: { p_reason?: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
+      private_trade_confirm: {
+        Args: { p_request_id?: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
+      private_trade_create: {
+        Args: { p_query: string; p_request_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
+      private_trade_escrow_deliver: {
+        Args: {
+          p_fc: number
+          p_from: string
+          p_myth: number
+          p_to: string
+          p_ton: number
+          p_trade: string
+        }
+        Returns: undefined
+      }
+      private_trade_escrow_lock: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_ton: number
+          p_trade: string
+          p_user: string
+        }
+        Returns: undefined
+      }
+      private_trade_escrow_release: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_ton: number
+          p_trade: string
+          p_user: string
+        }
+        Returns: undefined
+      }
+      private_trade_expire_sweep: { Args: never; Returns: number }
+      private_trade_guard: { Args: { p_telegram_id: number }; Returns: string }
+      private_trade_high_rarity: {
+        Args: { p_rarity: string }
+        Returns: boolean
+      }
+      private_trade_item_value: {
+        Args: {
+          p_nft?: boolean
+          p_qty: number
+          p_rarity: string
+          p_type: string
+        }
+        Returns: number
+      }
+      private_trade_list: { Args: { p_telegram_id: number }; Returns: Json }
+      private_trade_lock: {
+        Args: {
+          p_locked?: boolean
+          p_request_id?: string
+          p_telegram_id: number
+          p_trade: string
+        }
+        Returns: Json
+      }
+      private_trade_player_card: { Args: { p_user: string }; Returns: Json }
+      private_trade_release_all: {
+        Args: { p_trade: string }
+        Returns: undefined
+      }
+      private_trade_remove_item: {
+        Args: { p_item_id: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
+      private_trade_risk_assess: { Args: { p_trade: string }; Returns: Json }
+      private_trade_search_player: {
+        Args: { p_query: string; p_telegram_id: number }
+        Returns: Json
+      }
+      private_trade_set_currency: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_telegram_id: number
+          p_ton: number
+          p_trade: string
+        }
+        Returns: Json
+      }
+      private_trade_settings_json: { Args: never; Returns: Json }
+      private_trade_settle: { Args: { p_trade: string }; Returns: Json }
+      private_trade_state: {
+        Args: { p_trade: string; p_user: string }
+        Returns: Json
+      }
+      private_trade_touch: { Args: { p_trade: string }; Returns: undefined }
+      private_trade_view: {
+        Args: { p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
