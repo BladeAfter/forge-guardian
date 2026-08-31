@@ -22452,6 +22452,10 @@ export type Database = {
         }
         Returns: number
       }
+      private_trade_ledger_ref: {
+        Args: { p_trade: string; p_user: string }
+        Returns: string
+      }
       private_trade_list: { Args: { p_telegram_id: number }; Returns: Json }
       private_trade_lock: {
         Args: {
