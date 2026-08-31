@@ -18782,6 +18782,27 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_private_trade_action: {
+        Args: {
+          p_action: string
+          p_admin_id: number
+          p_note?: string
+          p_trade: string
+        }
+        Returns: Json
+      }
+      admin_private_trade_detail: {
+        Args: { p_admin_id: number; p_trade: string }
+        Returns: Json
+      }
+      admin_private_trade_overview: {
+        Args: { p_admin_id: number; p_limit?: number; p_status?: string }
+        Returns: Json
+      }
+      admin_private_trade_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: number }
+        Returns: Json
+      }
       admin_pvp_league_activate: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_cancel: { Args: { p_admin_id: number }; Returns: Json }
       admin_pvp_league_configure: {
@@ -22188,6 +22209,14 @@ export type Database = {
         }
         Returns: Json
       }
+      private_trade_cancel: {
+        Args: { p_reason?: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
+      private_trade_confirm: {
+        Args: { p_request_id?: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
       private_trade_create: {
         Args: { p_query: string; p_request_id?: string; p_telegram_id: number }
         Returns: Json
@@ -22223,6 +22252,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      private_trade_expire_sweep: { Args: never; Returns: number }
       private_trade_guard: { Args: { p_telegram_id: number }; Returns: string }
       private_trade_high_rarity: {
         Args: { p_rarity: string }
@@ -22248,6 +22278,10 @@ export type Database = {
         Returns: Json
       }
       private_trade_player_card: { Args: { p_user: string }; Returns: Json }
+      private_trade_release_all: {
+        Args: { p_trade: string }
+        Returns: undefined
+      }
       private_trade_remove_item: {
         Args: { p_item_id: string; p_telegram_id: number; p_trade: string }
         Returns: Json
@@ -22268,11 +22302,16 @@ export type Database = {
         Returns: Json
       }
       private_trade_settings_json: { Args: never; Returns: Json }
+      private_trade_settle: { Args: { p_trade: string }; Returns: Json }
       private_trade_state: {
         Args: { p_trade: string; p_user: string }
         Returns: Json
       }
       private_trade_touch: { Args: { p_trade: string }; Returns: undefined }
+      private_trade_view: {
+        Args: { p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json

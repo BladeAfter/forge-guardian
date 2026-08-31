@@ -148,6 +148,13 @@
       "when": 1788135250554,
       "tag": "0020_private_trade_lifecycle_rpcs",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788135355176,
+      "tag": "0021_private_trade_settlement_and_admin",
+      "breakpoints": true
     }
   ]
 }
