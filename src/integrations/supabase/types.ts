@@ -18815,6 +18815,10 @@ export type Database = {
         Args: { p_admin_id: number; p_tier?: string; p_version_id: string }
         Returns: Json
       }
+      admin_pass_reward_view: {
+        Args: { p_admin_id: number; p_reward_id: string }
+        Returns: Json
+      }
       admin_pass_version_activate: {
         Args: { p_admin_id: number; p_version_id: string }
         Returns: Json

@@ -232,6 +232,13 @@
       "when": 1788142514713,
       "tag": "0032_battle_pass_dashboard_slots_highlights",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1788142775778,
+      "tag": "0033_admin_pass_reward_view",
+      "breakpoints": true
     }
   ]
 }
