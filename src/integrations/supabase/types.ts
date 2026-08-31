@@ -22177,6 +22177,21 @@ export type Database = {
       }
       premium_offer_timezone: { Args: never; Returns: string }
       premium_offers_state: { Args: { p_telegram_id: number }; Returns: Json }
+      private_trade_add_item: {
+        Args: {
+          p_instance_id: string
+          p_item_code: string
+          p_item_type: string
+          p_quantity?: number
+          p_telegram_id: number
+          p_trade: string
+        }
+        Returns: Json
+      }
+      private_trade_create: {
+        Args: { p_query: string; p_request_id?: string; p_telegram_id: number }
+        Returns: Json
+      }
       private_trade_escrow_deliver: {
         Args: {
           p_fc: number
@@ -22208,6 +22223,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      private_trade_guard: { Args: { p_telegram_id: number }; Returns: string }
       private_trade_high_rarity: {
         Args: { p_rarity: string }
         Returns: boolean
@@ -22221,9 +22237,42 @@ export type Database = {
         }
         Returns: number
       }
+      private_trade_list: { Args: { p_telegram_id: number }; Returns: Json }
+      private_trade_lock: {
+        Args: {
+          p_locked?: boolean
+          p_request_id?: string
+          p_telegram_id: number
+          p_trade: string
+        }
+        Returns: Json
+      }
       private_trade_player_card: { Args: { p_user: string }; Returns: Json }
+      private_trade_remove_item: {
+        Args: { p_item_id: string; p_telegram_id: number; p_trade: string }
+        Returns: Json
+      }
       private_trade_risk_assess: { Args: { p_trade: string }; Returns: Json }
+      private_trade_search_player: {
+        Args: { p_query: string; p_telegram_id: number }
+        Returns: Json
+      }
+      private_trade_set_currency: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_telegram_id: number
+          p_ton: number
+          p_trade: string
+        }
+        Returns: Json
+      }
       private_trade_settings_json: { Args: never; Returns: Json }
+      private_trade_state: {
+        Args: { p_trade: string; p_user: string }
+        Returns: Json
+      }
+      private_trade_touch: { Args: { p_trade: string }; Returns: undefined }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
         Returns: Json
