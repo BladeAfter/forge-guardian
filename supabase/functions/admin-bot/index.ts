@@ -717,8 +717,37 @@ async function pvPrompt(ctx: Ctx, key: string, args: string[], text: string) {
     await send(ctx, `⏰ Lançamento agendado para <b>${at.toISOString().replace("T", " ").slice(0, 16)} UTC</b>.`);
     return pvCard({ ...ctx, messageId: undefined }, args[0], false);
   }
+  if (key === "pverrwamt") {
+    const n = Number(text.replace(/[^\d.]/g, ""));
+    if (!Number.isFinite(n) || n <= 0) throw new Error("KEEP_SESSION::⚠️ Envie a quantidade (número maior que zero).");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: args[0], p_amount: n });
+    await clearSession(ctx);
+    await send(ctx, `🔢 Quantidade atualizada: <b>${fmt(n)}</b>.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
+  if (key === "pverrwtitle") {
+    if (text.trim().length < 2) throw new Error("KEEP_SESSION::⚠️ Envie o novo título da recompensa.");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: args[0], p_title: text.trim() });
+    await clearSession(ctx);
+    await send(ctx, "✏️ Título atualizado.");
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
+  if (key === "pverrwtype") {
+    const [type, code] = text.trim().split(/\s+/);
+    if (!type) throw new Error("KEEP_SESSION::⚠️ Envie <code>tipo codigo</code>. Ex.: <code>myth</code> ou <code>equipment legendary</code>");
+    await rpc("admin_pass_reward_set", {
+      p_admin_id: ctx.adminId,
+      p_reward_id: args[0],
+      p_reward_type: type,
+      ...(code ? { p_reward_code: code } : {}),
+    });
+    await clearSession(ctx);
+    await send(ctx, `🔤 Tipo atualizado: <code>${esc(type)}</code>${code ? ` · <code>${esc(code)}</code>` : ""}.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, args[0], Number(args[1] || 1), false);
+  }
   throw new Error("⚠️ Ação inválida.");
 }
+
 
 // ---------------------------------------------------------------- battle pass (manual activation)
 
