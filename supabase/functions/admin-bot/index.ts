@@ -3342,7 +3342,9 @@ async function module(ctx: Ctx, name: string) {
           [{ t: "📜 PASS HISTORY", d: "bphist:1" }],
           [{ t: "⚡ XP SETTINGS", d: "view:passxp" }],
           [{ t: "🎁 REWARDS (MAPA)", d: "view:passrewards" }],
+          [{ t: "🗂 VERSÕES / TEMPORADAS", d: "pver:hub" }],
           [{ t: "🪜 LEVEL PURCHASE", d: "m:passlevels" }],
+
           [{ t: "🔍 CHECK MISSING REWARDS", d: "view:passmissing" }],
           [{ t: "💰 PREÇOS/DATAS", d: "ask:pass" }],
           [{ t: "🎁 RECOMPENSA", d: "ask:passreward" }],
