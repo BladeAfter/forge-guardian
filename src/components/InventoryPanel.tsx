@@ -247,7 +247,47 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
                 <p className="text-[10px] text-slate-400">{selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
-                {(selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.action === 'open-resource-chest' || selected.itemType === 'resource_chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
+                {(selected.itemType === 'key_chest' || selected.action === 'open-key-chest') && selected.instanceId ? (
+                  <div className="mt-3 space-y-2">
+                    {/* Key requirement: the chest only opens while the player owns the matching key. */}
+                    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 p-2">
+                      {selected.keyImage ? <img src={selected.keyImage} alt={selected.keyName ?? ''} className="h-9 w-9 object-contain" /> : null}
+                      <div className="min-w-0">
+                        <p className="truncate text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{selected.keyName ?? selected.keyCode}</p>
+                        <p className={`text-[10px] font-black ${(selected.keyQuantity ?? 0) > 0 ? 'text-emerald-300' : 'text-rose-300'}`}>x{selected.keyQuantity ?? 0}</p>
+                      </div>
+                    </div>
+                    {(selected.keyQuantity ?? 0) > 0 ? (
+                      <>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[1, 5, 10, Math.min(selected.quantity, selected.keyQuantity ?? 0)].map((amount, index) => {
+                            const maxOpens = Math.min(selected.quantity, selected.keyQuantity ?? 0);
+                            const count = Math.min(amount, maxOpens);
+                            const label = index === 3 ? `MAX (${maxOpens})` : `x${count}`;
+                            return (
+                              <button
+                                key={index === 3 ? 'max' : amount}
+                                disabled={busy || maxOpens < (index === 3 ? 1 : amount)}
+                                onClick={() => openChest.mutate({ item: selected, count })}
+                                className={`min-h-[38px] rounded-xl border text-[9px] font-black uppercase tracking-[.1em] disabled:opacity-40 ${index === 3 ? 'border-amber-300/60 bg-gradient-to-b from-amber-300/25 to-orange-500/15 text-amber-100' : 'border-amber-300/40 bg-amber-300/12 text-amber-200'}`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-center text-[9px] font-black uppercase tracking-[.14em] text-slate-400">
+                          {batch ? `${t('inventory.opening')} ${batch.done}/${batch.total}` : t('inventory.open')}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-2 text-center text-[10px] font-black uppercase tracking-[.14em] text-rose-200">
+                        {t('inventory.keyRequired')}
+                      </p>
+                    )}
+                  </div>
+                ) : (selected.action === 'open-chest' || selected.action === 'open-exclusive-chest' || selected.action === 'open-resource-chest' || selected.itemType === 'resource_chest' || selected.itemType === 'chest' || selected.itemType === 'exclusive_chest') && selected.instanceId ? (
+
                   <div className="mt-3 space-y-1.5">
                     {/* Bulk open: 1 / 5 / 10 / MAX — always limited by the real stack size. */}
                     <div className="grid grid-cols-4 gap-1.5">
