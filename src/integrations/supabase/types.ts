@@ -22695,6 +22695,10 @@ export type Database = {
         Args: { p_pass_version: number; p_season_levels: number }
         Returns: number
       }
+      season_pass_perk_percent: {
+        Args: { p_perk: string; p_user_id: string }
+        Returns: number
+      }
       season_pass_tier_multiplier: { Args: { p_tier: string }; Returns: number }
       season_pass_xp_caps: { Args: never; Returns: Json }
       season_pass_xp_config: { Args: never; Returns: Json }
