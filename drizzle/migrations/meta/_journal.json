@@ -225,6 +225,13 @@
       "when": 1788142477417,
       "tag": "0031_battle_pass_v2_reward_engine",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1788142514713,
+      "tag": "0032_battle_pass_dashboard_slots_highlights",
+      "breakpoints": true
     }
   ]
 }
