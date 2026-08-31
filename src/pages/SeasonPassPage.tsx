@@ -109,9 +109,8 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
 function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void;onUnlock:(r:PassReward)=>void;unlocking?:boolean}){
  const t=useT();
  const code=r?.code??'',mysteryArt=silhouette[code]??(r?.type==='hero_random'?silhouette.hero_random:undefined);
- const equipment=r?.type==='equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]);
- const Icon=equipment?(equipIcon[code]??Sword):r?.type==='pvp_ticket'?Ticket:null;
- const frame=premium?'border-amber-300/70 bg-gradient-to-b from-violet-950/80 via-black/60 to-amber-950/30 shadow-[0_0_20px_rgba(251,191,36,.28)]'
+ const equipment=r?.type==='equipment'||r?.type==='nft_equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]),highlight=Boolean(r?.highlight);
+ const frame=premium||highlight?'border-amber-300/70 bg-gradient-to-b from-violet-950/80 via-black/60 to-amber-950/30 shadow-[0_0_20px_rgba(251,191,36,.28)]'
   :mystery?'border-violet-300/60 bg-gradient-to-b from-violet-950/70 to-black/70 shadow-[0_0_16px_rgba(167,139,250,.25)]'
   :rare?'border-sky-300/55 bg-gradient-to-b from-sky-950/60 to-black/60 shadow-[0_0_14px_rgba(96,165,250,.22)]'
   :r?.claimed?'border-emerald-400/35 bg-emerald-500/10':r?.unlocked?'border-amber-300/35 bg-amber-500/10':'border-white/5 bg-white/[.02] text-slate-600';
@@ -119,14 +118,13 @@ function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassRewar
  // Locked rewards can be bought for the fixed TON price the backend publishes on the reward itself.
  const buyable=Boolean(versionLocked&&r?.purchasable&&!r?.claimed&&Number(r?.priceTon??0)>0);
  return<button disabled={buyable?Boolean(unlocking):(!r?.unlocked||r.claimed||pending||versionLocked)} onClick={()=>{if(!r)return;if(buyable)onUnlock(r);else if(!versionLocked)onClaim(r.id)}} className={`relative flex min-h-[76px] flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-2 text-center text-[9px] ${frame}`}>
-  {premium||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
+  {premium||highlight||r?.type==='exclusive_chest'?<span className="absolute left-1 top-1 rounded-full border border-amber-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-amber-200">{t('pass.exclusive')}</span>:null}
   {mystery&&!premium?<span className="absolute left-1 top-1 rounded-full border border-violet-200/40 bg-black/70 px-1.5 py-0.5 text-[5px] font-black text-violet-200">?</span>:null}
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
+   {/* Every reward is shown with its real artwork — no generic vector icons. */}
    {mystery
     ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_70%)] blur-[2px]"/><img src={mysteryArt} alt={r.title} className={`relative h-10 w-10 object-contain [filter:brightness(0)_saturate(0)] drop-shadow-[0_0_7px_rgba(251,191,36,.55)] ${r.unlocked?'':'opacity-40'}`}/></span>
-    :Icon
-     ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,.25),transparent_70%)] blur-[2px]"/><Icon className={`relative h-8 w-8 ${equipment?'text-black drop-shadow-[0_0_7px_rgba(125,211,252,.7)]':'text-amber-200'} ${r.unlocked?'':'opacity-40'}`} strokeWidth={2.5}/></span>
-     :<img src={art[code]??art[r.type]??art.fragments} alt={r.title} className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>}
+    :<img src={rewardImage(r)} alt={r.title} loading="lazy" className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>}
    {!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}
   </>:null}
   <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
