@@ -373,6 +373,42 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
           )
         : null}
 
+      {/* KEY CHEST reveal: every reward was already granted server-side; this is presentation only. */}
+      {keyChest
+        ? createPortal(
+            <div className="fixed inset-0 z-[130] grid place-items-center bg-black/88 p-4" onClick={() => setKeyChest(null)}>
+              <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#080c14] p-4 text-center" onClick={(event) => event.stopPropagation()}>
+                {keyChest.chest.image ? (
+                  <img src={keyChest.chest.image} alt={keyChest.chest.name} className="mx-auto mb-2 h-24 w-24 animate-[pulse_1.2s_ease-in-out_2] object-contain" />
+                ) : null}
+                <b className="block text-sm font-black uppercase tracking-[.1em] text-amber-200">{keyChest.chest.name}</b>
+                <p className="text-[9px] uppercase tracking-[.18em] text-slate-400">{keyChest.chest.subtitle}</p>
+                <div className="mt-3 space-y-1.5">
+                  {keyChest.rewards.map((reward, index) => (
+                    <div
+                      key={`${reward.type}-${index}`}
+                      className={`flex items-center gap-2 rounded-xl border p-2 text-left ${reward.premium ? 'border-amber-300/60 bg-amber-300/10' : 'border-white/10 bg-black/50'}`}
+                    >
+                      {reward.image ? <img src={reward.image} alt={reward.title} className="h-10 w-10 shrink-0 rounded-lg object-contain" /> : null}
+                      <div className="min-w-0">
+                        <p className="truncate text-[10px] font-black uppercase tracking-[.1em] text-white">{reward.name || reward.title}</p>
+                        {reward.rarity ? (
+                          <p className="text-[9px] font-black uppercase tracking-[.14em]" style={{ color: RARITY_BORDER[reward.rarity] ?? '#94a3b8' }}>{reward.rarity}</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setKeyChest(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
+                  {t('inventory.close')}
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+
       {/* Legend Chest reveal: the equipment already exists server-side (Arsenal). */}
       {legendReward
         ? createPortal(
