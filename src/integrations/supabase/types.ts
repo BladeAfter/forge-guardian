@@ -14887,9 +14887,14 @@ export type Database = {
           base_amount: number | null
           enabled: boolean
           id: string
+          image_url: string | null
+          is_highlight: boolean
           level: number
           min_pass_version: number
+          requires_asset: boolean
+          reward_asset: string | null
           reward_code: string | null
+          reward_slot: number
           reward_type: string
           season_id: string
           tier: string
@@ -14901,9 +14906,14 @@ export type Database = {
           base_amount?: number | null
           enabled?: boolean
           id?: string
+          image_url?: string | null
+          is_highlight?: boolean
           level: number
           min_pass_version?: number
+          requires_asset?: boolean
+          reward_asset?: string | null
           reward_code?: string | null
+          reward_slot?: number
           reward_type: string
           season_id: string
           tier: string
@@ -14915,9 +14925,14 @@ export type Database = {
           base_amount?: number | null
           enabled?: boolean
           id?: string
+          image_url?: string | null
+          is_highlight?: boolean
           level?: number
           min_pass_version?: number
+          requires_asset?: boolean
+          reward_asset?: string | null
           reward_code?: string | null
+          reward_slot?: number
           reward_type?: string
           season_id?: string
           tier?: string
@@ -18778,6 +18793,28 @@ export type Database = {
         Returns: Json
       }
       admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pass_reward_assets: {
+        Args: { p_admin_id: number; p_kind: string; p_rarity?: string }
+        Returns: Json
+      }
+      admin_pass_reward_set: {
+        Args: {
+          p_admin_id: number
+          p_amount?: number
+          p_asset?: string
+          p_enabled?: boolean
+          p_highlight?: boolean
+          p_reward_code?: string
+          p_reward_id: string
+          p_reward_type?: string
+          p_title?: string
+        }
+        Returns: Json
+      }
+      admin_pass_reward_track: {
+        Args: { p_admin_id: number; p_tier?: string; p_version_id: string }
+        Returns: Json
+      }
       admin_pass_version_activate: {
         Args: { p_admin_id: number; p_version_id: string }
         Returns: Json
@@ -18814,6 +18851,10 @@ export type Database = {
           p_mode: string
           p_version_id: string
         }
+        Returns: Json
+      }
+      admin_pass_version_validate: {
+        Args: { p_admin_id: number; p_version_id: string }
         Returns: Json
       }
       admin_pass_versions_overview: {
@@ -22214,6 +22255,12 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: Json
       }
+      pass_reward_asset_ok: {
+        Args: {
+          p_reward: Database["public"]["Tables"]["season_pass_rewards"]["Row"]
+        }
+        Returns: boolean
+      }
       pass_type_completed: {
         Args: { p_pass_type: string; p_user_id: string }
         Returns: boolean
@@ -22226,6 +22273,10 @@ export type Database = {
       }
       pass_version_info: {
         Args: { p_season_id: string; p_user_id: string }
+        Returns: Json
+      }
+      pass_version_rewards_status: {
+        Args: { p_season_id: string }
         Returns: Json
       }
       pass_versions_apply_due: { Args: never; Returns: undefined }

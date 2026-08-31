@@ -218,6 +218,13 @@
       "when": 1788142137873,
       "tag": "0030_celestial_hero_ton_mining_eligible",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1788142477417,
+      "tag": "0031_battle_pass_v2_reward_engine",
+      "breakpoints": true
     }
   ]
 }
