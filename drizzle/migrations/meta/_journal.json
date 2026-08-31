@@ -162,6 +162,13 @@
       "when": 1788135735299,
       "tag": "0022_hero_card_respects_mining_override",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788136314374,
+      "tag": "0023_limit_market_sellable_large_inventories",
+      "breakpoints": true
     }
   ]
 }
