@@ -98,12 +98,19 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
 
   // Opens ONE chest using the exact same server actions used by the calendar/pass screens.
   const openOne = async (item: InventoryItem): Promise<string | null> => {
+    // KEY CHEST: consumes the matching Tower key; every drop is rolled server-side.
+    if (item.itemType === 'key_chest' || item.action === 'open-key-chest') {
+      const payload = await openKeyChest(telegramInitData, String(item.instanceId));
+      setKeyChest(payload);
+      return null;
+    }
     // Legend Chest: dedicated server action that always rolls a LEGENDARY equipment.
     if (isLegendChest(item)) {
       const payload = await openLegendChest(telegramInitData, String(item.instanceId));
       setLegendReward(payload.equipment);
       return null;
     }
+
     // FOUNDER PACK premium resource chest: its own server action (FC, fragments, tickets, chest).
     if (item.itemType === 'resource_chest' || item.action === 'open-resource-chest') {
       const payload = await openResourceChest(telegramInitData, String(item.instanceId));
