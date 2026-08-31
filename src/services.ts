@@ -341,11 +341,14 @@ export async function openResourceChest(initData:string,inventoryItemId:string):
     throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Premium. Tente novamente.')}
   return payload as {rewards:ResourceChestRewards;inventory?:PlayerInventory};
 }
-export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'order-myth'|'claim'|'recent-xp'|'buy-level'|'buy-locked-reward'|'verify-locked-reward'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
+export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'order-internal-ton'|'order-myth'|'claim'|'recent-xp'|'buy-level'|'buy-locked-reward'|'verify-locked-reward'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
 export const buySeasonPassLevels=(initData:string,levels:number,currency:'FC'|'MYTH'='FC')=>seasonPassRequest(initData,'buy-level',{levels,idempotencyKey:crypto.randomUUID(),currency});
+/** One-tap TON purchase: pays the FULL price from the internal TON balance or fails (never splits). */
+export const buySeasonPassWithInternalTon=(initData:string,tier:'adventurer'|'legendary')=>seasonPassRequest(initData,'order-internal-ton',{tier,idempotencyKey:crypto.randomUUID()});
 /** Alternative pass payment: burns MYTH from the available balance instead of paying TON. */
 export const buySeasonPassWithMyth=(initData:string,tier:'adventurer'|'legendary')=>seasonPassRequest(initData,'order-myth',{tier,idempotencyKey:crypto.randomUUID()});
+
 /** Locked reward unlock (fixed TON price): the backend decides internal balance vs TonConnect. */
 export const buyLockedPassReward=(initData:string,rewardId:string,walletAddress?:string|null)=>seasonPassRequest<PassLockedPurchaseResult>(initData,'buy-locked-reward',{rewardId,walletAddress:walletAddress??null,idempotencyKey:crypto.randomUUID()});
 /** Reconciles TonConnect payments made for locked reward unlocks (idempotent, server-side). */
