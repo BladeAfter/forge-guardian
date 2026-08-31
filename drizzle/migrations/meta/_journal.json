@@ -134,6 +134,13 @@
       "when": 1788134994819,
       "tag": "0018_private_trade_core_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788135064072,
+      "tag": "0019_private_trade_escrow_and_risk",
+      "breakpoints": true
     }
   ]
 }

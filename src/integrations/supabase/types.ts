@@ -22177,6 +22177,37 @@ export type Database = {
       }
       premium_offer_timezone: { Args: never; Returns: string }
       premium_offers_state: { Args: { p_telegram_id: number }; Returns: Json }
+      private_trade_escrow_deliver: {
+        Args: {
+          p_fc: number
+          p_from: string
+          p_myth: number
+          p_to: string
+          p_ton: number
+          p_trade: string
+        }
+        Returns: undefined
+      }
+      private_trade_escrow_lock: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_ton: number
+          p_trade: string
+          p_user: string
+        }
+        Returns: undefined
+      }
+      private_trade_escrow_release: {
+        Args: {
+          p_fc: number
+          p_myth: number
+          p_ton: number
+          p_trade: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       private_trade_high_rarity: {
         Args: { p_rarity: string }
         Returns: boolean
@@ -22191,6 +22222,7 @@ export type Database = {
         Returns: number
       }
       private_trade_player_card: { Args: { p_user: string }; Returns: Json }
+      private_trade_risk_assess: { Args: { p_trade: string }; Returns: Json }
       private_trade_settings_json: { Args: never; Returns: Json }
       process_boss_combat: {
         Args: { p_now?: string; p_telegram_id: number }
