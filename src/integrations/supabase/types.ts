@@ -7536,6 +7536,134 @@ export type Database = {
           },
         ]
       }
+      key_chest_catalog: {
+        Row: {
+          chest_code: string
+          created_at: string
+          draws_max: number
+          draws_min: number
+          enabled: boolean
+          guaranteed_premium: number
+          image_url: string | null
+          key_code: string
+          name: string
+          rarity: string
+          sort_order: number
+          subtitle: string
+          updated_at: string
+        }
+        Insert: {
+          chest_code: string
+          created_at?: string
+          draws_max?: number
+          draws_min?: number
+          enabled?: boolean
+          guaranteed_premium?: number
+          image_url?: string | null
+          key_code: string
+          name: string
+          rarity?: string
+          sort_order?: number
+          subtitle?: string
+          updated_at?: string
+        }
+        Update: {
+          chest_code?: string
+          created_at?: string
+          draws_max?: number
+          draws_min?: number
+          enabled?: boolean
+          guaranteed_premium?: number
+          image_url?: string | null
+          key_code?: string
+          name?: string
+          rarity?: string
+          sort_order?: number
+          subtitle?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      key_chest_open_log: {
+        Row: {
+          chest_code: string
+          created_at: string
+          id: string
+          key_code: string
+          rewards: Json
+          telegram_id: number | null
+          user_id: string
+        }
+        Insert: {
+          chest_code: string
+          created_at?: string
+          id?: string
+          key_code: string
+          rewards?: Json
+          telegram_id?: number | null
+          user_id: string
+        }
+        Update: {
+          chest_code?: string
+          created_at?: string
+          id?: string
+          key_code?: string
+          rewards?: Json
+          telegram_id?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      key_chest_reward_pool: {
+        Row: {
+          chest_code: string
+          created_at: string
+          enabled: boolean
+          id: string
+          is_premium: boolean
+          label: string
+          max_amount: number
+          min_amount: number
+          reward_code: string | null
+          reward_type: string
+          weight: number
+        }
+        Insert: {
+          chest_code: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_premium?: boolean
+          label?: string
+          max_amount?: number
+          min_amount?: number
+          reward_code?: string | null
+          reward_type: string
+          weight?: number
+        }
+        Update: {
+          chest_code?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          is_premium?: boolean
+          label?: string
+          max_amount?: number
+          min_amount?: number
+          reward_code?: string | null
+          reward_type?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_chest_reward_pool_chest_code_fkey"
+            columns: ["chest_code"]
+            isOneToOne: false
+            referencedRelation: "key_chest_catalog"
+            referencedColumns: ["chest_code"]
+          },
+        ]
+      }
       market_item_ownership_history: {
         Row: {
           created_at: string
@@ -21736,6 +21864,19 @@ export type Database = {
         Args: { p_clan_id: string; p_telegram_id: number }
         Returns: Json
       }
+      key_chest_grant_hero_xp: {
+        Args: { p_amount: number; p_user: string }
+        Returns: Json
+      }
+      key_chest_grant_reward: {
+        Args: {
+          p_amount: number
+          p_code: string
+          p_type: string
+          p_user: string
+        }
+        Returns: Json
+      }
       leave_clan: { Args: { p_telegram_id: number }; Returns: Json }
       list_premium_titles: { Args: never; Returns: Json }
       log_pet_transaction: {
@@ -22227,6 +22368,10 @@ export type Database = {
           p_source?: string
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      open_key_chest: {
+        Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json
       }
       open_legend_chest: {
