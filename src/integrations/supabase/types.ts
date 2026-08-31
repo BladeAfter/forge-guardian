@@ -21447,6 +21447,10 @@ export type Database = {
         Args: { p_nft_hero_id: string; p_rarity: string }
         Returns: number
       }
+      hero_mining_instance_rate: {
+        Args: { p_hero_id: string }
+        Returns: number
+      }
       hero_mining_myth_per_day: { Args: never; Returns: number }
       hero_mining_rarity_eligible: {
         Args: { p_rarity: string }
