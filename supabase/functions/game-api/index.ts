@@ -2279,6 +2279,81 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * PRIVATE TRADE — direct player ⇄ player trading. It never creates a Market or
+   * Auction listing: `private_trades.recipient_user_id` is the only authorised
+   * partner. Items/currency go into escrow on LOCK OFFER, both sides must confirm
+   * and `private_trade_settle` runs the whole swap in one transaction. Risk score
+   * and anti-multiaccount flags stay server-side (admin only).
+   */
+  'private-trade': async (db, user, body) => {
+    const action = String(body.action || 'list');
+    if (action === 'list') return rpc(db, 'private_trade_list', { p_telegram_id: user.id });
+    if (action === 'search') {
+      return rpc(db, 'private_trade_search_player', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 64) });
+    }
+    if (action === 'create') {
+      return rpc(db, 'private_trade_create', {
+        p_telegram_id: user.id,
+        p_query: String(body.query || '').slice(0, 64),
+        p_request_id: String(body.requestId || crypto.randomUUID()).slice(0, 80),
+      });
+    }
+    if (!isUuid(body.tradeId)) throw new Error('TRADE_NOT_FOUND');
+    if (action === 'view') return rpc(db, 'private_trade_view', { p_telegram_id: user.id, p_trade: body.tradeId });
+    if (action === 'add-item') {
+      const itemType = String(body.itemType || '');
+      if (!['hero', 'pet', 'item'].includes(itemType)) throw new Error('INVALID_ITEM_TYPE');
+      if (itemType !== 'item' && !isUuid(body.itemInstanceId)) throw new Error('INVALID_ITEM');
+      return rpc(db, 'private_trade_add_item', {
+        p_telegram_id: user.id,
+        p_trade: body.tradeId,
+        p_item_type: itemType,
+        p_instance_id: itemType === 'item' ? null : body.itemInstanceId,
+        p_item_code: itemType === 'item' ? String(body.itemCode || '') : null,
+        p_quantity: Math.max(1, Math.trunc(Number(body.quantity) || 1)),
+      });
+    }
+    if (action === 'remove-item') {
+      if (!isUuid(body.itemId)) throw new Error('ITEM_NOT_IN_TRADE');
+      return rpc(db, 'private_trade_remove_item', { p_telegram_id: user.id, p_trade: body.tradeId, p_item_id: body.itemId });
+    }
+    if (action === 'currency') {
+      return rpc(db, 'private_trade_set_currency', {
+        p_telegram_id: user.id,
+        p_trade: body.tradeId,
+        p_fc: Math.max(0, Math.trunc(Number(body.fc) || 0)),
+        p_ton: Math.max(0, Math.round((Number(body.ton) || 0) * 1e9) / 1e9),
+        p_myth: Math.max(0, Math.round((Number(body.myth) || 0) * 1e4) / 1e4),
+      });
+    }
+    if (action === 'lock') {
+      return rpc(db, 'private_trade_lock', {
+        p_telegram_id: user.id,
+        p_trade: body.tradeId,
+        p_locked: body.locked !== false,
+        p_request_id: String(body.requestId || crypto.randomUUID()).slice(0, 80),
+      });
+    }
+    if (action === 'confirm') {
+      return rpc(db, 'private_trade_confirm', {
+        p_telegram_id: user.id,
+        p_trade: body.tradeId,
+        p_request_id: String(body.requestId || crypto.randomUUID()).slice(0, 80),
+      });
+    }
+    if (action === 'cancel') {
+      return rpc(db, 'private_trade_cancel', {
+        p_telegram_id: user.id,
+        p_trade: body.tradeId,
+        p_reason: body.reason ? String(body.reason).slice(0, 120) : null,
+      });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
+
+
 
 
 
