@@ -190,6 +190,13 @@
       "when": 1788141267921,
       "tag": "0026_battle_pass_versioning_runtime",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788141323566,
+      "tag": "0027_battle_pass_claim_across_versions",
+      "breakpoints": true
     }
   ]
 }
