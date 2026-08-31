@@ -4,8 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Package, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePlayerInventory } from '../hooks';
-import { openCalendarChest, openExclusiveChest, openLegendChest, openResourceChest, petRequest, summonHeroWithFragments } from '../services';
-import type { LegendChestEquipment } from '../services';
+import { openCalendarChest, openExclusiveChest, openKeyChest, openLegendChest, openResourceChest, petRequest, summonHeroWithFragments } from '../services';
+import type { KeyChestOpenResult, LegendChestEquipment } from '../services';
+
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { ArsenalPanel } from './ArsenalPanel';
 
