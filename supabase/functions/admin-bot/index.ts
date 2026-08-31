@@ -633,8 +633,58 @@ async function pvCallback(ctx: Ctx, rest: string[]) {
     await send(ctx, "❌ Versão cancelada.");
     return pvHub({ ...ctx, messageId: undefined }, false);
   }
+  if (sub === "rw") return pvRewards(ctx, a, Number(b || 1));
+  if (sub === "val") return pvValidate(ctx, a);
+  if (sub === "rwc") return pvRewardCard(ctx, a, Number(b || 1));
+  if (sub === "rwamt") return ask(ctx, `pverrwamt|${a}|${b || 1}`, PROMPTS.pverrwamt);
+  if (sub === "rwtitle") return ask(ctx, `pverrwtitle|${a}|${b || 1}`, PROMPTS.pverrwtitle);
+  if (sub === "rwtype") return ask(ctx, `pverrwtype|${a}|${b || 1}`, PROMPTS.pverrwtype);
+  if (sub === "rwhl" || sub === "rwen") {
+    const cur = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: a })) as any;
+    await rpc("admin_pass_reward_set", {
+      p_admin_id: ctx.adminId,
+      p_reward_id: a,
+      ...(sub === "rwhl" ? { p_highlight: !cur.highlight } : { p_enabled: !cur.enabled }),
+    });
+    return pvRewardCard(ctx, a, Number(b || 1));
+  }
+  if (sub === "rwasset") return pvAssetPicker(ctx, a, Number(b || 1));
+  if (sub === "rwseta") {
+    // pver:rwseta:<rewardId>:<page>:<assetRef>
+    const [, rewardId, page, ...assetParts] = rest;
+    const asset = assetParts.join(":");
+    await rpc("admin_pass_reward_set", { p_admin_id: ctx.adminId, p_reward_id: rewardId, p_asset: asset });
+    await send(ctx, `🧩 Asset definido: <code>${esc(asset)}</code>.`);
+    return pvRewardCard({ ...ctx, messageId: undefined }, rewardId, Number(page || 1), false);
+  }
   return pvHub(ctx);
 }
+
+async function pvAssetPicker(ctx: Ctx, rewardId: string, page = 1) {
+  const r = (await rpc("admin_pass_reward_view", { p_admin_id: ctx.adminId, p_reward_id: rewardId })) as any;
+  const kind =
+    r.type === "hero_random" ? "hero"
+    : r.type === "pet_random" ? "pet"
+    : r.type === "nft_equipment" ? "nft_equipment"
+    : r.type === "nft_pet" ? "nft_pet"
+    : r.type === "equipment" ? "equipment"
+    : r.type === "pet_egg" ? "egg"
+    : "none";
+  if (kind === "none") throw new Error("⚠️ Esta recompensa não usa asset (moedas, tickets, fragmentos, baús).");
+  const rarity = ["hero", "pet", "equipment"].includes(kind) ? r.code ?? null : null;
+  const d = (await rpc("admin_pass_reward_assets", { p_admin_id: ctx.adminId, p_kind: kind, p_rarity: rarity })) as any;
+  const assets = ((d.assets ?? []) as any[]).filter((a) => kind !== "nft_equipment" && kind !== "nft_pet" ? true : Number(a.freeUnits ?? 0) > 0);
+  const rows = assets.slice(0, 24).map((a) => [
+    { t: `${a.name}${a.rarity ? ` · ${a.rarity}` : ""}${a.freeUnits !== undefined ? ` · ${a.freeUnits} livre(s)` : ""}`.slice(0, 60), d: `pver:rwseta:${rewardId}:${page}:${a.ref}` },
+  ]);
+  rows.push([{ t: "⬅️ RECOMPENSA", d: `pver:rwc:${rewardId}:${page}` }], nav("m:pass"));
+  return edit(
+    ctx,
+    `🧩 <b>SELECIONAR ASSET · NÍVEL ${r.level}</b>\nTipo: <code>${r.type}</code>${rarity ? ` · raridade <code>${rarity}</code>` : ""}\nAtual: <b>${r.asset ? esc(String(r.asset)) : "—"}</b>\n\n${assets.length ? "Escolha o template oficial:" : "⚠️ Nenhum asset disponível para este tipo."}`,
+    kb(rows),
+  );
+}
+
 
 async function pvPrompt(ctx: Ctx, key: string, args: string[], text: string) {
   if (key === "pvernew") {
