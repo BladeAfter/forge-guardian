@@ -22228,6 +22228,7 @@ export type Database = {
         Args: { p_season_id: string; p_user_id: string }
         Returns: Json
       }
+      pass_versions_apply_due: { Args: never; Returns: undefined }
       pass_versions_run_scheduled: { Args: never; Returns: Json }
       payment_recovery_deliver: {
         Args: {
@@ -22861,6 +22862,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      season_pass_buy_with_internal_ton: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_tier: string
+        }
+        Returns: Json
       }
       season_pass_buy_with_myth: {
         Args: {
