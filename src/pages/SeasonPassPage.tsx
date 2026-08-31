@@ -3,7 +3,7 @@ import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
 import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
 import{toast}from'sonner';
-import{seasonPassRequest,buySeasonPassLevels,buySeasonPassWithMyth,buyLockedPassReward,verifyLockedPassRewards}from'../services';
+import{seasonPassRequest,buySeasonPassLevels,buySeasonPassWithMyth,buySeasonPassWithInternalTon,buyLockedPassReward,verifyLockedPassRewards}from'../services';
 import{useMythUtility}from'../hooks';
 import{MythPayButton,MythBalanceHint}from'../components/MythPayButton';
 import type{MythUtilityState}from'../mythUtility';
@@ -33,7 +33,18 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  React.useEffect(()=>{if(error)console.error('[SCREEN ERROR]',{screen:'season-pass',step:'dashboard',message:error instanceof Error?error.message:String(error)})},[error]);
  const invalidateAll=async()=>{await Promise.all([['season-pass'],['season-pass-rewards'],['season-pass-profile'],['wallet-summary'],['wallet-history'],['notifications'],['missions'],['community-pool'],['pet-dashboard'],['player-inventory'],['player-heroes'],['reward-history'],['game']].map(queryKey=>q.invalidateQueries({queryKey})))};
  // Ownership only ever comes from the backend: pay → server confirms on-chain → pass activated.
- const purchase=useMutation({mutationFn:async(tier:PassTier)=>{if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}await purchaseBattlePass({telegramInitData,tier,sendTransaction:tx=>tonUI.sendTransaction(tx)});toast.message(t('pass.paymentSent'));return await waitForPassActivation(telegramInitData)},onSuccess:async verification=>{await invalidateAll();const activated=activatedPass(verification);if(activated)toast.success(t('pass.activated',{tier:passTierLabel(activated.tier)}));else toast.message(t('pass.paymentPendingActivation'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyFailed'))});
+ // One-tap: the internal TON balance pays the FULL price when it covers it, otherwise TonConnect
+ // is opened for the FULL amount. The payment is never split between the two.
+ const purchase=useMutation({mutationFn:async(tier:PassTier)=>{
+  try{await buySeasonPassWithInternalTon(telegramInitData,tier as'adventurer'|'legendary');return{internal:true as const}}
+  catch(e){const reason=e instanceof Error?e.message:String(e);if(!/INSUFFICIENT_TON_BALANCE/i.test(reason))throw e}
+  if(!wallet){await tonUI.openModal();throw Error(t('pass.connectWallet'))}
+  await purchaseBattlePass({telegramInitData,tier,sendTransaction:tx=>tonUI.sendTransaction(tx)});toast.message(t('pass.paymentSent'));
+  return await waitForPassActivation(telegramInitData)},
+  onSuccess:async result=>{await invalidateAll();if((result as{internal?:boolean}).internal){toast.success(t('pass.activated',{tier:''}));return}
+   const activated=activatedPass(result as never);if(activated)toast.success(t('pass.activated',{tier:passTierLabel(activated.tier)}));else toast.message(t('pass.paymentPendingActivation'))},
+  onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyFailed'))});
+
  // A payment made with the app closed is finished here, exactly once.
  const recovered=React.useRef(false);
  React.useEffect(()=>{if(recovered.current)return;recovered.current=true;reconcilePendingPassPurchases(telegramInitData).then(async verification=>{if(!activatedPass(verification))return;await invalidateAll();toast.success(t('pass.activated',{tier:passTierLabel(activatedPass(verification)?.tier)}))}).catch(error=>console.error('[MYTHREON PASS RECOVERY]',error))},[telegramInitData]);

@@ -1632,11 +1632,18 @@ async function handleSeasonPass(db: Db, user: TelegramUser, body: Record<string,
     if (!['adventurer', 'legendary'].includes(body.tier)) throw new Error('Passe inválido.');
     fn = 'create_season_pass_order';
     args = { ...args, p_tier: body.tier, p_idempotency_key: `season:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  } else if (action === 'order-internal-ton') {
+    // One-tap purchase: the DB charges 100% of the price from the internal TON balance
+    // or fails with INSUFFICIENT_TON_BALANCE so the client falls back to TonConnect.
+    if (!['adventurer', 'legendary'].includes(body.tier)) throw new Error('Passe inválido.');
+    fn = 'season_pass_buy_with_internal_ton';
+    args = { ...args, p_tier: body.tier, p_idempotency_key: `passton:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'order-myth') {
     // Alternative pass payment: burns MYTH from the available balance (staked MYTH is never touched).
     if (!['adventurer', 'legendary'].includes(body.tier)) throw new Error('Passe inválido.');
     fn = 'season_pass_buy_with_myth';
     args = { ...args, p_tier: body.tier, p_idempotency_key: `passmyth:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+
   } else if (action === 'claim') {
     if (!isUuid(body.rewardId)) throw new Error('Recompensa inválida.');
     fn = 'claim_season_pass_reward';

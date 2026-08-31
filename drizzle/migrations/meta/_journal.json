@@ -176,6 +176,27 @@
       "when": 1788140806537,
       "tag": "0024_season_pass_perks_fusion_and_myth_mining",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788141052103,
+      "tag": "0025_battle_pass_versioning_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788141267921,
+      "tag": "0026_battle_pass_versioning_runtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788141323566,
+      "tag": "0027_battle_pass_claim_across_versions",
+      "breakpoints": true
     }
   ]
 }
