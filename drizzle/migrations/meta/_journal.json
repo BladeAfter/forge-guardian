@@ -211,6 +211,13 @@
       "when": 1788141832796,
       "tag": "0029_private_trade_risk_flags_array_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1788142137873,
+      "tag": "0030_celestial_hero_ton_mining_eligible",
+      "breakpoints": true
     }
   ]
 }
