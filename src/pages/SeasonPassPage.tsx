@@ -98,7 +98,8 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
      {/* Track length always follows the server (V2 pass = 50 levels), never a hardcoded number. */}
      {Array.from({length:Math.max(data.season.levels||0,...data.rewards.map(r=>r.level))},(_,i)=>{const level=i+1;const reached=data.player.level>=level;return<div key={level} className={`grid grid-cols-[68px_1fr_1fr] items-stretch gap-1 px-2 py-2 ${reached?'bg-amber-400/[.04]':''}`}>
      <div className="grid place-items-center text-center"><span className={`grid h-9 w-9 place-items-center rounded-full border text-[11px] font-black ${reached?'border-amber-300/70 bg-amber-400/15 text-amber-200':'border-white/10 bg-black/40 text-slate-500'}`}>{level}</span></div>
-     {(['adventurer','legendary'] as PassTier[]).map(tier=><Reward key={tier} reward={data.rewards.find(x=>x.level===level&&x.tier===tier)} pending={claim.isPending} onClaim={id=>claim.mutate(id)} onUnlock={r=>unlockReward.mutate(r)} unlocking={unlockReward.isPending}/>)}
+      {/* V2 levels can carry more than one reward (slots): every slot is rendered, never hidden. */}
+      {(['adventurer','legendary'] as PassTier[]).map(tier=>{const slots=data.rewards.filter(x=>x.level===level&&x.tier===tier).sort((a,b)=>(a.slot??1)-(b.slot??1));return<div key={tier} className={`flex flex-col gap-1 ${slots.length>1?'':''}`}>{(slots.length?slots:[undefined]).map((reward,idx)=><Reward key={reward?.id??`${tier}-${idx}`} reward={reward} pending={claim.isPending} onClaim={id=>claim.mutate(id)} onUnlock={r=>unlockReward.mutate(r)} unlocking={unlockReward.isPending}/>)}</div>})}
     </div>})}
    </div>
   </section>
