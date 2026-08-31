@@ -9144,6 +9144,11 @@ async function handleCallback(ctx: Ctx, data: string) {
     return userPetsMenu({ ...ctx, messageId: undefined }, tg);
   }
 
+  // Battle Pass versions/seasons: create, audience, schedule, activate, buyers.
+  if (head === "pver") return pvCallback(ctx, rest);
+
+
+
   if (head === "passlvtoggle") {
     await clearSession(ctx);
     const enabled = rest[0] === "on";
