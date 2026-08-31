@@ -82,6 +82,8 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   const [summoned, setSummoned] = useState<FragmentSummonResult | null>(null);
   const [arsenalOpen, setArsenalOpen] = useState(false);
   const [legendReward, setLegendReward] = useState<LegendChestEquipment | null>(null);
+  const [keyChest, setKeyChest] = useState<KeyChestOpenResult | null>(null);
+
 
 
   const items = data?.items ?? [];
