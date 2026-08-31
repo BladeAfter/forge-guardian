@@ -12240,7 +12240,9 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("cl")) return clansPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("sp") && ["spname", "spdays", "spreward", "spratet", "spratef"].includes(key))
     return spendPrompt(ctx, key, text);
+  if (key === "pvernew" || key === "pversched") return pvPrompt(ctx, key, args, text);
   if (key.startsWith("cb")) return cbPrompt(ctx, key, text, args);
+
   if (key.startsWith("pt") && key !== "ptr") return partnersPrompt(ctx, key, args, text);
   if (key === "prsearch") return prSearch(ctx, text);
   if (key.startsWith("af")) return afPrompt(ctx, key, text);
