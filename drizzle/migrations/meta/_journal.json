@@ -239,6 +239,20 @@
       "when": 1788142775778,
       "tag": "0033_admin_pass_reward_view",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1788144863004,
+      "tag": "0034_key_chest_reward_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1788144919316,
+      "tag": "0035_key_chest_inventory_and_pass_claim",
+      "breakpoints": true
     }
   ]
 }

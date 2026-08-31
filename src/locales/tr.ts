@@ -533,6 +533,7 @@ export const tr: Dict = {
   "inventory.hatching": "AÇILIYOR...",
   "inventory.loadError": "Envanter yüklenemedi.",
   "inventory.loading": "Envanter yükleniyor...",
+  "inventory.keyRequired": "ANAHTAR GEREKLİ",
   "inventory.open": "AÇ",
   "inventory.openError": "Sandık açılamadı.",
   "inventory.opened": "Sandık açıldı!",

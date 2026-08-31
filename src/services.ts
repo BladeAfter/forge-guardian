@@ -341,6 +341,21 @@ export async function openResourceChest(initData:string,inventoryItemId:string):
     throw new Error(CHEST_ERRORS[raw]||'Não foi possível abrir o Baú Premium. Tente novamente.')}
   return payload as {rewards:ResourceChestRewards;inventory?:PlayerInventory};
 }
+/**
+ * KEY CHEST (Eternity / Void / Celestial): the matching Tower key is consumed and
+ * every reward is rolled server-side. The client only shows what came back.
+ */
+export type KeyChestReward={type:string;code?:string|null;quantity:number;title:string;rarity?:string|null;image?:string|null;name?:string|null;premium?:boolean;label?:string};
+export type KeyChestOpenResult={chest:{code:string;name:string;subtitle:string;rarity:string;image:string|null;keyCode:string};rewards:KeyChestReward[];inventory?:PlayerInventory};
+const KEY_CHEST_ERRORS:Record<string,string>={...CHEST_ERRORS,KEY_REQUIRED:'CHAVE NECESSÁRIA: você precisa da chave correspondente para abrir este baú.',CHEST_NOT_FOUND:'Baú indisponível no momento.'};
+export async function openKeyChest(initData:string,inventoryItemId:string):Promise<KeyChestOpenResult>{
+  const response=await forgeFetch('calendar',({initData,action:'open-key-chest',inventoryItemId}));
+  const payload=await response.json().catch(()=>null)as(KeyChestOpenResult&{error?:string})|null;
+  if(!response.ok||!payload?.chest){const raw=payload?.error||'';if(raw)console.error('[open-key-chest]',raw);
+    throw new Error(KEY_CHEST_ERRORS[raw]||'Não foi possível abrir o baú. Tente novamente.')}
+  return payload as KeyChestOpenResult;
+}
+
 export async function seasonPassRequest<T=SeasonPassDashboard>(initData:string,action:'dashboard'|'order'|'order-internal-ton'|'order-myth'|'claim'|'recent-xp'|'buy-level'|'buy-locked-reward'|'verify-locked-reward'='dashboard',data:Record<string,unknown>={}):Promise<T>{const response=await forgeFetch('season-pass',({initData,action,...data}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor do Passe.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload)throw new Error(payload?.error||'Não foi possível carregar o Passe.');return payload}
 /** Level purchase is server-authoritative: price, daily limit and new level all come from the backend. */
 export const buySeasonPassLevels=(initData:string,levels:number,currency:'FC'|'MYTH'='FC')=>seasonPassRequest(initData,'buy-level',{levels,idempotencyKey:crypto.randomUUID(),currency});
