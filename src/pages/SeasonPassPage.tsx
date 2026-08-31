@@ -1,7 +1,7 @@
 import React from'react';
 import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
-import{ArrowLeft,Check,Gem,Lock,ScrollText,Shield,Star,Sword,Ticket}from'lucide-react';
+import{ArrowLeft,Check,Lock,ScrollText,Star}from'lucide-react';
 import{toast}from'sonner';
 import{seasonPassRequest,buySeasonPassLevels,buySeasonPassWithMyth,buySeasonPassWithInternalTon,buyLockedPassReward,verifyLockedPassRewards}from'../services';
 import{useMythUtility}from'../hooks';
