@@ -127,6 +127,13 @@
       "when": 1788133099961,
       "tag": "0017_nft_mining_ledger_allow_rare_myth_entries",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1788134994819,
+      "tag": "0018_private_trade_core_tables",
+      "breakpoints": true
     }
   ]
 }
