@@ -10237,6 +10237,125 @@ export type Database = {
           },
         ]
       }
+      pass_version_audit: {
+        Row: {
+          action: string
+          admin_id: number | null
+          created_at: string
+          id: string
+          pass_type: string | null
+          payload: Json
+          season_id: string | null
+          version_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: number | null
+          created_at?: string
+          id?: string
+          pass_type?: string | null
+          payload?: Json
+          season_id?: string | null
+          version_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: number | null
+          created_at?: string
+          id?: string
+          pass_type?: string | null
+          payload?: Json
+          season_id?: string | null
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pass_version_audit_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "pass_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pass_versions: {
+        Row: {
+          activate_at: string | null
+          activated_at: string | null
+          archived_at: string | null
+          audience_config: Json
+          audience_mode: string
+          cloned_from_version_id: string | null
+          created_at: string
+          created_by: number | null
+          id: string
+          levels: number
+          notes: string | null
+          pass_type: string
+          price_ton_snapshot: number
+          season_id: string
+          status: string
+          updated_at: string
+          version_number: number
+          xp_per_level: number
+        }
+        Insert: {
+          activate_at?: string | null
+          activated_at?: string | null
+          archived_at?: string | null
+          audience_config?: Json
+          audience_mode?: string
+          cloned_from_version_id?: string | null
+          created_at?: string
+          created_by?: number | null
+          id?: string
+          levels?: number
+          notes?: string | null
+          pass_type: string
+          price_ton_snapshot?: number
+          season_id: string
+          status?: string
+          updated_at?: string
+          version_number: number
+          xp_per_level?: number
+        }
+        Update: {
+          activate_at?: string | null
+          activated_at?: string | null
+          archived_at?: string | null
+          audience_config?: Json
+          audience_mode?: string
+          cloned_from_version_id?: string | null
+          created_at?: string
+          created_by?: number | null
+          id?: string
+          levels?: number
+          notes?: string | null
+          pass_type?: string
+          price_ton_snapshot?: number
+          season_id?: string
+          status?: string
+          updated_at?: string
+          version_number?: number
+          xp_per_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pass_versions_cloned_from_version_id_fkey"
+            columns: ["cloned_from_version_id"]
+            isOneToOne: false
+            referencedRelation: "pass_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pass_versions_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_recovery_audit: {
         Row: {
           action: string
@@ -18659,6 +18778,48 @@ export type Database = {
         Returns: Json
       }
       admin_pass_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_pass_version_activate: {
+        Args: { p_admin_id: number; p_version_id: string }
+        Returns: Json
+      }
+      admin_pass_version_cancel: {
+        Args: { p_admin_id: number; p_version_id: string }
+        Returns: Json
+      }
+      admin_pass_version_create: {
+        Args: {
+          p_admin_id: number
+          p_adventurer_price?: number
+          p_clone?: boolean
+          p_days?: number
+          p_legendary_price?: number
+          p_levels?: number
+          p_name?: string
+          p_xp_per_level?: number
+        }
+        Returns: Json
+      }
+      admin_pass_version_purchases: {
+        Args: { p_admin_id: number; p_version_id: string }
+        Returns: Json
+      }
+      admin_pass_version_schedule: {
+        Args: { p_admin_id: number; p_at: string; p_version_id: string }
+        Returns: Json
+      }
+      admin_pass_version_set_audience: {
+        Args: {
+          p_admin_id: number
+          p_config?: Json
+          p_mode: string
+          p_version_id: string
+        }
+        Returns: Json
+      }
+      admin_pass_versions_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
       admin_payment_recovery: {
         Args: {
           p_action: string
@@ -22043,12 +22204,31 @@ export type Database = {
         Args: { p_partner_id: string }
         Returns: Json
       }
+      pass_audience_allows: {
+        Args: { p_user_id: string; p_version_id: string }
+        Returns: boolean
+      }
       pass_exclusive_myth_rate: { Args: never; Returns: number }
       pass_locked_reward_config: { Args: never; Returns: Json }
       pass_locked_reward_deliver: {
         Args: { p_order_id: string }
         Returns: Json
       }
+      pass_type_completed: {
+        Args: { p_pass_type: string; p_user_id: string }
+        Returns: boolean
+      }
+      pass_user_is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      pass_user_season_id: { Args: { p_user_id: string }; Returns: string }
+      pass_version_activate_season: {
+        Args: { p_admin_id?: number; p_season_id: string }
+        Returns: Json
+      }
+      pass_version_info: {
+        Args: { p_season_id: string; p_user_id: string }
+        Returns: Json
+      }
+      pass_versions_run_scheduled: { Args: never; Returns: Json }
       payment_recovery_deliver: {
         Args: {
           p_admin_id: number
