@@ -169,6 +169,13 @@
       "when": 1788136314374,
       "tag": "0023_limit_market_sellable_large_inventories",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788140806537,
+      "tag": "0024_season_pass_perks_fusion_and_myth_mining",
+      "breakpoints": true
     }
   ]
 }
