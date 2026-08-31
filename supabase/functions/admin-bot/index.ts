@@ -431,7 +431,164 @@ async function playerSearch(ctx: Ctx, query: string, offset = 0) {
   );
 }
 
+// -------------------------------------------------- battle pass VERSIONS / seasons (V1, V2, V3...)
+const PV_AUDIENCE: Record<string, string> = {
+  ADMIN_ONLY: "🔒 SOMENTE ADMIN",
+  PREVIOUS_PASS_COMPLETERS: "🏅 QUEM COMPLETOU O PASSE ANTERIOR",
+  ALL_PLAYERS: "🌍 TODOS OS JOGADORES",
+  NEW_PLAYERS_ONLY: "🌱 SOMENTE NOVOS JOGADORES",
+};
+const PV_STATUS: Record<string, string> = {
+  DRAFT: "📝 RASCUNHO",
+  PREVIEW: "👁 PREVIEW",
+  SCHEDULED: "⏰ AGENDADO",
+  ACTIVE: "✅ ATIVO",
+  ARCHIVED: "📦 ARQUIVADO",
+  CANCELLED: "❌ CANCELADO",
+};
+
+async function pvOverview(ctx: Ctx) {
+  return (await rpc("admin_pass_versions_overview", { p_admin_id: ctx.adminId })) as any;
+}
+
+async function pvHub(ctx: Ctx, editing = true) {
+  const d = await pvOverview(ctx);
+  const versions = (d.versions ?? []) as any[];
+  const lines = versions.map(
+    (v) =>
+      `${PV_STATUS[v.status] ?? v.status} · <b>${v.passType === "legendary" ? "👑 LENDÁRIO" : "🎟 AVENTUREIRO"} V${v.versionNumber}</b>\n` +
+      `Temporada: ${esc(v.seasonName)} · ${Number(v.priceTon)} TON · ${v.levels} níveis\n` +
+      `Audiência: ${PV_AUDIENCE[v.audienceMode] ?? v.audienceMode}\n` +
+      `Compras: ${fmt(v.purchases)} · completaram: ${fmt(v.completed)} · recompensas: ${fmt(v.rewards)}` +
+      (v.activateAt && v.status === "SCHEDULED" ? `\n⏰ Ativa em: ${String(v.activateAt).replace("T", " ").slice(0, 16)} UTC` : ""),
+  );
+  const rows = versions
+    .filter((v) => ["DRAFT", "PREVIEW", "SCHEDULED", "ACTIVE"].includes(v.status))
+    .slice(0, 8)
+    .map((v) => [
+      {
+        t: `${v.status === "ACTIVE" ? "✅" : "🛠"} ${v.passType === "legendary" ? "LENDÁRIO" : "AVENTUREIRO"} V${v.versionNumber}`,
+        d: `pver:v:${v.id}`,
+      },
+    ]);
+  rows.push([{ t: "➕ NOVA TEMPORADA (CLONE)", d: "pver:new" }]);
+  rows.push(nav("m:pass"));
+  const text = `🗂 <b>VERSÕES DO PASSE</b>\n\nCada versão é independente: XP, níveis e recompensas nunca são herdados, e comprar a temporada anterior não libera a nova.\n\n${lines.join("\n\n") || "Nenhuma versão cadastrada."}`;
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvCard(ctx: Ctx, id: string, editing = true) {
+  const d = await pvOverview(ctx);
+  const v = ((d.versions ?? []) as any[]).find((x) => x.id === id);
+  if (!v) throw new Error("⚠️ Versão não encontrada.");
+  const text = [
+    `${v.passType === "legendary" ? "👑" : "🎟"} <b>${v.passType === "legendary" ? "LENDÁRIO" : "AVENTUREIRO"} V${v.versionNumber}</b>`,
+    `Status: <b>${PV_STATUS[v.status] ?? v.status}</b>`,
+    `Temporada: <b>${esc(v.seasonName)}</b>`,
+    `Preço: <b>${Number(v.priceTon)} TON</b> · Níveis: <b>${v.levels}</b> · XP/nível: <b>${fmt(v.xpPerLevel)}</b>`,
+    `Audiência: <b>${PV_AUDIENCE[v.audienceMode] ?? v.audienceMode}</b>`,
+    v.activateAt ? `Ativação agendada: <b>${String(v.activateAt).replace("T", " ").slice(0, 16)} UTC</b>` : "Ativação agendada: —",
+    v.activatedAt ? `Ativada em: ${String(v.activatedAt).slice(0, 10)}` : "",
+    "",
+    `Compras: <b>${fmt(v.purchases)}</b> · completaram: <b>${fmt(v.completed)}</b> · recompensas: <b>${fmt(v.rewards)}</b>`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const editable = ["DRAFT", "PREVIEW", "SCHEDULED"].includes(v.status);
+  const rows: { t: string; d: string }[][] = [];
+  if (editable) {
+    rows.push([{ t: "🔒 SOMENTE ADMIN", d: `pver:aud:ADMIN_ONLY:${v.id}` }]);
+    rows.push([{ t: "🏅 QUEM COMPLETOU O ANTERIOR", d: `pver:aud:PREVIOUS_PASS_COMPLETERS:${v.id}` }]);
+    rows.push([
+      { t: "🌍 TODOS", d: `pver:aud:ALL_PLAYERS:${v.id}` },
+      { t: "🌱 NOVOS", d: `pver:aud:NEW_PLAYERS_ONLY:${v.id}` },
+    ]);
+    rows.push([{ t: "⏰ AGENDAR LANÇAMENTO", d: `pver:sched:${v.id}` }]);
+    rows.push([{ t: "🚀 ATIVAR AGORA", d: `pver:act:${v.id}` }]);
+    rows.push([{ t: "❌ CANCELAR VERSÃO", d: `pver:cancel:${v.id}` }]);
+  }
+  rows.push([{ t: "👥 COMPRADORES", d: `pver:buyers:${v.id}` }]);
+  rows.push([{ t: "🗂 VERSÕES", d: "pver:hub" }], nav("m:pass"));
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function pvBuyers(ctx: Ctx, id: string) {
+  const d = (await rpc("admin_pass_version_purchases", { p_admin_id: ctx.adminId, p_version_id: id })) as any;
+  const players = (d.players ?? []) as any[];
+  const lines = players
+    .slice(0, 25)
+    .map(
+      (p) =>
+        `• <code>${p.telegramId}</code> ${p.username ? "@" + esc(p.username) : ""} · nível ${p.level} · ${fmt(p.xp)} XP`,
+    );
+  return edit(
+    ctx,
+    `👥 <b>COMPRADORES · ${d.passType === "legendary" ? "LENDÁRIO" : "AVENTUREIRO"} V${d.versionNumber}</b>\n\n${lines.join("\n") || "Nenhuma compra nesta versão."}`,
+    kb([[{ t: "⬅️ VERSÃO", d: `pver:v:${id}` }], nav("m:pass")]),
+  );
+}
+
+async function pvCallback(ctx: Ctx, rest: string[]) {
+  await clearSession(ctx);
+  const [sub, a, b] = rest;
+  if (sub === "v") return pvCard(ctx, a);
+  if (sub === "buyers") return pvBuyers(ctx, a);
+  if (sub === "new") return ask(ctx, "pvernew", PROMPTS.pvernew);
+  if (sub === "sched") return ask(ctx, `pversched|${a}`, PROMPTS.pversched);
+  if (sub === "aud") {
+    await rpc("admin_pass_version_set_audience", { p_admin_id: ctx.adminId, p_version_id: b, p_mode: a, p_config: {} });
+    await send(ctx, `✅ Audiência definida: <b>${PV_AUDIENCE[a] ?? a}</b>.`);
+    return pvCard({ ...ctx, messageId: undefined }, b, false);
+  }
+  if (sub === "act") {
+    await rpc("admin_pass_version_activate", { p_admin_id: ctx.adminId, p_version_id: a });
+    await send(ctx, "🚀 Versão ativada. A anterior foi arquivada e nunca é reaproveitada.");
+    return pvHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (sub === "cancel") {
+    await rpc("admin_pass_version_cancel", { p_admin_id: ctx.adminId, p_version_id: a });
+    await send(ctx, "❌ Versão cancelada.");
+    return pvHub({ ...ctx, messageId: undefined }, false);
+  }
+  return pvHub(ctx);
+}
+
+async function pvPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  if (key === "pvernew") {
+    const parts = text.split(/\s+/);
+    const days = Number(parts[parts.length - 1]);
+    const hasDays = Number.isFinite(days) && days > 0 && days <= 365;
+    const name = (hasDays ? parts.slice(0, -1).join(" ") : text).trim();
+    if (name.length < 3) throw new Error("KEEP_SESSION::⚠️ Envie <code>Nome da temporada dias</code>. Ex.: <code>Temporada 2 30</code>");
+    await rpc("admin_pass_version_create", {
+      p_admin_id: ctx.adminId,
+      p_name: name,
+      p_clone: true,
+      p_days: hasDays ? Math.round(days) : 30,
+    });
+    await clearSession(ctx);
+    await send(ctx, `✅ Nova versão criada como rascunho: <b>${esc(name)}</b> (${hasDays ? Math.round(days) : 30} dias).`);
+    return pvHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "pversched") {
+    const iso = text.replace(" ", "T");
+    const at = new Date(/Z|[+-]\d\d:?\d\d$/.test(iso) ? iso : `${iso}:00Z`.replace(/(:\d\d):\d\dZ$/, "$1:00Z"));
+    if (Number.isNaN(at.getTime()) || at.getTime() <= Date.now())
+      throw new Error("KEEP_SESSION::⚠️ Envie a data/hora UTC futura no formato <code>AAAA-MM-DD HH:MM</code>.");
+    await rpc("admin_pass_version_schedule", {
+      p_admin_id: ctx.adminId,
+      p_version_id: args[0],
+      p_at: at.toISOString(),
+    });
+    await clearSession(ctx);
+    await send(ctx, `⏰ Lançamento agendado para <b>${at.toISOString().replace("T", " ").slice(0, 16)} UTC</b>.`);
+    return pvCard({ ...ctx, messageId: undefined }, args[0], false);
+  }
+  throw new Error("⚠️ Ação inválida.");
+}
+
 // ---------------------------------------------------------------- battle pass (manual activation)
+
 async function passCard(ctx: Ctx, ref: string) {
   const p = await rpc("admin_player_pass", { p_admin_id: ctx.adminId, p_ref: ref });
   console.log(
