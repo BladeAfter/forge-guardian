@@ -26,7 +26,7 @@ const templateOf = (h: { templateId?: string; heroKey?: string; name: string; he
   String(h.templateId || h.heroKey || h.name || h.heroId).toLowerCase();
 const normalizeRarity = (value?: string): HeroRarity => {
   const key = String(value ?? '').trim().toLowerCase();
-  return (['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'] as HeroRarity[]).includes(key as HeroRarity)
+  return (['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive', 'celestial'] as HeroRarity[]).includes(key as HeroRarity)
     ? (key as HeroRarity)
     : 'common';
 };
