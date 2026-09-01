@@ -1073,6 +1073,17 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   color:transparent;
   text-shadow:0 0 12px rgba(251,191,36,.35);
 }
+/* Títulos longos (ex.: REI DA ARENA) precisam ser legíveis por completo. */
+.player-premium-title{
+  font-size:clamp(8px,2.5vw,10px);
+  letter-spacing:.04em;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
 
 
 /* ===== VETERAN line pet/hero cards (Founder 35 TON + Veteran Vault 100 TON) =====
