@@ -260,6 +260,13 @@
       "when": 1788221037111,
       "tag": "0036_battle_pass_v2_audience_completers_or_unpurchased",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1788222070173,
+      "tag": "0037_fix_hero_fusion_dashboard_fragments",
+      "breakpoints": true
     }
   ]
 }
