@@ -2303,6 +2303,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   'private-trade': async (db, user, body) => {
     const action = String(body.action || 'list');
     if (action === 'list') return rpc(db, 'private_trade_list', { p_telegram_id: user.id });
+    // Tradable assets for the item picker: includes NFT / legendary / mythic instances.
+    if (action === 'assets') return rpc(db, 'private_trade_assets', { p_telegram_id: user.id });
     if (action === 'search') {
       return rpc(db, 'private_trade_search_player', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 64) });
     }

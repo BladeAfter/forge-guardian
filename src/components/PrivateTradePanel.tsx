@@ -3,13 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowLeftRight, Check, Lock, LockOpen, Search, ShieldAlert, Trash2, UserRound, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
-import { fetchMarketSellable } from '../services';
-import type { MarketSellable } from '../market';
+import { getInventoryItemVisual } from '../inventoryVisuals';
 import {
   PRIVATE_TRADE_ERROR_KEYS, addPrivateTradeItem, cancelPrivateTrade, confirmPrivateTrade, createPrivateTrade,
-  fetchPrivateTrade, fetchPrivateTrades, lockPrivateTrade, privateTradeEditable, privateTradeItemImage,
-  privateTradeItemLabel, removePrivateTradeItem, searchPrivateTradePlayer, setPrivateTradeCurrency,
-  type PrivateTradeItem, type PrivateTradeList, type PrivateTradeSide, type PrivateTradeState, type PrivateTradeStatus,
+  fetchPrivateTrade, fetchPrivateTradeAssets, fetchPrivateTrades, lockPrivateTrade, privateTradeEditable,
+  privateTradeItemImage, privateTradeItemLabel, removePrivateTradeItem, searchPrivateTradePlayer,
+  setPrivateTradeCurrency,
+  type PrivateTradeAssets, type PrivateTradeItem, type PrivateTradeList, type PrivateTradeSide,
+  type PrivateTradeState, type PrivateTradeStatus,
 } from '../privateTrade';
 
 type Props = { telegramInitData: string | null };
@@ -23,6 +24,35 @@ const STATUS_KEY: Record<PrivateTradeStatus, string> = {
   cancelled: 'privateTrade.statusCancelled',
   expired: 'privateTrade.statusExpired',
   blocked: 'privateTrade.statusBlocked',
+};
+
+type PickerRow = {
+  id: string; name: string; image: string | null; qty: number;
+  rarity?: string | null; nft?: boolean; veteran?: boolean; level?: number;
+};
+
+const RARITY_BORDER: Record<string, string> = {
+  common: 'border-slate-500/40', uncommon: 'border-emerald-400/40', rare: 'border-sky-400/50',
+  epic: 'border-violet-400/50', legendary: 'border-amber-400/60', mythic: 'border-fuchsia-400/60',
+  ancestral: 'border-rose-400/60', nft_exclusive: 'border-fuchsia-400/70',
+};
+const RARITY_TEXT: Record<string, string> = {
+  common: 'text-slate-400', uncommon: 'text-emerald-300', rare: 'text-sky-300',
+  epic: 'text-violet-300', legendary: 'text-amber-300', mythic: 'text-fuchsia-300',
+  ancestral: 'text-rose-300', nft_exclusive: 'text-fuchsia-300',
+};
+
+/** Real artwork for stackable items (chests, fragments, keys, equipment). */
+const itemArt = (image: string | null, code: string, itemType: string, category: string) => {
+  if (image && (image.startsWith('http') || image.startsWith('/'))) return image;
+  const visual = getInventoryItemVisual({
+    itemId: code.replace(/^(equip|pfrag|food):/, ''),
+    itemType,
+    category: (category as never) ?? 'other',
+    quantity: 1,
+    image,
+  } as never);
+  return visual.image;
 };
 
 /**
@@ -60,15 +90,17 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
     queryFn: () => fetchPrivateTrade(telegramInitData as string, openTradeId as string),
   });
 
-  const sellable = useQuery<MarketSellable>({
-    queryKey: ['market-sellable'],
+  // NFT / legendary / mythic instances come from the private-trade specific list.
+  const sellable = useQuery<PrivateTradeAssets>({
+    queryKey: ['private-trade-assets'],
     enabled: enabled && Boolean(picker),
-    queryFn: () => fetchMarketSellable(telegramInitData as string),
+    queryFn: () => fetchPrivateTradeAssets(telegramInitData as string),
   });
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['private-trades'] });
     void queryClient.invalidateQueries({ queryKey: ['private-trade'] });
+    void queryClient.invalidateQueries({ queryKey: ['private-trade-assets'] });
     void queryClient.invalidateQueries({ queryKey: ['market-sellable'] });
     void queryClient.invalidateQueries({ queryKey: ['ton-wallet'] });
     void queryClient.invalidateQueries({ queryKey: ['game-state'] });
@@ -322,11 +354,22 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
             </div>
             {(() => {
               const data = sellable.data;
-              const rows = picker === 'hero'
-                ? (data?.heroes ?? []).filter((h) => h.available !== false).map((h) => ({ id: h.id, name: h.name, image: h.image, qty: 1 }))
+              const rows: PickerRow[] = picker === 'hero'
+                ? (data?.heroes ?? []).filter((h) => h.available !== false).map((h) => ({
+                    id: h.id, name: h.name, image: h.image, qty: 1, rarity: h.rarity, nft: h.nft, veteran: h.veteranLine, level: h.level,
+                  }))
                 : picker === 'pet'
-                  ? (data?.pets ?? []).filter((p) => p.available !== false).map((p) => ({ id: p.id, name: p.name, image: p.image, qty: 1 }))
-                  : (data?.items ?? []).filter((i) => i.available !== false).map((i) => ({ id: i.code, name: i.name ?? i.code, image: i.image ?? null, qty: i.quantity }));
+                  ? (data?.pets ?? []).filter((p) => p.available !== false).map((p) => ({
+                      id: p.id, name: p.name, image: p.image, qty: 1, rarity: p.rarity, nft: p.nft, veteran: p.veteranLine, level: p.level,
+                    }))
+                  : (data?.items ?? []).filter((i) => i.available !== false).map((i) => ({
+                      id: i.code,
+                      name: i.name ?? i.code,
+                      image: itemArt(i.image, i.code, i.itemType, i.category),
+                      qty: i.quantity,
+                      rarity: i.rarity,
+                      nft: i.nft,
+                    }));
               if (rows.length === 0) return <p className="p-2 text-[11px] text-slate-400">{t('privateTrade.noItems')}</p>;
               return rows.map((row) => (
                 <button
@@ -340,8 +383,22 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
                   }}
                   className="flex w-full items-center gap-2 border-b border-white/5 px-1 py-2 text-left"
                 >
-                  {row.image ? <img src={row.image} alt="" className="h-8 w-8 rounded-lg object-cover" /> : <span className="h-8 w-8 rounded-lg bg-white/5" />}
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-slate-200">{row.name}</span>
+                  {row.image
+                    ? <img src={row.image} alt="" loading="lazy" className={`h-10 w-10 rounded-lg border object-cover ${RARITY_BORDER[String(row.rarity ?? '').toLowerCase()] ?? 'border-white/10'}`} />
+                    : <span className="h-10 w-10 rounded-lg bg-white/5" />}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[11px] font-bold text-slate-100">{row.name}</span>
+                    <span className="flex flex-wrap items-center gap-1">
+                      {row.rarity && (
+                        <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${RARITY_TEXT[String(row.rarity).toLowerCase()] ?? 'text-slate-400'}`}>
+                          {String(row.rarity)}
+                        </span>
+                      )}
+                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">Lv {row.level}</span>}
+                      {row.veteran && <span className="rounded bg-amber-400/20 px-1 text-[8px] font-black uppercase text-amber-200">VETERAN</span>}
+                      {row.nft && !row.veteran && <span className="rounded bg-fuchsia-400/20 px-1 text-[8px] font-black uppercase text-fuchsia-200">NFT</span>}
+                    </span>
+                  </span>
                   {row.qty > 1 && <span className="text-[10px] text-slate-400">x{row.qty}</span>}
                 </button>
               ));
