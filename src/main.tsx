@@ -5,7 +5,7 @@ import { Toaster } from 'sonner';
 import App from './App';
 import './styles.css';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
-import { TONCONNECT_MANIFEST_URL } from './config';
+import { TELEGRAM_APP_LINK, TONCONNECT_MANIFEST_URL } from './config';
 import { LanguageProvider } from './LanguageContext';
 
 /**
@@ -26,7 +26,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <TonConnectUIProvider manifestUrl={TONCONNECT_MANIFEST_URL}>
+        <TonConnectUIProvider
+          manifestUrl={TONCONNECT_MANIFEST_URL}
+          /**
+           * Inside a Telegram Mini App the wallet only opens when TonConnect knows where to
+           * come back to. Without `twaReturnUrl` the sendTransaction deep link is silently
+           * dropped and nothing happens when the player taps BUY.
+           */
+          actionsConfiguration={{ twaReturnUrl: TELEGRAM_APP_LINK as `${string}://${string}`, returnStrategy: 'back' }}
+        >
+
           <App />
         </TonConnectUIProvider>
       </LanguageProvider>
