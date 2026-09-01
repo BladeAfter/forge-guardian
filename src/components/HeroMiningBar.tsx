@@ -72,7 +72,7 @@ export function HeroMiningBar({ telegramInitData, state }: { telegramInitData: s
 
         <div className="relative mt-3 rounded-xl border border-amber-300/25 bg-black/50 px-3 py-2.5">
           <p className="text-center text-[11px] font-bold leading-snug text-amber-50">{t('mining.locked.desc')}</p>
-          <p className="mt-1.5 text-center text-[9px] leading-relaxed text-slate-400">{t('mining.locked.req')}</p>
+          
         </div>
 
         <button
