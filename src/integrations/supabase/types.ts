@@ -16441,6 +16441,32 @@ export type Database = {
           },
         ]
       }
+      ton_mining_v2_cohort: {
+        Row: {
+          created_at: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mining_v2_cohort_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ton_payment_logs: {
         Row: {
           blockchain_status: string | null
@@ -23442,7 +23468,12 @@ export type Database = {
       ton_mining_deposited_ton: { Args: { p_user_id: string }; Returns: number }
       ton_mining_gate_cutoff: { Args: never; Returns: string }
       ton_mining_gate_enabled: { Args: never; Returns: boolean }
+      ton_mining_has_paid_v2_pass: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       ton_mining_has_v2_pass: { Args: { p_user_id: string }; Returns: boolean }
+      ton_mining_in_v2_cohort: { Args: { p_user_id: string }; Returns: boolean }
       ton_mining_owns_nft_hero: {
         Args: { p_user_id: string }
         Returns: boolean

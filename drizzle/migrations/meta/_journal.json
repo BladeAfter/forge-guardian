@@ -358,6 +358,20 @@
       "when": 1788261968401,
       "tag": "0050_withdraw_enforce_locked_deposit",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1788262514114,
+      "tag": "0051_ton_mining_v2_cohort_any_pass_rule",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1788262564400,
+      "tag": "0052_mining_gate_price_5_for_cohort",
+      "breakpoints": true
     }
   ]
 }
