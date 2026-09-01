@@ -21446,6 +21446,10 @@ export type Database = {
         Returns: Json
       }
       founder_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      founder_pack_pass_season: {
+        Args: { p_snapshot: Json; p_user_id: string }
+        Returns: string
+      }
       founder_pack_pending_orders: {
         Args: { p_telegram_id: number }
         Returns: Json

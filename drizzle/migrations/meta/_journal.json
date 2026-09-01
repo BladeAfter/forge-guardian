@@ -267,6 +267,13 @@
       "when": 1788222070173,
       "tag": "0037_fix_hero_fusion_dashboard_fragments",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1788223067269,
+      "tag": "0038_founder_pack_pass_uses_player_version_season",
+      "breakpoints": true
     }
   ]
 }
