@@ -295,6 +295,13 @@
       "when": 1788223587765,
       "tag": "0041_fix_pet_egg_move_missing_unique_constraint",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1788223795847,
+      "tag": "0042_pass_audience_keeps_paid_buyers",
+      "breakpoints": true
     }
   ]
 }
