@@ -288,6 +288,13 @@
       "when": 1788223441347,
       "tag": "0040_fix_mythic_egg_multi_open_and_pet_buff_growth",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1788223587765,
+      "tag": "0041_fix_pet_egg_move_missing_unique_constraint",
+      "breakpoints": true
     }
   ]
 }
