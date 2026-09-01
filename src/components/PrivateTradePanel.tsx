@@ -324,11 +324,22 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
             </div>
             {(() => {
               const data = sellable.data;
-              const rows = picker === 'hero'
-                ? (data?.heroes ?? []).filter((h) => h.available !== false).map((h) => ({ id: h.id, name: h.name, image: h.image, qty: 1 }))
+              const rows: PickerRow[] = picker === 'hero'
+                ? (data?.heroes ?? []).filter((h) => h.available !== false).map((h) => ({
+                    id: h.id, name: h.name, image: h.image, qty: 1, rarity: h.rarity, nft: h.nft, veteran: h.veteranLine, level: h.level,
+                  }))
                 : picker === 'pet'
-                  ? (data?.pets ?? []).filter((p) => p.available !== false).map((p) => ({ id: p.id, name: p.name, image: p.image, qty: 1 }))
-                  : (data?.items ?? []).filter((i) => i.available !== false).map((i) => ({ id: i.code, name: i.name ?? i.code, image: i.image ?? null, qty: i.quantity }));
+                  ? (data?.pets ?? []).filter((p) => p.available !== false).map((p) => ({
+                      id: p.id, name: p.name, image: p.image, qty: 1, rarity: p.rarity, nft: p.nft, veteran: p.veteranLine, level: p.level,
+                    }))
+                  : (data?.items ?? []).filter((i) => i.available !== false).map((i) => ({
+                      id: i.code,
+                      name: i.name ?? i.code,
+                      image: itemArt(i.image, i.code, i.itemType, i.category),
+                      qty: i.quantity,
+                      rarity: i.rarity,
+                      nft: i.nft,
+                    }));
               if (rows.length === 0) return <p className="p-2 text-[11px] text-slate-400">{t('privateTrade.noItems')}</p>;
               return rows.map((row) => (
                 <button
@@ -342,8 +353,22 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
                   }}
                   className="flex w-full items-center gap-2 border-b border-white/5 px-1 py-2 text-left"
                 >
-                  {row.image ? <img src={row.image} alt="" className="h-8 w-8 rounded-lg object-cover" /> : <span className="h-8 w-8 rounded-lg bg-white/5" />}
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-slate-200">{row.name}</span>
+                  {row.image
+                    ? <img src={row.image} alt="" loading="lazy" className={`h-10 w-10 rounded-lg border object-cover ${RARITY_BORDER[String(row.rarity ?? '').toLowerCase()] ?? 'border-white/10'}`} />
+                    : <span className="h-10 w-10 rounded-lg bg-white/5" />}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[11px] font-bold text-slate-100">{row.name}</span>
+                    <span className="flex flex-wrap items-center gap-1">
+                      {row.rarity && (
+                        <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${RARITY_TEXT[String(row.rarity).toLowerCase()] ?? 'text-slate-400'}`}>
+                          {String(row.rarity)}
+                        </span>
+                      )}
+                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">Lv {row.level}</span>}
+                      {row.veteran && <span className="rounded bg-amber-400/20 px-1 text-[8px] font-black uppercase text-amber-200">VETERAN</span>}
+                      {row.nft && !row.veteran && <span className="rounded bg-fuchsia-400/20 px-1 text-[8px] font-black uppercase text-fuchsia-200">NFT</span>}
+                    </span>
+                  </span>
                   {row.qty > 1 && <span className="text-[10px] text-slate-400">x{row.qty}</span>}
                 </button>
               ));
