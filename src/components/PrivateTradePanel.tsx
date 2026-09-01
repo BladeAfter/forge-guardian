@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowLeftRight, Check, Lock, LockOpen, Search, ShieldAlert, Trash2, UserRound, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
+import { getInventoryItemVisual } from '../inventoryVisuals';
 import {
   PRIVATE_TRADE_ERROR_KEYS, addPrivateTradeItem, cancelPrivateTrade, confirmPrivateTrade, createPrivateTrade,
   fetchPrivateTrade, fetchPrivateTradeAssets, fetchPrivateTrades, lockPrivateTrade, privateTradeEditable,
