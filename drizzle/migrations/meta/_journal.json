@@ -253,6 +253,13 @@
       "when": 1788144919316,
       "tag": "0035_key_chest_inventory_and_pass_claim",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1788221037111,
+      "tag": "0036_battle_pass_v2_audience_completers_or_unpurchased",
+      "breakpoints": true
     }
   ]
 }
