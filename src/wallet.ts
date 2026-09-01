@@ -7,7 +7,7 @@ export type TonPaymentIntent={id:string;depositType?:DepositType;paymentAddress:
 /** Withdrawable TON balance: fed ONLY by official rewards (pool, events, admin). Never by FC. */
 export type TonRewardEntry={id:string;amountTon:number;direction:'credit'|'debit';sourceType:string;sourceId:string|null;status:string;note:string|null;createdAt:string};
 export type TonWithdrawalEntry={id:string;grossTon:number;feePercent:number;feeTon:number;netTon:number;status:string;source:string;createdAt:string};
-export type TonWallet={balanceFc:number;availableTon:number;lockedTon?:number;withdrawableTon?:number;reservedTon:number;feePercent:number;minWithdrawTon:number;depositRequirementTon?:number;depositTotalTon?:number;depositRequirementMet?:boolean;rewards:TonRewardEntry[];withdrawals:TonWithdrawalEntry[]};
+export type TonWallet={balanceFc:number;availableTon:number;lockedTon?:number;withdrawableTon?:number;reservedTon:number;feePercent:number;minWithdrawTon:number;depositRequirementTon?:number;depositTotalTon?:number;depositRequirementMet?:boolean;passRequirementMet?:boolean;passRequirementTon?:number;rewards:TonRewardEntry[];withdrawals:TonWithdrawalEntry[]};
 export type TonWithdrawalReceipt={id:string;status:string;grossTon:number;feePercent:number;feeTon:number;netTon:number;walletAddress:string;availableTon?:number};
 
 /** MYTH Token: decorative only. Supply lives with the Admin Bot; players never buy, sell or withdraw it. */
