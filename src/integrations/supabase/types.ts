@@ -22555,6 +22555,15 @@ export type Database = {
       pet_instance_power: { Args: { p_player_pet_id: string }; Returns: number }
       pet_level_xp_required: { Args: { p_level: number }; Returns: number }
       pet_max_level: { Args: never; Returns: number }
+      pet_premium_effective_buff: {
+        Args: {
+          p_base: number
+          p_evolution_tier: number
+          p_level: number
+          p_rarity: string
+        }
+        Returns: number
+      }
       pet_rarity_base_power: {
         Args: { p_is_nft?: boolean; p_rarity: string }
         Returns: number
