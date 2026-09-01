@@ -309,6 +309,13 @@
       "when": 1788223988160,
       "tag": "0043_pet_buff_no_nerf_growth_above_cap",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1788224093021,
+      "tag": "0044_ton_mining_v2_only_legendary_pass",
+      "breakpoints": true
     }
   ]
 }
