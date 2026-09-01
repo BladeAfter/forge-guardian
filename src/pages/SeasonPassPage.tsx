@@ -11,6 +11,7 @@ import{sendTonPayment,type TonTransactionRequest}from'../tonPayment';
 
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
 import{useT,useLanguage}from'../LanguageContext';
+import{useItemName}from'../itemNames';
 import{formatTon}from'../economy';
 import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
