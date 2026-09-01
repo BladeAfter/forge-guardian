@@ -386,6 +386,13 @@
       "when": 1788275464793,
       "tag": "0054_private_trade_assets_listing",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1788275958718,
+      "tag": "0055_withdraw_requires_paid_v2_pass",
+      "breakpoints": true
     }
   ]
 }

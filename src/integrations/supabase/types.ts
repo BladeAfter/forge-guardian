@@ -23835,6 +23835,10 @@ export type Database = {
         Returns: number
       }
       withdraw_min_deposit_ton: { Args: never; Returns: number }
+      withdraw_requires_v2_pass: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
