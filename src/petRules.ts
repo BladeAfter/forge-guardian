@@ -22,10 +22,10 @@ export function petStageBuffMultiplier(stage:number){return 1+.10*Math.min(10,Ma
 export function petLevelMultiplier(level:number){return 1+(clampLevel(level)-1)*.02}
 /**
  * Official buff formula — mirrors public.pet_effective_buff: rarity multiplier applied to the
- * original base, cap headroom reserved for the max stage/level growth so every level is visible.
+ * original base, base limitada ao teto normal (nível 1 nunca perde valor) e o crescimento pode ir até 1.5x o teto.
  */
 export const PET_MAX_BUFF_GROWTH=petStageBuffMultiplier(10)*(1+(PET_MAX_LEVEL-1)*.005);
-export function calculatePetBonus(base:number,rarity:string,level:number,key?:PetBonusKey,stage=0){if(!Number.isFinite(base)||base<=0)return 0;const growth=petStageBuffMultiplier(stage)*(1+(clampLevel(level)-1)*.005);const cap=key?PET_BONUS_CAPS[key]:undefined;let scaled=base*PET_RARITY_MULTIPLIER[normalizePetRarity(rarity)];if(cap&&cap>0)scaled=Math.min(scaled,cap/PET_MAX_BUFF_GROWTH);const raw=scaled*growth;return Number(Math.min(raw,cap??raw,150).toFixed(2))}
+export function calculatePetBonus(base:number,rarity:string,level:number,key?:PetBonusKey,stage=0){if(!Number.isFinite(base)||base<=0)return 0;const growth=petStageBuffMultiplier(stage)*(1+(clampLevel(level)-1)*.005);const cap=key?PET_BONUS_CAPS[key]:undefined;let scaled=base*PET_RARITY_MULTIPLIER[normalizePetRarity(rarity)];if(cap&&cap>0){scaled=Math.min(scaled,cap);return Number(Math.min(scaled*growth,cap*1.5,150).toFixed(2))}return Number(Math.min(scaled*growth,150).toFixed(2))}
 
 /** Official power formula, mirroring public.pet_instance_power. */
 export function petPower(rarity:string,level:number,passives:Record<string,number>,tier=0){const lvl=clampLevel(level),stage=petStageIndex(lvl,tier),total=Object.values(passives).filter(Number.isFinite).reduce((a,b)=>a+b,0);return Math.round(PET_RARITY_POWER[normalizePetRarity(rarity)]*(1+(lvl-1)*.05)*petStagePowerMultiplier(stage)+Math.min(total,200)*2)}
