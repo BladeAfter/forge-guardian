@@ -316,6 +316,13 @@
       "when": 1788224093021,
       "tag": "0044_ton_mining_v2_only_legendary_pass",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1788224261054,
+      "tag": "0045_ton_mining_v2_buyers_strict_rule",
+      "breakpoints": true
     }
   ]
 }
