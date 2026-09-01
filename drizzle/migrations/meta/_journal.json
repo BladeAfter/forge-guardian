@@ -351,6 +351,13 @@
       "when": 1788261932365,
       "tag": "0049_withdraw_lock_min_deposit_balance",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1788261968401,
+      "tag": "0050_withdraw_enforce_locked_deposit",
+      "breakpoints": true
     }
   ]
 }
