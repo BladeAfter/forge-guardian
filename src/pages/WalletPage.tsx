@@ -52,9 +52,12 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   useMythRealtime(backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
+  // Depósito usado para atingir o mínimo fica travado: nunca entra no saque (servidor decide).
+  const lockedTon = tonWallet?.lockedTon ?? 0;
+  const withdrawableTon = Math.max(0, tonWallet?.withdrawableTon ?? availableTon - lockedTon);
   // O servidor grava saques com 6 casas: truncamos (nunca arredondamos para cima)
   // para o "Máximo" jamais pedir mais do que o saldo real.
-  const maxWithdrawTon = Math.floor(availableTon * 1e6) / 1e6;
+  const maxWithdrawTon = Math.floor(withdrawableTon * 1e6) / 1e6;
   const reservedTon = tonWallet?.reservedTon ?? 0;
   const minWithdrawTon = tonWallet?.minWithdrawTon ?? 1;
   // Nova regra: saque só liberado para quem já depositou o mínimo em TON (servidor decide).
@@ -72,7 +75,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
-  const canWithdraw = depositRequirementMet && withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= availableTon;
+  const canWithdraw = depositRequirementMet && withdrawTon > 0 && withdrawTon >= minWithdrawTon && withdrawTon <= withdrawableTon;
   // Minimums and toggles are server-side settings; the client only mirrors them.
   const depositConfig = useMemo<WalletDepositConfig>(() => ({
     fcEnabled: summary?.depositConfig?.fcEnabled ?? true,
@@ -209,7 +212,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       if (!telegramInitData || !connected || !address) throw new Error(t('wallet.errors.connectWallet'));
       if (!depositRequirementMet) throw new Error(t('wallet.errors.depositRequired', { ton: formatTon(depositRequirementTon) }));
       if (withdrawTon < minWithdrawTon) throw new Error(t('wallet.errors.minWithdrawTon', { ton: formatTon(minWithdrawTon) }));
-      if (withdrawTon > availableTon) throw new Error(t('wallet.errors.insufficientTon'));
+      if (withdrawTon > withdrawableTon) throw new Error(t('wallet.errors.insufficientTon'));
       return requestTonWithdrawal(telegramInitData, withdrawTon, address, crypto.randomUUID());
     },
     onSuccess: async () => { setConfirmWithdraw(false); setWithdrawTon(0); await invalidateWallet(); toast.success(t('wallet.toast.withdrawRequested')); },
@@ -294,9 +297,10 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.fcInGameOnly')}</p>
         </Panel>
         <Panel title={t('wallet.tonWithdrawable')} icon={<Gift />}>
-          <div className="flex items-center gap-2"><img src={tonIcon} className="h-8 w-8 object-contain" alt="TON"/><strong className="text-lg text-sky-300">{formatTon(availableTon)} TON</strong></div>
+          <div className="flex items-center gap-2"><img src={tonIcon} className="h-8 w-8 object-contain" alt="TON"/><strong className="text-lg text-sky-300">{formatTon(withdrawableTon)} TON</strong></div>
           <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.tonRewardsOnly')}</p>
           {reservedTon > 0 ? <p className="mt-1 text-[9px] font-bold text-amber-300">{t('wallet.tonReserved', { ton: formatTon(reservedTon) })}</p> : null}
+          {lockedTon > 0 ? <p className="mt-1 text-[9px] font-bold text-amber-300">{t('wallet.tonLocked', { ton: formatTon(lockedTon) })}</p> : null}
         </Panel>
       </div>
 
@@ -362,7 +366,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           </p>
         ) : null}
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <Line label={t('wallet.available')} value={`${formatTon(availableTon)} TON`} />
+          <Line label={t('wallet.available')} value={`${formatTon(withdrawableTon)} TON`} />
           <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
           <Line label={t('wallet.withdrawFee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
           <div className="h-px w-full bg-white/10" />
