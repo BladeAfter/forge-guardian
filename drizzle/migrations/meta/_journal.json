@@ -393,6 +393,13 @@
       "when": 1788275958718,
       "tag": "0055_withdraw_requires_paid_v2_pass",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1788288703511,
+      "tag": "0056_withdraw_lock_exempt_pass_or_nft",
+      "breakpoints": true
     }
   ]
 }

@@ -22670,6 +22670,7 @@ export type Database = {
         }
         Returns: string
       }
+      player_owns_any_nft: { Args: { p_user_id: string }; Returns: boolean }
       player_pet_buffs: { Args: { p_player_pet_id: string }; Returns: Json }
       player_pet_json: { Args: { p_player_pet_id: string }; Returns: Json }
       player_ton_deposit_total: { Args: { p_user_id: string }; Returns: number }
