@@ -367,7 +367,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         ) : null}
         <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/30 p-3">
           <Line label={t('wallet.available')} value={`${formatTon(withdrawableTon)} TON`} />
-          {lockedTon > 0 ? <Line label={t('wallet.tonLocked', { ton: formatTon(lockedTon) })} value={`-${formatTon(lockedTon)} TON`} tone="fee" /> : null}
           <Line label={t('wallet.grossValue')} value={`${formatTon(quote.grossTon)} TON`} />
           <Line label={t('wallet.withdrawFee', { percent: quote.feePercent })} value={`-${formatTon(quote.feeTon)} TON`} tone="fee" />
           <div className="h-px w-full bg-white/10" />
