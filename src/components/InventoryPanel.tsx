@@ -78,6 +78,7 @@ const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryIte
 
 export function InventoryPanel({ telegramInitData, active, onViewFusion }: { telegramInitData: string; active: boolean; onViewFusion?: () => void }) {
   const t = useT();
+  const itemName = useItemName();
   const queryClient = useQueryClient();
   const { data, isLoading, error, refetch, isFetching } = usePlayerInventory(telegramInitData, active);
   const [filter, setFilter] = useState<InventoryCategory | 'all'>('all');
