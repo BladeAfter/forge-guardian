@@ -22399,6 +22399,10 @@ export type Database = {
         Returns: boolean
       }
       pass_exclusive_myth_rate: { Args: never; Returns: number }
+      pass_has_incomplete_paid: {
+        Args: { p_exclude_season: string; p_user_id: string }
+        Returns: boolean
+      }
       pass_locked_reward_config: { Args: never; Returns: Json }
       pass_locked_reward_deliver: {
         Args: { p_order_id: string }
