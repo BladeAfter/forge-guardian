@@ -3,6 +3,7 @@ import { coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
 import avatarBorderFounder from '../assets/avatar-border-founder.png.asset.json';
+import avatarBorderArenaKing from '../assets/avatar-border-arena-king.png.asset.json';
 import { formatTon } from '../economy';
 import { formatCurrency } from '../utils';
 
@@ -11,10 +12,11 @@ import { usePremiumTitles, resolvePremiumTitle } from '../premiumTitles';
 import { useT } from '../LanguageContext';
 
 
-/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE 100k, FOUNDER PACK). */
+/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE 100k, FOUNDER PACK, ARENA KING). */
 const AVATAR_BORDERS: Record<string, string> = {
   myth_sale_exclusive: avatarBorderMyth.url,
   founder_exclusive: avatarBorderFounder.url,
+  arena_king_exclusive: avatarBorderArenaKing.url,
 };
 
 export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | null }) {
@@ -66,9 +68,10 @@ export function PlayerIdentity({
         {profile ? (
           <>
             <p className="player-name font-black text-white">{getDisplayName(profile)}</p>
-            <p className={`player-username truncate text-[10px] leading-tight ${title ? 'premium-title' : 'text-sky-300'}`}>
+            <p className={`player-username leading-tight ${title ? 'premium-title player-premium-title' : 'truncate text-[10px] text-sky-300'}`}>
               {title ? `👑 ${title}` : profile.username ? `@${profile.username}` : t('profile.noUsername')}
             </p>
+
 
             <p className="player-tgid truncate text-[9px] leading-tight text-slate-400">ID: {profile.telegramId}</p>
           </>
