@@ -337,6 +337,13 @@
       "when": 1788225015653,
       "tag": "0047_clan_raid_legendary_hero_on_kill",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1788261586242,
+      "tag": "0048_admin_mining_overview_excludes_suspended",
+      "breakpoints": true
     }
   ]
 }
