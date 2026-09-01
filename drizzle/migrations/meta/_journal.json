@@ -379,6 +379,13 @@
       "when": 1788262775151,
       "tag": "0053_ton_mining_manual_suspension",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1788275464793,
+      "tag": "0054_private_trade_assets_listing",
+      "breakpoints": true
     }
   ]
 }

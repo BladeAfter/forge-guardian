@@ -22726,6 +22726,7 @@ export type Database = {
         }
         Returns: Json
       }
+      private_trade_assets: { Args: { p_telegram_id: number }; Returns: Json }
       private_trade_cancel: {
         Args: { p_reason?: string; p_telegram_id: number; p_trade: string }
         Returns: Json
