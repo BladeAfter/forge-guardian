@@ -226,8 +226,9 @@ export function localizeItemName(name: string | null | undefined, language: Lang
   const plural = parsed.count ? Number(parsed.count.replace(/[.,]/g, '')) !== 1 : false;
   const nounWord = NOUNS[language][parsed.noun][plural ? 1 : 0];
   const modWords = parsed.mods.map(mod => MODS[language][mod]);
-  const qualifiers = modWords.filter(word => /^(DE |DO |DA |DEL |OF )/.test(word));
-  const adjectives = modWords.filter(word => !qualifiers.includes(word));
+  const isQualifier = (word: string) => /^(DE |DO |DA |DEL |OF )/.test(word);
+  const qualifiers = modWords.filter(isQualifier);
+  const adjectives = modWords.filter(word => !isQualifier(word));
 
   const parts = NOUN_FIRST.includes(language)
     ? [nounWord, ...qualifiers, ...adjectives]
