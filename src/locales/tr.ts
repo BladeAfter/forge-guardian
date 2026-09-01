@@ -1312,6 +1312,7 @@ export const tr: Dict = {
   "wallet.toast.withdrawRequested": "Çekim talep edildi ve bakiye ayrıldı.",
   "wallet.tonAmountLabel": "TON miktarı",
   "wallet.tonReserved": "Bekleyen çekimlerde {ton} TON ayrıldı",
+  "wallet.tonLocked": "{ton} TON kilitli: minimum yatırımı karşılamak için kullanılan depozito çekilemez",
   "wallet.tonRewardsOnly": "Buraya yalnızca resmi ödüller (havuz, etkinlikler) yansır.",
   "wallet.tonWithdrawNote": "Her TON çekiminde %{percent} ağ/servis ücreti uygulanır.",
   "wallet.tonWithdrawable": "ÇEKİLEBİLİR TON",
