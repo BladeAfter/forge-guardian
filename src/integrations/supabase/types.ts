@@ -14764,6 +14764,58 @@ export type Database = {
           },
         ]
       }
+      season_mythic_egg_openings: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          player_pet_id: string | null
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          player_pet_id?: string | null
+          reward_id: string
+          season_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          player_pet_id?: string | null
+          reward_id?: string
+          season_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_mythic_egg_openings_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "season_exclusive_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_mythic_egg_openings_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "season_pass_seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_mythic_egg_openings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_pass_claim_audit: {
         Row: {
           claim_status: string
