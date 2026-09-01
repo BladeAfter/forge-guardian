@@ -344,6 +344,13 @@
       "when": 1788261586242,
       "tag": "0048_admin_mining_overview_excludes_suspended",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1788261932365,
+      "tag": "0049_withdraw_lock_min_deposit_balance",
+      "breakpoints": true
     }
   ]
 }
