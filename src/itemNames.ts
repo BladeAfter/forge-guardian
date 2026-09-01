@@ -160,8 +160,28 @@ const MODS: Record<LanguageCode, Record<Mod, string>> = {
   },
 };
 
-/** Languages that place qualifiers AFTER the head noun. */
-const NOUN_FIRST: LanguageCode[] = ['pt', 'es'];
+/** Word order per language: N = head noun, Q = qualifiers ("of X"), A = adjectives. */
+const ORDER: Record<LanguageCode, ('N' | 'Q' | 'A')[]> = {
+  pt: ['N', 'Q', 'A'],
+  es: ['N', 'Q', 'A'],
+  en: ['A', 'Q', 'N'],
+  tr: ['A', 'Q', 'N'],
+  ru: ['A', 'N', 'Q'],
+};
+
+/** Qualifier modifiers are grammatical complements, never adjectives. */
+const QUALIFIER_MODS = new Set<Mod>(['of_equipment', 'of_hero', 'of_pet', 'of_evolution', 'of_resources', 'eternity', 'void', 'dragon']);
+
+/** Adjectives that never inflect for number. */
+const INVARIANT = new Set(['PREMIUM', 'NFT', 'PVP', 'VETERAN', 'VETERANO', 'SKIN', 'MYTH', 'ANCESTRAL']);
+
+/** Plural agreement for the Latin languages (pt/es adjectives follow the noun). */
+const pluralizeAdjective = (word: string, language: LanguageCode) => {
+  if (language !== 'pt' && language !== 'es') return word;
+  if (INVARIANT.has(word)) return word;
+  return /[AEIOUÁÉÍÓÚ]$/.test(word) ? `${word}S` : `${word}ES`;
+};
+
 
 const isDigits = (token: string) => /^[\d.,]+$/.test(token);
 
