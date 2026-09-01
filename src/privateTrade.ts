@@ -80,6 +80,7 @@ export type PrivateTradeList = {
 
 type PrivateTradeAction =
   | { action: 'list' }
+  | { action: 'assets' }
   | { action: 'search'; query: string }
   | { action: 'create'; query: string; requestId?: string }
   | { action: 'view'; tradeId: string }
