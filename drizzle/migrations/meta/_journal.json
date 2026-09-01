@@ -323,6 +323,13 @@
       "when": 1788224261054,
       "tag": "0045_ton_mining_v2_buyers_strict_rule",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1788224504230,
+      "tag": "0046_restore_premium_pet_legacy_buffs",
+      "breakpoints": true
     }
   ]
 }
