@@ -11,6 +11,7 @@ import{sendTonPayment,type TonTransactionRequest}from'../tonPayment';
 
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
 import{useT,useLanguage}from'../LanguageContext';
+import{useItemName}from'../itemNames';
 import{formatTon}from'../economy';
 import{useSeasonPass}from'../hooks';
 import{mainScreenArt}from'../gameAssets';
@@ -107,7 +108,7 @@ const remaining=Math.max(0,new Date(data.season.endsAt).getTime()-Date.now()),da
 }
 
 function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassReward;pending:boolean;onClaim:(id:string)=>void;onUnlock:(r:PassReward)=>void;unlocking?:boolean}){
- const t=useT();
+ const t=useT();const itemName=useItemName();const title=r?itemName(r.title):null;
  const code=r?.code??'',mysteryArt=silhouette[code]??(r?.type==='hero_random'?silhouette.hero_random:undefined);
  const equipment=r?.type==='equipment'||r?.type==='nft_equipment',rare=equipment,mystery=Boolean(mysteryArt),premium=Boolean(code&&silhouette[code]),highlight=Boolean(r?.highlight);
  const frame=premium||highlight?'border-amber-300/70 bg-gradient-to-b from-violet-950/80 via-black/60 to-amber-950/30 shadow-[0_0_20px_rgba(251,191,36,.28)]'
@@ -123,11 +124,11 @@ function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassRewar
   {r?.claimed?<Check className="h-6 w-6 text-emerald-300"/>:r?<>
    {/* Every reward is shown with its real artwork — no generic vector icons. */}
    {mystery
-    ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_70%)] blur-[2px]"/><img src={mysteryArt} alt={r.title} className={`relative h-10 w-10 object-contain [filter:brightness(0)_saturate(0)] drop-shadow-[0_0_7px_rgba(251,191,36,.55)] ${r.unlocked?'':'opacity-40'}`}/></span>
-    :<img src={rewardImage(r)} alt={r.title} loading="lazy" className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>}
+    ?<span className="relative grid h-11 w-11 place-items-center"><span className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_70%)] blur-[2px]"/><img src={mysteryArt} alt={title??''} className={`relative h-10 w-10 object-contain [filter:brightness(0)_saturate(0)] drop-shadow-[0_0_7px_rgba(251,191,36,.55)] ${r.unlocked?'':'opacity-40'}`}/></span>
+    :<img src={rewardImage(r)} alt={title??''} loading="lazy" className={`h-10 w-10 object-contain drop-shadow-[0_0_8px_rgba(251,191,36,.35)] ${r.unlocked?'':'grayscale opacity-35'}`}/>}
    {!r.unlocked?<Lock className="absolute right-1 top-1 h-3 w-3 text-slate-500"/>:null}
   </>:null}
-  <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{r?.title??'—'}</span>
+  <span className={`block leading-tight ${rare?'font-black uppercase tracking-[.06em] text-sky-200':mystery?'font-black uppercase tracking-[.06em] text-amber-200':''}`}>{title??'—'}</span>
   {r&&!r.unlocked&&!versionLocked?<span className="block text-[7px] text-slate-500">{t('pass.buyPassPrompt')}</span>:null}
   {versionLocked?<span className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/75 px-1 text-center">
    <span className="rounded-md border border-amber-300/50 bg-black/80 px-1 py-0.5 text-[6px] font-black leading-tight text-amber-300">{t('pass.newPassRequired')}</span>

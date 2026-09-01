@@ -12,6 +12,7 @@ import { ArsenalPanel } from './ArsenalPanel';
 
 import type { FragmentSummonResult, InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
+import { useItemName } from '../itemNames';
 
 /** Discreet rarity borders — the inventory must stay readable, so no heavy glow. */
 const RARITY_BORDER: Record<string, string> = {
@@ -36,6 +37,7 @@ const CATEGORIES: (InventoryCategory | 'all')[] = ['all', 'fragments', 'eggs', '
  */
 function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }) {
   const [broken, setBroken] = useState(false);
+  const itemName = useItemName();
   const visual = getInventoryItemVisual(item);
   const cls = size === 'slot' ? 'h-full w-full' : 'mx-auto mb-2 h-20 w-20';
 
@@ -43,7 +45,7 @@ function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }
     return (
       <img
         src={visual.image}
-        alt={item.name}
+        alt={itemName(item.name)}
         loading="lazy"
         decoding="async"
         onError={() => { setBroken(true); console.error('[INVENTORY ASSET]', { itemId: item.itemId, itemType: item.itemType, image: visual.image }); }}
@@ -58,16 +60,17 @@ function ItemArt({ item, size }: { item: InventoryItem; size: 'slot' | 'modal' }
 
 const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryItem; onSelect: (item: InventoryItem) => void }) {
   const rarity = getInventoryItemVisual(item).rarity;
+  const itemName = useItemName();
   const border = (rarity && RARITY_BORDER[rarity]) || 'rgba(255,255,255,.14)';
   return (
     <button
       onClick={() => onSelect(item)}
       className="relative aspect-square overflow-hidden rounded-lg border bg-black/60"
       style={{ borderColor: border }}
-      aria-label={item.name}
+      aria-label={itemName(item.name)}
     >
       <ItemArt item={item} size="slot" />
-      <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-1 text-[7px] uppercase tracking-[.04em] text-slate-200">{item.name}</span>
+      <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-1 text-[7px] uppercase tracking-[.04em] text-slate-200">{itemName(item.name)}</span>
       <span className="absolute right-0.5 top-0.5 rounded bg-black/80 px-1 text-[8px] font-black text-amber-200">x{item.quantity}</span>
     </button>
   );
@@ -75,6 +78,7 @@ const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryIte
 
 export function InventoryPanel({ telegramInitData, active, onViewFusion }: { telegramInitData: string; active: boolean; onViewFusion?: () => void }) {
   const t = useT();
+  const itemName = useItemName();
   const queryClient = useQueryClient();
   const { data, isLoading, error, refetch, isFetching } = usePlayerInventory(telegramInitData, active);
   const [filter, setFilter] = useState<InventoryCategory | 'all'>('all');
@@ -240,7 +244,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
             <div className="fixed inset-0 z-[120] flex items-end justify-center bg-black/80 p-4 sm:items-center" onClick={() => !busy && setSelected(null)}>
               <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/25 bg-[#080c14] p-4" onClick={(event) => event.stopPropagation()}>
                 <div className="mb-2 flex items-start justify-between gap-2">
-                  <b className="text-sm font-black uppercase tracking-[.08em] text-amber-200">{selected.name}</b>
+                  <b className="text-sm font-black uppercase tracking-[.08em] text-amber-200">{itemName(selected.name)}</b>
                   <button onClick={() => setSelected(null)} aria-label={t('inventory.close')} className="text-slate-400"><X size={16} /></button>
                 </div>
                 <ItemArt item={selected} size="modal" />
@@ -251,9 +255,9 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                   <div className="mt-3 space-y-2">
                     {/* Key requirement: the chest only opens while the player owns the matching key. */}
                     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 p-2">
-                      {selected.keyImage ? <img src={selected.keyImage} alt={selected.keyName ?? ''} className="h-9 w-9 object-contain" /> : null}
+                      {selected.keyImage ? <img src={selected.keyImage} alt={itemName(selected.keyName)} className="h-9 w-9 object-contain" /> : null}
                       <div className="min-w-0">
-                        <p className="truncate text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{selected.keyName ?? selected.keyCode}</p>
+                        <p className="truncate text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{itemName(selected.keyName) || selected.keyCode}</p>
                         <p className={`text-[10px] font-black ${(selected.keyQuantity ?? 0) > 0 ? 'text-emerald-300' : 'text-rose-300'}`}>x{selected.keyQuantity ?? 0}</p>
                       </div>
                     </div>
@@ -379,9 +383,9 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
             <div className="fixed inset-0 z-[130] grid place-items-center bg-black/88 p-4" onClick={() => setKeyChest(null)}>
               <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#080c14] p-4 text-center" onClick={(event) => event.stopPropagation()}>
                 {keyChest.chest.image ? (
-                  <img src={keyChest.chest.image} alt={keyChest.chest.name} className="mx-auto mb-2 h-24 w-24 animate-[pulse_1.2s_ease-in-out_2] object-contain" />
+                  <img src={keyChest.chest.image} alt={itemName(keyChest.chest.name)} className="mx-auto mb-2 h-24 w-24 animate-[pulse_1.2s_ease-in-out_2] object-contain" />
                 ) : null}
-                <b className="block text-sm font-black uppercase tracking-[.1em] text-amber-200">{keyChest.chest.name}</b>
+                <b className="block text-sm font-black uppercase tracking-[.1em] text-amber-200">{itemName(keyChest.chest.name)}</b>
                 <p className="text-[9px] uppercase tracking-[.18em] text-slate-400">{keyChest.chest.subtitle}</p>
                 <div className="mt-3 space-y-1.5">
                   {keyChest.rewards.map((reward, index) => (
@@ -389,9 +393,9 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                       key={`${reward.type}-${index}`}
                       className={`flex items-center gap-2 rounded-xl border p-2 text-left ${reward.premium ? 'border-amber-300/60 bg-amber-300/10' : 'border-white/10 bg-black/50'}`}
                     >
-                      {reward.image ? <img src={reward.image} alt={reward.title} className="h-10 w-10 shrink-0 rounded-lg object-contain" /> : null}
+                      {reward.image ? <img src={reward.image} alt={itemName(reward.title)} className="h-10 w-10 shrink-0 rounded-lg object-contain" /> : null}
                       <div className="min-w-0">
-                        <p className="truncate text-[10px] font-black uppercase tracking-[.1em] text-white">{reward.name || reward.title}</p>
+                        <p className="truncate text-[10px] font-black uppercase tracking-[.1em] text-white">{itemName(reward.name || reward.title)}</p>
                         {reward.rarity ? (
                           <p className="text-[9px] font-black uppercase tracking-[.14em]" style={{ color: RARITY_BORDER[reward.rarity] ?? '#94a3b8' }}>{reward.rarity}</p>
                         ) : null}
