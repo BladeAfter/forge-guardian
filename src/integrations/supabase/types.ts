@@ -16441,6 +16441,35 @@ export type Database = {
           },
         ]
       }
+      ton_mining_suspended: {
+        Row: {
+          created_at: string
+          note: string | null
+          required_pass_ton: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string | null
+          required_pass_ton?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string | null
+          required_pass_ton?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_mining_suspended_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ton_mining_v2_cohort: {
         Row: {
           created_at: string
@@ -23488,6 +23517,10 @@ export type Database = {
         Returns: string
       }
       ton_mining_qualified: { Args: { p_user_id: string }; Returns: boolean }
+      ton_mining_suspension_price: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
         Returns: {

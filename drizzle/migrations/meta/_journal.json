@@ -372,6 +372,13 @@
       "when": 1788262564400,
       "tag": "0052_mining_gate_price_5_for_cohort",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1788262775151,
+      "tag": "0053_ton_mining_manual_suspension",
+      "breakpoints": true
     }
   ]
 }
