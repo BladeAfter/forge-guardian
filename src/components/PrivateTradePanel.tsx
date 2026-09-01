@@ -60,15 +60,17 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
     queryFn: () => fetchPrivateTrade(telegramInitData as string, openTradeId as string),
   });
 
-  const sellable = useQuery<MarketSellable>({
-    queryKey: ['market-sellable'],
+  // NFT / legendary / mythic instances come from the private-trade specific list.
+  const sellable = useQuery<PrivateTradeAssets>({
+    queryKey: ['private-trade-assets'],
     enabled: enabled && Boolean(picker),
-    queryFn: () => fetchMarketSellable(telegramInitData as string),
+    queryFn: () => fetchPrivateTradeAssets(telegramInitData as string),
   });
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ['private-trades'] });
     void queryClient.invalidateQueries({ queryKey: ['private-trade'] });
+    void queryClient.invalidateQueries({ queryKey: ['private-trade-assets'] });
     void queryClient.invalidateQueries({ queryKey: ['market-sellable'] });
     void queryClient.invalidateQueries({ queryKey: ['ton-wallet'] });
     void queryClient.invalidateQueries({ queryKey: ['game-state'] });
