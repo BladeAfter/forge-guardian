@@ -20920,6 +20920,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      clan_raid_grant_legendary_hero: {
+        Args: { p_raid: string; p_user_id: string }
+        Returns: Json
+      }
       clan_raid_kill_unlock_at: {
         Args: { r: Database["public"]["Tables"]["clan_raid_cycles"]["Row"] }
         Returns: string
