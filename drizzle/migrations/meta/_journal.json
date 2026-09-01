@@ -400,6 +400,13 @@
       "when": 1788288703511,
       "tag": "0056_withdraw_lock_exempt_pass_or_nft",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1788289587402,
+      "tag": "0057_private_trade_assets_priority_ordering",
+      "breakpoints": true
     }
   ]
 }
