@@ -254,9 +254,9 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                   <div className="mt-3 space-y-2">
                     {/* Key requirement: the chest only opens while the player owns the matching key. */}
                     <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 p-2">
-                      {selected.keyImage ? <img src={selected.keyImage} alt={selected.keyName ?? ''} className="h-9 w-9 object-contain" /> : null}
+                      {selected.keyImage ? <img src={selected.keyImage} alt={itemName(selected.keyName)} className="h-9 w-9 object-contain" /> : null}
                       <div className="min-w-0">
-                        <p className="truncate text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{selected.keyName ?? selected.keyCode}</p>
+                        <p className="truncate text-[9px] font-black uppercase tracking-[.14em] text-slate-300">{itemName(selected.keyName) || selected.keyCode}</p>
                         <p className={`text-[10px] font-black ${(selected.keyQuantity ?? 0) > 0 ? 'text-emerald-300' : 'text-rose-300'}`}>x{selected.keyQuantity ?? 0}</p>
                       </div>
                     </div>
