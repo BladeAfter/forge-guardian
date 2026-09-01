@@ -6696,10 +6696,12 @@ async function hmHub(ctx: Ctx, useEdit = true) {
     `Resgate mínimo: ${isMyth ? `${hmMyth(d.minClaimMyth)} MYTH` : `${hmTon(d.minClaimTon)} TON`}\n\n` +
     `<b>TAXAS TON POR RARIDADE</b> (define a elegibilidade)\n${rates}\n\n` +
     `Heróis minerando: <b>${fmt(d.eligibleHeroes)}</b> · pausados (mercado): ${fmt(d.pausedHeroes)}\n` +
+    `Qualificados: <b>${fmt(d.qualifiedPlayers)}</b> · suspensos: ${fmt(d.suspendedPlayers)} (heróis ${fmt(d.suspendedHeroes)})\n` +
     `<b>MYTH MINING POOL</b>\nAllocated ${hmMyth(pool.allocated)} · Distributed ${hmMyth(pool.distributed)} · Available <b>${hmMyth(pool.available)}</b>\n` +
     `MYTH não coletado: ${hmMyth(d.unclaimedMyth)}\n\n` +
-    `<b>TON POOL</b>\nProdução da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n` +
-    `Acumulado não coletado: ${hmTon(d.unclaimedTon)} TON\n` +
+    `<b>TON POOL</b> (apenas qualificados)\nProdução da rede: <b>${hmTon(d.networkDailyTon)} TON/dia</b>\n` +
+    `Acumulado não coletado: ${hmTon(d.unclaimedTon)} TON · suspenso: ${hmTon(d.suspendedUnclaimedTon)} TON\n` +
+
     `Coletado 24h: ${hmTon(d.claimedTon24h)} TON · total ${hmTon(d.claimedTon)} TON\n` +
     `<b>LIMITE ROI</b> · investido ${hmTon(d.investedTon)} TON · devolvido ${hmTon(d.returnedTon)} TON\n` +
     `Investidores: <b>${fmt(d.investorsCount)}</b> · no limite: ${fmt(d.capReachedPlayers)}\n\n` +

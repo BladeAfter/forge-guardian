@@ -23452,6 +23452,7 @@ export type Database = {
         Args: { p_tier: string; p_user_id: string }
         Returns: string
       }
+      ton_mining_qualified: { Args: { p_user_id: string }; Returns: boolean }
       ton_pending_purchase_orders: {
         Args: { p_max_age_days?: number }
         Returns: {
