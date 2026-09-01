@@ -25,6 +25,35 @@ const STATUS_KEY: Record<PrivateTradeStatus, string> = {
   blocked: 'privateTrade.statusBlocked',
 };
 
+type PickerRow = {
+  id: string; name: string; image: string | null; qty: number;
+  rarity?: string | null; nft?: boolean; veteran?: boolean; level?: number;
+};
+
+const RARITY_BORDER: Record<string, string> = {
+  common: 'border-slate-500/40', uncommon: 'border-emerald-400/40', rare: 'border-sky-400/50',
+  epic: 'border-violet-400/50', legendary: 'border-amber-400/60', mythic: 'border-fuchsia-400/60',
+  ancestral: 'border-rose-400/60', nft_exclusive: 'border-fuchsia-400/70',
+};
+const RARITY_TEXT: Record<string, string> = {
+  common: 'text-slate-400', uncommon: 'text-emerald-300', rare: 'text-sky-300',
+  epic: 'text-violet-300', legendary: 'text-amber-300', mythic: 'text-fuchsia-300',
+  ancestral: 'text-rose-300', nft_exclusive: 'text-fuchsia-300',
+};
+
+/** Real artwork for stackable items (chests, fragments, keys, equipment). */
+const itemArt = (image: string | null, code: string, itemType: string, category: string) => {
+  if (image && (image.startsWith('http') || image.startsWith('/'))) return image;
+  const visual = getInventoryItemVisual({
+    itemId: code.replace(/^(equip|pfrag|food):/, ''),
+    itemType,
+    category: (category as never) ?? 'other',
+    quantity: 1,
+    image,
+  } as never);
+  return visual.image;
+};
+
 /**
  * PRIVATE TRADE — the whole flow is server-authoritative. This panel only renders
  * what `private_trade_*` returns: it never computes ownership, escrow or risk.
