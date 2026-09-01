@@ -6,7 +6,7 @@ export type HeroFilters = { rarity: string; archetype: string; power: SortDir; l
 
 export const DEFAULT_HERO_FILTERS: HeroFilters = { rarity: 'all', archetype: 'all', power: 'default', level: 'default' };
 
-export const HERO_FILTER_RARITIES = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive'] as const;
+export const HERO_FILTER_RARITIES = ['all', 'common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'nft_exclusive', 'celestial'] as const;
 export const HERO_FILTER_CLASSES = ['all', 'warrior', 'assassin', 'tank', 'mage', 'archer', 'support'] as const;
 
 export const isDefaultHeroFilters = (f: HeroFilters) =>
