@@ -23425,6 +23425,7 @@ export type Database = {
       ton_mining_deposited_ton: { Args: { p_user_id: string }; Returns: number }
       ton_mining_gate_cutoff: { Args: never; Returns: string }
       ton_mining_gate_enabled: { Args: never; Returns: boolean }
+      ton_mining_has_v2_pass: { Args: { p_user_id: string }; Returns: boolean }
       ton_mining_owns_nft_hero: {
         Args: { p_user_id: string }
         Returns: boolean
