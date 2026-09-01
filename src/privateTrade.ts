@@ -135,6 +135,36 @@ export async function privateTradeRequest<T>(initData: string, input: PrivateTra
 }
 
 export const fetchPrivateTrades = (initData: string) => privateTradeRequest<PrivateTradeList>(initData, { action: 'list' });
+
+/**
+ * Tradable assets for the "select an item" picker. Unlike the public market list,
+ * this includes NFT heroes/pets/equipment and legendary/mythic instances, always
+ * with the real artwork resolved by the server.
+ */
+export type PrivateTradeAssetHero = {
+  id: string; name: string; rarity: string | null; level: number; image: string | null;
+  stars: number; atk: number; hp: number; nft?: boolean; veteranLine?: boolean;
+  locks?: string[]; available?: boolean;
+};
+export type PrivateTradeAssetPet = {
+  id: string; name: string; rarity: string | null; level: number; image: string | null;
+  evolution: string | null; tier: number; nft?: boolean; veteranLine?: boolean;
+  locks?: string[]; available?: boolean;
+};
+export type PrivateTradeAssetItem = {
+  code: string; itemType: string; category: string; name: string; image: string | null;
+  rarity: string | null; quantity: number; stackable?: boolean; nft?: boolean;
+  locks?: string[]; available?: boolean;
+};
+export type PrivateTradeAssets = {
+  ok: boolean;
+  heroes: PrivateTradeAssetHero[];
+  pets: PrivateTradeAssetPet[];
+  items: PrivateTradeAssetItem[];
+};
+
+export const fetchPrivateTradeAssets = (initData: string) =>
+  privateTradeRequest<PrivateTradeAssets>(initData, { action: 'assets' } as never);
 export const searchPrivateTradePlayer = (initData: string, query: string) =>
   privateTradeRequest<{ ok: boolean; player: PrivateTradePlayer }>(initData, { action: 'search', query });
 export const createPrivateTrade = (initData: string, query: string) =>
