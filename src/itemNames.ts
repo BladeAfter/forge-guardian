@@ -226,7 +226,9 @@ function parse(name: string): Parsed | null {
     return null;
   }
   if (!noun) return null;
-  return { count, suffix, noun, mods, tail };
+  // "RAÇÃO DE PET" / "COMIDA DE PET": the pet qualifier is already inside the noun.
+  const cleaned = noun === 'food' ? mods.filter(mod => mod !== 'of_pet') : mods;
+  return { count, suffix, noun, mods: Array.from(new Set(cleaned)), tail };
 }
 
 const titleCase = (value: string) =>
@@ -245,23 +247,25 @@ export function localizeItemName(name: string | null | undefined, language: Lang
 
   const plural = parsed.count ? Number(parsed.count.replace(/[.,]/g, '')) !== 1 : false;
   const nounWord = NOUNS[language][parsed.noun][plural ? 1 : 0];
-  const modWords = parsed.mods.map(mod => MODS[language][mod]);
-  const isQualifier = (word: string) => /^(DE |DO |DA |DEL |OF )/.test(word);
-  const qualifiers = modWords.filter(isQualifier);
-  const adjectives = modWords.filter(word => !isQualifier(word));
+  const qualifiers = parsed.mods.filter(mod => QUALIFIER_MODS.has(mod)).map(mod => MODS[language][mod]);
+  const adjectives = parsed.mods
+    .filter(mod => !QUALIFIER_MODS.has(mod))
+    .map(mod => (plural ? pluralizeAdjective(MODS[language][mod], language) : MODS[language][mod]));
 
-  const parts = NOUN_FIRST.includes(language)
-    ? [nounWord, ...qualifiers, ...adjectives]
-    : [...adjectives, ...qualifiers.map(word => word.replace(/^(DE |DO |DA |DEL |OF )/, '')), nounWord];
+  const groups: Record<'N' | 'Q' | 'A', string[]> = { N: [nounWord], Q: qualifiers, A: adjectives };
+  const parts = ORDER[language].flatMap(group => groups[group]);
 
   let phrase = parts.join(' ');
   if (parsed.tail.length) phrase += ` ${parsed.tail.join(' ')}`;
   if (parsed.count) phrase = `${parsed.count} ${phrase}`;
   if (parsed.suffix !== null) phrase += ` x${parsed.suffix}`;
 
-  const wasUpper = original === original.toLocaleUpperCase();
-  return wasUpper ? phrase : titleCase(phrase);
+  const base = original.replace(/\s*[xX]\d+\s*$/, '');
+  const wasUpper = base === base.toLocaleUpperCase();
+  // Turkish dotted/dotless i does not survive a round trip through lower case.
+  return wasUpper || language === 'tr' ? phrase : titleCase(phrase);
 }
+
 
 /** Hook version: localizes backend item names into the active UI language. */
 export function useItemName(): (name: string | null | undefined) => string {
