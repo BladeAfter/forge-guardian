@@ -68,9 +68,10 @@ export function PlayerIdentity({
         {profile ? (
           <>
             <p className="player-name font-black text-white">{getDisplayName(profile)}</p>
-            <p className={`player-username truncate text-[10px] leading-tight ${title ? 'premium-title' : 'text-sky-300'}`}>
+            <p className={`player-username leading-tight ${title ? 'premium-title player-premium-title' : 'truncate text-[10px] text-sky-300'}`}>
               {title ? `👑 ${title}` : profile.username ? `@${profile.username}` : t('profile.noUsername')}
             </p>
+
 
             <p className="player-tgid truncate text-[9px] leading-tight text-slate-400">ID: {profile.telegramId}</p>
           </>
