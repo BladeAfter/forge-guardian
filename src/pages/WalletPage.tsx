@@ -64,6 +64,9 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const depositRequirementTon = tonWallet?.depositRequirementTon ?? 1;
   const depositTotalTon = tonWallet?.depositTotalTon ?? 0;
   const depositRequirementMet = tonWallet?.depositRequirementMet ?? depositTotalTon >= depositRequirementTon;
+  // Nova regra: saque exige o Passe de Batalha da Temporada 2 (5 TON ou superior) — servidor decide.
+  const passRequirementTon = tonWallet?.passRequirementTon ?? 5;
+  const passRequirementMet = tonWallet?.passRequirementMet ?? true;
   const [depositTon, setDepositTon] = useState(1);
   // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
   const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
