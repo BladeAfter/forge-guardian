@@ -12,9 +12,10 @@ export const CALENDAR_REWARDS:CalendarReward[]=[
 export const CHEST_REWARD_TABLE={
  common_chest:{common:100},
  uncommon_chest:{common:70,uncommon:30},
- rare_chest:{common:50,uncommon:35,rare:15},
- epic_chest:{common:30,uncommon:30,rare:30,epic:10},
- legendary_chest:{rare:45,epic:40,legendary:15},
+  rare_chest:{uncommon:70,rare:30},
+  epic_chest:{rare:70,epic:30},
+  legendary_chest:{rare:35,epic:45,legendary:20},
+
  /** Starter Pack chest: uncommon heroes only (NFT heroes are never eligible). */
  uncommon_hero_chest:{uncommon:100}
 } as const;
