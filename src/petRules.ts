@@ -20,6 +20,10 @@ export function petStageIndex(level:number,tier=0){return Math.min(10,petVisualS
 export function petStagePowerMultiplier(stage:number){return 1+.08*Math.min(10,Math.max(0,Math.floor(stage)))}
 export function petStageBuffMultiplier(stage:number){return 1+.10*Math.min(10,Math.max(0,Math.floor(stage)))}
 export function petLevelMultiplier(level:number){return 1+(clampLevel(level)-1)*.02}
+/** Historical NFT / Sub-NFT / Veteran formula. Premium buffs are intentionally not
+ * clamped by the normal-pet caps, so existing values above 100% remain intact. */
+export const PET_PREMIUM_TIER_MULTIPLIER:Record<number,number>={0:1,1:1.25,2:1.5,3:2,4:2.5,5:3.125};
+export function calculatePremiumPetBonus(base:number,rarity:string,level:number,tier=0){if(!Number.isFinite(base)||base<=0)return 0;const safeTier=Math.min(5,Math.max(0,Math.floor(Number.isFinite(tier)?tier:0)));return Number((base*PET_RARITY_MULTIPLIER[normalizePetRarity(rarity)]*petLevelMultiplier(level)*(PET_PREMIUM_TIER_MULTIPLIER[safeTier]??1)).toFixed(2))}
 /**
  * Official buff formula — mirrors public.pet_effective_buff: rarity multiplier applied to the
  * original base, base limitada ao teto normal (nível 1 nunca perde valor) e o crescimento pode ir até 1.5x o teto.
