@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { X } from 'lucide-react';
 import { confirmPremiumOfferPopupShown, markPremiumOfferSeen, reservePremiumOfferPopup, trackOfferImpression } from '../services';
 import type { PremiumOfferType } from '../premiumOffers';
 import { FounderPackCard } from './FounderPackCard';
@@ -84,17 +85,29 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
 
   if (!offer) return null;
 
+  let popup: React.ReactNode;
   if (offer === 'CELESTIAL_MYSTERY_PACK') {
-    return <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+    popup = <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  } else if (offer === 'MYTHIC_VANGUARD_PACK') {
+    popup = <MythicVanguardPackCard key="vanguard-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  } else if (offer === 'LEGENDARY_ADVENTURER_PACK') {
+    popup = <LegendaryAdventurerPackCard key="adventurer-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  } else if (offer === 'FOUNDER_PACK') {
+    popup = <FounderPackCard key="founder-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  } else {
+    popup = <VeteranVaultV2Card key="veteran-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   }
-  if (offer === 'MYTHIC_VANGUARD_PACK') {
-    return <MythicVanguardPackCard key="vanguard-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
-  }
-  if (offer === 'LEGENDARY_ADVENTURER_PACK') {
-    return <LegendaryAdventurerPackCard key="adventurer-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
-  }
-  if (offer === 'FOUNDER_PACK') {
-    return <FounderPackCard key="founder-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
-  }
-  return <VeteranVaultV2Card key="veteran-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+
+  return <>
+    {popup}
+    <button
+      type="button"
+      onClick={close}
+      aria-label="Fechar oferta"
+      className="fixed right-4 z-[300] grid h-11 w-11 place-items-center rounded-full border border-amber-200/70 bg-forge-black text-amber-100 shadow-card active:scale-95"
+      style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+    >
+      <X className="h-6 w-6" aria-hidden />
+    </button>
+  </>;
 }
