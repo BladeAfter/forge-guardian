@@ -414,6 +414,13 @@
       "when": 1788295083415,
       "tag": "0058_market_sellable_rarity_priority",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1788307620428,
+      "tag": "0059_fix_market_sellable_hero_row_type",
+      "breakpoints": true
     }
   ]
 }
