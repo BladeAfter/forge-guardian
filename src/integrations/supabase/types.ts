@@ -259,6 +259,309 @@ export type Database = {
         }
         Relationships: []
       }
+      adventurer_pack_config: {
+        Row: {
+          account_ton_bonus_percent: number
+          enabled: boolean
+          ends_at: string | null
+          fc_reward: number
+          grant_pass_tier: string
+          hero_rarity: string
+          id: boolean
+          legendary_armors: number
+          legendary_chests: number
+          lock_mining_after_reveal: boolean
+          max_reward_rarity: string
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          purchase_limit: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
+          universal_fragments: number
+          updated_at: string
+        }
+        Insert: {
+          account_ton_bonus_percent?: number
+          enabled?: boolean
+          ends_at?: string | null
+          fc_reward?: number
+          grant_pass_tier?: string
+          hero_rarity?: string
+          id?: boolean
+          legendary_armors?: number
+          legendary_chests?: number
+          lock_mining_after_reveal?: boolean
+          max_reward_rarity?: string
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          purchase_limit?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
+          universal_fragments?: number
+          updated_at?: string
+        }
+        Update: {
+          account_ton_bonus_percent?: number
+          enabled?: boolean
+          ends_at?: string | null
+          fc_reward?: number
+          grant_pass_tier?: string
+          hero_rarity?: string
+          id?: boolean
+          legendary_armors?: number
+          legendary_chests?: number
+          lock_mining_after_reveal?: boolean
+          max_reward_rarity?: string
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          purchase_limit?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
+          universal_fragments?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      adventurer_pack_items: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string | null
+          item_type: string
+          mining_locked: boolean
+          mining_pending_reveal: boolean
+          purchase_id: string
+          quantity: number
+          rarity: string | null
+          revealed_at: string | null
+          revealed_myth: number | null
+          revealed_ton: number | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type: string
+          mining_locked?: boolean
+          mining_pending_reveal?: boolean
+          purchase_id: string
+          quantity?: number
+          rarity?: string | null
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type?: string
+          mining_locked?: boolean
+          mining_pending_reveal?: boolean
+          purchase_id?: string
+          quantity?: number
+          rarity?: string | null
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      adventurer_pack_ledger: {
+        Row: {
+          created_at: string
+          fc_amount: number | null
+          id: string
+          kind: string
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      adventurer_pack_purchases: {
+        Row: {
+          bonus_percent_snapshot: number
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery: Json | null
+          expected_nanoton: string
+          expires_at: string
+          fc_snapshot: number
+          fragments_snapshot: number
+          fulfillment_error: string | null
+          id: string
+          idempotency_key: string | null
+          package_version: string
+          pass_tier_snapshot: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_configuration_version: number
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton: string
+          expires_at?: string
+          fc_snapshot?: number
+          fragments_snapshot?: number
+          fulfillment_error?: string | null
+          id?: string
+          idempotency_key?: string | null
+          package_version: string
+          pass_tier_snapshot?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton?: string
+          expires_at?: string
+          fc_snapshot?: number
+          fragments_snapshot?: number
+          fulfillment_error?: string | null
+          id?: string
+          idempotency_key?: string | null
+          package_version?: string
+          pass_tier_snapshot?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      adventurer_pack_reveal_audit: {
+        Row: {
+          admin_id: number
+          id: string
+          item_id: string
+          item_instance_id: string | null
+          item_type: string
+          new_myth: number | null
+          new_ton: number | null
+          old_myth: number | null
+          old_ton: number | null
+          override: boolean
+          purchase_id: string | null
+          reason: string | null
+          revealed_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_id: number
+          id?: string
+          item_id: string
+          item_instance_id?: string | null
+          item_type: string
+          new_myth?: number | null
+          new_ton?: number | null
+          old_myth?: number | null
+          old_ton?: number | null
+          override?: boolean
+          purchase_id?: string | null
+          reason?: string | null
+          revealed_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: number
+          id?: string
+          item_id?: string
+          item_instance_id?: string | null
+          item_type?: string
+          new_myth?: number | null
+          new_ton?: number | null
+          old_myth?: number | null
+          old_ton?: number | null
+          override?: boolean
+          purchase_id?: string | null
+          reason?: string | null
+          revealed_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       anti_fake_logs: {
         Row: {
           created_at: string
@@ -19085,6 +19388,29 @@ export type Database = {
         Returns: Json
       }
       admin_ads_overview: { Args: { p_admin_id: number }; Returns: Json }
+      admin_adventurer_pack_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_adventurer_pack_retry: {
+        Args: { p_admin_id: number; p_purchase_id: string }
+        Returns: Json
+      }
+      admin_adventurer_pack_reveal: {
+        Args: {
+          p_admin_id: number
+          p_daily_myth?: number
+          p_daily_ton: number
+          p_item_id: string
+          p_override?: boolean
+          p_reason?: string
+        }
+        Returns: Json
+      }
+      admin_adventurer_pack_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_antifake_allowlist: {
         Args: {
           p_admin_id: number
@@ -21092,6 +21418,75 @@ export type Database = {
         Args: { p_admin_id: number; p_reason?: string; p_withdrawal_id: string }
         Returns: Json
       }
+      adventurer_assert_tier_safe: {
+        Args: { p_rarity: string; p_what: string }
+        Returns: undefined
+      }
+      adventurer_hero_pool_size: { Args: never; Returns: number }
+      adventurer_pack_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      adventurer_pack_deliver: {
+        Args: { p_purchase_id: string }
+        Returns: Json
+      }
+      adventurer_pack_grant_pass: {
+        Args: { p_purchase_id: string }
+        Returns: Json
+      }
+      adventurer_pack_offer_meta: { Args: { p_user_id: string }; Returns: Json }
+      adventurer_pack_offer_state: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      adventurer_pack_settings: {
+        Args: never
+        Returns: {
+          account_ton_bonus_percent: number
+          enabled: boolean
+          ends_at: string | null
+          fc_reward: number
+          grant_pass_tier: string
+          hero_rarity: string
+          id: boolean
+          legendary_armors: number
+          legendary_chests: number
+          lock_mining_after_reveal: boolean
+          max_reward_rarity: string
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          purchase_limit: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
+          universal_fragments: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "adventurer_pack_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      adventurer_pack_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      adventurer_pack_state: { Args: { p_telegram_id: number }; Returns: Json }
       anti_fake_log: {
         Args: {
           p_device_hash: string

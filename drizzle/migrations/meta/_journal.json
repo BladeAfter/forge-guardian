@@ -498,6 +498,13 @@
       "when": 1788312221347,
       "tag": "0070_mythic_vanguard_pack_popup_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1788312904297,
+      "tag": "0071_legendary_adventurer_pack_core",
+      "breakpoints": true
     }
   ]
 }
