@@ -1051,11 +1051,12 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
         ) : (
           <span
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${
-              isVeteran ? 'forge-veteran-tag border-amber-200/70 bg-gradient-to-r from-amber-400/25 to-orange-500/20 text-amber-100' : style.badgeClass
+              isVeteran ? 'forge-veteran-tag border-amber-200/70 bg-gradient-to-r from-amber-400/25 to-orange-500/20 text-amber-100' : isCelestial ? 'forge-celestial-tag border-cyan-100/80 bg-gradient-to-r from-cyan-100/20 to-amber-200/20 text-cyan-50' : style.badgeClass
             }`}
           >
-            {isVeteran ? <Crown className="h-2.5 w-2.5" /> : null}
+            {isVeteran || isCelestial ? <Crown className="h-2.5 w-2.5" /> : null}
             {petDisplayRarityLabel(pet)}
+
           </span>
         )}
         {pet.isActive && (
