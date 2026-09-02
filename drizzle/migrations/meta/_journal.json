@@ -470,6 +470,13 @@
       "when": 1788310681193,
       "tag": "0066_premium_offer_popup_reserve_confirm_and_admin_tools",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1788310710696,
+      "tag": "0067_fix_popup_confirm_uses_popup_mark",
+      "breakpoints": true
     }
   ]
 }
