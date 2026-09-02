@@ -320,6 +320,15 @@ export const useTowerRanking=(telegramInitData:string|null,enabled:boolean,limit
   enabled:enabled&&Boolean(telegramInitData),refetchInterval:enabled?15_000:false,staleTime:10_000,retry:1,
 });
 
+/** 🔑 Loja de Chaves Raras: preços, chaves possuídas e limite de compras vêm do servidor. */
+export const useTowerKeyShop=(telegramInitData:string|null,enabled:boolean)=>useQuery<TowerKeyShopState>({
+  queryKey:['tower-key-shop',telegramInitData],
+  queryFn:()=>fetchTowerKeyShop(telegramInitData??''),
+  enabled:enabled&&Boolean(telegramInitData),staleTime:10_000,refetchOnWindowFocus:true,retry:1,
+});
+
+
+
 /**
  * Hero TON mining state. The server owns the accrual; a moderate refetch keeps
  * the panel in sync while the player is on the Heroes screen.
