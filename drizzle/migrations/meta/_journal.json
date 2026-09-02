@@ -456,6 +456,13 @@
       "when": 1788310284413,
       "tag": "0064_celestial_sovereign_pack_core",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1788310464478,
+      "tag": "0065_mythic_chest_and_celestial_armors",
+      "breakpoints": true
     }
   ]
 }

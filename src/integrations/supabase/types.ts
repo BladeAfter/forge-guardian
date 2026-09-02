@@ -23730,20 +23730,37 @@ export type Database = {
         }
         Returns: Json
       }
-      roll_chest_rarity: {
-        Args: {
-          p_ancestral?: number
-          p_common?: number
-          p_epic?: number
-          p_legendary?: number
-          p_rare?: number
-          p_uncommon?: number
-        }
-        Returns: {
-          allowed: string[]
-          rarity: string
-        }[]
-      }
+      roll_chest_rarity:
+        | {
+            Args: {
+              p_ancestral?: number
+              p_common?: number
+              p_epic?: number
+              p_legendary?: number
+              p_rare?: number
+              p_uncommon?: number
+            }
+            Returns: {
+              allowed: string[]
+              rarity: string
+            }[]
+          }
+        | {
+            Args: {
+              p_ancestral?: number
+              p_celestial?: number
+              p_common?: number
+              p_epic?: number
+              p_legendary?: number
+              p_mythic?: number
+              p_rare?: number
+              p_uncommon?: number
+            }
+            Returns: {
+              allowed: string[]
+              rarity: string
+            }[]
+          }
       roll_hero_for_rarity: {
         Args: { p_allowed: string[]; p_rarity: string }
         Returns: Record<string, unknown>
