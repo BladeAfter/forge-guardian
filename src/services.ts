@@ -272,6 +272,10 @@ export const claimDailyOfferImpression=(initData:string,offerId:string)=>walletR
 /** Marca eventos da impressão do dia (fechar/clicar/comprar) — nunca cria uma nova impressão. */
 export const trackOfferImpression=(initData:string,offerId:string,event:'dismissed'|'clicked'|'purchased')=>walletRequest<{ok:true}>(initData,{action:'offer-impression-event',offerId,event});
 export const markPremiumOfferSeen=(initData:string,offerType:PremiumOfferType,dismissed=false)=>walletRequest<{ok:boolean;offerType:PremiumOfferType;dayKey:string}>(initData,{action:'premium-offer-seen',offerType,dismissed});
+/** 🎁 AUTO POPUP — passo 1: o servidor escolhe 0 ou 1 oferta e NÃO grava impressão nenhuma. */
+export const reservePremiumOfferPopup=(initData:string)=>walletRequest<{shouldShow:boolean;offerId?:string;offerCode?:string;reason?:string;dayKey:string;queue?:string[]}>(initData,{action:'popup-reserve'});
+/** 🎁 AUTO POPUP — passo 2: só após o modal montar de verdade; atômico por (conta, oferta, dia). */
+export const confirmPremiumOfferPopupShown=(initData:string,offerId:string)=>walletRequest<{ok:boolean;offerId:string;dayKey:string;recorded:boolean}>(initData,{action:'popup-confirm-shown',offerId});
 export const verifyFounderPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:FounderPackState}>(initData,{action:'founder-pack-verify'});
 /** Cosmetic only: toggles the Founder profile frame the pack granted. */
 export const setFounderFrame=(initData:string,equipped:boolean)=>walletRequest<{ok:true;equipped:boolean}>(initData,{action:'founder-frame',equipped});
