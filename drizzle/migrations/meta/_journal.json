@@ -421,6 +421,13 @@
       "when": 1788307620428,
       "tag": "0059_fix_market_sellable_hero_row_type",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1788308781325,
+      "tag": "0060_celestial_mystery_pack_core",
+      "breakpoints": true
     }
   ]
 }
