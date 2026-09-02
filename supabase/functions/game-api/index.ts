@@ -1476,7 +1476,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   // ---------------- 💫 CELESTIAL MYSTERY PACK (100 TON) ----------------
   // Estoque real (Celestiais sem dono), entrega atômica e mineração "a ser revelada" vivem no banco.
   } else if (action === 'celestial-pack') {
-    fn = 'celestial_pack_state';
+    fn = 'celestial_pack_offer_state';
   } else if (action === 'celestial-pack-buy') {
     fn = 'celestial_pack_start_purchase';
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `celestial:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
@@ -1512,6 +1512,13 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'premium-offer-seen') {
     fn = 'premium_offer_popup_mark';
     args = { ...args, p_offer_type: String(body.offerType || ''), p_dismissed: Boolean(body.dismissed) };
+  // Popup diário do Celestial Mystery Pack: claim atômico (a UNIQUE do dia protege race conditions).
+  } else if (action === 'offer-impression-claim') {
+    fn = 'claim_daily_offer_impression';
+    args = { ...args, p_offer_id: String(body.offerId || '') };
+  } else if (action === 'offer-impression-event') {
+    fn = 'premium_offer_impression_event';
+    args = { ...args, p_offer_id: String(body.offerId || ''), p_event: String(body.event || '') };
 
   } else if (action === 'founder-frame') {
     fn = 'founder_frame_set';

@@ -54,6 +54,23 @@ export type CelestialPackState = {
   delivery: Record<string, unknown> | null;
   items: CelestialPackItem[];
   pendingOrder: CelestialPackPendingOrder | null;
+  /** Metadados da oferta (janela, estoque, limite e popup) — sempre calculados no servidor. */
+  offerId?: string;
+  popupPriority?: number;
+  purchaseLimit?: number;
+  startAt?: string | null;
+  endsAt?: string | null;
+  stockTotal?: number | null;
+  stockRemaining?: number;
+  soldOutVisible?: boolean;
+  windowOpen?: boolean;
+  purchasedCount?: number;
+  /** Pagamento iniciado e ainda pendente: nunca criar uma nova intenção sem verificar esta. */
+  paymentPending?: boolean;
+  pendingOrderId?: string | null;
+  /** Pago, mas as recompensas ainda estão em entrega/recovery. */
+  processing?: boolean;
+  sold?: number;
 };
 
 export type CelestialPackPurchaseResult = {
@@ -80,6 +97,7 @@ const CP_ERRORS: Record<string, string> = {
   CELESTIAL_HERO_SOLD_OUT: 'Não há mais Heróis Celestiais sem dono disponíveis.',
   CELESTIAL_PACK_NFT_PET_UNAVAILABLE: 'Nenhuma unidade de Pet NFT disponível agora. Tente novamente em instantes.',
   PLAYER_BANNED: 'Conta bloqueada.',
+  CELESTIAL_PACK_OUTSIDE_WINDOW: 'A oferta do Celestial Mystery Pack não está aberta agora.',
   TON_PAYMENT_ALREADY_SENT: 'O pagamento já foi enviado. Confirme na sua carteira.',
 };
 

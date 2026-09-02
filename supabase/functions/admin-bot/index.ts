@@ -4586,7 +4586,12 @@ const PROMPTS: Record<string, string> = {
   cparmors: "🛡 Envie a quantidade de <b>armaduras lendárias</b>. Ex.: <code>2</code>",
   cprandom: "✨ Envie a quantidade de <b>itens premium aleatórios</b>. Ex.: <code>4</code>",
   cpbonus: "⛏ Envie o <b>bônus permanente de mineração TON</b> da conta em %. Ex.: <code>3</code>",
-  cpfreq: "🔁 Envie a frequência do popup: <code>ONCE_PER_DAY</code>, <code>UNTIL_PURCHASED</code> ou <code>DISABLED</code>.",
+  cpfreq: "🔁 Envie a frequência do popup: <code>DAILY</code>, <code>EVERY_2_DAYS</code>, <code>EVERY_3_DAYS</code>, <code>ONCE_ONLY</code> ou <code>DISABLED</code>.",
+  cpprio: "📌 Envie a <b>prioridade do popup</b> (maior aparece primeiro). Ex.: <code>100</code>",
+  cplimit: "🔐 Envie o <b>limite de compras por conta</b>. Ex.: <code>1</code>",
+  cpstock: "📦 Envie o <b>estoque total</b> do pacote (<code>0</code> = ilimitado, limitado só pelos Celestiais sem dono).",
+  cpstart: "🟢 Envie a <b>data de início</b> (ISO) ou <code>-</code> para remover. Ex.: <code>2026-09-05T00:00:00Z</code>",
+  cpend: "🔴 Envie a <b>data de fim</b> (ISO) ou <code>-</code> para remover. Ex.: <code>2026-10-01T00:00:00Z</code>",
   cpreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração.\nEx.: <code>b1c2... 0.35 1000</code>",
 
   pvernew:
@@ -8207,6 +8212,8 @@ async function cpHub(ctx: Ctx, useEdit = true) {
   const d = (await rpc("admin_celestial_pack_overview", { p_admin_id: ctx.adminId })) as any;
   const c = d.config ?? {};
   const pending = (d.pendingReveals ?? []) as any[];
+  const m = (d.metrics ?? {}) as any;
+  const buys = (d.purchases ?? []) as any[];
   const text = [
     "💫 <b>CELESTIAL MYSTERY PACK</b>",
     "<i>Pacote premium · 1 compra por conta · mineração revelada só após a compra</i>",
@@ -8219,6 +8226,13 @@ async function cpHub(ctx: Ctx, useEdit = true) {
     `⛏ Bônus permanente de mineração TON da conta: <b>+${fmt(c.account_ton_bonus_percent)}%</b>`,
     "",
     `<b>Celestiais sem dono:</b> ${fmt(d.celestialAvailable)} · <b>Vendidos:</b> ${fmt(d.sold)} · <b>TON arrecadado:</b> ${fmt(d.tonCollected)}`,
+    `<b>Estoque:</b> ${c.stock_total ? fmt(c.stock_total) : "ilimitado"} · <b>Limite/conta:</b> ${fmt(c.purchase_limit)} · <b>Prioridade popup:</b> ${fmt(c.popup_priority)}`,
+    `<b>Janela:</b> ${c.start_at ? esc(String(c.start_at)) : "sempre"} → ${c.ends_at ? esc(String(c.ends_at)) : "sem fim"}`,
+    "",
+    `<b>MÉTRICAS DO POPUP</b>`,
+    `👁 Impressões únicas: <b>${fmt(m.impressions)}</b> (hoje ${fmt(m.today)}) · 👤 Jogadores: <b>${fmt(m.uniquePlayers)}</b>`,
+    `✋ Fechados: <b>${fmt(m.dismissed)}</b> · 👉 Cliques em VER PACOTE: <b>${fmt(m.clicked)}</b> · 💳 Intenções: <b>${fmt(m.purchaseIntents)}</b>`,
+    `✅ Compras confirmadas: <b>${fmt(m.confirmedPurchases)}</b>`,
     "",
     `<b>MINERAÇÃO PENDENTE DE REVELAÇÃO</b>\n${pending.map((r) => `• ${esc(r.type)} — ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>)\n  <code>${r.itemId}</code>`).join("\n") || "nenhuma pendência"}`,
   ].join("\n");
@@ -8243,7 +8257,22 @@ async function cpHub(ctx: Ctx, useEdit = true) {
       { t: "🛡 ARMADURAS", d: "cp:ask:cparmors" },
       { t: "✨ ITENS ALEATÓRIOS", d: "cp:ask:cprandom" },
     ],
-    [{ t: "⛏ BÔNUS TON (%)", d: "cp:ask:cpbonus" }],
+    [
+      { t: "⛏ BÔNUS TON (%)", d: "cp:ask:cpbonus" },
+      { t: "📌 PRIORIDADE POPUP", d: "cp:ask:cpprio" },
+    ],
+    [
+      { t: "📦 ESTOQUE", d: "cp:ask:cpstock" },
+      { t: "🔐 LIMITE/CONTA", d: "cp:ask:cplimit" },
+    ],
+    [
+      { t: "🟢 DATA INÍCIO", d: "cp:ask:cpstart" },
+      { t: "🔴 DATA FIM", d: "cp:ask:cpend" },
+    ],
+    [
+      { t: c.sold_out_visible ? "🫥 OCULTAR SE ESGOTADO" : "👀 MOSTRAR SE ESGOTADO", d: `cp:soldout:${c.sold_out_visible ? 0 : 1}` },
+      { t: "🧾 VER COMPRAS", d: "cp:buys" },
+    ],
     [{ t: "🔮 REVELAR MINERAÇÃO", d: "cp:ask:cpreveal" }],
     nav(),
   ];
@@ -8256,6 +8285,14 @@ async function cpCallback(ctx: Ctx, rest: string[]) {
   if (sub === "on") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "enabled", p_value: a });
   if (sub === "pause") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "sales_paused", p_value: a });
   if (sub === "popup") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "popup_enabled", p_value: a });
+  if (sub === "soldout") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "sold_out_visible", p_value: a });
+  if (sub === "buys") {
+    const d = (await rpc("admin_celestial_pack_overview", { p_admin_id: ctx.adminId })) as any;
+    const rows = ((d.purchases ?? []) as any[]).slice(0, 25);
+    const text = ["🧾 <b>COMPRAS — CELESTIAL MYSTERY PACK</b>", "",
+      rows.map((r) => `• ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.status)}${r.deliveredAt ? " ✅" : " ⏳"}`).join("\n") || "nenhuma compra ainda"].join("\n");
+    return edit(ctx, text, kb([[{ t: "⬅️ VOLTAR", d: "cp:hub" }], nav()]));
+  }
   return cpHub(ctx);
 }
 
@@ -8268,6 +8305,11 @@ const CP_FIELDS: Record<string, string> = {
   cprandom: "random_items",
   cpbonus: "account_ton_bonus_percent",
   cpfreq: "popup_frequency",
+  cpprio: "popup_priority",
+  cplimit: "purchase_limit",
+  cpstock: "stock_total",
+  cpstart: "start_at",
+  cpend: "ends_at",
 };
 
 async function cpPrompt(ctx: Ctx, key: string, text: string) {
@@ -8288,7 +8330,9 @@ async function cpPrompt(ctx: Ctx, key: string, text: string) {
   const field = CP_FIELDS[key];
   if (!field) return cpHub({ ...ctx, messageId: undefined }, false);
   let value = raw;
-  if (field !== "popup_frequency") {
+  if (field === "start_at" || field === "ends_at") {
+    // janela da oferta: ISO ou "-" para limpar
+  } else if (field !== "popup_frequency") {
     const num = ["price_ton", "account_ton_bonus_percent"].includes(field)
       ? Number(value.replace(",", ".").replace(/[^\d.]/g, ""))
       : parseAmount(value);

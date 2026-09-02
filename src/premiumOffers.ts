@@ -9,12 +9,15 @@ import type { FounderPackState } from './founderPack';
 import type { VeteranV2State } from './veteranVaultV2';
 
 export type PremiumOfferType = 'FOUNDER_PACK' | 'VETERAN_VAULT';
+/** Ofertas com popup: o Celestial Mystery Pack usa o claim atômico de impressão diária. */
+export type PremiumOfferId = PremiumOfferType | 'CELESTIAL_MYSTERY_PACK';
 
 export type PremiumOffersState = {
   dayKey: string;
   timezone: string;
   /** Ordem oficial dos popups do dia; vazia quando nada deve aparecer. */
-  queue: PremiumOfferType[];
+  queue: PremiumOfferId[];
   founder: FounderPackState & { popupSeenToday: boolean; popupFrequency: string };
   veteran: VeteranV2State & { popupSeenToday: boolean; popupFrequency: string; windowOpen: boolean };
+  celestial?: Record<string, unknown> & { popupSeenToday: boolean; popupStatus: string };
 };
