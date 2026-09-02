@@ -15526,6 +15526,231 @@ export type Database = {
           },
         ]
       }
+      sovereign_pack_config: {
+        Row: {
+          account_ton_bonus_percent: number
+          celestial_armors: number
+          enabled: boolean
+          ends_at: string | null
+          fc_reward: number
+          id: boolean
+          legendary_chests: number
+          mythic_armors: number
+          mythic_chests: number
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          purchase_limit: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
+          updated_at: string
+        }
+        Insert: {
+          account_ton_bonus_percent?: number
+          celestial_armors?: number
+          enabled?: boolean
+          ends_at?: string | null
+          fc_reward?: number
+          id?: boolean
+          legendary_chests?: number
+          mythic_armors?: number
+          mythic_chests?: number
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          purchase_limit?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
+          updated_at?: string
+        }
+        Update: {
+          account_ton_bonus_percent?: number
+          celestial_armors?: number
+          enabled?: boolean
+          ends_at?: string | null
+          fc_reward?: number
+          id?: boolean
+          legendary_chests?: number
+          mythic_armors?: number
+          mythic_chests?: number
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          purchase_limit?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sovereign_pack_items: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string | null
+          item_type: string
+          mining_pending_reveal: boolean
+          purchase_id: string
+          revealed_at: string | null
+          revealed_myth: number | null
+          revealed_ton: number | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type: string
+          mining_pending_reveal?: boolean
+          purchase_id: string
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type?: string
+          mining_pending_reveal?: boolean
+          purchase_id?: string
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sovereign_pack_ledger: {
+        Row: {
+          created_at: string
+          fc_amount: number | null
+          id: string
+          kind: string
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sovereign_pack_purchases: {
+        Row: {
+          bonus_percent_snapshot: number
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery: Json | null
+          expected_nanoton: string
+          expires_at: string
+          fc_snapshot: number
+          id: string
+          idempotency_key: string | null
+          package_version: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_configuration_version: number
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton: string
+          expires_at?: string
+          fc_snapshot?: number
+          id?: string
+          idempotency_key?: string | null
+          package_version: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton?: string
+          expires_at?: string
+          fc_snapshot?: number
+          id?: string
+          idempotency_key?: string | null
+          package_version?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       special_events: {
         Row: {
           created_at: string
@@ -16729,6 +16954,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ton_mining_bonus_entitlements: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          percent: number
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          percent?: number
+          source: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          percent?: number
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ton_mining_bonus_settings: {
+        Row: {
+          id: boolean
+          policy: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          policy?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          policy?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       ton_mining_suspended: {
         Row: {
@@ -19993,6 +20266,23 @@ export type Database = {
       }
       admin_set_withdraw_fee_percent: {
         Args: { p_admin_id: number; p_percent: number }
+        Returns: Json
+      }
+      admin_sovereign_pack_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_sovereign_pack_reveal: {
+        Args: {
+          p_admin_id: number
+          p_daily_myth: number
+          p_daily_ton: number
+          p_item_id: string
+        }
+        Returns: Json
+      }
+      admin_sovereign_pack_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
         Returns: Json
       }
       admin_spending_event_audit: {
@@ -23440,20 +23730,37 @@ export type Database = {
         }
         Returns: Json
       }
-      roll_chest_rarity: {
-        Args: {
-          p_ancestral?: number
-          p_common?: number
-          p_epic?: number
-          p_legendary?: number
-          p_rare?: number
-          p_uncommon?: number
-        }
-        Returns: {
-          allowed: string[]
-          rarity: string
-        }[]
-      }
+      roll_chest_rarity:
+        | {
+            Args: {
+              p_ancestral?: number
+              p_common?: number
+              p_epic?: number
+              p_legendary?: number
+              p_rare?: number
+              p_uncommon?: number
+            }
+            Returns: {
+              allowed: string[]
+              rarity: string
+            }[]
+          }
+        | {
+            Args: {
+              p_ancestral?: number
+              p_celestial?: number
+              p_common?: number
+              p_epic?: number
+              p_legendary?: number
+              p_mythic?: number
+              p_rare?: number
+              p_uncommon?: number
+            }
+            Returns: {
+              allowed: string[]
+              rarity: string
+            }[]
+          }
       roll_hero_for_rarity: {
         Args: { p_allowed: string[]; p_rarity: string }
         Returns: Record<string, unknown>
@@ -23653,6 +23960,60 @@ export type Database = {
         Args: { a: Json; b: Json; seed: string }
         Returns: Json
       }
+      sovereign_pack_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      sovereign_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      sovereign_pack_offer_meta: { Args: { p_user_id: string }; Returns: Json }
+      sovereign_pack_offer_state: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      sovereign_pack_settings: {
+        Args: never
+        Returns: {
+          account_ton_bonus_percent: number
+          celestial_armors: number
+          enabled: boolean
+          ends_at: string | null
+          fc_reward: number
+          id: boolean
+          legendary_chests: number
+          mythic_armors: number
+          mythic_chests: number
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          purchase_limit: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sovereign_pack_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sovereign_pack_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      sovereign_pack_state: { Args: { p_telegram_id: number }; Returns: Json }
       spending_currency_rate: { Args: { p_currency: string }; Returns: number }
       spending_event_backfill_nft_purchases: { Args: never; Returns: Json }
       spending_event_pay_rewards: {
@@ -23878,6 +24239,17 @@ export type Database = {
         Returns: boolean
       }
       ton_mining_access_sync: { Args: { p_user_id: string }; Returns: string }
+      ton_mining_bonus_grant: {
+        Args: {
+          p_note?: string
+          p_percent: number
+          p_source: string
+          p_user_id: string
+        }
+        Returns: number
+      }
+      ton_mining_bonus_policy: { Args: never; Returns: string }
+      ton_mining_bonus_recalc: { Args: { p_user_id: string }; Returns: number }
       ton_mining_deposited_ton: { Args: { p_user_id: string }; Returns: number }
       ton_mining_gate_cutoff: { Args: never; Returns: string }
       ton_mining_gate_enabled: { Args: never; Returns: boolean }

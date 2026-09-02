@@ -1392,6 +1392,53 @@ async function verifyCelestialPackPurchases(db: Db, user: TelegramUser) {
   return { checked: list.length, confirmed, pending: stillPending, state: await state() };
 }
 
+/**
+ * 👑 CELESTIAL SOVEREIGN PACK — settlement on-chain do pack ultra premium (200 TON).
+ * Mesmo casamento por comentário único + valor em nanoton; a entrega atômica (Herói Celestial e
+ * Pet NFT com MINING TO BE REVEALED, 5M FC, baús lendários/míticos, armas NFT, armaduras míticas e
+ * celestiais, itens aleatórios e o bônus permanente de mineração TON) acontece dentro da RPC.
+ */
+async function verifySovereignPackPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const state = async () => await rpc(db, 'sovereign_pack_state', { p_telegram_id: user.id });
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  const userId = player.data?.id;
+  if (!userId) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const pending = await db.from('sovereign_pack_purchases')
+    .select('id,payment_comment,expected_nanoton,expires_at')
+    .eq('user_id', userId).eq('status', 'pending').gt('expires_at', new Date().toISOString());
+  if (pending.error) throw new Error(pending.error.message);
+  const list = pending.data ?? [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.payment_comment || '').trim();
+    const expectedNano = BigInt(String(order.expected_nanoton || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'sovereign_pack_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] sovereign-pack-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await state() };
+}
+
 async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any>) {
 
   const hotWallet = String(Deno.env.get('TON_HOT_WALLET') || '').trim();
@@ -1405,6 +1452,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   if (action === 'veteran-vault-verify') return await verifyVeteranVaultPurchases(db, user);
   if (action === 'veteran-v2-verify') return await verifyVeteranV2Purchases(db, user);
   if (action === 'celestial-pack-verify') return await verifyCelestialPackPurchases(db, user);
+  if (action === 'sovereign-pack-verify') return await verifySovereignPackPurchases(db, user);
 
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
@@ -1480,6 +1528,12 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'celestial-pack-buy') {
     fn = 'celestial_pack_start_purchase';
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `celestial:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  // ---------------- 👑 CELESTIAL SOVEREIGN PACK (200 TON) ----------------
+  } else if (action === 'sovereign-pack') {
+    fn = 'sovereign_pack_offer_state';
+  } else if (action === 'sovereign-pack-buy') {
+    fn = 'sovereign_pack_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `sovereign:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'founder-pack') {
     fn = 'founder_pack_state';
   } else if (action === 'founder-pack-buy') {
