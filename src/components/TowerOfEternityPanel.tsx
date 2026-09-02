@@ -11,6 +11,7 @@ import { TOWER_KEYS, TOWER_MILESTONES, type TowerBattle, type TowerDashboard } f
 import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
 import { PetCompanion } from './PetCompanion';
+import { RareKeyShop } from './RareKeyShop';
 import { activePetBonuses } from '../petBonuses';
 import { useT } from '../LanguageContext';
 
