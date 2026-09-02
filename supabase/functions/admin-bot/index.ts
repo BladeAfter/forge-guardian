@@ -148,6 +148,8 @@ const MAIN_MENU = kb([
   [{ t: "⚔️ VETERAN VAULT (PREMIUM)", d: "v2:hub" }],
   [{ t: "💫 CELESTIAL MYSTERY PACK", d: "cp:hub" }],
   [{ t: "🏆 LEGENDARY ADVENTURER PACK", d: "ap:hub" }],
+  [{ t: "⚡ 20 TON MYTHIC PACK", d: "mpp:hub" }],
+
   [{ t: "🎁 OFERTAS PREMIUM (POPUPS)", d: "po:hub" }],
   [{ t: "🔥 MYTH UTILITY (PAGAMENTOS)", d: "mu:hub" }],
 
@@ -4617,6 +4619,20 @@ const PROMPTS: Record<string, string> = {
   apkreset: "♻️ Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para resetar SOMENTE a impressão de hoje.",
   apkreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração do herói lendário.\nEx.: <code>b1c2... 0.12 400</code>",
   apkretry: "♻️ Envie o <b>ID da compra</b> para reprocessar a entrega do pacote.",
+  mppprice: "⚡ Envie o <b>preço</b> do 20 TON MYTHIC PACK em TON. Ex.: <code>20</code>",
+  mppmyth: "🪙 Envie a quantidade de <b>MYTH</b> normal do pacote. Ex.: <code>40000</code>",
+  mppbonus: "🎁 Envie o <b>MYTH extra da primeira compra</b>. Ex.: <code>10000</code>",
+  mppegg: "🥚 Envie a quantidade de <b>Mythic Eggs</b>. Ex.: <code>1</code>",
+  mppvoid: "🕳 Envie a quantidade de <b>Void Chests</b>. Ex.: <code>1</code>",
+  mppequip: "🛡 Envie a quantidade de <b>baús de equipamento premium</b>. Ex.: <code>1</code>",
+  mppfrag: "🧩 Envie a quantidade de <b>fragmentos universais</b>. Ex.: <code>50</code>",
+  mpptickets: "🎟 Envie a quantidade de <b>tickets PvP</b>. Ex.: <code>20</code>",
+  mppekeys: "🔑 Envie a quantidade de <b>Eternity Keys</b>. Ex.: <code>2</code>",
+  mppvkeys: "🔑 Envie a quantidade de <b>Void Keys</b>. Ex.: <code>1</code>",
+  mppfood: "🍖 Envie a quantidade de <b>comida premium de pet</b>. Ex.: <code>25</code>",
+  mppxp: "📈 Envie a quantidade de <b>XP de herói</b>. Ex.: <code>10000</code>",
+  mppretry: "♻️ Envie o <b>ID da compra</b> para reprocessar a entrega do pacote.",
+
 
   pvernew:
     "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
