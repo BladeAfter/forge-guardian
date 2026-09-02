@@ -24,6 +24,8 @@ import type { CelestialPackState } from './celestialPack';
 import type { SovereignPackState } from './sovereignPack';
 import type { VanguardPackState } from './vanguardPack';
 import type { AdventurerPackState } from './adventurerPack';
+import type { MythicPowerPackState } from './mythicPowerPack';
+
 import type { PremiumOffersState } from './premiumOffers';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
@@ -102,6 +104,7 @@ export const useCalendarDashboard=(telegramInitData:string|null,enabled:boolean)
 export const useSeasonPass=(telegramInitData:string|null,enabled:boolean)=>useQuery<SeasonPassDashboard>({queryKey:['season-pass',telegramInitData],queryFn:()=>seasonPassRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnWindowFocus:true,retry:1});
 export const useActivityProgress=(telegramInitData:string|null,enabled:boolean)=>useQuery<ActivityProgress>({queryKey:['activity-progress',telegramInitData],queryFn:()=>activityProgressRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchOnWindowFocus:true,retry:1});
 export const useCommunityPool=(telegramInitData:string|null,enabled:boolean)=>useQuery<CommunityPoolDashboard>({queryKey:['community-pool',telegramInitData],queryFn:()=>communityPoolRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});
+export const useMythicPowerPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<MythicPowerPackState>({queryKey:['mythic-power-pack',telegramInitData],queryFn:()=>walletRequest<MythicPowerPackState>(telegramInitData??'',{action:'mythic-power-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 
 /** Special events tab: short refetch keeps the referral ranking live without a reload. */
 export const useSpecialEvents=(telegramInitData:string|null,enabled:boolean)=>useQuery<SpecialEventsDashboard>({queryKey:['special-events',telegramInitData],queryFn:()=>specialEventsRequest(telegramInitData??''),enabled,staleTime:15_000,refetchOnMount:'always',refetchInterval:60_000,refetchOnWindowFocus:true,retry:1});

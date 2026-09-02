@@ -9546,6 +9546,223 @@ export type Database = {
         }
         Relationships: []
       }
+      mythic_power_pack_config: {
+        Row: {
+          enabled: boolean
+          ends_at: string | null
+          equipment_chest_code: string
+          equipment_chests: number
+          eternity_keys: number
+          first_bonus_key_code: string
+          first_bonus_myth: number
+          hero_xp: number
+          id: boolean
+          myth_reward: number
+          mythic_egg_slug: string
+          mythic_eggs: number
+          package_version: string
+          pet_food_code: string
+          pet_food_quantity: number
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          pvp_tickets: number
+          reward_configuration_version: number
+          sales_paused: boolean
+          start_at: string | null
+          universal_fragments: number
+          updated_at: string
+          void_chests: number
+          void_keys: number
+        }
+        Insert: {
+          enabled?: boolean
+          ends_at?: string | null
+          equipment_chest_code?: string
+          equipment_chests?: number
+          eternity_keys?: number
+          first_bonus_key_code?: string
+          first_bonus_myth?: number
+          hero_xp?: number
+          id?: boolean
+          myth_reward?: number
+          mythic_egg_slug?: string
+          mythic_eggs?: number
+          package_version?: string
+          pet_food_code?: string
+          pet_food_quantity?: number
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          pvp_tickets?: number
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          start_at?: string | null
+          universal_fragments?: number
+          updated_at?: string
+          void_chests?: number
+          void_keys?: number
+        }
+        Update: {
+          enabled?: boolean
+          ends_at?: string | null
+          equipment_chest_code?: string
+          equipment_chests?: number
+          eternity_keys?: number
+          first_bonus_key_code?: string
+          first_bonus_myth?: number
+          hero_xp?: number
+          id?: boolean
+          myth_reward?: number
+          mythic_egg_slug?: string
+          mythic_eggs?: number
+          package_version?: string
+          pet_food_code?: string
+          pet_food_quantity?: number
+          popup_enabled?: boolean
+          popup_frequency?: string
+          popup_priority?: number
+          price_ton?: number
+          pvp_tickets?: number
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          start_at?: string | null
+          universal_fragments?: number
+          updated_at?: string
+          void_chests?: number
+          void_keys?: number
+        }
+        Relationships: []
+      }
+      mythic_power_pack_ledger: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          myth_amount: number | null
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          myth_amount?: number | null
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          myth_amount?: number | null
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mythic_power_pack_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "mythic_power_pack_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mythic_power_pack_purchases: {
+        Row: {
+          bonus_myth_snapshot: number
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery: Json | null
+          expected_nanoton: string
+          expires_at: string
+          first_purchase_bonus: boolean
+          fulfillment_error: string | null
+          id: string
+          idempotency_key: string | null
+          myth_snapshot: number
+          package_version: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_configuration_version: number
+          rewards_snapshot: Json
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          bonus_myth_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton: string
+          expires_at?: string
+          first_purchase_bonus?: boolean
+          fulfillment_error?: string | null
+          id?: string
+          idempotency_key?: string | null
+          myth_snapshot?: number
+          package_version: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_configuration_version?: number
+          rewards_snapshot?: Json
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          bonus_myth_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton?: string
+          expires_at?: string
+          first_purchase_bonus?: boolean
+          fulfillment_error?: string | null
+          id?: string
+          idempotency_key?: string | null
+          myth_snapshot?: number
+          package_version?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          rewards_snapshot?: Json
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mythic_power_pack_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       name_mission_claims: {
         Row: {
           created_at: string
@@ -20145,6 +20362,18 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_mythic_power_pack_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_mythic_power_pack_retry: {
+        Args: { p_admin_id: number; p_purchase_id: string }
+        Returns: Json
+      }
+      admin_mythic_power_pack_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_name_mission: {
         Args: { p_action?: string; p_admin_id: number; p_payload?: Json }
         Returns: Json
@@ -23765,6 +23994,64 @@ export type Database = {
       myth_utility_price: {
         Args: { p_fc?: number; p_feature: string; p_ton?: number }
         Returns: number
+      }
+      mythic_power_pack_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      mythic_power_pack_deliver: {
+        Args: { p_purchase_id: string }
+        Returns: Json
+      }
+      mythic_power_pack_settings: {
+        Args: never
+        Returns: {
+          enabled: boolean
+          ends_at: string | null
+          equipment_chest_code: string
+          equipment_chests: number
+          eternity_keys: number
+          first_bonus_key_code: string
+          first_bonus_myth: number
+          hero_xp: number
+          id: boolean
+          myth_reward: number
+          mythic_egg_slug: string
+          mythic_eggs: number
+          package_version: string
+          pet_food_code: string
+          pet_food_quantity: number
+          popup_enabled: boolean
+          popup_frequency: string
+          popup_priority: number
+          price_ton: number
+          pvp_tickets: number
+          reward_configuration_version: number
+          sales_paused: boolean
+          start_at: string | null
+          universal_fragments: number
+          updated_at: string
+          void_chests: number
+          void_keys: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mythic_power_pack_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mythic_power_pack_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      mythic_power_pack_state: {
+        Args: { p_telegram_id: number }
+        Returns: Json
       }
       name_mission_config: { Args: never; Returns: Json }
       name_mission_matches: {
