@@ -1379,7 +1379,7 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
         </div>
 
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="relative z-10 mt-3 grid grid-cols-2 gap-2">
           <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
           <button
             type="button"
@@ -1390,7 +1390,8 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
           </button>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+        <div className="relative z-10 mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+
           <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{t('pets.petManagement')}</p>
           <button
             type="button"
