@@ -318,6 +318,11 @@ export const verifyVanguardPackPurchases=(initData:string)=>walletRequest<{check
 export const fetchAdventurerPack=(initData:string)=>walletRequest<AdventurerPackState>(initData,{action:'adventurer-pack'});
 export const startAdventurerPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<AdventurerPackPurchaseResult>(initData,{action:'adventurer-pack-buy',idempotencyKey,walletAddress});
 export const verifyAdventurerPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:AdventurerPackState}>(initData,{action:'adventurer-pack-verify'});
+/** ⚡ 20 TON MYTHIC PACK — estado, compra e reconciliação on-chain; bônus de primeira compra é do servidor. */
+export const fetchMythicPowerPack=(initData:string)=>walletRequest<MythicPowerPackState>(initData,{action:'mythic-power-pack'});
+export const startMythicPowerPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<MythicPowerPackPurchaseResult>(initData,{action:'mythic-power-pack-buy',idempotencyKey,walletAddress});
+export const verifyMythicPowerPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:MythicPowerPackState}>(initData,{action:'mythic-power-pack-verify'});
+
 export const fetchPlayerEntitlements=(initData:string)=>walletRequest<{entitlements:FounderEntitlement[]}>(initData,{action:'entitlements'});
 export const createEggTonOrder=(initData:string,eggId:string,idempotencyKey:string)=>walletRequest<TonPaymentIntent>(initData,{action:'egg-order',eggId,idempotencyKey});
 /** Single reconciler for premium egg purchases: checks the blockchain and hatches every paid egg once. */
