@@ -512,6 +512,13 @@
       "when": 1788312954990,
       "tag": "0072_legendary_adventurer_pack_popup_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1788313401325,
+      "tag": "0073_tower_difficulty_minus_20_percent",
+      "breakpoints": true
     }
   ]
 }
