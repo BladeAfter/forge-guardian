@@ -146,6 +146,7 @@ const MAIN_MENU = kb([
 
   [{ t: "⚔️ VETERAN VAULT", d: "vv:hub" }],
   [{ t: "⚔️ VETERAN VAULT (PREMIUM)", d: "v2:hub" }],
+  [{ t: "💫 CELESTIAL MYSTERY PACK", d: "cp:hub" }],
   [{ t: "🎁 OFERTAS PREMIUM (POPUPS)", d: "po:hub" }],
   [{ t: "🔥 MYTH UTILITY (PAGAMENTOS)", d: "mu:hub" }],
 
@@ -4578,6 +4579,16 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  cpprice: "💫 Envie o <b>preço</b> do Celestial Mystery Pack em TON. Ex.: <code>100</code>",
+  cpfc: "🪙 Envie a quantidade de <b>Forge Coins</b> do pacote. Ex.: <code>1000000</code>",
+  cpchests: "🎁 Envie a quantidade de <b>baús lendários</b>. Ex.: <code>10</code>",
+  cpweapons: "⚔️ Envie a quantidade de <b>armas NFT</b>. Ex.: <code>2</code>",
+  cparmors: "🛡 Envie a quantidade de <b>armaduras lendárias</b>. Ex.: <code>2</code>",
+  cprandom: "✨ Envie a quantidade de <b>itens premium aleatórios</b>. Ex.: <code>4</code>",
+  cpbonus: "⛏ Envie o <b>bônus permanente de mineração TON</b> da conta em %. Ex.: <code>3</code>",
+  cpfreq: "🔁 Envie a frequência do popup: <code>ONCE_PER_DAY</code>, <code>UNTIL_PURCHASED</code> ou <code>DISABLED</code>.",
+  cpreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração.\nEx.: <code>b1c2... 0.35 1000</code>",
+
   pvernew:
     "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
   pversched: "⏰ Envie a data/hora <b>UTC</b> do lançamento no formato <code>AAAA-MM-DD HH:MM</code>.\nEx.: <code>2026-09-15 00:00</code>",
@@ -8189,6 +8200,109 @@ async function vv2Prompt(ctx: Ctx, key: string, text: string) {
   return vv2Hub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- 💫 CELESTIAL MYSTERY PACK (100 TON)
+// Herói Celestial + Pet NFT entregues com MINING TO BE REVEALED. O bot é o único lugar onde a taxa
+// real é definida e revelada — nunca retroativa: a mineração começa no instante da revelação.
+async function cpHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_celestial_pack_overview", { p_admin_id: ctx.adminId })) as any;
+  const c = d.config ?? {};
+  const pending = (d.pendingReveals ?? []) as any[];
+  const text = [
+    "💫 <b>CELESTIAL MYSTERY PACK</b>",
+    "<i>Pacote premium · 1 compra por conta · mineração revelada só após a compra</i>",
+    "",
+    `<b>Status:</b> ${c.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}${c.sales_paused ? " · ⏸ VENDAS PAUSADAS" : ""}`,
+    `<b>Versão:</b> <code>${esc(String(c.package_version))}</code> · <b>Preço:</b> ${fmt(c.price_ton)} TON`,
+    `<b>Popup:</b> ${c.popup_enabled ? "✅" : "⛔"} · <code>${esc(String(c.popup_frequency))}</code>`,
+    "",
+    `🪙 FC: <b>${fmt(c.fc_reward)}</b> · 🎁 Baús: <b>${fmt(c.legendary_chests)}</b> · ⚔️ Armas NFT: <b>${fmt(c.nft_weapons)}</b> · 🛡 Armaduras: <b>${fmt(c.armors)}</b> · ✨ Itens: <b>${fmt(c.random_items)}</b>`,
+    `⛏ Bônus permanente de mineração TON da conta: <b>+${fmt(c.account_ton_bonus_percent)}%</b>`,
+    "",
+    `<b>Celestiais sem dono:</b> ${fmt(d.celestialAvailable)} · <b>Vendidos:</b> ${fmt(d.sold)} · <b>TON arrecadado:</b> ${fmt(d.tonCollected)}`,
+    "",
+    `<b>MINERAÇÃO PENDENTE DE REVELAÇÃO</b>\n${pending.map((r) => `• ${esc(r.type)} — ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>)\n  <code>${r.itemId}</code>`).join("\n") || "nenhuma pendência"}`,
+  ].join("\n");
+  const rows = [
+    [
+      { t: c.enabled ? "⛔ DESATIVAR" : "✅ ATIVAR", d: `cp:on:${c.enabled ? 0 : 1}` },
+      { t: c.sales_paused ? "▶️ RETOMAR VENDAS" : "⏸ PAUSAR VENDAS", d: `cp:pause:${c.sales_paused ? 0 : 1}` },
+    ],
+    [
+      { t: c.popup_enabled ? "🔔 POPUP ON" : "🔔 POPUP OFF", d: `cp:popup:${c.popup_enabled ? 0 : 1}` },
+      { t: "🔁 FREQUÊNCIA", d: "cp:ask:cpfreq" },
+    ],
+    [
+      { t: "💎 PREÇO (TON)", d: "cp:ask:cpprice" },
+      { t: "🪙 FORGE COINS", d: "cp:ask:cpfc" },
+    ],
+    [
+      { t: "🎁 BAÚS LENDÁRIOS", d: "cp:ask:cpchests" },
+      { t: "⚔️ ARMAS NFT", d: "cp:ask:cpweapons" },
+    ],
+    [
+      { t: "🛡 ARMADURAS", d: "cp:ask:cparmors" },
+      { t: "✨ ITENS ALEATÓRIOS", d: "cp:ask:cprandom" },
+    ],
+    [{ t: "⛏ BÔNUS TON (%)", d: "cp:ask:cpbonus" }],
+    [{ t: "🔮 REVELAR MINERAÇÃO", d: "cp:ask:cpreveal" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function cpCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "on") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "enabled", p_value: a });
+  if (sub === "pause") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "sales_paused", p_value: a });
+  if (sub === "popup") await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: "popup_enabled", p_value: a });
+  return cpHub(ctx);
+}
+
+const CP_FIELDS: Record<string, string> = {
+  cpprice: "price_ton",
+  cpfc: "fc_reward",
+  cpchests: "legendary_chests",
+  cpweapons: "nft_weapons",
+  cparmors: "armors",
+  cprandom: "random_items",
+  cpbonus: "account_ton_bonus_percent",
+  cpfreq: "popup_frequency",
+};
+
+async function cpPrompt(ctx: Ctx, key: string, text: string) {
+  const raw = text.trim();
+  if (key === "cpreveal") {
+    const parts = raw.split(/\s+/);
+    const itemId = parts[0] ?? "";
+    const ton = Number(String(parts[1] ?? "0").replace(",", "."));
+    const myth = Number(String(parts[2] ?? "0").replace(",", "."));
+    if (!/^[0-9a-f-]{36}$/i.test(itemId) || !Number.isFinite(ton) || !Number.isFinite(myth) || ton < 0 || myth < 0) {
+      throw new Error("KEEP_SESSION::⚠️ Envie <code>id_do_item ton_por_dia myth_por_dia</code>.");
+    }
+    await rpc("admin_celestial_pack_reveal", { p_admin_id: ctx.adminId, p_item_id: itemId, p_daily_ton: ton, p_daily_myth: myth });
+    await clearSession(ctx);
+    await send(ctx, `🔮 Mineração revelada: <b>${ton} TON/dia</b> + <b>${myth} MYTH/dia</b> (sem retroativo).`);
+    return cpHub({ ...ctx, messageId: undefined }, false);
+  }
+  const field = CP_FIELDS[key];
+  if (!field) return cpHub({ ...ctx, messageId: undefined }, false);
+  let value = raw;
+  if (field !== "popup_frequency") {
+    const num = ["price_ton", "account_ton_bonus_percent"].includes(field)
+      ? Number(value.replace(",", ".").replace(/[^\d.]/g, ""))
+      : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    value = String(num);
+  } else {
+    value = value.toUpperCase();
+  }
+  await rpc("admin_celestial_pack_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `💫 Celestial Mystery Pack atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return cpHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
@@ -8882,6 +8996,11 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === "v2") {
     if (rest[0] !== "ask") await clearSession(ctx);
     return vv2Callback(ctx, rest);
+  }
+  // 💫 CELESTIAL MYSTERY PACK — preço, conteúdo e revelação das taxas de mineração.
+  if (head === "cp") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return cpCallback(ctx, rest);
   }
   if (head === "mu") {
     if (rest[0] !== "ask") await clearSession(ctx);
@@ -12436,6 +12555,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("stk")) return stakingPrompt(ctx, key, text);
   if (key.startsWith("mu")) return muPrompt(ctx, key, text);
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
+  if (key.startsWith("cp")) return cpPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
   if (key.startsWith("rl")) return rlPrompt(ctx, key, args, text);
