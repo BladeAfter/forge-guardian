@@ -13159,6 +13159,8 @@ export type Database = {
       }
       premium_offer_impressions: {
         Row: {
+          admin_reset_at: string | null
+          admin_reset_by: number | null
           clicked_at: string | null
           created_at: string
           dismissed_at: string | null
@@ -13170,6 +13172,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_reset_at?: string | null
+          admin_reset_by?: number | null
           clicked_at?: string | null
           created_at?: string
           dismissed_at?: string | null
@@ -13181,6 +13185,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_reset_at?: string | null
+          admin_reset_by?: number | null
           clicked_at?: string | null
           created_at?: string
           dismissed_at?: string | null
@@ -19792,8 +19798,16 @@ export type Database = {
         Returns: Json
       }
       admin_pool_ranking_tiers: { Args: { p_admin_id: number }; Returns: Json }
+      admin_premium_offer_eligibility: {
+        Args: { p_admin_id: number; p_offer_id?: string; p_query: string }
+        Returns: Json
+      }
       admin_premium_offer_metrics: {
         Args: { p_admin_id: number; p_offer_id?: string }
+        Returns: Json
+      }
+      admin_premium_offer_reset_today: {
+        Args: { p_admin_id: number; p_offer_id?: string; p_query: string }
         Returns: Json
       }
       admin_premium_offers_overview: {
@@ -23374,12 +23388,20 @@ export type Database = {
         Args: { p_event: string; p_offer_id: string; p_telegram_id: number }
         Returns: Json
       }
+      premium_offer_popup_confirm_shown: {
+        Args: { p_offer_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       premium_offer_popup_mark: {
         Args: {
           p_dismissed?: boolean
           p_offer_type: string
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      premium_offer_popup_reserve: {
+        Args: { p_telegram_id: number }
         Returns: Json
       }
       premium_offer_timezone: { Args: never; Returns: string }
