@@ -7,7 +7,7 @@ import { useTowerDashboard, useTowerRanking } from '../hooks';
 import { enterTowerFloor, equipTowerHero, removeTowerHero } from '../services';
 import { useMythUtility } from '../hooks';
 import { formatMyth, mythDiscountLabel, mythPrice } from '../mythUtility';
-import { TOWER_KEYS, TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
+import { TOWER_CHESTS, TOWER_KEYS, TOWER_MILESTONES, type TowerBattle, type TowerDashboard } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { TowerBattleArena } from './TowerBattleArena';
 import { PetCompanion } from './PetCompanion';
@@ -241,6 +241,26 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.gearChest')}</p><p className="mt-1 font-semibold text-fuchsia-300">{rewards.heroChest ? `x${rewards.heroChest}` : '—'}</p></div>
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.fcBonus')}</p><p className="mt-1 font-semibold text-amber-200">{compact(rewards.forgeCoins ?? 0)} FC</p></div>
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.universalFragments')}</p><p className="mt-1 font-semibold text-cyan-300">{rewards.universalFragments ? `x${rewards.universalFragments}` : '—'}</p></div>
+        </div>
+
+        {/* Baús premium: drop aleatório na Torre + garantidos nos andares de marco. */}
+        <div className="mt-3 rounded-2xl border border-amber-300/25 bg-black/60 p-2.5">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black uppercase tracking-[.22em] text-amber-300/90">{t('tower.premiumChests')}</p>
+            <p className="text-[8px] uppercase tracking-[.14em] text-slate-500">{t('tower.chestMilestoneHint')}</p>
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            {TOWER_CHESTS.map(chest => {
+              const chance = Number(rewards.chestChances?.[chest.code] ?? 0);
+              return (
+                <div key={chest.code} className="rounded-xl border bg-black/65 p-2 text-center" style={{ borderColor: `${chest.color}55` }}>
+                  <img src={chest.image} alt={chest.name} loading="lazy" className="mx-auto h-12 w-12 rounded-lg object-contain" />
+                  <p className="mt-1 truncate text-[8.5px] font-black uppercase tracking-[.08em]" style={{ color: chest.color }}>{chest.name}</p>
+                  <p className="text-[10px] font-black text-slate-200">{chance % 1 === 0 ? chance : chance.toFixed(1)}%</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Chaves raras: drop na Torre + compra direta com TON (saldo interno ou TON Connect). */}

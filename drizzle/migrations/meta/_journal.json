@@ -526,6 +526,13 @@
       "when": 1788314016243,
       "tag": "0074_tower_key_purchase_with_ton",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1788314275062,
+      "tag": "0075_tower_premium_chest_drops_and_milestones",
+      "breakpoints": true
     }
   ]
 }

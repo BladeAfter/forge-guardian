@@ -1176,3 +1176,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .ton-mine-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fd6f0}
 @media (max-width:380px){.ton-mine{width:clamp(104px,28vw,126px);top:82%}}
 @media (prefers-reduced-motion:reduce){.ton-mine-torch i,.ton-mine-motes i,.ton-mine-glow{animation:none}.ton-mine-motes{display:none}}
+
+
+/* Premium chest reward pop (Tower drops). */
+@keyframes forgeChestPop {
+  0% { opacity: 0; transform: scale(.82) translateY(10px); }
+  60% { opacity: 1; transform: scale(1.04) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.forge-chest-pop { animation: forgeChestPop .55s cubic-bezier(.2,.9,.3,1) both; }
