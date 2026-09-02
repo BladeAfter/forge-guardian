@@ -505,6 +505,13 @@
       "when": 1788312904297,
       "tag": "0071_legendary_adventurer_pack_core",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1788312954990,
+      "tag": "0072_legendary_adventurer_pack_popup_queue",
+      "breakpoints": true
     }
   ]
 }
