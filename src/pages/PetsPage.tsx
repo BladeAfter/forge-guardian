@@ -1329,23 +1329,55 @@ function Row({ label, value, strong, danger }: { label: string; value: string; s
  */
 function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; bonuses?: Record<string, number> | null; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
   const t = useT();
+  const isNft = isNftExclusivePet(pet);
+  const isVeteran = !isNft && isVeteranLine(pet);
+  const displayRarity = petDisplayRarity(pet);
+  const isCelestial = !isNft && !isVeteran && displayRarity === 'celestial';
+  const accent = rarityColor[displayRarity] ?? '#fbbf24';
+  const premium = isNft || isVeteran || isCelestial;
   return (
     <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
-      <div className="forge-safe-page max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-400/30 bg-[#080b11] p-4" onClick={(event) => event.stopPropagation()}>
-        <header className="mb-3 flex items-start justify-between gap-2">
+      <div
+        className={`forge-safe-page relative max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border bg-[#080b11] p-4 ${
+          isCelestial ? 'forge-celestial-card border-cyan-100/70' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
+        }`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {isCelestial && <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0 rounded-t-3xl" aria-hidden />}
+        <header className="relative z-10 mb-3 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.details')}</p>
             <h2 className="truncate text-lg font-black uppercase">{pet.name}</h2>
-            <p className="text-[10px]" style={{ color: rarityColor[petDisplayRarity(pet)] }}>
+            <p className="text-[10px]" style={{ color: accent }}>
               {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(pet), level: pet.level, max: pet.maxLevel })}
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
-        <img src={pet.image} alt={pet.name} className="mx-auto h-40 w-40 object-contain" />
-        <LevelBar pet={pet} />
-        <BuffGrid pet={pet} bonuses={bonuses} />
+        <div className="relative z-10">
+          <div className="forge-pet-portrait mx-auto max-w-[19rem]" style={premium ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}>
+            <span
+              className="pointer-events-none absolute left-1/2 top-6 h-44 w-44 -translate-x-1/2 rounded-full blur-2xl"
+              style={{ background: `radial-gradient(circle, ${accent}33, transparent 68%)` }}
+              aria-hidden
+            />
+            <img src={pet.image} alt={pet.name} className="relative mx-auto h-52 w-full object-contain" />
+            <div className="relative mt-2 flex items-center justify-center gap-1.5">
+              <span className="rounded-full border border-white/15 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-slate-200">
+                {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
+              </span>
+              <span className="rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em]" style={{ borderColor: `${accent}66`, color: accent }}>
+                <Star className="mr-1 inline h-2.5 w-2.5" />{fmt(pet.power)}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="relative z-10">
+          <LevelBar pet={pet} />
+          <BuffGrid pet={pet} bonuses={bonuses} />
+        </div>
+
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
