@@ -5,7 +5,6 @@ import type { PremiumOfferType } from '../premiumOffers';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
-import { CelestialSovereignPackCard } from './CelestialSovereignPackCard';
 
 const log = (message: string, extra?: unknown) => {
   if (import.meta.env.DEV) console.info(`[PremiumOfferPopup] ${message}`, extra ?? '');
@@ -83,9 +82,6 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
 
   if (!offer) return null;
 
-  if (offer === 'CELESTIAL_SOVEREIGN_PACK') {
-    return <CelestialSovereignPackCard key="sovereign-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
-  }
   if (offer === 'CELESTIAL_MYSTERY_PACK') {
     return <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   }
