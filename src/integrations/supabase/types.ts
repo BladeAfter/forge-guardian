@@ -25257,6 +25257,7 @@ export type Database = {
         Returns: Json
       }
       tower_milestone_rewards: { Args: { p_floor: number }; Returns: Json }
+      tower_premium_chest_chances: { Args: { p_floor: number }; Returns: Json }
       tower_roll_equipment_drop: {
         Args: { p_first: boolean; p_floor: number; p_user: string }
         Returns: Json
