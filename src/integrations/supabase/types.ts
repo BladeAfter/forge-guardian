@@ -17896,6 +17896,95 @@ export type Database = {
         }
         Relationships: []
       }
+      tower_key_purchases: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expected_nanoton: string
+          expires_at: string
+          id: string
+          idempotency_key: string | null
+          key_code: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          quantity: number
+          status: string
+          telegram_id: number
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expected_nanoton: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          key_code: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          quantity?: number
+          status?: string
+          telegram_id: number
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expected_nanoton?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string | null
+          key_code?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          quantity?: number
+          status?: string
+          telegram_id?: number
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tower_key_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tower_key_shop_config: {
+        Row: {
+          enabled: boolean
+          key_code: string
+          price_ton: number
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          key_code: string
+          price_ton: number
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          key_code?: string
+          price_ton?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tower_progress: {
         Row: {
           attempts_date: string
@@ -25148,6 +25237,23 @@ export type Database = {
       }
       tower_key_chances: {
         Args: { p_first: boolean; p_floor: number }
+        Returns: Json
+      }
+      tower_key_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      tower_key_deliver: { Args: { p_order_id: string }; Returns: Json }
+      tower_key_purchase_limit: { Args: { p_user_id: string }; Returns: number }
+      tower_key_purchases_used: { Args: { p_user_id: string }; Returns: number }
+      tower_key_shop_state: { Args: { p_telegram_id: number }; Returns: Json }
+      tower_key_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_key_code: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
         Returns: Json
       }
       tower_milestone_rewards: { Args: { p_floor: number }; Returns: Json }
