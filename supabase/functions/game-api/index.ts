@@ -1452,6 +1452,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   if (action === 'veteran-vault-verify') return await verifyVeteranVaultPurchases(db, user);
   if (action === 'veteran-v2-verify') return await verifyVeteranV2Purchases(db, user);
   if (action === 'celestial-pack-verify') return await verifyCelestialPackPurchases(db, user);
+  if (action === 'sovereign-pack-verify') return await verifySovereignPackPurchases(db, user);
 
   let fn = 'get_wallet_summary';
   let args: Record<string, unknown> = { p_telegram_id: user.id };
