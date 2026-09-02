@@ -68,11 +68,10 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
       const walletAddress = payWithInternal ? undefined : await ensureWallet();
       const order = await startAdventurerPackPurchase(telegramInitData, crypto.randomUUID(), walletAddress);
       if (order.status === 'payment_required') {
-        await sendTonPayment(tonConnectUI, {
-          address: String(order.paymentAddress ?? ''),
-          amountNano: String(order.amountNano ?? '0'),
-          comment: String(order.paymentComment ?? ''),
-        });
+        await sendTonPayment(
+          { paymentAddress: String(order.paymentAddress), paymentComment: String(order.paymentComment), amountNano: String(order.amountNano) },
+          tx => tonConnectUI.sendTransaction(tx),
+        );
       }
       return order;
     },
