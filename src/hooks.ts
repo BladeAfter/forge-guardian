@@ -13,7 +13,7 @@ import type { PetDashboard } from './pets';
 import type { MythUtilityState } from './mythUtility';
 import { fetchMythUtility } from './services';
 import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
-import { fetchTowerDashboard, fetchTowerRanking } from './services';
+import { fetchTowerDashboard, fetchTowerRanking, fetchTowerKeyShop, type TowerKeyShopState } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { TonWallet, WalletSummary ,MythWallet} from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
