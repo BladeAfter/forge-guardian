@@ -1487,6 +1487,52 @@ async function verifyVanguardPackPurchases(db: Db, user: TelegramUser) {
 }
 
 /**
+ * 🔑 CHAVES RARAS — settlement on-chain das compras feitas por TonConnect.
+ * A chave só entra no inventário depois que o pagamento aparece na hot wallet com o comentário
+ * único do pedido e o valor em nanoton esperado. Compras canceladas/expiradas nunca entregam nada.
+ */
+async function verifyTowerKeyPurchases(db: Db, user: TelegramUser) {
+  const hotWallet = await hotWalletAddress(db);
+  const state = async () => await rpc(db, 'tower_key_shop_state', { p_telegram_id: user.id });
+  const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+  if (player.error) throw new Error(player.error.message);
+  const userId = player.data?.id;
+  if (!userId) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const pending = await db.from('tower_key_purchases')
+    .select('id,payment_comment,expected_nanoton,expires_at')
+    .eq('user_id', userId).eq('status', 'pending').gt('expires_at', new Date().toISOString());
+  if (pending.error) throw new Error(pending.error.message);
+  const list = pending.data ?? [];
+  if (!list.length) return { checked: 0, confirmed: [], pending: [], state: await state() };
+
+  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const confirmed: string[] = [];
+  const stillPending: string[] = [];
+  for (const order of list) {
+    const comment = String(order.payment_comment || '').trim();
+    const expectedNano = BigInt(String(order.expected_nanoton || '0'));
+    const minNano = (expectedNano * 97n) / 100n;
+    const match = transactions.find((tx: any) => {
+      const inMsg = tx?.in_msg;
+      if (!inMsg || !comment || msgComment(inMsg) !== comment) return false;
+      return BigInt(String(inMsg.value ?? '0')) >= minNano;
+    });
+    if (!match) { stillPending.push(String(order.id)); continue; }
+    const txHash = txHashOf(match);
+    const receivedNano = BigInt(String(match.in_msg?.value ?? '0')).toString();
+    try {
+      await rpc(db, 'tower_key_confirm_order', { p_order_id: order.id, p_tx_hash: txHash, p_amount_nano: receivedNano });
+      confirmed.push(String(order.id));
+    } catch (error) {
+      console.error('[FORGE ERROR] tower-key-confirm', { orderId: order.id, txHash, reason: error instanceof Error ? error.message : String(error) });
+      stillPending.push(String(order.id));
+    }
+  }
+  return { checked: list.length, confirmed, pending: stillPending, state: await state() };
+}
+
+/**
  * 🏆 LEGENDARY ADVENTURER PACK — settlement on-chain do pack de 30 TON (teto LEGENDARY).
  * Casamento por comentário único + valor em nanoton (30.000.000.000). A entrega atômica (Herói
  * Legendary com MYSTERY MINING, passe oficial de 5 TON incluído no preço, 250k FC, 3 baús lendários,
@@ -2049,6 +2095,18 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       const limit = Math.min(Math.max(Number(body.limit) || 50, 1), 100);
       return await rpc(db, 'get_tower_ranking', { p_telegram_id: user.id, p_limit: limit });
     }
+    // 🔑 LOJA DE CHAVES RARAS: preços, limite por passe e entrega vivem no banco.
+    if (action === 'key-shop') return await rpc(db, 'tower_key_shop_state', { p_telegram_id: user.id });
+    if (action === 'key-buy') {
+      // O banco decide o método: saldo interno de TON quando cobre 100% do preço, TonConnect caso contrário.
+      return await rpc(db, 'tower_key_start_purchase', {
+        p_telegram_id: user.id,
+        p_key_code: String(body.keyCode || ''),
+        p_wallet_address: toFriendlyTonAddress(body.walletAddress),
+        p_idempotency_key: `tower-key:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+      });
+    }
+    if (action === 'key-verify') return await verifyTowerKeyPurchases(db, user);
     throw new Error('INVALID_ACTION');
   },
 

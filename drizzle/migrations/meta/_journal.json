@@ -519,6 +519,13 @@
       "when": 1788313401325,
       "tag": "0073_tower_difficulty_minus_20_percent",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1788314016243,
+      "tag": "0074_tower_key_purchase_with_ton",
+      "breakpoints": true
     }
   ]
 }

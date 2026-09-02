@@ -13,7 +13,7 @@ import type { PetDashboard } from './pets';
 import type { MythUtilityState } from './mythUtility';
 import { fetchMythUtility } from './services';
 import type { TowerDashboard as TowerDashboardType, TowerRanking } from './tower';
-import { fetchTowerDashboard, fetchTowerRanking } from './services';
+import { fetchTowerDashboard, fetchTowerRanking, fetchTowerKeyShop, type TowerKeyShopState } from './services';
 import type { PvpDashboard, PvpHero } from './pvp';
 import type { TonWallet, WalletSummary ,MythWallet} from './wallet';
 import type { TelegramPlayerProfile } from './playerProfile';
@@ -319,6 +319,15 @@ export const useTowerRanking=(telegramInitData:string|null,enabled:boolean,limit
   queryFn:()=>fetchTowerRanking(telegramInitData??'',limit),
   enabled:enabled&&Boolean(telegramInitData),refetchInterval:enabled?15_000:false,staleTime:10_000,retry:1,
 });
+
+/** 🔑 Loja de Chaves Raras: preços, chaves possuídas e limite de compras vêm do servidor. */
+export const useTowerKeyShop=(telegramInitData:string|null,enabled:boolean)=>useQuery<TowerKeyShopState>({
+  queryKey:['tower-key-shop',telegramInitData],
+  queryFn:()=>fetchTowerKeyShop(telegramInitData??''),
+  enabled:enabled&&Boolean(telegramInitData),staleTime:10_000,refetchOnWindowFocus:true,retry:1,
+});
+
+
 
 /**
  * Hero TON mining state. The server owns the accrual; a moderate refetch keeps

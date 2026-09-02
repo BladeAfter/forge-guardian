@@ -667,8 +667,8 @@ export async function claimStarterPackRequest(initData:string):Promise<{claimed:
 }
 
 /* ---------------- Tower of Eternity (solo dungeon, 100 floors) ---------------- */
-export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter';payWith?:'fc'|'ton'|'myth'}|{action:'ranking';limit?:number};
-const TOWER_ERRORS:Record<string,string>={TOWER_TEAM_EMPTY:'Selecione sua equipe antes de entrar na masmorra.',TOWER_NO_ATTEMPTS:'Você já usou todas as tentativas de hoje.',TOWER_DUPLICATE_HERO_TEAM:'Heróis duplicados não são permitidos na equipe.',INSUFFICIENT_FC:'FC insuficiente para entrar na masmorra.',INSUFFICIENT_MYTH:'MYTH insuficiente para entrar na masmorra.',MYTH_PAYMENT_NOT_ENABLED:'Pagamento com MYTH indisponível no momento.',HERO_NOT_FOUND:'Herói indisponível.',INVALID_SLOT:'Espaço inválido.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PLAYER_BANNED:'Conta suspensa.'};
+export type TowerAction={action:'dashboard'}|{action:'equip';slot:number;heroId:string}|{action:'remove';slot:number}|{action:'enter';payWith?:'fc'|'ton'|'myth'}|{action:'ranking';limit?:number}|{action:'key-shop'}|{action:'key-buy';keyCode:string;idempotencyKey:string;walletAddress?:string}|{action:'key-verify'};
+const TOWER_ERRORS:Record<string,string>={TOWER_TEAM_EMPTY:'Selecione sua equipe antes de entrar na masmorra.',TOWER_NO_ATTEMPTS:'Você já usou todas as tentativas de hoje.',TOWER_DUPLICATE_HERO_TEAM:'Heróis duplicados não são permitidos na equipe.',INSUFFICIENT_FC:'FC insuficiente para entrar na masmorra.',INSUFFICIENT_MYTH:'MYTH insuficiente para entrar na masmorra.',MYTH_PAYMENT_NOT_ENABLED:'Pagamento com MYTH indisponível no momento.',HERO_NOT_FOUND:'Herói indisponível.',INVALID_SLOT:'Espaço inválido.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PLAYER_BANNED:'Conta suspensa.',KEY_NOT_PURCHASABLE:'Esta chave não está disponível para compra.',KEY_PURCHASE_REQUIRES_PASS:'Compra de chaves exige o Passe de 5 TON ou 20 TON.',KEY_PURCHASE_LIMIT_REACHED:'Limite de compras de chaves atingido.',WALLET_REQUIRED:'Conecte sua carteira TON para continuar.',INVALID_PAYMENT_AMOUNT:'Valor pago não confere com o pedido.',TX_ALREADY_USED:'Esta transação já foi utilizada.'};
 export async function towerRequest<T=TowerDashboard>(telegramInitData:string,input:TowerAction={action:'dashboard'}):Promise<T>{
  const response=await forgeFetch('tower',{initData:telegramInitData,...input});
  if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Torre.');
@@ -680,6 +680,14 @@ export const equipTowerHero=(initData:string,slot:number,heroId:string)=>towerRe
 export const removeTowerHero=(initData:string,slot:number)=>towerRequest<TowerDashboard>(initData,{action:'remove',slot});
 export const enterTowerFloor=(initData:string,payWith:'fc'|'ton'|'myth'='fc')=>towerRequest<TowerBattle>(initData,{action:'enter',payWith});
 export const fetchTowerRanking=(initData:string,limit=50)=>towerRequest<TowerRanking>(initData,{action:'ranking',limit});
+
+/* 🔑 Loja de Chaves Raras: saldo interno de TON primeiro, TonConnect como fallback (server-side). */
+export type TowerKeyShopEntry={keyCode:string;priceTon:number;enabled:boolean;owned:number};
+export type TowerKeyShopState={availableTon:number;purchaseLimit:number;purchasesUsed:number;purchasesRemaining:number;limitReached:boolean;passRequired:boolean;keys:TowerKeyShopEntry[];pendingOrder?:{orderId:string;keyCode:string;amountNano:string;paymentAddress:string;paymentComment:string;expiresAt:string}|null};
+export type TowerKeyPurchaseResult={status:'completed'|'payment_required';method:string;orderId:string;keyCode:string;priceTon:number;paymentAddress?:string;paymentComment?:string;amountNano?:string;state?:TowerKeyShopState};
+export const fetchTowerKeyShop=(initData:string)=>towerRequest<TowerKeyShopState>(initData,{action:'key-shop'});
+export const buyTowerKey=(initData:string,keyCode:string,idempotencyKey:string,walletAddress?:string)=>towerRequest<TowerKeyPurchaseResult>(initData,{action:'key-buy',keyCode,idempotencyKey,walletAddress});
+export const verifyTowerKeyPurchases=(initData:string)=>towerRequest<{checked:number;confirmed:string[];pending:string[];state:TowerKeyShopState}>(initData,{action:'key-verify'});
 
 
 /**
