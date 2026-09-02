@@ -22,6 +22,7 @@ import type { VeteranVaultState } from './veteranVault';
 import type { VeteranV2State } from './veteranVaultV2';
 import type { CelestialPackState } from './celestialPack';
 import type { VanguardPackState } from './vanguardPack';
+import type { AdventurerPackState } from './adventurerPack';
 import type { PremiumOffersState } from './premiumOffers';
 import type { CalendarDashboard, PlayerInventory } from './calendarRewards';
 import type{SeasonPassDashboard}from'./seasonPass';
@@ -88,6 +89,7 @@ export const useVeteranV2=(telegramInitData:string|null,enabled:boolean)=>useQue
 export const useCelestialPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<CelestialPackState>({queryKey:['celestial-pack',telegramInitData],queryFn:()=>walletRequest<CelestialPackState>(telegramInitData??'',{action:'celestial-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 /** ⚔️ MYTHIC VANGUARD PACK: visibilidade, preço, estoque e status de revelação são do servidor. */
 export const useVanguardPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<VanguardPackState>({queryKey:['vanguard-pack',telegramInitData],queryFn:()=>walletRequest<VanguardPackState>(telegramInitData??'',{action:'vanguard-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
+export const useAdventurerPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<AdventurerPackState>({queryKey:['adventurer-pack',telegramInitData],queryFn:()=>walletRequest<AdventurerPackState>(telegramInitData??'',{action:'adventurer-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 /** 🎁 PREMIUM OFFERS: fila de popups (Founder → Veteran) decidida 100% pelo servidor, 1x por dia. */
 export const usePremiumOffers=(telegramInitData:string|null,enabled:boolean)=>useQuery<PremiumOffersState>({queryKey:['premium-offers',telegramInitData],queryFn:()=>walletRequest<PremiumOffersState>(telegramInitData??'',{action:'premium-offers'}),enabled,staleTime:60_000,refetchOnWindowFocus:false,retry:1});
 export const useTelegramProfile=(telegramInitData:string|null,enabled:boolean)=>useQuery<TelegramPlayerProfile>({queryKey:['telegram-profile',telegramInitData],queryFn:()=>fetchTelegramProfile(telegramInitData??''),enabled,staleTime:60_000,refetchOnWindowFocus:true,retry:1});
