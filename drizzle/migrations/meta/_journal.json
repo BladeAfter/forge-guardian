@@ -533,6 +533,13 @@
       "when": 1788314275062,
       "tag": "0075_tower_premium_chest_drops_and_milestones",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1788314747809,
+      "tag": "0076_fix_pack_hero_pool_and_stock",
+      "breakpoints": true
     }
   ]
 }
