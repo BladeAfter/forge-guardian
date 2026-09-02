@@ -2049,6 +2049,18 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       const limit = Math.min(Math.max(Number(body.limit) || 50, 1), 100);
       return await rpc(db, 'get_tower_ranking', { p_telegram_id: user.id, p_limit: limit });
     }
+    // 🔑 LOJA DE CHAVES RARAS: preços, limite por passe e entrega vivem no banco.
+    if (action === 'key-shop') return await rpc(db, 'tower_key_shop_state', { p_telegram_id: user.id });
+    if (action === 'key-buy') {
+      // O banco decide o método: saldo interno de TON quando cobre 100% do preço, TonConnect caso contrário.
+      return await rpc(db, 'tower_key_start_purchase', {
+        p_telegram_id: user.id,
+        p_key_code: String(body.keyCode || ''),
+        p_wallet_address: toFriendlyTonAddress(body.walletAddress),
+        p_idempotency_key: `tower-key:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}`,
+      });
+    }
+    if (action === 'key-verify') return await verifyTowerKeyPurchases(db, user);
     throw new Error('INVALID_ACTION');
   },
 
