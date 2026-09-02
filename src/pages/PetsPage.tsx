@@ -195,8 +195,13 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
   }
 
   const active = data.activePet;
+  const activeIsNft = active ? isNftExclusivePet(active) : false;
+  const activeIsVeteran = !!active && !activeIsNft && isVeteranLine(active);
+  const activeIsCelestial = !!active && !activeIsNft && !activeIsVeteran && petDisplayRarity(active) === 'celestial';
+  const activePremium = activeIsCelestial || activeIsVeteran || activeIsNft;
   const liveDetails = detailsTarget ? data.playerPets.find((pet) => pet.id === detailsTarget.id) ?? null : null;
   const liveFeedTarget = feedTarget ? data.playerPets.find((pet) => pet.id === feedTarget.id) ?? null : null;
+
 
   if (section === 'nft') {
     return (
@@ -235,14 +240,54 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
 
   return (
     <Shell onClose={onClose} section={section} onSection={setSection}>
-      <section className="relative overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-b from-sky-950/55 to-black/80 p-4 shadow-[0_0_40px_rgba(245,158,11,.12)]">
+      <section
+        className={`relative overflow-hidden rounded-[2rem] border p-4 ${
+          activeIsCelestial
+            ? 'forge-celestial-card border-cyan-100/70 shadow-[0_0_60px_rgba(56,189,248,.22)]'
+            : activeIsVeteran
+              ? 'forge-veteran-card border-amber-300/70 shadow-[0_0_50px_rgba(251,146,60,.18)]'
+              : activeIsNft
+                ? 'forge-nft-card border-amber-200/60 shadow-[0_0_50px_rgba(251,191,36,.18)]'
+                : 'border-amber-400/30 bg-gradient-to-b from-sky-950/55 to-black/80 shadow-[0_0_40px_rgba(245,158,11,.12)]'
+        }`}
+      >
+        {activeIsCelestial && (
+          <>
+            <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
+            <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
+            <div className="pointer-events-none absolute inset-[4px] z-0 rounded-[1.75rem] border border-cyan-100/25" aria-hidden />
+          </>
+        )}
+        {activeIsVeteran && (
+          <>
+            <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
+            <div className="forge-veteran-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
+          </>
+        )}
+        {activeIsNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
         {active ? (
           <>
-            <div className="flex items-center gap-4">
-              <img src={active.image} alt={active.name} className="h-32 w-32 shrink-0 object-contain drop-shadow-[0_0_22px_rgba(251,191,36,.4)]" />
+            <div className="relative z-10 flex items-center gap-4">
+              <div className={activePremium ? 'forge-pet-portrait relative shrink-0 rounded-2xl p-1.5' : 'relative shrink-0'}>
+                <img
+                  src={active.image}
+                  alt={active.name}
+                  className={`h-32 w-32 shrink-0 object-contain ${
+                    activeIsCelestial
+                      ? 'drop-shadow-[0_0_26px_rgba(103,232,249,.55)]'
+                      : 'drop-shadow-[0_0_22px_rgba(251,191,36,.4)]'
+                  }`}
+                />
+              </div>
               <div className="min-w-0">
                 <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
                 <h2 className="truncate text-2xl font-black">{active.name}</h2>
+                {activeIsCelestial ? (
+                  <span className="forge-celestial-tag mt-1 inline-flex items-center gap-1 rounded-full border border-cyan-100/80 bg-gradient-to-r from-cyan-100/20 to-amber-200/20 px-2 py-0.5 text-[7px] font-black tracking-[.16em] text-cyan-50">
+                    <Crown className="h-2.5 w-2.5" />
+                    CELESTIAL
+                  </span>
+                ) : null}
                 <p style={{ color: rarityColor[petDisplayRarity(active)] }} className="text-xs font-bold uppercase">
                   {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(active), level: active.level, max: active.maxLevel })}
                 </p>
@@ -256,10 +301,14 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
               </div>
             </div>
 
-            <LevelBar pet={active} />
-            <BuffGrid pet={active} bonuses={data.bonuses} />
+            <div className="relative z-10">
+              <LevelBar pet={active} />
+              <BuffGrid pet={active} bonuses={data.bonuses} />
+            </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
+
+            <div className="relative z-10 mt-3 grid grid-cols-2 gap-2">
+
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
               <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} myth={myth} onEvolveMyth={() => evolve(active, 'MYTH')} />
             </div>
