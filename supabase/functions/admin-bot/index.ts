@@ -147,6 +147,7 @@ const MAIN_MENU = kb([
   [{ t: "⚔️ VETERAN VAULT", d: "vv:hub" }],
   [{ t: "⚔️ VETERAN VAULT (PREMIUM)", d: "v2:hub" }],
   [{ t: "💫 CELESTIAL MYSTERY PACK", d: "cp:hub" }],
+  [{ t: "🏆 LEGENDARY ADVENTURER PACK", d: "ap:hub" }],
   [{ t: "🎁 OFERTAS PREMIUM (POPUPS)", d: "po:hub" }],
   [{ t: "🔥 MYTH UTILITY (PAGAMENTOS)", d: "mu:hub" }],
 
@@ -4596,6 +4597,27 @@ const PROMPTS: Record<string, string> = {
   cpreset: "♻️ Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para resetar SOMENTE a impressão de hoje (ferramenta de teste; o histórico é preservado).",
   cpreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração.\nEx.: <code>b1c2... 0.35 1000</code>",
 
+  // 🏆 LEGENDARY ADVENTURER PACK (30 TON) — teto LEGENDARY, nada Celestial/Mythic garantido.
+  apkprice: "🏆 Envie o <b>preço</b> do Legendary Adventurer Pack em TON. Ex.: <code>30</code>",
+  apkfc: "🪙 Envie a quantidade de <b>Forge Coins</b> do pacote. Ex.: <code>250000</code>",
+  apkchests: "🎁 Envie a quantidade de <b>baús lendários</b>. Ex.: <code>3</code>",
+  apkweapons: "⚔️ Envie a quantidade de <b>armas NFT</b> (nunca Celestial). Ex.: <code>1</code>",
+  apkarmors: "🛡 Envie a quantidade de <b>armaduras lendárias</b>. Ex.: <code>1</code>",
+  apkfrag: "🧩 Envie a quantidade de <b>fragmentos universais</b>. Ex.: <code>30</code>",
+  apkrandom: "✨ Envie a quantidade de <b>recompensas aleatórias</b> (cap LEGENDARY). Ex.: <code>2</code>",
+  apkbonus: "⛏ Envie o <b>bônus permanente de mineração TON</b> da conta em %. Ex.: <code>0.5</code>",
+  apktier: "🎟 Envie o tier do passe incluído: <code>adventurer</code> (5 TON) ou <code>legendary</code> (20 TON).",
+  apkfreq: "🔁 Envie a frequência do popup: <code>DAILY</code>, <code>EVERY_2_DAYS</code>, <code>EVERY_3_DAYS</code>, <code>ONCE_ONLY</code>, <code>UNTIL_PURCHASED</code> ou <code>DISABLED</code>.",
+  apkprio: "📌 Envie a <b>prioridade do popup</b> (maior aparece primeiro). Ex.: <code>80</code>",
+  apklimit: "🔐 Envie o <b>limite de compras por conta</b>. Ex.: <code>1</code>",
+  apkstock: "📦 Envie o <b>estoque total</b> (<code>0</code> = ilimitado, limitado pelos heróis lendários disponíveis).",
+  apkstart: "🟢 Envie a <b>data de início</b> (ISO) ou <code>-</code> para remover.",
+  apkend: "🔴 Envie a <b>data de fim</b> (ISO) ou <code>-</code> para remover.",
+  apkdiag: "🧪 Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para ver a elegibilidade do popup.",
+  apkreset: "♻️ Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para resetar SOMENTE a impressão de hoje.",
+  apkreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração do herói lendário.\nEx.: <code>b1c2... 0.12 400</code>",
+  apkretry: "♻️ Envie o <b>ID da compra</b> para reprocessar a entrega do pacote.",
+
   pvernew:
     "🗂 Envie <code>Nome da temporada dias</code> para criar a próxima versão (clonando as recompensas atuais).\nEx.: <code>Temporada 2 30</code>",
   pversched: "⏰ Envie a data/hora <b>UTC</b> do lançamento no formato <code>AAAA-MM-DD HH:MM</code>.\nEx.: <code>2026-09-15 00:00</code>",
@@ -8388,6 +8410,202 @@ async function cpPrompt(ctx: Ctx, key: string, text: string) {
   return cpHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- 🏆 LEGENDARY ADVENTURER PACK (30 TON)
+// Teto de raridade LEGENDARY: nada Celestial ou Mythic é garantido. O herói entra com MYSTERY MINING
+// e só este hub define a taxa real — sem retroativo: a mineração começa no instante da revelação.
+async function apHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_adventurer_pack_overview", { p_admin_id: ctx.adminId })) as any;
+  const c = d.config ?? {};
+  const pending = (d.pendingReveals ?? []) as any[];
+  const m = (d.metrics ?? {}) as any;
+  const text = [
+    "🏆 <b>LEGENDARY ADVENTURER PACK</b>",
+    "<i>30 TON · teto LEGENDARY · passe oficial incluído · mineração revelada só após a compra</i>",
+    "",
+    `<b>Status:</b> ${c.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}${c.sales_paused ? " · ⏸ VENDAS PAUSADAS" : ""}`,
+    `<b>Versão:</b> <code>${esc(String(c.package_version))}</code> · <b>Preço:</b> ${fmt(c.price_ton)} TON`,
+    `<b>Popup:</b> ${c.popup_enabled ? "✅" : "⛔"} · <code>${esc(String(c.popup_frequency))}</code> · prio ${fmt(c.popup_priority)}`,
+    "",
+    `🦸 Herói: <b>${esc(String(c.hero_rarity)).toUpperCase()}</b> (mineração a revelar) · 🎟 Passe incluído: <b>${esc(String(c.grant_pass_tier)).toUpperCase()}</b>`,
+    `🪙 FC: <b>${fmt(c.fc_reward)}</b> · 🎁 Baús: <b>${fmt(c.legendary_chests)}</b> · ⚔️ Armas NFT: <b>${fmt(c.nft_weapons)}</b>`,
+    `🛡 Armaduras: <b>${fmt(c.legendary_armors)}</b> · 🧩 Fragmentos: <b>${fmt(c.universal_fragments)}</b> · ✨ Aleatórios: <b>${fmt(c.random_items)}</b>`,
+    `⛏ Bônus permanente de mineração TON da conta: <b>+${fmt(c.account_ton_bonus_percent)}%</b> · teto de raridade: <code>${esc(String(c.max_reward_rarity))}</code>`,
+    "",
+    `<b>Heróis lendários disponíveis:</b> ${fmt(d.legendaryHeroesAvailable)} · <b>Armas NFT livres:</b> ${fmt(d.nftWeaponsAvailable)} · <b>Templates de armadura:</b> ${fmt(d.legendaryArmorTemplates)}`,
+    `<b>Vendidos:</b> ${fmt(d.sold)} · <b>TON arrecadado:</b> ${fmt(d.tonCollected)}`,
+    `<b>Estoque:</b> ${c.stock_total ? fmt(c.stock_total) : "ilimitado"} · <b>Limite/conta:</b> ${fmt(c.purchase_limit)}`,
+    `<b>Janela:</b> ${c.start_at ? esc(String(c.start_at)) : "sempre"} → ${c.ends_at ? esc(String(c.ends_at)) : "sem fim"}`,
+    "",
+    "<b>MÉTRICAS DO POPUP</b>",
+    `👁 Impressões: <b>${fmt(m.impressions)}</b> (hoje ${fmt(m.today)}) · 👤 Jogadores: <b>${fmt(m.uniquePlayers)}</b>`,
+    `✋ Fechados: <b>${fmt(m.dismissed)}</b> · 👉 Cliques: <b>${fmt(m.clicked)}</b> · 💳 Intenções: <b>${fmt(m.purchaseIntents)}</b> · ✅ Compras: <b>${fmt(m.confirmedPurchases)}</b>`,
+    "",
+    `<b>MINERAÇÃO PENDENTE DE REVELAÇÃO</b>\n${pending.map((r) => `• ${esc(r.type)} — ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>)\n  <code>${r.itemId}</code>`).join("\n") || "nenhuma pendência"}`,
+  ].join("\n");
+  const rows = [
+    [
+      { t: c.enabled ? "⛔ DESATIVAR" : "✅ ATIVAR", d: `ap:on:${c.enabled ? 0 : 1}` },
+      { t: c.sales_paused ? "▶️ RETOMAR VENDAS" : "⏸ PAUSAR VENDAS", d: `ap:pause:${c.sales_paused ? 0 : 1}` },
+    ],
+    [
+      { t: c.popup_enabled ? "🔔 POPUP ON" : "🔔 POPUP OFF", d: `ap:popup:${c.popup_enabled ? 0 : 1}` },
+      { t: "🔁 FREQUÊNCIA", d: "ap:ask:apkfreq" },
+    ],
+    [
+      { t: "💎 PREÇO (TON)", d: "ap:ask:apkprice" },
+      { t: "🪙 FORGE COINS", d: "ap:ask:apkfc" },
+    ],
+    [
+      { t: "🎁 BAÚS LENDÁRIOS", d: "ap:ask:apkchests" },
+      { t: "⚔️ ARMAS NFT", d: "ap:ask:apkweapons" },
+    ],
+    [
+      { t: "🛡 ARMADURAS", d: "ap:ask:apkarmors" },
+      { t: "🧩 FRAGMENTOS", d: "ap:ask:apkfrag" },
+    ],
+    [
+      { t: "✨ ALEATÓRIOS", d: "ap:ask:apkrandom" },
+      { t: "⛏ BÔNUS TON (%)", d: "ap:ask:apkbonus" },
+    ],
+    [
+      { t: "🎟 TIER DO PASSE", d: "ap:ask:apktier" },
+      { t: "📌 PRIORIDADE POPUP", d: "ap:ask:apkprio" },
+    ],
+    [
+      { t: "📦 ESTOQUE", d: "ap:ask:apkstock" },
+      { t: "🔐 LIMITE/CONTA", d: "ap:ask:apklimit" },
+    ],
+    [
+      { t: "🟢 DATA INÍCIO", d: "ap:ask:apkstart" },
+      { t: "🔴 DATA FIM", d: "ap:ask:apkend" },
+    ],
+    [
+      { t: c.sold_out_visible ? "🫥 OCULTAR SE ESGOTADO" : "👀 MOSTRAR SE ESGOTADO", d: `ap:soldout:${c.sold_out_visible ? 0 : 1}` },
+      { t: "🧾 VER COMPRAS", d: "ap:buys" },
+    ],
+    [{ t: "🔮 REVELAR MINERAÇÃO", d: "ap:ask:apkreveal" }],
+    [
+      { t: "♻️ REPROCESSAR ENTREGA", d: "ap:ask:apkretry" },
+      { t: "🧪 DIAGNÓSTICO POPUP", d: "ap:ask:apkdiag" },
+    ],
+    [{ t: "♻️ RESET POPUP DE HOJE", d: "ap:ask:apkreset" }],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function apCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "on") await rpc("admin_adventurer_pack_set", { p_admin_id: ctx.adminId, p_field: "enabled", p_value: a });
+  if (sub === "pause") await rpc("admin_adventurer_pack_set", { p_admin_id: ctx.adminId, p_field: "sales_paused", p_value: a });
+  if (sub === "popup") await rpc("admin_adventurer_pack_set", { p_admin_id: ctx.adminId, p_field: "popup_enabled", p_value: a });
+  if (sub === "soldout") await rpc("admin_adventurer_pack_set", { p_admin_id: ctx.adminId, p_field: "sold_out_visible", p_value: a });
+  if (sub === "buys") {
+    const d = (await rpc("admin_adventurer_pack_overview", { p_admin_id: ctx.adminId })) as any;
+    const rows = ((d.purchases ?? []) as any[]).slice(0, 25);
+    const text = ["🧾 <b>COMPRAS — LEGENDARY ADVENTURER PACK</b>", "",
+      rows.map((r) => `• ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.status)}${r.deliveredAt ? " ✅" : " ⏳"}\n  <code>${r.purchaseId}</code>${r.error ? `\n  ⚠️ ${esc(String(r.error))}` : ""}`).join("\n") || "nenhuma compra ainda"].join("\n");
+    return edit(ctx, text, kb([[{ t: "⬅️ VOLTAR", d: "ap:hub" }], nav()]));
+  }
+  return apHub(ctx);
+}
+
+const AP_FIELDS: Record<string, string> = {
+  apkprice: "price_ton",
+  apkfc: "fc_reward",
+  apkchests: "legendary_chests",
+  apkweapons: "nft_weapons",
+  apkarmors: "legendary_armors",
+  apkfrag: "universal_fragments",
+  apkrandom: "random_items",
+  apkbonus: "account_ton_bonus_percent",
+  apktier: "grant_pass_tier",
+  apkfreq: "popup_frequency",
+  apkprio: "popup_priority",
+  apklimit: "purchase_limit",
+  apkstock: "stock_total",
+  apkstart: "start_at",
+  apkend: "ends_at",
+};
+
+async function apPrompt(ctx: Ctx, key: string, text: string) {
+  const raw = text.trim();
+  if (key === "apkdiag") {
+    const d = (await rpc("admin_premium_offer_eligibility", { p_admin_id: ctx.adminId, p_query: raw, p_offer_id: "LEGENDARY_ADVENTURER_PACK" })) as any;
+    const yn = (v: unknown) => (v ? "YES" : "NO");
+    await clearSession(ctx);
+    await send(ctx, [
+      "🧪 <b>POPUP ELIGIBILITY</b>", "",
+      `Player: ${esc(d.player?.username ? "@" + d.player.username : String(d.player?.telegramId ?? "—"))}`,
+      `Offer: Legendary Adventurer Pack (${esc(d.dayKey ?? "")})`, "",
+      `ACTIVE: ${yn(d.active)}`,
+      `POPUP ENABLED: ${yn(d.popupEnabled)} (${esc(d.popupFrequency ?? "—")} · prio ${d.priority ?? "—"})`,
+      `WINDOW OPEN: ${yn(d.windowOpen)}`,
+      `PURCHASED: ${yn(d.purchased)}`,
+      `PAYMENT PENDING: ${yn(d.paymentPending)}`,
+      `STOCK: ${d.soldOut ? "SOLD OUT" : "AVAILABLE"}`,
+      `SHOWN TODAY: ${yn(d.shownToday)}`,
+      `ELIGIBLE: ${yn(d.eligible)}`,
+      `REASON: <code>${esc(String(d.reason ?? "—"))}</code>`,
+      `QUEUE: <code>${esc(JSON.stringify(d.queue ?? []))}</code>`,
+    ].join("\n"));
+    return apHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "apkreset") {
+    const d = (await rpc("admin_premium_offer_reset_today", { p_admin_id: ctx.adminId, p_query: raw, p_offer_id: "LEGENDARY_ADVENTURER_PACK" })) as any;
+    await clearSession(ctx);
+    await send(ctx, [
+      "♻️ <b>RESET POPUP DE HOJE</b>", "",
+      `Player: ${esc(d.player?.username ? "@" + d.player.username : String(d.player?.telegramId ?? "—"))}`,
+      `Dia: <code>${esc(String(d.dayKey ?? ""))}</code>`,
+      `Impressões resetadas: <b>${d.impressionsReset ?? 0}</b>`,
+      `Status agora: <code>${esc(String(d.status ?? "—"))}</code>`,
+    ].join("\n"));
+    return apHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "apkreveal") {
+    const parts = raw.split(/\s+/);
+    const itemId = parts[0] ?? "";
+    const ton = Number(String(parts[1] ?? "0").replace(",", "."));
+    const myth = Number(String(parts[2] ?? "0").replace(",", "."));
+    if (!/^[0-9a-f-]{36}$/i.test(itemId) || !Number.isFinite(ton) || !Number.isFinite(myth) || ton < 0 || myth < 0) {
+      throw new Error("KEEP_SESSION::⚠️ Envie <code>id_do_item ton_por_dia myth_por_dia</code>.");
+    }
+    await rpc("admin_adventurer_pack_reveal", { p_admin_id: ctx.adminId, p_item_id: itemId, p_daily_ton: ton, p_daily_myth: myth });
+    await clearSession(ctx);
+    await send(ctx, `🔮 Mineração revelada: <b>${ton} TON/dia</b> + <b>${myth} MYTH/dia</b> (sem retroativo).`);
+    return apHub({ ...ctx, messageId: undefined }, false);
+  }
+  if (key === "apkretry") {
+    if (!/^[0-9a-f-]{36}$/i.test(raw)) throw new Error("KEEP_SESSION::⚠️ Envie um <b>ID de compra</b> válido.");
+    const d = (await rpc("admin_adventurer_pack_retry", { p_admin_id: ctx.adminId, p_purchase_id: raw })) as any;
+    await clearSession(ctx);
+    await send(ctx, `♻️ Entrega reprocessada: <code>${esc(JSON.stringify(d ?? {}))}</code>`);
+    return apHub({ ...ctx, messageId: undefined }, false);
+  }
+  const field = AP_FIELDS[key];
+  if (!field) return apHub({ ...ctx, messageId: undefined }, false);
+  let value = raw;
+  if (field === "start_at" || field === "ends_at") {
+    // janela da oferta: ISO ou "-" para limpar
+  } else if (field === "popup_frequency") {
+    value = value.toUpperCase();
+  } else if (field === "grant_pass_tier") {
+    value = value.toLowerCase();
+  } else {
+    const num = ["price_ton", "account_ton_bonus_percent"].includes(field)
+      ? Number(value.replace(",", ".").replace(/[^\d.]/g, ""))
+      : parseAmount(value);
+    if (!Number.isFinite(num) || num < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+    value = String(num);
+  }
+  await rpc("admin_adventurer_pack_set", { p_admin_id: ctx.adminId, p_field: field, p_value: value });
+  await clearSession(ctx);
+  await send(ctx, `🏆 Legendary Adventurer Pack atualizado: <b>${esc(field)}</b> = <code>${esc(value)}</code>`);
+  return apHub({ ...ctx, messageId: undefined }, false);
+}
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
@@ -9086,6 +9304,11 @@ async function handleCallback(ctx: Ctx, data: string) {
   if (head === "cp") {
     if (rest[0] !== "ask") await clearSession(ctx);
     return cpCallback(ctx, rest);
+  }
+  // 🏆 LEGENDARY ADVENTURER PACK — 30 TON, teto LEGENDARY, passe incluído e revelação da mineração.
+  if (head === "ap") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return apCallback(ctx, rest);
   }
   if (head === "mu") {
     if (rest[0] !== "ask") await clearSession(ctx);
@@ -12640,6 +12863,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("stk")) return stakingPrompt(ctx, key, text);
   if (key.startsWith("mu")) return muPrompt(ctx, key, text);
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
+  if (key.startsWith("apk")) return apPrompt(ctx, key, text);
   if (key.startsWith("cp")) return cpPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
