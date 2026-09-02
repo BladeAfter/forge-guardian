@@ -1566,6 +1566,12 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'premium-offer-seen') {
     fn = 'premium_offer_popup_mark';
     args = { ...args, p_offer_type: String(body.offerType || ''), p_dismissed: Boolean(body.dismissed) };
+  // 🎁 AUTO POPUP: reserva (não grava nada) → o cliente abre o modal → confirma a exibição.
+  } else if (action === 'popup-reserve') {
+    fn = 'premium_offer_popup_reserve';
+  } else if (action === 'popup-confirm-shown') {
+    fn = 'premium_offer_popup_confirm_shown';
+    args = { ...args, p_offer_id: String(body.offerId || '') };
   // Popup diário do Celestial Mystery Pack: claim atômico (a UNIQUE do dia protege race conditions).
   } else if (action === 'offer-impression-claim') {
     fn = 'claim_daily_offer_impression';
