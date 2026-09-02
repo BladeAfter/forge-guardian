@@ -6,6 +6,7 @@ import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
 import { MythicVanguardPackCard } from './MythicVanguardPackCard';
+import { LegendaryAdventurerPackCard } from './LegendaryAdventurerPackCard';
 
 const log = (message: string, extra?: unknown) => {
   if (import.meta.env.DEV) console.info(`[PremiumOfferPopup] ${message}`, extra ?? '');
@@ -71,7 +72,7 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
   }, [offer, telegramInitData]);
 
   const close = () => {
-    if (offer === 'CELESTIAL_MYSTERY_PACK' || offer === 'CELESTIAL_SOVEREIGN_PACK' || offer === 'MYTHIC_VANGUARD_PACK') {
+    if (offer === 'CELESTIAL_MYSTERY_PACK' || offer === 'CELESTIAL_SOVEREIGN_PACK' || offer === 'MYTHIC_VANGUARD_PACK' || offer === 'LEGENDARY_ADVENTURER_PACK') {
       void trackOfferImpression(telegramInitData, offer, 'dismissed').catch(() => {});
     } else if (offer) {
       void markPremiumOfferSeen(telegramInitData, offer as PremiumOfferType, true).catch(() => {});
@@ -88,6 +89,9 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
   }
   if (offer === 'MYTHIC_VANGUARD_PACK') {
     return <MythicVanguardPackCard key="vanguard-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  }
+  if (offer === 'LEGENDARY_ADVENTURER_PACK') {
+    return <LegendaryAdventurerPackCard key="adventurer-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   }
   if (offer === 'FOUNDER_PACK') {
     return <FounderPackCard key="founder-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;

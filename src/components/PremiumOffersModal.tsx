@@ -3,6 +3,7 @@ import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
 import { MythicVanguardPackCard } from './MythicVanguardPackCard';
+import { LegendaryAdventurerPackCard } from './LegendaryAdventurerPackCard';
 
 
 /**
@@ -29,6 +30,7 @@ export function PremiumOffersModal({ telegramInitData, onClose }: { telegramInit
         <VeteranVaultV2Card telegramInitData={telegramInitData} />
         <CelestialPackCard telegramInitData={telegramInitData} />
         <MythicVanguardPackCard telegramInitData={telegramInitData} />
+        <LegendaryAdventurerPackCard telegramInitData={telegramInitData} />
 
 
         <p className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-center text-[10px] uppercase tracking-[0.16em] text-slate-400">

@@ -36,9 +36,10 @@ import { tonMines } from './tonMines';
 import { privateTrade } from './privateTrade';
 import { celestialPack } from './celestialPack';
 import { vanguardPack } from './vanguardPack';
+import { adventurerPack } from './adventurerPack';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission, marketingPool, clanWar, tonMines, privateTrade, celestialPack, vanguardPack];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission, marketingPool, clanWar, tonMines, privateTrade, celestialPack, vanguardPack, adventurerPack];
 
 
 
