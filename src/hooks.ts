@@ -21,6 +21,7 @@ import type { FounderPackState } from './founderPack';
 import type { VeteranVaultState } from './veteranVault';
 import type { VeteranV2State } from './veteranVaultV2';
 import type { CelestialPackState } from './celestialPack';
+import type { SovereignPackState } from './sovereignPack';
 import type { VanguardPackState } from './vanguardPack';
 import type { AdventurerPackState } from './adventurerPack';
 import type { PremiumOffersState } from './premiumOffers';
@@ -87,6 +88,8 @@ export const useVeteranVault=(telegramInitData:string|null,enabled:boolean)=>use
 export const useVeteranV2=(telegramInitData:string|null,enabled:boolean)=>useQuery<VeteranV2State>({queryKey:['veteran-v2',telegramInitData],queryFn:()=>walletRequest<VeteranV2State>(telegramInitData??'',{action:'veteran-v2'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 /** 💫 CELESTIAL MYSTERY PACK: visibilidade, preço, estoque e status de revelação são do servidor. */
 export const useCelestialPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<CelestialPackState>({queryKey:['celestial-pack',telegramInitData],queryFn:()=>walletRequest<CelestialPackState>(telegramInitData??'',{action:'celestial-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
+/** 👑 CELESTIAL SOVEREIGN PACK: visibilidade, preço, estoque e revelação vêm do servidor. */
+export const useSovereignPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<SovereignPackState>({queryKey:['sovereign-pack',telegramInitData],queryFn:()=>walletRequest<SovereignPackState>(telegramInitData??'',{action:'sovereign-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 /** ⚔️ MYTHIC VANGUARD PACK: visibilidade, preço, estoque e status de revelação são do servidor. */
 export const useVanguardPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<VanguardPackState>({queryKey:['vanguard-pack',telegramInitData],queryFn:()=>walletRequest<VanguardPackState>(telegramInitData??'',{action:'vanguard-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});
 export const useAdventurerPack=(telegramInitData:string|null,enabled:boolean)=>useQuery<AdventurerPackState>({queryKey:['adventurer-pack',telegramInitData],queryFn:()=>walletRequest<AdventurerPackState>(telegramInitData??'',{action:'adventurer-pack'}),enabled,staleTime:30_000,refetchOnWindowFocus:true,retry:1});

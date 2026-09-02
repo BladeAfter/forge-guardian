@@ -6,6 +6,7 @@ import type { PremiumOfferType } from '../premiumOffers';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
+import { SovereignPackCard } from './SovereignPackCard';
 import { MythicVanguardPackCard } from './MythicVanguardPackCard';
 import { LegendaryAdventurerPackCard } from './LegendaryAdventurerPackCard';
 
@@ -86,7 +87,9 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
   if (!offer) return null;
 
   let popup: React.ReactNode;
-  if (offer === 'CELESTIAL_MYSTERY_PACK') {
+  if (offer === 'CELESTIAL_SOVEREIGN_PACK') {
+    popup = <SovereignPackCard key="sovereign-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  } else if (offer === 'CELESTIAL_MYSTERY_PACK') {
     popup = <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   } else if (offer === 'MYTHIC_VANGUARD_PACK') {
     popup = <MythicVanguardPackCard key="vanguard-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
