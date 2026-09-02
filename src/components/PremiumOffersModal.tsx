@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
+import { CelestialPackCard } from './CelestialPackCard';
+
 
 /**
  * 💎 OFERTAS PREMIUM — acesso permanente aos pacotes Founder Pack (35 TON) e Veteran Vault (100 TON).
