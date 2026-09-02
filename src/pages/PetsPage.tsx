@@ -240,10 +240,6 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
 
   return (
     <Shell onClose={onClose} section={section} onSection={setSection}>
-      <section className="relative overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-b from-sky-950/55 to-black/80 p-4 shadow-[0_0_40px_rgba(245,158,11,.12)]">
-        {active ? (
-          <>
-            <div className="flex items-center gap-4">
       <section
         className={`relative overflow-hidden rounded-[2rem] border p-4 ${
           activeIsCelestial
