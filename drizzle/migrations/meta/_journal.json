@@ -568,6 +568,13 @@
       "when": 1788388318783,
       "tag": "0080_allow_celestial_pet_rarity",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1788389339843,
+      "tag": "0081_celestial_pet_premium_buffs",
+      "breakpoints": true
     }
   ]
 }
