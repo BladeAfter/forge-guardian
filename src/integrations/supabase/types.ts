@@ -18376,6 +18376,7 @@ export type Database = {
       }
     }
     Functions: {
+      _probe_premium_offers: { Args: { p_telegram_id: number }; Returns: Json }
       accounts_share_device: {
         Args: { p_a: string; p_b: string }
         Returns: boolean
