@@ -930,6 +930,7 @@ export type Database = {
           account_ton_bonus_percent: number
           armors: number
           enabled: boolean
+          ends_at: string | null
           fc_reward: number
           id: boolean
           legendary_chests: number
@@ -937,17 +938,23 @@ export type Database = {
           package_version: string
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
+          purchase_limit: number
           random_items: number
           random_items_pool: Json
           reward_configuration_version: number
           sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
           updated_at: string
         }
         Insert: {
           account_ton_bonus_percent?: number
           armors?: number
           enabled?: boolean
+          ends_at?: string | null
           fc_reward?: number
           id?: boolean
           legendary_chests?: number
@@ -955,17 +962,23 @@ export type Database = {
           package_version?: string
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
+          purchase_limit?: number
           random_items?: number
           random_items_pool?: Json
           reward_configuration_version?: number
           sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
           updated_at?: string
         }
         Update: {
           account_ton_bonus_percent?: number
           armors?: number
           enabled?: boolean
+          ends_at?: string | null
           fc_reward?: number
           id?: boolean
           legendary_chests?: number
@@ -973,11 +986,16 @@ export type Database = {
           package_version?: string
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
+          purchase_limit?: number
           random_items?: number
           random_items_pool?: Json
           reward_configuration_version?: number
           sales_paused?: boolean
+          sold_out_visible?: boolean
+          start_at?: string | null
+          stock_total?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -5896,6 +5914,7 @@ export type Database = {
           pet_slug: string
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
           require_new_account: boolean
           resource_chest: Json
@@ -5924,6 +5943,7 @@ export type Database = {
           pet_slug?: string
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
           require_new_account?: boolean
           resource_chest?: Json
@@ -5952,6 +5972,7 @@ export type Database = {
           pet_slug?: string
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
           require_new_account?: boolean
           resource_chest?: Json
@@ -13136,6 +13157,42 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_offer_impressions: {
+        Row: {
+          clicked_at: string | null
+          created_at: string
+          dismissed_at: string | null
+          id: string
+          impression_date: string
+          offer_id: string
+          purchased_at: string | null
+          shown_at: string
+          user_id: string
+        }
+        Insert: {
+          clicked_at?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          impression_date: string
+          offer_id: string
+          purchased_at?: string | null
+          shown_at?: string
+          user_id: string
+        }
+        Update: {
+          clicked_at?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          id?: string
+          impression_date?: string
+          offer_id?: string
+          purchased_at?: string | null
+          shown_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       premium_offer_popup_views: {
         Row: {
           day_key: string
@@ -17833,6 +17890,7 @@ export type Database = {
           pet_daily_myth: number
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
           reward_configuration_version: number
           sales_paused: boolean
@@ -17855,6 +17913,7 @@ export type Database = {
           pet_daily_myth?: number
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
           reward_configuration_version?: number
           sales_paused?: boolean
@@ -17877,6 +17936,7 @@ export type Database = {
           pet_daily_myth?: number
           popup_enabled?: boolean
           popup_frequency?: string
+          popup_priority?: number
           price_ton?: number
           reward_configuration_version?: number
           sales_paused?: boolean
@@ -19459,6 +19519,10 @@ export type Database = {
         Returns: Json
       }
       admin_pool_ranking_tiers: { Args: { p_admin_id: number }; Returns: Json }
+      admin_premium_offer_metrics: {
+        Args: { p_admin_id: number; p_offer_id?: string }
+        Returns: Json
+      }
       admin_premium_offers_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -20586,12 +20650,14 @@ export type Database = {
         Returns: Json
       }
       celestial_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      celestial_pack_offer_meta: { Args: { p_user_id: string }; Returns: Json }
       celestial_pack_settings: {
         Args: never
         Returns: {
           account_ton_bonus_percent: number
           armors: number
           enabled: boolean
+          ends_at: string | null
           fc_reward: number
           id: boolean
           legendary_chests: number
@@ -20599,11 +20665,16 @@ export type Database = {
           package_version: string
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
+          purchase_limit: number
           random_items: number
           random_items_pool: Json
           reward_configuration_version: number
           sales_paused: boolean
+          sold_out_visible: boolean
+          start_at: string | null
+          stock_total: number | null
           updated_at: string
         }
         SetofOptions: {
@@ -20643,6 +20714,10 @@ export type Database = {
           p_membership_ok?: boolean
           p_telegram_id: number
         }
+        Returns: Json
+      }
+      claim_daily_offer_impression: {
+        Args: { p_offer_id: string; p_telegram_id: number }
         Returns: Json
       }
       claim_daily_quest: {
@@ -21876,6 +21951,7 @@ export type Database = {
           pet_slug: string
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
           require_new_account: boolean
           resource_chest: Json
@@ -22996,6 +23072,14 @@ export type Database = {
         Returns: undefined
       }
       premium_offer_day_key: { Args: never; Returns: string }
+      premium_offer_frequency_days: {
+        Args: { p_frequency: string }
+        Returns: number
+      }
+      premium_offer_impression_event: {
+        Args: { p_event: string; p_offer_id: string; p_telegram_id: number }
+        Returns: Json
+      }
       premium_offer_popup_mark: {
         Args: {
           p_dismissed?: boolean
@@ -23553,6 +23637,10 @@ export type Database = {
         Args: { p_default: string; p_key: string }
         Returns: string
       }
+      should_show_premium_offer_popup: {
+        Args: { p_offer_id: string; p_user_id: string }
+        Returns: string
+      }
       simulate_pvp_battle: {
         Args: { a: Json; d: Json; seed: string }
         Returns: Json
@@ -24029,6 +24117,7 @@ export type Database = {
           pet_daily_myth: number
           popup_enabled: boolean
           popup_frequency: string
+          popup_priority: number
           price_ton: number
           reward_configuration_version: number
           sales_paused: boolean

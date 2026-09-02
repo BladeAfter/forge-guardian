@@ -428,6 +428,13 @@
       "when": 1788308781325,
       "tag": "0060_celestial_mystery_pack_core",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1788309188659,
+      "tag": "0061_celestial_pack_daily_popup_impressions",
+      "breakpoints": true
     }
   ]
 }
