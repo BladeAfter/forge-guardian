@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
+import { SovereignPackCard } from './SovereignPackCard';
 import { MythicVanguardPackCard } from './MythicVanguardPackCard';
 import { LegendaryAdventurerPackCard } from './LegendaryAdventurerPackCard';
 
@@ -26,6 +27,7 @@ export function PremiumOffersModal({ telegramInitData, onClose }: { telegramInit
           </button>
         </div>
 
+        <SovereignPackCard telegramInitData={telegramInitData} />
         <FounderPackCard telegramInitData={telegramInitData} />
         <VeteranVaultV2Card telegramInitData={telegramInitData} />
         <CelestialPackCard telegramInitData={telegramInitData} />
