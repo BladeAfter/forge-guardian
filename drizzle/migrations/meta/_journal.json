@@ -561,6 +561,13 @@
       "when": 1788388128531,
       "tag": "0079_mythic_power_pack_admin_param_rename",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1788388318783,
+      "tag": "0080_allow_celestial_pet_rarity",
+      "breakpoints": true
     }
   ]
 }
