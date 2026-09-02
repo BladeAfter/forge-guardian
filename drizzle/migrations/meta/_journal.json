@@ -484,6 +484,13 @@
       "when": 1788310899630,
       "tag": "0068_popup_confirm_reactivates_reset_impression",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1788311544164,
+      "tag": "0069_mythic_vanguard_pack_core",
+      "breakpoints": true
     }
   ]
 }
