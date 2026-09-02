@@ -195,8 +195,13 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
   }
 
   const active = data.activePet;
+  const activeIsNft = active ? isNftExclusivePet(active) : false;
+  const activeIsVeteran = !!active && !activeIsNft && isVeteranLine(active);
+  const activeIsCelestial = !!active && !activeIsNft && !activeIsVeteran && petDisplayRarity(active) === 'celestial';
+  const activePremium = activeIsCelestial || activeIsVeteran || activeIsNft;
   const liveDetails = detailsTarget ? data.playerPets.find((pet) => pet.id === detailsTarget.id) ?? null : null;
   const liveFeedTarget = feedTarget ? data.playerPets.find((pet) => pet.id === feedTarget.id) ?? null : null;
+
 
   if (section === 'nft') {
     return (
