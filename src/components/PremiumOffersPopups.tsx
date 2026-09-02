@@ -1,91 +1,96 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePremiumOffers } from '../hooks';
-import { claimDailyOfferImpression, markPremiumOfferSeen, trackOfferImpression } from '../services';
+import { confirmPremiumOfferPopupShown, markPremiumOfferSeen, reservePremiumOfferPopup, trackOfferImpression } from '../services';
 import type { PremiumOfferType } from '../premiumOffers';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
 import { CelestialPackCard } from './CelestialPackCard';
+import { CelestialSovereignPackCard } from './CelestialSovereignPackCard';
+
+const log = (message: string, extra?: unknown) => {
+  if (import.meta.env.DEV) console.info(`[PremiumOfferPopup] ${message}`, extra ?? '');
+};
 
 /**
- * 🎁 Fila diária de ofertas premium com PRIORIDADE server-side
- * (Celestial Mystery Pack 100 > Founder Pack 50 > Veteran Vault 40).
+ * 🎁 POPUP AUTOMÁTICO DIÁRIO DAS OFERTAS PREMIUM.
  *
- * O servidor decide tudo: elegibilidade, janela, estoque, limite de compra, se o popup está ligado,
- * a frequência e o limite de 1 exibição por oferta por dia (no fuso oficial), por CONTA — nunca por
- * dispositivo. O Celestial Mystery Pack usa o claim atômico `claim_daily_offer_impression`, então
- * dois requests simultâneos nunca abrem dois popups. Fechar o popup só silencia o dia: a oferta
- * continua disponível em OFERTAS PREMIUM.
+ * Este componente é montado no bootstrap do app (App.tsx), NÃO na aba OFERTAS: assim que o jogador
+ * está autenticado, o player carregado e a Vila pronta, ele pergunta ao servidor qual oferta deve
+ * aparecer — o jogador não precisa clicar em nada.
  *
- * `active` mantém o popup fora de momentos ruins (batalha, PvP, pagamento, revelações): só abrimos
- * na Home/Village, com um pequeno atraso depois de a tela principal estabilizar.
+ * Fluxo anti-"queimar impressão":
+ *   1. `popup-reserve` → o servidor escolhe 0 ou 1 oferta (prioridade: Sovereign 200 > Celestial 100
+ *      > Founder 50 > Veteran 40) e NÃO grava impressão nenhuma;
+ *   2. o modal abre de verdade;
+ *   3. só depois de montado chamamos `popup-confirm-shown`, que grava a impressão do dia de forma
+ *      atômica por (conta, oferta, dia) — multi-device e duas sessões simultâneas ficam seguros.
+ *
+ * `active` mantém o popup fora de momentos ruins (batalha, PvP, pagamentos, popups críticos): ele só
+ * abre sobre a Vila/Home, com um pequeno atraso depois de a tela estabilizar. Fechar apenas silencia
+ * o dia — a oferta continua listada em OFERTAS PREMIUM.
  */
 export function PremiumOffersPopups({ telegramInitData, active = true }: { telegramInitData: string; active?: boolean }) {
   const client = useQueryClient();
-  const { data } = usePremiumOffers(telegramInitData, Boolean(telegramInitData));
-  const [index, setIndex] = useState(0);
-  const [marked, setMarked] = useState<string[]>([]);
-  const [ready, setReady] = useState(false);
-  const [celestialClaim, setCelestialClaim] = useState<'idle' | 'pending' | 'show' | 'blocked'>('idle');
+  const [offer, setOffer] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const requested = useRef(false);
+  const confirmed = useRef(false);
 
-  // Fila do servidor (já ordenada por prioridade). Mostramos no máximo 1 popup por sessão.
-  const queue = useMemo(() => {
-    const serverQueue = Array.isArray(data?.queue) ? (data!.queue as string[]) : [];
-    return serverQueue.filter((offer, position) => serverQueue.indexOf(offer) === position);
-  }, [data]);
-
-  const current = queue[index] ?? null;
-
-  // Pequeno atraso após os dados carregarem (nada aparece antes da tela principal estabilizar).
+  // 1️⃣ Startup check: dispara sozinho quando a Home/Vila está pronta.
   useEffect(() => {
-    if (!active || !data) { setReady(false); return; }
-    const timer = window.setTimeout(() => setReady(true), 900);
+    if (!active || !telegramInitData || done || requested.current) return;
+    requested.current = true;
+    const timer = window.setTimeout(() => {
+      log('startup check started');
+      void reservePremiumOfferPopup(telegramInitData)
+        .then(result => {
+          if (!result.shouldShow || !result.offerId) {
+            log('no eligible offer', result.reason ?? 'NO_ELIGIBLE_OFFER');
+            setDone(true);
+            return;
+          }
+          log(`eligible offer: ${result.offerId}`);
+          log('opening modal', result.offerId);
+          setOffer(result.offerId);
+        })
+        .catch(error => {
+          console.warn('[PremiumOfferPopup] failed_to_open', error instanceof Error ? error.message : error);
+          setDone(true);
+        });
+    }, 900);
     return () => window.clearTimeout(timer);
-  }, [active, data]);
+  }, [active, telegramInitData, done]);
 
-  // Claim atômico da impressão diária do Celestial Mystery Pack (autoridade é o servidor).
+  // 3️⃣ Confirmação da impressão SÓ depois de o modal montar.
   useEffect(() => {
-    if (!ready || current !== 'CELESTIAL_MYSTERY_PACK' || celestialClaim !== 'idle') return;
-    setCelestialClaim('pending');
-    void claimDailyOfferImpression(telegramInitData, 'CELESTIAL_MYSTERY_PACK')
-      .then(result => setCelestialClaim(result.status === 'SHOW' ? 'show' : 'blocked'))
-      .catch(() => setCelestialClaim('blocked'));
-  }, [ready, current, celestialClaim, telegramInitData]);
+    if (!offer || confirmed.current) return;
+    confirmed.current = true;
+    void confirmPremiumOfferPopupShown(telegramInitData, offer)
+      .then(() => log('impression recorded', offer))
+      .catch(error => console.warn('[PremiumOfferPopup] impression_failed', error instanceof Error ? error.message : error));
+  }, [offer, telegramInitData]);
 
-  // Founder/Veteran mantêm o registro original de exibição (1x/dia por oferta).
-  useEffect(() => {
-    if (!ready || !current || current === 'CELESTIAL_MYSTERY_PACK' || marked.includes(current)) return;
-    setMarked(previous => [...previous, current]);
-    void markPremiumOfferSeen(telegramInitData, current as PremiumOfferType)
-      .catch(() => { /* o servidor volta a oferecer no próximo carregamento */ });
-  }, [ready, current, marked, telegramInitData]);
-
-  // Popup bloqueado pelo servidor (já visto hoje, comprado, inativo): passa para a próxima oferta.
-  useEffect(() => {
-    if (celestialClaim !== 'blocked' || current !== 'CELESTIAL_MYSTERY_PACK') return;
-    setIndex(value => value + 1);
-    setCelestialClaim('idle');
-  }, [celestialClaim, current]);
-
-  const advance = () => {
-    if (current === 'CELESTIAL_MYSTERY_PACK') {
-      void trackOfferImpression(telegramInitData, 'CELESTIAL_MYSTERY_PACK', 'dismissed').catch(() => {});
-    } else if (current) {
-      void markPremiumOfferSeen(telegramInitData, current as PremiumOfferType, true).catch(() => {});
+  const close = () => {
+    if (offer === 'CELESTIAL_MYSTERY_PACK' || offer === 'CELESTIAL_SOVEREIGN_PACK') {
+      void trackOfferImpression(telegramInitData, offer, 'dismissed').catch(() => {});
+    } else if (offer) {
+      void markPremiumOfferSeen(telegramInitData, offer as PremiumOfferType, true).catch(() => {});
     }
-    setIndex(value => value + 1);
-    setCelestialClaim('idle');
+    setOffer(null);
+    setDone(true);
     void client.invalidateQueries({ queryKey: ['premium-offers'] });
   };
 
-  if (!ready || !current) return null;
+  if (!offer) return null;
 
-  if (current === 'CELESTIAL_MYSTERY_PACK') {
-    if (celestialClaim !== 'show') return null;
-    return <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={advance} />;
+  if (offer === 'CELESTIAL_SOVEREIGN_PACK') {
+    return <CelestialSovereignPackCard key="sovereign-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   }
-  if (current === 'FOUNDER_PACK') {
-    return <FounderPackCard key="founder-popup" telegramInitData={telegramInitData} popupMode onPopupClose={advance} />;
+  if (offer === 'CELESTIAL_MYSTERY_PACK') {
+    return <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
   }
-  return <VeteranVaultV2Card key="veteran-popup" telegramInitData={telegramInitData} popupMode onPopupClose={advance} />;
+  if (offer === 'FOUNDER_PACK') {
+    return <FounderPackCard key="founder-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
+  }
+  return <VeteranVaultV2Card key="veteran-popup" telegramInitData={telegramInitData} popupMode onPopupClose={close} />;
 }
