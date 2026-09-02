@@ -540,6 +540,13 @@
       "when": 1788314747809,
       "tag": "0076_fix_pack_hero_pool_and_stock",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1788384800219,
+      "tag": "0077_add_celestial_pet_rarity",
+      "breakpoints": true
     }
   ]
 }
