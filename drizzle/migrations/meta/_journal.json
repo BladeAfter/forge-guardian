@@ -575,6 +575,13 @@
       "when": 1788389339843,
       "tag": "0081_celestial_pet_premium_buffs",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1788389394214,
+      "tag": "0082_celestial_pet_fixed_buffs",
+      "breakpoints": true
     }
   ]
 }
