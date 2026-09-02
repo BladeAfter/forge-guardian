@@ -20363,11 +20363,15 @@ export type Database = {
         Returns: Json
       }
       admin_mythic_power_pack_overview: {
-        Args: { p_admin_telegram_id: number }
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_mythic_power_pack_retry: {
+        Args: { p_admin_id: number; p_purchase_id: string }
         Returns: Json
       }
       admin_mythic_power_pack_set: {
-        Args: { p_admin_telegram_id: number; p_field: string; p_value: string }
+        Args: { p_admin_id: number; p_field: string; p_value: string }
         Returns: Json
       }
       admin_name_mission: {

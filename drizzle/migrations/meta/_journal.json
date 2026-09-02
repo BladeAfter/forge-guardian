@@ -554,6 +554,13 @@
       "when": 1788387866043,
       "tag": "0078_mythic_power_pack_core",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1788388128531,
+      "tag": "0079_mythic_power_pack_admin_param_rename",
+      "breakpoints": true
     }
   ]
 }
