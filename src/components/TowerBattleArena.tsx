@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Swords, Zap } from 'lucide-react';
 import type { PvpHero } from '../pvp';
-import type { TowerBattle, TowerEquipmentDrop } from '../tower';
+import { TOWER_CHESTS, type TowerBattle, type TowerEquipmentDrop } from '../tower';
 import { towerBossTheme } from '../towerBosses';
 import { PetCompanion } from './PetCompanion';
 import { activePetBonuses } from '../petBonuses';
