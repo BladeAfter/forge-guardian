@@ -307,7 +307,8 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
             </div>
 
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="relative z-10 mt-3 grid grid-cols-2 gap-2">
+
               <Action text={t('pets.feed')} disabled={pending || active.isMaxLevel} onClick={() => setFeedTarget(active)} />
               <EvolveButton pet={active} balance={data.balance} universal={data.inventory.universalFragments} pending={pending} onEvolve={() => evolve(active)} myth={myth} onEvolveMyth={() => evolve(active, 'MYTH')} />
             </div>
