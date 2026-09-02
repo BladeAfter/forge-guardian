@@ -9432,7 +9432,12 @@ async function handleCallback(ctx: Ctx, data: string) {
     return cpCallback(ctx, rest);
   }
   // 🏆 LEGENDARY ADVENTURER PACK — 30 TON, teto LEGENDARY, passe incluído e revelação da mineração.
+  if (head === "mpp") {
+    if (rest[0] !== "ask") await clearSession(ctx);
+    return mppCallback(ctx, rest);
+  }
   if (head === "ap") {
+
     if (rest[0] !== "ask") await clearSession(ctx);
     return apCallback(ctx, rest);
   }
@@ -12990,6 +12995,8 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   if (key.startsWith("mu")) return muPrompt(ctx, key, text);
   if (key.startsWith("po")) return poPrompt(ctx, key, text);
   if (key.startsWith("apk")) return apPrompt(ctx, key, text);
+  if (key.startsWith("mpp")) return mppPrompt(ctx, key, text);
+
   if (key.startsWith("cp")) return cpPrompt(ctx, key, text);
   if (key.startsWith("v2")) return vv2Prompt(ctx, key, text);
   if (key.startsWith("vv")) return vvPrompt(ctx, key, text);
