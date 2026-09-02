@@ -60,6 +60,13 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
       .catch(() => { /* o servidor volta a oferecer no próximo carregamento */ });
   }, [ready, current, marked, telegramInitData]);
 
+  // Popup bloqueado pelo servidor (já visto hoje, comprado, inativo): passa para a próxima oferta.
+  useEffect(() => {
+    if (celestialClaim !== 'blocked' || current !== 'CELESTIAL_MYSTERY_PACK') return;
+    setIndex(value => value + 1);
+    setCelestialClaim('idle');
+  }, [celestialClaim, current]);
+
   const advance = () => {
     if (current === 'CELESTIAL_MYSTERY_PACK') {
       void trackOfferImpression(telegramInitData, 'CELESTIAL_MYSTERY_PACK', 'dismissed').catch(() => {});
@@ -74,7 +81,6 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
   if (!ready || !current) return null;
 
   if (current === 'CELESTIAL_MYSTERY_PACK') {
-    if (celestialClaim === 'blocked') return null;
     if (celestialClaim !== 'show') return null;
     return <CelestialPackCard key="celestial-popup" telegramInitData={telegramInitData} popupMode onPopupClose={advance} />;
   }

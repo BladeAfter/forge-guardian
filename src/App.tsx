@@ -894,7 +894,7 @@ function App() {
           else window.open(url,'_blank','noopener,noreferrer');
         }}
       />:null}
-      {telegramInitData&&!showStarterPack&&!showGiveaway?<PremiumOffersPopups telegramInitData={telegramInitData}/>:null}
+      {telegramInitData&&!showStarterPack&&!showGiveaway?<PremiumOffersPopups telegramInitData={telegramInitData} active={tab==='village'}/>:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`telegram-safe-body relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
