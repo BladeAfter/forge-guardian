@@ -4592,6 +4592,8 @@ const PROMPTS: Record<string, string> = {
   cpstock: "📦 Envie o <b>estoque total</b> do pacote (<code>0</code> = ilimitado, limitado só pelos Celestiais sem dono).",
   cpstart: "🟢 Envie a <b>data de início</b> (ISO) ou <code>-</code> para remover. Ex.: <code>2026-09-05T00:00:00Z</code>",
   cpend: "🔴 Envie a <b>data de fim</b> (ISO) ou <code>-</code> para remover. Ex.: <code>2026-10-01T00:00:00Z</code>",
+  cpdiag: "🧪 Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para ver a elegibilidade do popup.",
+  cpreset: "♻️ Envie o <b>Telegram ID</b>, <b>@username</b> ou <b>ID interno</b> para resetar SOMENTE a impressão de hoje (ferramenta de teste; o histórico é preservado).",
   cpreveal: "🔮 Envie <code>id_do_item ton_por_dia myth_por_dia</code> para revelar a mineração.\nEx.: <code>b1c2... 0.35 1000</code>",
 
   pvernew:
@@ -8274,6 +8276,10 @@ async function cpHub(ctx: Ctx, useEdit = true) {
       { t: "🧾 VER COMPRAS", d: "cp:buys" },
     ],
     [{ t: "🔮 REVELAR MINERAÇÃO", d: "cp:ask:cpreveal" }],
+    [
+      { t: "🧪 DIAGNÓSTICO POPUP", d: "cp:ask:cpdiag" },
+      { t: "♻️ RESET POPUP DE HOJE", d: "cp:ask:cpreset" },
+    ],
     nav(),
   ];
   return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
@@ -8314,6 +8320,41 @@ const CP_FIELDS: Record<string, string> = {
 
 async function cpPrompt(ctx: Ctx, key: string, text: string) {
   const raw = text.trim();
+  // 🧪 Diagnóstico de elegibilidade do popup automático (por que apareceu / por que não apareceu).
+  if (key === "cpdiag") {
+    const d = (await rpc("admin_premium_offer_eligibility", { p_admin_id: ctx.adminId, p_query: raw, p_offer_id: "CELESTIAL_MYSTERY_PACK" })) as any;
+    const yn = (v: unknown) => (v ? "YES" : "NO");
+    await clearSession(ctx);
+    await send(ctx, [
+      "🧪 <b>POPUP ELIGIBILITY</b>", "",
+      `Player: ${esc(d.player?.username ? "@" + d.player.username : String(d.player?.telegramId ?? "—"))}`,
+      `Offer: Celestial Mystery Pack (${esc(d.dayKey ?? "")})`, "",
+      `ACTIVE: ${yn(d.active)}`,
+      `POPUP ENABLED: ${yn(d.popupEnabled)} (${esc(d.popupFrequency ?? "—")} · prio ${d.priority ?? "—"})`,
+      `WINDOW OPEN: ${yn(d.windowOpen)}`,
+      `PURCHASED: ${yn(d.purchased)}`,
+      `PAYMENT PENDING: ${yn(d.paymentPending)}`,
+      `STOCK: ${d.soldOut ? "SOLD OUT" : "AVAILABLE"}`,
+      `SHOWN TODAY: ${yn(d.shownToday)}`,
+      `ELIGIBLE: ${yn(d.eligible)}`,
+      `REASON: <code>${esc(String(d.reason ?? "—"))}</code>`,
+      `QUEUE: <code>${esc(JSON.stringify(d.queue ?? []))}</code>`,
+    ].join("\n"));
+    return cpHub({ ...ctx, messageId: undefined }, false);
+  }
+  // ♻️ RESET TODAY POPUP — só para teste/suporte; marca a impressão como resetada (não apaga métricas).
+  if (key === "cpreset") {
+    const d = (await rpc("admin_premium_offer_reset_today", { p_admin_id: ctx.adminId, p_query: raw, p_offer_id: "CELESTIAL_MYSTERY_PACK" })) as any;
+    await clearSession(ctx);
+    await send(ctx, [
+      "♻️ <b>RESET POPUP DE HOJE</b>", "",
+      `Player: ${esc(d.player?.username ? "@" + d.player.username : String(d.player?.telegramId ?? "—"))}`,
+      `Dia: <code>${esc(String(d.dayKey ?? ""))}</code>`,
+      `Impressões resetadas: <b>${d.impressionsReset ?? 0}</b>`,
+      `Status agora: <code>${esc(String(d.status ?? "—"))}</code>`,
+    ].join("\n"));
+    return cpHub({ ...ctx, messageId: undefined }, false);
+  }
   if (key === "cpreveal") {
     const parts = raw.split(/\s+/);
     const itemId = parts[0] ?? "";
