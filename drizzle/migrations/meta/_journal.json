@@ -442,6 +442,13 @@
       "when": 1788309237267,
       "tag": "0062_probe_premium_offers_state",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1788309287952,
+      "tag": "0063_celestial_pack_offer_state",
+      "breakpoints": true
     }
   ]
 }

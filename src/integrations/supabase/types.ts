@@ -18376,7 +18376,6 @@ export type Database = {
       }
     }
     Functions: {
-      _probe_premium_offers: { Args: { p_telegram_id: number }; Returns: Json }
       accounts_share_device: {
         Args: { p_a: string; p_b: string }
         Returns: boolean
@@ -20652,6 +20651,10 @@ export type Database = {
       }
       celestial_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
       celestial_pack_offer_meta: { Args: { p_user_id: string }; Returns: Json }
+      celestial_pack_offer_state: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
       celestial_pack_settings: {
         Args: never
         Returns: {
