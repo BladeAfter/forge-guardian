@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { FounderPackCard } from './FounderPackCard';
 import { VeteranVaultV2Card } from './VeteranVaultV2Card';
+import { CelestialPackCard } from './CelestialPackCard';
+
 
 /**
  * 💎 OFERTAS PREMIUM — acesso permanente aos pacotes Founder Pack (35 TON) e Veteran Vault (100 TON).
@@ -24,6 +26,8 @@ export function PremiumOffersModal({ telegramInitData, onClose }: { telegramInit
 
         <FounderPackCard telegramInitData={telegramInitData} />
         <VeteranVaultV2Card telegramInitData={telegramInitData} />
+        <CelestialPackCard telegramInitData={telegramInitData} />
+
 
         <p className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-center text-[10px] uppercase tracking-[0.16em] text-slate-400">
           Pacotes disponíveis enquanto houver estoque de MYTH no servidor.

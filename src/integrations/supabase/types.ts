@@ -925,6 +925,223 @@ export type Database = {
           },
         ]
       }
+      celestial_pack_config: {
+        Row: {
+          account_ton_bonus_percent: number
+          armors: number
+          enabled: boolean
+          fc_reward: number
+          id: boolean
+          legendary_chests: number
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          price_ton: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          updated_at: string
+        }
+        Insert: {
+          account_ton_bonus_percent?: number
+          armors?: number
+          enabled?: boolean
+          fc_reward?: number
+          id?: boolean
+          legendary_chests?: number
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          price_ton?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          updated_at?: string
+        }
+        Update: {
+          account_ton_bonus_percent?: number
+          armors?: number
+          enabled?: boolean
+          fc_reward?: number
+          id?: boolean
+          legendary_chests?: number
+          nft_weapons?: number
+          package_version?: string
+          popup_enabled?: boolean
+          popup_frequency?: string
+          price_ton?: number
+          random_items?: number
+          random_items_pool?: Json
+          reward_configuration_version?: number
+          sales_paused?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      celestial_pack_items: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string | null
+          item_type: string
+          mining_pending_reveal: boolean
+          purchase_id: string
+          revealed_at: string | null
+          revealed_myth: number | null
+          revealed_ton: number | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type: string
+          mining_pending_reveal?: boolean
+          purchase_id: string
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          item_type?: string
+          mining_pending_reveal?: boolean
+          purchase_id?: string
+          revealed_at?: string | null
+          revealed_myth?: number | null
+          revealed_ton?: number | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celestial_pack_items_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_pack_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      celestial_pack_ledger: {
+        Row: {
+          created_at: string
+          fc_amount: number | null
+          id: string
+          kind: string
+          note: string | null
+          purchase_id: string | null
+          ton_amount: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          fc_amount?: number | null
+          id?: string
+          kind?: string
+          note?: string | null
+          purchase_id?: string | null
+          ton_amount?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celestial_pack_ledger_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "celestial_pack_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      celestial_pack_purchases: {
+        Row: {
+          bonus_percent_snapshot: number
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery: Json | null
+          expected_nanoton: string
+          expires_at: string
+          fc_snapshot: number
+          id: string
+          idempotency_key: string | null
+          package_version: string
+          payment_address: string | null
+          payment_comment: string | null
+          payment_method: string
+          price_ton: number
+          reward_configuration_version: number
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton: string
+          expires_at?: string
+          fc_snapshot?: number
+          id?: string
+          idempotency_key?: string | null
+          package_version: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          bonus_percent_snapshot?: number
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery?: Json | null
+          expected_nanoton?: string
+          expires_at?: string
+          fc_snapshot?: number
+          id?: string
+          idempotency_key?: string | null
+          package_version?: string
+          payment_address?: string | null
+          payment_comment?: string | null
+          payment_method?: string
+          price_ton?: number
+          reward_configuration_version?: number
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       channel_reward_config: {
         Row: {
           channel_key: string
@@ -5917,6 +6134,7 @@ export type Database = {
       }
       game_players: {
         Row: {
+          account_ton_mining_bonus: number
           avatar_border: string | null
           avatar_url: string | null
           ban_reason: string | null
@@ -5964,6 +6182,7 @@ export type Database = {
           vip_until: string | null
         }
         Insert: {
+          account_ton_mining_bonus?: number
           avatar_border?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
@@ -6011,6 +6230,7 @@ export type Database = {
           vip_until?: string | null
         }
         Update: {
+          account_ton_mining_bonus?: number
           avatar_border?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
@@ -9801,6 +10021,8 @@ export type Database = {
           generation: number
           id: string
           metadata: Json
+          mining_pending_reveal: boolean
+          mining_revealed_at: string | null
           minted: boolean
           nft_address: string | null
           nft_serial: number
@@ -9834,6 +10056,8 @@ export type Database = {
           generation?: number
           id?: string
           metadata?: Json
+          mining_pending_reveal?: boolean
+          mining_revealed_at?: string | null
           minted?: boolean
           nft_address?: string | null
           nft_serial: number
@@ -9867,6 +10091,8 @@ export type Database = {
           generation?: number
           id?: string
           metadata?: Json
+          mining_pending_reveal?: boolean
+          mining_revealed_at?: string | null
           minted?: boolean
           nft_address?: string | null
           nft_serial?: number
@@ -11815,6 +12041,8 @@ export type Database = {
           market_locked: boolean
           mining_daily_myth: number
           mining_last_at: string | null
+          mining_pending_reveal: boolean
+          mining_revealed_at: string | null
           mining_ton_override: number | null
           name: string
           nft_hero_id: string | null
@@ -11866,6 +12094,8 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          mining_pending_reveal?: boolean
+          mining_revealed_at?: string | null
           mining_ton_override?: number | null
           name: string
           nft_hero_id?: string | null
@@ -11917,6 +12147,8 @@ export type Database = {
           market_locked?: boolean
           mining_daily_myth?: number
           mining_last_at?: string | null
+          mining_pending_reveal?: boolean
+          mining_revealed_at?: string | null
           mining_ton_override?: number | null
           name?: string
           nft_hero_id?: string | null
@@ -18263,6 +18495,23 @@ export type Database = {
       }
       admin_bump_settings_version: { Args: never; Returns: number }
       admin_cancel_pool: { Args: never; Returns: undefined }
+      admin_celestial_pack_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_celestial_pack_reveal: {
+        Args: {
+          p_admin_id: number
+          p_daily_myth: number
+          p_daily_ton: number
+          p_item_id: string
+        }
+        Returns: Json
+      }
+      admin_celestial_pack_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
       admin_channel_rewards_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -20332,6 +20581,47 @@ export type Database = {
         Returns: Json
       }
       can_access_ton_mining: { Args: { p_user_id: string }; Returns: string }
+      celestial_pack_confirm_order: {
+        Args: { p_amount_nano: string; p_order_id: string; p_tx_hash: string }
+        Returns: Json
+      }
+      celestial_pack_deliver: { Args: { p_purchase_id: string }; Returns: Json }
+      celestial_pack_settings: {
+        Args: never
+        Returns: {
+          account_ton_bonus_percent: number
+          armors: number
+          enabled: boolean
+          fc_reward: number
+          id: boolean
+          legendary_chests: number
+          nft_weapons: number
+          package_version: string
+          popup_enabled: boolean
+          popup_frequency: string
+          price_ton: number
+          random_items: number
+          random_items_pool: Json
+          reward_configuration_version: number
+          sales_paused: boolean
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "celestial_pack_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      celestial_pack_start_purchase: {
+        Args: {
+          p_idempotency_key: string
+          p_telegram_id: number
+          p_wallet_address: string
+        }
+        Returns: Json
+      }
+      celestial_pack_state: { Args: { p_telegram_id: number }; Returns: Json }
       check_device_access: {
         Args: {
           p_device_hash: string
