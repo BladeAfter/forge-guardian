@@ -8622,6 +8622,116 @@ async function apPrompt(ctx: Ctx, key: string, text: string) {
   return apHub({ ...ctx, messageId: undefined }, false);
 }
 
+// ---------------------------------------------------------------- ⚡ 20 TON MYTHIC PACK
+// Compras ilimitadas: o bônus de primeira compra (+MYTH e 1 Celestial Key) é liberado uma única vez
+// por conta e controlado só pelo servidor. Nenhum valor é calculado no cliente.
+async function mppHub(ctx: Ctx, useEdit = true) {
+  const d = (await rpc("admin_mythic_power_pack_overview", { p_admin_id: ctx.adminId })) as any;
+  const c = d.config ?? {};
+  const text = [
+    "⚡ <b>20 TON MYTHIC PACK</b>",
+    "<i>20 TON · compras ilimitadas · bônus de primeira compra uma única vez por conta</i>",
+    "",
+    `<b>Status:</b> ${c.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}${c.sales_paused ? " · ⏸ VENDAS PAUSADAS" : ""}`,
+    `<b>Versão:</b> <code>${esc(String(c.package_version))}</code> · <b>Preço:</b> ${fmt(c.price_ton)} TON`,
+    "",
+    `🪙 MYTH: <b>${fmt(c.myth_reward)}</b> · 🎁 Bônus 1ª compra: <b>+${fmt(c.first_bonus_myth)} MYTH</b> + <code>${esc(String(c.first_bonus_key_code))}</code>`,
+    `🥚 Mythic Egg: <b>${fmt(c.mythic_eggs)}</b> · 🕳 Void Chest: <b>${fmt(c.void_chests)}</b> · 🛡 Baú equipamento: <b>${fmt(c.equipment_chests)}</b> (<code>${esc(String(c.equipment_chest_code))}</code>)`,
+    `🧩 Fragmentos: <b>${fmt(c.universal_fragments)}</b> · 🎟 Tickets PvP: <b>${fmt(c.pvp_tickets)}</b>`,
+    `🔑 Eternity Keys: <b>${fmt(c.eternity_keys)}</b> · Void Keys: <b>${fmt(c.void_keys)}</b>`,
+    `🍖 Comida premium: <b>${fmt(c.pet_food_quantity)}</b> (<code>${esc(String(c.pet_food_code))}</code>) · 📈 XP de herói: <b>${fmt(c.hero_xp)}</b>`,
+    "",
+    `<b>Compras:</b> ${fmt(d.totalPurchases)} · <b>TON arrecadado:</b> ${fmt(d.totalTon)} · <b>Bônus 1ª compra usados:</b> ${fmt(d.firstPurchaseBonusClaims)}`,
+  ].join("\n");
+  const rows = [
+    [
+      { t: c.enabled ? "⛔ DESATIVAR" : "✅ ATIVAR", d: `mpp:on:${c.enabled ? 0 : 1}` },
+      { t: c.sales_paused ? "▶️ RETOMAR VENDAS" : "⏸ PAUSAR VENDAS", d: `mpp:pause:${c.sales_paused ? 0 : 1}` },
+    ],
+    [
+      { t: "💎 PREÇO (TON)", d: "mpp:ask:mppprice" },
+      { t: "🪙 MYTH", d: "mpp:ask:mppmyth" },
+    ],
+    [
+      { t: "🎁 BÔNUS 1ª COMPRA", d: "mpp:ask:mppbonus" },
+      { t: "🥚 MYTHIC EGGS", d: "mpp:ask:mppegg" },
+    ],
+    [
+      { t: "🕳 VOID CHESTS", d: "mpp:ask:mppvoid" },
+      { t: "🛡 BAÚS EQUIPAMENTO", d: "mpp:ask:mppequip" },
+    ],
+    [
+      { t: "🧩 FRAGMENTOS", d: "mpp:ask:mppfrag" },
+      { t: "🎟 TICKETS PVP", d: "mpp:ask:mpptickets" },
+    ],
+    [
+      { t: "🔑 ETERNITY KEYS", d: "mpp:ask:mppekeys" },
+      { t: "🔑 VOID KEYS", d: "mpp:ask:mppvkeys" },
+    ],
+    [
+      { t: "🍖 COMIDA PREMIUM", d: "mpp:ask:mppfood" },
+      { t: "📈 XP DE HERÓI", d: "mpp:ask:mppxp" },
+    ],
+    [
+      { t: "🧾 COMPRAS", d: "mpp:buys" },
+      { t: "♻️ REPROCESSAR ENTREGA", d: "mpp:ask:mppretry" },
+    ],
+    nav(),
+  ];
+  return useEdit ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function mppCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a] = rest;
+  if (sub === "ask") return ask(ctx, a, PROMPTS[a] ?? "Envie o valor.");
+  if (sub === "on") await rpc("admin_mythic_power_pack_set", { p_admin_id: ctx.adminId, p_field: "enabled", p_value: a });
+  if (sub === "pause") await rpc("admin_mythic_power_pack_set", { p_admin_id: ctx.adminId, p_field: "sales_paused", p_value: a });
+  if (sub === "buys") {
+    const d = (await rpc("admin_mythic_power_pack_overview", { p_admin_id: ctx.adminId })) as any;
+    const rows = ((d.purchases ?? []) as any[]).slice(0, 25);
+    const text = ["🧾 <b>COMPRAS — 20 TON MYTHIC PACK</b>", "",
+      rows.map((r) => `• ${esc(r.player ?? "—")} (<code>${r.telegramId}</code>) — ${fmt(r.priceTon)} TON · ${esc(r.status)}${r.firstPurchaseBonus ? " 🎁" : ""}${r.deliveredAt ? " ✅" : " ⏳"}\n  <code>${r.purchaseId}</code>`).join("\n") || "nenhuma compra ainda"].join("\n");
+    return edit(ctx, text, kb([[{ t: "⬅️ VOLTAR", d: "mpp:hub" }], nav()]));
+  }
+  return mppHub(ctx);
+}
+
+const MPP_FIELDS: Record<string, string> = {
+  mppprice: "price_ton",
+  mppmyth: "myth_reward",
+  mppbonus: "first_bonus_myth",
+  mppegg: "mythic_eggs",
+  mppvoid: "void_chests",
+  mppequip: "equipment_chests",
+  mppfrag: "universal_fragments",
+  mpptickets: "pvp_tickets",
+  mppekeys: "eternity_keys",
+  mppvkeys: "void_keys",
+  mppfood: "pet_food_quantity",
+  mppxp: "hero_xp",
+};
+
+async function mppPrompt(ctx: Ctx, key: string, raw: string) {
+  if (key === "mppretry") {
+    if (!/^[0-9a-f-]{36}$/i.test(raw)) throw new Error("KEEP_SESSION::⚠️ Envie um <b>ID de compra</b> válido.");
+    const d = (await rpc("admin_mythic_power_pack_retry", { p_admin_id: ctx.adminId, p_purchase_id: raw })) as any;
+    await clearSession(ctx);
+    await send(ctx, `♻️ Entrega reprocessada: <code>${esc(JSON.stringify(d ?? {}))}</code>`);
+    return mppHub({ ...ctx, messageId: undefined }, false);
+  }
+  const field = MPP_FIELDS[key];
+  if (!field) return mppHub({ ...ctx, messageId: undefined }, false);
+  const num = field === "price_ton"
+    ? Number(raw.replace(",", ".").replace(/[^\d.]/g, ""))
+    : parseAmount(raw);
+  if (!Number.isFinite(num) || num < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+  await rpc("admin_mythic_power_pack_set", { p_admin_id: ctx.adminId, p_field: field, p_value: String(num) });
+  await clearSession(ctx);
+  await send(ctx, `⚡ 20 TON MYTHIC PACK atualizado: <b>${esc(field)}</b> = <code>${esc(String(num))}</code>`);
+  return mppHub({ ...ctx, messageId: undefined }, false);
+}
+
+
 // ---------------------------------------------------------------- 🪙 MYTH TOKEN SALE (master admin only)
 // Price (1 TON = X MYTH), allocation, minimum purchase, checkout window, pause/resume and BURN.
 // Every number shown here comes from `admin_myth_sale_overview` — the bot never computes supply.
