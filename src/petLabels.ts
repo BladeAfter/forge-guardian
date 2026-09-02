@@ -74,6 +74,7 @@ export const PET_RARITY_LABELS: Record<string, string> = {
   ancestral: 'ANCESTRAL',
   exclusive: 'EXCLUSIVO',
   nft_exclusive: 'NFT EXCLUSIVE',
+  celestial: 'CELESTIAL',
   veteran: VETERAN_LINE_LABEL,
 };
 

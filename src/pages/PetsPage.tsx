@@ -38,7 +38,7 @@ const rarityRank = (key: string) => { const i = RARITY_ORDER.indexOf(String(key)
 const sortedRates = (rates: Record<string, number>) =>
   Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => rarityRank(a[0]) - rarityRank(b[0]));
 
-const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#e879f9', ancestral: '#f472b6', exclusive: '#f0abfc', nft_exclusive: '#fbbf24' };
+const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#e879f9', ancestral: '#f472b6', exclusive: '#f0abfc', nft_exclusive: '#fbbf24', celestial: '#f8fafc' };
 
 const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: string; badgeClass: string }> = {
   common: { borderClass: 'border-slate-400/55', glowClass: 'from-slate-400/20', badgeClass: 'border-slate-300/40 bg-slate-500/15 text-slate-200' },
@@ -51,6 +51,7 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
   // NFT EXCLUSIVE never uses a colored rarity chip — the single premium gold/dark tag replaces it.
   exclusive: { borderClass: 'border-fuchsia-300/70', glowClass: 'from-fuchsia-300/35', badgeClass: 'border-fuchsia-300/70 bg-[#160b16] text-fuchsia-200' },
   nft_exclusive: { borderClass: 'border-amber-200/70', glowClass: 'from-amber-300/35', badgeClass: 'forge-nft-tag border-amber-200/80 bg-[#120c04] text-amber-200' },
+  celestial: { borderClass: 'border-cyan-100/90', glowClass: 'from-amber-200/45', badgeClass: 'border-cyan-100/80 bg-[#10121d] text-amber-100' },
 };
 
 
