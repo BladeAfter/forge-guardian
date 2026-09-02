@@ -84,11 +84,9 @@ export function CelestialPackCard({ telegramInitData, popupMode = false, onPopup
   });
 
   useEffect(() => { if (state?.pendingOrder) void reconcile(); }, [state?.pendingOrder?.orderId]);
-  useEffect(() => { if (popupMode && state && (!state.show || state.purchased)) onPopupClose?.(); }, [popupMode, state?.show, state?.purchased]);
-
   const close = () => { setOpen(false); setConfirming(false); onPopupClose?.(); };
 
-  if (!state || (!state.show && !state.purchased)) return null;
+  if (!state || (!popupMode && !state.show && !state.purchased)) return null;
 
   const payWithInternal = state.availableTon >= state.priceTon;
   const stock = Number(state.stockRemaining ?? state.celestialAvailable ?? 0);
