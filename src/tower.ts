@@ -57,6 +57,10 @@ export type TowerRewards = {
   keyChances?: Record<string, number>;
   /** Keys actually granted on this clear (code -> quantity). */
   keys?: Record<string, number>;
+  /** Premium chest drop chance in % per floor band (display only). */
+  chestChances?: Record<string, number>;
+  /** Premium chests actually granted on this clear (code -> quantity). */
+  chests?: Record<string, number>;
   /** Equipment instance dropped on this clear (null when nothing dropped). */
   equipment?: TowerEquipmentDrop | null;
 };
@@ -66,6 +70,13 @@ export const TOWER_KEYS = [
   { code: 'eternity_key', name: 'Eternity Key', rarity: 'rare', image: '/assets/game/ui/eternity-key.png', color: '#60a5fa' },
   { code: 'void_key', name: 'Void Key', rarity: 'epic', image: '/assets/game/ui/void-key.png', color: '#c084fc' },
   { code: 'celestial_key', name: 'Celestial Key', rarity: 'legendary', image: '/assets/game/ui/celestial-key.png', color: '#fbbf24' },
+] as const;
+
+/** The 3 premium chests the Tower can drop (openable with the matching key). */
+export const TOWER_CHESTS = [
+  { code: 'eternity_chest', name: 'Eternity Chest', rarity: 'rare', color: '#60a5fa', image: '/__l5e/assets-v1/407a3f1a-03ba-4083-b84d-93211f7ecb10/eternity-chest.png' },
+  { code: 'void_chest', name: 'Void Chest', rarity: 'epic', color: '#c084fc', image: '/__l5e/assets-v1/39ea795d-06ae-4444-b586-e687a010fb84/void-chest.png' },
+  { code: 'celestial_chest', name: 'Celestial Chest', rarity: 'legendary', color: '#fbbf24', image: '/__l5e/assets-v1/b8e274b2-1f0a-4de9-9693-8702f557ea8c/celestial-chest.png' },
 ] as const;
 
 export type PetSummary = {
@@ -146,9 +157,16 @@ export type TowerRanking = {
 
 /** Milestone rewards shown on the tower screen (presentational only). */
 export const TOWER_MILESTONES = [
-  { floor: 10, reward: '50,000 FC + Eternity Key x1' },
+  { floor: 10, reward: '50,000 FC + Eternity Key x1 + Eternity Chest x1' },
+  { floor: 20, reward: 'Eternity Chest x2' },
   { floor: 25, reward: '100,000 FC + Universal Frag. x15 + Void Key x1' },
-  { floor: 50, reward: '150,000 FC + Epic Gear Chest + Void Key x1' },
+  { floor: 30, reward: 'Void Chest x1' },
+  { floor: 40, reward: 'Eternity Chest x2' },
+  { floor: 50, reward: '150,000 FC + Epic Gear Chest + Void Key x1 + Void Chest x2' },
+  { floor: 60, reward: 'Celestial Chest x1' },
+  { floor: 70, reward: 'Void Chest x2' },
   { floor: 75, reward: '250,000 FC + Universal Frag. x25 + Celestial Key x1' },
-  { floor: 100, reward: '500,000 FC + Legendary Gear Chest + Celestial Key x1' },
+  { floor: 80, reward: 'Celestial Chest x1' },
+  { floor: 90, reward: 'Celestial Chest x2' },
+  { floor: 100, reward: '500,000 FC + Legendary Gear Chest + Celestial Key x1 + Celestial Chest x3' },
 ] as const;
