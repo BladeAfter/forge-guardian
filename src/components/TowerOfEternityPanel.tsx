@@ -242,24 +242,9 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.universalFragments')}</p><p className="mt-1 font-semibold text-cyan-300">{rewards.universalFragments ? `x${rewards.universalFragments}` : '—'}</p></div>
         </div>
 
-        {/* The 3 tower keys are pure collectibles for now: only their drop chance is shown. */}
-        <p className="mt-3 text-[9px] uppercase tracking-[.28em] text-slate-500">{t('tower.keyDrops')}</p>
-        <div className="mt-1.5 grid grid-cols-3 gap-2">
-          {TOWER_KEYS.map((key) => {
-            const chance = Number(rewards.keyChances?.[key.code] ?? 0);
-            return (
-              <div
-                key={key.code}
-                className={`rounded-2xl border bg-black/65 p-2 text-center ${chance > 0 ? '' : 'opacity-40'}`}
-                style={{ borderColor: `${key.color}55` }}
-              >
-                <img src={key.image} alt={key.name} loading="lazy" width={512} height={512} className="mx-auto h-9 w-9 object-contain" />
-                <p className="mt-1 truncate text-[8px] font-black uppercase tracking-[.06em]" style={{ color: key.color }}>{key.name}</p>
-                <p className="text-[8px] text-slate-400">{chance > 0 ? `${chance}%` : '—'}</p>
-              </div>
-            );
-          })}
-        </div>
+        {/* Chaves raras: drop na Torre + compra direta com TON (saldo interno ou TON Connect). */}
+        <RareKeyShop initData={initData} keyChances={rewards.keyChances} />
+
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-[10px]">
