@@ -80,6 +80,9 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
   const rewards = (battle.rewards ?? {}) as Record<string, number>;
   // Equipment dropped by the floor rule (category first, then a random item of that pool).
   const gear = ((battle.rewards ?? {}) as { equipment?: TowerEquipmentDrop | null }).equipment ?? null;
+  // Premium chests (Eternity / Void / Celestial) delivered straight to the inventory by the server.
+  const chestMap = ((battle.rewards ?? {}) as { chests?: Record<string, number> }).chests ?? {};
+  const chestDrops = TOWER_CHESTS.map(c => ({ ...c, qty: Number(chestMap[c.code] ?? 0) })).filter(c => c.qty > 0);
   const gearTone = GEAR_TONES[String(gear?.rarity ?? '').toLowerCase()] ?? GEAR_TONES.common;
   const gearSlotKey = gear ? GEAR_SLOT_KEYS[String(gear.slot)] : null;
   const gearSlotLabel = gear ? (gearSlotKey ? t(gearSlotKey) : String(gear.slot)) : '';
@@ -179,6 +182,25 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                 {rewards.petFood ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.petFood')}</p><p className="font-bold text-emerald-300">x{rewards.petFood}</p></div> : null}
                 {rewards.heroChest ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.gearChest')}</p><p className="font-bold text-fuchsia-300">x{rewards.heroChest}</p></div> : null}
                 {rewards.towerKey ? <div className="rounded-xl bg-black/60 p-2"><p className="text-slate-400">{t('tower.eternityKey')}</p><p className="font-bold text-fuchsia-300">x{rewards.towerKey}</p></div> : null}
+                {chestDrops.length ? (
+                  <div className="col-span-2 grid gap-1.5">
+                    {chestDrops.map(drop => (
+                      <div
+                        key={drop.code}
+                        className="forge-chest-pop flex items-center gap-3 rounded-2xl border bg-black/70 p-2.5 text-left"
+                        style={{ borderColor: `${drop.color}66`, boxShadow: `0 0 22px ${drop.color}33` }}
+                      >
+                        <img src={drop.image} alt={drop.name} loading="lazy" className="h-12 w-12 rounded-xl object-contain" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[10px] font-black uppercase tracking-[.16em]" style={{ color: drop.color }}>
+                            {t('tower.chestAcquired', { name: drop.name })}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-300">x{drop.qty}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 {gear ? (
                   <div className={`col-span-2 mt-1 rounded-2xl border ${gearTone.border} ${gearTone.bg} p-3 text-left`}>
                     <p className={`text-center text-[9px] font-black uppercase tracking-[.28em] ${gearTone.text}`}>{t('tower.gearDropped')}</p>
