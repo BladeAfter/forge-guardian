@@ -547,6 +547,13 @@
       "when": 1788384800219,
       "tag": "0077_add_celestial_pet_rarity",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1788387866043,
+      "tag": "0078_mythic_power_pack_core",
+      "breakpoints": true
     }
   ]
 }
