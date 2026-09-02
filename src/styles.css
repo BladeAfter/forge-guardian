@@ -1185,3 +1185,57 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .forge-chest-pop { animation: forgeChestPop .55s cubic-bezier(.2,.9,.3,1) both; }
+
+/* ===== CELESTIAL PET IDENTITY — AAA premium frame (cosmetic only) ===== */
+.forge-celestial-card{
+  background-image:
+    radial-gradient(120% 85% at 50% 0%,rgba(125,211,252,.20),transparent 60%),
+    linear-gradient(180deg,#0b1730 0%,#080c1c 55%,#03040a 100%);
+  box-shadow:0 0 0 1px rgba(224,242,254,.5),0 20px 44px rgba(30,64,175,.45),inset 0 0 28px rgba(250,204,21,.12);
+  animation:forge-celestial-glow 4.2s ease-in-out infinite;
+}
+@keyframes forge-celestial-glow{
+  0%,100%{box-shadow:0 0 0 1px rgba(224,242,254,.5),0 20px 44px rgba(30,64,175,.45),inset 0 0 28px rgba(250,204,21,.12)}
+  50%{box-shadow:0 0 0 1px rgba(255,255,255,.85),0 28px 58px rgba(56,189,248,.5),inset 0 0 40px rgba(250,204,21,.24)}
+}
+.forge-celestial-stars{
+  background-image:
+    radial-gradient(1.6px 1.6px at 14% 20%,rgba(255,255,255,.95),transparent 60%),
+    radial-gradient(1.6px 1.6px at 78% 26%,rgba(186,230,253,.9),transparent 60%),
+    radial-gradient(1.2px 1.2px at 36% 70%,rgba(250,204,21,.85),transparent 60%),
+    radial-gradient(1.2px 1.2px at 64% 82%,rgba(255,255,255,.85),transparent 60%),
+    radial-gradient(1.2px 1.2px at 50% 44%,rgba(147,197,253,.8),transparent 60%);
+  animation:forge-celestial-stars 5.5s ease-in-out infinite;
+}
+@keyframes forge-celestial-stars{
+  0%,100%{opacity:.45;transform:translateY(0) scale(1)}
+  50%{opacity:1;transform:translateY(-3px) scale(1.02)}
+}
+.forge-celestial-sheen{
+  background:linear-gradient(115deg,transparent 38%,rgba(226,247,255,.18) 50%,transparent 62%);
+  background-size:260% 100%;
+  animation:forge-celestial-sheen 6s linear infinite;
+}
+@keyframes forge-celestial-sheen{
+  0%{background-position:180% 0}
+  100%{background-position:-80% 0}
+}
+.forge-celestial-tag{box-shadow:0 0 16px rgba(224,242,254,.55)}
+/* Premium portrait frame used in the pet details sheet */
+.forge-pet-portrait{
+  position:relative;
+  border-radius:1.4rem;
+  padding:.85rem;
+  background:
+    radial-gradient(105% 80% at 50% 0%,rgba(255,255,255,.08),transparent 65%),
+    linear-gradient(180deg,rgba(12,20,38,.95),rgba(3,5,12,.98));
+  box-shadow:inset 0 0 30px rgba(0,0,0,.7);
+}
+.forge-pet-portrait::after{
+  content:'';position:absolute;inset:0;border-radius:1.4rem;pointer-events:none;
+  border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.08) 50%,transparent 60%);
+  background-size:240% 100%;
+  animation:forge-celestial-sheen 7s linear infinite;
+}
+.forge-pet-portrait img{filter:drop-shadow(0 14px 26px rgba(0,0,0,.8))}

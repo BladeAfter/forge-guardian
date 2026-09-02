@@ -1012,15 +1012,24 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
   const t = useT();
   const isNft = isNftExclusivePet(pet);
   const isVeteran = !isNft && isVeteranLine(pet);
-  const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
+  const displayRarity = petDisplayRarity(pet);
+  const isCelestial = !isNft && !isVeteran && displayRarity === 'celestial';
+  const style = PET_RARITY_STYLE[displayRarity as PetRarity] ?? PET_RARITY_STYLE.common;
   const serial = pet.nft?.serial;
   return (
     <div
       className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] p-2.5 text-center shadow-[0_16px_30px_rgba(0,0,0,.45)] transition duration-200 active:scale-[.98] ${
-        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : style.borderClass
+        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : isCelestial ? 'forge-celestial-card border-cyan-100/80' : style.borderClass
       } ${pet.isActive ? 'ring-1 ring-emerald-300/25' : ''}`}
     >
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
+      {isCelestial && (
+        <>
+          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-cyan-100/25" aria-hidden />
+        </>
+      )}
       {isVeteran && (
         <>
           <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
@@ -1028,7 +1037,8 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
           <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-amber-200/25" aria-hidden />
         </>
       )}
-      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : style.glowClass} to-transparent blur-xl`} />
+      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : isCelestial ? 'from-cyan-100/30 via-amber-200/20' : style.glowClass} to-transparent blur-xl`} />
+
       <div className="relative z-10 flex items-start justify-between gap-1">
         {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
         {pet.isSubNft ? (
@@ -1041,11 +1051,12 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
         ) : (
           <span
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[7px] font-black tracking-[.12em] ${
-              isVeteran ? 'forge-veteran-tag border-amber-200/70 bg-gradient-to-r from-amber-400/25 to-orange-500/20 text-amber-100' : style.badgeClass
+              isVeteran ? 'forge-veteran-tag border-amber-200/70 bg-gradient-to-r from-amber-400/25 to-orange-500/20 text-amber-100' : isCelestial ? 'forge-celestial-tag border-cyan-100/80 bg-gradient-to-r from-cyan-100/20 to-amber-200/20 text-cyan-50' : style.badgeClass
             }`}
           >
-            {isVeteran ? <Crown className="h-2.5 w-2.5" /> : null}
+            {isVeteran || isCelestial ? <Crown className="h-2.5 w-2.5" /> : null}
             {petDisplayRarityLabel(pet)}
+
           </span>
         )}
         {pet.isActive && (
@@ -1318,25 +1329,57 @@ function Row({ label, value, strong, danger }: { label: string; value: string; s
  */
 function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { pet: PlayerPet; bonuses?: Record<string, number> | null; onClose: () => void; onFeed: () => void; onResetTransfer: () => void }) {
   const t = useT();
+  const isNft = isNftExclusivePet(pet);
+  const isVeteran = !isNft && isVeteranLine(pet);
+  const displayRarity = petDisplayRarity(pet);
+  const isCelestial = !isNft && !isVeteran && displayRarity === 'celestial';
+  const accent = rarityColor[displayRarity] ?? '#fbbf24';
+  const premium = isNft || isVeteran || isCelestial;
   return (
     <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
-      <div className="forge-safe-page max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-400/30 bg-[#080b11] p-4" onClick={(event) => event.stopPropagation()}>
-        <header className="mb-3 flex items-start justify-between gap-2">
+      <div
+        className={`forge-safe-page relative max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border bg-[#080b11] p-4 ${
+          isCelestial ? 'forge-celestial-card border-cyan-100/70' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
+        }`}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {isCelestial && <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0 rounded-t-3xl" aria-hidden />}
+        <header className="relative z-10 mb-3 flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.details')}</p>
             <h2 className="truncate text-lg font-black uppercase">{pet.name}</h2>
-            <p className="text-[10px]" style={{ color: rarityColor[petDisplayRarity(pet)] }}>
+            <p className="text-[10px]" style={{ color: accent }}>
               {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(pet), level: pet.level, max: pet.maxLevel })}
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
         </header>
 
-        <img src={pet.image} alt={pet.name} className="mx-auto h-40 w-40 object-contain" />
-        <LevelBar pet={pet} />
-        <BuffGrid pet={pet} bonuses={bonuses} />
+        <div className="relative z-10">
+          <div className="forge-pet-portrait mx-auto max-w-[19rem]" style={premium ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}>
+            <span
+              className="pointer-events-none absolute left-1/2 top-6 h-44 w-44 -translate-x-1/2 rounded-full blur-2xl"
+              style={{ background: `radial-gradient(circle, ${accent}33, transparent 68%)` }}
+              aria-hidden
+            />
+            <img src={pet.image} alt={pet.name} className="relative mx-auto h-52 w-full object-contain" />
+            <div className="relative mt-2 flex items-center justify-center gap-1.5">
+              <span className="rounded-full border border-white/15 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-slate-200">
+                {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
+              </span>
+              <span className="rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em]" style={{ borderColor: `${accent}66`, color: accent }}>
+                <Star className="mr-1 inline h-2.5 w-2.5" />{fmt(pet.power)}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="relative z-10">
+          <LevelBar pet={pet} />
+          <BuffGrid pet={pet} bonuses={bonuses} />
+        </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+
+        <div className="relative z-10 mt-3 grid grid-cols-2 gap-2">
           <Action text={t('pets.feed')} disabled={pet.isMaxLevel} onClick={onFeed} />
           <button
             type="button"
@@ -1347,7 +1390,8 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
           </button>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+        <div className="relative z-10 mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
+
           <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{t('pets.petManagement')}</p>
           <button
             type="button"
