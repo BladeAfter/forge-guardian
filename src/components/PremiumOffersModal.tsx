@@ -5,6 +5,8 @@ import { CelestialPackCard } from './CelestialPackCard';
 import { SovereignPackCard } from './SovereignPackCard';
 import { MythicVanguardPackCard } from './MythicVanguardPackCard';
 import { LegendaryAdventurerPackCard } from './LegendaryAdventurerPackCard';
+import { MythicPowerPackCard } from './MythicPowerPackCard';
+
 
 
 /**
@@ -33,6 +35,8 @@ export function PremiumOffersModal({ telegramInitData, onClose }: { telegramInit
         <CelestialPackCard telegramInitData={telegramInitData} />
         <MythicVanguardPackCard telegramInitData={telegramInitData} />
         <LegendaryAdventurerPackCard telegramInitData={telegramInitData} />
+        <MythicPowerPackCard telegramInitData={telegramInitData} />
+
 
 
         <p className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-center text-[10px] uppercase tracking-[0.16em] text-slate-400">

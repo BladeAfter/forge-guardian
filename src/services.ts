@@ -21,6 +21,8 @@ import type { CelestialPackPurchaseResult, CelestialPackState } from './celestia
 import type { SovereignPackPurchaseResult, SovereignPackState } from './sovereignPack';
 import type { VanguardPackPurchaseResult, VanguardPackState } from './vanguardPack';
 import type { AdventurerPackPurchaseResult, AdventurerPackState } from './adventurerPack';
+import type { MythicPowerPackPurchaseResult, MythicPowerPackState } from './mythicPowerPack';
+
 import type { PremiumOfferType, PremiumOffersState } from './premiumOffers';
 import type { MythStakingDashboard } from './mythStaking';
 import type { TelegramPlayerProfile } from './playerProfile';
