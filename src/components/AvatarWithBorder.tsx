@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
 import avatarBorderFounder from '../assets/avatar-border-founder.png.asset.json';
+import avatarBorderTopSpender from '../assets/avatar-border-top-spender.png.asset.json';
 
-/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE 100k, FOUNDER PACK). */
+/** Exclusive cosmetic frames unlocked by rewards (MYTH SALE 100k, FOUNDER PACK, TOP SPENDER). */
 export const AVATAR_BORDERS: Record<string, string> = {
   myth_sale_exclusive: avatarBorderMyth.url,
   founder_exclusive: avatarBorderFounder.url,
+  top_spender_exclusive: avatarBorderTopSpender.url,
 };
 
 export const avatarBorderUrl = (key?: string | null) => (key ? AVATAR_BORDERS[key] : undefined);
