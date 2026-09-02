@@ -1012,15 +1012,24 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
   const t = useT();
   const isNft = isNftExclusivePet(pet);
   const isVeteran = !isNft && isVeteranLine(pet);
-  const style = PET_RARITY_STYLE[petDisplayRarity(pet) as PetRarity] ?? PET_RARITY_STYLE.common;
+  const displayRarity = petDisplayRarity(pet);
+  const isCelestial = !isNft && !isVeteran && displayRarity === 'celestial';
+  const style = PET_RARITY_STYLE[displayRarity as PetRarity] ?? PET_RARITY_STYLE.common;
   const serial = pet.nft?.serial;
   return (
     <div
       className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] p-2.5 text-center shadow-[0_16px_30px_rgba(0,0,0,.45)] transition duration-200 active:scale-[.98] ${
-        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : style.borderClass
+        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : isCelestial ? 'forge-celestial-card border-cyan-100/80' : style.borderClass
       } ${pet.isActive ? 'ring-1 ring-emerald-300/25' : ''}`}
     >
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
+      {isCelestial && (
+        <>
+          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
+          <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-cyan-100/25" aria-hidden />
+        </>
+      )}
       {isVeteran && (
         <>
           <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
@@ -1028,7 +1037,8 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
           <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-amber-200/25" aria-hidden />
         </>
       )}
-      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : style.glowClass} to-transparent blur-xl`} />
+      <div className={`pointer-events-none absolute left-1/2 top-10 h-40 w-40 -translate-x-1/2 rounded-full bg-gradient-to-b ${isNft ? 'from-amber-300/25 via-fuchsia-500/20' : isVeteran ? 'from-amber-300/30 via-orange-500/20' : isCelestial ? 'from-cyan-100/30 via-amber-200/20' : style.glowClass} to-transparent blur-xl`} />
+
       <div className="relative z-10 flex items-start justify-between gap-1">
         {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
         {pet.isSubNft ? (
