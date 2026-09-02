@@ -1528,6 +1528,12 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
   } else if (action === 'celestial-pack-buy') {
     fn = 'celestial_pack_start_purchase';
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `celestial:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
+  // ---------------- 👑 CELESTIAL SOVEREIGN PACK (200 TON) ----------------
+  } else if (action === 'sovereign-pack') {
+    fn = 'sovereign_pack_offer_state';
+  } else if (action === 'sovereign-pack-buy') {
+    fn = 'sovereign_pack_start_purchase';
+    args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `sovereign:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'founder-pack') {
     fn = 'founder_pack_state';
   } else if (action === 'founder-pack-buy') {
