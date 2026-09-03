@@ -78,6 +78,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const busy = act.isPending;
   const call = (run: () => Promise<RealmState>) => act.mutate(run);
 
+  /** Awaited variant: the exploration map needs the payload to play its animations. */
+  const runAsync = async (fn: () => Promise<RealmState>) => {
+    try {
+      const next = await fn();
+      apply(next);
+      return next;
+    } catch (e) {
+      setNotice((e as Error).message);
+      return null;
+    }
+  };
+
+
   useEffect(() => {
     if (!notice) return;
     const id = window.setTimeout(() => setNotice(null), 4000);
