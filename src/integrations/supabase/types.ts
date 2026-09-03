@@ -25343,6 +25343,85 @@ export type Database = {
         Args: { p_telegram_id: number }
         Returns: boolean
       }
+      realm_bounties_ensure: { Args: { p_user: string }; Returns: Json }
+      realm_bounty_claim: {
+        Args: { p_id: string; p_user: string }
+        Returns: Json
+      }
+      realm_building_claim: {
+        Args: { p_type: string; p_user: string }
+        Returns: Json
+      }
+      realm_building_level: {
+        Args: { p_type: string; p_user: string }
+        Returns: number
+      }
+      realm_building_upgrade: {
+        Args: { p_type: string; p_user: string }
+        Returns: Json
+      }
+      realm_craft_claim: {
+        Args: { p_id: string; p_user: string }
+        Returns: Json
+      }
+      realm_craft_start: {
+        Args: {
+          p_idem: string
+          p_qty: number
+          p_recipe: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      realm_ensure_profile: { Args: { p_user: string }; Returns: undefined }
+      realm_expedition_claim: {
+        Args: { p_id: string; p_user: string }
+        Returns: Json
+      }
+      realm_expedition_start: {
+        Args: {
+          p_idem: string
+          p_region: string
+          p_type: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      realm_grant_item: {
+        Args: { p_code: string; p_qty: number; p_user: string }
+        Returns: undefined
+      }
+      realm_material_add: {
+        Args: {
+          p_amount: number
+          p_material: string
+          p_reason: string
+          p_source?: string
+          p_user: string
+        }
+        Returns: number
+      }
+      realm_ruin_build_rooms: {
+        Args: { p_room: number; p_run: string }
+        Returns: undefined
+      }
+      realm_ruin_choose: {
+        Args: { p_branch: number; p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_ruin_extract: {
+        Args: { p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_ruin_finish: {
+        Args: { p_cleared: boolean; p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_ruin_start: {
+        Args: { p_region: string; p_user: string }
+        Returns: Json
+      }
+      realm_state: { Args: { p_user: string }; Returns: Json }
       reconcile_pet_egg_orders: {
         Args: { p_telegram_id: number }
         Returns: Json
