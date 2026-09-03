@@ -589,6 +589,13 @@
       "when": 1788393706996,
       "tag": "0083_celestial_pet_level_scaling_buffs",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1788395880372,
+      "tag": "0084_mythreon_realm_v1_core_schema",
+      "breakpoints": true
     }
   ]
 }

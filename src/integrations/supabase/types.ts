@@ -562,6 +562,107 @@ export type Database = {
         }
         Relationships: []
       }
+      ancient_ruin_rooms: {
+        Row: {
+          branch: number
+          config: Json
+          id: string
+          resolved_at: string | null
+          room_index: number
+          room_type: string
+          run_id: string
+          status: string
+        }
+        Insert: {
+          branch?: number
+          config?: Json
+          id?: string
+          resolved_at?: string | null
+          room_index: number
+          room_type: string
+          run_id: string
+          status?: string
+        }
+        Update: {
+          branch?: number
+          config?: Json
+          id?: string
+          resolved_at?: string | null
+          room_index?: number
+          room_type?: string
+          run_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ancient_ruin_rooms_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "ancient_ruin_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ancient_ruin_runs: {
+        Row: {
+          buffs: Json
+          completed_at: string | null
+          current_room: number
+          hp: number
+          id: string
+          loot: Json
+          region_id: string
+          ruin_coins: number
+          seed: number
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          buffs?: Json
+          completed_at?: string | null
+          current_room?: number
+          hp?: number
+          id?: string
+          loot?: Json
+          region_id: string
+          ruin_coins?: number
+          seed: number
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          buffs?: Json
+          completed_at?: string | null
+          current_room?: number
+          hp?: number
+          id?: string
+          loot?: Json
+          region_id?: string
+          ruin_coins?: number
+          seed?: number
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ancient_ruin_runs_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "realm_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ancient_ruin_runs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anti_fake_logs: {
         Row: {
           created_at: string
@@ -14957,6 +15058,516 @@ export type Database = {
         }
         Relationships: []
       }
+      realm_bounties: {
+        Row: {
+          bounty_day: string
+          bounty_type: string
+          claimed_at: string | null
+          expires_at: string
+          id: string
+          progress: number
+          reward: Json
+          status: string
+          target: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          bounty_day?: string
+          bounty_type: string
+          claimed_at?: string | null
+          expires_at: string
+          id?: string
+          progress?: number
+          reward?: Json
+          status?: string
+          target?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          bounty_day?: string
+          bounty_type?: string
+          claimed_at?: string | null
+          expires_at?: string
+          id?: string
+          progress?: number
+          reward?: Json
+          status?: string
+          target?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_bounties_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_building_types: {
+        Row: {
+          base_fc_cost: number
+          base_seconds: number
+          cost_materials: Json
+          description: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          max_level: number
+          name: string
+          order_index: number
+        }
+        Insert: {
+          base_fc_cost?: number
+          base_seconds?: number
+          cost_materials?: Json
+          description?: string
+          enabled?: boolean
+          id: string
+          image_url?: string | null
+          max_level?: number
+          name: string
+          order_index?: number
+        }
+        Update: {
+          base_fc_cost?: number
+          base_seconds?: number
+          cost_materials?: Json
+          description?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          max_level?: number
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      realm_buildings: {
+        Row: {
+          building_type: string
+          id: string
+          level: number
+          status: string
+          updated_at: string
+          upgrade_finishes_at: string | null
+          upgrade_started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          building_type: string
+          id?: string
+          level?: number
+          status?: string
+          updated_at?: string
+          upgrade_finishes_at?: string | null
+          upgrade_started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          building_type?: string
+          id?: string
+          level?: number
+          status?: string
+          updated_at?: string
+          upgrade_finishes_at?: string | null
+          upgrade_started_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_buildings_building_type_fkey"
+            columns: ["building_type"]
+            isOneToOne: false
+            referencedRelation: "realm_building_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_buildings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_crafting_jobs: {
+        Row: {
+          claimed_at: string | null
+          finishes_at: string
+          id: string
+          idempotency_key: string | null
+          quantity: number
+          recipe_id: string
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          finishes_at: string
+          id?: string
+          idempotency_key?: string | null
+          quantity?: number
+          recipe_id: string
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          finishes_at?: string
+          id?: string
+          idempotency_key?: string | null
+          quantity?: number
+          recipe_id?: string
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_crafting_jobs_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "realm_recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_crafting_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_expeditions: {
+        Row: {
+          claimed_at: string | null
+          expedition_type: string
+          finishes_at: string
+          id: string
+          idempotency_key: string | null
+          region_id: string
+          reward: Json | null
+          reward_seed: number
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          expedition_type: string
+          finishes_at: string
+          id?: string
+          idempotency_key?: string | null
+          region_id: string
+          reward?: Json | null
+          reward_seed: number
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          expedition_type?: string
+          finishes_at?: string
+          id?: string
+          idempotency_key?: string | null
+          region_id?: string
+          reward?: Json | null
+          reward_seed?: number
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_expeditions_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "realm_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_expeditions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_material_balances: {
+        Row: {
+          amount: number
+          material_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          material_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          material_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_material_balances_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "realm_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_material_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_material_ledger: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          id: string
+          material_id: string
+          reason: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          id?: string
+          material_id: string
+          reason: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          id?: string
+          material_id?: string
+          reason?: string
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_material_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_materials: {
+        Row: {
+          enabled: boolean
+          id: string
+          image_url: string | null
+          name: string
+          order_index: number
+          rarity: string
+          region_id: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          id: string
+          image_url?: string | null
+          name: string
+          order_index?: number
+          rarity?: string
+          region_id?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          order_index?: number
+          rarity?: string
+          region_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_materials_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "realm_regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_profiles: {
+        Row: {
+          bounties_day: string | null
+          buildings_upgraded: number
+          crafts_completed: number
+          created_at: string
+          current_region: string | null
+          realm_level: number
+          realm_xp: number
+          ruins_completed: number
+          stronghold_level: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bounties_day?: string | null
+          buildings_upgraded?: number
+          crafts_completed?: number
+          created_at?: string
+          current_region?: string | null
+          realm_level?: number
+          realm_xp?: number
+          ruins_completed?: number
+          stronghold_level?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bounties_day?: string | null
+          buildings_upgraded?: number
+          crafts_completed?: number
+          created_at?: string
+          current_region?: string | null
+          realm_level?: number
+          realm_xp?: number
+          ruins_completed?: number
+          stronghold_level?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_profiles_current_region_fkey"
+            columns: ["current_region"]
+            isOneToOne: false
+            referencedRelation: "realm_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_recipes: {
+        Row: {
+          category: string
+          craft_seconds: number
+          enabled: boolean
+          fc_cost: number
+          id: string
+          image_url: string | null
+          inputs: Json
+          min_forge_level: number
+          name: string
+          order_index: number
+          output_kind: string
+          output_qty: number
+          output_ref: string
+        }
+        Insert: {
+          category?: string
+          craft_seconds?: number
+          enabled?: boolean
+          fc_cost?: number
+          id: string
+          image_url?: string | null
+          inputs?: Json
+          min_forge_level?: number
+          name: string
+          order_index?: number
+          output_kind?: string
+          output_qty?: number
+          output_ref: string
+        }
+        Update: {
+          category?: string
+          craft_seconds?: number
+          enabled?: boolean
+          fc_cost?: number
+          id?: string
+          image_url?: string | null
+          inputs?: Json
+          min_forge_level?: number
+          name?: string
+          order_index?: number
+          output_kind?: string
+          output_qty?: number
+          output_ref?: string
+        }
+        Relationships: []
+      }
+      realm_regions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          name: string
+          order_index: number
+          recommended_power: number
+          ruin_enabled: boolean
+          tagline: string
+          unlock_requires_region: string | null
+          unlock_stronghold_level: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id: string
+          image_url?: string | null
+          name: string
+          order_index?: number
+          recommended_power?: number
+          ruin_enabled?: boolean
+          tagline?: string
+          unlock_requires_region?: string | null
+          unlock_stronghold_level?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          order_index?: number
+          recommended_power?: number
+          ruin_enabled?: boolean
+          tagline?: string
+          unlock_requires_region?: string | null
+          unlock_stronghold_level?: number
+        }
+        Relationships: []
+      }
       referral_bonus_claims: {
         Row: {
           amount_fc: number
@@ -24728,6 +25339,10 @@ export type Database = {
       rarity_base_hp: { Args: { r: string }; Returns: number }
       rarity_resistance: { Args: { r: string }; Returns: number }
       rates_allowed_rarities: { Args: { p_rates: Json }; Returns: string[] }
+      realm_access_allowed: {
+        Args: { p_telegram_id: number }
+        Returns: boolean
+      }
       reconcile_pet_egg_orders: {
         Args: { p_telegram_id: number }
         Returns: Json
