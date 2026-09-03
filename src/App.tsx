@@ -944,9 +944,10 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.dailyStreak} label={t('calendar')} subtitle={(calendarDashboard?calendarDashboard.claimedToday:dailyReward?.claimed)?t('collectedToday'):`${t('day')} ${calendarDay}`} onClick={()=>setCalendarOpen(true)}/>
+            <span className="home-feature-spacer" aria-hidden />
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
+
           <div className="flex w-full items-start justify-between">
             <HomeFeature image={mainScreenArt.heroShop} label={t('shop')} onClick={()=>setShopOpen(true)}/>
             <HomeFeature image={mainScreenArt.seasonPass} label="PASSE" subtitle="TEMPORADA" onClick={()=>openInternal('season-pass')}/>
