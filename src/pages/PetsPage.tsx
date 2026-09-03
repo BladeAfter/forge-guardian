@@ -243,7 +243,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
       <section
         className={`relative overflow-hidden rounded-[2rem] border p-4 ${
           activeIsCelestial
-            ? 'forge-celestial-card border-cyan-100/70 shadow-[0_0_60px_rgba(56,189,248,.22)]'
+            ? 'border-transparent bg-[radial-gradient(120%_100%_at_50%_0%,rgba(56,189,248,.18),transparent_70%)] shadow-[0_0_60px_rgba(56,189,248,.18)]'
             : activeIsVeteran
               ? 'forge-veteran-card border-amber-300/70 shadow-[0_0_50px_rgba(251,146,60,.18)]'
               : activeIsNft
@@ -252,12 +252,9 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         }`}
       >
         {activeIsCelestial && (
-          <>
-            <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
-            <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
-            <div className="pointer-events-none absolute inset-[4px] z-0 rounded-[1.75rem] border border-cyan-100/25" aria-hidden />
-          </>
+          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
         )}
+
         {activeIsVeteran && (
           <>
             <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
@@ -268,16 +265,20 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         {active ? (
           <>
             <div className="relative z-10 flex items-center gap-4">
-              <div className={activePremium ? 'forge-pet-portrait relative shrink-0 rounded-2xl p-1.5' : 'relative shrink-0'}>
+              <div className={activePremium && !activeIsCelestial ? 'forge-pet-portrait relative shrink-0 rounded-2xl p-1.5' : 'relative shrink-0'}>
+                {activeIsCelestial && (
+                  <span className="pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(103,232,249,.32),transparent_70%)] blur-md" aria-hidden />
+                )}
                 <img
                   src={active.image}
                   alt={active.name}
-                  className={`h-32 w-32 shrink-0 object-contain ${
+                  className={`shrink-0 object-contain ${
                     activeIsCelestial
-                      ? 'drop-shadow-[0_0_26px_rgba(103,232,249,.55)]'
-                      : 'drop-shadow-[0_0_22px_rgba(251,191,36,.4)]'
+                      ? 'relative h-40 w-40 drop-shadow-[0_0_30px_rgba(103,232,249,.6)]'
+                      : 'h-32 w-32 drop-shadow-[0_0_22px_rgba(251,191,36,.4)]'
                   }`}
                 />
+
               </div>
               <div className="min-w-0">
                 <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
@@ -1067,18 +1068,19 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
   const serial = pet.nft?.serial;
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] p-2.5 text-center shadow-[0_16px_30px_rgba(0,0,0,.45)] transition duration-200 active:scale-[.98] ${
-        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : isCelestial ? 'forge-celestial-card border-cyan-100/80' : style.borderClass
+      className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border p-2.5 text-center transition duration-200 active:scale-[.98] ${
+        isCelestial
+          ? 'border-transparent bg-[radial-gradient(120%_90%_at_50%_0%,rgba(56,189,248,.16),transparent_72%)]'
+          : `bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] shadow-[0_16px_30px_rgba(0,0,0,.45)] ${
+              isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : style.borderClass
+            }`
       } ${pet.isActive ? 'ring-1 ring-emerald-300/25' : ''}`}
     >
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
       {isCelestial && (
-        <>
-          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
-          <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
-          <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-cyan-100/25" aria-hidden />
-        </>
+        <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
       )}
+
       {isVeteran && (
         <>
           <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
@@ -1116,12 +1118,16 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
       </div>
 
 
-      <button type="button" onClick={onDetails} className="relative z-10 mt-1 grid h-[124px] w-full place-items-center">
+      <button type="button" onClick={onDetails} className={`relative z-10 mt-1 grid w-full place-items-center ${isCelestial ? 'h-[140px]' : 'h-[124px]'}`}>
         {isVeteran ? (
           <span className="pointer-events-none absolute h-[104px] w-[104px] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_68%)] blur-md" aria-hidden />
         ) : null}
-        <img src={pet.image} alt={pet.name} className={`relative h-[118px] w-full object-contain ${isVeteran ? 'drop-shadow-[0_10px_18px_rgba(245,158,11,.45)]' : 'drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]'}`} />
+        {isCelestial ? (
+          <span className="pointer-events-none absolute h-[128px] w-[128px] rounded-full bg-[radial-gradient(circle,rgba(103,232,249,.3),transparent_70%)] blur-md" aria-hidden />
+        ) : null}
+        <img src={pet.image} alt={pet.name} className={`relative w-full object-contain ${isCelestial ? 'h-[138px] drop-shadow-[0_0_24px_rgba(103,232,249,.55)]' : isVeteran ? 'h-[118px] drop-shadow-[0_10px_18px_rgba(245,158,11,.45)]' : 'h-[118px] drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]'}`} />
       </button>
+
 
 
       <div className="relative z-10">
@@ -1388,7 +1394,7 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
     <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
       <div
         className={`forge-safe-page relative max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border bg-[#080b11] p-4 ${
-          isCelestial ? 'forge-celestial-card border-cyan-100/70' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
+          isCelestial ? 'border-cyan-100/25' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
         }`}
         onClick={(event) => event.stopPropagation()}
       >
@@ -1405,13 +1411,17 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
         </header>
 
         <div className="relative z-10">
-          <div className="forge-pet-portrait mx-auto max-w-[19rem]" style={premium ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}>
+          <div
+            className={isCelestial ? 'relative mx-auto max-w-[19rem]' : 'forge-pet-portrait mx-auto max-w-[19rem]'}
+            style={premium && !isCelestial ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}
+          >
             <span
               className="pointer-events-none absolute left-1/2 top-6 h-44 w-44 -translate-x-1/2 rounded-full blur-2xl"
               style={{ background: `radial-gradient(circle, ${accent}33, transparent 68%)` }}
               aria-hidden
             />
-            <img src={pet.image} alt={pet.name} className="relative mx-auto h-52 w-full object-contain" />
+            <img src={pet.image} alt={pet.name} className={`relative mx-auto w-full object-contain ${isCelestial ? 'h-60 drop-shadow-[0_0_30px_rgba(103,232,249,.5)]' : 'h-52'}`} />
+
             <div className="relative mt-2 flex items-center justify-center gap-1.5">
               <span className="rounded-full border border-white/15 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-slate-200">
                 {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
