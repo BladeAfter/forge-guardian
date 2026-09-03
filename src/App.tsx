@@ -9,7 +9,7 @@ import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
-import { ClanHubPage, CommunityPoolPage, DiagnosticsPage, HeroesPage, PetsPage, PvpPage, ReferralPage, SeasonPassPage } from './lazyPages';
+import { ClanHubPage, CommunityPoolPage, DiagnosticsPage, HeroesPage, PetsPage, PvpPage, RealmPage, ReferralPage, SeasonPassPage } from './lazyPages';
 import { QuestsPage } from './pages/QuestsPage';
 import { BossPage } from './pages/BossPage';
 import { WalletPage } from './pages/WalletPage';
@@ -46,8 +46,9 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan'|'realm';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm'};
+
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
@@ -867,6 +868,9 @@ function App() {
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
+  // MYTHREON REALM — acesso antecipado: o backend também valida (realm_access_allowed).
+  if(activePage==='realm'&&telegramInitData&&telegramUser?.id===8118569391)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
+
 
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
@@ -976,6 +980,11 @@ function App() {
                 onClick={()=>setPremiumOffersOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
               >💎 OFERTAS</button>
+              {telegramUser?.id===8118569391&&<button
+                onClick={()=>openInternal('realm')}
+                className="flex items-center gap-1.5 rounded-full border border-emerald-300/45 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,.18)] transition active:scale-95"
+              >🏰 REALM</button>}
+
             </div>
           </div>
 

@@ -3228,7 +3228,67 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('INVALID_ACTION');
   },
 
+  /**
+   * 🏰 MYTHREON REALM — Stronghold, world map, expeditions, crafting, Ancient Ruins and
+   * daily bounties. Soft launch: only Telegram IDs allowed by `realm_access_allowed`
+   * (admin list in game_settings) can reach this route. Every timer, cost and reward roll
+   * is decided by the database; the client only renders committed state.
+   */
+  realm: async (db, user, body) => {
+    const allowed = await db.rpc('realm_access_allowed', { p_telegram_id: user.id });
+    if (allowed.error || allowed.data !== true) throw new ForgeDbError('REALM_LOCKED', 'REALM_LOCKED', null, null, 403);
+
+    const player = await db.from('game_players').select('id').eq('telegram_id', user.id).maybeSingle();
+    if (player.error || !player.data?.id) throw new Error('PLAYER_NOT_FOUND');
+    const uid = player.data.id as string;
+
+    const action = String(body.action || 'state');
+    const key = String(body.idempotencyKey || '').slice(0, 80) || null;
+
+    if (action === 'state') return rpc(db, 'realm_state', { p_user: uid });
+    if (action === 'upgrade-building') return rpc(db, 'realm_building_upgrade', { p_user: uid, p_type: String(body.buildingType || '') });
+    if (action === 'claim-building') return rpc(db, 'realm_building_claim', { p_user: uid, p_type: String(body.buildingType || '') });
+    if (action === 'start-expedition') {
+      return rpc(db, 'realm_expedition_start', {
+        p_user: uid, p_region: String(body.regionId || ''),
+        p_type: String(body.expeditionType || 'gather'), p_idem: key,
+      });
+    }
+    if (action === 'claim-expedition') {
+      if (!isUuid(body.expeditionId)) throw new Error('REALM_EXPEDITION_UNKNOWN');
+      return rpc(db, 'realm_expedition_claim', { p_user: uid, p_id: body.expeditionId });
+    }
+    if (action === 'start-craft') {
+      return rpc(db, 'realm_craft_start', {
+        p_user: uid, p_recipe: String(body.recipeId || ''),
+        p_qty: Number(body.quantity) || 1, p_idem: key,
+      });
+    }
+    if (action === 'claim-craft') {
+      if (!isUuid(body.jobId)) throw new Error('REALM_CRAFT_UNKNOWN');
+      return rpc(db, 'realm_craft_claim', { p_user: uid, p_id: body.jobId });
+    }
+    if (action === 'ruin-start') return rpc(db, 'realm_ruin_start', { p_user: uid, p_region: String(body.regionId || '') });
+    if (action === 'ruin-choose') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      const branch = Number(body.branch);
+      if (!Number.isInteger(branch) || branch < 0 || branch > 1) throw new Error('REALM_ROOM_UNKNOWN');
+      return rpc(db, 'realm_ruin_choose', { p_user: uid, p_run: body.runId, p_branch: branch });
+    }
+    if (action === 'ruin-extract') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      return rpc(db, 'realm_ruin_extract', { p_user: uid, p_run: body.runId });
+    }
+    if (action === 'bounties') return rpc(db, 'realm_bounties_ensure', { p_user: uid });
+    if (action === 'claim-bounty') {
+      if (!isUuid(body.bountyId)) throw new Error('REALM_BOUNTY_UNKNOWN');
+      return rpc(db, 'realm_bounty_claim', { p_user: uid, p_id: body.bountyId });
+    }
+    throw new Error('INVALID_ACTION');
+  },
+
 };
+
 
 
 

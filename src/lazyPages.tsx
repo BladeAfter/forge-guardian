@@ -52,3 +52,7 @@ export const CommunityPoolPage = lazyPage(() =>
 export const DiagnosticsPage = lazyPage(() =>
   import('./pages/DiagnosticsPage').then((m) => ({ default: m.DiagnosticsPage })),
 );
+export const RealmPage = lazyPage(() =>
+  import('./pages/RealmPage').then((m) => ({ default: m.RealmPage })),
+);
+
