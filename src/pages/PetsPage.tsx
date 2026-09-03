@@ -243,7 +243,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
       <section
         className={`relative overflow-hidden rounded-[2rem] border p-4 ${
           activeIsCelestial
-            ? 'forge-celestial-card border-cyan-100/70 shadow-[0_0_60px_rgba(56,189,248,.22)]'
+            ? 'border-transparent bg-[radial-gradient(120%_100%_at_50%_0%,rgba(56,189,248,.18),transparent_70%)] shadow-[0_0_60px_rgba(56,189,248,.18)]'
             : activeIsVeteran
               ? 'forge-veteran-card border-amber-300/70 shadow-[0_0_50px_rgba(251,146,60,.18)]'
               : activeIsNft
@@ -252,12 +252,9 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         }`}
       >
         {activeIsCelestial && (
-          <>
-            <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
-            <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
-            <div className="pointer-events-none absolute inset-[4px] z-0 rounded-[1.75rem] border border-cyan-100/25" aria-hidden />
-          </>
+          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
         )}
+
         {activeIsVeteran && (
           <>
             <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
