@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { hatchedPurchase, reconcilePendingEggPurchases } from './eggPurchase';
 import { activatedPass, passTierLabel, reconcilePendingPassPurchases } from './passPurchase';
-import { Bell, ChevronRight, Settings, Sparkles, X } from 'lucide-react';
+import { Bell, ChevronRight, Settings, X } from 'lucide-react';
 import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
@@ -17,7 +17,6 @@ import { ProfilePage } from './pages/ProfilePage';
 import {ClanHall}from'./components/ClanHall';
 import {TonMinesEntryCard}from'./components/TonMinesEntryCard';
 import {PartnersModal}from'./components/PartnersModal';
-import {RewardsModal}from'./components/RewardsModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
@@ -574,7 +573,6 @@ function App() {
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [partnersOpen,setPartnersOpen]=useState(false);
   const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
-  const [rewardsOpen,setRewardsOpen]=useState(false);
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
@@ -993,7 +991,6 @@ function App() {
 
 
           {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
-          {rewardsOpen&&telegramInitData&&telegramUser?.id===8118569391?<RewardsModal telegramInitData={telegramInitData} onClose={()=>setRewardsOpen(false)}/>:null}
           {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
