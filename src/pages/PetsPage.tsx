@@ -1068,18 +1068,19 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
   const serial = pet.nft?.serial;
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] p-2.5 text-center shadow-[0_16px_30px_rgba(0,0,0,.45)] transition duration-200 active:scale-[.98] ${
-        isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : isCelestial ? 'forge-celestial-card border-cyan-100/80' : style.borderClass
+      className={`group relative flex flex-col overflow-hidden rounded-[1.35rem] border p-2.5 text-center transition duration-200 active:scale-[.98] ${
+        isCelestial
+          ? 'border-transparent bg-[radial-gradient(120%_90%_at_50%_0%,rgba(56,189,248,.16),transparent_72%)]'
+          : `bg-gradient-to-b from-[#102039] via-[#08111f] to-[#03070d] shadow-[0_16px_30px_rgba(0,0,0,.45)] ${
+              isNft ? 'forge-nft-card border-amber-200/60' : isVeteran ? 'forge-veteran-card border-amber-300/70' : style.borderClass
+            }`
       } ${pet.isActive ? 'ring-1 ring-emerald-300/25' : ''}`}
     >
       {isNft && <div className="forge-nft-sparkles pointer-events-none absolute inset-0 z-0" aria-hidden />}
       {isCelestial && (
-        <>
-          <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
-          <div className="forge-celestial-sheen pointer-events-none absolute inset-0 z-0" aria-hidden />
-          <div className="pointer-events-none absolute inset-[3px] z-0 rounded-[1.15rem] border border-cyan-100/25" aria-hidden />
-        </>
+        <div className="forge-celestial-stars pointer-events-none absolute inset-0 z-0" aria-hidden />
       )}
+
       {isVeteran && (
         <>
           <div className="forge-veteran-scales pointer-events-none absolute inset-0 z-0" aria-hidden />
