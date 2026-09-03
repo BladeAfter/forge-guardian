@@ -130,9 +130,6 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const buildingType = data.buildingTypes.find((bt) => bt.id === buildingSheet) ?? null;
   const recipe = data.recipes.find((r) => r.id === recipeSheet) ?? null;
 
-  const regions = data.regions;
-  const activeRegion = regions.find((r) => r.id === regionSel) ?? regions[0] ?? null;
-  const regionLocked = activeRegion ? level < activeRegion.unlock_stronghold_level : true;
 
   const openRecipes = data.recipes.filter((r) => forgeLevel >= r.min_forge_level);
   const lockedRecipes = data.recipes.filter((r) => forgeLevel < r.min_forge_level);
