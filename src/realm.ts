@@ -276,3 +276,66 @@ export const REALM_ROOM_LABEL: Record<string, string> = {
   shrine: 'SANTUÁRIO',
   rest: 'DESCANSO',
 };
+
+// ── EXPLORATION COPY (PT-BR) ───────────────────────────────────────────────
+export const REALM_NODE_LABEL: Record<string, string> = {
+  combat: 'COMBATE',
+  elite: 'ELITE',
+  boss: 'GUARDIÃO',
+  gather: 'COLETA',
+  treasure: 'TESOURO',
+  event: 'EVENTO',
+  trap: 'ARMADILHA',
+  shrine: 'SANTUÁRIO',
+  rest: 'ACAMPAMENTO',
+};
+
+/** Short glyph per node — drawn inside the map pin (no icon library). */
+export const REALM_NODE_GLYPH: Record<string, string> = {
+  combat: '⚔', elite: '👹', boss: '👑', gather: '🌿',
+  treasure: '💰', event: '✨', trap: '🩸', shrine: '🛐', rest: '🏕',
+};
+
+export const REALM_NODE_TONE: Record<string, string> = {
+  combat: '#f87171', elite: '#fb923c', boss: '#facc15', gather: '#4ade80',
+  treasure: '#fbbf24', event: '#c084fc', trap: '#fb7185', shrine: '#60a5fa', rest: '#34d399',
+};
+
+export const REALM_NODE_TITLE: Record<string, string> = {
+  combat: 'EMBOSCADA',
+  elite: 'CAÇADOR ELITE',
+  boss: 'GUARDIÃO DA REGIÃO',
+  gather: 'VEIO DE RECURSOS',
+  treasure: 'BAÚ SELADO',
+  event: 'ALTAR ESQUECIDO',
+  trap: 'RUNAS INSTÁVEIS',
+  shrine: 'SANTUÁRIO ANTIGO',
+  rest: 'ACAMPAMENTO SEGURO',
+};
+
+export const REALM_NODE_DESC: Record<string, string> = {
+  combat: 'Criaturas bloqueiam a trilha. Sua equipe entra em combate.',
+  elite: 'Um predador marcado pelas sombras aguarda. Recompensa alta, risco alto.',
+  boss: 'O guardião da região desperta. Vencer encerra a run com bônus.',
+  gather: 'Recursos brilham entre as raízes. Extrair com força rende mais e machuca.',
+  treasure: 'Um baú antigo lacrado por runas. Forçar pode acionar defesas.',
+  event: 'Runas antigas pulsam em um altar coberto de musgo.',
+  trap: 'O chão está tomado por runas instáveis. Avance com cuidado.',
+  shrine: 'Uma bênção esquecida ainda vive aqui: cure-se ou canalize poder.',
+  rest: 'Um ponto seguro para recuperar a equipe.',
+};
+
+export const REALM_OPTION_LABEL: Record<string, string> = {
+  safe: 'COM SEGURANÇA',
+  force: 'FORÇAR (+RISCO)',
+  ignore: 'IGNORAR',
+  accept: 'TOCAR NO ALTAR',
+  offer: 'OFERECER RECURSOS',
+  bless: 'RECEBER BÊNÇÃO',
+  empower: 'CANALIZAR PODER',
+  careful: 'AVANÇAR COM CUIDADO',
+  default: 'AVANÇAR',
+};
+
+export const REALM_RISK_LABEL = (risk: number) =>
+  risk >= 70 ? 'ALTÍSSIMO' : risk >= 45 ? 'ALTO' : risk >= 20 ? 'MÉDIO' : 'BAIXO';
