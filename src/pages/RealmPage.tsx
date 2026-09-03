@@ -1,27 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import RealmExplorationMap from '../components/RealmExplorationMap';
 import {
   REALM_ROOM_LABEL,
   fetchRealmState,
   realmClaimBounty,
   realmClaimBuilding,
   realmClaimCraft,
-  realmClaimExpedition,
   realmEnsureBounties,
   realmRuinChoose,
   realmRuinExtract,
   realmRuinStart,
   realmSecondsLeft,
   realmStartCraft,
-  realmStartExpedition,
   realmTimer,
   realmUpgradeBuilding,
   type RealmState,
 } from '../realm';
 
-const WORLD_MAP = '/assets/game/realm/world-map.jpg';
 const STRONGHOLD = '/assets/game/realm/stronghold.jpg';
 const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
+
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
