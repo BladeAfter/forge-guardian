@@ -265,16 +265,20 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         {active ? (
           <>
             <div className="relative z-10 flex items-center gap-4">
-              <div className={activePremium ? 'forge-pet-portrait relative shrink-0 rounded-2xl p-1.5' : 'relative shrink-0'}>
+              <div className={activePremium && !activeIsCelestial ? 'forge-pet-portrait relative shrink-0 rounded-2xl p-1.5' : 'relative shrink-0'}>
+                {activeIsCelestial && (
+                  <span className="pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(103,232,249,.32),transparent_70%)] blur-md" aria-hidden />
+                )}
                 <img
                   src={active.image}
                   alt={active.name}
-                  className={`h-32 w-32 shrink-0 object-contain ${
+                  className={`shrink-0 object-contain ${
                     activeIsCelestial
-                      ? 'drop-shadow-[0_0_26px_rgba(103,232,249,.55)]'
-                      : 'drop-shadow-[0_0_22px_rgba(251,191,36,.4)]'
+                      ? 'relative h-40 w-40 drop-shadow-[0_0_30px_rgba(103,232,249,.6)]'
+                      : 'h-32 w-32 drop-shadow-[0_0_22px_rgba(251,191,36,.4)]'
                   }`}
                 />
+
               </div>
               <div className="min-w-0">
                 <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.activeCompanion')}</p>
