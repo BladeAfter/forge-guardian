@@ -175,11 +175,36 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
   });
 
   // Fragments -> random common/uncommon hero. Cost, odds and the roll are server-side and idempotent.
+  // Bulk summon (1 / 5 / 10 / MAX) reuses the SAME chest pattern: one server call per summon.
   const summon = useMutation({
-    mutationFn: () => summonHeroWithFragments(telegramInitData),
-    onSuccess: async (payload) => {
+    mutationFn: async (count: number = 1) => {
+      const total = Math.max(1, count);
+      const names: string[] = [];
+      let done = 0;
+      let last: Awaited<ReturnType<typeof summonHeroWithFragments>> | null = null;
+      setBatch({ done: 0, total });
+      try {
+        for (let index = 0; index < total; index += 1) {
+          last = await summonHeroWithFragments(telegramInitData);
+          done += 1;
+          setBatch({ done, total });
+          const name = last?.hero?.name;
+          if (name) names.push(name);
+        }
+      } catch (loopError) {
+        if (done === 0) throw loopError;
+        toast.error(loopError instanceof Error ? loopError.message : t('inventory.summonError'));
+      } finally {
+        setBatch(null);
+      }
+      return { last, done, names };
+    },
+    onSuccess: async ({ last, done, names }) => {
       setSelected(null);
-      setSummoned(payload);
+      if (done > 1) {
+        toast.success(t('inventory.bulkOpened', { count: done }));
+        if (names.length) toast.success(names.slice(0, 5).join(' · '));
+      } else if (last) setSummoned(last);
       await invalidate(['player-inventory', 'player-heroes', 'hero-fusion', 'rarity-fusion', 'game-state']);
     },
     onError: (summonError) => toast.error(summonError instanceof Error ? summonError.message : t('inventory.summonError')),
