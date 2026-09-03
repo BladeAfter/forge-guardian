@@ -95,6 +95,56 @@ export type RealmRuinRoom = {
   config: { difficulty?: number } | null;
 };
 
+export type RealmExploreLoot = {
+  fc?: number;
+  fragments?: number;
+  materials?: Record<string, number>;
+  outcome?: string;
+};
+
+export type RealmExploreRun = {
+  id: string;
+  region_id: string;
+  hp: number;
+  depth: number;
+  final_depth: number;
+  risk: number;
+  loot: RealmExploreLoot | null;
+  pending: { nodeId: string; nodeType: string; options: string[] } | null;
+  status: string;
+};
+
+export type RealmExploreNodeType =
+  | 'combat' | 'elite' | 'boss' | 'gather' | 'treasure' | 'event' | 'trap' | 'shrine' | 'rest';
+
+export type RealmExploreNode = {
+  id: string;
+  depth: number;
+  lane: number;
+  node_type: RealmExploreNodeType;
+  status: 'locked' | 'available' | 'active' | 'resolved' | 'skipped';
+  config: { difficulty?: number; x?: number; y?: number } | null;
+};
+
+/** Result of entering/resolving one node — drives the combat overlay and loot toasts. */
+export type RealmExploreLog = {
+  nodeType?: RealmExploreNodeType;
+  option?: string;
+  damage?: number;
+  fc?: number;
+  fragments?: number;
+  material?: string | null;
+  materialQty?: number;
+  rounds?: { round: number; playerHit: number; enemyHit: number }[];
+  hp?: number;
+  depth?: number;
+  risk?: number;
+  result?: 'ongoing' | 'failed' | 'cleared' | 'pending';
+  reward?: RealmExploreLoot;
+  nodeId?: string;
+  options?: string[];
+};
+
 export type RealmBounty = {
   id: string;
   bounty_type: string;
@@ -104,6 +154,7 @@ export type RealmBounty = {
   reward: { fc?: number; fragments?: number };
   status: string;
 };
+
 
 export type RealmProfile = {
   stronghold_level: number;
