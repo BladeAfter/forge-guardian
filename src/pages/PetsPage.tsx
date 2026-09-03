@@ -1118,12 +1118,16 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
       </div>
 
 
-      <button type="button" onClick={onDetails} className="relative z-10 mt-1 grid h-[124px] w-full place-items-center">
+      <button type="button" onClick={onDetails} className={`relative z-10 mt-1 grid w-full place-items-center ${isCelestial ? 'h-[140px]' : 'h-[124px]'}`}>
         {isVeteran ? (
           <span className="pointer-events-none absolute h-[104px] w-[104px] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.28),transparent_68%)] blur-md" aria-hidden />
         ) : null}
-        <img src={pet.image} alt={pet.name} className={`relative h-[118px] w-full object-contain ${isVeteran ? 'drop-shadow-[0_10px_18px_rgba(245,158,11,.45)]' : 'drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]'}`} />
+        {isCelestial ? (
+          <span className="pointer-events-none absolute h-[128px] w-[128px] rounded-full bg-[radial-gradient(circle,rgba(103,232,249,.3),transparent_70%)] blur-md" aria-hidden />
+        ) : null}
+        <img src={pet.image} alt={pet.name} className={`relative w-full object-contain ${isCelestial ? 'h-[138px] drop-shadow-[0_0_24px_rgba(103,232,249,.55)]' : isVeteran ? 'h-[118px] drop-shadow-[0_10px_18px_rgba(245,158,11,.45)]' : 'h-[118px] drop-shadow-[0_10px_14px_rgba(0,0,0,.8)]'}`} />
       </button>
+
 
 
       <div className="relative z-10">
