@@ -94,7 +94,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (error || !data) {
     return (
-      <div className="forge-safe-page min-h-screen bg-[#05070f] p-6 text-center">
+      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-6 text-center">
         <p className="mt-16 text-sm text-rose-300">{(error as Error)?.message || 'Falha ao abrir o MYTHREON REALM.'}</p>
         <button onClick={onBack} className="mt-6 rounded-2xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.2em] text-amber-200">VOLTAR</button>
       </div>
