@@ -3279,7 +3279,30 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
       return rpc(db, 'realm_ruin_extract', { p_user: uid, p_run: body.runId });
     }
+    // ── INTERACTIVE EXPLORATION (node map runs) ────────────────────────────
+    if (action === 'explore-start') return rpc(db, 'realm_explore_start', { p_user: uid, p_region: String(body.regionId || '') });
+    if (action === 'explore-enter') {
+      if (!isUuid(body.runId) || !isUuid(body.nodeId)) throw new Error('REALM_NODE_UNKNOWN');
+      return rpc(db, 'realm_explore_enter', { p_user: uid, p_run: body.runId, p_node: body.nodeId });
+    }
+    if (action === 'explore-choose') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      return rpc(db, 'realm_explore_choose', { p_user: uid, p_run: body.runId, p_option: String(body.option || '') });
+    }
+    if (action === 'explore-extract') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      return rpc(db, 'realm_explore_extract', { p_user: uid, p_run: body.runId });
+    }
+    if (action === 'explore-auto') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      return rpc(db, 'realm_explore_auto', { p_user: uid, p_run: body.runId });
+    }
+    if (action === 'explore-abandon') {
+      if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
+      return rpc(db, 'realm_explore_abandon', { p_user: uid, p_run: body.runId });
+    }
     if (action === 'bounties') return rpc(db, 'realm_bounties_ensure', { p_user: uid });
+
     if (action === 'claim-bounty') {
       if (!isUuid(body.bountyId)) throw new Error('REALM_BOUNTY_UNKNOWN');
       return rpc(db, 'realm_bounty_claim', { p_user: uid, p_id: body.bountyId });
