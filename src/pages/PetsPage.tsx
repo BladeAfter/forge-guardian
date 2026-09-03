@@ -1394,7 +1394,7 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
     <div className="fixed inset-0 z-[96] flex items-end justify-center bg-black/85 p-3" onClick={onClose}>
       <div
         className={`forge-safe-page relative max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-3xl border bg-[#080b11] p-4 ${
-          isCelestial ? 'forge-celestial-card border-cyan-100/70' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
+          isCelestial ? 'border-cyan-100/25' : isVeteran ? 'forge-veteran-card border-amber-300/60' : isNft ? 'forge-nft-card border-amber-200/60' : 'border-amber-400/30'
         }`}
         onClick={(event) => event.stopPropagation()}
       >
