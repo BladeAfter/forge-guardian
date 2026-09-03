@@ -179,10 +179,15 @@ export type RealmState = {
   crafting: RealmCraftJob[];
   ruinRun: RealmRuinRun | null;
   ruinRooms: RealmRuinRoom[];
+  exploreRun: RealmExploreRun | null;
+  exploreNodes: RealmExploreNode[];
   bounties: RealmBounty[];
   lastReward?: Record<string, unknown>;
   lastRoom?: Record<string, unknown>;
+  lastNode?: RealmExploreLog;
+  autoLog?: RealmExploreLog[];
 };
+
 
 const REALM_ERRORS: Record<string, string> = {
   REALM_LOCKED: 'O MYTHREON REALM ainda está em acesso antecipado.',
