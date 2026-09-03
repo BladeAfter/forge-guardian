@@ -48,7 +48,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const [buildingSheet, setBuildingSheet] = useState<string | null>(null);
   const [recipeSheet, setRecipeSheet] = useState<string | null>(null);
   const [craftQty, setCraftQty] = useState(1);
-  const [regionSel, setRegionSel] = useState<string | null>(null);
+  
   const [showLockedRecipes, setShowLockedRecipes] = useState(false);
 
   useEffect(() => {
