@@ -86,7 +86,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (isLoading) {
     return (
-      <div className="forge-safe-page min-h-screen bg-[#05070f] p-4">
+      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-4">
         {[1, 2, 3].map((k) => <div key={k} className="mb-3 h-32 animate-pulse rounded-3xl bg-white/5" />)}
       </div>
     );
@@ -94,7 +94,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (error || !data) {
     return (
-      <div className="forge-safe-page min-h-screen bg-[#05070f] p-6 text-center">
+      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-6 text-center">
         <p className="mt-16 text-sm text-rose-300">{(error as Error)?.message || 'Falha ao abrir o MYTHREON REALM.'}</p>
         <button onClick={onBack} className="mt-6 rounded-2xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.2em] text-amber-200">VOLTAR</button>
       </div>
@@ -106,7 +106,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const openRooms = data.ruinRooms.filter((r) => r.room_index === (ruinRun?.current_room ?? -1) && r.status === 'open');
 
   return (
-    <div className="forge-safe-page min-h-screen bg-[#05070f] pb-24">
+    <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-24">
       {/* HERO */}
       <header className="relative h-52 overflow-hidden">
         <img src={STRONGHOLD} alt="Stronghold do jogador" className="absolute inset-0 h-full w-full object-cover" />
