@@ -9,7 +9,7 @@ import type { GameState, LanguageStrings, TabKey } from './types';
 import { LANGUAGES, formatCurrency, locales } from './utils';
 import { useBossCombat, useCalendarDashboard, useDailyQuests, useGameState, usePlayerInventory, usePetDashboard, usePlayerHeroes, useReferralDashboard, useTelegramProfile, useTonWallet as useTonRewardWallet, useWalletSummary } from './hooks';
 import { VillagePage } from './pages/VillagePage';
-import { ClanHubPage, CommunityPoolPage, DiagnosticsPage, HeroesPage, PetsPage, PvpPage, ReferralPage, SeasonPassPage } from './lazyPages';
+import { ClanHubPage, CommunityPoolPage, DiagnosticsPage, HeroesPage, PetsPage, PvpPage, RealmPage, ReferralPage, SeasonPassPage } from './lazyPages';
 import { QuestsPage } from './pages/QuestsPage';
 import { BossPage } from './pages/BossPage';
 import { WalletPage } from './pages/WalletPage';
