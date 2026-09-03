@@ -86,7 +86,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (isLoading) {
     return (
-      <div className="forge-safe-page min-h-screen bg-[#05070f] p-4">
+      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-4">
         {[1, 2, 3].map((k) => <div key={k} className="mb-3 h-32 animate-pulse rounded-3xl bg-white/5" />)}
       </div>
     );
