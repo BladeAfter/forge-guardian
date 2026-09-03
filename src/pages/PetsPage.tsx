@@ -1411,13 +1411,17 @@ function PetDetailsModal({ pet, bonuses, onClose, onFeed, onResetTransfer }: { p
         </header>
 
         <div className="relative z-10">
-          <div className="forge-pet-portrait mx-auto max-w-[19rem]" style={premium ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}>
+          <div
+            className={isCelestial ? 'relative mx-auto max-w-[19rem]' : 'forge-pet-portrait mx-auto max-w-[19rem]'}
+            style={premium && !isCelestial ? { boxShadow: `inset 0 0 30px rgba(0,0,0,.7), 0 0 26px ${accent}33` } : undefined}
+          >
             <span
               className="pointer-events-none absolute left-1/2 top-6 h-44 w-44 -translate-x-1/2 rounded-full blur-2xl"
               style={{ background: `radial-gradient(circle, ${accent}33, transparent 68%)` }}
               aria-hidden
             />
-            <img src={pet.image} alt={pet.name} className="relative mx-auto h-52 w-full object-contain" />
+            <img src={pet.image} alt={pet.name} className={`relative mx-auto w-full object-contain ${isCelestial ? 'h-60 drop-shadow-[0_0_30px_rgba(103,232,249,.5)]' : 'h-52'}`} />
+
             <div className="relative mt-2 flex items-center justify-center gap-1.5">
               <span className="rounded-full border border-white/15 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-slate-200">
                 {petStageLabel(pet.evolutionStage)} · {pet.evolutionLabel}
