@@ -980,6 +980,11 @@ function App() {
                 onClick={()=>setPremiumOffersOpen(true)}
                 className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
               >💎 OFERTAS</button>
+              {telegramUser?.id===8118569391&&<button
+                onClick={()=>openInternal('realm')}
+                className="flex items-center gap-1.5 rounded-full border border-emerald-300/45 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-200 shadow-[0_0_18px_rgba(52,211,153,.18)] transition active:scale-95"
+              >🏰 REALM</button>}
+
             </div>
           </div>
 
