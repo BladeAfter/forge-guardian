@@ -238,6 +238,21 @@ export const realmEnsureBounties = (initData: string) => realmCall(initData, { a
 export const realmClaimBounty = (initData: string, bountyId: string) =>
   realmCall(initData, { action: 'claim-bounty', bountyId });
 
+// ── INTERACTIVE EXPLORATION ────────────────────────────────────────────────
+export const realmExploreStart = (initData: string, regionId: string) =>
+  realmCall(initData, { action: 'explore-start', regionId });
+export const realmExploreEnter = (initData: string, runId: string, nodeId: string) =>
+  realmCall(initData, { action: 'explore-enter', runId, nodeId });
+export const realmExploreChoose = (initData: string, runId: string, option: string) =>
+  realmCall(initData, { action: 'explore-choose', runId, option });
+export const realmExploreExtract = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-extract', runId });
+export const realmExploreAuto = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-auto', runId });
+export const realmExploreAbandon = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-abandon', runId });
+
+
 /** Remaining seconds for a server timestamp, clamped at zero. */
 export const realmSecondsLeft = (iso: string | null | undefined, now = Date.now()) =>
   !iso ? 0 : Math.max(0, Math.ceil((new Date(iso).getTime() - now) / 1000));
