@@ -942,7 +942,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <span className="home-feature-spacer" aria-hidden />
+            <span className="home-feature-placeholder h-[112px] w-[108px] shrink-0" aria-hidden />
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
