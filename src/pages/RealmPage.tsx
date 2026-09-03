@@ -106,7 +106,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const openRooms = data.ruinRooms.filter((r) => r.room_index === (ruinRun?.current_room ?? -1) && r.status === 'open');
 
   return (
-    <div className="forge-safe-page min-h-screen bg-[#05070f] pb-24">
+    <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-24">
       {/* HERO */}
       <header className="relative h-52 overflow-hidden">
         <img src={STRONGHOLD} alt="Stronghold do jogador" className="absolute inset-0 h-full w-full object-cover" />
