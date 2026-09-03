@@ -95,6 +95,56 @@ export type RealmRuinRoom = {
   config: { difficulty?: number } | null;
 };
 
+export type RealmExploreLoot = {
+  fc?: number;
+  fragments?: number;
+  materials?: Record<string, number>;
+  outcome?: string;
+};
+
+export type RealmExploreRun = {
+  id: string;
+  region_id: string;
+  hp: number;
+  depth: number;
+  final_depth: number;
+  risk: number;
+  loot: RealmExploreLoot | null;
+  pending: { nodeId: string; nodeType: string; options: string[] } | null;
+  status: string;
+};
+
+export type RealmExploreNodeType =
+  | 'combat' | 'elite' | 'boss' | 'gather' | 'treasure' | 'event' | 'trap' | 'shrine' | 'rest';
+
+export type RealmExploreNode = {
+  id: string;
+  depth: number;
+  lane: number;
+  node_type: RealmExploreNodeType;
+  status: 'locked' | 'available' | 'active' | 'resolved' | 'skipped';
+  config: { difficulty?: number; x?: number; y?: number } | null;
+};
+
+/** Result of entering/resolving one node — drives the combat overlay and loot toasts. */
+export type RealmExploreLog = {
+  nodeType?: RealmExploreNodeType;
+  option?: string;
+  damage?: number;
+  fc?: number;
+  fragments?: number;
+  material?: string | null;
+  materialQty?: number;
+  rounds?: { round: number; playerHit: number; enemyHit: number }[];
+  hp?: number;
+  depth?: number;
+  risk?: number;
+  result?: 'ongoing' | 'failed' | 'cleared' | 'pending';
+  reward?: RealmExploreLoot;
+  nodeId?: string;
+  options?: string[];
+};
+
 export type RealmBounty = {
   id: string;
   bounty_type: string;
@@ -104,6 +154,7 @@ export type RealmBounty = {
   reward: { fc?: number; fragments?: number };
   status: string;
 };
+
 
 export type RealmProfile = {
   stronghold_level: number;
@@ -128,10 +179,15 @@ export type RealmState = {
   crafting: RealmCraftJob[];
   ruinRun: RealmRuinRun | null;
   ruinRooms: RealmRuinRoom[];
+  exploreRun: RealmExploreRun | null;
+  exploreNodes: RealmExploreNode[];
   bounties: RealmBounty[];
   lastReward?: Record<string, unknown>;
   lastRoom?: Record<string, unknown>;
+  lastNode?: RealmExploreLog;
+  autoLog?: RealmExploreLog[];
 };
+
 
 const REALM_ERRORS: Record<string, string> = {
   REALM_LOCKED: 'O MYTHREON REALM ainda está em acesso antecipado.',
@@ -182,6 +238,21 @@ export const realmEnsureBounties = (initData: string) => realmCall(initData, { a
 export const realmClaimBounty = (initData: string, bountyId: string) =>
   realmCall(initData, { action: 'claim-bounty', bountyId });
 
+// ── INTERACTIVE EXPLORATION ────────────────────────────────────────────────
+export const realmExploreStart = (initData: string, regionId: string) =>
+  realmCall(initData, { action: 'explore-start', regionId });
+export const realmExploreEnter = (initData: string, runId: string, nodeId: string) =>
+  realmCall(initData, { action: 'explore-enter', runId, nodeId });
+export const realmExploreChoose = (initData: string, runId: string, option: string) =>
+  realmCall(initData, { action: 'explore-choose', runId, option });
+export const realmExploreExtract = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-extract', runId });
+export const realmExploreAuto = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-auto', runId });
+export const realmExploreAbandon = (initData: string, runId: string) =>
+  realmCall(initData, { action: 'explore-abandon', runId });
+
+
 /** Remaining seconds for a server timestamp, clamped at zero. */
 export const realmSecondsLeft = (iso: string | null | undefined, now = Date.now()) =>
   !iso ? 0 : Math.max(0, Math.ceil((new Date(iso).getTime() - now) / 1000));
@@ -205,3 +276,66 @@ export const REALM_ROOM_LABEL: Record<string, string> = {
   shrine: 'SANTUÁRIO',
   rest: 'DESCANSO',
 };
+
+// ── EXPLORATION COPY (PT-BR) ───────────────────────────────────────────────
+export const REALM_NODE_LABEL: Record<string, string> = {
+  combat: 'COMBATE',
+  elite: 'ELITE',
+  boss: 'GUARDIÃO',
+  gather: 'COLETA',
+  treasure: 'TESOURO',
+  event: 'EVENTO',
+  trap: 'ARMADILHA',
+  shrine: 'SANTUÁRIO',
+  rest: 'ACAMPAMENTO',
+};
+
+/** Short glyph per node — drawn inside the map pin (no icon library). */
+export const REALM_NODE_GLYPH: Record<string, string> = {
+  combat: '⚔', elite: '👹', boss: '👑', gather: '🌿',
+  treasure: '💰', event: '✨', trap: '🩸', shrine: '🛐', rest: '🏕',
+};
+
+export const REALM_NODE_TONE: Record<string, string> = {
+  combat: '#f87171', elite: '#fb923c', boss: '#facc15', gather: '#4ade80',
+  treasure: '#fbbf24', event: '#c084fc', trap: '#fb7185', shrine: '#60a5fa', rest: '#34d399',
+};
+
+export const REALM_NODE_TITLE: Record<string, string> = {
+  combat: 'EMBOSCADA',
+  elite: 'CAÇADOR ELITE',
+  boss: 'GUARDIÃO DA REGIÃO',
+  gather: 'VEIO DE RECURSOS',
+  treasure: 'BAÚ SELADO',
+  event: 'ALTAR ESQUECIDO',
+  trap: 'RUNAS INSTÁVEIS',
+  shrine: 'SANTUÁRIO ANTIGO',
+  rest: 'ACAMPAMENTO SEGURO',
+};
+
+export const REALM_NODE_DESC: Record<string, string> = {
+  combat: 'Criaturas bloqueiam a trilha. Sua equipe entra em combate.',
+  elite: 'Um predador marcado pelas sombras aguarda. Recompensa alta, risco alto.',
+  boss: 'O guardião da região desperta. Vencer encerra a run com bônus.',
+  gather: 'Recursos brilham entre as raízes. Extrair com força rende mais e machuca.',
+  treasure: 'Um baú antigo lacrado por runas. Forçar pode acionar defesas.',
+  event: 'Runas antigas pulsam em um altar coberto de musgo.',
+  trap: 'O chão está tomado por runas instáveis. Avance com cuidado.',
+  shrine: 'Uma bênção esquecida ainda vive aqui: cure-se ou canalize poder.',
+  rest: 'Um ponto seguro para recuperar a equipe.',
+};
+
+export const REALM_OPTION_LABEL: Record<string, string> = {
+  safe: 'COM SEGURANÇA',
+  force: 'FORÇAR (+RISCO)',
+  ignore: 'IGNORAR',
+  accept: 'TOCAR NO ALTAR',
+  offer: 'OFERECER RECURSOS',
+  bless: 'RECEBER BÊNÇÃO',
+  empower: 'CANALIZAR PODER',
+  careful: 'AVANÇAR COM CUIDADO',
+  default: 'AVANÇAR',
+};
+
+export const REALM_RISK_LABEL = (risk: number) =>
+  risk >= 70 ? 'ALTÍSSIMO' : risk >= 45 ? 'ALTO' : risk >= 20 ? 'MÉDIO' : 'BAIXO';

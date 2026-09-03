@@ -15303,6 +15303,101 @@ export type Database = {
           },
         ]
       }
+      realm_explore_nodes: {
+        Row: {
+          config: Json
+          depth: number
+          id: string
+          lane: number
+          node_type: string
+          resolved_at: string | null
+          run_id: string
+          status: string
+        }
+        Insert: {
+          config?: Json
+          depth: number
+          id?: string
+          lane: number
+          node_type: string
+          resolved_at?: string | null
+          run_id: string
+          status?: string
+        }
+        Update: {
+          config?: Json
+          depth?: number
+          id?: string
+          lane?: number
+          node_type?: string
+          resolved_at?: string | null
+          run_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_explore_nodes_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "realm_explore_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      realm_explore_runs: {
+        Row: {
+          auto: boolean
+          completed_at: string | null
+          depth: number
+          final_depth: number
+          hp: number
+          id: string
+          log: Json
+          loot: Json
+          pending: Json | null
+          region_id: string
+          risk: number
+          seed: number
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          auto?: boolean
+          completed_at?: string | null
+          depth?: number
+          final_depth?: number
+          hp?: number
+          id?: string
+          log?: Json
+          loot?: Json
+          pending?: Json | null
+          region_id: string
+          risk?: number
+          seed?: number
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          auto?: boolean
+          completed_at?: string | null
+          depth?: number
+          final_depth?: number
+          hp?: number
+          id?: string
+          log?: Json
+          loot?: Json
+          pending?: Json | null
+          region_id?: string
+          risk?: number
+          seed?: number
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       realm_material_balances: {
         Row: {
           amount: number
@@ -25385,6 +25480,47 @@ export type Database = {
           p_type: string
           p_user: string
         }
+        Returns: Json
+      }
+      realm_explore_abandon: {
+        Args: { p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_apply: {
+        Args: {
+          p_node: string
+          p_option: string
+          p_run: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      realm_explore_auto: {
+        Args: { p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_build: {
+        Args: { p_depth: number; p_run: string }
+        Returns: undefined
+      }
+      realm_explore_choose: {
+        Args: { p_option: string; p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_enter: {
+        Args: { p_node: string; p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_extract: {
+        Args: { p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_finish: {
+        Args: { p_outcome: string; p_run: string; p_user: string }
+        Returns: Json
+      }
+      realm_explore_start: {
+        Args: { p_region: string; p_user: string }
         Returns: Json
       }
       realm_grant_item: {

@@ -1,27 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import RealmExplorationMap from '../components/RealmExplorationMap';
 import {
   REALM_ROOM_LABEL,
   fetchRealmState,
   realmClaimBounty,
   realmClaimBuilding,
   realmClaimCraft,
-  realmClaimExpedition,
   realmEnsureBounties,
   realmRuinChoose,
   realmRuinExtract,
   realmRuinStart,
   realmSecondsLeft,
   realmStartCraft,
-  realmStartExpedition,
   realmTimer,
   realmUpgradeBuilding,
   type RealmState,
 } from '../realm';
 
-const WORLD_MAP = '/assets/game/realm/world-map.jpg';
 const STRONGHOLD = '/assets/game/realm/stronghold.jpg';
 const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
+
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
@@ -49,7 +48,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const [buildingSheet, setBuildingSheet] = useState<string | null>(null);
   const [recipeSheet, setRecipeSheet] = useState<string | null>(null);
   const [craftQty, setCraftQty] = useState(1);
-  const [regionSel, setRegionSel] = useState<string | null>(null);
+  
   const [showLockedRecipes, setShowLockedRecipes] = useState(false);
 
   useEffect(() => {
@@ -77,6 +76,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   });
   const busy = act.isPending;
   const call = (run: () => Promise<RealmState>) => act.mutate(run);
+
+  /** Awaited variant: the exploration map needs the payload to play its animations. */
+  const runAsync = async (fn: () => Promise<RealmState>) => {
+    try {
+      const next = await fn();
+      apply(next);
+      return next;
+    } catch (e) {
+      setNotice((e as Error).message);
+      return null;
+    }
+  };
+
 
   useEffect(() => {
     if (!notice) return;
@@ -118,9 +130,6 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const buildingType = data.buildingTypes.find((bt) => bt.id === buildingSheet) ?? null;
   const recipe = data.recipes.find((r) => r.id === recipeSheet) ?? null;
 
-  const regions = data.regions;
-  const activeRegion = regions.find((r) => r.id === regionSel) ?? regions[0] ?? null;
-  const regionLocked = activeRegion ? level < activeRegion.unlock_stronghold_level : true;
 
   const openRecipes = data.recipes.filter((r) => forgeLevel >= r.min_forge_level);
   const lockedRecipes = data.recipes.filter((r) => forgeLevel < r.min_forge_level);
@@ -199,65 +208,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
           </section>
         )}
 
-        {/* ---------- MAP / EXPEDITIONS ---------- */}
+        {/* ---------- MAP / INTERACTIVE EXPLORATION ---------- */}
         {tab === 'map' && (
-          <section className="space-y-4">
-            <div className="overflow-hidden rounded-3xl">
-              <img src={WORLD_MAP} alt="Mapa do mundo de Mythreon" loading="lazy" className="h-56 w-full object-cover" />
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {regions.map((r) => {
-                const locked = level < r.unlock_stronghold_level;
-                const on = activeRegion?.id === r.id;
-                return (
-                  <button key={r.id} onClick={() => setRegionSel(r.id)} className={`rounded-full px-3 py-1.5 text-[10px] font-bold ${on ? 'bg-amber-500/20 text-amber-100' : 'bg-white/[.05] text-slate-400'}`}>
-                    {locked ? '🔒 ' : '● '}{r.name}
-                  </button>
-                );
-              })}
-            </div>
-
-            {activeRegion && (
-              <div className="space-y-2">
-                {activeRegion.image_url && (
-                  <img src={activeRegion.image_url} alt={activeRegion.name} loading="lazy" className={`h-40 w-full rounded-3xl object-cover ${regionLocked ? 'opacity-40 grayscale' : ''}`} />
-                )}
-                <b className="block text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{activeRegion.name}</b>
-                <p className="text-[10px] leading-4 text-slate-400">{activeRegion.tagline}</p>
-                {regionLocked ? (
-                  <p className="text-[10px] font-bold text-slate-500">🔒 Requer Stronghold Lv.{activeRegion.unlock_stronghold_level}</p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button disabled={busy} onClick={() => call(() => realmStartExpedition(telegramInitData, activeRegion.id, 'gather'))} className="rounded-2xl border border-white/15 py-2.5 text-[10px] font-bold text-slate-200 disabled:opacity-40">Coleta 15m</button>
-                    <button disabled={busy} onClick={() => call(() => realmStartExpedition(telegramInitData, activeRegion.id, 'deep'))} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Profunda 1h</button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {data.expeditions.length > 0 && (
-              <div className="space-y-1 pt-1">
-                <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Em campo</p>
-                {data.expeditions.map((e) => {
-                  const left = realmSecondsLeft(e.finishes_at, now);
-                  const region = regions.find((r) => r.id === e.region_id);
-                  return (
-                    <div key={e.id} className="flex items-center justify-between border-b border-white/5 py-2">
-                      <div>
-                        <b className="text-[11px] text-amber-100">{region?.name ?? e.region_id}</b>
-                        <p className="text-[9px] text-slate-500">{e.expedition_type === 'deep' ? 'Expedição profunda' : 'Coleta rápida'}</p>
-                      </div>
-                      {left > 0
-                        ? <span className="text-[11px] font-bold tabular-nums text-cyan-300">{realmTimer(left)}</span>
-                        : <button disabled={busy} onClick={() => call(() => realmClaimExpedition(telegramInitData, e.id))} className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black">Coletar</button>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+          <RealmExplorationMap
+            data={data}
+            initData={telegramInitData}
+            now={now}
+            level={level}
+            busy={busy}
+            call={call}
+            run={runAsync}
+          />
         )}
+
 
         {/* ---------- FORGE / CRAFTING ---------- */}
         {tab === 'forge' && (
