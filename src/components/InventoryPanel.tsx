@@ -353,13 +353,38 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                     <p className="mt-2 rounded-xl border border-white/10 bg-black/40 p-2 text-center text-[10px] font-black uppercase tracking-[.12em] text-amber-200">
                       {t('inventory.fragmentSummonHint', { count: selected.costPerUse ?? 5 })}
                     </p>
-                    <button
-                      disabled={busy || selected.quantity < (selected.costPerUse ?? 5)}
-                      onClick={() => summon.mutate()}
-                      className="mt-3 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
-                    >
-                      {summon.isPending ? t('inventory.summoning') : t('inventory.use')}
-                    </button>
+                    {/* Bulk summon: 1 / 5 / 10 / MAX, exactly like the chest system. */}
+                    {(() => {
+                      const cost = selected.costPerUse ?? 5;
+                      const maxSummons = Math.floor(selected.quantity / Math.max(1, cost));
+                      return (
+                        <>
+                          <div className="mt-3 grid grid-cols-4 gap-1.5">
+                            {[1, 5, 10, maxSummons].map((amount, index) => {
+                              const count = Math.min(amount, maxSummons);
+                              const label = index === 3 ? `MAX (${maxSummons})` : `x${count}`;
+                              return (
+                                <button
+                                  key={`summon-${index}`}
+                                  disabled={busy || maxSummons < (index === 3 ? 1 : amount)}
+                                  onClick={() => summon.mutate(count)}
+                                  className="min-h-[34px] rounded-xl border border-amber-300/40 bg-amber-300/10 text-[9px] font-black uppercase tracking-[.1em] text-amber-200 disabled:opacity-40"
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <button
+                            disabled={busy || maxSummons < 1}
+                            onClick={() => summon.mutate(1)}
+                            className="mt-2 min-h-[38px] w-full rounded-xl border border-amber-300/40 bg-amber-300/15 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 disabled:opacity-50"
+                          >
+                            {batch ? `${t('inventory.opening')} ${batch.done}/${batch.total}` : summon.isPending ? t('inventory.summoning') : t('inventory.use')}
+                          </button>
+                        </>
+                      );
+                    })()}
                   </>
                 ) : selected.itemType === 'universal_fragment' ? (
                   <>
