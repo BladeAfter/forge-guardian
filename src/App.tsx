@@ -46,8 +46,9 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan'|'realm';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm'};
+
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
 const tabFromPath = (): TabKey => {
