@@ -1273,3 +1273,105 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 .realm-combat-hero { animation: realmClashHero .8s ease-in-out infinite; }
 .realm-combat-foe { animation: realmClashFoe .8s ease-in-out infinite; }
+
+/* ── MYTHREON REALM — Stronghold interactive scene ────────────────────── */
+.stronghold-stage { background: #05070f; }
+.stronghold-tint { pointer-events: none; mix-blend-mode: soft-light; }
+.stronghold-tint-day { background: linear-gradient(180deg, rgba(150, 190, 230, .45), rgba(120, 130, 150, .18)); }
+.stronghold-tint-sunset { background: linear-gradient(180deg, rgba(255, 150, 70, .38), rgba(90, 60, 120, .28)); }
+.stronghold-tint-night { background: linear-gradient(180deg, rgba(40, 70, 140, .38), rgba(5, 10, 30, .35)); }
+
+.stronghold-mist {
+  background:
+    radial-gradient(140% 60% at 15% 85%, rgba(190, 215, 255, .12), transparent 65%),
+    radial-gradient(120% 50% at 85% 92%, rgba(160, 190, 255, .1), transparent 60%);
+  animation: shMist 12s ease-in-out infinite alternate;
+}
+@keyframes shMist { from { opacity: .5; transform: translateX(-2%); } to { opacity: 1; transform: translateX(2%); } }
+
+.stronghold-slot { transition: transform 200ms ease-out, filter 200ms ease-out; }
+.stronghold-slot:active { transform: translate(-50%, -50%) scale(1.06); }
+.stronghold-slot-on { filter: brightness(1.18) drop-shadow(0 0 12px rgba(251, 191, 36, .45)); }
+
+.stronghold-aura { width: 130%; height: 90%; border-radius: 50%; animation: shAura 4.5s ease-in-out infinite; }
+@keyframes shAura { 0%, 100% { opacity: .5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: .85; transform: translate(-50%, -50%) scale(1.1); } }
+
+.stronghold-works { animation: shWorks 1.8s ease-in-out infinite; }
+@keyframes shWorks { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+.stronghold-badge {
+  position: absolute; left: 50%; top: -6%; transform: translateX(-50%);
+  border-width: 1px; border-radius: 999px; padding: 1px 6px;
+  font-size: 7px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase;
+  backdrop-filter: blur(4px); white-space: nowrap;
+}
+.stronghold-badge-pulse { animation: shPulse 1.4s ease-in-out infinite; }
+@keyframes shPulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+.stronghold-smoke, .stronghold-spark, .stronghold-motes, .stronghold-flag,
+.stronghold-torch, .stronghold-npc, .stronghold-dust { position: absolute; pointer-events: none; }
+
+.stronghold-smoke {
+  left: 46%; top: 18%; width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(220, 220, 220, .35), transparent 70%);
+  animation: shSmoke 3.4s ease-out infinite;
+}
+@keyframes shSmoke {
+  0% { opacity: 0; transform: translateY(0) scale(.6); }
+  25% { opacity: .7; }
+  100% { opacity: 0; transform: translateY(-38px) scale(1.9); }
+}
+.stronghold-spark {
+  left: 52%; top: 62%; width: 3px; height: 3px; border-radius: 50%;
+  background: #fdba74; box-shadow: 0 0 8px 2px rgba(251, 146, 60, .8);
+  animation: shSpark 1.6s ease-out infinite;
+}
+@keyframes shSpark {
+  0% { opacity: 1; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(10px, -26px); }
+}
+.stronghold-motes {
+  left: 40%; top: 55%; width: 4px; height: 4px; border-radius: 50%;
+  background: #67e8f9; box-shadow: 0 0 10px 3px rgba(56, 189, 248, .7);
+  animation: shMotes 4.2s ease-in-out infinite;
+}
+@keyframes shMotes {
+  0%, 100% { opacity: .3; transform: translate(0, 0); }
+  50% { opacity: 1; transform: translate(16px, -14px); }
+}
+.stronghold-flag {
+  left: 50%; top: 4%; width: 9px; height: 6px; transform-origin: left center;
+  background: linear-gradient(90deg, #fbbf24, rgba(251, 191, 36, .15));
+  clip-path: polygon(0 0, 100% 0, 82% 50%, 100% 100%, 0 100%);
+  animation: shFlag 2.6s ease-in-out infinite;
+}
+@keyframes shFlag { 0%, 100% { transform: skewY(0deg) scaleX(1); } 50% { transform: skewY(-7deg) scaleX(.9); } }
+.stronghold-torch {
+  left: 50%; top: 12%; width: 6px; height: 6px; border-radius: 50%;
+  background: #fde68a; box-shadow: 0 0 12px 4px rgba(250, 204, 21, .65);
+  animation: shTorch 1.1s ease-in-out infinite;
+}
+@keyframes shTorch { 0%, 100% { opacity: .55; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.15); } }
+.stronghold-npc {
+  left: 26%; bottom: 16%; width: 4px; height: 8px; border-radius: 2px;
+  background: rgba(226, 232, 240, .6);
+  animation: shNpc 6.5s linear infinite;
+}
+@keyframes shNpc {
+  0% { transform: translateX(0); opacity: 0; }
+  10%, 90% { opacity: .75; }
+  50% { transform: translateX(34px); }
+  100% { transform: translateX(0); opacity: 0; }
+}
+.stronghold-dust {
+  left: 45%; bottom: 12%; width: 16px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 184, 132, .45), transparent 70%);
+  animation: shDust 2.2s ease-in-out infinite;
+}
+@keyframes shDust { 0%, 100% { opacity: .2; transform: scale(.8); } 50% { opacity: .7; transform: scale(1.3) translateY(-4px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stronghold-mist, .stronghold-aura, .stronghold-works, .stronghold-smoke, .stronghold-spark,
+  .stronghold-motes, .stronghold-flag, .stronghold-torch, .stronghold-npc, .stronghold-dust,
+  .stronghold-badge-pulse { animation: none !important; }
+}
