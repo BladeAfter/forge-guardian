@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
+import RealmBountyBoard from '../components/RealmBountyBoard';
 import StrongholdScene from '../components/StrongholdScene';
 import {
   REALM_ROOM_LABEL,
@@ -313,34 +314,14 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
         {/* ---------- BOUNTIES ---------- */}
         {tab === 'bounties' && (
-          <section className="space-y-4">
-            <div className="flex items-baseline justify-between">
-              <b className="text-[13px] font-black uppercase tracking-[.12em] text-amber-100">Contratos diários</b>
-              <span className="text-[10px] text-slate-500">{data.bounties.filter((b) => b.status === 'active').length} ativos</span>
-            </div>
-            {data.bounties.length === 0 && <p className="py-8 text-center text-[10px] text-slate-500">Nenhum contrato ativo hoje.</p>}
-            {data.bounties.map((b) => {
-              const done = b.progress >= b.target;
-              return (
-                <div key={b.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <b className="text-[11px] font-black text-amber-100">{b.title}</b>
-                    <span className="text-[10px] font-bold tabular-nums text-slate-400">{Math.min(b.progress, b.target)}/{b.target}</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-200" style={{ width: `${Math.min(100, (b.progress / b.target) * 100)}%` }} />
-                  </div>
-                  <p className="text-[9px] text-slate-500">{fmt(b.reward.fc ?? 0)} FC + {b.reward.fragments ?? 0} fragmentos</p>
-                  {b.status === 'claimed'
-                    ? <p className="text-[9px] font-bold text-emerald-300">Resgatado</p>
-                    : done && (
-                      <button disabled={busy} onClick={() => call(() => realmClaimBounty(telegramInitData, b.id))} className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-2.5 text-[10px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40">Resgatar</button>
-                    )}
-                </div>
-              );
-            })}
-          </section>
+          <RealmBountyBoard
+            bounties={data.bounties}
+            busy={busy}
+            now={now}
+            onClaim={(id) => call(() => realmClaimBounty(telegramInitData, id))}
+          />
         )}
+
       </main>
 
       {/* ---------- SHEETS ---------- */}
