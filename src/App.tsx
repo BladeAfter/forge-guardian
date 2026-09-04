@@ -874,6 +874,14 @@ function App() {
   return (
     <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
       <PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/>
+      {realmSoonOpen?<div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 px-6" onClick={()=>setRealmSoonOpen(false)}>
+        <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/30 bg-gradient-to-b from-[#141021] to-[#07090d] p-5 text-center shadow-[0_20px_60px_rgba(0,0,0,.8)]" onClick={e=>e.stopPropagation()}>
+          <img src="/assets/game/realm/realm-castle-entry.png" alt="" width={96} height={96} className="mx-auto h-24 w-24 object-contain" />
+          <h3 className="mt-3 text-lg font-black uppercase tracking-[.18em] text-amber-200">MYTHREON REALM</h3>
+          <p className="mt-2 text-sm text-slate-300">Em breve! Esta área ainda está em preparação e será liberada para todos os jogadores.</p>
+          <button onClick={()=>setRealmSoonOpen(false)} className="mt-4 w-full rounded-xl border border-amber-300/40 bg-amber-500/20 py-2 text-sm font-black uppercase tracking-[.14em] text-amber-100">Entendi</button>
+        </div>
+      </div>:null}
       {showStarterPack?<StarterPackPopup
         onClaim={async()=>{
           await claimStarterPackRequest(telegramInitData??'');
