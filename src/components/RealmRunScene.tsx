@@ -152,6 +152,8 @@ export default function RealmRunScene({
   const riskValue = Number(run.risk ?? 0);
   const riskTone = riskValue >= 70 ? 'realm-badge-risk-x' : riskValue >= 45 ? 'realm-badge-risk-hi'
     : riskValue >= 20 ? 'realm-badge-risk-mid' : 'realm-badge-risk-low';
+  const safeHere = last ? ['shrine', 'rest'].includes(last.node_type) : true;
+
 
 
   return (
