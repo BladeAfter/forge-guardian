@@ -179,34 +179,16 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
       <main className="px-4 pt-4">
         {/* ---------- STRONGHOLD ---------- */}
         {tab === 'stronghold' && (
-          <section className="space-y-4">
-            <div className="relative overflow-hidden rounded-3xl">
-              <img src={STRONGHOLD} alt="Stronghold do jogador" className="h-44 w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#05070f] via-transparent to-transparent" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {data.buildingTypes.map((bt) => {
-                const b = data.buildings.find((x) => x.building_type === bt.id);
-                const lvl = b?.level ?? 0;
-                const left = realmSecondsLeft(b?.upgrade_finishes_at, now);
-                const upgrading = b?.status !== 'idle' && left > 0;
-                const ready = b?.status !== 'idle' && left <= 0;
-                return (
-                  <button key={bt.id} onClick={() => setBuildingSheet(bt.id)} className="flex items-center gap-2 rounded-2xl bg-white/[.04] p-2 text-left">
-                    {bt.image_url && <img src={bt.image_url} alt={bt.name} loading="lazy" className="h-12 w-12 shrink-0 object-contain" />}
-                    <div className="min-w-0">
-                      <b className="block truncate text-[11px] font-black text-amber-100">{bt.name}</b>
-                      <span className="text-[9px] text-slate-400">Lv.{lvl}</span>
-                      {upgrading && <span className="block text-[9px] font-bold tabular-nums text-cyan-300">{realmTimer(left)}</span>}
-                      {ready && <span className="block text-[9px] font-bold text-emerald-300">Pronto</span>}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <StrongholdScene
+            buildingTypes={data.buildingTypes}
+            buildings={data.buildings}
+            level={level}
+            now={now}
+            craftingCount={data.crafting.length}
+            onOpen={setBuildingSheet}
+          />
         )}
+
 
         {/* ---------- MAP / INTERACTIVE EXPLORATION ---------- */}
         {tab === 'map' && (
