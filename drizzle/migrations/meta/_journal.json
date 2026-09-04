@@ -673,6 +673,13 @@
       "when": 1788542023031,
       "tag": "0095_drop_legacy_realm_ruin_start_overload",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1788543180658,
+      "tag": "0096_realm_progression_harder_and_shrine_xp",
+      "breakpoints": true
     }
   ]
 }

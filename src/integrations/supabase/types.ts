@@ -25729,6 +25729,7 @@ export type Database = {
         Returns: Json
       }
       realm_ruin_stats: { Args: { p_user: string }; Returns: Json }
+      realm_shrine_xp_mult: { Args: { p_user: string }; Returns: number }
       realm_state: { Args: { p_user: string }; Returns: Json }
       reconcile_pet_egg_orders: {
         Args: { p_telegram_id: number }
