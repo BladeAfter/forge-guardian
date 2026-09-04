@@ -144,19 +144,97 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
             {region.image_url && (
               <img src={region.image_url} alt={region.name} loading="lazy" className={`h-32 w-full rounded-2xl object-cover ${regionLocked ? 'opacity-40 grayscale' : ''}`} />
             )}
-            <b className="block text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{region.name}</b>
-            <p className="text-[10px] leading-4 text-slate-400">{region.tagline}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <b className="block text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{region.name}</b>
+                <p className="text-[10px] leading-4 text-slate-400">{region.tagline}</p>
+              </div>
+              {meta && (
+                <span className="shrink-0 rounded-xl border border-amber-300/40 bg-black/50 px-2 py-1 text-center">
+                  <b className="block text-[10px] font-black uppercase tracking-[.14em] text-amber-200">Depth {meta.depth}</b>
+                  <span className="block text-[8px] font-bold uppercase tracking-[.14em] text-slate-400">
+                    {DEPTH_TIER[meta.stats.tier] ?? meta.stats.tier}
+                  </span>
+                </span>
+              )}
+            </div>
+
+            {meta && !regionLocked && (
+              <div className="grid grid-cols-3 gap-1.5 text-center">
+                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Entrada</span>
+                  <b className={`block text-[11px] font-black ${affordable ? 'text-amber-200' : 'text-rose-300'}`}>
+                    {fmt(meta.stats.entryCost)} FC
+                  </b>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Poder rec.</span>
+                  <b className="block text-[11px] font-black text-cyan-200">{fmt(meta.stats.recommendedPower)}</b>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Melhor</span>
+                  <b className="block text-[11px] font-black text-slate-200">Depth {meta.bestDepth}</b>
+                </div>
+              </div>
+            )}
+
             {regionLocked ? (
               <p className="text-[10px] font-bold text-slate-500">🔒 Requer Stronghold Lv.{region.unlock_stronghold_level}</p>
             ) : (
+              <>
+                <button
+                  disabled={busy}
+                  onClick={() => setConfirm(region.id)}
+                  className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40"
+                >
+                  Explorar região
+                </button>
+                {!affordable && (
+                  <p className="text-center text-[9px] font-bold uppercase tracking-[.12em] text-rose-300">
+                    Forge Coins insuficientes — você precisa de {fmt(meta?.stats.entryCost ?? 0)} FC
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ENTRY CONFIRMATION — cost, depth and possible rewards before the FC debit */}
+        {confirm && region && meta && (
+          <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-5" onClick={() => setConfirm(null)}>
+            <div className="w-full max-w-xs space-y-3 rounded-3xl border border-amber-300/30 bg-[#080b14] p-4" onClick={(e) => e.stopPropagation()}>
+              <b className="block text-center text-[12px] font-black uppercase tracking-[.14em] text-amber-100">
+                {region.name} — Depth {meta.depth}
+              </b>
+              <div className="space-y-1 text-[10px] text-slate-300">
+                <div className="flex justify-between"><span className="text-slate-500">Entrada</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">Poder recomendado</span><b className="text-cyan-200">{fmt(meta.stats.recommendedPower)}</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">Dificuldade</span><b className="text-slate-200">{DEPTH_TIER[meta.stats.tier] ?? meta.stats.tier}</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">Loot</span><b className="text-emerald-200">{meta.stats.lootMult.toFixed(2)}x</b></div>
+                {meta.stats.isBossDepth && (
+                  <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-2 py-1 text-center text-[9px] font-black uppercase tracking-[.12em] text-rose-200">
+                    👑 Depth de BOSS
+                  </p>
+                )}
+                <p className="pt-1 text-[9px] uppercase tracking-[.12em] text-slate-500">Recompensas possíveis</p>
+                <p className="text-[10px] text-slate-300">Materiais raros • Fragmentos • Equipamentos • Essência Ancestral</p>
+              </div>
+              {!affordable && (
+                <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-2 py-1.5 text-center text-[9px] font-black uppercase tracking-[.12em] text-rose-200">
+                  FC insuficiente
+                </p>
+              )}
               <button
-                disabled={busy}
-                onClick={() => call(() => realmExploreStart(initData, region.id))}
+                disabled={busy || !affordable}
+                onClick={() => { setConfirm(null); call(() => realmExploreStart(initData, region.id)); }}
                 className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40"
               >
-                Explorar região
+                Iniciar exploração
               </button>
-            )}
+              <button onClick={() => setConfirm(null)} className="w-full rounded-2xl border border-white/15 py-2.5 text-[10px] font-bold uppercase tracking-[.14em] text-slate-300">
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
 
