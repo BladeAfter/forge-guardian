@@ -106,6 +106,40 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
     [materials],
   );
 
+  /* micro-animações do HUD: flash ao subir nível real e delta ao ganhar material */
+  const strongholdLevel = data?.profile?.stronghold_level ?? 1;
+  const [levelFlash, setLevelFlash] = useState(false);
+  const prevLevel = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevLevel.current !== null && strongholdLevel > prevLevel.current) {
+      setLevelFlash(true);
+      const id = window.setTimeout(() => setLevelFlash(false), 1200);
+      prevLevel.current = strongholdLevel;
+      return () => window.clearTimeout(id);
+    }
+    prevLevel.current = strongholdLevel;
+  }, [strongholdLevel]);
+
+  const [resDelta, setResDelta] = useState<Record<string, number>>({});
+  const prevBalances = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    const current: Record<string, number> = {};
+    for (const [k, v] of Object.entries(balances)) current[k] = Number(v ?? 0);
+    const before = prevBalances.current;
+    prevBalances.current = current;
+    if (!before) return;
+    const gains: Record<string, number> = {};
+    for (const [k, v] of Object.entries(current)) {
+      const diff = v - (before[k] ?? 0);
+      if (diff > 0) gains[k] = diff;
+    }
+    if (!Object.keys(gains).length) return;
+    setResDelta(gains);
+    const id = window.setTimeout(() => setResDelta({}), 900);
+    return () => window.clearTimeout(id);
+  }, [balances]);
+
+
   if (isLoading) {
     return (
       <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-4">
