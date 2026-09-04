@@ -130,12 +130,13 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
   // ── NO ACTIVE RUN: clickable world map ───────────────────────────────────
   if (!exploreRun) {
     return (
-      <section className="space-y-4">
-        <div className="relative overflow-hidden rounded-3xl border border-amber-300/10">
-          <img src={WORLD_MAP} alt="" loading="lazy" className="h-60 w-full object-cover" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#05070f] via-transparent to-[#05070f]/40" />
+      <section className="space-y-3">
+        {/* WORLD MAP — single painted world, region names written on the terrain */}
+        <div className="realm-world relative overflow-hidden">
+          <img src={WORLD_MAP} alt="" loading="lazy" className="block h-[58vh] max-h-[520px] w-full object-cover" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#05070f]/70 via-transparent to-[#05070f]" />
           {regions.map((r, i) => {
-            const pin = REGION_PIN[i % REGION_PIN.length];
+            const spot = REGION_SPOT[r.id] ?? FALLBACK_SPOT[i % FALLBACK_SPOT.length];
             const locked = level < r.unlock_stronghold_level;
             const on = selected === r.id;
             return (
@@ -143,76 +144,70 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 key={r.id}
                 onClick={() => setSelected(r.id)}
                 aria-label={r.name}
-                style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 px-6 py-5"
               >
-                <span className={`relative grid h-11 w-11 place-items-center rounded-full border text-[15px] transition ${
-                  locked ? 'border-white/20 bg-black/70 text-slate-500'
-                    : on ? 'realm-pin-on border-amber-200 bg-amber-400/25 text-amber-100'
-                    : 'realm-pin border-amber-300/50 bg-black/60 text-amber-200'}`}
-                >
-                  {locked ? '🔒' : '⚑'}
-                </span>
-                <span className={`mt-0.5 block whitespace-nowrap text-[8px] font-black uppercase tracking-wide ${on ? 'text-amber-100' : 'text-slate-300'}`}>
+                <span className={`realm-world-name ${on ? 'is-on' : ''} ${locked ? 'is-locked' : ''}`}>
                   {r.name}
+                  {locked && <em className="realm-world-lock">{t('realm.map.lockShort') || 'Lv.' + r.unlock_stronghold_level}</em>}
                 </span>
               </button>
             );
           })}
         </div>
 
+        {/* REGION DOSSIER — ornate panel like the reference */}
         {region && (
-          <div className={`space-y-2 rounded-3xl border p-3 ${regionLocked ? 'border-white/10' : 'border-amber-300/25 bg-amber-500/[.05]'}`}>
-            {region.image_url && (
-              <img src={region.image_url} alt={region.name} loading="lazy" className={`h-32 w-full rounded-2xl object-cover ${regionLocked ? 'opacity-40 grayscale' : ''}`} />
-            )}
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <b className="block text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{region.name}</b>
-                <p className="text-[10px] leading-4 text-slate-400">{region.tagline}</p>
+          <div className={`realm-dossier ${regionLocked ? 'is-locked' : ''}`}>
+            <div className="flex items-start gap-3">
+              <div className="min-w-0 flex-1">
+                <b className="block truncate text-[19px] font-black uppercase tracking-[.06em] text-amber-100" style={{ fontFamily: 'Georgia, serif' }}>
+                  {region.name}
+                </b>
+                <p className="mt-0.5 text-[11px] leading-4 text-amber-100/60">{region.tagline}</p>
               </div>
-              {meta && (
-                <span className="shrink-0 rounded-xl border border-amber-300/40 bg-black/50 px-2 py-1 text-center">
-                  <b className="block text-[10px] font-black uppercase tracking-[.14em] text-amber-200">Depth {meta.depth}</b>
-                  <span className="block text-[8px] font-bold uppercase tracking-[.14em] text-slate-400">
-                    {t(DEPTH_TIER_KEY[meta.stats.tier] ?? '') || meta.stats.tier}
-                  </span>
-                </span>
+              {region.image_url && (
+                <img
+                  src={region.image_url}
+                  alt={region.name}
+                  loading="lazy"
+                  className={`h-20 w-24 shrink-0 rounded-xl border border-amber-200/20 object-cover ${regionLocked ? 'opacity-40 grayscale' : ''}`}
+                />
               )}
             </div>
 
             {meta && !regionLocked && (
-              <div className="grid grid-cols-3 gap-1.5 text-center">
-                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.entry')}</span>
-                  <b className={`block text-[11px] font-black ${affordable ? 'text-amber-200' : 'text-rose-300'}`}>
-                    {fmt(meta.stats.entryCost)} FC
-                  </b>
+              <div className="mt-3 space-y-1.5">
+                <div className="realm-dossier-row">
+                  <span>{t('realm.map.powerRec')}</span>
+                  <b className="text-amber-200">{fmt(meta.stats.recommendedPower)}</b>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.powerRec')}</span>
-                  <b className="block text-[11px] font-black text-cyan-200">{fmt(meta.stats.recommendedPower)}</b>
+                <div className="realm-dossier-row">
+                  <span>{t('realm.map.best')}</span>
+                  <b className="text-amber-200">{meta.depth}</b>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.best')}</span>
-                  <b className="block text-[11px] font-black text-slate-200">Depth {meta.bestDepth}</b>
+                <div className="realm-dossier-row">
+                  <span>{t('realm.map.entry')}</span>
+                  <b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b>
+                </div>
+                <div className="realm-dossier-row">
+                  <span>{t('realm.map.possibleRewards')}</span>
+                  <b className="max-w-[58%] truncate text-right text-amber-200">{t('realm.map.rewardList')}</b>
                 </div>
               </div>
             )}
 
             {regionLocked ? (
-              <p className="text-[10px] font-bold text-slate-500">{t('realm.map.lockedRegion', { level: region.unlock_stronghold_level })}</p>
+              <p className="mt-3 text-center text-[10px] font-bold uppercase tracking-[.12em] text-slate-500">
+                {t('realm.map.lockedRegion', { level: region.unlock_stronghold_level })}
+              </p>
             ) : (
               <>
-                <button
-                  disabled={busy}
-                  onClick={() => setConfirm(region.id)}
-                  className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40"
-                >
+                <button disabled={busy} onClick={() => setConfirm(region.id)} className="realm-explore-btn mt-3">
                   {t('realm.map.explore')}
                 </button>
                 {!affordable && (
-                  <p className="text-center text-[9px] font-bold uppercase tracking-[.12em] text-rose-300">
+                  <p className="mt-1 text-center text-[9px] font-bold uppercase tracking-[.12em] text-rose-300">
                     {t('realm.map.needFc', { fc: fmt(meta?.stats.entryCost ?? 0) })}
                   </p>
                 )}
@@ -220,6 +215,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
             )}
           </div>
         )}
+
 
         {/* ENTRY CONFIRMATION — cost, depth and possible rewards before the FC debit */}
         {confirm && region && meta && (
