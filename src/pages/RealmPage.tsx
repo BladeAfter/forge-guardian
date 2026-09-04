@@ -8,7 +8,7 @@ import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 
-import { n as usePlayerHeroes } from '../hooks';
+import { usePlayerHeroes } from '../hooks';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
 import {
