@@ -34,6 +34,26 @@ const PLACE_ART: Record<string, string> = {
 
 const PARTY_ART = '/assets/game/realm/poi-party.png';
 
+/** Nodes that lead to a real hero-vs-boss battle scene. */
+const FIGHT_NODES = ['combat', 'elite', 'boss'];
+
+const FOE_ART: Record<string, string> = {
+  combat: '/assets/game/realm/foe-greenvale.png',
+  elite: '/assets/game/realm/poi-elite.png',
+  boss: '/assets/game/realm/poi-boss.png',
+};
+
+/** Named foe per region, so the fight is against a creature — not a percentage. */
+function foeNameFor(regionId: string | null | undefined, type: string) {
+  const id = (regionId ?? '').toLowerCase();
+  const base = id.includes('crystal') || id.includes('rift') ? 'Guardião de Cristal'
+    : id.includes('abyss') || id.includes('void') ? 'Devorador do Abismo'
+    : 'Bruto da Mata';
+  if (type === 'boss') return `${base} Ancestral`;
+  if (type === 'elite') return `${base} Élite`;
+  return base;
+}
+
 /** Visual danger language per place (glow colour + short risk word). */
 const PLACE_MOOD: Record<string, { glow: string; risk: string }> = {
   combat: { glow: 'rgba(248,113,113,.75)', risk: 'PERIGO' },
