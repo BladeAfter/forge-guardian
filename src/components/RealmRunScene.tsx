@@ -149,7 +149,10 @@ export default function RealmRunScene({
   };
 
   const hpPct = Math.max(0, Math.min(100, Number(run.hp ?? 0)));
-  const safeHere = last ? ['shrine', 'rest'].includes(last.node_type) : true;
+  const riskValue = Number(run.risk ?? 0);
+  const riskTone = riskValue >= 70 ? 'realm-badge-risk-x' : riskValue >= 45 ? 'realm-badge-risk-hi'
+    : riskValue >= 20 ? 'realm-badge-risk-mid' : 'realm-badge-risk-low';
+
 
   return (
     <div className="fixed inset-0 z-[65] overflow-hidden bg-[#04060d]">
