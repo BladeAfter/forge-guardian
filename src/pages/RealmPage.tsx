@@ -448,28 +448,6 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
       </Sheet>
 
 
-      <Sheet open={Boolean(recipe)} onClose={() => setRecipeSheet(null)} title={recipe?.name ?? ''}>
-        {recipe && (
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Requer</p>
-              {Object.entries(recipe.inputs).map(([id, qty]) => (
-                <p key={id} className="text-[11px] text-slate-300">{materialById[id]?.name ?? id} x{fmt(Number(qty) * craftQty)}</p>
-              ))}
-              <p className="text-[11px] text-amber-100">{fmt(recipe.fc_cost * craftQty)} FC</p>
-            </div>
-            <p className="text-[11px] text-emerald-200">
-              Produz {recipe.output_qty * craftQty}x {recipe.output_kind === 'material' ? materialById[recipe.output_ref]?.name ?? recipe.output_ref : recipe.output_ref.replace(/_/g, ' ')} · {realmTimer(recipe.craft_seconds)}
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <button onClick={() => setCraftQty((q) => Math.max(1, q - 1))} className="h-9 w-9 rounded-full border border-white/15 text-slate-200">−</button>
-              <b className="w-8 text-center text-[15px] tabular-nums text-amber-100">{craftQty}</b>
-              <button onClick={() => setCraftQty((q) => Math.min(10, q + 1))} className="h-9 w-9 rounded-full border border-white/15 text-slate-200">+</button>
-            </div>
-            <button disabled={busy} onClick={() => { call(() => realmStartCraft(telegramInitData, recipe.id, craftQty)); setRecipeSheet(null); }} className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40">Forjar</button>
-          </div>
-        )}
-      </Sheet>
     </div>
   );
 }
