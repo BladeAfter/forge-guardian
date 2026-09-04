@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronsRight, Flame, Swords, Zap } from 'lucide-react';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 
 const HERO_IMG = '/assets/game/realm/battle-hero.png';
@@ -9,7 +11,7 @@ type Theme = {
   foe: string;
   ground: string;
   foreground: string;
-  bossName: string;
+  bossNameKey: string;
 };
 
 /** Region id → battlefield theme (background art, ground plane, foreground vegetation, enemy). */
@@ -21,7 +23,7 @@ function themeOf(regionId?: string | null): Theme {
       foe: '/assets/game/realm/foe-crystal-rift.png',
       ground: '/assets/game/realm/battle-ground-crystal-rift.jpg',
       foreground: '/assets/game/realm/battle-fg-crystal-rift.png',
-      bossName: 'Guardião de Cristal',
+      bossNameKey: 'realm.foe.crystal',
     };
   }
   if (id.includes('abyss') || id.includes('void')) {
@@ -30,7 +32,7 @@ function themeOf(regionId?: string | null): Theme {
       foe: '/assets/game/realm/foe-abyss.png',
       ground: '/assets/game/realm/battle-ground-abyss.jpg',
       foreground: '/assets/game/realm/battle-fg-abyss.png',
-      bossName: 'Devorador do Abismo',
+      bossNameKey: 'realm.foe.abyss',
     };
   }
   return {
@@ -38,19 +40,20 @@ function themeOf(regionId?: string | null): Theme {
     foe: '/assets/game/realm/foe-greenvale.png',
     ground: '/assets/game/realm/battle-ground-greenvale.jpg',
     foreground: '/assets/game/realm/battle-fg-greenvale.png',
-    bossName: 'Bruto da Mata',
+    bossNameKey: 'realm.foe.wild',
   };
 }
 
 /** Node type → boss art / rank shown above the enemy. */
-function foeOf(nodeType: RealmExploreNodeType | undefined, theme: Theme) {
+function foeOf(nodeType: RealmExploreNodeType | undefined, theme: Theme, t: Translator) {
+  const base = t(theme.bossNameKey);
   if (nodeType === 'boss') {
-    return { art: '/assets/game/realm/poi-boss.png', rank: 'CHEFE', name: `${theme.bossName} Ancestral`, scale: 1.18 };
+    return { art: '/assets/game/realm/poi-boss.png', rank: t('realm.battle.rank.boss'), name: t('realm.foe.ancestral', { name: base }), scale: 1.18 };
   }
   if (nodeType === 'elite') {
-    return { art: '/assets/game/realm/poi-elite.png', rank: 'ELITE', name: `${theme.bossName} Élite`, scale: 1.06 };
+    return { art: '/assets/game/realm/poi-elite.png', rank: t('realm.battle.rank.elite'), name: t('realm.foe.eliteSuffix', { name: base }), scale: 1.06 };
   }
-  return { art: theme.foe, rank: 'INIMIGO', name: theme.bossName, scale: 0.96 };
+  return { art: theme.foe, rank: t('realm.battle.rank.foe'), name: base, scale: 0.96 };
 }
 
 /**
@@ -64,12 +67,12 @@ const ENEMY_SLOT = { x: 71, groundY: 76, scale: 0.94 };
 const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString('pt-BR');
 const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
-type Ability = { name: string; blurb: string; icon: typeof Swords; tone: string; ring: string };
+type Ability = { nameKey: string; blurbKey: string; icon: typeof Swords; tone: string; ring: string };
 
 const ABILITIES: Ability[] = [
-  { name: 'Golpe', blurb: 'Ataque básico', icon: Swords, tone: 'text-amber-200', ring: 'border-amber-300/50 bg-amber-400/10' },
-  { name: 'Investida', blurb: 'Avanço brutal', icon: Flame, tone: 'text-rose-200', ring: 'border-rose-300/50 bg-rose-400/10' },
-  { name: 'Fúria', blurb: 'Corte veloz', icon: Zap, tone: 'text-sky-200', ring: 'border-sky-300/50 bg-sky-400/10' },
+  { nameKey: 'realm.battle.skill.strike', blurbKey: 'realm.battle.skill.strikeDesc', icon: Swords, tone: 'text-amber-200', ring: 'border-amber-300/50 bg-amber-400/10' },
+  { nameKey: 'realm.battle.skill.charge', blurbKey: 'realm.battle.skill.chargeDesc', icon: Flame, tone: 'text-rose-200', ring: 'border-rose-300/50 bg-rose-400/10' },
+  { nameKey: 'realm.battle.skill.fury', blurbKey: 'realm.battle.skill.furyDesc', icon: Zap, tone: 'text-sky-200', ring: 'border-sky-300/50 bg-sky-400/10' },
 ];
 
 type Props = {
@@ -89,8 +92,9 @@ type Props = {
  */
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
+  const t = useT();
   const theme = useMemo(() => themeOf(regionId), [regionId]);
-  const foe = useMemo(() => foeOf(log.nodeType, theme), [log.nodeType, theme]);
+  const foe = useMemo(() => foeOf(log.nodeType, theme, t), [log.nodeType, theme, t]);
   const defeat = log.result === 'failed';
 
   /** Synthetic HP pools derived from the authoritative damage log. */
@@ -112,7 +116,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
   const [auto, setAuto] = useState(false);
   const [speed, setSpeed] = useState<1 | 2>(1);
   const [impact, setImpact] = useState<'hero' | 'foe' | null>(null);
-  const [banner, setBanner] = useState<string | null>('O INIMIGO SE APROXIMA');
+  const [banner, setBanner] = useState<string | null>(t('realm.battle.foeApproaches'));
   const [floats, setFloats] = useState<{ id: number; unit: 'hero' | 'foe'; text: string }[]>([]);
   const floatId = useRef(0);
   const finished = useRef(false);
@@ -135,7 +139,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
     setPhase('done');
     setBossHp(defeat ? Math.max(1, Math.round(bossMax * 0.18)) : 0);
     setHeroHp(defeat ? 0 : Math.max(1, heroMax - heroDealt));
-    setBanner(defeat ? 'EQUIPE DERROTADA' : 'INIMIGO DERROTADO');
+    setBanner(defeat ? t('realm.battle.partyDefeatedCaps') : t('realm.battle.foeDefeatedCaps'));
     window.setTimeout(() => setBanner(null), 1400);
   }, [bossMax, defeat, heroDealt, heroMax]);
 
@@ -195,7 +199,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[8px] font-black uppercase tracking-[.24em] text-rose-300/90">
-              {foe.rank} · {regionName ?? 'Região'}
+              {foe.rank} · {regionName ?? t('realm.battle.region')}
             </p>
             <b className="block truncate text-[13px] font-black uppercase tracking-[.12em] text-rose-100">{foe.name}</b>
             <div className="realm-hpbar mt-1"><span style={{ width: `${bossPct}%` }} className="realm-hpfill realm-hpfill-foe" /></div>
@@ -232,7 +236,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           <span className="bf-shadow" aria-hidden />
           <span className="bf-ao" aria-hidden />
           <img
-            src={HERO_IMG} alt="Seu herói" loading="lazy"
+            src={HERO_IMG} alt="" loading="lazy"
             className={`bf-sprite bf-sprite--hero ${impact === 'foe' ? 'is-attacking' : ''} ${impact === 'hero' ? 'is-hit' : ''} ${done && defeat ? 'opacity-30 grayscale' : ''}`}
           />
           <span className={`bf-wrap bf-wrap--${theme.key}`} aria-hidden />
@@ -279,7 +283,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
         <div className="mb-2 flex items-center gap-2">
           <img src={HERO_IMG} alt="" aria-hidden className="h-8 w-8 rounded-full border border-amber-300/40 object-cover object-top" />
           <div className="min-w-0 flex-1">
-            <p className="text-[8px] font-black uppercase tracking-[.2em] text-amber-200/85">Seu herói · Turno {Math.min(turn + 1, Math.max(1, rounds.length))}/{Math.max(1, rounds.length)}</p>
+            <p className="text-[8px] font-black uppercase tracking-[.2em] text-amber-200/85">{t('realm.battle.heroTurn', { turn: Math.min(turn + 1, Math.max(1, rounds.length)), total: Math.max(1, rounds.length) })}</p>
             <div className="realm-hpbar mt-1"><span style={{ width: `${heroPct}%` }} className="realm-hpfill realm-hpfill-hero" /></div>
           </div>
           <span className="shrink-0 text-[8px] font-bold tracking-wider text-slate-400">{fmt(heroHp)} / {fmt(heroMax)}</span>
@@ -288,7 +292,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
         {done ? (
           <div className="bf-result">
             <p className={`text-[13px] font-black uppercase tracking-[.2em] ${defeat ? 'text-rose-300' : 'text-amber-200'}`}>
-              {defeat ? 'Equipe derrotada' : log.result === 'cleared' ? 'Região conquistada' : 'Vitória'}
+              {defeat ? t('realm.battle.partyDefeated') : log.result === 'cleared' ? t('realm.battle.regionCleared') : t('realm.battle.victory')}
             </p>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
               <span className="bf-reward">
@@ -303,7 +307,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               )}
               {Number(log.damage) > 0 && <span className="bf-reward bf-reward--dmg">❤ <b>−{log.damage}</b> HP</span>}
             </div>
-            <button onClick={onClose} className="bf-continue">Continuar</button>
+            <button onClick={onClose} className="bf-continue">{t('realm.continue')}</button>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
@@ -311,15 +315,15 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               const Icon = ability.icon;
               return (
                 <button
-                  key={ability.name}
+                  key={ability.nameKey}
                   type="button"
                   disabled={busy || auto}
                   onClick={() => void playTurn()}
                   className={`relative overflow-hidden rounded-2xl border px-2 pb-2 pt-2.5 text-center transition active:scale-95 disabled:opacity-40 ${ability.ring}`}
                 >
                   <Icon className={`mx-auto h-5 w-5 ${ability.tone}`} />
-                  <span className={`mt-1 block text-[9px] font-black uppercase tracking-[.06em] ${ability.tone}`}>{ability.name}</span>
-                  <span className="mt-0.5 block text-[7px] font-bold uppercase tracking-[.1em] text-white/45">{ability.blurb}</span>
+                  <span className={`mt-1 block text-[9px] font-black uppercase tracking-[.06em] ${ability.tone}`}>{t(ability.nameKey)}</span>
+                  <span className="mt-0.5 block text-[7px] font-bold uppercase tracking-[.1em] text-white/45">{t(ability.blurbKey)}</span>
                 </button>
               );
             })}
