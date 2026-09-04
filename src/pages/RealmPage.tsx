@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
 import RealmBountyBoard from '../components/RealmBountyBoard';
@@ -21,6 +21,8 @@ import {
 } from '../realm';
 
 const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
+const REALM_CREST = '/assets/game/realm/realm-crest.png';
+
 
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
@@ -104,6 +106,40 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
     [materials],
   );
 
+  /* micro-animações do HUD: flash ao subir nível real e delta ao ganhar material */
+  const strongholdLevel = data?.profile?.stronghold_level ?? 1;
+  const [levelFlash, setLevelFlash] = useState(false);
+  const prevLevel = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevLevel.current !== null && strongholdLevel > prevLevel.current) {
+      setLevelFlash(true);
+      const id = window.setTimeout(() => setLevelFlash(false), 1200);
+      prevLevel.current = strongholdLevel;
+      return () => window.clearTimeout(id);
+    }
+    prevLevel.current = strongholdLevel;
+  }, [strongholdLevel]);
+
+  const [resDelta, setResDelta] = useState<Record<string, number>>({});
+  const prevBalances = useRef<Record<string, number> | null>(null);
+  useEffect(() => {
+    const current: Record<string, number> = {};
+    for (const [k, v] of Object.entries(balances)) current[k] = Number(v ?? 0);
+    const before = prevBalances.current;
+    prevBalances.current = current;
+    if (!before) return;
+    const gains: Record<string, number> = {};
+    for (const [k, v] of Object.entries(current)) {
+      const diff = v - (before[k] ?? 0);
+      if (diff > 0) gains[k] = diff;
+    }
+    if (!Object.keys(gains).length) return;
+    setResDelta(gains);
+    const id = window.setTimeout(() => setResDelta({}), 900);
+    return () => window.clearTimeout(id);
+  }, [balances]);
+
+
   if (isLoading) {
     return (
       <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-4">
@@ -137,42 +173,53 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   return (
     <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-28">
-      {/* HEADER compacto */}
-      <header className="sticky top-0 z-20 border-b border-white/5 bg-[#05070f]/95 px-4 pb-2 pt-3 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-[11px] font-bold text-slate-400">‹ Voltar</button>
-          <h1 className="flex-1 truncate bg-gradient-to-r from-amber-100 to-amber-400 bg-clip-text text-[15px] font-black uppercase tracking-[.1em] text-transparent">MYTHREON REALM</h1>
-          <span className="rounded-full border border-amber-300/30 px-2 py-0.5 text-[10px] font-black text-amber-200">LV.{level}</span>
-        </div>
-
-        {/* mini barra de recursos */}
-        <div className="mt-2 flex items-center gap-2">
-          {mainMaterials.map((m) => (
-            <div key={m.id} className="flex items-center gap-1.5">
-              {m.image_url
-                ? <img src={m.image_url} alt={m.name} loading="lazy" className="h-5 w-5 object-contain" />
-                : <span className="text-[11px]">◆</span>}
-              <b className="text-[11px] tabular-nums text-amber-100">{fmt(Number(balances[m.id] ?? 0))}</b>
+      {/* TOP HUD premium do Realm */}
+      <header className="realm-hud sticky top-0 z-20">
+        <div className="realm-hud-atmo" aria-hidden />
+        <div className="relative px-3 pb-1.5 pt-2">
+          <div className="flex items-center gap-2">
+            <button onClick={onBack} className="realm-hud-back">‹ Voltar</button>
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+              <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
+              <h1 className="realm-hud-title truncate">MYTHREON REALM</h1>
             </div>
-          ))}
-          <button onClick={() => setResourcesOpen(true)} className="ml-auto h-6 w-6 rounded-full border border-white/15 text-[11px] font-black text-slate-300">+</button>
+            <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
+              <span className="realm-lv-cap">Stronghold</span>
+              <b className="realm-lv-num">LV.{level}</b>
+            </div>
+          </div>
+
+          {/* resource bar compacta */}
+          <div className="realm-res-bar">
+            {mainMaterials.map((m) => (
+              <button key={m.id} onClick={() => setResourcesOpen(true)} className="realm-res-pill">
+                {m.image_url
+                  ? <img src={m.image_url} alt={m.name} loading="lazy" className="h-4 w-4 shrink-0 object-contain" />
+                  : <span className="text-[10px] text-amber-200">◆</span>}
+                <b className="tabular-nums">{fmt(Number(balances[m.id] ?? 0))}</b>
+                {resDelta[m.id] ? <em className="realm-res-delta">+{fmt(resDelta[m.id])}</em> : null}
+              </button>
+            ))}
+            <button onClick={() => setResourcesOpen(true)} aria-label="Recursos" className="realm-res-plus">+</button>
+          </div>
+
+          {/* navegação do Realm */}
+          <nav className="realm-nav">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => { setTab(t.id); if (t.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
+                className={`realm-tab ${tab === t.id ? 'realm-tab-on' : ''}`}
+              >
+                <span className="block text-[14px] leading-4">{t.glyph}</span>
+                <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="realm-hud-rule" aria-hidden />
         </div>
-
-        {/* navegação do Realm */}
-        <nav className="mt-2 flex gap-1 overflow-x-auto pb-1">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setTab(t.id); if (t.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-              className={`realm-tab ${tab === t.id ? 'realm-tab-on' : ''}`}
-            >
-              <span className="block text-[13px] leading-4">{t.glyph}</span>
-              <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t.label}</span>
-            </button>
-          ))}
-        </nav>
-
       </header>
+
 
       {notice && (
         <p className="mx-4 mt-3 rounded-2xl border border-amber-300/35 bg-amber-500/10 px-3 py-2 text-[10px] font-bold text-amber-100">{notice}</p>
