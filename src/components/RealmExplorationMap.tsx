@@ -149,7 +149,11 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
               >
                 <span className={`realm-world-name ${on ? 'is-on' : ''} ${locked ? 'is-locked' : ''}`}>
                   {r.name}
-                  {locked && <em className="realm-world-lock">{t('realm.map.lockShort') || 'Lv.' + r.unlock_stronghold_level}</em>}
+                  {locked && (
+                    <em className="realm-world-lock" title={`Lv.${r.unlock_stronghold_level}`} aria-hidden>
+                      🔒
+                    </em>
+                  )}
                 </span>
               </button>
             );
