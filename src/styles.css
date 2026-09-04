@@ -1289,9 +1289,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 @keyframes shMist { from { opacity: .5; transform: translateX(-2%); } to { opacity: 1; transform: translateX(2%); } }
 
-.stronghold-slot { transition: transform 200ms ease-out, filter 200ms ease-out; }
-.stronghold-slot:active { transform: translate(-50%, -50%) scale(1.06); }
-.stronghold-slot-on { filter: brightness(1.18) drop-shadow(0 0 12px rgba(251, 191, 36, .45)); }
+.stronghold-slot { transform: translate(-50%, -100%); transform-origin: 50% 100%; transition: transform 200ms ease-out, filter 200ms ease-out; }
+.stronghold-slot:active { transform: translate(-50%, -100%) scale(1.05); }
+.stronghold-slot-on { filter: brightness(1.12) drop-shadow(0 0 14px rgba(251, 191, 36, .4)); }
+.stronghold-art { position: relative; display: block; }
+.stronghold-ghost { opacity: .3; filter: grayscale(1) brightness(.35) blur(.4px); }
+
 
 .stronghold-aura { width: 130%; height: 90%; border-radius: 50%; animation: shAura 4.5s ease-in-out infinite; }
 @keyframes shAura { 0%, 100% { opacity: .5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: .85; transform: translate(-50%, -50%) scale(1.1); } }
@@ -1715,18 +1718,30 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 @keyframes shFocus { 0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } }
 .stronghold-plate {
-  position: relative;
-  margin-top: 0.1rem;
-  display: flex;
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 0.15rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.22rem;
+  white-space: nowrap;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(180deg, rgba(9, 14, 28, 0.86), rgba(2, 6, 16, 0.92));
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  padding: 2px 6px;
 }
+.stronghold-plate-on { border-color: rgba(251, 191, 36, 0.55); box-shadow: 0 6px 18px rgba(251, 191, 36, 0.25); }
 .stronghold-plate b {
   font-size: 7.5px;
   font-weight: 900;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.92);
   text-shadow: 0 1px 4px #000;
 }
 .stronghold-seal {
@@ -1740,9 +1755,26 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   font-weight: 900;
   color: #fcd34d;
 }
+.stronghold-tag {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0 0.3rem;
+  font-size: 6.5px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.stronghold-tag-build { border-color: rgba(252, 211, 77, 0.55); background: rgba(245, 158, 11, 0.18); color: #fde68a; }
+.stronghold-tag-lock { border-color: rgba(148, 163, 184, 0.4); background: rgba(15, 23, 42, 0.8); color: #94a3b8; }
+.stronghold-tag-work { border-color: rgba(103, 232, 249, 0.5); background: rgba(8, 145, 178, 0.22); color: #a5f3fc; }
+.stronghold-tag-ready { border-color: rgba(110, 231, 183, 0.6); background: rgba(16, 185, 129, 0.24); color: #d1fae5; animation: shPulse 1.4s ease-in-out infinite; }
+.stronghold-tag-craft { border-color: rgba(253, 186, 116, 0.55); background: rgba(234, 88, 12, 0.22); color: #fed7aa; }
 .stronghold-hud {
   display: flex;
   align-items: center;
+
   gap: 0.35rem;
   border-radius: 999px;
   border: 1px solid rgba(251, 191, 36, 0.3);

@@ -5,12 +5,13 @@ const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
 /** Fixed plot for each building inside the scene (percentages of the scene box). */
 const PLOT: Record<string, { x: number; y: number; size: number; depth: number; glow: string }> = {
-  castle: { x: 50, y: 44, size: 33, depth: 0.35, glow: '#fbbf24' },
-  forge: { x: 79, y: 62, size: 21, depth: 0.7, glow: '#fb923c' },
-  training_ground: { x: 21, y: 62, size: 21, depth: 0.7, glow: '#f87171' },
-  pet_sanctuary: { x: 29, y: 82, size: 20, depth: 1, glow: '#38bdf8' },
-  watchtower: { x: 73, y: 84, size: 20, depth: 1, glow: '#facc15' },
+  castle: { x: 52, y: 56, size: 40, depth: 0.6, glow: '#fbbf24' },
+  forge: { x: 74, y: 65, size: 26, depth: 0.75, glow: '#fb923c' },
+  training_ground: { x: 28, y: 52, size: 26, depth: 0.5, glow: '#f87171' },
+  pet_sanctuary: { x: 47, y: 40, size: 23, depth: 0.3, glow: '#38bdf8' },
+  watchtower: { x: 76, y: 45, size: 22, depth: 0.35, glow: '#facc15' },
 };
+
 
 const SHORT: Record<string, string> = {
   castle: 'CASTELO',
@@ -181,8 +182,8 @@ export default function StrongholdScene({
                 key={bt.id}
                 onClick={(e) => { e.stopPropagation(); tap(bt.id, gated && lvl === 0, lvl + 1); }}
                 aria-label={`${bt.name} nível ${lvl}`}
-                className={`stronghold-slot absolute -translate-x-1/2 -translate-y-1/2 ${focused ? 'stronghold-slot-on' : ''} ${focus && !focused ? 'stronghold-slot-off' : ''}`}
-                style={{ left: `${plot.x}%`, top: `${plot.y}%`, width: `${plot.size + tier * 3}%`, zIndex: Math.round(plot.depth * 10) + (focused ? 20 : 0) }}
+                className={`stronghold-slot absolute ${focused ? 'stronghold-slot-on' : ''} ${focus && !focused ? 'stronghold-slot-off' : ''}`}
+                style={{ left: `${plot.x}%`, top: `${plot.y}%`, width: `${plot.size + tier * 3}%`, zIndex: Math.round(plot.depth * 100) + (focused ? 200 : 0) }}
               >
                 {/* pedestal + reflexo no chão de pedra */}
                 <span className="stronghold-pad pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${plot.glow}2e, transparent 70%)` }} />
@@ -190,59 +191,52 @@ export default function StrongholdScene({
                 {/* aura da construção */}
                 {!dim && !paused && (
                   <span
-                    className="stronghold-aura pointer-events-none absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2"
-                    style={{ background: `radial-gradient(circle, ${plot.glow}55, transparent 68%)` }}
+                    className="stronghold-aura pointer-events-none absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2"
+                    style={{ background: `radial-gradient(circle, ${plot.glow}44, transparent 68%)` }}
                   />
                 )}
                 {focused && <span className="stronghold-focus pointer-events-none" style={{ borderColor: `${plot.glow}80` }} />}
 
-                {bt.image_url && (
-                  <img
-                    src={bt.image_url}
-                    alt=""
-                    loading="lazy"
-                    className={`relative mx-auto w-full object-contain ${dim ? 'opacity-40 brightness-[.4] saturate-0' : ''} ${upgrading ? 'stronghold-works' : ''}`}
-                    style={{ filter: dim ? undefined : `drop-shadow(0 8px 16px ${plot.glow}45) drop-shadow(0 2px 2px rgba(0,0,0,.8))` }}
-                  />
-                )}
+                <span className="stronghold-art">
+                  {bt.image_url && (
+                    <img
+                      src={bt.image_url}
+                      alt=""
+                      loading="lazy"
+                      className={`relative mx-auto w-full object-contain ${dim ? 'stronghold-ghost' : ''} ${upgrading ? 'stronghold-works' : ''}`}
+                      style={{ filter: dim ? undefined : `drop-shadow(0 10px 14px rgba(0,0,0,.75)) drop-shadow(0 0 18px ${plot.glow}33)` }}
+                    />
+                  )}
 
-                {/* partículas de ambientação por prédio */}
-                {!paused && !dim && bt.id === 'forge' && (
-                  <>
-                    <span className="stronghold-smoke" />
-                    <span className="stronghold-spark" />
-                  </>
-                )}
-                {!paused && !dim && bt.id === 'pet_sanctuary' && <span className="stronghold-motes" />}
-                {!paused && !dim && bt.id === 'castle' && <span className="stronghold-flag" />}
-                {!paused && !dim && bt.id === 'watchtower' && <span className="stronghold-torch" />}
-                {!paused && !dim && bt.id === 'training_ground' && <span className="stronghold-npc" />}
-                {upgrading && !paused && <span className="stronghold-dust" />}
-
-                {/* placa elegante: nome + selo de nível */}
-                <span className="stronghold-plate">
-                  <b className={focused ? 'text-amber-100' : 'text-slate-100/90'}>{SHORT[bt.id] ?? bt.name}</b>
-                  <i className="stronghold-seal">{lvl > 0 ? `Lv.${lvl}` : '—'}</i>
+                  {/* partículas de ambientação por prédio */}
+                  {!paused && !dim && bt.id === 'forge' && (
+                    <>
+                      <span className="stronghold-smoke" />
+                      <span className="stronghold-spark" />
+                    </>
+                  )}
+                  {!paused && !dim && bt.id === 'pet_sanctuary' && <span className="stronghold-motes" />}
+                  {!paused && !dim && bt.id === 'castle' && <span className="stronghold-flag" />}
+                  {!paused && !dim && bt.id === 'watchtower' && <span className="stronghold-torch" />}
+                  {!paused && !dim && bt.id === 'training_ground' && <span className="stronghold-npc" />}
+                  {upgrading && !paused && <span className="stronghold-dust" />}
                 </span>
 
-                {/* estado — apenas 1 badge por prédio */}
-                {state === 'build' && (
-                  <span className="stronghold-badge border-amber-300/60 bg-amber-500/20 text-amber-100">CONSTRUIR</span>
-                )}
-                {state === 'gated' && lvl === 0 && (
-                  <span className="stronghold-badge border-slate-400/40 bg-black/60 text-slate-300">⌁ Lv.{lvl + 1}</span>
-                )}
-                {state === 'upgrading' && (
-                  <span className="stronghold-badge border-cyan-300/50 bg-cyan-500/20 tabular-nums text-cyan-100">{realmTimer(left)}</span>
-                )}
-                {state === 'ready' && (
-                  <span className="stronghold-badge stronghold-badge-pulse border-emerald-300/60 bg-emerald-500/25 text-emerald-100">PRONTO</span>
-                )}
-                {state === 'built' && bt.id === 'forge' && craftingCount > 0 && (
-                  <span className="stronghold-badge border-orange-300/50 bg-orange-500/20 text-orange-100">FORJANDO</span>
-                )}
+                {/* placa única: nome + selo de nível + estado */}
+                <span className={`stronghold-plate ${focused ? 'stronghold-plate-on' : ''}`}>
+                  <b>{SHORT[bt.id] ?? bt.name}</b>
+                  <i className="stronghold-seal">{lvl > 0 ? `Lv.${lvl}` : '—'}</i>
+                  {state === 'build' && <i className="stronghold-tag stronghold-tag-build">Construir</i>}
+                  {state === 'gated' && lvl === 0 && <i className="stronghold-tag stronghold-tag-lock">Lv.{lvl + 1}</i>}
+                  {state === 'upgrading' && <i className="stronghold-tag stronghold-tag-work tabular-nums">{realmTimer(left)}</i>}
+                  {state === 'ready' && <i className="stronghold-tag stronghold-tag-ready">Pronto</i>}
+                  {state === 'built' && bt.id === 'forge' && craftingCount > 0 && (
+                    <i className="stronghold-tag stronghold-tag-craft">Forjando</i>
+                  )}
+                </span>
               </button>
             );
+
           })}
         </div>
 
