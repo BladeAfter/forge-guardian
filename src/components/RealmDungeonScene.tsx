@@ -6,7 +6,6 @@ const BG_TREASURE = '/assets/game/realm/dungeon-treasure.jpg';
 const BG_SHRINE = '/assets/game/realm/dungeon-shrine.jpg';
 const BG_BOSS = '/assets/game/realm/dungeon-boss.jpg';
 const DOOR = '/assets/game/realm/dungeon-door.png';
-const PARTY = '/assets/game/realm/battle-hero.png';
 
 const ROOM_BG: Record<string, string> = {
   combat: BG_HALL,
