@@ -1393,7 +1393,7 @@ async function verifyCelestialPackPurchases(db: Db, user: TelegramUser) {
 }
 
 /**
- * 👑 CELESTIAL SOVEREIGN PACK — settlement on-chain do pack ultra premium (200 TON).
+ * 👑 CELESTIAL SOVEREIGN PACK — settlement on-chain do pack ultra premium (150 TON).
  * Mesmo casamento por comentário único + valor em nanoton; a entrega atômica (Herói Celestial e
  * Pet NFT com MINING TO BE REVEALED, 5M FC, baús lendários/míticos, armas NFT, armaduras míticas e
  * celestiais, itens aleatórios e o bônus permanente de mineração TON) acontece dentro da RPC.

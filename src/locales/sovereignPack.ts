@@ -1,7 +1,7 @@
 import type { LocaleBundle } from './registry';
 
 /**
- * 👑 CELESTIAL SOVEREIGN PACK (200 TON) — textos do card permanente e do popup diário.
+ * 👑 CELESTIAL SOVEREIGN PACK (150 TON) — textos do card permanente e do popup diário.
  * A mineração do Herói Celestial e do Pet NFT é sempre "a revelar": nunca imprimimos 0 TON/dia.
  */
 export const sovereignPack: LocaleBundle = {
