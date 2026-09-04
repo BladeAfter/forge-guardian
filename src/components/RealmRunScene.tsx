@@ -337,15 +337,18 @@ export default function RealmRunScene({
 
       {/* ── DESTINATION SHEET ────────────────────────────────────────────── */}
       {pick && (
-        <div className="absolute inset-0 z-[20] flex items-end bg-gradient-to-t from-black/85 via-black/30 to-transparent p-3 pb-[max(12px,env(safe-area-inset-bottom))]" onClick={() => setPick(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-3xl border border-amber-300/25 bg-[#080b16]/95 p-4 realm-sheet-in">
-            <div className="flex items-center gap-2">
+        <div className="absolute inset-0 z-[20] flex items-end bg-gradient-to-t from-black/90 via-black/35 to-transparent p-3 pb-[max(12px,env(safe-area-inset-bottom))]" onClick={() => setPick(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="realm-dest-sheet realm-sheet-in">
+            <span className="block text-[7.5px] font-black uppercase tracking-[.3em] text-slate-500">Destino</span>
+            <div className="mt-0.5 flex items-center gap-2">
+              <img src={PLACE_ART[pick.node_type] ?? PLACE_ART.event} alt="" aria-hidden loading="lazy" className="h-10 w-10 flex-none object-contain" style={{ filter: `drop-shadow(0 0 10px ${PLACE_MOOD[pick.node_type]?.glow})` }} />
               <b className="flex-1 text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{REALM_NODE_TITLE[pick.node_type]}</b>
-              <span style={{ color: PLACE_MOOD[pick.node_type]?.glow }} className="text-[9px] font-black uppercase tracking-[.14em]">
+              <span style={{ color: PLACE_MOOD[pick.node_type]?.glow, borderColor: PLACE_MOOD[pick.node_type]?.glow }} className="realm-badge">
                 {PLACE_MOOD[pick.node_type]?.risk}
               </span>
             </div>
-            <p className="mt-1 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
+            <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
+
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button onClick={() => setPick(null)} className="rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">Voltar</button>
               <button disabled={busy} onClick={() => travel(pick)} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
