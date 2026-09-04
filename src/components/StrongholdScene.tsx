@@ -168,11 +168,7 @@ export default function StrongholdScene({
             const spot = SPOT[bt.id];
             const b = buildings.find((x) => x.building_type === bt.id);
             const lvl = b?.level ?? 0;
-            const left = realmSecondsLeft(b?.upgrade_finishes_at, now);
-            const upgrading = Boolean(b && b.status !== 'idle' && left > 0);
-            const ready = Boolean(b && b.status !== 'idle' && left <= 0);
-            const gated = bt.id !== 'castle' && !upgrading && !ready && lvl + 1 > castleLevel;
-            const state: BuildState = ready ? 'ready' : upgrading ? 'upgrading' : gated ? 'gated' : lvl > 0 ? 'built' : 'build';
+            const gated = bt.id !== 'castle' && b?.status === 'idle' && lvl + 1 > castleLevel;
             const focused = focus === bt.id;
 
             return (
