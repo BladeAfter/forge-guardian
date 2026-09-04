@@ -216,169 +216,22 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
     );
   }
 
-  // ── ACTIVE RUN: node path ────────────────────────────────────────────────
-  const openNodes = nodes.filter((n) => n.depth === depth && n.status !== 'resolved' && n.status !== 'skipped');
-  const resolved = nodes.filter((n) => n.status === 'resolved').sort((a, b) => a.depth - b.depth);
-  const lastResolved = resolved[resolved.length - 1] ?? null;
-  const markerX = lastResolved ? Number(lastResolved.config?.x ?? 8) : 4;
-  const markerY = lastResolved ? Number(lastResolved.config?.y ?? 50) : 50;
-  const pendingNode = pending ? nodes.find((n) => n.id === pending.nodeId) ?? null : null;
-
+  // ── ACTIVE RUN: fullscreen cinematic exploration scene ───────────────────
   return (
-    <section className="space-y-3">
-      {/* TOP: region, loot, risk, exit */}
-      <div className="rounded-3xl border border-amber-300/20 bg-amber-500/[.05] p-3">
-        <div className="flex items-center gap-2">
-          <b className="flex-1 truncate text-[12px] font-black uppercase tracking-[.12em] text-amber-100">{region?.name ?? exploreRun.region_id}</b>
-          <span className="rounded-full border border-rose-300/30 px-2 py-0.5 text-[9px] font-black text-rose-200">HP {exploreRun.hp}</span>
-          <span className="rounded-full border border-white/15 px-2 py-0.5 text-[9px] font-black text-slate-300">RISCO {REALM_RISK_LABEL(exploreRun.risk)}</span>
-        </div>
-        <p className="mt-1 text-[10px] text-emerald-200">Loot: {lootLine()}</p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-yellow-200 transition-all duration-500" style={{ width: `${Math.min(100, (depth / (finalDepth + 1)) * 100)}%` }} />
-        </div>
-        <p className="mt-1 text-[9px] font-bold uppercase tracking-[.16em] text-slate-500">Nó {Math.min(depth + 1, finalDepth + 1)} de {finalDepth + 1}</p>
-      </div>
-
-      {/* CENTER: interactive path */}
-      <div className="relative h-56 overflow-hidden rounded-3xl border border-amber-300/10 bg-[#070a14]">
-        {region?.image_url && (
-          <img src={region.image_url} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-25" />
-        )}
-        <div className="absolute inset-0 realm-fog" />
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-          {nodes.map((n) => {
-            const prev = nodes.filter((p) => p.depth === n.depth - 1);
-            const from = prev.find((p) => p.status === 'resolved') ?? prev[0];
-            const x1 = from ? Number(from.config?.x ?? 8) : 4;
-            const y1 = from ? Number(from.config?.y ?? 50) : 50;
-            const lit = n.status === 'resolved' || n.depth <= depth;
-            return (
-              <line
-                key={`l-${n.id}`}
-                x1={x1} y1={y1} x2={Number(n.config?.x ?? 8)} y2={Number(n.config?.y ?? 50)}
-                stroke={lit ? 'rgba(252,211,77,.55)' : 'rgba(255,255,255,.12)'}
-                strokeWidth={lit ? 0.8 : 0.5}
-                strokeDasharray={lit ? undefined : '2 2'}
-              />
-            );
-          })}
-        </svg>
-
-        {nodes.map((n) => {
-          const open = n.depth === depth && n.status !== 'resolved' && n.status !== 'skipped';
-          const done = n.status === 'resolved';
-          const tone = REALM_NODE_TONE[n.node_type] ?? '#fbbf24';
-          return (
-            <button
-              key={n.id}
-              disabled={!open || busy || Boolean(pending)}
-              onClick={() => enter(n)}
-              aria-label={REALM_NODE_LABEL[n.node_type] ?? n.node_type}
-              style={{ left: `${n.config?.x ?? 8}%`, top: `${n.config?.y ?? 50}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-            >
-              <span
-                style={{ borderColor: tone, color: tone, boxShadow: open ? `0 0 14px ${tone}` : undefined }}
-                className={`grid h-10 w-10 place-items-center rounded-full border-2 bg-black/75 text-[15px] transition ${
-                  open ? 'realm-pin-on scale-105' : done ? 'opacity-60' : n.status === 'skipped' ? 'opacity-20' : 'opacity-40'}`}
-              >
-                {REALM_NODE_GLYPH[n.node_type] ?? '◆'}
-              </span>
-            </button>
-          );
-        })}
-
-        {/* party marker */}
-        <span
-          style={{ left: `${markerX}%`, top: `${markerY}%` }}
-          className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${moving ? 'realm-marker-move' : ''}`}
-        >
-          <span className="block h-4 w-4 rounded-full bg-amber-200 shadow-[0_0_18px_6px_rgba(252,211,77,.55)]" />
-        </span>
-      </div>
-
-      {/* BOTTOM: current node panel + actions */}
-      <div className="rounded-3xl border border-white/10 bg-white/[.03] p-3">
-        {openNodes.length > 0 ? (
-          <>
-            <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Escolha o caminho</p>
-            <div className="mt-2 space-y-1.5">
-              {openNodes.map((n) => (
-                <button
-                  key={n.id}
-                  disabled={busy || Boolean(pending)}
-                  onClick={() => enter(n)}
-                  className="flex w-full items-center gap-2 rounded-2xl border border-white/10 bg-black/40 p-2.5 text-left disabled:opacity-40"
-                >
-                  <span style={{ color: REALM_NODE_TONE[n.node_type] }} className="text-[16px]">{REALM_NODE_GLYPH[n.node_type]}</span>
-                  <span className="min-w-0 flex-1">
-                    <b className="block text-[11px] font-black uppercase tracking-[.1em] text-amber-100">{REALM_NODE_TITLE[n.node_type] ?? n.node_type}</b>
-                    <span className="block truncate text-[9px] text-slate-400">{REALM_NODE_DESC[n.node_type]}</span>
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500">›</span>
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <p className="text-[10px] text-slate-400">Trilha resolvida. Extraia o loot para garantir as recompensas.</p>
-        )}
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            disabled={busy}
-            onClick={() => call(() => realmExploreExtract(initData, exploreRun.id))}
-            className="rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40"
-          >
-            Extrair agora
-          </button>
-          <button
-            disabled={busy || Boolean(pending)}
-            onClick={() => call(() => realmExploreAuto(initData, exploreRun.id))}
-            className="rounded-2xl border border-amber-300/30 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-100 disabled:opacity-40"
-          >
-            Auto explorar
-          </button>
-        </div>
-        <button
-          disabled={busy}
-          onClick={() => call(() => realmExploreAbandon(initData, exploreRun.id))}
-          className="mt-2 w-full text-[9px] font-bold uppercase tracking-[.18em] text-slate-600"
-        >
-          Abandonar run (perde o loot)
-        </button>
-      </div>
-
-      {flash && (
-        <p className="fixed left-1/2 top-24 z-[60] -translate-x-1/2 rounded-2xl border border-amber-300/40 bg-black/90 px-4 py-2 text-[11px] font-black tracking-wide text-amber-100">{flash}</p>
-      )}
-
-      {/* EVENT / CHOICE SHEET */}
-      {pending && pendingNode && (
-        <div className="fixed inset-0 z-[70] flex items-end bg-black/80 p-3">
-          <div className="w-full rounded-3xl border border-amber-300/30 bg-[#080b16] p-4">
-            <div className="flex items-center gap-2">
-              <span style={{ color: REALM_NODE_TONE[pendingNode.node_type] }} className="text-[22px]">{REALM_NODE_GLYPH[pendingNode.node_type]}</span>
-              <b className="text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{REALM_NODE_TITLE[pendingNode.node_type]}</b>
-            </div>
-            <p className="mt-1 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pendingNode.node_type]}</p>
-            <div className="mt-3 space-y-2">
-              {pending.options.map((opt) => (
-                <button
-                  key={opt}
-                  disabled={busy}
-                  onClick={() => choose(opt)}
-                  className="w-full rounded-2xl border border-amber-300/25 bg-amber-500/[.07] py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-100 disabled:opacity-40"
-                >
-                  {REALM_OPTION_LABEL[opt] ?? opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
+    <>
+      <RealmRunScene
+        region={region}
+        run={exploreRun}
+        nodes={nodes}
+        materials={data.materials}
+        busy={busy}
+        flash={flash}
+        onEnter={enter}
+        onChoose={choose}
+        onExtract={() => call(() => realmExploreExtract(initData, exploreRun.id))}
+        onAuto={() => call(() => realmExploreAuto(initData, exploreRun.id))}
+        onAbandon={() => call(() => realmExploreAbandon(initData, exploreRun.id))}
+      />
       {combat && (
         <RealmBattleScene
           log={combat}
@@ -388,6 +241,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
           onClose={() => setCombat(null)}
         />
       )}
-    </section>
+    </>
   );
 }
+
