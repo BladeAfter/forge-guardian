@@ -192,126 +192,138 @@ export default function RealmRunScene({
 
   return (
     <div className="fixed inset-0 z-[65] overflow-hidden bg-[#04060d]">
-      {/* ── WORLD (parallax scenery + places) ─────────────────────────────── */}
+      {/* ── WORLD (paisagem em camadas + 2-3 destinos físicos) ────────────── */}
       <div className="absolute inset-0 realm-cam" style={{ transform: camera }}>
+        {/* BACKGROUND */}
         <img src={scene} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
-        {/* cinematic grade: darker, cooler, deeper */}
         <div className="pointer-events-none absolute inset-0 realm-scene-grade" />
         <div className="pointer-events-none absolute inset-0 realm-scene-vignette" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060d]/85 via-[#04060d]/15 to-[#04060d]/95" />
-        {/* parallax mist layers (slow, opposite drift) */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060d]/80 via-transparent to-[#04060d]/95" />
         <div
           className="pointer-events-none absolute inset-0 realm-scene-mist"
-          style={{ transform: `translateX(${(focusX - 50) * 0.06}%)` }}
+          style={{ transform: `translateX(${(focus.x - 50) * 0.06}%)` }}
         />
         <div
           className="pointer-events-none absolute inset-0 realm-scene-mist2"
-          style={{ transform: `translateX(${(50 - focusX) * 0.1}%)` }}
+          style={{ transform: `translateX(${(50 - focus.x) * 0.1}%)` }}
         />
         <div className="pointer-events-none absolute inset-0 realm-scene-light" />
 
-        {/* distant boss silhouette — a visual objective from the start */}
-        {nodes.some((n) => n.node_type === 'boss') && (
+        {/* objetivo distante: a silhueta do chefe da região */}
+        {nodes.some((n) => n.node_type === 'boss') && !destinations.some((d) => d.node.node_type === 'boss') && (
           <img
             src={PLACE_ART.boss} alt="" aria-hidden loading="lazy"
-            className="pointer-events-none absolute bottom-[46%] right-[6%] w-[26%] opacity-25 blur-[1px] realm-scene-boss"
+            className="pointer-events-none absolute bottom-[52%] right-[5%] w-[24%] opacity-[.18] blur-[2px] realm-scene-boss"
           />
         )}
 
-        {/* the trail itself, painted as a lit magical route */}
+        {/* MIDGROUND — trilhas de terra ligando a equipe a cada destino */}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
-          {nodes.map((n) => {
-            const prevs = nodes.filter((p) => p.depth === n.depth - 1);
-            const from = prevs.find((p) => p.status === 'resolved') ?? prevs[0];
-            const a = from ? place(from, finalDepth) : { x: 8, y: 66 };
-            const b = place(n, finalDepth);
-            if (n.depth > depth + 1) return null;
-            const walked = n.status === 'resolved';
-            const next = n.depth === depth;
-            const mood = PLACE_MOOD[n.node_type]?.glow ?? 'rgba(252,211,77,.5)';
-            const d = `M ${a.x} ${a.y + 4} Q ${(a.x + b.x) / 2} ${Math.min(a.y, b.y) + 12} ${b.x} ${b.y + 4}`;
+          {/* caminho já percorrido, saindo por trás da equipe */}
+          <path
+            d={`M ${partyAt.x - 34} 102 Q ${partyAt.x - 16} ${partyAt.y + 4} ${partyAt.x} ${partyAt.y}`}
+            fill="none" stroke="rgba(0,0,0,.45)" strokeWidth={5.5} strokeLinecap="round"
+          />
+          <path
+            d={`M ${partyAt.x - 34} 102 Q ${partyAt.x - 16} ${partyAt.y + 4} ${partyAt.x} ${partyAt.y}`}
+            fill="none" stroke="rgba(190,168,124,.28)" strokeWidth={2.2} strokeLinecap="round"
+          />
+          {destinations.map(({ node, at }) => {
+            const mood = PLACE_MOOD[node.node_type]?.glow ?? 'rgba(252,211,77,.6)';
+            const active = pick?.id === node.id || (walking && travelTo?.x === at.x);
+            const midX = (partyAt.x + at.x) / 2 + (at.x < partyAt.x ? -5 : 5);
+            const midY = (partyAt.y + at.y) / 2 + 5;
+            const d = `M ${partyAt.x} ${partyAt.y} Q ${midX} ${midY} ${at.x} ${at.y}`;
+            const near = depthFactor(at.y);
             return (
-              <g key={`t-${n.id}`}>
-                {/* soft glow base */}
-                <path
-                  d={d} fill="none" strokeLinecap="round"
-                  stroke={walked ? 'rgba(252,211,77,.18)' : next ? mood : 'rgba(255,255,255,.05)'}
-                  strokeWidth={next ? 2.6 : 1.6}
-                  className="realm-trail-glow"
-                />
-                <path
-                  d={d}
-                  fill="none"
-                  stroke={walked ? 'rgba(253,230,138,.6)' : next ? mood : 'rgba(255,255,255,.12)'}
-                  strokeWidth={next ? 0.9 : 0.6}
-                  strokeLinecap="round"
-                  strokeDasharray={walked ? undefined : '3 2.5'}
-                />
-                {/* running energy on the active route */}
-                {next && (
-                  <path
-                    d={d} fill="none" stroke="rgba(255,255,255,.85)" strokeWidth={0.5}
-                    strokeLinecap="round" strokeDasharray="1.4 9" className="realm-trail-flow"
-                  />
+              <g key={`trail-${node.id}`} opacity={0.55 + near * 0.45}>
+                {/* leito de terra escavado */}
+                <path d={d} fill="none" stroke="rgba(0,0,0,.5)" strokeWidth={5.2 * near} strokeLinecap="round" />
+                {/* terra batida / pedras */}
+                <path d={d} fill="none" stroke="rgba(196,172,126,.3)" strokeWidth={2.4 * near} strokeLinecap="round" />
+                <path d={d} fill="none" stroke="rgba(228,208,166,.22)" strokeWidth={0.9 * near} strokeLinecap="round" strokeDasharray="2 5" />
+                {active && (
+                  <>
+                    <path d={d} fill="none" stroke={mood} strokeWidth={2.6 * near} strokeLinecap="round" className="realm-trail-glow" />
+                    <path
+                      d={d} fill="none" stroke="rgba(255,255,255,.8)" strokeWidth={0.55}
+                      strokeLinecap="round" strokeDasharray="1.4 9" className="realm-trail-flow"
+                    />
+                  </>
                 )}
               </g>
             );
           })}
         </svg>
 
-        {/* places */}
-        {nodes.map((n) => {
-          if (n.depth > depth + 1) return null;
-          const p = place(n, finalDepth);
-          const isOpen = n.depth === depth && n.status !== 'resolved' && n.status !== 'skipped';
-          const done = n.status === 'resolved';
-          const picked = pick?.id === n.id;
-          const mood = PLACE_MOOD[n.node_type] ?? { glow: 'rgba(252,211,77,.7)', risk: '' };
-          const w = SIZE[n.node_type] ?? 18;
+        {/* PLAY AREA — os destinos como lugares reais, apoiados no chão */}
+        {destinations.map(({ node, at }) => {
+          const mood = PLACE_MOOD[node.node_type] ?? { glow: 'rgba(252,211,77,.7)', risk: '' };
+          const near = depthFactor(at.y);
+          const w = (SIZE[node.node_type] ?? 18) * (0.78 + near * 0.34);
+          const picked = pick?.id === node.id;
           return (
             <button
-              key={n.id}
-              disabled={!isOpen || busy || walking || Boolean(pending)}
-              onClick={() => setPick(n)}
-              aria-label={REALM_NODE_LABEL[n.node_type] ?? n.node_type}
-              style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${w}%`, ['--poi-glow' as string]: mood.glow }}
-              className={`realm-poi absolute -translate-x-1/2 -translate-y-full transition-all duration-500 ${
-                isOpen ? 'realm-place-live realm-poi-open' : done ? 'opacity-45 grayscale' : 'opacity-25'} ${
-                picked ? 'realm-poi-picked' : ''}`}
+              key={node.id}
+              disabled={busy || walking || Boolean(pending)}
+              onClick={() => setPick(node)}
+              aria-label={REALM_NODE_LABEL[node.node_type] ?? node.node_type}
+              style={{
+                left: `${at.x}%`, top: `${at.y}%`, width: `${w}%`,
+                ['--poi-glow' as string]: mood.glow,
+                opacity: 0.72 + near * 0.28,
+              }}
+              className={`realm-place absolute -translate-x-1/2 -translate-y-full ${picked ? 'realm-place-picked' : ''}`}
             >
-              {isOpen && <span className="realm-poi-aura" aria-hidden />}
-              {isOpen && <span className="realm-poi-pedestal" aria-hidden />}
+              <span className="realm-place-halo" aria-hidden />
               <img
-                src={PLACE_ART[n.node_type] ?? PLACE_ART.event}
+                src={PLACE_ART[node.node_type] ?? PLACE_ART.event}
                 alt="" aria-hidden loading="lazy"
-                style={{ filter: isOpen ? `drop-shadow(0 0 18px ${mood.glow})` : 'grayscale(.5) brightness(.6)' }}
-                className="relative block w-full select-none"
+                style={{ filter: `drop-shadow(4px 6px 10px rgba(0,0,0,.8)) drop-shadow(0 0 14px ${mood.glow}) brightness(${0.82 + near * 0.2})` }}
+                className="realm-place-art"
               />
-              {isOpen && (
-                <span className="realm-plaque">
-                  <b>{REALM_NODE_TITLE[n.node_type] ?? n.node_type}</b>
-                  <em style={{ color: mood.glow }}>{mood.risk}</em>
-                </span>
-              )}
+              <span className="realm-place-shadow" aria-hidden />
+              <span className="realm-place-ao" aria-hidden />
+              {/* névoa de distância sobre lugares mais ao fundo */}
+              {near < 0.85 && <span className="realm-place-fog" aria-hidden />}
+              <span className="realm-place-tag">
+                <b>{REALM_NODE_TITLE[node.node_type] ?? node.node_type}</b>
+                <em style={{ color: mood.glow }}>{mood.risk}</em>
+              </span>
             </button>
           );
         })}
 
-        {/* the party, physically standing on the trail */}
-        <img
-          src={PARTY_ART} alt="Sua equipe" loading="lazy"
-          style={{ left: `${partyAt.x}%`, top: `${partyAt.y + 6}%` }}
-          className={`pointer-events-none absolute w-[15%] -translate-x-1/2 -translate-y-full drop-shadow-[0_6px_14px_rgba(0,0,0,.8)] transition-all duration-[900ms] ease-in-out ${walking ? 'realm-party-walk' : 'realm-party-idle'}`}
-        />
+        {/* rastro do último local visitado, atrás da equipe */}
+        {last && (
+          <img
+            src={PLACE_ART[last.node_type] ?? PLACE_ART.event} alt="" aria-hidden loading="lazy"
+            className="pointer-events-none absolute bottom-[2%] left-[6%] w-[13%] opacity-30 grayscale blur-[1px]"
+          />
+        )}
 
-        {/* fog of war over the undiscovered part of the region */}
+        {/* a equipe: "eu estou aqui" */}
+        <div
+          className={`realm-party-anchor ${walking ? 'is-walking' : ''}`}
+          style={{ left: `${partyPos.x}%`, top: `${partyPos.y}%`, width: `${13 * depthFactor(partyPos.y) + 2}%` }}
+        >
+          <span className="realm-party-mark" aria-hidden />
+          <span className="realm-party-shadow" aria-hidden />
+          <img src={PARTY_ART} alt="Sua equipe" loading="lazy" className="realm-party-art" />
+        </div>
+
+        {/* FOG OF WAR — o resto da região continua desconhecido */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[42%] realm-fog-far" />
         <div
           className="pointer-events-none absolute inset-y-0 right-0 realm-fogwar"
-          style={{ left: `${Math.min(92, 22 + ((depth + 1) / (finalDepth + 1)) * 70)}%` }}
+          style={{ left: `${Math.min(94, 40 + ((depth + 1) / (finalDepth + 1)) * 56)}%` }}
         />
+        {/* FOREGROUND — grama, pedras, folhas e névoa rasteira */}
         <div className="pointer-events-none absolute inset-0 realm-scene-dust" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] realm-scene-fg" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%] realm-scene-fg" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[16%] realm-scene-fg-mist" />
       </div>
+
 
 
       {/* ── HUD ──────────────────────────────────────────────────────────── */}
