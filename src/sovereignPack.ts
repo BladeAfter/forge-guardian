@@ -1,5 +1,5 @@
 /**
- * 👑 CELESTIAL SOVEREIGN PACK — pacote ultra premium de 200 TON.
+ * 👑 CELESTIAL SOVEREIGN PACK — pacote ultra premium de 150 TON.
  *
  * Tipagem de exibição apenas. Preço, elegibilidade, estoque de Celestiais sem dono, entrega atômica
  * e o bônus permanente de mineração TON da conta vêm do backend (`sovereign_pack_*`) e são ajustáveis
