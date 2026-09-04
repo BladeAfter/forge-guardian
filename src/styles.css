@@ -3076,3 +3076,162 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .realm-place-halo, .realm-party-art, .realm-party-mark, .realm-scene-fg-mist,
   .realm-party-anchor.is-walking .realm-party-art { animation: none !important; }
 }
+
+/* ============ 🏰 STRONGHOLD AAA — hub pseudo-isométrico vivo ============ */
+/* Terreno construído: pátio, anel de pedra, chão de frente e névoa */
+.sh-courtyard {
+  position: absolute; left: 50%; top: 66%; width: 84%; height: 42%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(52% 50% at 50% 50%, rgba(214, 196, 158, .16), transparent 72%),
+    radial-gradient(70% 60% at 50% 60%, rgba(0, 0, 0, .5), transparent 76%);
+  filter: blur(3px);
+}
+.sh-plaza-ring {
+  position: absolute; left: 50%; top: 68%; width: 46%; height: 15%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(251, 191, 36, .16);
+  border-radius: 50%;
+  box-shadow: inset 0 0 22px rgba(251, 191, 36, .1);
+  opacity: .7;
+}
+.sh-depth-haze {
+  background: linear-gradient(to bottom, rgba(120, 150, 195, .3), rgba(90, 120, 170, .1) 60%, transparent);
+  filter: blur(2px);
+}
+.sh-fg-stone {
+  background:
+    linear-gradient(to top, rgba(6, 8, 15, .92), rgba(12, 16, 28, .35) 60%, transparent),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, .022) 0 6px, transparent 6px 15px);
+}
+.sh-fg-mist {
+  background: radial-gradient(80% 130% at 50% 120%, rgba(178, 202, 236, .2), transparent 72%);
+  filter: blur(8px);
+  animation: shFgMist 13s ease-in-out infinite;
+}
+@keyframes shFgMist { 0%, 100% { opacity: .45; transform: translateX(-2%); } 50% { opacity: .9; transform: translateX(3%); } }
+.sh-path-flow { animation: shPathFlow 5s linear infinite; }
+@keyframes shPathFlow { to { stroke-dashoffset: -60; } }
+
+/* Cada construção como um lote apoiado no terreno */
+.sh-lot {
+  background: none; border: 0; padding: 0;
+  transform: translate(-50%, -100%); transform-origin: 50% 100%;
+  transition: transform 260ms cubic-bezier(.22, 1, .36, 1), opacity 260ms ease, filter 260ms ease;
+}
+.sh-lot:active { transform: translate(-50%, -100%) scale(.98); }
+.sh-lot-on { transform: translate(-50%, -100%) scale(1.06); filter: brightness(1.1) saturate(1.08); }
+.sh-lot-off { filter: brightness(.66) saturate(.7); opacity: .72 !important; }
+.sh-ground {
+  position: absolute; left: 50%; bottom: -3%; width: 96%; height: 15%;
+  transform: translateX(-50%) rotateX(62deg);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(196, 178, 140, .3), rgba(120, 108, 84, .1) 62%, transparent 76%);
+  filter: blur(2.5px);
+}
+.sh-shadow {
+  position: absolute; left: 53%; bottom: -2%; width: 82%; height: 15px;
+  transform: translateX(-50%) scaleY(.42);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .7), transparent 74%);
+  filter: blur(4px);
+}
+.sh-ao {
+  position: absolute; left: 50%; bottom: 0; width: 52%; height: 8px;
+  transform: translateX(-50%) scaleY(.5);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .88), transparent 70%);
+  filter: blur(2px);
+}
+.sh-halo {
+  position: absolute; left: 50%; bottom: 4%; width: 126%; aspect-ratio: 1.9;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--sh-glow, #fbbf24), transparent 70%);
+  opacity: .18; filter: blur(7px);
+  animation: shHalo 4.2s ease-in-out infinite;
+}
+@keyframes shHalo { 0%, 100% { opacity: .12; } 50% { opacity: .3; } }
+.sh-outline {
+  position: absolute; inset: -6% -4% -2%;
+  border: 1px solid var(--sh-glow, #fbbf24);
+  border-radius: 22px;
+  box-shadow: 0 0 22px -4px var(--sh-glow, #fbbf24), inset 0 0 18px -6px var(--sh-glow, #fbbf24);
+  opacity: .55;
+}
+.sh-select-motes {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.6px 1.6px at 22% 70%, rgba(255, 240, 200, .9), transparent),
+    radial-gradient(1.4px 1.4px at 72% 52%, rgba(255, 240, 200, .8), transparent),
+    radial-gradient(1.2px 1.2px at 48% 34%, rgba(255, 240, 200, .7), transparent);
+  animation: shMotesUp 3.4s linear infinite;
+}
+@keyframes shMotesUp { from { transform: translateY(6%); opacity: 0; } 35% { opacity: 1; } to { transform: translateY(-16%); opacity: 0; } }
+.sh-far-fog {
+  position: absolute; inset: -4% -8% 0;
+  background: linear-gradient(to top, rgba(150, 180, 220, .16), rgba(150, 180, 220, .34));
+  mix-blend-mode: screen; filter: blur(5px);
+}
+.sh-forge-fire {
+  position: absolute; left: 46%; bottom: 8%; width: 26%; aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(255, 176, 80, .85), rgba(255, 96, 20, .28) 55%, transparent 74%);
+  filter: blur(3px);
+  animation: shFire 1.5s ease-in-out infinite;
+}
+@keyframes shFire { 0%, 100% { opacity: .55; transform: translateX(-50%) scale(.92); } 50% { opacity: 1; transform: translateX(-50%) scale(1.07); } }
+.sh-windows {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(2.6px 3.4px at 42% 58%, rgba(255, 208, 130, .95), transparent),
+    radial-gradient(2.4px 3.2px at 58% 62%, rgba(255, 208, 130, .85), transparent),
+    radial-gradient(2.2px 3px at 50% 44%, rgba(255, 224, 160, .9), transparent);
+  animation: shWindows 3.6s ease-in-out infinite;
+}
+@keyframes shWindows { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.sh-brazier {
+  position: absolute; width: 16px; height: 26px; transform: translate(-50%, -100%);
+  background: radial-gradient(closest-side at 50% 70%, rgba(255, 180, 90, .9), rgba(255, 110, 30, .3) 55%, transparent 75%);
+  filter: blur(2px);
+  animation: shFire 1.7s ease-in-out infinite;
+}
+
+/* Placa discreta, integrada ao prédio (sem caixa preta) */
+.sh-tag {
+  position: absolute; left: 50%; bottom: -17px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .95), 0 0 10px rgba(0, 0, 0, .85);
+  transition: opacity 200ms ease;
+}
+.sh-tag b { font-size: 8.5px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; color: #f4e7cd; }
+.sh-tag b em { font-style: normal; color: #fcd34d; opacity: .95; }
+.sh-tag i {
+  font-style: normal; font-size: 7px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+  border-radius: 999px; padding: 1px 6px; border: 1px solid transparent;
+}
+.sh-tag-build { border-color: rgba(252, 211, 77, .5); background: rgba(245, 158, 11, .2); color: #fde68a; }
+.sh-tag-lock { border-color: rgba(148, 163, 184, .35); background: rgba(15, 23, 42, .7); color: #94a3b8; }
+.sh-tag-work { border-color: rgba(103, 232, 249, .45); background: rgba(8, 145, 178, .22); color: #a5f3fc; }
+.sh-tag-ready { border-color: rgba(110, 231, 183, .55); background: rgba(16, 185, 129, .24); color: #d1fae5; animation: shPulse 1.4s ease-in-out infinite; }
+.sh-tag-craft { border-color: rgba(253, 186, 116, .5); background: rgba(234, 88, 12, .22); color: #fed7aa; }
+.sh-tag-on b { color: #fff8e6; }
+
+/* Centralizar: botão de HUD discreto */
+.sh-recenter {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px;
+  font-size: 11px; color: #d9c69a;
+  border: 1px solid rgba(251, 191, 36, .3);
+  background: rgba(8, 11, 20, .6);
+  backdrop-filter: blur(8px);
+}
+.sh-recenter:active { transform: scale(.94); }
+
+/* Mini cards de recurso no HUD superior */
+.realm-res-pill {
+  border-radius: 12px !important;
+  border: 1px solid rgba(251, 191, 36, .18) !important;
+  background: linear-gradient(180deg, rgba(20, 26, 42, .9), rgba(8, 11, 20, .75)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 6px 14px -10px rgba(0, 0, 0, .9);
+}
+.realm-res-pill b { color: #f5e7c6; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-fg-mist, .sh-halo, .sh-select-motes, .sh-forge-fire, .sh-windows, .sh-brazier, .sh-path-flow { animation: none !important; }
+}
