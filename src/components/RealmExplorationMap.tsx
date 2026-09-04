@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  REALM_NODE_DESC,
-  REALM_NODE_GLYPH,
-  REALM_NODE_LABEL,
-  REALM_NODE_TITLE,
-  REALM_NODE_TONE,
-  REALM_OPTION_LABEL,
-  REALM_RISK_LABEL,
   realmClaimExpedition,
   realmExploreAbandon,
   realmExploreAuto,
@@ -21,6 +14,8 @@ import {
   type RealmExploreNode,
   type RealmState,
 } from '../realm';
+import RealmBattleScene from './RealmBattleScene';
+import RealmRunScene from './RealmRunScene';
 
 const WORLD_MAP = '/assets/game/realm/world-map.jpg';
 
@@ -47,16 +42,13 @@ type Props = {
 };
 
 /**
- * 🗺️ MYTHREON REALM — INTERACTIVE MAP.
+ * 🗺️ MYTHREON REALM — WORLD MAP + EXPLORATION ENTRY.
  *
- * The world map is clickable: each region is a glowing pin. Entering a region starts a
- * server-authoritative exploration run (`realm_explore_*`): a branching node path where the
- * player taps the next node, the party marker travels along the lit trail, events open a
- * choice sheet, combat plays a quick auto-battle overlay and loot is accumulated on the run
- * until EXTRACT. The legacy timer expeditions stay available as the secondary AFK mode.
+ * Out of a run, the world map is clickable: each region is a glowing pin and the legacy
+ * timer expeditions stay available as the secondary AFK mode. Once a server-authoritative
+ * run exists (`realm_explore_*`), the whole screen is handed over to `RealmRunScene`, the
+ * cinematic exploration scene (real places, party walking, fog of war, camera pan).
  */
-import RealmBattleScene from './RealmBattleScene';
-
 export default function RealmExplorationMap({ data, initData, now, level, busy, call, run }: Props) {
   const regions = data.regions;
   const [selected, setSelected] = useState<string | null>(null);
@@ -71,10 +63,6 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
   const region = regions.find((r) => r.id === (exploreRun?.region_id ?? selected)) ?? null;
   const regionLocked = region ? level < region.unlock_stronghold_level : true;
 
-  const pending = exploreRun?.pending ?? null;
-  const depth = exploreRun?.depth ?? 0;
-  const finalDepth = exploreRun?.final_depth ?? 5;
-  const loot = exploreRun?.loot ?? {};
   const materialById = useMemo(
     () => Object.fromEntries(data.materials.map((m) => [m.id, m])),
     [data.materials],
@@ -82,16 +70,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
 
   useEffect(() => () => { if (combatTimer.current) window.clearTimeout(combatTimer.current); }, []);
 
-  const lootLine = () => {
-    const parts: string[] = [];
-    if (Number(loot.fc)) parts.push(`${fmt(Number(loot.fc))} FC`);
-    if (Number(loot.fragments)) parts.push(`${fmt(Number(loot.fragments))} frag.`);
-    Object.entries(loot.materials ?? {}).forEach(([id, qty]) =>
-      parts.push(`${fmt(Number(qty))} ${materialById[id]?.name ?? id}`));
-    return parts.length ? parts.join(' • ') : 'Nada ainda';
-  };
-
-  /** Plays the travel animation, then the combat overlay / loot flash for the resolved node. */
+  /** Plays the combat scene / loot toast for the node the server just resolved. */
   const consume = (next: RealmState | null) => {
     const log = next?.lastNode;
     if (!log || log.result === 'pending') return;
@@ -124,6 +103,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
     const next = await run(() => realmExploreChoose(initData, exploreRun.id, option));
     consume(next);
   };
+
 
   // ── NO ACTIVE RUN: clickable world map ───────────────────────────────────
   if (!exploreRun) {
