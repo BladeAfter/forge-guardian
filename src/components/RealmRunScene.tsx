@@ -396,9 +396,30 @@ export default function RealmRunScene({
             </div>
             <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
 
+            {FIGHT_NODES.includes(pick.node_type) && (
+              <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-500/[.06] p-2.5">
+                <img
+                  src={FOE_ART[pick.node_type] ?? FOE_ART.combat}
+                  alt="" aria-hidden loading="lazy"
+                  className="h-12 w-12 flex-none object-contain drop-shadow-[0_0_14px_rgba(244,63,94,.55)]"
+                />
+                <div className="min-w-0">
+                  <span className="block text-[7.5px] font-black uppercase tracking-[.24em] text-rose-300/90">
+                    {pick.node_type === 'boss' ? 'Chefe da região' : pick.node_type === 'elite' ? 'Inimigo elite' : 'Inimigo'}
+                  </span>
+                  <b className="block truncate text-[12px] font-black uppercase tracking-[.1em] text-rose-100">
+                    {foeNameFor(region?.id, pick.node_type)}
+                  </b>
+                  <span className="text-[9px] text-slate-400">Batalha com seu herói</span>
+                </div>
+              </div>
+            )}
+
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button onClick={() => setPick(null)} className="realm-dest-ghost">Voltar</button>
-              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">Viajar</button>
+              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">
+                {FIGHT_NODES.includes(pick.node_type) ? 'Enfrentar' : 'Viajar'}
+              </button>
             </div>
 
           </div>
