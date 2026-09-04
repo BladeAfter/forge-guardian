@@ -29,7 +29,7 @@ const ROOM_HINT_KEY: Record<string, string> = {
   boss: 'realm.dungeon.hint.boss',
 };
 
-const FIGHT_ROOMS = ['combat', 'elite', 'boss'];
+export const FIGHT_ROOMS = ['combat', 'elite', 'boss'];
 
 /**
  * Turns the authoritative room result into a round-by-round script for the duel scene.

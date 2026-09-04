@@ -105,6 +105,17 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   };
 
 
+  /* Sempre que o servidor devolve o resultado de uma sala de luta, abre o duelo 1x1. */
+  const lastRoomData = data?.lastRoom;
+  useEffect(() => {
+    if (!lastRoomData) return;
+    const key = JSON.stringify(lastRoomData);
+    if (key === seenDuelRoom.current) return;
+    seenDuelRoom.current = key;
+    if (!FIGHT_ROOMS.includes(String((lastRoomData as { roomType?: string }).roomType ?? ''))) return;
+    setDuelLog(duelLogFrom(lastRoomData));
+  }, [lastRoomData]);
+
   useEffect(() => {
     if (!notice) return;
     const id = window.setTimeout(() => setNotice(null), 4000);
@@ -184,6 +195,15 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   if (ruinRun && ruinRun.status === 'running' && dungeonOpen) {
     const region = data.regions.find((r) => r.id === ruinRun.region_id);
     return (
+      <>
+      {duelLog && (
+        <RealmBattleScene
+          log={duelLog} duel
+          regionId={ruinRun.region_id}
+          regionName={region?.name ?? t('realm.ruins.title')}
+          onClose={() => setDuelLog(null)}
+        />
+      )}
       <RealmDungeonScene
         run={ruinRun}
         rooms={openRooms}
@@ -194,12 +214,21 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         onExtract={() => runAsync(() => realmRuinExtract(telegramInitData, ruinRun.id))}
         onLeave={() => { setDungeonOpen(false); setTab('ruins'); qc.invalidateQueries({ queryKey: ['realm', telegramInitData] }); }}
       />
+      </>
     );
   }
 
 
   return (
     <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-28">
+      {duelLog && (
+        <RealmBattleScene
+          log={duelLog} duel
+          regionId={data.ruinRun?.region_id ?? null}
+          regionName={t('realm.ruins.title')}
+          onClose={() => setDuelLog(null)}
+        />
+      )}
       {/* TOP HUD premium do Realm */}
       <header className="realm-hud sticky top-0 z-20">
         <div className="realm-hud-atmo" aria-hidden />
