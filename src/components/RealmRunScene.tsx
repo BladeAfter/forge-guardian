@@ -129,12 +129,35 @@ export default function RealmRunScene({
   const open = nodes.filter((n) => n.depth === depth && n.status !== 'resolved' && n.status !== 'skipped');
   const resolved = nodes.filter((n) => n.status === 'resolved').sort((a, b) => a.depth - b.depth);
   const last = resolved[resolved.length - 1] ?? null;
-  const partyAt = last ? place(last, finalDepth) : { x: 8, y: 66 };
   const pendingNode = pending ? nodes.find((n) => n.id === pending.nodeId) ?? null : null;
 
-  /** Camera follows the party (or the destination while travelling). */
-  const focusX = cameraTo ?? partyAt.x;
-  const camera = `translateX(${(50 - focusX) * 0.45}%) scale(1.18)`;
+  /** Only the current fork is on screen (max 3 places) — everything else stays in the fog. */
+  const destinations = useMemo(
+    () => open.slice(0, 3).map((node, i) => ({ node, at: slotFor(depth, i) })),
+    [open, depth],
+  );
+
+  const partyAt = PARTY_AT;
+  const [travelTo, setTravelTo] = useState<{ x: number; y: number } | null>(null);
+  const partyPos = travelTo ?? partyAt;
+
+  /** Camera: gentle pan + zoom toward the picked or travelling destination. */
+  const focus = travelTo
+    ?? (pick ? destinations.find((d) => d.node.id === pick.id)?.at ?? partyAt : partyAt);
+  const camera = `translate(${(50 - focus.x) * 0.34}%, ${(72 - focus.y) * 0.14}%) scale(${pick || travelTo ? 1.15 : 1.08})`;
+
+  /** First-run hint only. */
+  const [showHint, setShowHint] = useState(() => {
+    try { return localStorage.getItem('mythreon.realm.travelHint') !== 'seen'; } catch { return true; }
+  });
+  useEffect(() => {
+    if (!showHint) return;
+    const t = window.setTimeout(() => {
+      setShowHint(false);
+      try { localStorage.setItem('mythreon.realm.travelHint', 'seen'); } catch { /* ignore */ }
+    }, 4200);
+    return () => window.clearTimeout(t);
+  }, [showHint]);
 
   const lootBits = () => {
     const parts: string[] = [];
@@ -147,15 +170,15 @@ export default function RealmRunScene({
   const lootCount = lootBits().length;
 
   const travel = (node: RealmExploreNode) => {
-    const to = place(node, finalDepth);
+    const to = destinations.find((d) => d.node.id === node.id)?.at ?? partyAt;
     setPick(null);
-    setCameraTo(to.x);
     setWalking(true);
+    setTravelTo(to);
     walkTimer.current = window.setTimeout(() => {
       setWalking(false);
-      setCameraTo(null);
+      setTravelTo(null);
       onEnter(node);
-    }, 900);
+    }, 1300);
   };
 
   const hpPct = Math.max(0, Math.min(100, Number(run.hp ?? 0)));
@@ -163,6 +186,7 @@ export default function RealmRunScene({
   const riskTone = riskValue >= 70 ? 'realm-badge-risk-x' : riskValue >= 45 ? 'realm-badge-risk-hi'
     : riskValue >= 20 ? 'realm-badge-risk-mid' : 'realm-badge-risk-low';
   const safeHere = last ? ['shrine', 'rest'].includes(last.node_type) : true;
+
 
 
 
