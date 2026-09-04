@@ -254,7 +254,6 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
             buildings={data.buildings}
             level={level}
             now={now}
-            craftingCount={data.crafting.length}
             onOpen={setBuildingSheet}
           />
         )}
