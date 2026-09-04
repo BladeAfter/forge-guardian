@@ -156,8 +156,20 @@ export default function RealmRunScene({
       {/* ── WORLD (parallax scenery + places) ─────────────────────────────── */}
       <div className="absolute inset-0 realm-cam" style={{ transform: camera }}>
         <img src={scene} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060d]/80 via-transparent to-[#04060d]/90" />
-        <div className="pointer-events-none absolute inset-0 realm-scene-mist" />
+        {/* cinematic grade: darker, cooler, deeper */}
+        <div className="pointer-events-none absolute inset-0 realm-scene-grade" />
+        <div className="pointer-events-none absolute inset-0 realm-scene-vignette" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060d]/85 via-[#04060d]/15 to-[#04060d]/95" />
+        {/* parallax mist layers (slow, opposite drift) */}
+        <div
+          className="pointer-events-none absolute inset-0 realm-scene-mist"
+          style={{ transform: `translateX(${(focusX - 50) * 0.06}%)` }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 realm-scene-mist2"
+          style={{ transform: `translateX(${(50 - focusX) * 0.1}%)` }}
+        />
+        <div className="pointer-events-none absolute inset-0 realm-scene-light" />
 
         {/* distant boss silhouette — a visual objective from the start */}
         {nodes.some((n) => n.node_type === 'boss') && (
@@ -167,7 +179,7 @@ export default function RealmRunScene({
           />
         )}
 
-        {/* the trail itself, painted as a lit path */}
+        {/* the trail itself, painted as a lit magical route */}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
           {nodes.map((n) => {
             const prevs = nodes.filter((p) => p.depth === n.depth - 1);
@@ -178,17 +190,32 @@ export default function RealmRunScene({
             const walked = n.status === 'resolved';
             const next = n.depth === depth;
             const mood = PLACE_MOOD[n.node_type]?.glow ?? 'rgba(252,211,77,.5)';
+            const d = `M ${a.x} ${a.y + 4} Q ${(a.x + b.x) / 2} ${Math.min(a.y, b.y) + 12} ${b.x} ${b.y + 4}`;
             return (
-              <path
-                key={`t-${n.id}`}
-                d={`M ${a.x} ${a.y + 4} Q ${(a.x + b.x) / 2} ${Math.min(a.y, b.y) + 12} ${b.x} ${b.y + 4}`}
-                fill="none"
-                stroke={walked ? 'rgba(252,211,77,.45)' : next ? mood : 'rgba(255,255,255,.10)'}
-                strokeWidth={next ? 1 : 0.7}
-                strokeLinecap="round"
-                strokeDasharray={walked ? undefined : '3 2.5'}
-                className={next ? 'realm-trail-live' : undefined}
-              />
+              <g key={`t-${n.id}`}>
+                {/* soft glow base */}
+                <path
+                  d={d} fill="none" strokeLinecap="round"
+                  stroke={walked ? 'rgba(252,211,77,.18)' : next ? mood : 'rgba(255,255,255,.05)'}
+                  strokeWidth={next ? 2.6 : 1.6}
+                  className="realm-trail-glow"
+                />
+                <path
+                  d={d}
+                  fill="none"
+                  stroke={walked ? 'rgba(253,230,138,.6)' : next ? mood : 'rgba(255,255,255,.12)'}
+                  strokeWidth={next ? 0.9 : 0.6}
+                  strokeLinecap="round"
+                  strokeDasharray={walked ? undefined : '3 2.5'}
+                />
+                {/* running energy on the active route */}
+                {next && (
+                  <path
+                    d={d} fill="none" stroke="rgba(255,255,255,.85)" strokeWidth={0.5}
+                    strokeLinecap="round" strokeDasharray="1.4 9" className="realm-trail-flow"
+                  />
+                )}
+              </g>
             );
           })}
         </svg>
@@ -199,6 +226,7 @@ export default function RealmRunScene({
           const p = place(n, finalDepth);
           const isOpen = n.depth === depth && n.status !== 'resolved' && n.status !== 'skipped';
           const done = n.status === 'resolved';
+          const picked = pick?.id === n.id;
           const mood = PLACE_MOOD[n.node_type] ?? { glow: 'rgba(252,211,77,.7)', risk: '' };
           const w = SIZE[n.node_type] ?? 18;
           return (
@@ -207,19 +235,23 @@ export default function RealmRunScene({
               disabled={!isOpen || busy || walking || Boolean(pending)}
               onClick={() => setPick(n)}
               aria-label={REALM_NODE_LABEL[n.node_type] ?? n.node_type}
-              style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${w}%` }}
-              className={`absolute -translate-x-1/2 -translate-y-full transition-opacity duration-500 ${
-                isOpen ? 'realm-place-live' : done ? 'opacity-45' : 'opacity-25'}`}
+              style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${w}%`, ['--poi-glow' as string]: mood.glow }}
+              className={`realm-poi absolute -translate-x-1/2 -translate-y-full transition-all duration-500 ${
+                isOpen ? 'realm-place-live realm-poi-open' : done ? 'opacity-45 grayscale' : 'opacity-25'} ${
+                picked ? 'realm-poi-picked' : ''}`}
             >
+              {isOpen && <span className="realm-poi-aura" aria-hidden />}
+              {isOpen && <span className="realm-poi-pedestal" aria-hidden />}
               <img
                 src={PLACE_ART[n.node_type] ?? PLACE_ART.event}
                 alt="" aria-hidden loading="lazy"
-                style={{ filter: isOpen ? `drop-shadow(0 0 16px ${mood.glow})` : 'grayscale(.5) brightness(.7)' }}
-                className="block w-full select-none"
+                style={{ filter: isOpen ? `drop-shadow(0 0 18px ${mood.glow})` : 'grayscale(.5) brightness(.6)' }}
+                className="relative block w-full select-none"
               />
               {isOpen && (
-                <span className="mt-0.5 block whitespace-nowrap text-center text-[8px] font-black uppercase tracking-[.12em] text-amber-50 [text-shadow:0_1px_6px_#000]">
-                  {REALM_NODE_TITLE[n.node_type] ?? n.node_type}
+                <span className="realm-plaque">
+                  <b>{REALM_NODE_TITLE[n.node_type] ?? n.node_type}</b>
+                  <em style={{ color: mood.glow }}>{mood.risk}</em>
                 </span>
               )}
             </button>
@@ -239,7 +271,9 @@ export default function RealmRunScene({
           style={{ left: `${Math.min(92, 22 + ((depth + 1) / (finalDepth + 1)) * 70)}%` }}
         />
         <div className="pointer-events-none absolute inset-0 realm-scene-dust" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] realm-scene-fg" />
       </div>
+
 
       {/* ── HUD ──────────────────────────────────────────────────────────── */}
       <div className="absolute inset-x-0 top-0 p-3 pt-[max(12px,env(safe-area-inset-top))]">
