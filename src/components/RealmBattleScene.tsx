@@ -381,8 +381,34 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           <button type="button" className="flex-1" aria-label="close" onClick={() => setPickerOpen(false)} />
           <div className="rb-picker">
             <p className="text-center text-[10px] font-black uppercase tracking-[.22em] text-amber-200">{t('realm.battle.pickHero')}</p>
+            <div className="mt-2 flex items-center gap-1.5">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="..."
+                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-[10px] text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-300/60"
+              />
+              <select
+                value={rarityFilter}
+                onChange={(e) => setRarityFilter(e.target.value)}
+                className="rounded-lg border border-white/10 bg-black/60 px-1.5 py-1 text-[9px] font-bold uppercase text-slate-200 outline-none"
+              >
+                <option value="all">★</option>
+                {rarityOptions.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setSortDesc((v) => !v)}
+                className="rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-[9px] font-black uppercase tracking-[.1em] text-amber-200"
+              >
+                {sortDesc ? '▼' : '▲'}
+              </button>
+            </div>
             <div className="mt-2 grid max-h-[46vh] grid-cols-3 gap-2 overflow-y-auto">
-              {heroes.map((h) => {
+              {visibleHeroes.map((h) => {
+
                 const on = h.heroId === (chosen?.heroId ?? '');
                 return (
                   <button
