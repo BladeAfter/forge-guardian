@@ -5,11 +5,11 @@ const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
 /** Fixed plot for each building inside the scene (percentages of the scene box). */
 const PLOT: Record<string, { x: number; y: number; size: number; depth: number; glow: string }> = {
-  castle: { x: 50, y: 40, size: 34, depth: 0.35, glow: '#fbbf24' },
-  forge: { x: 76, y: 60, size: 22, depth: 0.7, glow: '#fb923c' },
-  training_ground: { x: 24, y: 60, size: 22, depth: 0.7, glow: '#f87171' },
-  pet_sanctuary: { x: 31, y: 80, size: 21, depth: 1, glow: '#38bdf8' },
-  watchtower: { x: 70, y: 82, size: 21, depth: 1, glow: '#facc15' },
+  castle: { x: 50, y: 44, size: 33, depth: 0.35, glow: '#fbbf24' },
+  forge: { x: 79, y: 62, size: 21, depth: 0.7, glow: '#fb923c' },
+  training_ground: { x: 21, y: 62, size: 21, depth: 0.7, glow: '#f87171' },
+  pet_sanctuary: { x: 29, y: 82, size: 20, depth: 1, glow: '#38bdf8' },
+  watchtower: { x: 73, y: 84, size: 20, depth: 1, glow: '#facc15' },
 };
 
 const SHORT: Record<string, string> = {
@@ -20,17 +20,17 @@ const SHORT: Record<string, string> = {
   watchtower: 'VIGIA',
 };
 
-type BuildState = 'locked' | 'build' | 'built' | 'upgrading' | 'ready';
+type BuildState = 'gated' | 'build' | 'built' | 'upgrading' | 'ready';
 
 /** Visual scale of a building grows with its level (visual evolution, 3 tiers). */
 const tierOf = (level: number) => (level >= 5 ? 2 : level >= 3 ? 1 : 0);
 
 /**
- * 🏰 STRONGHOLD — interactive AAA hub.
+ * 🏰 STRONGHOLD — cena interativa AAA (Kingdom Base View).
  *
- * Pure presentation: every level/status/timer comes from `realm_state`. Buildings are
- * touch targets placed inside a single painted scene (no card grid), with pan + limited
- * pinch zoom, parallax layers, ambient particles and day/night tint.
+ * Apenas apresentação: níveis, status, timers e regras (inclusive o gate do Castelo)
+ * continuam vindo do backend via `realm_state`. Aqui há pan, pinça, parallax,
+ * atmosfera viva, foco cinematográfico e selos elegantes de nível/bloqueio.
  */
 export default function StrongholdScene({
   buildingTypes, buildings, level, now, craftingCount, onOpen,
@@ -45,6 +45,7 @@ export default function StrongholdScene({
   const box = useRef<HTMLDivElement | null>(null);
   const [cam, setCam] = useState({ x: 0, y: 0, z: 1 });
   const [focus, setFocus] = useState<string | null>(null);
+  const [tip, setTip] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; cx: number; cy: number; dist: number; z: number } | null>(null);
   const [paused, setPaused] = useState(false);
 
@@ -55,6 +56,12 @@ export default function StrongholdScene({
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
+  useEffect(() => {
+    if (!tip) return;
+    const id = window.setTimeout(() => setTip(null), 2600);
+    return () => window.clearTimeout(id);
+  }, [tip]);
+
   const phase = useMemo<'day' | 'sunset' | 'night'>(() => {
     const h = new Date(now).getHours();
     if (h >= 7 && h < 17) return 'day';
@@ -63,6 +70,10 @@ export default function StrongholdScene({
   }, [Math.floor(now / 600_000)]);
 
   const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+  const castleLevel = buildings.find((b) => b.building_type === 'castle')?.level ?? 0;
+  /** Riqueza visual da base cresce com o nível da fortaleza (0–3). */
+  const prosperity = level >= 8 ? 3 : level >= 5 ? 2 : level >= 3 ? 1 : 0;
 
   const onStart = (e: React.PointerEvent | React.TouchEvent) => {
     const t = 'touches' in e ? e.touches : null;
@@ -81,7 +92,7 @@ export default function StrongholdScene({
     const t = 'touches' in e ? e.touches : null;
     if (t && t.length === 2 && d.dist > 0) {
       const dist = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-      setCam((c) => ({ ...c, z: clamp(d.z * (dist / d.dist), 0.9, 1.25) }));
+      setCam((c) => ({ ...c, z: clamp(d.z * (dist / d.dist), 0.9, 1.3) }));
       return;
     }
     const p = t ? t[0] : (e as React.PointerEvent);
@@ -96,14 +107,18 @@ export default function StrongholdScene({
 
   const onEnd = () => { drag.current = null; };
 
-  const tap = (id: string) => {
+  const tap = (id: string, gated: boolean, nextLevel: number) => {
     const plot = PLOT[id];
     setFocus(id);
     if (plot) {
-      // Small camera push toward the touched building (150–300ms transition in CSS).
-      setCam({ x: clamp((50 - plot.x) * 0.9, -46, 46), y: clamp((52 - plot.y) * 0.35, -22, 22), z: 1.2 });
+      // Small camera push toward the touched building (cinematic focus).
+      setCam({ x: clamp((50 - plot.x) * 0.95, -46, 46), y: clamp((52 - plot.y) * 0.38, -22, 22), z: 1.22 });
     }
-    window.setTimeout(() => onOpen(id), 200);
+    if (gated) {
+      setTip(`Requer Castelo Lv.${nextLevel}`);
+      return;
+    }
+    window.setTimeout(() => onOpen(id), 220);
   };
 
   const rows = buildingTypes
@@ -121,24 +136,31 @@ export default function StrongholdScene({
         onTouchStart={onStart}
         onTouchMove={onMove}
         onTouchEnd={onEnd}
-        className="stronghold-stage relative aspect-[4/5] w-full touch-pan-y select-none overflow-hidden rounded-3xl border border-white/10"
+        className="stronghold-stage relative aspect-[4/5] w-full touch-pan-y select-none overflow-hidden rounded-3xl"
       >
         {/* BACKGROUND (parallax lento) */}
         <div
           className="absolute inset-[-6%] bg-cover bg-center"
           style={{
             backgroundImage: `url(${SCENE})`,
-            transform: `translate3d(${cam.x * 0.35}px, ${cam.y * 0.35}px, 0) scale(${cam.z * 1.04})`,
-            transition: 'transform 240ms ease-out',
+            transform: `translate3d(${cam.x * 0.35}px, ${cam.y * 0.35}px, 0) scale(${cam.z * 1.05})`,
+            transition: 'transform 280ms cubic-bezier(.22,1,.36,1)',
           }}
         />
         <div className={`absolute inset-0 stronghold-tint stronghold-tint-${phase}`} />
         {!paused && <div className="stronghold-mist pointer-events-none absolute inset-0" />}
+        {!paused && <div className="stronghold-rays pointer-events-none absolute inset-0" />}
+        {!paused && prosperity > 0 && <div className="stronghold-embers pointer-events-none absolute inset-0" />}
+        {!paused && prosperity >= 2 && <div className="stronghold-fireflies pointer-events-none absolute inset-0" />}
+        <div className={`stronghold-prosperity pointer-events-none absolute inset-0 stronghold-prosperity-${prosperity}`} />
+
+        {/* halo do pátio central — dá nobreza ao pedestal do castelo */}
+        <div className="stronghold-plaza pointer-events-none absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2" />
 
         {/* MIDGROUND — prédios clicáveis */}
         <div
           className="absolute inset-0"
-          style={{ transform: `translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.z})`, transition: 'transform 240ms ease-out' }}
+          style={{ transform: `translate3d(${cam.x}px, ${cam.y}px, 0) scale(${cam.z})`, transition: 'transform 280ms cubic-bezier(.22,1,.36,1)' }}
         >
           {rows.map((bt) => {
             const plot = PLOT[bt.id];
@@ -147,60 +169,68 @@ export default function StrongholdScene({
             const left = realmSecondsLeft(b?.upgrade_finishes_at, now);
             const upgrading = Boolean(b && b.status !== 'idle' && left > 0);
             const ready = Boolean(b && b.status !== 'idle' && left <= 0);
-            const state: BuildState = ready ? 'ready' : upgrading ? 'upgrading' : lvl > 0 ? 'built' : 'build';
+            // Gate real do backend: nível seguinte não pode passar do Castelo.
+            const gated = bt.id !== 'castle' && !upgrading && !ready && lvl + 1 > castleLevel;
+            const state: BuildState = ready ? 'ready' : upgrading ? 'upgrading' : gated ? 'gated' : lvl > 0 ? 'built' : 'build';
+            const dim = lvl === 0;
             const tier = tierOf(lvl);
             const focused = focus === bt.id;
 
             return (
               <button
                 key={bt.id}
-                onClick={(e) => { e.stopPropagation(); tap(bt.id); }}
+                onClick={(e) => { e.stopPropagation(); tap(bt.id, gated && lvl === 0, lvl + 1); }}
                 aria-label={`${bt.name} nível ${lvl}`}
-                className={`stronghold-slot absolute -translate-x-1/2 -translate-y-1/2 ${focused ? 'stronghold-slot-on' : ''}`}
-                style={{ left: `${plot.x}%`, top: `${plot.y}%`, width: `${plot.size + tier * 3}%` }}
+                className={`stronghold-slot absolute -translate-x-1/2 -translate-y-1/2 ${focused ? 'stronghold-slot-on' : ''} ${focus && !focused ? 'stronghold-slot-off' : ''}`}
+                style={{ left: `${plot.x}%`, top: `${plot.y}%`, width: `${plot.size + tier * 3}%`, zIndex: Math.round(plot.depth * 10) + (focused ? 20 : 0) }}
               >
+                {/* pedestal + reflexo no chão de pedra */}
+                <span className="stronghold-pad pointer-events-none" style={{ background: `radial-gradient(ellipse at center, ${plot.glow}2e, transparent 70%)` }} />
+
                 {/* aura da construção */}
-                {state !== 'build' && !paused && (
+                {!dim && !paused && (
                   <span
                     className="stronghold-aura pointer-events-none absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2"
                     style={{ background: `radial-gradient(circle, ${plot.glow}55, transparent 68%)` }}
                   />
                 )}
+                {focused && <span className="stronghold-focus pointer-events-none" style={{ borderColor: `${plot.glow}80` }} />}
 
                 {bt.image_url && (
                   <img
                     src={bt.image_url}
                     alt=""
                     loading="lazy"
-                    className={`relative mx-auto w-full object-contain ${state === 'build' ? 'opacity-45 brightness-[.45] saturate-50' : ''} ${upgrading ? 'stronghold-works' : ''}`}
-                    style={{ filter: state === 'build' ? undefined : `drop-shadow(0 6px 14px ${plot.glow}40)` }}
+                    className={`relative mx-auto w-full object-contain ${dim ? 'opacity-40 brightness-[.4] saturate-0' : ''} ${upgrading ? 'stronghold-works' : ''}`}
+                    style={{ filter: dim ? undefined : `drop-shadow(0 8px 16px ${plot.glow}45) drop-shadow(0 2px 2px rgba(0,0,0,.8))` }}
                   />
                 )}
 
                 {/* partículas de ambientação por prédio */}
-                {!paused && state !== 'build' && bt.id === 'forge' && (
+                {!paused && !dim && bt.id === 'forge' && (
                   <>
                     <span className="stronghold-smoke" />
                     <span className="stronghold-spark" />
                   </>
                 )}
-                {!paused && state !== 'build' && bt.id === 'pet_sanctuary' && <span className="stronghold-motes" />}
-                {!paused && state !== 'build' && bt.id === 'castle' && <span className="stronghold-flag" />}
-                {!paused && state !== 'build' && bt.id === 'watchtower' && <span className="stronghold-torch" />}
-                {!paused && state !== 'build' && bt.id === 'training_ground' && <span className="stronghold-npc" />}
+                {!paused && !dim && bt.id === 'pet_sanctuary' && <span className="stronghold-motes" />}
+                {!paused && !dim && bt.id === 'castle' && <span className="stronghold-flag" />}
+                {!paused && !dim && bt.id === 'watchtower' && <span className="stronghold-torch" />}
+                {!paused && !dim && bt.id === 'training_ground' && <span className="stronghold-npc" />}
                 {upgrading && !paused && <span className="stronghold-dust" />}
 
-                {/* label mínima: nome + nível */}
-                <span className="mt-0.5 block text-center">
-                  <b className={`block text-[8px] font-black uppercase tracking-[.16em] ${focused ? 'text-amber-100' : 'text-slate-200/90'}`} style={{ textShadow: '0 1px 4px #000' }}>
-                    {SHORT[bt.id] ?? bt.name}
-                  </b>
-                  <span className="block text-[8px] font-bold text-slate-400" style={{ textShadow: '0 1px 4px #000' }}>Lv.{lvl}</span>
+                {/* placa elegante: nome + selo de nível */}
+                <span className="stronghold-plate">
+                  <b className={focused ? 'text-amber-100' : 'text-slate-100/90'}>{SHORT[bt.id] ?? bt.name}</b>
+                  <i className="stronghold-seal">{lvl > 0 ? `Lv.${lvl}` : '—'}</i>
                 </span>
 
                 {/* estado — apenas 1 badge por prédio */}
                 {state === 'build' && (
                   <span className="stronghold-badge border-amber-300/60 bg-amber-500/20 text-amber-100">CONSTRUIR</span>
+                )}
+                {state === 'gated' && lvl === 0 && (
+                  <span className="stronghold-badge border-slate-400/40 bg-black/60 text-slate-300">⌁ Lv.{lvl + 1}</span>
                 )}
                 {state === 'upgrading' && (
                   <span className="stronghold-badge border-cyan-300/50 bg-cyan-500/20 tabular-nums text-cyan-100">{realmTimer(left)}</span>
@@ -216,20 +246,25 @@ export default function StrongholdScene({
           })}
         </div>
 
-        {/* FOREGROUND — névoa e vinheta */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#05070f] via-[#05070f]/70 to-transparent" />
-        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_40px_rgba(0,0,0,.75)]" />
+        {/* FOREGROUND — névoa, vinheta e moldura nobre */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#05070f] via-[#05070f]/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_130px_45px_rgba(0,0,0,.78)]" />
+        <div className="stronghold-frame pointer-events-none absolute inset-0" />
 
-        {/* HUD mínimo da cena */}
-        <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-amber-300/25 bg-black/45 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.18em] text-amber-100 backdrop-blur">
-          Fortaleza Lv.{level}
+        {/* HUD da cena */}
+        <div className="stronghold-hud pointer-events-none absolute left-3 top-3">
+          <span className="stronghold-crest">⚜</span>
+          <span>Fortaleza <b className="text-amber-100">Lv.{level}</b></span>
         </div>
         <button
           onClick={() => { setCam({ x: 0, y: 0, z: 1 }); setFocus(null); }}
-          className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[9px] font-bold text-slate-300 backdrop-blur"
+          className="stronghold-recenter absolute right-3 top-3"
+          aria-label="Centralizar câmera"
         >
-          Centralizar
+          ⟟ Centralizar
         </button>
+
+        {tip && <span className="stronghold-tip">{tip}</span>}
       </div>
       <p className="text-center text-[9px] text-slate-500">Arraste para explorar · pinça para aproximar · toque em uma construção</p>
     </section>

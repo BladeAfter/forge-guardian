@@ -159,18 +159,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         </div>
 
         {/* navegação do Realm */}
-        <nav className="mt-2 flex gap-1 overflow-x-auto">
+        <nav className="mt-2 flex gap-1 overflow-x-auto pb-1">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => { setTab(t.id); if (t.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-              className={`shrink-0 rounded-xl px-2.5 py-1.5 text-center ${tab === t.id ? 'bg-amber-500/15 text-amber-100' : 'text-slate-500'}`}
+              className={`realm-tab ${tab === t.id ? 'realm-tab-on' : ''}`}
             >
               <span className="block text-[13px] leading-4">{t.glyph}</span>
-              <span className="block text-[8px] font-bold tracking-wide">{t.label}</span>
+              <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t.label}</span>
             </button>
           ))}
         </nav>
+
       </header>
 
       {notice && (
@@ -347,40 +348,73 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
           const upgrading = b?.status !== 'idle' && left > 0;
           const ready = b?.status !== 'idle' && left <= 0;
           const cost = Math.round(buildingType.base_fc_cost * Math.pow(1.55, lvl));
+          const castleLevel = data.buildings.find((x) => x.building_type === 'castle')?.level ?? 0;
+          const gated = buildingType.id !== 'castle' && lvl + 1 > castleLevel;
+          const maxed = lvl >= buildingType.max_level;
           return (
-            <div className="space-y-3">
-              <p className="text-[10px] leading-4 text-slate-400">{buildingType.description}</p>
+            <div className="realm-sheet-card space-y-3">
+              <div className="flex items-start gap-3">
+                {buildingType.image_url && (
+                  <img src={buildingType.image_url} alt="" loading="lazy" className="h-16 w-16 flex-none object-contain drop-shadow-[0_6px_14px_rgba(251,191,36,.35)]" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <b className="text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{buildingType.name}</b>
+                    <span className="stronghold-seal">Lv.{lvl}</span>
+                  </div>
+                  <p className="mt-1 text-[9.5px] leading-snug text-slate-400">{buildingType.description}</p>
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">Nível máximo {buildingType.max_level} · obra base {realmTimer(buildingType.base_seconds)}</p>
+                </div>
+              </div>
+
               {buildingType.id === 'forge' && lvl > 0 && (
                 <button onClick={() => { setBuildingSheet(null); setTab('forge'); }} className="w-full rounded-2xl border border-amber-300/40 bg-amber-500/10 py-2.5 text-[11px] font-black uppercase tracking-[.16em] text-amber-100">Abrir Forja</button>
               )}
               {buildingType.id === 'watchtower' && (() => {
                 const next = data.regions.filter((r) => level < r.unlock_stronghold_level).sort((a, b) => a.unlock_stronghold_level - b.unlock_stronghold_level)[0];
                 return (
-                  <p className="text-[10px] leading-4 text-cyan-200">
+                  <p className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 px-3 py-2 text-[10px] leading-4 text-cyan-200">
                     {next ? `Próxima região: ${next.name} — requer Stronghold Lv.${next.unlock_stronghold_level}` : 'Todas as regiões já estão desbloqueadas.'}
                   </p>
                 );
               })()}
-              <div className="space-y-1">
-                <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Custo de evolução</p>
-                <p className="text-[11px] text-amber-100">{fmt(cost)} FC</p>
-                {Object.entries(buildingType.cost_materials).map(([id, qty]) => (
-                  <p key={id} className="text-[11px] text-slate-300">{materialById[id]?.name ?? id} x{fmt(Math.ceil(Number(qty) * Math.pow(1.35, lvl)))}</p>
-                ))}
+
+              {gated && !upgrading && !ready && (
+                <p className="rounded-2xl border border-slate-400/25 bg-white/[.04] px-3 py-2 text-[10px] font-bold text-slate-300">
+                  Bloqueado · evolua o Castelo até o Lv.{lvl + 1} para liberar esta obra.
+                </p>
+              )}
+
+              <div className="space-y-1.5">
+                <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">{lvl === 0 ? 'Custo de construção' : 'Custo de evolução'}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="realm-cost-chip realm-cost-chip--gold">
+                    <img src="/assets/game/coins/forge-coin.png" alt="" loading="lazy" className="h-4 w-4 object-contain" />
+                    <b>{fmt(cost)}</b> FC
+                  </span>
+                  {Object.entries(buildingType.cost_materials).map(([id, qty]) => (
+                    <span key={id} className="realm-cost-chip">
+                      {materialById[id]?.image_url && <img src={materialById[id]!.image_url as string} alt="" loading="lazy" className="h-4 w-4 object-contain" />}
+                      <b>{fmt(Math.ceil(Number(qty) * Math.pow(1.35, lvl)))}</b> {materialById[id]?.name ?? id}
+                    </span>
+                  ))}
+                </div>
               </div>
+
               {upgrading ? (
                 <p className="text-center text-[11px] font-black tabular-nums text-cyan-300">Em obras · {realmTimer(left)}</p>
               ) : ready ? (
-                <button disabled={busy} onClick={() => call(() => realmClaimBuilding(telegramInitData, buildingType.id))} className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black">Concluir</button>
+                <button disabled={busy} onClick={() => call(() => realmClaimBuilding(telegramInitData, buildingType.id))} className="realm-action-btn realm-action-btn--done">Concluir</button>
               ) : (
-                <button disabled={busy || lvl >= buildingType.max_level} onClick={() => call(() => realmUpgradeBuilding(telegramInitData, buildingType.id))} className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40">
-                  {lvl === 0 ? 'Construir' : 'Evoluir'}
+                <button disabled={busy || maxed} onClick={() => call(() => realmUpgradeBuilding(telegramInitData, buildingType.id))} className="realm-action-btn">
+                  {maxed ? 'Nível máximo' : lvl === 0 ? 'Construir' : 'Evoluir'}
                 </button>
               )}
             </div>
           );
         })()}
       </Sheet>
+
 
       <Sheet open={Boolean(recipe)} onClose={() => setRecipeSheet(null)} title={recipe?.name ?? ''}>
         {recipe && (
