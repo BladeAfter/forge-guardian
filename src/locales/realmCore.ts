@@ -203,6 +203,8 @@ const T: Record<string, [string, string, string, string, string]> = {
   'realm.tier.elite': ['Elite', 'Elite', 'Élite', 'Элитный', 'Elit'],
   'realm.tier.mythic': ['Mythic', 'Mítico', 'Mítico', 'Мифический', 'Mitik'],
   'realm.tier.abyssal': ['Abyssal', 'Abissal', 'Abisal', 'Бездна', 'Uçurum'],
+  'realm.battle.changeHero': ['Hero', 'Herói', 'Héroe', 'Герой', 'Kahraman'],
+  'realm.battle.pickHero': ['Choose your hero', 'Escolha seu herói', 'Elige tu héroe', 'Выберите героя', 'Kahramanını seç'],
   'realm.map.entry': ['Entry', 'Entrada', 'Entrada', 'Вход', 'Giriş'],
   'realm.map.recPowerShort': ['Rec. power', 'Poder rec.', 'Poder rec.', 'Реком. сила', 'Öner. güç'],
   'realm.map.recPower': ['Recommended power', 'Poder recomendado', 'Poder recomendado', 'Рекомендуемая сила', 'Önerilen güç'],

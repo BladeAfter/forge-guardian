@@ -8,6 +8,7 @@ import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 
+import { n as usePlayerHeroes } from '../hooks';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
 import {
@@ -64,6 +65,16 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const [duelLog, setDuelLog] = useState<RealmExploreLog | null>(null);
   const seenDuelRoom = useRef<string>('');
   const [ruinRegion, setRuinRegion] = useState<string | null>(null);
+  /* Herói escolhido pelo jogador para os duelos do Realm (preferência local). */
+  const heroCollection = usePlayerHeroes(telegramInitData, Boolean(telegramInitData));
+  const myHeroes = useMemo(() => heroCollection.data?.heroes ?? [], [heroCollection.data]);
+  const [duelHeroId, setDuelHeroId] = useState<string | null>(() => {
+    try { return window.localStorage.getItem('realm.duelHero'); } catch { return null; }
+  });
+  const pickDuelHero = (id: string) => {
+    setDuelHeroId(id);
+    try { window.localStorage.setItem('realm.duelHero', id); } catch { /* ignore */ }
+  };
 
 
   useEffect(() => {
@@ -199,6 +210,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
       {duelLog && (
         <RealmBattleScene
           log={duelLog} duel
+          heroes={myHeroes} heroId={duelHeroId} onPickHero={pickDuelHero}
           regionId={ruinRun.region_id}
           regionName={region?.name ?? t('realm.ruins.title')}
           onClose={() => setDuelLog(null)}
@@ -224,6 +236,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
       {duelLog && (
         <RealmBattleScene
           log={duelLog} duel
+          heroes={myHeroes} heroId={duelHeroId} onPickHero={pickDuelHero}
           regionId={data.ruinRun?.region_id ?? null}
           regionName={t('realm.ruins.title')}
           onClose={() => setDuelLog(null)}
