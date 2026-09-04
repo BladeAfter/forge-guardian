@@ -350,9 +350,10 @@ export default function RealmRunScene({
             <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button onClick={() => setPick(null)} className="rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">Voltar</button>
-              <button disabled={busy} onClick={() => travel(pick)} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
+              <button onClick={() => setPick(null)} className="realm-dest-ghost">Voltar</button>
+              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">Viajar</button>
             </div>
+
           </div>
         </div>
       )}
