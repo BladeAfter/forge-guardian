@@ -638,6 +638,13 @@
       "when": 1788485216058,
       "tag": "0090_realm_region_meta_and_admin_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1788485269112,
+      "tag": "0091_realm_explore_depth_damage_scaling",
+      "breakpoints": true
     }
   ]
 }
