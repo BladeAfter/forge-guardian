@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
+import StrongholdScene from '../components/StrongholdScene';
 import {
   REALM_ROOM_LABEL,
   fetchRealmState,
@@ -18,7 +19,6 @@ import {
   type RealmState,
 } from '../realm';
 
-const STRONGHOLD = '/assets/game/realm/stronghold.jpg';
 const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
 
 
@@ -369,6 +369,17 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
           return (
             <div className="space-y-3">
               <p className="text-[10px] leading-4 text-slate-400">{buildingType.description}</p>
+              {buildingType.id === 'forge' && lvl > 0 && (
+                <button onClick={() => { setBuildingSheet(null); setTab('forge'); }} className="w-full rounded-2xl border border-amber-300/40 bg-amber-500/10 py-2.5 text-[11px] font-black uppercase tracking-[.16em] text-amber-100">Abrir Forja</button>
+              )}
+              {buildingType.id === 'watchtower' && (() => {
+                const next = data.regions.filter((r) => level < r.unlock_stronghold_level).sort((a, b) => a.unlock_stronghold_level - b.unlock_stronghold_level)[0];
+                return (
+                  <p className="text-[10px] leading-4 text-cyan-200">
+                    {next ? `Próxima região: ${next.name} — requer Stronghold Lv.${next.unlock_stronghold_level}` : 'Todas as regiões já estão desbloqueadas.'}
+                  </p>
+                );
+              })()}
               <div className="space-y-1">
                 <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Custo de evolução</p>
                 <p className="text-[11px] text-amber-100">{fmt(cost)} FC</p>
