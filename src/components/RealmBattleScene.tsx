@@ -3,6 +3,8 @@ import { ChevronsRight, Flame, Swords, Zap } from 'lucide-react';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
+import type { PvpHero } from '../pvp';
+import { RARITY_COLORS } from '../heroCatalog';
 
 type Theme = {
   key: 'greenvale' | 'crystal' | 'abyss';
@@ -75,6 +77,10 @@ type Props = {
   regionImage?: string | null;
   /** 1v1 duel mode: a single hero faces the monster (used by the Ruins rooms). */
   duel?: boolean;
+  /** Player's own heroes — lets them choose who fights (presentation only). */
+  heroes?: PvpHero[];
+  heroId?: string | null;
+  onPickHero?: (heroId: string) => void;
   onClose: () => void;
 };
 
@@ -83,9 +89,16 @@ type Props = {
  * and the active hero's abilities in the footer. Presentation only: it replays the rounds
  * the backend already resolved (no combat math, no rewards invented here).
  */
-export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, onClose }: Props) {
+export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, heroes = [], heroId = null, onPickHero, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
-  const party = useMemo(() => (duel ? PARTY.slice(0, 1) : PARTY), [duel]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const chosen = useMemo(() => heroes.find((h) => h.heroId === heroId) ?? heroes[0] ?? null, [heroes, heroId]);
+  const party = useMemo(() => {
+    const base = duel ? PARTY.slice(0, 1) : PARTY;
+    if (!chosen) return base;
+    const mine = { name: chosen.name, image: chosen.imageUrl || base[0].image, glow: 'rgba(251,191,36,.55)' };
+    return duel ? [mine] : [mine, ...base.slice(1)];
+  }, [chosen, duel]);
   const t = useT();
   const theme = useMemo(() => themeOf(regionId), [regionId]);
   const foe = useMemo(() => foeOf(log.nodeType, theme, t), [log.nodeType, theme, t]);
@@ -199,8 +212,13 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
 
   return (
     <div className="fixed inset-0 z-[80] flex flex-col overflow-hidden bg-[#05060c]">
-      <img src={regionImage ?? theme.ground} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-45" />
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_18%,rgba(6,10,22,.15),rgba(3,4,10,.92))]" aria-hidden />
+      {/* ── SCENARY: painted backdrop + ground plane + mist ─────── */}
+      <img src={regionImage ?? theme.ground} alt="" loading="lazy" className="rb-backdrop" />
+      <span className="rb-sky" aria-hidden />
+      <span className="rb-ground" aria-hidden />
+      <span className="rb-mist rb-mist--far" aria-hidden />
+      <span className="rb-mist rb-mist--near" aria-hidden />
+      <span className="rb-vignette" aria-hidden />
 
       {/* ── HEADER ─────────────────────────────────────────────── */}
       <header className="relative z-30 flex items-center justify-between gap-2 px-4 pt-[calc(0.85rem+env(safe-area-inset-top))]">
@@ -221,6 +239,12 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
             type="button" onClick={() => setSpeed((v) => (v === 1 ? 2 : 1))}
             className="rounded-full border border-sky-300/40 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-sky-200 transition active:scale-95"
           >x{speed}</button>
+          {heroes.length > 1 && onPickHero ? (
+            <button
+              type="button" onClick={() => setPickerOpen(true)}
+              className="rounded-full border border-amber-300/45 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-100 transition active:scale-95"
+            >{t('realm.battle.changeHero')}</button>
+          ) : null}
           <button
             type="button" onClick={finish}
             className="flex items-center gap-1 rounded-full border border-amber-300/45 bg-black/50 px-2 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95"
@@ -237,6 +261,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               src={foe.art} alt={foe.name} loading="lazy"
               className="mx-auto h-[22vh] max-h-56 min-h-24 object-contain drop-shadow-[0_0_34px_rgba(244,63,94,.5)]"
             />
+            <span className="rb-shadow rb-shadow--foe" aria-hidden />
             <p className="truncate text-center text-[10px] font-black uppercase tracking-[.14em] text-rose-200">{foe.name}</p>
             <Bar value={bossHp} max={bossMax} tone="rose" />
             <p className="text-center text-[8px] font-bold tracking-wider text-slate-400">{fmt(bossHp)} / {fmt(bossMax)} · {Math.round(bossPct)}%</p>
@@ -276,6 +301,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
                     className={`relative mx-auto object-contain ${duel ? 'h-[20vh] max-h-48 min-h-24' : 'h-[13vh] max-h-28 min-h-14'}`}
                     style={{ filter: `drop-shadow(0 0 18px ${hero.glow})` }}
                   />
+                  {index === 0 ? <span className="rb-shadow rb-shadow--hero" aria-hidden /> : null}
                   <p className={`relative truncate text-center font-black uppercase tracking-[.08em] text-slate-100 ${duel ? 'text-[10px]' : 'text-[8px]'}`}>{hero.name}</p>
                   <Bar value={hp} max={partyMax[index] ?? 1} tone="emerald" />
                   {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
@@ -334,6 +360,34 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           </>
         )}
       </footer>
+
+      {/* ── HERO PICKER ──────────────────────────────────────────── */}
+      {pickerOpen ? (
+        <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/80 backdrop-blur-sm">
+          <button type="button" className="flex-1" aria-label="close" onClick={() => setPickerOpen(false)} />
+          <div className="rb-picker">
+            <p className="text-center text-[10px] font-black uppercase tracking-[.22em] text-amber-200">{t('realm.battle.pickHero')}</p>
+            <div className="mt-2 grid max-h-[46vh] grid-cols-3 gap-2 overflow-y-auto">
+              {heroes.map((h) => {
+                const on = h.heroId === (chosen?.heroId ?? '');
+                return (
+                  <button
+                    key={h.heroId} type="button"
+                    onClick={() => { onPickHero?.(h.heroId); setPickerOpen(false); }}
+                    className={`overflow-hidden rounded-xl border bg-black/70 text-left transition active:scale-95 ${on ? 'border-amber-300 shadow-[0_0_20px_-6px_rgba(251,191,36,.9)]' : 'border-white/10'}`}
+                  >
+                    <img src={h.imageUrl} alt={h.name} loading="lazy" className="aspect-square w-full object-cover object-top" />
+                    <div className="p-1.5">
+                      <p className="truncate text-[9px] font-bold text-slate-100">{h.name}</p>
+                      <p className="text-[8px] font-bold" style={{ color: RARITY_COLORS[h.rarity] }}>Lv.{h.level} · {fmt(h.power)}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
