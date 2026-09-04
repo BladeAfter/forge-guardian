@@ -275,64 +275,23 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
         {/* ---------- FORGE / CRAFTING ---------- */}
         {tab === 'forge' && (
-          <section className="space-y-4">
-            <div className="flex items-baseline justify-between">
-              <b className="text-[13px] font-black uppercase tracking-[.12em] text-amber-100">Forja Lv.{forgeLevel}</b>
-              <span className="text-[10px] text-slate-500">{data.crafting.length} em produção</span>
-            </div>
-
-            {data.crafting.length > 0 && (
-              <div className="space-y-1">
-                {data.crafting.map((j) => {
-                  const left = realmSecondsLeft(j.finishes_at, now);
-                  const r = data.recipes.find((x) => x.id === j.recipe_id);
-                  return (
-                    <div key={j.id} className="flex items-center justify-between border-b border-white/5 py-2">
-                      <div>
-                        <b className="text-[11px] text-amber-100">{r?.name ?? j.recipe_id}</b>
-                        <p className="text-[9px] text-slate-500">x{j.quantity}</p>
-                      </div>
-                      {left > 0
-                        ? <span className="text-[11px] font-bold tabular-nums text-cyan-300">{realmTimer(left)}</span>
-                        : <button disabled={busy} onClick={() => call(() => realmClaimCraft(telegramInitData, j.id))} className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black">Retirar</button>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">Receitas</p>
-              {openRecipes.map((r) => {
-                const out = r.output_kind === 'material' ? materialById[r.output_ref]?.name ?? r.output_ref : r.output_ref.replace(/_/g, ' ');
-                return (
-                  <button key={r.id} onClick={() => { setRecipeSheet(r.id); setCraftQty(1); }} className="flex w-full items-center justify-between border-b border-white/5 py-2.5 text-left">
-                    <div className="min-w-0">
-                      <b className="block text-[11px] font-black text-amber-100">{r.name}</b>
-                      <p className="truncate text-[9px] text-slate-500">
-                        {Object.entries(r.inputs).map(([id, qty]) => `${fmt(Number(qty))} ${materialById[id]?.name ?? id}`).join(' + ')} → {r.output_qty}x {out}
-                      </p>
-                    </div>
-                    <span className="ml-2 shrink-0 text-[10px] tabular-nums text-slate-400">{realmTimer(r.craft_seconds)}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {lockedRecipes.length > 0 && (
-              <div>
-                <button onClick={() => setShowLockedRecipes((v) => !v)} className="text-[10px] font-bold text-slate-500">
-                  Receitas bloqueadas ({lockedRecipes.length}) {showLockedRecipes ? '▴' : '▾'}
-                </button>
-                {showLockedRecipes && lockedRecipes.map((r) => (
-                  <p key={r.id} className="border-b border-white/5 py-2 text-[10px] text-slate-500">
-                    {r.name} · 🔒 Forja Lv.{r.min_forge_level}
-                  </p>
-                ))}
-              </div>
-            )}
-          </section>
+          <RealmForgeScene
+            forgeLevel={forgeLevel}
+            forgeType={data.buildingTypes.find((bt) => bt.id === 'forge') ?? null}
+            recipes={data.recipes}
+            materials={materials}
+            balances={balances}
+            fc={data.fc}
+            jobs={data.crafting}
+            now={now}
+            busy={busy}
+            onStartCraft={(recipeId, quantity) => runAsync(() => realmStartCraft(telegramInitData, recipeId, quantity))}
+            onClaim={(jobId) => runAsync(() => realmClaimCraft(telegramInitData, jobId))}
+            onUpgradeForge={() => setBuildingSheet('forge')}
+            onOpenResources={() => setResourcesOpen(true)}
+          />
         )}
+
 
         {/* ---------- ANCIENT RUINS ---------- */}
         {tab === 'ruins' && (
