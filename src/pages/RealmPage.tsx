@@ -50,7 +50,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const [notice, setNotice] = useState<string | null>(null);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [buildingSheet, setBuildingSheet] = useState<string | null>(null);
-  const [dungeonOpen2Unused] = useState(false);
+  
 
   const [dungeonOpen, setDungeonOpen] = useState(true);
 
