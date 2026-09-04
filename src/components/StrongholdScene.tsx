@@ -204,11 +204,6 @@ export default function StrongholdScene({
                 {/* placa discreta, integrada à cena */}
                 <span className={`sh-name ${focused ? 'sh-name-on' : ''}`}>
                   <b>{SHORT[bt.id] ?? bt.name} <em>Lv.{lvl}</em></b>
-                  {state === 'upgrading' && <i className="sh-tag-work tabular-nums">{realmTimer(left)}</i>}
-                  {state === 'ready' && <i className="sh-tag-ready">Pronto</i>}
-                  {state === 'build' && <i className="sh-tag-build">Construir</i>}
-                  {state === 'gated' && lvl === 0 && <i className="sh-tag-lock">🔒</i>}
-                  {state === 'built' && bt.id === 'forge' && craftingCount > 0 && <i className="sh-tag-craft">Forjando</i>}
                 </span>
               </button>
             );

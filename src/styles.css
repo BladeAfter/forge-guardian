@@ -3254,11 +3254,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 .sh-hit { background: none; border: 0; padding: 0; transform: translate(-50%, -50%); }
 .sh-ring {
-  position: absolute; transform: translate(-50%, -50%);
-  border: 1.5px solid rgba(252, 211, 77, .9);
-  border-radius: 50%;
-  box-shadow: 0 0 16px 2px rgba(251, 191, 36, .55), inset 0 0 20px rgba(251, 191, 36, .3);
-  transition: opacity 260ms ease, box-shadow 260ms ease;
+  display: none !important;
 }
 .sh-ring-live { animation: shRingLive 3.2s ease-in-out infinite; }
 @keyframes shRingLive { 0%, 100% { box-shadow: 0 0 12px 1px rgba(251, 191, 36, .4), inset 0 0 14px rgba(251, 191, 36, .22); } 50% { box-shadow: 0 0 24px 4px rgba(251, 191, 36, .7), inset 0 0 26px rgba(251, 191, 36, .4); } }
