@@ -276,7 +276,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
                     className={`relative mx-auto object-contain ${duel ? 'h-[20vh] max-h-48 min-h-24' : 'h-[13vh] max-h-28 min-h-14'}`}
                     style={{ filter: `drop-shadow(0 0 18px ${hero.glow})` }}
                   />
-                  <p className={`relative truncate text-center ${duel ? 'text-[10px]' : 'text-[8px]'}`.replace('XX','') + " ".trim() && "relative truncate text-center text-[9px]"} font-black uppercase tracking-[.08em] text-slate-100">{hero.name}</p>
+                  <p className={`relative truncate text-center font-black uppercase tracking-[.08em] text-slate-100 ${duel ? 'text-[10px]' : 'text-[8px]'}`}>{hero.name}</p>
                   <Bar value={hp} max={partyMax[index] ?? 1} tone="emerald" />
                   {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
                 </div>
