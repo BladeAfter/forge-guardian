@@ -610,6 +610,13 @@
       "when": 1788399230823,
       "tag": "0086_realm_interactive_exploration",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1788480548073,
+      "tag": "0087_withdraw_requires_legendary_v2_pass",
+      "breakpoints": true
     }
   ]
 }

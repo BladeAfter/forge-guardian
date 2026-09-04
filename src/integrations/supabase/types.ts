@@ -26621,6 +26621,10 @@ export type Database = {
         Args: { p_user: string }
         Returns: number
       }
+      withdraw_has_legendary_v2_pass: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       withdraw_min_deposit_ton: { Args: never; Returns: number }
       withdraw_requires_v2_pass: {
         Args: { p_user_id: string }
