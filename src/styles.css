@@ -1899,17 +1899,19 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   left: -4%;
   bottom: -2%;
   width: 108%;
-  height: 66%;
+  height: 62%;
   object-fit: cover;
-  object-position: 50% 70%;
+  object-position: 50% 100%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, .35) 12%, #000 34%);
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, .35) 12%, #000 34%);
 }
 .bf-ground-blend {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 70%;
-  background: linear-gradient(180deg, rgba(4, 6, 13, 0.95) 0%, rgba(4, 6, 13, 0.25) 22%, transparent 55%);
+  height: 72%;
+  background: linear-gradient(180deg, rgba(4, 6, 13, 0.98) 0%, rgba(4, 6, 13, 0.7) 18%, rgba(4, 6, 13, 0.2) 38%, transparent 62%);
 }
 .bf-arena-light {
   position: absolute;
@@ -2036,12 +2038,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   left: -3%;
   bottom: -3%;
   width: 106%;
-  height: 26%;
+  height: 30%;
   object-fit: cover;
   object-position: 50% 100%;
   z-index: 16;
   pointer-events: none;
-  filter: brightness(0.7) saturate(0.9);
+  filter: brightness(0.85) saturate(0.95);
 }
 .bf-fg-mist {
   position: absolute;
