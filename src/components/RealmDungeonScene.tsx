@@ -194,8 +194,9 @@ export default function RealmDungeonScene({
       {/* empurra as escolhas para a base da cena (sem espaço morto) */}
       <div className="dungeon-spacer" aria-hidden />
 
-      {/* PORTAS */}
-      <div className="dungeon-doors">
+      <div className="dungeon-lower">
+        {/* PORTAS */}
+        <div className="dungeon-doors">
         {rooms.length === 0 && phase !== 'walking' && (
           <p className="dungeon-empty">{t('realm.dungeon.waiting')}</p>
         )}
@@ -215,9 +216,11 @@ export default function RealmDungeonScene({
         ))}
       </div>
 
-      <button onClick={() => setConfirmExtract(true)} disabled={busy} className="dungeon-extract">
+        <button onClick={() => setConfirmExtract(true)} disabled={busy} className="dungeon-extract">
         {t('realm.dungeon.extractWith', { n: fmt(run.ruin_coins) })}
       </button>
+
+      </div>
 
       {confirmExtract && (
         <div className="dungeon-modal" role="dialog">
