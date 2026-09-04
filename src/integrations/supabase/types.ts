@@ -608,6 +608,9 @@ export type Database = {
           buffs: Json
           completed_at: string | null
           current_room: number
+          entry_cost_fc: number
+          entry_cost_ton: number
+          entry_tier: string
           hp: number
           id: string
           loot: Json
@@ -622,6 +625,9 @@ export type Database = {
           buffs?: Json
           completed_at?: string | null
           current_room?: number
+          entry_cost_fc?: number
+          entry_cost_ton?: number
+          entry_tier?: string
           hp?: number
           id?: string
           loot?: Json
@@ -636,6 +642,9 @@ export type Database = {
           buffs?: Json
           completed_at?: string | null
           current_room?: number
+          entry_cost_fc?: number
+          entry_cost_ton?: number
+          entry_tier?: string
           hp?: number
           id?: string
           loot?: Json
@@ -15762,6 +15771,30 @@ export type Database = {
         }
         Relationships: []
       }
+      realm_ruin_entry_config: {
+        Row: {
+          fc_cost: number
+          id: boolean
+          ton_cost: number
+          ton_reward_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          fc_cost?: number
+          id?: boolean
+          ton_cost?: number
+          ton_reward_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          fc_cost?: number
+          id?: boolean
+          ton_cost?: number
+          ton_reward_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referral_bonus_claims: {
         Row: {
           amount_fc: number
@@ -25691,10 +25724,13 @@ export type Database = {
         Args: { p_cleared: boolean; p_run: string; p_user: string }
         Returns: Json
       }
-      realm_ruin_start: {
-        Args: { p_region: string; p_user: string }
-        Returns: Json
-      }
+      realm_ruin_start:
+        | { Args: { p_region: string; p_user: string }; Returns: Json }
+        | {
+            Args: { p_region: string; p_tier?: string; p_user: string }
+            Returns: Json
+          }
+      realm_ruin_stats: { Args: { p_user: string }; Returns: Json }
       realm_state: { Args: { p_user: string }; Returns: Json }
       reconcile_pet_egg_orders: {
         Args: { p_telegram_id: number }
