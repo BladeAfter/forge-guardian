@@ -131,18 +131,33 @@ export default function RealmDungeonScene({
         <span className="dungeon-hp-label">VITALIDADE {Math.max(0, run.hp)}%</span>
       </div>
 
-      {/* CENA */}
+      {/* CENA — chão real, equipe ancorada ao piso e névoa em primeiro plano */}
       <div className="dungeon-stage">
-        <img
-          src={PARTY}
-          alt="Sua equipe"
-          className={`dungeon-party ${phase === 'walking' ? 'is-walking' : ''}`}
-          loading="lazy"
-          width={816}
-          height={816}
-        />
-        <div className="dungeon-party-shadow" aria-hidden />
+        {/* névoa que separa fundo e personagens (midground) */}
+        <div className="dungeon-depth-fog" aria-hidden />
+        {/* plano de chão: pedra úmida, rachaduras, musgo e reflexo de tocha */}
+        <div className="dungeon-ground" aria-hidden />
+        <div className="dungeon-ground-mist" aria-hidden />
+
+        {/* grupo ancorado: sombra de contato + oclusão + sprite (pés = linha do chão) */}
+        <div className={`dungeon-party-anchor ${phase === 'walking' ? 'is-walking' : ''}`}>
+          <div className="dungeon-contact-shadow" aria-hidden />
+          <div className="dungeon-contact-ao" aria-hidden />
+          <div className="dungeon-party-reflect" aria-hidden />
+          <img
+            src={PARTY}
+            alt="Sua equipe"
+            className="dungeon-party"
+            loading="lazy"
+            width={816}
+            height={816}
+          />
+        </div>
+
+        {/* foreground: pedras, poeira e névoa rasteira cobrindo a base das botas */}
+        <div className="dungeon-foreground" aria-hidden />
       </div>
+
 
       {phase === 'intro' && (
         <div className="dungeon-intro">
