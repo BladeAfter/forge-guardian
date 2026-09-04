@@ -167,11 +167,8 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const forgeLevel = data.buildings.find((b) => b.building_type === 'forge')?.level ?? 0;
 
   const buildingType = data.buildingTypes.find((bt) => bt.id === buildingSheet) ?? null;
-  const recipe = data.recipes.find((r) => r.id === recipeSheet) ?? null;
 
 
-  const openRecipes = data.recipes.filter((r) => forgeLevel >= r.min_forge_level);
-  const lockedRecipes = data.recipes.filter((r) => forgeLevel < r.min_forge_level);
 
   /* Run ativa nas Ruínas → modo dungeon fullscreen (esconde todo o chrome do Realm). */
   if (ruinRun && ruinRun.status === 'running' && dungeonOpen) {
