@@ -58,6 +58,8 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   
 
   const [dungeonOpen, setDungeonOpen] = useState(true);
+  const [ruinRegion, setRuinRegion] = useState<string | null>(null);
+
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
