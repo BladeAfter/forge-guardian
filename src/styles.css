@@ -3235,3 +3235,49 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @media (prefers-reduced-motion: reduce) {
   .sh-fg-mist, .sh-halo, .sh-select-motes, .sh-forge-fire, .sh-windows, .sh-brazier, .sh-path-flow { animation: none !important; }
 }
+
+/* ============ 🏰 STRONGHOLD — cena pintada única + hot spots (ref AAA) ============ */
+.sh-frame {
+  border-radius: 4px;
+  border: 1px solid rgba(198, 162, 90, .55);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .9) inset, 0 18px 40px -24px rgba(0, 0, 0, 1);
+}
+.sh-hit { background: none; border: 0; padding: 0; transform: translate(-50%, -50%); }
+.sh-ring {
+  position: absolute; transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(252, 211, 77, .9);
+  border-radius: 50%;
+  box-shadow: 0 0 16px 2px rgba(251, 191, 36, .55), inset 0 0 20px rgba(251, 191, 36, .3);
+  transition: opacity 260ms ease, box-shadow 260ms ease;
+}
+.sh-ring-live { animation: shRingLive 3.2s ease-in-out infinite; }
+@keyframes shRingLive { 0%, 100% { box-shadow: 0 0 12px 1px rgba(251, 191, 36, .4), inset 0 0 14px rgba(251, 191, 36, .22); } 50% { box-shadow: 0 0 24px 4px rgba(251, 191, 36, .7), inset 0 0 26px rgba(251, 191, 36, .4); } }
+.sh-ring-on { border-color: rgba(255, 232, 160, 1); border-width: 2px; }
+.sh-focus-glow {
+  position: absolute; inset: -6%;
+  background: radial-gradient(closest-side, var(--sh-glow, #fbbf24), transparent 70%);
+  opacity: .16; filter: blur(10px); border-radius: 40%;
+}
+.sh-name {
+  position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 5px; white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .98), 0 0 12px rgba(0, 0, 0, .9);
+  opacity: .92;
+}
+.sh-name b { font-size: 8.5px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #f3e5c9; }
+.sh-name b em { font-style: normal; color: #fcd34d; }
+.sh-name i {
+  font-style: normal; font-size: 7px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+  border-radius: 999px; padding: 1px 6px; border: 1px solid transparent;
+}
+.sh-name-on b { color: #fff8e6; }
+.sh-name-on { opacity: 1; }
+
+/* mini cards de recurso no estilo da referência */
+.realm-res-pill {
+  flex-direction: row; align-items: center; gap: 6px;
+  padding: 4px 8px !important;
+}
+.realm-res-name {
+  display: block; font-size: 7px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; color: #9aa6c0;
+}
