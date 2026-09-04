@@ -172,6 +172,24 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const openRecipes = data.recipes.filter((r) => forgeLevel >= r.min_forge_level);
   const lockedRecipes = data.recipes.filter((r) => forgeLevel < r.min_forge_level);
 
+  /* Run ativa nas Ruínas → modo dungeon fullscreen (esconde todo o chrome do Realm). */
+  if (ruinRun && ruinRun.status === 'running') {
+    const region = data.regions.find((r) => r.id === ruinRun.region_id);
+    return (
+      <RealmDungeonScene
+        run={ruinRun}
+        rooms={openRooms}
+        lastRoom={data.lastRoom}
+        regionName={region?.name ?? 'Ruínas Ancestrais'}
+        busy={busy}
+        onChoose={(branch) => runAsync(() => realmRuinChoose(telegramInitData, ruinRun.id, branch))}
+        onExtract={() => runAsync(() => realmRuinExtract(telegramInitData, ruinRun.id))}
+        onLeave={() => { setTab('ruins'); qc.invalidateQueries({ queryKey: ['realm', telegramInitData] }); }}
+      />
+    );
+  }
+
+
   return (
     <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-28">
       {/* TOP HUD premium do Realm */}
