@@ -6,7 +6,7 @@ const BG_TREASURE = '/assets/game/realm/dungeon-treasure.jpg';
 const BG_SHRINE = '/assets/game/realm/dungeon-shrine.jpg';
 const BG_BOSS = '/assets/game/realm/dungeon-boss.jpg';
 const DOOR = '/assets/game/realm/dungeon-door.png';
-const PARTY = '/assets/game/realm/dungeon-party.png';
+const PARTY = '/assets/game/realm/battle-hero.png';
 
 const ROOM_BG: Record<string, string> = {
   combat: BG_HALL,
@@ -146,11 +146,11 @@ export default function RealmDungeonScene({
           <div className="dungeon-party-reflect" aria-hidden />
           <img
             src={PARTY}
-            alt="Sua equipe"
+            alt="Seu herói"
             className="dungeon-party"
             loading="lazy"
-            width={816}
-            height={816}
+            width={1024}
+            height={1024}
           />
         </div>
 

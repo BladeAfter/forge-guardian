@@ -2633,7 +2633,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 /* ---- grupo ancorado: pés exatamente na linha do chão ---- */
 .dungeon-party-anchor {
   position: absolute; left: 50%; bottom: var(--dungeon-ground);
-  width: min(58%, 260px);
+  width: min(34%, 170px);
   transform: translateX(-50%);
   transform-origin: 50% 100%;
   pointer-events: none;
@@ -2713,11 +2713,21 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @keyframes dungeon-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .dungeon-discovery {
-  position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
-  min-width: 60%; text-align: center; border-radius: 18px;
-  border: 1px solid rgba(240,198,106,.35); background: rgba(6,9,18,.86);
-  padding: .6rem .9rem; animation: dungeon-pop .4s ease-out both;
+  position: absolute; left: 50%; top: 32%; transform: translateX(-50%);
+  min-width: 62%; text-align: center; border: 0; border-radius: 0;
+  padding: .5rem 1.4rem;
+  background:
+    radial-gradient(60% 120% at 50% 50%, rgba(6,9,18,.82), rgba(6,9,18,.52) 62%, transparent 100%);
+  -webkit-mask-image: radial-gradient(62% 120% at 50% 50%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(62% 120% at 50% 50%, #000 55%, transparent 100%);
+  animation: dungeon-pop .4s ease-out both;
 }
+.dungeon-discovery::before, .dungeon-discovery::after {
+  content: ''; position: absolute; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240,198,106,.55), transparent);
+}
+.dungeon-discovery::before { top: 0; }
+.dungeon-discovery::after { bottom: 0; }
 @keyframes dungeon-pop { from { opacity: 0; transform: translateX(-50%) scale(.9); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
 .dungeon-discovery b { font-size: 12px; font-weight: 900; letter-spacing: .2em; color: #f7dfa5; }
 .dungeon-discovery p { margin-top: .2rem; font-size: 11px; color: #dcd6ef; }
