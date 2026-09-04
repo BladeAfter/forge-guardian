@@ -1646,3 +1646,222 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .bounty-board__dust, .bounty-status--claimable, .bounty-claim::after { animation: none; }
   .bounty-card { animation-duration: 0.01s; }
 }
+
+/* ── STRONGHOLD AAA (camada de apresentação) ─────────────────────────────── */
+.stronghold-stage {
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.stronghold-frame {
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.18), inset 0 0 34px rgba(251, 191, 36, 0.08);
+}
+.stronghold-rays {
+  background: linear-gradient(102deg, transparent 35%, rgba(255, 226, 160, 0.12) 48%, transparent 58%),
+              linear-gradient(78deg, transparent 55%, rgba(255, 226, 160, 0.08) 66%, transparent 74%);
+  mix-blend-mode: screen;
+  animation: shRays 12s ease-in-out infinite alternate;
+}
+@keyframes shRays { from { opacity: 0.5; transform: translateX(-2%); } to { opacity: 0.95; transform: translateX(2%); } }
+.stronghold-embers {
+  background-image:
+    radial-gradient(2px 2px at 18% 80%, rgba(251, 146, 60, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 62% 88%, rgba(251, 191, 36, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 84% 72%, rgba(251, 146, 60, 0.6), transparent);
+  animation: shEmbers 9s linear infinite;
+}
+@keyframes shEmbers { from { transform: translateY(0); opacity: 0.2; } 50% { opacity: 0.9; } to { transform: translateY(-70px); opacity: 0; } }
+.stronghold-fireflies {
+  background-image:
+    radial-gradient(1.5px 1.5px at 30% 55%, rgba(147, 197, 253, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 72% 45%, rgba(56, 189, 248, 0.7), transparent);
+  animation: shFlies 11s ease-in-out infinite alternate;
+}
+@keyframes shFlies { from { transform: translate3d(-8px, 6px, 0); opacity: 0.4; } to { transform: translate3d(10px, -10px, 0); opacity: 0.95; } }
+.stronghold-prosperity { mix-blend-mode: screen; }
+.stronghold-prosperity-0 { background: none; }
+.stronghold-prosperity-1 { background: radial-gradient(60% 40% at 50% 45%, rgba(251, 191, 36, 0.07), transparent 70%); }
+.stronghold-prosperity-2 { background: radial-gradient(65% 45% at 50% 45%, rgba(251, 191, 36, 0.12), transparent 72%); }
+.stronghold-prosperity-3 { background: radial-gradient(70% 50% at 50% 45%, rgba(251, 191, 36, 0.18), transparent 74%); }
+.stronghold-plaza {
+  width: 60%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.16), transparent 70%);
+  filter: blur(2px);
+}
+.stronghold-pad {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: 116%;
+  height: 26%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  filter: blur(3px);
+}
+.stronghold-slot-off { filter: brightness(0.72) saturate(0.75); }
+.stronghold-focus {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: 108%;
+  height: 22%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid;
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.35);
+  animation: shFocus 1.8s ease-in-out infinite;
+}
+@keyframes shFocus { 0%, 100% { opacity: 0.55; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } }
+.stronghold-plate {
+  position: relative;
+  margin-top: 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+.stronghold-plate b {
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px #000;
+}
+.stronghold-seal {
+  display: inline-block;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(2, 6, 23, 0.75);
+  padding: 0 0.28rem;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  color: #fcd34d;
+}
+.stronghold-hud {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.35));
+  padding: 0.22rem 0.6rem;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+  backdrop-filter: blur(6px);
+}
+.stronghold-crest { color: #fcd34d; text-shadow: 0 0 12px rgba(251, 191, 36, 0.6); }
+.stronghold-recenter {
+  border-radius: 999px;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.8), rgba(2, 6, 23, 0.85));
+  padding: 0.24rem 0.62rem;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fde68a;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px -8px rgba(251, 191, 36, 0.6);
+}
+.stronghold-recenter:active { transform: scale(0.96); }
+.stronghold-tip {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(2, 6, 23, 0.9);
+  padding: 0.3rem 0.7rem;
+  font-size: 9px;
+  font-weight: 800;
+  color: #e2e8f0;
+  animation: bounty-in 0.3s ease-out;
+}
+
+/* card contextual premium do prédio */
+.realm-sheet-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: radial-gradient(120% 80% at 50% -10%, rgba(251, 191, 36, 0.12), transparent 68%),
+              linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+  padding: 0.85rem;
+}
+.realm-cost-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.18rem 0.5rem 0.18rem 0.28rem;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.realm-cost-chip--gold { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.1); color: #fde68a; }
+.realm-action-btn {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 0.8rem 0;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0b0b0b;
+  background: linear-gradient(90deg, #f59e0b, #fde68a);
+  box-shadow: 0 14px 34px -16px rgba(251, 191, 36, 0.9);
+}
+.realm-action-btn--done { background: linear-gradient(90deg, #10b981, #6ee7b7); }
+.realm-action-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0 -60%;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%);
+  animation: bounty-sheen 2.8s linear infinite;
+}
+.realm-action-btn:disabled { opacity: 0.45; }
+
+/* tabs premium do Realm */
+.realm-tab {
+  position: relative;
+  flex: none;
+  border-radius: 0.9rem;
+  border: 1px solid transparent;
+  padding: 0.32rem 0.55rem;
+  text-align: center;
+  color: #64748b;
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+.realm-tab-on {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.05));
+  color: #fde68a;
+  box-shadow: 0 8px 22px -12px rgba(251, 191, 36, 0.9);
+  transform: translateY(-1px);
+}
+.realm-tab-on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 55%;
+  height: 2px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stronghold-rays, .stronghold-embers, .stronghold-fireflies, .stronghold-focus,
+  .realm-action-btn::after { animation: none !important; }
+}
