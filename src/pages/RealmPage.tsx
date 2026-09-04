@@ -21,6 +21,8 @@ import {
 } from '../realm';
 
 const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
+const REALM_CREST = '/assets/game/realm/realm-crest.png';
+
 
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
