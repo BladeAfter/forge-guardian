@@ -312,20 +312,119 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
             )}
 
             {!ruinRun ? (
-              <div className="space-y-1">
-                {data.regions.filter((r) => r.ruin_enabled && level >= r.unlock_stronghold_level).map((r) => (
-                  <div key={r.id} className="flex items-center justify-between border-b border-white/5 py-2.5">
-                    <div>
-                      <b className="text-[11px] font-black text-purple-100">{r.name}</b>
-                      <p className="text-[9px] text-slate-500">{t('realm.ruins.rooms', { power: fmt(r.recommended_power) })}</p>
+              <div className="space-y-4">
+                {/* estatísticas do jogador */}
+                <div className="grid grid-cols-4 gap-1 rounded-3xl border border-white/10 bg-white/[.03] px-3 py-3 text-center">
+                  <Stat label={t('realm.ruins.statRuns')} value={fmt(data.ruinStats?.runs ?? 0)} />
+                  <Stat label={t('realm.ruins.statClears')} value={fmt(data.ruinStats?.clears ?? 0)} />
+                  <Stat label={t('realm.ruins.statDeepest')} value={`${Math.min(10, data.ruinStats?.deepest ?? 0)}/10`} />
+                  <Stat label={t('realm.ruins.statBest')} value={fmt(data.ruinStats?.bestLoot ?? 0)} />
+                </div>
+
+                <div>
+                  <b className="text-[11px] font-black uppercase tracking-[.16em] text-purple-100">{t('realm.ruins.entryTitle')}</b>
+                  <p className="mt-1 text-[10px] leading-relaxed text-slate-400">{t('realm.ruins.entryDesc')}</p>
+                </div>
+
+                {/* seleção de região */}
+                <div className="flex flex-wrap gap-2">
+                  {data.regions.filter((r) => r.ruin_enabled && level >= r.unlock_stronghold_level).map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => setRuinRegion(r.id)}
+                      className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[.12em] ${
+                        (ruinRegion ?? '') === r.id
+                          ? 'border-amber-300/70 bg-amber-300/15 text-amber-100'
+                          : 'border-white/10 bg-white/[.03] text-slate-300'
+                      }`}
+                    >
+                      {r.name}
+                      <span className="ml-1 text-[8px] font-semibold text-slate-500">{fmt(r.recommended_power)}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* tiers de entrada */}
+                <div className="space-y-2">
+                  {(['fc', 'ton'] as const).map((tier) => {
+                    const cost = tier === 'fc' ? Number(data.ruinEntry?.fc_cost ?? 100000) : Number(data.ruinEntry?.ton_cost ?? 0.5);
+                    const mult = Number(data.ruinEntry?.ton_reward_multiplier ?? 1.6);
+                    const balance = tier === 'fc' ? Number(data.fc ?? 0) : Number(data.tonBalance ?? 0);
+                    const enough = balance >= cost;
+                    const region = ruinRegion ?? data.regions.find((r) => r.ruin_enabled && level >= r.unlock_stronghold_level)?.id;
+                    return (
+                      <div
+                        key={tier}
+                        className={`rounded-3xl border p-4 ${
+                          tier === 'ton'
+                            ? 'border-amber-300/40 bg-gradient-to-br from-amber-400/12 via-transparent to-fuchsia-500/10'
+                            : 'border-white/10 bg-white/[.03]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <b className={`text-[11px] font-black uppercase tracking-[.16em] ${tier === 'ton' ? 'text-amber-100' : 'text-slate-100'}`}>
+                              {t(tier === 'ton' ? 'realm.ruins.tierTon' : 'realm.ruins.tierFc')}
+                            </b>
+                            <p className="mt-1 max-w-[190px] text-[9px] leading-relaxed text-slate-400">
+                              {tier === 'ton'
+                                ? t('realm.ruins.tierTonPerks', { mult: mult.toFixed(1) })
+                                : t('realm.ruins.tierFcPerks')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <b className={`block text-[13px] font-black ${tier === 'ton' ? 'text-amber-200' : 'text-slate-100'}`}>
+                              {tier === 'fc' ? `${fmt(cost)} FC` : `${cost.toFixed(2)} TON`}
+                            </b>
+                            <span className="text-[8px] uppercase tracking-[.12em] text-slate-500">
+                              {t(tier === 'fc' ? 'realm.ruins.yourFc' : 'realm.ruins.yourTon')}:{' '}
+                              {tier === 'fc' ? fmt(balance) : balance.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          disabled={busy || !enough || !region}
+                          onClick={() => { if (region) { setDungeonOpen(true); call(() => realmRuinStart(telegramInitData, region, tier)); } }}
+                          className={`mt-3 w-full rounded-2xl py-2.5 text-[10px] font-black uppercase tracking-[.16em] disabled:opacity-40 ${
+                            tier === 'ton'
+                              ? 'bg-gradient-to-r from-amber-400 to-yellow-200 text-black'
+                              : 'border border-white/15 text-slate-100'
+                          }`}
+                        >
+                          {enough ? t('realm.ruins.enter') : t('realm.ruins.notEnough')}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* histórico */}
+                <div className="rounded-3xl border border-white/10 bg-white/[.02] p-4">
+                  <b className="text-[10px] font-black uppercase tracking-[.16em] text-slate-300">{t('realm.ruins.history')}</b>
+                  {(data.ruinStats?.recent ?? []).length === 0 ? (
+                    <p className="mt-2 text-[10px] text-slate-500">{t('realm.ruins.historyEmpty')}</p>
+                  ) : (
+                    <div className="mt-2 space-y-1">
+                      {(data.ruinStats?.recent ?? []).map((h, i) => (
+                        <div key={i} className="flex items-center justify-between border-b border-white/5 py-1.5 text-[9px]">
+                          <span className="text-slate-300">
+                            {data.regions.find((r) => r.id === h.region)?.name ?? h.region}
+                            <em className={`ml-1 not-italic ${h.tier === 'ton' ? 'text-amber-300' : 'text-slate-500'}`}>{h.tier === 'ton' ? 'TON' : 'FC'}</em>
+                          </span>
+                          <span className={h.status === 'cleared' ? 'text-emerald-300' : h.status === 'failed' ? 'text-rose-300' : 'text-slate-400'}>
+                            {Math.min(10, h.room)}/10 · {fmt(Number(h.fc ?? 0))} FC
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                    <button disabled={busy} onClick={() => { setDungeonOpen(true); call(() => realmRuinStart(telegramInitData, r.id)); }} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">{t('realm.ruins.enter')}</button>
-                  </div>
-                ))}
+                  )}
+                </div>
+
                 {data.regions.filter((r) => r.ruin_enabled && level < r.unlock_stronghold_level).map((r) => (
-                  <p key={r.id} className="py-1.5 text-[10px] text-slate-500">{t('realm.ruins.locked', { name: r.name, level: r.unlock_stronghold_level })}</p>
+                  <p key={r.id} className="text-[10px] text-slate-500">{t('realm.ruins.locked', { name: r.name, level: r.unlock_stronghold_level })}</p>
                 ))}
               </div>
+
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-between text-center">
