@@ -149,7 +149,12 @@ export default function RealmRunScene({
   };
 
   const hpPct = Math.max(0, Math.min(100, Number(run.hp ?? 0)));
+  const riskValue = Number(run.risk ?? 0);
+  const riskTone = riskValue >= 70 ? 'realm-badge-risk-x' : riskValue >= 45 ? 'realm-badge-risk-hi'
+    : riskValue >= 20 ? 'realm-badge-risk-mid' : 'realm-badge-risk-low';
   const safeHere = last ? ['shrine', 'rest'].includes(last.node_type) : true;
+
+
 
   return (
     <div className="fixed inset-0 z-[65] overflow-hidden bg-[#04060d]">
@@ -277,51 +282,43 @@ export default function RealmRunScene({
 
       {/* ── HUD ──────────────────────────────────────────────────────────── */}
       <div className="absolute inset-x-0 top-0 p-3 pt-[max(12px,env(safe-area-inset-top))]">
-        <div className="flex items-center gap-2">
-          <b className="flex-1 truncate text-[12px] font-black uppercase tracking-[.16em] text-amber-100 [text-shadow:0_1px_8px_#000]">
-            {region?.name ?? run.region_id}
-          </b>
-          <span className="rounded-full border border-white/15 bg-black/55 px-2 py-0.5 text-[9px] font-black text-slate-200">
-            {Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}
-          </span>
-          <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="rounded-full border border-amber-300/30 bg-black/55 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-amber-100 disabled:opacity-40">Auto</button>
-          <button onClick={() => setMenu(true)} aria-label="Mais opções" className="rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-[11px] font-black leading-none text-slate-300">⋯</button>
+        <div className="realm-run-topbar">
+          <b className="realm-run-region">{region?.name ?? run.region_id}</b>
+          <span className="realm-pill realm-pill-depth">{Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}</span>
+          <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-pill realm-pill-auto disabled:opacity-40">Auto</button>
+          <button onClick={() => setMenu(true)} aria-label="Mais opções" className="realm-pill realm-pill-menu">⋯</button>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
-          <button onClick={() => setLootOpen(true)} className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-2.5 py-1.5">
-            <span className="text-[8px] font-black uppercase tracking-[.16em] text-slate-400">HP</span>
-            <span className="realm-hpbar w-16 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
-            <span className="text-[9px] font-black tabular-nums text-rose-200">{run.hp}</span>
-            <span className="ml-auto text-[9px] font-black uppercase tracking-[.12em] text-emerald-200">LOOT {lootCount}</span>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <button onClick={() => setLootOpen(true)} className="realm-stat-block min-w-0 flex-1">
+            <span className="realm-stat-cap">HP</span>
+            <span className="realm-hpbar realm-hpbar-pro w-16 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
+            <span className="text-[9px] font-black tabular-nums text-rose-100">{run.hp}</span>
+            <span className="realm-badge realm-badge-loot ml-auto">Loot {lootCount}</span>
           </button>
-          <span className="flex-none rounded-2xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[.14em] text-slate-300">
-            RISCO {REALM_RISK_LABEL(run.risk)}
-          </span>
+          <span className={`realm-badge flex-none ${riskTone}`}>Risco {REALM_RISK_LABEL(run.risk)}</span>
           <button
             onClick={onExtract}
             disabled={busy || walking}
-            className={`flex-none rounded-2xl px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] disabled:opacity-40 ${
-              safeHere ? 'bg-gradient-to-r from-emerald-400 to-teal-300 text-black' : 'border border-emerald-300/30 bg-black/50 text-emerald-200'}`}
+            className={`realm-extract flex-none disabled:opacity-40 ${safeHere ? 'realm-extract-hot' : ''}`}
           >
-            Extrair
+            ⤴ Extrair
           </button>
         </div>
       </div>
 
       {/* prompt when a fork is available */}
       {open.length > 0 && !pick && !pending && !walking && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-[9px] font-black uppercase tracking-[.24em] text-amber-100/80 [text-shadow:0_1px_8px_#000]">
-          Toque em um local para viajar
-        </p>
+        <p className="realm-run-hint">Toque em um local para viajar</p>
       )}
       {open.length === 0 && !pending && (
         <div className="absolute inset-x-3 bottom-4">
-          <button onClick={onExtract} disabled={busy} className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40">
+          <button onClick={onExtract} disabled={busy} className="realm-extract-cta disabled:opacity-40">
             Extrair com o loot
           </button>
         </div>
       )}
+
 
       {/* ── CINEMATIC BANNERS ────────────────────────────────────────────── */}
       {banner && (
@@ -340,19 +337,23 @@ export default function RealmRunScene({
 
       {/* ── DESTINATION SHEET ────────────────────────────────────────────── */}
       {pick && (
-        <div className="absolute inset-0 z-[20] flex items-end bg-gradient-to-t from-black/85 via-black/30 to-transparent p-3 pb-[max(12px,env(safe-area-inset-bottom))]" onClick={() => setPick(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="w-full rounded-3xl border border-amber-300/25 bg-[#080b16]/95 p-4 realm-sheet-in">
-            <div className="flex items-center gap-2">
+        <div className="absolute inset-0 z-[20] flex items-end bg-gradient-to-t from-black/90 via-black/35 to-transparent p-3 pb-[max(12px,env(safe-area-inset-bottom))]" onClick={() => setPick(null)}>
+          <div onClick={(e) => e.stopPropagation()} className="realm-dest-sheet realm-sheet-in">
+            <span className="block text-[7.5px] font-black uppercase tracking-[.3em] text-slate-500">Destino</span>
+            <div className="mt-0.5 flex items-center gap-2">
+              <img src={PLACE_ART[pick.node_type] ?? PLACE_ART.event} alt="" aria-hidden loading="lazy" className="h-10 w-10 flex-none object-contain" style={{ filter: `drop-shadow(0 0 10px ${PLACE_MOOD[pick.node_type]?.glow})` }} />
               <b className="flex-1 text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{REALM_NODE_TITLE[pick.node_type]}</b>
-              <span style={{ color: PLACE_MOOD[pick.node_type]?.glow }} className="text-[9px] font-black uppercase tracking-[.14em]">
+              <span style={{ color: PLACE_MOOD[pick.node_type]?.glow, borderColor: PLACE_MOOD[pick.node_type]?.glow }} className="realm-badge">
                 {PLACE_MOOD[pick.node_type]?.risk}
               </span>
             </div>
-            <p className="mt-1 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
+            <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
+
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button onClick={() => setPick(null)} className="rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">Voltar</button>
-              <button disabled={busy} onClick={() => travel(pick)} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
+              <button onClick={() => setPick(null)} className="realm-dest-ghost">Voltar</button>
+              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">Viajar</button>
             </div>
+
           </div>
         </div>
       )}
