@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
 import RealmBountyBoard from '../components/RealmBountyBoard';
 import RealmDungeonScene from '../components/RealmDungeonScene';
+import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
+
 import {
   REALM_ROOM_LABEL,
   fetchRealmState,
