@@ -32,12 +32,12 @@ const REALM_CREST = '/assets/game/realm/realm-crest.png';
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
-const TABS: { id: Tab; labelKey: string; glyph: string }[] = [
-  { id: 'stronghold', labelKey: 'realm.tab.stronghold', glyph: '🏰' },
-  { id: 'map', labelKey: 'realm.tab.map', glyph: '🗺' },
-  { id: 'forge', labelKey: 'realm.tab.forge', glyph: '⚒' },
-  { id: 'ruins', labelKey: 'realm.tab.ruins', glyph: '☠' },
-  { id: 'bounties', labelKey: 'realm.tab.bounties', glyph: '📜' },
+const TABS: { id: Tab; labelKey: string; art: string }[] = [
+  { id: 'stronghold', labelKey: 'realm.tab.stronghold', art: '/assets/game/realm/tab-stronghold.png' },
+  { id: 'map', labelKey: 'realm.tab.map', art: '/assets/game/realm/tab-map.png' },
+  { id: 'forge', labelKey: 'realm.tab.forge', art: '/assets/game/realm/tab-forge.png' },
+  { id: 'ruins', labelKey: 'realm.tab.ruins', art: '/assets/game/realm/tab-ruins.png' },
+  { id: 'bounties', labelKey: 'realm.tab.bounties', art: '/assets/game/realm/tab-contracts.png' },
 ];
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -237,8 +237,8 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                 onClick={() => { setTab(item.id); if (item.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
                 className={`realm-tab ${tab === item.id ? 'realm-tab-on' : ''}`}
               >
-                <span className="block text-[14px] leading-4">{item.glyph}</span>
-                <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t(item.labelKey)}</span>
+                <img src={item.art} alt="" loading="lazy" className="realm-tab-art" />
+                <span className="realm-tab-label">{t(item.labelKey)}</span>
               </button>
             ))}
           </nav>
