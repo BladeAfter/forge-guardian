@@ -872,7 +872,7 @@ function App() {
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
   // MYTHREON REALM — acesso antecipado: o backend também valida (realm_access_allowed).
-  if(activePage==='realm'&&telegramInitData&&telegramUser?.id===8118569391)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
+  if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
 
 
   return (
@@ -955,7 +955,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'EM BREVE'} onClick={()=>{if(telegramUser?.id===8118569391)openInternal('realm');else setRealmSoonOpen(true)}}/>
+            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
