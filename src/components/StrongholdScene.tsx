@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { realmSecondsLeft, realmTimer, type RealmBuilding, type RealmBuildingType } from '../realm';
+import { type RealmBuilding, type RealmBuildingType } from '../realm';
 
 const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
@@ -29,8 +29,6 @@ const SHORT: Record<string, string> = {
   watchtower: 'Vigia',
 };
 
-type BuildState = 'gated' | 'build' | 'built' | 'upgrading' | 'ready';
-
 /**
  * 🏰 STRONGHOLD — a fortaleza pintada como cena única (referência AAA).
  *
@@ -40,13 +38,12 @@ type BuildState = 'gated' | 'build' | 'built' | 'upgrading' | 'ready';
  * dourado e o painel inferior abre com a ação.
  */
 export default function StrongholdScene({
-  buildingTypes, buildings, level, now, craftingCount, onOpen,
+  buildingTypes, buildings, level, now, onOpen,
 }: {
   buildingTypes: RealmBuildingType[];
   buildings: RealmBuilding[];
   level: number;
   now: number;
-  craftingCount: number;
   onOpen: (id: string) => void;
 }) {
   const box = useRef<HTMLDivElement | null>(null);
