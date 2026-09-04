@@ -21634,6 +21634,15 @@ export type Database = {
         Args: { p_admin_id: number }
         Returns: Json
       }
+      admin_realm_exploration_overview: { Args: never; Returns: Json }
+      admin_realm_exploration_set: {
+        Args: { p_patch: Json; p_region: string }
+        Returns: Json
+      }
+      admin_realm_player_depth: {
+        Args: { p_depth?: number; p_region: string; p_user: string }
+        Returns: Json
+      }
       admin_referral_tree: {
         Args: { p_admin_id: number; p_ref: string }
         Returns: Json

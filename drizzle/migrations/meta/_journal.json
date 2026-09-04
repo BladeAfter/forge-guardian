@@ -631,6 +631,13 @@
       "when": 1788485173631,
       "tag": "0089_realm_exploration_entry_cost_and_depth",
       "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1788485216058,
+      "tag": "0090_realm_region_meta_and_admin_settings",
+      "breakpoints": true
     }
   ]
 }
