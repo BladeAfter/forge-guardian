@@ -30,14 +30,22 @@ const DEPTH_TIER_KEY: Record<string, string> = {
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
-/** Region pins over the world-map art (percent coordinates, mobile-friendly hit areas). */
-const REGION_PIN: { x: number; y: number }[] = [
-  { x: 26, y: 66 },
-  { x: 52, y: 40 },
-  { x: 78, y: 62 },
-  { x: 40, y: 22 },
-  { x: 66, y: 82 },
+/** Region label anchors over the painted world map (percent of the art). */
+const REGION_SPOT: Record<string, { x: number; y: number }> = {
+  greenvale: { x: 22, y: 70 },
+  'crystal-rift': { x: 49, y: 47 },
+  crystal_rift: { x: 49, y: 47 },
+  abyss: { x: 80, y: 22 },
+  'the-abyss': { x: 80, y: 22 },
+};
+const FALLBACK_SPOT: { x: number; y: number }[] = [
+  { x: 22, y: 70 },
+  { x: 49, y: 47 },
+  { x: 80, y: 22 },
+  { x: 32, y: 34 },
+  { x: 68, y: 80 },
 ];
+
 
 type Props = {
   data: RealmState;
