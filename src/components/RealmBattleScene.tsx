@@ -73,6 +73,8 @@ type Props = {
   regionId?: string | null;
   regionName?: string | null;
   regionImage?: string | null;
+  /** 1v1 duel mode: a single hero faces the monster (used by the Ruins rooms). */
+  duel?: boolean;
   onClose: () => void;
 };
 
@@ -81,8 +83,9 @@ type Props = {
  * and the active hero's abilities in the footer. Presentation only: it replays the rounds
  * the backend already resolved (no combat math, no rewards invented here).
  */
-export default function RealmBattleScene({ log, regionId, regionName, regionImage, onClose }: Props) {
+export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
+  const party = useMemo(() => (duel ? PARTY.slice(0, 1) : PARTY), [duel]);
   const t = useT();
   const theme = useMemo(() => themeOf(regionId), [regionId]);
   const foe = useMemo(() => foeOf(log.nodeType, theme, t), [log.nodeType, theme, t]);
@@ -99,8 +102,8 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
   );
   const partyMax = useMemo(() => {
     const total = defeat ? heroDealt : Math.round(heroDealt / 0.62);
-    return PARTY.map(() => Math.max(1, Math.round(total / PARTY.length)));
-  }, [defeat, heroDealt]);
+    return party.map(() => Math.max(1, Math.round(total / party.length)));
+  }, [defeat, heroDealt, party]);
 
   const [bossHp, setBossHp] = useState(bossMax);
   const [partyHp, setPartyHp] = useState<number[]>(() => partyMax.slice());
@@ -177,11 +180,11 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
 
     const next = turn + 1;
     setTurn(next);
-    setSlot((next) % PARTY.length);
+    setSlot((next) % party.length);
     setBusy(false);
     if (next >= rounds.length) finish();
     else setPhase('hero');
-  }, [busy, defeat, finish, flash, phase, pushFloat, rounds, slot, step, t, turn]);
+  }, [busy, defeat, finish, flash, party.length, phase, pushFloat, rounds, slot, step, t, turn]);
 
   useEffect(() => {
     if (!auto || busy || phase === 'done') return;
@@ -191,7 +194,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
 
   const bossPct = Math.max(0, (bossHp / bossMax) * 100);
   const done = phase === 'done';
-  const activeHero = PARTY[slot];
+  const activeHero = party[slot] ?? party[0];
   const unitFloats = (unit: string) => floats.filter((f) => f.unit === unit);
 
   return (
@@ -252,7 +255,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
 
         <section className="relative flex-none px-4">
           <div className="flex items-end justify-center gap-2.5">
-            {PARTY.map((hero, index) => {
+            {party.map((hero, index) => {
               const unit = `p${index}`;
               const hp = partyHp[index] ?? 0;
               const dead = hp <= 0;
@@ -260,7 +263,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               return (
                 <div
                   key={unit}
-                  className={`relative flex-1 rounded-2xl border px-1 pb-1.5 pt-2 transition-all duration-200 ${
+                  className={`relative ${duel ? 'w-1/2 max-w-[200px]' : 'flex-1'} rounded-2xl border px-1 pb-1.5 pt-2 transition-all duration-200 ${
                     dead ? 'border-white/5 opacity-25 grayscale'
                       : active ? '-translate-y-1 border-amber-300/60 bg-black/55 shadow-[0_0_28px_-8px_rgba(251,191,36,.9)]'
                       : 'border-white/10 bg-black/35'
@@ -270,10 +273,10 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
                   {active ? <span className="pointer-events-none absolute inset-x-3 bottom-10 top-3 -z-0 rounded-full bg-amber-300/20 blur-2xl" aria-hidden /> : null}
                   <img
                     src={hero.image} alt={hero.name} loading="lazy"
-                    className="relative mx-auto h-[13vh] max-h-28 min-h-14 object-contain"
+                    className={`relative mx-auto object-contain ${duel ? 'h-[20vh] max-h-48 min-h-24' : 'h-[13vh] max-h-28 min-h-14'}`}
                     style={{ filter: `drop-shadow(0 0 18px ${hero.glow})` }}
                   />
-                  <p className="relative truncate text-center text-[8px] font-black uppercase tracking-[.08em] text-slate-100">{hero.name}</p>
+                  <p className={`relative truncate text-center ${duel ? 'text-[10px]' : 'text-[8px]'}`.replace('XX','') + " ".trim() && "relative truncate text-center text-[9px]"} font-black uppercase tracking-[.08em] text-slate-100">{hero.name}</p>
                   <Bar value={hp} max={partyMax[index] ?? 1} tone="emerald" />
                   {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
                 </div>
