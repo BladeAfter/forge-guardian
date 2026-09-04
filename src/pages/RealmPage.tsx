@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
 import RealmBountyBoard from '../components/RealmBountyBoard';
-import RealmDungeonScene from '../components/RealmDungeonScene';
+import RealmDungeonScene, { duelLogFrom, FIGHT_ROOMS } from '../components/RealmDungeonScene';
+import RealmBattleScene from '../components/RealmBattleScene';
+import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 
@@ -58,6 +60,9 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   
 
   const [dungeonOpen, setDungeonOpen] = useState(true);
+  /* Duelo 1x1 (estilo Familiar Hunt) quando o servidor resolve uma sala de combate. */
+  const [duelLog, setDuelLog] = useState<RealmExploreLog | null>(null);
+  const seenDuelRoom = useRef<string>('');
   const [ruinRegion, setRuinRegion] = useState<string | null>(null);
 
 
