@@ -47,22 +47,32 @@ const PLACE_MOOD: Record<string, { glow: string; risk: string }> = {
   rest: { glow: 'rgba(52,211,153,.75)', risk: 'SEGURO' },
 };
 
+/** Base width (% of scene) per place type — depth scaling is applied on top. */
 const SIZE: Record<string, number> = {
-  boss: 30, elite: 24, combat: 20, shrine: 22, rest: 21,
-  treasure: 17, event: 19, trap: 17, gather: 16,
+  boss: 30, elite: 25, combat: 21, shrine: 24, rest: 23,
+  treasure: 18, event: 21, trap: 18, gather: 17,
 };
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
-/** Deterministic scenery layout: the trail snakes left→right through the region art. */
-function place(node: RealmExploreNode, finalDepth: number) {
-  const span = Math.max(1, finalDepth + 1);
-  const x = 14 + (node.depth / span) * 72;
-  const wave = node.depth % 2 === 0 ? -1 : 1;
-  const laneOffset = (node.lane ?? 0) === 0 ? -13 : (node.lane === 1 ? 6 : 20);
-  const y = 60 + wave * 4 + laneOffset;
-  return { x, y: Math.min(88, Math.max(28, y)) };
-}
+/**
+ * Asymmetric composition: never stack destinations in a column.
+ * Two alternating sets keep consecutive rooms from repeating the same picture.
+ * y is the GROUND line of the place (feet / base), x its horizontal position.
+ */
+const SLOTS: { x: number; y: number }[][] = [
+  [{ x: 19, y: 58 }, { x: 76, y: 66 }, { x: 50, y: 43 }],
+  [{ x: 79, y: 60 }, { x: 23, y: 68 }, { x: 47, y: 42 }],
+];
+
+/** Where the party stands: lower-middle, slightly off-centre. */
+const PARTY_AT = { x: 45, y: 88 };
+
+const slotFor = (depthIndex: number, i: number) => SLOTS[depthIndex % 2][i % 3];
+
+/** Farther up the scene = farther away: smaller, dimmer, more fog. */
+const depthFactor = (y: number) => Math.max(0.6, Math.min(1, (y - 30) / 55));
+
 
 type Props = {
   region: RealmRegion | null;
