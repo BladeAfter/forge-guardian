@@ -159,18 +159,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         </div>
 
         {/* navegação do Realm */}
-        <nav className="mt-2 flex gap-1 overflow-x-auto">
+        <nav className="mt-2 flex gap-1 overflow-x-auto pb-1">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => { setTab(t.id); if (t.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-              className={`shrink-0 rounded-xl px-2.5 py-1.5 text-center ${tab === t.id ? 'bg-amber-500/15 text-amber-100' : 'text-slate-500'}`}
+              className={`realm-tab ${tab === t.id ? 'realm-tab-on' : ''}`}
             >
               <span className="block text-[13px] leading-4">{t.glyph}</span>
-              <span className="block text-[8px] font-bold tracking-wide">{t.label}</span>
+              <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t.label}</span>
             </button>
           ))}
         </nav>
+
       </header>
 
       {notice && (
