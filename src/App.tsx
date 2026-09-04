@@ -943,7 +943,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            {telegramUser?.id===8118569391?<HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle="ACESSO ANTECIPADO" onClick={()=>openInternal('realm')}/>:<span className="home-feature-placeholder h-[112px] w-[108px] shrink-0" aria-hidden />}
+            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'EM BREVE'} onClick={()=>{if(telegramUser?.id===8118569391)openInternal('realm');else setRealmSoonOpen(true)}}/>
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
