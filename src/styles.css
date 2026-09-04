@@ -2955,3 +2955,124 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .forge-reveal-art img { height: 96px; width: 96px; object-fit: contain; filter: drop-shadow(0 10px 16px rgb(0 0 0 / 0.7)); }
 .forge-reveal-name { font-size: 14px; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; color: hsl(42 92% 90%); }
 .forge-reveal-qty { font-size: 11px; font-style: normal; color: hsl(158 60% 78%); }
+
+/* ============ 🌍 REALM — MAPA DE EXPLORAÇÃO AAA (composição assimétrica) ============ */
+/* Lugares reais apoiados no chão, com sombra de contato, oclusão e névoa de distância */
+.realm-place {
+  position: absolute; background: none; border: 0; padding: 0;
+  transform-origin: 50% 100%;
+  transition: transform .45s cubic-bezier(.2,.9,.3,1), opacity .5s ease, filter .4s ease;
+}
+.realm-place-art { position: relative; display: block; width: 100%; height: auto; object-fit: contain; }
+.realm-place-halo {
+  position: absolute; left: 50%; bottom: 2%; width: 130%; aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--poi-glow, rgba(252,211,77,.5)), transparent 70%);
+  opacity: .3; filter: blur(6px);
+  animation: realm-place-breathe 3.2s ease-in-out infinite;
+}
+@keyframes realm-place-breathe { 0%,100% { opacity: .22; } 50% { opacity: .5; } }
+.realm-place-shadow {
+  position: absolute; left: 52%; bottom: -2%; width: 78%; height: 14px;
+  transform: translateX(-50%) scaleY(.45);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.66), transparent 74%);
+  filter: blur(4px);
+}
+.realm-place-ao {
+  position: absolute; left: 50%; bottom: 0; width: 50%; height: 7px;
+  transform: translateX(-50%) scaleY(.5);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.85), transparent 72%);
+  filter: blur(2px);
+}
+.realm-place-fog {
+  position: absolute; inset: -6% -10% -2%;
+  background: linear-gradient(to top, rgba(150,180,215,.14), rgba(150,180,215,.28));
+  mix-blend-mode: screen; filter: blur(5px); pointer-events: none;
+}
+.realm-place:active { transform: translate(-50%, -100%) scale(.97); }
+.realm-place-picked { transform: translate(-50%, -100%) scale(1.08); z-index: 6; filter: saturate(1.15) brightness(1.08); }
+
+/* label discreta, integrada ao local (sem card preto) */
+.realm-place-tag {
+  position: absolute; left: 50%; bottom: -18px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  white-space: nowrap; text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.8);
+}
+.realm-place-tag b { font-size: 8.5px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; color: #f6ead0; }
+.realm-place-tag em { font-size: 6.5px; font-style: normal; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; opacity: .95; }
+
+/* equipe ancorada ao chão, com marca "você está aqui" */
+.realm-party-anchor {
+  position: absolute; transform: translate(-50%, -100%); transform-origin: 50% 100%;
+  pointer-events: none; z-index: 7;
+  transition: left 1.25s cubic-bezier(.4,0,.4,1), top 1.25s cubic-bezier(.4,0,.4,1), width 1.25s ease;
+}
+.realm-party-art {
+  position: relative; display: block; width: 100%; height: auto; object-fit: contain;
+  filter: drop-shadow(4px 5px 9px rgba(0,0,0,.85));
+  transform-origin: 50% 100%;
+  animation: realm-party-breathe 3.2s ease-in-out infinite;
+}
+@keyframes realm-party-breathe { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.012) scaleX(.995); } }
+.realm-party-anchor.is-walking .realm-party-art { animation: realm-party-step .34s ease-in-out infinite; }
+@keyframes realm-party-step { 0%,100% { transform: rotate(-.8deg) scaleY(1); } 50% { transform: rotate(.8deg) scaleY(1.015); } }
+.realm-party-shadow {
+  position: absolute; left: 52%; bottom: -1%; width: 88%; height: 13px;
+  transform: translateX(-50%) scaleY(.45);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.7), transparent 74%);
+  filter: blur(3px);
+}
+.realm-party-mark {
+  position: absolute; left: 50%; bottom: -6%; width: 120%; aspect-ratio: 2.4;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(255,214,140,.32), transparent 70%);
+  filter: blur(4px);
+  animation: realm-mark-pulse 2.4s ease-in-out infinite;
+}
+@keyframes realm-mark-pulse { 0%,100% { opacity: .35; transform: translateX(-50%) scale(.9); } 50% { opacity: .8; transform: translateX(-50%) scale(1.05); } }
+
+/* névoa do desconhecido no topo do quadro + névoa rasteira no primeiro plano */
+.realm-fog-far {
+  background: linear-gradient(to bottom, rgba(8,12,22,.9), rgba(20,32,52,.35) 60%, transparent);
+  filter: blur(2px);
+}
+.realm-scene-fg-mist {
+  background: radial-gradient(80% 120% at 50% 120%, rgba(186,208,238,.22), transparent 72%);
+  filter: blur(8px);
+  animation: realm-fg-mist 12s ease-in-out infinite;
+}
+@keyframes realm-fg-mist { 0%,100% { opacity: .5; transform: translateX(-2%); } 50% { opacity: .95; transform: translateX(3%); } }
+
+/* HUD: uma faixa glass compacta (≤15% da viewport) */
+.realm-run-bar {
+  border-radius: 18px; padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: linear-gradient(180deg, rgba(8,11,20,.78), rgba(8,11,20,.52));
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px -18px rgba(0,0,0,.9);
+}
+.realm-run-bar-row { display: flex; align-items: center; gap: 6px; }
+.realm-run-bar-row--stats { margin-top: 6px; }
+.realm-run-bar .realm-run-region { flex: 1; min-width: 0; font-size: 11px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: #f0dcae; }
+.realm-run-depth { font-size: 9px; font-weight: 900; letter-spacing: .12em; color: #9fb0cf; font-variant-numeric: tabular-nums; }
+.realm-run-ghost {
+  border-radius: 999px; padding: 3px 9px; font-size: 8.5px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.14); color: #d8def0; background: rgba(255,255,255,.04);
+}
+.realm-run-stat {
+  display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 9px;
+  font-size: 8.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: #aab6d0;
+}
+.realm-run-stat i { font-style: normal; font-weight: 900; color: #f4e6c4; font-variant-numeric: tabular-nums; }
+.realm-run-exit {
+  margin-left: auto; border-radius: 999px; padding: 4px 11px;
+  font-size: 8.5px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+  border: 1px solid rgba(110,231,183,.4); color: #b8f3d8; background: rgba(16,185,129,.14);
+}
+.realm-run-exit-hot { box-shadow: 0 0 16px -4px rgba(52,211,153,.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .realm-place-halo, .realm-party-art, .realm-party-mark, .realm-scene-fg-mist,
+  .realm-party-anchor.is-walking .realm-party-art { animation: none !important; }
+}
