@@ -5,12 +5,13 @@ const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
 /** Fixed plot for each building inside the scene (percentages of the scene box). */
 const PLOT: Record<string, { x: number; y: number; size: number; depth: number; glow: string }> = {
-  castle: { x: 50, y: 44, size: 33, depth: 0.35, glow: '#fbbf24' },
-  forge: { x: 79, y: 62, size: 21, depth: 0.7, glow: '#fb923c' },
-  training_ground: { x: 21, y: 62, size: 21, depth: 0.7, glow: '#f87171' },
-  pet_sanctuary: { x: 29, y: 82, size: 20, depth: 1, glow: '#38bdf8' },
-  watchtower: { x: 73, y: 84, size: 20, depth: 1, glow: '#facc15' },
+  castle: { x: 52, y: 56, size: 40, depth: 0.6, glow: '#fbbf24' },
+  forge: { x: 74, y: 65, size: 26, depth: 0.75, glow: '#fb923c' },
+  training_ground: { x: 28, y: 52, size: 26, depth: 0.5, glow: '#f87171' },
+  pet_sanctuary: { x: 47, y: 40, size: 23, depth: 0.3, glow: '#38bdf8' },
+  watchtower: { x: 76, y: 45, size: 22, depth: 0.35, glow: '#facc15' },
 };
+
 
 const SHORT: Record<string, string> = {
   castle: 'CASTELO',
