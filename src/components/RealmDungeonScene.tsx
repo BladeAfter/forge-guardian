@@ -191,6 +191,9 @@ export default function RealmDungeonScene({
         </div>
       )}
 
+      {/* empurra as escolhas para a base da cena (sem espaço morto) */}
+      <div className="dungeon-spacer" aria-hidden />
+
       {/* PORTAS */}
       <div className="dungeon-doors">
         {rooms.length === 0 && phase !== 'walking' && (
