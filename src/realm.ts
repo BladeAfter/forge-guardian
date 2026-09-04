@@ -112,6 +112,12 @@ export type RealmExploreRun = {
   loot: RealmExploreLoot | null;
   pending: { nodeId: string; nodeType: string; options: string[] } | null;
   status: string;
+  /** Depth this run was started at (progression level of the region). */
+  depth_level: number;
+  /** FC paid to enter — already debited server-side. */
+  entry_cost: number;
+  loot_multiplier: number;
+  difficulty: Partial<RealmDepthStats> | null;
 };
 
 export type RealmExploreNodeType =
