@@ -310,8 +310,8 @@ export default function RealmRunScene({
               {/* névoa de distância sobre lugares mais ao fundo */}
               {near < 0.85 && <span className="realm-place-fog" aria-hidden />}
               <span className="realm-place-tag">
-                <b>{REALM_NODE_TITLE[node.node_type] ?? node.node_type}</b>
-                <em style={{ color: mood.glow }}>{mood.risk}</em>
+                <b>{t(REALM_NODE_TITLE_KEY[node.node_type] ?? '') || node.node_type}</b>
+                <em style={{ color: mood.glow }}>{t(mood.risk)}</em>
               </span>
             </button>
           );
