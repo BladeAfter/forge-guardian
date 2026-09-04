@@ -19,6 +19,14 @@ import RealmRunScene from './RealmRunScene';
 
 const WORLD_MAP = '/assets/game/realm/world-map.jpg';
 
+const DEPTH_TIER: Record<string, string> = {
+  normal: 'Normal',
+  hard: 'Difícil',
+  elite: 'Elite',
+  mythic: 'Mítico',
+  abyssal: 'Abissal',
+};
+
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
 /** Region pins over the world-map art (percent coordinates, mobile-friendly hit areas). */
@@ -56,12 +64,16 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
   const [combat, setCombat] = useState<RealmExploreLog | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [moving, setMoving] = useState(false);
+  const [confirm, setConfirm] = useState<string | null>(null);
   const combatTimer = useRef<number | null>(null);
 
   const exploreRun = data.exploreRun;
   const nodes = data.exploreNodes ?? [];
   const region = regions.find((r) => r.id === (exploreRun?.region_id ?? selected)) ?? null;
   const regionLocked = region ? level < region.unlock_stronghold_level : true;
+  /** Server-computed depth progression + entry cost for the selected region. */
+  const meta = (data.regionMeta ?? []).find((m) => m.regionId === region?.id) ?? null;
+  const affordable = !meta || data.fc >= meta.stats.entryCost;
 
   const materialById = useMemo(
     () => Object.fromEntries(data.materials.map((m) => [m.id, m])),
