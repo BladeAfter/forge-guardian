@@ -54,6 +54,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const [craftQty, setCraftQty] = useState(1);
   
   const [showLockedRecipes, setShowLockedRecipes] = useState(false);
+  const [dungeonOpen, setDungeonOpen] = useState(true);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -173,7 +174,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const lockedRecipes = data.recipes.filter((r) => forgeLevel < r.min_forge_level);
 
   /* Run ativa nas Ruínas → modo dungeon fullscreen (esconde todo o chrome do Realm). */
-  if (ruinRun && ruinRun.status === 'running') {
+  if (ruinRun && ruinRun.status === 'running' && dungeonOpen) {
     const region = data.regions.find((r) => r.id === ruinRun.region_id);
     return (
       <RealmDungeonScene
@@ -184,7 +185,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         busy={busy}
         onChoose={(branch) => runAsync(() => realmRuinChoose(telegramInitData, ruinRun.id, branch))}
         onExtract={() => runAsync(() => realmRuinExtract(telegramInitData, ruinRun.id))}
-        onLeave={() => { setTab('ruins'); qc.invalidateQueries({ queryKey: ['realm', telegramInitData] }); }}
+        onLeave={() => { setDungeonOpen(false); setTab('ruins'); qc.invalidateQueries({ queryKey: ['realm', telegramInitData] }); }}
       />
     );
   }
@@ -342,6 +343,12 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
               <b className="absolute bottom-3 left-4 text-[13px] font-black uppercase tracking-[.14em] text-purple-100">RUÍNAS ANCESTRAIS</b>
             </div>
 
+            {ruinRun && ruinRun.status === 'running' && (
+              <button onClick={() => setDungeonOpen(true)} className="w-full rounded-2xl bg-gradient-to-r from-purple-500 to-fuchsia-400 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black">
+                Retomar descida · sala {Math.min(ruinRun.current_room + 1, 10)}/10
+              </button>
+            )}
+
             {!ruinRun ? (
               <div className="space-y-1">
                 {data.regions.filter((r) => r.ruin_enabled && level >= r.unlock_stronghold_level).map((r) => (
@@ -350,7 +357,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                       <b className="text-[11px] font-black text-purple-100">{r.name}</b>
                       <p className="text-[9px] text-slate-500">10 salas • Poder {fmt(r.recommended_power)}</p>
                     </div>
-                    <button disabled={busy} onClick={() => call(() => realmRuinStart(telegramInitData, r.id))} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
+                    <button disabled={busy} onClick={() => { setDungeonOpen(true); call(() => realmRuinStart(telegramInitData, r.id)); }} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
                   </div>
                 ))}
                 {data.regions.filter((r) => r.ruin_enabled && level < r.unlock_stronghold_level).map((r) => (
