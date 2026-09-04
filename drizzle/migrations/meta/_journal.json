@@ -652,6 +652,20 @@
       "when": 1788536983417,
       "tag": "0092_nft_pool_account_ton_bonus_and_celestial_pet_swap",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1788541434743,
+      "tag": "0093_realm_ruins_entry_tiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1788541465974,
+      "tag": "0094_realm_state_ruin_entry",
+      "breakpoints": true
     }
   ]
 }

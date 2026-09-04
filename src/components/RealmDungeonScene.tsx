@@ -122,9 +122,13 @@ export default function RealmDungeonScene({
           <span className="dungeon-hud-room">{t('realm.dungeon.room', { n: roomNumber })}</span>
         </div>
         <div className="dungeon-loot">
-          <span className="dungeon-loot-cap">{t('realm.dungeon.lootCap')}</span>
+          <span className="dungeon-loot-cap">
+            {t('realm.dungeon.lootCap')}
+            {run.entry_tier === 'ton' && <em className="ml-1 not-italic text-amber-300">TON</em>}
+          </span>
           <b>{fmt(run.ruin_coins)}</b>
         </div>
+
       </header>
 
       <div className="dungeon-hp">

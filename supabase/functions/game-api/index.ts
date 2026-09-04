@@ -3268,7 +3268,11 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       if (!isUuid(body.jobId)) throw new Error('REALM_CRAFT_UNKNOWN');
       return rpc(db, 'realm_craft_claim', { p_user: uid, p_id: body.jobId });
     }
-    if (action === 'ruin-start') return rpc(db, 'realm_ruin_start', { p_user: uid, p_region: String(body.regionId || '') });
+    if (action === 'ruin-start') {
+      const tier = String(body.tier || 'fc');
+      if (tier !== 'fc' && tier !== 'ton') throw new Error('REALM_TIER_UNKNOWN');
+      return rpc(db, 'realm_ruin_start', { p_user: uid, p_region: String(body.regionId || ''), p_tier: tier });
+    }
     if (action === 'ruin-choose') {
       if (!isUuid(body.runId)) throw new Error('REALM_RUN_UNKNOWN');
       const branch = Number(body.branch);

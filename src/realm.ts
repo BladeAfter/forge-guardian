@@ -84,7 +84,33 @@ export type RealmRuinRun = {
   hp: number;
   ruin_coins: number;
   status: string;
+  entry_tier?: 'fc' | 'ton';
 };
+
+export type RealmRuinEntry = {
+  fc_cost: number;
+  ton_cost: number;
+  ton_reward_multiplier: number;
+};
+
+export type RealmRuinRecent = {
+  at: string | null;
+  region: string;
+  status: string;
+  room: number;
+  loot: number;
+  tier: 'fc' | 'ton';
+  fc: string | null;
+};
+
+export type RealmRuinStats = {
+  runs: number;
+  clears: number;
+  deepest: number;
+  bestLoot: number;
+  recent: RealmRuinRecent[];
+};
+
 
 export type RealmRuinRoom = {
   id: string;
@@ -222,6 +248,9 @@ export type RealmState = {
   crafting: RealmCraftJob[];
   ruinRun: RealmRuinRun | null;
   ruinRooms: RealmRuinRoom[];
+  ruinEntry?: RealmRuinEntry | null;
+  ruinStats?: RealmRuinStats | null;
+  tonBalance?: number;
   exploreRun: RealmExploreRun | null;
   exploreNodes: RealmExploreNode[];
   bounties: RealmBounty[];
@@ -244,6 +273,9 @@ const REALM_ERRORS: Record<string, string> = {
   REALM_CRAFT_SLOTS_FULL: 'Todas as bancadas da Forja estão ocupadas.',
   REALM_FORGE_TOO_LOW: 'Nível da Forja insuficiente para esta receita.',
   REALM_BOUNTY_INCOMPLETE: 'Contrato ainda não concluído.',
+  REALM_NO_FC: 'Forge Coins insuficientes para pagar a entrada das Ruínas.',
+  REALM_NO_TON: 'Saldo de TON insuficiente para a entrada premium das Ruínas.',
+  REALM_TIER_UNKNOWN: 'Tipo de entrada inválido.',
   REALM_INSUFFICIENT_FC: 'Forge Coins insuficientes para pagar a entrada desta exploração.',
   PLAYER_NOT_FOUND: 'Jogador não encontrado.',
 };
@@ -272,8 +304,8 @@ export const realmStartCraft = (initData: string, recipeId: string, quantity: nu
   realmCall(initData, { action: 'start-craft', recipeId, quantity, idempotencyKey: crypto.randomUUID() });
 export const realmClaimCraft = (initData: string, jobId: string) =>
   realmCall(initData, { action: 'claim-craft', jobId });
-export const realmRuinStart = (initData: string, regionId: string) =>
-  realmCall(initData, { action: 'ruin-start', regionId });
+export const realmRuinStart = (initData: string, regionId: string, tier: 'fc' | 'ton' = 'fc') =>
+  realmCall(initData, { action: 'ruin-start', regionId, tier, idempotencyKey: crypto.randomUUID() });
 export const realmRuinChoose = (initData: string, runId: string, branch: number) =>
   realmCall(initData, { action: 'ruin-choose', runId, branch });
 export const realmRuinExtract = (initData: string, runId: string) =>
