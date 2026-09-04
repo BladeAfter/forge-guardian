@@ -130,6 +130,7 @@ const MAIN_MENU = kb([
   [{ t: "💎 TON STAKING", d: "ts:hub" }],
   [{ t: "🧩 FRAGMENTOS", d: "fg:hub" }],
   [{ t: "🗺 EXPEDIÇÕES", d: "xe:hub" }],
+  [{ t: "🏰 REALM — EXPLORAÇÃO", d: "rx:hub" }],
   [{ t: "🎁 GIVEAWAY POPUP", d: "gw:hub" }],
   [{ t: "⚔️ PVP LEAGUE ARENA", d: "pl:hub" }],
   [{ t: "⚔️ TACTICAL PVP (3V3)", d: "tp:hub" }],
@@ -4582,6 +4583,19 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  rxbase: "💰 Envie o <b>custo base de entrada</b> em FC. Ex.: <code>100000</code>",
+  rxgrowth: "📈 Envie o <b>crescimento do custo</b> por Depth. Ex.: <code>5</code> (=5%)",
+  rxmax: "🧢 Envie o <b>custo máximo</b> de entrada em FC. Ex.: <code>500000</code>",
+  rxhp: "❤️ Envie a <b>escala de HP</b> por Depth. Ex.: <code>12</code> (=12%)",
+  rxatk: "⚔️ Envie a <b>escala de ATK</b> por Depth. Ex.: <code>8</code> (=8%)",
+  rxdef: "🛡 Envie a <b>escala de DEF</b> por Depth. Ex.: <code>5</code> (=5%)",
+  rxloot: "🎁 Envie a <b>escala de loot</b> por Depth. Ex.: <code>3.5</code> (=3,5%)",
+  rxlootmax: "🎁 Envie o <b>multiplicador máximo de loot</b>. Ex.: <code>1.8</code>",
+  rxpower: "💪 Envie o <b>poder recomendado base</b>. Ex.: <code>100000</code>",
+  rxpowerg: "💪 Envie o <b>crescimento do poder</b> por Depth. Ex.: <code>20</code> (=20%)",
+  rxboss: "👑 Envie o <b>intervalo de BOSS</b> em Depths. Ex.: <code>10</code>",
+  rxdepth: "🔻 Envie a <b>Depth máxima</b> da região. Ex.: <code>100</code>",
+  rxplayer: "👤 Envie <code>telegram_id regiao [depth]</code>. Ex.: <code>8118569391 greenvale 5</code>",
   cpprice: "💫 Envie o <b>preço</b> do Celestial Mystery Pack em TON. Ex.: <code>100</code>",
   cpfc: "🪙 Envie a quantidade de <b>Forge Coins</b> do pacote. Ex.: <code>1000000</code>",
   cpchests: "🎁 Envie a quantidade de <b>baús lendários</b>. Ex.: <code>10</code>",
@@ -9330,6 +9344,8 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] !== "ask") await clearSession(ctx);
     return fgCallback(ctx, rest);
   }
+  // 🏰 REALM exploration: entry cost, depth scaling, loot scaling, boss interval.
+  if (head === "rx") return rxCallback(ctx, rest);
   // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
   if (head === "xe") {
     if (rest[0] !== "ask") await clearSession(ctx);
@@ -13007,6 +13023,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
+  if (key.startsWith("rx")) return rxPrompt(ctx, key, args, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
   if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
   if (key.startsWith("tm")) return tmPrompt(ctx, key, text);
@@ -15880,4 +15897,175 @@ async function cwPrompt(ctx: Ctx, key: string, text: string) {
   await clearSession(ctx);
   await send(ctx, `✅ <b>${esc(field)}</b> = <code>${esc(String(value))}</code>.`);
   return cwHub({ ...ctx, messageId: undefined }, false);
+}
+
+// =====================================================================
+// 🗺 REALM → EXPLORATION SETTINGS
+// Entry cost, cost growth/cap, HP/ATK/DEF scaling, loot scaling, boss
+// interval, max depth and per-region on/off — all live, no deploy needed.
+// =====================================================================
+type RxRegion = {
+  regionId: string;
+  name: string;
+  enabled: boolean;
+  entryCostBase: number;
+  entryCostGrowth: number;
+  entryCostMax: number;
+  hpGrowth: number;
+  atkGrowth: number;
+  defGrowth: number;
+  lootGrowth: number;
+  lootGrowthMax: number;
+  powerBase: number;
+  powerGrowth: number;
+  bossInterval: number;
+  maxDepth: number;
+  sample: Record<string, { entryCost: number; recommendedPower: number; hpMult: number; atkMult: number; defMult: number; lootMult: number; tier: string }>;
+};
+
+const RX_FIELDS: Record<string, { patch: string; label: string; pct?: boolean }> = {
+  rxbase: { patch: "entryCostBase", label: "Custo base de entrada (FC)" },
+  rxgrowth: { patch: "entryCostGrowth", label: "Crescimento do custo por Depth", pct: true },
+  rxmax: { patch: "entryCostMax", label: "Custo máximo (FC)" },
+  rxhp: { patch: "hpGrowth", label: "Escala de HP por Depth", pct: true },
+  rxatk: { patch: "atkGrowth", label: "Escala de ATK por Depth", pct: true },
+  rxdef: { patch: "defGrowth", label: "Escala de DEF por Depth", pct: true },
+  rxloot: { patch: "lootGrowth", label: "Escala de loot por Depth", pct: true },
+  rxlootmax: { patch: "lootGrowthMax", label: "Multiplicador máximo de loot" },
+  rxpower: { patch: "powerBase", label: "Poder recomendado base" },
+  rxpowerg: { patch: "powerGrowth", label: "Crescimento do poder por Depth", pct: true },
+  rxboss: { patch: "bossInterval", label: "Intervalo de BOSS (Depths)" },
+  rxdepth: { patch: "maxDepth", label: "Depth máxima" },
+};
+
+async function rxRegions(): Promise<RxRegion[]> {
+  return ((await rpc("admin_realm_exploration_overview", {})) ?? []) as RxRegion[];
+}
+
+async function rxHub(ctx: Ctx, editing = true) {
+  const regions = await rxRegions();
+  const lines = regions.map(
+    (r) =>
+      `${r.enabled ? "🟢" : "🔴"} <b>${esc(r.name)}</b>\n` +
+      `   Entrada D1: <b>${fmt(r.sample?.depth1?.entryCost)} FC</b> • D10: <b>${fmt(r.sample?.depth10?.entryCost)} FC</b>\n` +
+      `   HP +${(Number(r.hpGrowth) * 100).toFixed(0)}% • ATK +${(Number(r.atkGrowth) * 100).toFixed(0)}% • DEF +${(Number(r.defGrowth) * 100).toFixed(0)}% por Depth\n` +
+      `   Boss a cada <b>${r.bossInterval}</b> • Depth máx <b>${r.maxDepth}</b>`,
+  );
+  const text =
+    "🗺 <b>REALM — EXPLORATION SETTINGS</b>\n\n" +
+    (lines.join("\n\n") || "Nenhuma região configurada.") +
+    "\n\n<i>Custo de entrada, escalas e limites são aplicados server-side na próxima exploração.</i>";
+  const rows = [
+    ...regions.map((r) => [{ t: `${r.enabled ? "🟢" : "🔴"} ${r.name}`, d: `rx:r:${r.regionId}` }]),
+    [{ t: "👤 DEPTH DE UM JOGADOR", d: "rx:ask:rxplayer" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function rxRegionCard(ctx: Ctx, regionId: string, editing = true) {
+  const region = (await rxRegions()).find((r) => r.regionId === regionId);
+  if (!region) return rxHub({ ...ctx, messageId: undefined }, false);
+  const pct = (n: unknown) => `${(Number(n ?? 0) * 100).toFixed(1)}%`;
+  const text =
+    `🗺 <b>${esc(region.name)}</b> ${region.enabled ? "🟢 ATIVA" : "🔴 DESATIVADA"}\n\n` +
+    `Custo base: <b>${fmt(region.entryCostBase)} FC</b>\n` +
+    `Crescimento do custo: <b>${pct(region.entryCostGrowth)}</b> por Depth\n` +
+    `Custo máximo: <b>${fmt(region.entryCostMax)} FC</b>\n\n` +
+    `HP: <b>+${pct(region.hpGrowth)}</b> • ATK: <b>+${pct(region.atkGrowth)}</b> • DEF: <b>+${pct(region.defGrowth)}</b>\n` +
+    `Loot: <b>+${pct(region.lootGrowth)}</b> por Depth (máx <b>${Number(region.lootGrowthMax).toFixed(2)}x</b>)\n` +
+    `Poder recomendado: <b>${fmt(region.powerBase)}</b> +${pct(region.powerGrowth)} por Depth\n` +
+    `Boss a cada <b>${region.bossInterval}</b> Depths • Depth máx: <b>${region.maxDepth}</b>\n\n` +
+    `<b>SIMULAÇÃO</b>\n` +
+    (["depth1", "depth5", "depth10"] as const)
+      .map((k) => {
+        const s = region.sample?.[k];
+        if (!s) return "";
+        return `Depth ${k.replace("depth", "")} • ${esc(s.tier).toUpperCase()} — Entrada ${fmt(s.entryCost)} FC • Poder ${fmt(
+          s.recommendedPower,
+        )} • HP ${Number(s.hpMult).toFixed(2)}x • Loot ${Number(s.lootMult).toFixed(2)}x`;
+      })
+      .filter(Boolean)
+      .join("\n");
+  const rows = [
+    [
+      { t: "💰 CUSTO BASE", d: `rx:ask:rxbase|${regionId}` },
+      { t: "📈 CRESCIMENTO", d: `rx:ask:rxgrowth|${regionId}` },
+    ],
+    [
+      { t: "🧢 CUSTO MÁX", d: `rx:ask:rxmax|${regionId}` },
+      { t: "❤️ HP", d: `rx:ask:rxhp|${regionId}` },
+    ],
+    [
+      { t: "⚔️ ATK", d: `rx:ask:rxatk|${regionId}` },
+      { t: "🛡 DEF", d: `rx:ask:rxdef|${regionId}` },
+    ],
+    [
+      { t: "🎁 LOOT", d: `rx:ask:rxloot|${regionId}` },
+      { t: "🎁 LOOT MÁX", d: `rx:ask:rxlootmax|${regionId}` },
+    ],
+    [
+      { t: "💪 PODER BASE", d: `rx:ask:rxpower|${regionId}` },
+      { t: "💪 PODER +", d: `rx:ask:rxpowerg|${regionId}` },
+    ],
+    [
+      { t: "👑 BOSS", d: `rx:ask:rxboss|${regionId}` },
+      { t: "🔻 DEPTH MÁX", d: `rx:ask:rxdepth|${regionId}` },
+    ],
+    [{ t: region.enabled ? "🔴 DESATIVAR REGIÃO" : "🟢 ATIVAR REGIÃO", d: `rx:t:${regionId}:${region.enabled ? 0 : 1}` }],
+    [{ t: "⬅️ REGIÕES", d: "rx:hub" }],
+    nav(),
+  ];
+  return editing ? edit(ctx, text, kb(rows)) : send(ctx, text, kb(rows));
+}
+
+async function rxCallback(ctx: Ctx, rest: string[]) {
+  const [sub, a, b] = rest;
+  if (sub === "ask") {
+    const key = String(a || "").split("|")[0];
+    return ask(ctx, String(a || ""), PROMPTS[key] ?? "Envie o valor.");
+  }
+  await clearSession(ctx);
+  if (sub === "r") return rxRegionCard(ctx, a);
+  if (sub === "t") {
+    await rpc("admin_realm_exploration_set", { p_region: a, p_patch: { enabled: b === "1" } });
+    return rxRegionCard({ ...ctx, messageId: undefined }, a, false);
+  }
+  return rxHub(ctx);
+}
+
+async function rxPrompt(ctx: Ctx, key: string, args: string[], text: string) {
+  if (key === "rxplayer") {
+    const [rawId, regionId, rawDepth] = text.trim().split(/\s+/);
+    if (!rawId || !regionId)
+      throw new Error("KEEP_SESSION::⚠️ Envie <code>telegram_id regiao [depth]</code>. Ex.: <code>8118569391 greenvale 5</code>");
+    const player = await rpc("admin_player_detail", { p_admin_id: ctx.adminId, p_ref: String(rawId).trim() });
+    if (!player?.id) throw new Error("KEEP_SESSION::⚠️ Jogador não encontrado.");
+    const depth = rawDepth ? Number(rawDepth) : null;
+    const res = await rpc("admin_realm_player_depth", {
+      p_user: player.id,
+      p_region: regionId,
+      p_depth: depth && Number.isFinite(depth) ? Math.max(1, Math.floor(depth)) : null,
+    });
+    await clearSession(ctx);
+    await send(
+      ctx,
+      `👤 <b>${esc(player.name)}</b> — ${esc(regionId)}\n` +
+        `Depth atual: <b>${res?.current_depth}</b> • Melhor: <b>${res?.highest_completed_depth}</b>\n` +
+        `Entrada: <b>${fmt(res?.stats?.entryCost)} FC</b> • Poder recomendado: <b>${fmt(res?.stats?.recommendedPower)}</b>`,
+    );
+    return rxHub({ ...ctx, messageId: undefined }, false);
+  }
+
+  const field = RX_FIELDS[key];
+  const regionId = args[0];
+  if (!field || !regionId) return rxHub({ ...ctx, messageId: undefined }, false);
+  let value = Number(String(text).replace(",", "."));
+  if (!Number.isFinite(value) || value < 0) throw new Error("KEEP_SESSION::⚠️ Envie um número válido.");
+  // Percent fields accept both 12 and 0.12.
+  if (field.pct && value > 1) value = value / 100;
+  await rpc("admin_realm_exploration_set", { p_region: regionId, p_patch: { [field.patch]: value } });
+  await clearSession(ctx);
+  await send(ctx, `✅ <b>${esc(field.label)}</b> atualizado para <code>${esc(String(value))}</code>.`);
+  return rxRegionCard({ ...ctx, messageId: undefined }, regionId, false);
 }

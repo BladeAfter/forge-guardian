@@ -624,6 +624,27 @@
       "when": 1788484682116,
       "tag": "0088_expand_sub_nft_templates_pool",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1788485173631,
+      "tag": "0089_realm_exploration_entry_cost_and_depth",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1788485216058,
+      "tag": "0090_realm_region_meta_and_admin_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1788485269112,
+      "tag": "0091_realm_explore_depth_damage_scaling",
+      "breakpoints": true
     }
   ]
 }

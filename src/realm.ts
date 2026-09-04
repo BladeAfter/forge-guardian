@@ -112,6 +112,12 @@ export type RealmExploreRun = {
   loot: RealmExploreLoot | null;
   pending: { nodeId: string; nodeType: string; options: string[] } | null;
   status: string;
+  /** Depth this run was started at (progression level of the region). */
+  depth_level: number;
+  /** FC paid to enter — already debited server-side. */
+  entry_cost: number;
+  loot_multiplier: number;
+  difficulty: Partial<RealmDepthStats> | null;
 };
 
 export type RealmExploreNodeType =
@@ -123,7 +129,16 @@ export type RealmExploreNode = {
   lane: number;
   node_type: RealmExploreNodeType;
   status: 'locked' | 'available' | 'active' | 'resolved' | 'skipped';
-  config: { difficulty?: number; x?: number; y?: number } | null;
+  config: {
+    difficulty?: number;
+    depthLevel?: number;
+    hpMult?: number;
+    atkMult?: number;
+    defMult?: number;
+    greaterBoss?: boolean;
+    x?: number;
+    y?: number;
+  } | null;
 };
 
 /** Result of entering/resolving one node — drives the combat overlay and loot toasts. */
@@ -140,9 +155,36 @@ export type RealmExploreLog = {
   depth?: number;
   risk?: number;
   result?: 'ongoing' | 'failed' | 'cleared' | 'pending';
+  depthLevel?: number;
   reward?: RealmExploreLoot;
   nodeId?: string;
   options?: string[];
+};
+
+/** Per-region depth progression + the server-computed entry cost / scaling snapshot. */
+export type RealmDepthStats = {
+  depth: number;
+  tier: 'normal' | 'hard' | 'elite' | 'mythic' | 'abyssal';
+  hpMult: number;
+  atkMult: number;
+  defMult: number;
+  lootMult: number;
+  entryCost: number;
+  recommendedPower: number;
+  nodes: number;
+  isBossDepth: boolean;
+  isEliteDepth: boolean;
+  maxDepth: number;
+};
+
+export type RealmRegionMeta = {
+  regionId: string;
+  depth: number;
+  bestDepth: number;
+  totalRuns: number;
+  successfulRuns: number;
+  failedRuns: number;
+  stats: RealmDepthStats;
 };
 
 export type RealmBounty = {
@@ -170,6 +212,7 @@ export type RealmState = {
   profile: RealmProfile | null;
   fc: number;
   regions: RealmRegion[];
+  regionMeta: RealmRegionMeta[];
   materials: RealmMaterial[];
   buildingTypes: RealmBuildingType[];
   recipes: RealmRecipe[];
@@ -201,6 +244,7 @@ const REALM_ERRORS: Record<string, string> = {
   REALM_CRAFT_SLOTS_FULL: 'Todas as bancadas da Forja estão ocupadas.',
   REALM_FORGE_TOO_LOW: 'Nível da Forja insuficiente para esta receita.',
   REALM_BOUNTY_INCOMPLETE: 'Contrato ainda não concluído.',
+  REALM_INSUFFICIENT_FC: 'Forge Coins insuficientes para pagar a entrada desta exploração.',
   PLAYER_NOT_FOUND: 'Jogador não encontrado.',
 };
 
