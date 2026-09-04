@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { realmSecondsLeft, realmTimer, type RealmBuilding, type RealmBuildingType } from '../realm';
+import { type RealmBuilding, type RealmBuildingType } from '../realm';
 
 const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
@@ -29,8 +29,6 @@ const SHORT: Record<string, string> = {
   watchtower: 'Vigia',
 };
 
-type BuildState = 'gated' | 'build' | 'built' | 'upgrading' | 'ready';
-
 /**
  * 🏰 STRONGHOLD — a fortaleza pintada como cena única (referência AAA).
  *
@@ -40,13 +38,12 @@ type BuildState = 'gated' | 'build' | 'built' | 'upgrading' | 'ready';
  * dourado e o painel inferior abre com a ação.
  */
 export default function StrongholdScene({
-  buildingTypes, buildings, level, now, craftingCount, onOpen,
+  buildingTypes, buildings, level, now, onOpen,
 }: {
   buildingTypes: RealmBuildingType[];
   buildings: RealmBuilding[];
   level: number;
   now: number;
-  craftingCount: number;
   onOpen: (id: string) => void;
 }) {
   const box = useRef<HTMLDivElement | null>(null);
@@ -168,11 +165,7 @@ export default function StrongholdScene({
             const spot = SPOT[bt.id];
             const b = buildings.find((x) => x.building_type === bt.id);
             const lvl = b?.level ?? 0;
-            const left = realmSecondsLeft(b?.upgrade_finishes_at, now);
-            const upgrading = Boolean(b && b.status !== 'idle' && left > 0);
-            const ready = Boolean(b && b.status !== 'idle' && left <= 0);
-            const gated = bt.id !== 'castle' && !upgrading && !ready && lvl + 1 > castleLevel;
-            const state: BuildState = ready ? 'ready' : upgrading ? 'upgrading' : gated ? 'gated' : lvl > 0 ? 'built' : 'build';
+            const gated = bt.id !== 'castle' && b?.status === 'idle' && lvl + 1 > castleLevel;
             const focused = focus === bt.id;
 
             return (
@@ -204,11 +197,6 @@ export default function StrongholdScene({
                 {/* placa discreta, integrada à cena */}
                 <span className={`sh-name ${focused ? 'sh-name-on' : ''}`}>
                   <b>{SHORT[bt.id] ?? bt.name} <em>Lv.{lvl}</em></b>
-                  {state === 'upgrading' && <i className="sh-tag-work tabular-nums">{realmTimer(left)}</i>}
-                  {state === 'ready' && <i className="sh-tag-ready">Pronto</i>}
-                  {state === 'build' && <i className="sh-tag-build">Construir</i>}
-                  {state === 'gated' && lvl === 0 && <i className="sh-tag-lock">🔒</i>}
-                  {state === 'built' && bt.id === 'forge' && craftingCount > 0 && <i className="sh-tag-craft">Forjando</i>}
                 </span>
               </button>
             );
