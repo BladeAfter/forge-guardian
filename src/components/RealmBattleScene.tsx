@@ -4,17 +4,14 @@ import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 
-const HERO_IMG = '/assets/game/realm/battle-hero.png';
-
 type Theme = {
   key: 'greenvale' | 'crystal' | 'abyss';
   foe: string;
   ground: string;
-  foreground: string;
   bossNameKey: string;
 };
 
-/** Region id → battlefield theme (background art, ground plane, foreground vegetation, enemy). */
+/** Region id → battlefield theme (background art, enemy). */
 function themeOf(regionId?: string | null): Theme {
   const id = (regionId ?? '').toLowerCase();
   if (id.includes('crystal') || id.includes('rift')) {
@@ -22,7 +19,6 @@ function themeOf(regionId?: string | null): Theme {
       key: 'crystal',
       foe: '/assets/game/realm/foe-crystal-rift.png',
       ground: '/assets/game/realm/battle-ground-crystal-rift.jpg',
-      foreground: '/assets/game/realm/battle-fg-crystal-rift.png',
       bossNameKey: 'realm.foe.crystal',
     };
   }
@@ -31,7 +27,6 @@ function themeOf(regionId?: string | null): Theme {
       key: 'abyss',
       foe: '/assets/game/realm/foe-abyss.png',
       ground: '/assets/game/realm/battle-ground-abyss.jpg',
-      foreground: '/assets/game/realm/battle-fg-abyss.png',
       bossNameKey: 'realm.foe.abyss',
     };
   }
@@ -39,7 +34,6 @@ function themeOf(regionId?: string | null): Theme {
     key: 'greenvale',
     foe: '/assets/game/realm/foe-greenvale.png',
     ground: '/assets/game/realm/battle-ground-greenvale.jpg',
-    foreground: '/assets/game/realm/battle-fg-greenvale.png',
     bossNameKey: 'realm.foe.wild',
   };
 }
@@ -48,21 +42,20 @@ function themeOf(regionId?: string | null): Theme {
 function foeOf(nodeType: RealmExploreNodeType | undefined, theme: Theme, t: Translator) {
   const base = t(theme.bossNameKey);
   if (nodeType === 'boss') {
-    return { art: '/assets/game/realm/poi-boss.png', rank: t('realm.battle.rank.boss'), name: t('realm.foe.ancestral', { name: base }), scale: 1.18 };
+    return { art: '/assets/game/realm/poi-boss.png', rank: t('realm.battle.rank.boss'), name: t('realm.foe.ancestral', { name: base }) };
   }
   if (nodeType === 'elite') {
-    return { art: '/assets/game/realm/poi-elite.png', rank: t('realm.battle.rank.elite'), name: t('realm.foe.eliteSuffix', { name: base }), scale: 1.06 };
+    return { art: '/assets/game/realm/poi-elite.png', rank: t('realm.battle.rank.elite'), name: t('realm.foe.eliteSuffix', { name: base }) };
   }
-  return { art: theme.foe, rank: t('realm.battle.rank.foe'), name: base, scale: 0.96 };
+  return { art: theme.foe, rank: t('realm.battle.rank.foe'), name: base };
 }
 
-/**
- * Fixed combat slots. `x` is the horizontal center, `groundY` is the ground line the
- * sprite's feet are anchored to (percent from the top of the battlefield stage), and
- * `scale` handles the small perspective difference between near/far combatants.
- */
-const PLAYER_SLOT = { x: 29, groundY: 82, scale: 1.0 };
-const ENEMY_SLOT = { x: 71, groundY: 76, scale: 0.94 };
+/** The three heroes shown in the party row (presentation only). */
+const PARTY = [
+  { name: 'Aldric', image: '/assets/game/realm/party-knight.png', glow: 'rgba(251,191,36,.55)' },
+  { name: 'Sylvane', image: '/assets/game/realm/party-mage.png', glow: 'rgba(168,85,247,.55)' },
+  { name: 'Kaelis', image: '/assets/game/realm/party-ranger.png', glow: 'rgba(52,211,153,.55)' },
+];
 
 const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString('pt-BR');
 const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
@@ -84,11 +77,9 @@ type Props = {
 };
 
 /**
- * ⚔️ REALM BATTLE SCENE — fullscreen boss encounter (Familiar Hunt style) with the hero.
- *
- * Presentation only: replays the rounds the backend already resolved, but as a real
- * turn-based duel — named boss with HP bar and numbers, hero with HP bar, ability buttons,
- * floating damage, auto / x2 / skip. No combat math, no rewards invented here.
+ * ⚔️ REALM BATTLE SCENE — Familiar Hunt style: the boss on top, the 3-hero party below,
+ * and the active hero's abilities in the footer. Presentation only: it replays the rounds
+ * the backend already resolved (no combat math, no rewards invented here).
  */
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
@@ -106,31 +97,40 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
     () => Math.max(1, rounds.reduce((s, r) => s + Number(r.enemyHit ?? 0), 0)),
     [rounds],
   );
-  const heroMax = defeat ? heroDealt : Math.round(heroDealt / 0.62);
+  const partyMax = useMemo(() => {
+    const total = defeat ? heroDealt : Math.round(heroDealt / 0.62);
+    return PARTY.map(() => Math.max(1, Math.round(total / PARTY.length)));
+  }, [defeat, heroDealt]);
 
   const [bossHp, setBossHp] = useState(bossMax);
-  const [heroHp, setHeroHp] = useState(heroMax);
+  const [partyHp, setPartyHp] = useState<number[]>(() => partyMax.slice());
   const [turn, setTurn] = useState(0);
+  const [slot, setSlot] = useState(0);
   const [phase, setPhase] = useState<'hero' | 'foe' | 'done'>('hero');
   const [busy, setBusy] = useState(false);
   const [auto, setAuto] = useState(false);
   const [speed, setSpeed] = useState<1 | 2>(1);
-  const [impact, setImpact] = useState<'hero' | 'foe' | null>(null);
+  const [hit, setHit] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(t('realm.battle.foeApproaches'));
-  const [floats, setFloats] = useState<{ id: number; unit: 'hero' | 'foe'; text: string }[]>([]);
+  const [floats, setFloats] = useState<{ id: number; unit: string; text: string; tone: 'foe' | 'hero' }[]>([]);
   const floatId = useRef(0);
   const finished = useRef(false);
   const step = 560 / speed;
 
   useEffect(() => {
-    const t = window.setTimeout(() => setBanner(null), 1200);
-    return () => window.clearTimeout(t);
+    const id = window.setTimeout(() => setBanner(null), 1200);
+    return () => window.clearTimeout(id);
   }, []);
 
-  const pushFloat = useCallback((unit: 'hero' | 'foe', text: string) => {
+  const pushFloat = useCallback((unit: string, text: string, tone: 'foe' | 'hero') => {
     const id = (floatId.current += 1);
-    setFloats((rows) => [...rows, { id, unit, text }]);
+    setFloats((rows) => [...rows, { id, unit, text, tone }]);
     window.setTimeout(() => setFloats((rows) => rows.filter((r) => r.id !== id)), 900);
+  }, []);
+
+  const flash = useCallback((unit: string) => {
+    setHit(unit);
+    window.setTimeout(() => setHit(null), 240);
   }, []);
 
   const finish = useCallback(() => {
@@ -138,157 +138,153 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
     finished.current = true;
     setPhase('done');
     setBossHp(defeat ? Math.max(1, Math.round(bossMax * 0.18)) : 0);
-    setHeroHp(defeat ? 0 : Math.max(1, heroMax - heroDealt));
+    setPartyHp(defeat ? partyMax.map(() => 0) : partyMax.map((max) => Math.max(1, Math.round(max * 0.38))));
     setBanner(defeat ? t('realm.battle.partyDefeatedCaps') : t('realm.battle.foeDefeatedCaps'));
     window.setTimeout(() => setBanner(null), 1400);
-  }, [bossMax, defeat, heroDealt, heroMax]);
+  }, [bossMax, defeat, partyMax, t]);
 
-  /** Plays one authoritative round: hero strikes, then the foe answers. */
+  /** Plays one authoritative round: the active hero strikes, then the boss answers. */
   const playTurn = useCallback(async () => {
     if (busy || phase === 'done') return;
     const round = rounds[turn];
     if (!round) { finish(); return; }
     setBusy(true);
 
-    setImpact('foe');
-    await wait(step * 0.45);
+    const attacker = slot;
     const foeDmg = Number(round.playerHit ?? 0);
+    flash('foe');
+    await wait(step * 0.45);
     setBossHp((hp) => Math.max(0, hp - foeDmg));
-    pushFloat('foe', `-${fmt(foeDmg)}`);
+    pushFloat('foe', `-${fmt(foeDmg)}`, 'foe');
     await wait(step * 0.8);
-    setImpact(null);
 
     const heroDmg = Number(round.enemyHit ?? 0);
     if (heroDmg > 0) {
       setPhase('foe');
-      setImpact('hero');
+      setBanner(t('realm.battle.foeTurn'));
+      const target = `p${attacker}`;
+      flash(target);
       await wait(step * 0.45);
-      setHeroHp((hp) => Math.max(defeat ? 0 : 1, hp - heroDmg));
-      pushFloat('hero', `-${fmt(heroDmg)}`);
+      setPartyHp((rows) => {
+        const next = rows.slice();
+        next[attacker] = Math.max(defeat ? 0 : 1, (next[attacker] ?? 0) - heroDmg);
+        return next;
+      });
+      pushFloat(target, `-${fmt(heroDmg)}`, 'hero');
       await wait(step * 0.7);
-      setImpact(null);
+      setBanner(null);
     }
 
     const next = turn + 1;
     setTurn(next);
+    setSlot((next) % PARTY.length);
     setBusy(false);
     if (next >= rounds.length) finish();
     else setPhase('hero');
-  }, [busy, defeat, finish, phase, pushFloat, rounds, step, turn]);
+  }, [busy, defeat, finish, flash, phase, pushFloat, rounds, slot, step, t, turn]);
 
   useEffect(() => {
     if (!auto || busy || phase === 'done') return;
-    const t = window.setTimeout(() => { void playTurn(); }, step * 0.5);
-    return () => window.clearTimeout(t);
+    const id = window.setTimeout(() => { void playTurn(); }, step * 0.5);
+    return () => window.clearTimeout(id);
   }, [auto, busy, phase, playTurn, step]);
 
   const bossPct = Math.max(0, (bossHp / bossMax) * 100);
-  const heroPct = Math.max(0, (heroHp / heroMax) * 100);
   const done = phase === 'done';
-
-  const unitFloats = (unit: 'hero' | 'foe') => floats.filter((f) => f.unit === unit);
+  const activeHero = PARTY[slot];
+  const unitFloats = (unit: string) => floats.filter((f) => f.unit === unit);
 
   return (
-    <div className={`realm-battle bf-stage bf-stage--${theme.key} fixed inset-0 z-[80] flex flex-col`}>
-      <img src={regionImage ?? '/assets/game/realm/world-map.jpg'} alt="" className="bf-bg" />
-      <span className="bf-bg-haze" aria-hidden />
-      <span className="bf-mid" aria-hidden />
+    <div className="fixed inset-0 z-[80] flex flex-col overflow-hidden bg-[#05060c]">
+      <img src={regionImage ?? theme.ground} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-45" />
+      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_18%,rgba(6,10,22,.15),rgba(3,4,10,.92))]" aria-hidden />
 
-      {/* ── BOSS HEADER ─────────────────────────────────────────────── */}
-      <header className="relative z-30 px-4 pt-[calc(0.85rem+env(safe-area-inset-top))]">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-[8px] font-black uppercase tracking-[.24em] text-rose-300/90">
-              {foe.rank} · {regionName ?? t('realm.battle.region')}
-            </p>
-            <b className="block truncate text-[13px] font-black uppercase tracking-[.12em] text-rose-100">{foe.name}</b>
-            <div className="realm-hpbar mt-1"><span style={{ width: `${bossPct}%` }} className="realm-hpfill realm-hpfill-foe" /></div>
-            <p className="mt-0.5 text-[8px] font-bold tracking-wider text-slate-400">{fmt(bossHp)} / {fmt(bossMax)} HP</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <button
-              type="button" onClick={() => setAuto((v) => !v)}
-              className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] transition active:scale-95 ${auto ? 'border-emerald-300/60 bg-emerald-300/15 text-emerald-200' : 'border-white/15 bg-black/50 text-slate-400'}`}
-            >AUTO</button>
-            <button
-              type="button" onClick={() => setSpeed((v) => (v === 1 ? 2 : 1))}
-              className="rounded-full border border-sky-300/40 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-sky-200 transition active:scale-95"
-            >x{speed}</button>
-            <button
-              type="button" onClick={finish}
-              className="flex items-center gap-1 rounded-full border border-amber-300/45 bg-black/50 px-2 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95"
-            ><ChevronsRight className="h-3 w-3" /> SKIP</button>
-          </div>
+      {/* ── HEADER ─────────────────────────────────────────────── */}
+      <header className="relative z-30 flex items-center justify-between gap-2 px-4 pt-[calc(0.85rem+env(safe-area-inset-top))]">
+        <div className="min-w-0">
+          <p className="truncate text-[9px] font-black uppercase tracking-[.22em] text-amber-200">
+            {regionName ?? t('realm.battle.region')} · {foe.rank}
+          </p>
+          <p className="text-[8px] font-bold uppercase tracking-[.2em] text-slate-500">
+            {t('realm.battle.heroTurn', { turn: Math.min(turn + 1, Math.max(1, rounds.length)), total: Math.max(1, rounds.length) })}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button" onClick={() => setAuto((v) => !v)}
+            className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] transition active:scale-95 ${auto ? 'border-emerald-300/60 bg-emerald-300/15 text-emerald-200' : 'border-white/15 bg-black/50 text-slate-400'}`}
+          >AUTO</button>
+          <button
+            type="button" onClick={() => setSpeed((v) => (v === 1 ? 2 : 1))}
+            className="rounded-full border border-sky-300/40 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-sky-200 transition active:scale-95"
+          >x{speed}</button>
+          <button
+            type="button" onClick={finish}
+            className="flex items-center gap-1 rounded-full border border-amber-300/45 bg-black/50 px-2 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95"
+          ><ChevronsRight className="h-3 w-3" /> SKIP</button>
         </div>
       </header>
 
-      {/* ── BATTLEFIELD ──────────────────────────────────────────────── */}
-      <div className="bf-field relative z-10 flex-1">
-        <img src={theme.ground} alt="" loading="lazy" className="bf-ground" />
-        <span className="bf-ground-blend" aria-hidden />
-        <span className="bf-arena-light" aria-hidden />
+      {/* ── STAGE: boss on top, party below ──────────────────────── */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-between gap-1 py-2">
+        <section className="relative flex-none px-6">
+          <div className={`relative mx-auto w-2/3 max-w-[240px] transition-all duration-200 ${done && !defeat ? 'translate-y-2 opacity-20 grayscale' : ''} ${hit === 'foe' ? 'translate-y-1.5 scale-[.97]' : ''}`}>
+            {unitFloats('foe').map((f) => <FloatText key={f.id} text={f.text} tone={f.tone} />)}
+            <img
+              src={foe.art} alt={foe.name} loading="lazy"
+              className="mx-auto h-[22vh] max-h-56 min-h-24 object-contain drop-shadow-[0_0_34px_rgba(244,63,94,.5)]"
+            />
+            <p className="truncate text-center text-[10px] font-black uppercase tracking-[.14em] text-rose-200">{foe.name}</p>
+            <Bar value={bossHp} max={bossMax} tone="rose" />
+            <p className="text-center text-[8px] font-bold tracking-wider text-slate-400">{fmt(bossHp)} / {fmt(bossMax)} · {Math.round(bossPct)}%</p>
+          </div>
+        </section>
 
-        {/* HERO */}
-        <div
-          className="bf-slot"
-          style={{ left: `${PLAYER_SLOT.x}%`, top: `${PLAYER_SLOT.groundY}%`, ['--slot-scale' as string]: PLAYER_SLOT.scale }}
-        >
-          <span className="bf-shadow" aria-hidden />
-          <span className="bf-ao" aria-hidden />
-          <img
-            src={HERO_IMG} alt="" loading="lazy"
-            className={`bf-sprite bf-sprite--hero ${impact === 'foe' ? 'is-attacking' : ''} ${impact === 'hero' ? 'is-hit' : ''} ${done && defeat ? 'opacity-30 grayscale' : ''}`}
-          />
-          <span className={`bf-wrap bf-wrap--${theme.key}`} aria-hidden />
-          {impact === 'foe' && <span className="bf-dust" aria-hidden />}
-          {unitFloats('hero').map((f) => (
-            <b key={f.id} className="realm-dmg absolute -top-6 left-1/2 -translate-x-1/2 text-[18px] font-black text-rose-300">{f.text}</b>
-          ))}
-        </div>
-
-        {/* BOSS */}
-        <div
-          className={`bf-slot ${done && !defeat ? 'is-down' : ''}`}
-          style={{ left: `${ENEMY_SLOT.x}%`, top: `${ENEMY_SLOT.groundY}%`, ['--slot-scale' as string]: ENEMY_SLOT.scale * foe.scale }}
-        >
-          <span className="bf-shadow bf-shadow--foe" aria-hidden />
-          <span className="bf-ao" aria-hidden />
-          <img
-            src={foe.art} alt={foe.name} loading="lazy"
-            className={`bf-sprite bf-sprite--foe ${impact === 'hero' ? 'is-attacking' : ''} ${impact === 'foe' ? 'is-hit' : ''}`}
-          />
-          <span className={`bf-wrap bf-wrap--${theme.key}`} aria-hidden />
-          {impact === 'hero' && <span className="bf-dust" aria-hidden />}
-          {unitFloats('foe').map((f) => (
-            <b key={f.id} className="realm-dmg absolute -top-6 left-1/2 -translate-x-1/2 text-[20px] font-black text-emerald-300">{f.text}</b>
-          ))}
-        </div>
-
-        {impact && <span className="realm-battle-slash" />}
-
-        {banner && (
-          <div className="pointer-events-none absolute inset-x-0 top-[10%] z-20 grid place-items-center px-6">
-            <p className="rounded-full border border-amber-300/40 bg-black/70 px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-[.22em] text-amber-100">
+        <div className="flex h-7 flex-none items-center justify-center px-6">
+          {banner ? (
+            <p className="animate-[scale-in_.2s_ease-out] rounded-full border border-amber-300/40 bg-black/70 px-4 py-1.5 text-center text-[9px] font-black uppercase tracking-[.2em] text-amber-100 shadow-[0_0_24px_-8px_rgba(251,191,36,.8)]">
               {banner}
             </p>
-          </div>
-        )}
-
-        <img src={theme.foreground} alt="" loading="lazy" className="bf-fg" />
-        <span className="bf-fg-mist" aria-hidden />
-      </div>
-
-      {/* ── HERO BAR + ABILITIES / RESULT ────────────────────────────── */}
-      <footer className="relative z-30 border-t border-white/10 bg-black/70 px-3 pb-[calc(0.85rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-sm">
-        <div className="mb-2 flex items-center gap-2">
-          <img src={HERO_IMG} alt="" aria-hidden className="h-8 w-8 rounded-full border border-amber-300/40 object-cover object-top" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[8px] font-black uppercase tracking-[.2em] text-amber-200/85">{t('realm.battle.heroTurn', { turn: Math.min(turn + 1, Math.max(1, rounds.length)), total: Math.max(1, rounds.length) })}</p>
-            <div className="realm-hpbar mt-1"><span style={{ width: `${heroPct}%` }} className="realm-hpfill realm-hpfill-hero" /></div>
-          </div>
-          <span className="shrink-0 text-[8px] font-bold tracking-wider text-slate-400">{fmt(heroHp)} / {fmt(heroMax)}</span>
+          ) : null}
         </div>
 
+        <div className="mx-auto h-px w-2/3 flex-none bg-gradient-to-r from-transparent via-amber-300/45 to-transparent shadow-[0_0_18px_rgba(251,191,36,.6)]" />
+
+        <section className="relative flex-none px-4">
+          <div className="flex items-end justify-center gap-2.5">
+            {PARTY.map((hero, index) => {
+              const unit = `p${index}`;
+              const hp = partyHp[index] ?? 0;
+              const dead = hp <= 0;
+              const active = phase === 'hero' && index === slot && !done;
+              return (
+                <div
+                  key={unit}
+                  className={`relative flex-1 rounded-2xl border px-1 pb-1.5 pt-2 transition-all duration-200 ${
+                    dead ? 'border-white/5 opacity-25 grayscale'
+                      : active ? '-translate-y-1 border-amber-300/60 bg-black/55 shadow-[0_0_28px_-8px_rgba(251,191,36,.9)]'
+                      : 'border-white/10 bg-black/35'
+                  } ${hit === unit ? 'translate-y-1 scale-[.97]' : ''}`}
+                >
+                  {unitFloats(unit).map((f) => <FloatText key={f.id} text={f.text} tone={f.tone} />)}
+                  {active ? <span className="pointer-events-none absolute inset-x-3 bottom-10 top-3 -z-0 rounded-full bg-amber-300/20 blur-2xl" aria-hidden /> : null}
+                  <img
+                    src={hero.image} alt={hero.name} loading="lazy"
+                    className="relative mx-auto h-[13vh] max-h-28 min-h-14 object-contain"
+                    style={{ filter: `drop-shadow(0 0 18px ${hero.glow})` }}
+                  />
+                  <p className="relative truncate text-center text-[8px] font-black uppercase tracking-[.08em] text-slate-100">{hero.name}</p>
+                  <Bar value={hp} max={partyMax[index] ?? 1} tone="emerald" />
+                  {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      {/* ── FOOTER: active hero abilities / result ───────────────── */}
+      <footer className="relative z-30 flex-none border-t border-white/10 bg-black/70 px-3 pb-[calc(0.85rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-sm">
         {done ? (
           <div className="bf-result">
             <p className={`text-[13px] font-black uppercase tracking-[.2em] ${defeat ? 'text-rose-300' : 'text-amber-200'}`}>
@@ -310,26 +306,51 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
             <button onClick={onClose} className="bf-continue">{t('realm.continue')}</button>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {ABILITIES.map((ability) => {
-              const Icon = ability.icon;
-              return (
-                <button
-                  key={ability.nameKey}
-                  type="button"
-                  disabled={busy || auto}
-                  onClick={() => void playTurn()}
-                  className={`relative overflow-hidden rounded-2xl border px-2 pb-2 pt-2.5 text-center transition active:scale-95 disabled:opacity-40 ${ability.ring}`}
-                >
-                  <Icon className={`mx-auto h-5 w-5 ${ability.tone}`} />
-                  <span className={`mt-1 block text-[9px] font-black uppercase tracking-[.06em] ${ability.tone}`}>{t(ability.nameKey)}</span>
-                  <span className="mt-0.5 block text-[7px] font-bold uppercase tracking-[.1em] text-white/45">{t(ability.blurbKey)}</span>
-                </button>
-              );
-            })}
-          </div>
+          <>
+            <p className="mb-1.5 text-center text-[8px] font-black uppercase tracking-[.24em] text-slate-500">
+              {t('realm.battle.abilitiesOf')} <span className="text-amber-200">{activeHero.name}</span>
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {ABILITIES.map((ability) => {
+                const Icon = ability.icon;
+                return (
+                  <button
+                    key={ability.nameKey}
+                    type="button"
+                    disabled={busy || auto}
+                    onClick={() => void playTurn()}
+                    className={`relative overflow-hidden rounded-2xl border px-2 pb-2 pt-2.5 text-center transition active:scale-95 disabled:opacity-40 ${ability.ring}`}
+                  >
+                    <Icon className={`mx-auto h-5 w-5 ${ability.tone}`} />
+                    <span className={`mt-1 block text-[8.5px] font-black uppercase leading-tight tracking-[.04em] ${ability.tone}`}>{t(ability.nameKey)}</span>
+                    <span className="mt-0.5 block text-[7px] font-bold uppercase tracking-[.1em] text-white/45">{t(ability.blurbKey)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
       </footer>
+    </div>
+  );
+}
+
+function FloatText({ text, tone }: { text: string; tone: 'foe' | 'hero' }) {
+  return (
+    <span className={`pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 animate-[fade-out_.9s_ease-out_forwards] font-black drop-shadow-[0_2px_6px_rgba(0,0,0,.95)] ${tone === 'foe' ? 'text-[18px] text-amber-300' : 'text-[15px] text-rose-300'}`}>
+      {text}
+    </span>
+  );
+}
+
+function Bar({ value, max, tone }: { value: number; max: number; tone: 'rose' | 'emerald' }) {
+  const pct = Math.max(0, Math.min(100, (value / Math.max(1, max)) * 100));
+  return (
+    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full border border-black/70 bg-black/70">
+      <div
+        className={`h-full rounded-full transition-[width] duration-300 ${tone === 'rose' ? 'bg-gradient-to-r from-rose-500 to-rose-300 shadow-[0_0_10px_rgba(244,63,94,.7)]' : 'bg-gradient-to-r from-emerald-500 to-emerald-300 shadow-[0_0_10px_rgba(52,211,153,.7)]'}`}
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
