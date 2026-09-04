@@ -18,7 +18,7 @@ import RealmBattleScene from './RealmBattleScene';
 import RealmRunScene from './RealmRunScene';
 import { useT } from '../LanguageContext';
 
-const WORLD_MAP = '/assets/game/realm/world-map.jpg';
+const WORLD_MAP = '/assets/game/realm/world-map.png';
 
 const DEPTH_TIER_KEY: Record<string, string> = {
   normal: 'realm.tier.normal',
@@ -32,16 +32,16 @@ const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n ||
 
 /** Region label anchors over the painted world map (percent of the art). */
 const REGION_SPOT: Record<string, { x: number; y: number }> = {
-  greenvale: { x: 22, y: 70 },
-  'crystal-rift': { x: 49, y: 47 },
-  crystal_rift: { x: 49, y: 47 },
-  abyss: { x: 80, y: 22 },
-  'the-abyss': { x: 80, y: 22 },
+  greenvale: { x: 16, y: 88 },
+  'crystal-rift': { x: 50, y: 47 },
+  crystal_rift: { x: 50, y: 47 },
+  abyss: { x: 83, y: 23 },
+  'the-abyss': { x: 83, y: 23 },
 };
 const FALLBACK_SPOT: { x: number; y: number }[] = [
-  { x: 22, y: 70 },
-  { x: 49, y: 47 },
-  { x: 80, y: 22 },
+  { x: 16, y: 88 },
+  { x: 50, y: 47 },
+  { x: 83, y: 23 },
   { x: 32, y: 34 },
   { x: 68, y: 80 },
 ];
@@ -133,8 +133,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
       <section className="space-y-3">
         {/* WORLD MAP — single painted world, region names written on the terrain */}
         <div className="realm-world relative overflow-hidden">
-          <img src={WORLD_MAP} alt="" loading="lazy" className="block h-[58vh] max-h-[520px] w-full object-cover" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#05070f]/70 via-transparent to-[#05070f]" />
+          <img src={WORLD_MAP} alt="" loading="lazy" className="block w-full" />
           {regions.map((r, i) => {
             const spot = REGION_SPOT[r.id] ?? FALLBACK_SPOT[i % FALLBACK_SPOT.length];
             const locked = level < r.unlock_stronghold_level;
@@ -145,16 +144,9 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 onClick={() => setSelected(r.id)}
                 aria-label={r.name}
                 style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 px-6 py-5"
+                className={`realm-world-hotspot absolute -translate-x-1/2 -translate-y-1/2 ${on ? 'is-on' : ''} ${locked ? 'is-locked' : ''}`}
               >
-                <span className={`realm-world-name ${on ? 'is-on' : ''} ${locked ? 'is-locked' : ''}`}>
-                  {r.name}
-                  {locked && (
-                    <em className="realm-world-lock" title={`Lv.${r.unlock_stronghold_level}`} aria-hidden>
-                      🔒
-                    </em>
-                  )}
-                </span>
+                <span className="sr-only">{r.name}</span>
               </button>
             );
           })}
