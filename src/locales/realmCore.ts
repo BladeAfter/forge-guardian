@@ -319,6 +319,8 @@ const T: Record<string, [string, string, string, string, string]> = {
   'realm.battle.skill.chargeDesc': ['Brutal advance', 'Avanço brutal', 'Avance brutal', 'Жестокий рывок', 'Vahşi atılım'],
   'realm.battle.skill.fury': ['Fury', 'Fúria', 'Furia', 'Ярость', 'Öfke'],
   'realm.battle.skill.furyDesc': ['Swift slash', 'Corte veloz', 'Corte veloz', 'Быстрый разрез', 'Hızlı kesik'],
+  'realm.battle.abilitiesOf': ['ABILITIES OF', 'HABILIDADES DE', 'HABILIDADES DE', 'СПОСОБНОСТИ', 'YETENEKLERİ'],
+  'realm.battle.foeTurn': ['ENEMY TURN', 'TURNO DO INIMIGO', 'TURNO DEL ENEMIGO', 'ХОД ВРАГА', 'DÜŞMAN SIRASI'],
   'realm.dungeon.hint.unknown': ['Unknown passage.', 'Passagem desconhecida.', 'Pasaje desconocido.', 'Неизвестный проход.', 'Bilinmeyen geçit.'],
   'realm.dungeon.extracted': ['You extracted with the loot.', 'Você extraiu com o loot.', 'Saliste con el botín.', 'Вы вышли с добычей.', 'Ganimetle çıktın.'],
   'realm.dungeon.room': ['ROOM {n}/10', 'SALA {n}/10', 'SALA {n}/10', 'КОМНАТА {n}/10', 'ODA {n}/10'],
