@@ -211,12 +211,16 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
             {mainMaterials.map((m) => (
               <button key={m.id} onClick={() => setResourcesOpen(true)} className="realm-res-pill">
                 {m.image_url
-                  ? <img src={m.image_url} alt={m.name} loading="lazy" className="h-4 w-4 shrink-0 object-contain" />
+                  ? <img src={m.image_url} alt={m.name} loading="lazy" className="h-5 w-5 shrink-0 object-contain" />
                   : <span className="text-[10px] text-amber-200">◆</span>}
-                <b className="tabular-nums">{fmt(Number(balances[m.id] ?? 0))}</b>
+                <span className="min-w-0 text-left">
+                  <span className="realm-res-name truncate">{m.name}</span>
+                  <b className="block tabular-nums leading-3">{fmt(Number(balances[m.id] ?? 0))}</b>
+                </span>
                 {resDelta[m.id] ? <em className="realm-res-delta">+{fmt(resDelta[m.id])}</em> : null}
               </button>
             ))}
+
             <button onClick={() => setResourcesOpen(true)} aria-label="Recursos" className="realm-res-plus">+</button>
           </div>
 
