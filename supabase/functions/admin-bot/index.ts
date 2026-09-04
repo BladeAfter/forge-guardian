@@ -130,6 +130,7 @@ const MAIN_MENU = kb([
   [{ t: "💎 TON STAKING", d: "ts:hub" }],
   [{ t: "🧩 FRAGMENTOS", d: "fg:hub" }],
   [{ t: "🗺 EXPEDIÇÕES", d: "xe:hub" }],
+  [{ t: "🏰 REALM — EXPLORAÇÃO", d: "rx:hub" }],
   [{ t: "🎁 GIVEAWAY POPUP", d: "gw:hub" }],
   [{ t: "⚔️ PVP LEAGUE ARENA", d: "pl:hub" }],
   [{ t: "⚔️ TACTICAL PVP (3V3)", d: "tp:hub" }],
@@ -4582,6 +4583,19 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  rxbase: "💰 Envie o <b>custo base de entrada</b> em FC. Ex.: <code>100000</code>",
+  rxgrowth: "📈 Envie o <b>crescimento do custo</b> por Depth. Ex.: <code>5</code> (=5%)",
+  rxmax: "🧢 Envie o <b>custo máximo</b> de entrada em FC. Ex.: <code>500000</code>",
+  rxhp: "❤️ Envie a <b>escala de HP</b> por Depth. Ex.: <code>12</code> (=12%)",
+  rxatk: "⚔️ Envie a <b>escala de ATK</b> por Depth. Ex.: <code>8</code> (=8%)",
+  rxdef: "🛡 Envie a <b>escala de DEF</b> por Depth. Ex.: <code>5</code> (=5%)",
+  rxloot: "🎁 Envie a <b>escala de loot</b> por Depth. Ex.: <code>3.5</code> (=3,5%)",
+  rxlootmax: "🎁 Envie o <b>multiplicador máximo de loot</b>. Ex.: <code>1.8</code>",
+  rxpower: "💪 Envie o <b>poder recomendado base</b>. Ex.: <code>100000</code>",
+  rxpowerg: "💪 Envie o <b>crescimento do poder</b> por Depth. Ex.: <code>20</code> (=20%)",
+  rxboss: "👑 Envie o <b>intervalo de BOSS</b> em Depths. Ex.: <code>10</code>",
+  rxdepth: "🔻 Envie a <b>Depth máxima</b> da região. Ex.: <code>100</code>",
+  rxplayer: "👤 Envie <code>telegram_id regiao [depth]</code>. Ex.: <code>8118569391 greenvale 5</code>",
   cpprice: "💫 Envie o <b>preço</b> do Celestial Mystery Pack em TON. Ex.: <code>100</code>",
   cpfc: "🪙 Envie a quantidade de <b>Forge Coins</b> do pacote. Ex.: <code>1000000</code>",
   cpchests: "🎁 Envie a quantidade de <b>baús lendários</b>. Ex.: <code>10</code>",
@@ -9330,6 +9344,8 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] !== "ask") await clearSession(ctx);
     return fgCallback(ctx, rest);
   }
+  // 🏰 REALM exploration: entry cost, depth scaling, loot scaling, boss interval.
+  if (head === "rx") return rxCallback(ctx, rest);
   // 🗺 Pet Expeditions: per-mission daily extra attempts (ads + FC) and FC prices per rarity.
   if (head === "xe") {
     if (rest[0] !== "ask") await clearSession(ctx);
@@ -13007,6 +13023,7 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
 
   if (key.startsWith("myth")) return mythPrompt(ctx, key, text);
   if (key.startsWith("ms")) return salePrompt(ctx, key, text);
+  if (key.startsWith("rx")) return rxPrompt(ctx, key, args, text);
   if (key.startsWith("hm")) return hmPrompt(ctx, key, text);
   if (key.startsWith("rm")) return rmPrompt(ctx, key, text);
   if (key.startsWith("tm")) return tmPrompt(ctx, key, text);
