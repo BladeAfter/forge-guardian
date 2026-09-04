@@ -34,6 +34,26 @@ const PLACE_ART: Record<string, string> = {
 
 const PARTY_ART = '/assets/game/realm/poi-party.png';
 
+/** Nodes that lead to a real hero-vs-boss battle scene. */
+const FIGHT_NODES = ['combat', 'elite', 'boss'];
+
+const FOE_ART: Record<string, string> = {
+  combat: '/assets/game/realm/foe-greenvale.png',
+  elite: '/assets/game/realm/poi-elite.png',
+  boss: '/assets/game/realm/poi-boss.png',
+};
+
+/** Named foe per region, so the fight is against a creature — not a percentage. */
+function foeNameFor(regionId: string | null | undefined, type: string) {
+  const id = (regionId ?? '').toLowerCase();
+  const base = id.includes('crystal') || id.includes('rift') ? 'Guardião de Cristal'
+    : id.includes('abyss') || id.includes('void') ? 'Devorador do Abismo'
+    : 'Bruto da Mata';
+  if (type === 'boss') return `${base} Ancestral`;
+  if (type === 'elite') return `${base} Élite`;
+  return base;
+}
+
 /** Visual danger language per place (glow colour + short risk word). */
 const PLACE_MOOD: Record<string, { glow: string; risk: string }> = {
   combat: { glow: 'rgba(248,113,113,.75)', risk: 'PERIGO' },
@@ -396,9 +416,30 @@ export default function RealmRunScene({
             </div>
             <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
 
+            {FIGHT_NODES.includes(pick.node_type) && (
+              <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-500/[.06] p-2.5">
+                <img
+                  src={FOE_ART[pick.node_type] ?? FOE_ART.combat}
+                  alt="" aria-hidden loading="lazy"
+                  className="h-12 w-12 flex-none object-contain drop-shadow-[0_0_14px_rgba(244,63,94,.55)]"
+                />
+                <div className="min-w-0">
+                  <span className="block text-[7.5px] font-black uppercase tracking-[.24em] text-rose-300/90">
+                    {pick.node_type === 'boss' ? 'Chefe da região' : pick.node_type === 'elite' ? 'Inimigo elite' : 'Inimigo'}
+                  </span>
+                  <b className="block truncate text-[12px] font-black uppercase tracking-[.1em] text-rose-100">
+                    {foeNameFor(region?.id, pick.node_type)}
+                  </b>
+                  <span className="text-[9px] text-slate-400">Batalha com seu herói</span>
+                </div>
+              </div>
+            )}
+
             <div className="mt-3 grid grid-cols-2 gap-2">
               <button onClick={() => setPick(null)} className="realm-dest-ghost">Voltar</button>
-              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">Viajar</button>
+              <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">
+                {FIGHT_NODES.includes(pick.node_type) ? 'Enfrentar' : 'Viajar'}
+              </button>
             </div>
 
           </div>
