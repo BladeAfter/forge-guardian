@@ -84,7 +84,33 @@ export type RealmRuinRun = {
   hp: number;
   ruin_coins: number;
   status: string;
+  entry_tier?: 'fc' | 'ton';
 };
+
+export type RealmRuinEntry = {
+  fc_cost: number;
+  ton_cost: number;
+  ton_reward_multiplier: number;
+};
+
+export type RealmRuinRecent = {
+  at: string | null;
+  region: string;
+  status: string;
+  room: number;
+  loot: number;
+  tier: 'fc' | 'ton';
+  fc: string | null;
+};
+
+export type RealmRuinStats = {
+  runs: number;
+  clears: number;
+  deepest: number;
+  bestLoot: number;
+  recent: RealmRuinRecent[];
+};
+
 
 export type RealmRuinRoom = {
   id: string;
