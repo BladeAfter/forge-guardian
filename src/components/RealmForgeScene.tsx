@@ -8,6 +8,8 @@ import {
   type RealmRecipe,
   type RealmState,
 } from '../realm';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 
 const SCENE_COLD = '/assets/game/realm/forge-scene-cold.jpg';
 const SCENE_LIT = '/assets/game/realm/forge-scene-lit.jpg';
@@ -18,13 +20,13 @@ const FC_COIN = '/assets/game/coins/forge-coin.png';
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
 /** Nome comercial da forja por nível (apenas rótulo visual). */
-const FORGE_TITLE = (lvl: number) =>
-  lvl <= 0 ? 'Oficina Abandonada'
-    : lvl === 1 ? 'Oficina do Ferreiro'
-    : lvl === 2 ? 'Forja Rúnica'
-    : lvl === 3 ? 'Forja Arcana'
-    : lvl === 4 ? 'Forja do Vazio'
-    : 'Forja Suprema';
+const FORGE_TITLE = (lvl: number, t: Translator) =>
+  t(lvl <= 0 ? 'realm.forge.name0'
+    : lvl === 1 ? 'realm.forge.nameSmith'
+    : lvl === 2 ? 'realm.forge.name2'
+    : lvl === 3 ? 'realm.forge.name4'
+    : lvl === 4 ? 'realm.forge.name5'
+    : 'realm.forge.name6');
 
 /** Espelha exatamente a regra do servidor (apenas para exibir o tempo previsto). */
 const craftSeconds = (r: RealmRecipe, qty: number, forgeLevel: number) =>
@@ -35,10 +37,10 @@ const slotCount = (forgeLevel: number) => 2 + Math.floor(forgeLevel / 3);
 
 type Filter = 'all' | 'material' | 'item';
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: 'all', label: 'Tudo' },
-  { id: 'material', label: 'Materiais' },
-  { id: 'item', label: 'Itens' },
+const FILTERS: { id: Filter; labelKey: string }[] = [
+  { id: 'all', labelKey: 'realm.forge.filterAll' },
+  { id: 'material', labelKey: 'realm.forge.filterMaterial' },
+  { id: 'item', labelKey: 'realm.forge.filterItem' },
 ];
 
 /**
@@ -67,6 +69,7 @@ export default function RealmForgeScene({
   onUpgradeForge: () => void;
   onOpenResources: () => void;
 }) {
+  const t = useT();
   const [filter, setFilter] = useState<Filter>('all');
   const [lockedOpen, setLockedOpen] = useState(false);
   const [sheet, setSheet] = useState<string | null>(null);
@@ -147,7 +150,7 @@ export default function RealmForgeScene({
           type="button"
           onClick={() => document.getElementById('forge-recipes')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           className="forge-anvil-hit"
-          aria-label="Abrir receitas"
+          aria-label="recipes"
         >
           <img src={ANVIL} alt="" loading="lazy" className={`forge-anvil ${active.length > 0 ? 'forge-anvil-work' : ''}`} />
         </button>
@@ -155,46 +158,46 @@ export default function RealmForgeScene({
         <div className="forge-stage-top">
           <span className="forge-crest">⚒</span>
           <div className="min-w-0">
-            <b className="forge-title">Forja <span className="forge-lv">Lv.{forgeLevel}</span></b>
-            <p className="forge-sub">{FORGE_TITLE(forgeLevel)}</p>
+            <b className="forge-title">{t('realm.forge.title')} <span className="forge-lv">Lv.{forgeLevel}</span></b>
+            <p className="forge-sub">{FORGE_TITLE(forgeLevel, t)}</p>
           </div>
           <button type="button" onClick={onUpgradeForge} className="forge-upgrade">
-            {built ? 'Evoluir' : 'Construir'}
+            {built ? t('realm.forge.upgrade') : t('realm.forge.build')}
           </button>
         </div>
 
         <div className="forge-stage-foot">
-          <span className="forge-pill">Slots <b>{active.length}/{slots}</b></span>
+          <span className="forge-pill">{t('realm.forge.slots')} <b>{active.length}/{slots}</b></span>
           {readyCount > 0
-            ? <span className="forge-pill forge-pill-done">Pronto <b>{readyCount}</b></span>
-            : <span className="forge-pill">Produzindo <b>{active.length}</b></span>}
+            ? <span className="forge-pill forge-pill-done">{t('realm.forge.ready')} <b>{readyCount}</b></span>
+            : <span className="forge-pill">{t('realm.forge.producing')} <b>{active.length}</b></span>}
           {relevant.map((m) => (
             <span key={m.id} className="forge-pill">
               {m.image_url && <img src={m.image_url} alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />}
               <b>{fmt(balances[m.id] ?? 0)}</b>
             </span>
           ))}
-          <button type="button" onClick={onOpenResources} className="forge-pill forge-pill-btn">Ver tudo</button>
+          <button type="button" onClick={onOpenResources} className="forge-pill forge-pill-btn">{t('realm.forge.seeAll')}</button>
         </div>
       </div>
 
       {/* ---------- FORJA NÃO CONSTRUÍDA ---------- */}
       {!built && (
         <div className="forge-card space-y-2.5 text-center">
-          <b className="block text-[12px] font-black uppercase tracking-[.16em] text-amber-100">Forja não construída</b>
-          <p className="text-[10px] leading-snug text-slate-400">Acenda a forja para começar a fabricar materiais e itens.</p>
+          <b className="block text-[12px] font-black uppercase tracking-[.16em] text-amber-100">{t('realm.forge.notBuilt')}</b>
+          <p className="text-[10px] leading-snug text-slate-400">{t('realm.forge.notBuiltDesc')}</p>
           {forgeType && (
             <div className="flex flex-wrap justify-center gap-1.5">
               <span className="realm-cost-chip realm-cost-chip--gold">
                 <img src={FC_COIN} alt="" loading="lazy" className="h-4 w-4 object-contain" />
                 <b>{fmt(upgradeCost)}</b> FC
               </span>
-              <span className="realm-cost-chip"><b>{realmTimer(forgeType.base_seconds)}</b> de obra</span>
+              <span className="realm-cost-chip"><b>{realmTimer(forgeType.base_seconds)}</b> {t('realm.forge.buildTime')}</span>
             </div>
           )}
-          <button type="button" onClick={onUpgradeForge} className="realm-action-btn">Construir Forja</button>
+          <button type="button" onClick={onUpgradeForge} className="realm-action-btn">{t('realm.forge.buildCta')}</button>
           <div className="space-y-1.5 pt-1">
-            <p className="forge-label">Libera no Lv.1</p>
+            <p className="forge-label">{t('realm.forge.unlocksLv1')}</p>
             <div className="grid grid-cols-3 gap-1.5">
               {locked.filter((r) => r.min_forge_level <= 1).slice(0, 3).map((r) => (
                 <button key={r.id} type="button" onClick={() => setSheet(r.id)} className="forge-mini">
@@ -210,7 +213,7 @@ export default function RealmForgeScene({
       {/* ---------- FILA DE PRODUÇÃO ---------- */}
       {built && (
         <div className="space-y-2">
-          <p className="forge-label">Fila de produção</p>
+          <p className="forge-label">{t('realm.forge.queue')}</p>
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: slots }).map((_, i) => {
               const job = active[i];
@@ -223,8 +226,8 @@ export default function RealmForgeScene({
                     className="forge-slot forge-slot-empty"
                   >
                     <span className="forge-slot-plus">＋</span>
-                    <b>Slot vazio</b>
-                    <i>Escolher receita</i>
+                    <b>{t('realm.forge.emptySlot')}</b>
+                    <i>{t('realm.forge.chooseRecipe')}</i>
                   </button>
                 );
               }
@@ -244,7 +247,7 @@ export default function RealmForgeScene({
                   </div>
                   <div className="forge-bar"><span style={{ width: `${done ? 100 : pct}%` }} /></div>
                   {done
-                    ? <button type="button" disabled={busy} onClick={() => claim(job)} className="forge-claim">Retirar</button>
+                    ? <button type="button" disabled={busy} onClick={() => claim(job)} className="forge-claim">{t('realm.forge.claim')}</button>
                     : <span className="forge-timer">{realmTimer(left)}</span>}
                 </div>
               );
@@ -257,7 +260,7 @@ export default function RealmForgeScene({
       {built && (
         <div id="forge-recipes" className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="forge-label">Receitas</p>
+            <p className="forge-label">{t('realm.forge.recipes')}</p>
             <div className="flex gap-1">
               {FILTERS.map((f) => (
                 <button
@@ -266,13 +269,13 @@ export default function RealmForgeScene({
                   onClick={() => setFilter(f.id)}
                   className={`forge-chip ${filter === f.id ? 'forge-chip-on' : ''}`}
                 >
-                  {f.label}
+                  {t(f.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
-          {shown.length === 0 && <p className="text-center text-[10px] text-slate-500">Nenhuma receita nesse filtro.</p>}
+          {shown.length === 0 && <p className="text-center text-[10px] text-slate-500">{t('realm.forge.noRecipes')}</p>}
 
           <div className="grid grid-cols-2 gap-2">
             {shown.map((r) => {
@@ -291,7 +294,7 @@ export default function RealmForgeScene({
                   <i className="forge-recipe-out">{r.output_qty}x {outputLabel(r)}</i>
                   <span className="forge-recipe-foot">
                     <i className="tabular-nums">{realmTimer(craftSeconds(r, 1, forgeLevel))}</i>
-                    <b className={lack ? 'forge-recipe-tag-lack' : 'forge-recipe-tag'}>{lack ? 'Falta' : 'Forjar'}</b>
+                    <b className={lack ? 'forge-recipe-tag-lack' : 'forge-recipe-tag'}>{lack ? t('realm.forge.lack') : t('realm.forge.craft')}</b>
                   </span>
                 </button>
               );
@@ -304,7 +307,7 @@ export default function RealmForgeScene({
       {locked.length > 0 && (
         <div className="space-y-2">
           <button type="button" onClick={() => setLockedOpen((v) => !v)} className="forge-locked-toggle">
-            Receitas bloqueadas ({locked.length}) <span>{lockedOpen ? '▴' : '▾'}</span>
+            {t('realm.forge.lockedRecipes', { count: locked.length })} <span>{lockedOpen ? '▴' : '▾'}</span>
           </button>
           {lockedOpen && (
             <div className="grid grid-cols-3 gap-1.5">
@@ -328,7 +331,7 @@ export default function RealmForgeScene({
               <img src={outputImage(detail)} alt="" loading="lazy" />
               <div className="min-w-0">
                 <b>{detail.name}</b>
-                <i>Produz {detail.output_qty * (detailLocked ? 1 : qty)}x {outputLabel(detail)}</i>
+                <i>{t('realm.forge.produces', { qty: detail.output_qty * (detailLocked ? 1 : qty), name: outputLabel(detail) })}</i>
               </div>
             </div>
 
@@ -351,7 +354,7 @@ export default function RealmForgeScene({
             </div>
 
             {detailLocked ? (
-              <button type="button" disabled className="realm-action-btn opacity-60">🔒 Requer Forja Lv.{detail.min_forge_level}</button>
+              <button type="button" disabled className="realm-action-btn opacity-60">{t('realm.forge.requires', { level: detail.min_forge_level })}</button>
             ) : (
               <>
                 <div className="flex items-center justify-center gap-4">
@@ -365,11 +368,11 @@ export default function RealmForgeScene({
                   onClick={() => startCraft(detail, qty)}
                   className="realm-action-btn"
                 >
-                  {active.length >= slots ? 'Fila cheia' : missing(detail, qty) ? 'Materiais insuficientes' : 'Forjar'}
+                  {active.length >= slots ? t('realm.forge.queueFull') : missing(detail, qty) ? t('realm.forge.noMaterials') : t('realm.forge.craft')}
                 </button>
               </>
             )}
-            <button type="button" onClick={() => setSheet(null)} className="forge-sheet-close">Fechar</button>
+            <button type="button" onClick={() => setSheet(null)} className="forge-sheet-close">{t('realm.close')}</button>
           </div>
         </div>
       )}
@@ -378,13 +381,13 @@ export default function RealmForgeScene({
       {reveal && (
         <div className="forge-reveal" onClick={() => setReveal(null)}>
           <div className="forge-reveal-card">
-            <p className="forge-reveal-kicker">Item forjado</p>
+            <p className="forge-reveal-kicker">{t('realm.forge.forged')}</p>
             <div className="forge-reveal-art">
               {reveal.image && <img src={reveal.image} alt="" />}
             </div>
             <b className="forge-reveal-name">{reveal.label}</b>
             <i className="forge-reveal-qty">x{reveal.qty}</i>
-            <button type="button" onClick={() => setReveal(null)} className="realm-action-btn realm-action-btn--done">Continuar</button>
+            <button type="button" onClick={() => setReveal(null)} className="realm-action-btn realm-action-btn--done">{t('realm.continue')}</button>
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { type RealmBuilding, type RealmBuildingType } from '../realm';
+import { useT } from '../LanguageContext';
 
 const SCENE = '/assets/game/realm/stronghold-scene.jpg';
 
@@ -21,12 +22,12 @@ const SPOT: Record<string, {
   forge: { hit: { x: 76, y: 79, w: 32, h: 22 }, ring: { x: 76, y: 88, w: 32, skew: 0.4 }, glow: '#fb923c' },
 };
 
-const SHORT: Record<string, string> = {
-  castle: 'Castelo',
-  forge: 'Forja',
-  training_ground: 'Treino',
-  pet_sanctuary: 'Santuário',
-  watchtower: 'Vigia',
+const SHORT_KEY: Record<string, string> = {
+  castle: 'realm.b.castle',
+  forge: 'realm.b.forge',
+  training_ground: 'realm.b.training_ground',
+  pet_sanctuary: 'realm.b.pet_sanctuary',
+  watchtower: 'realm.b.watchtower',
 };
 
 /**
@@ -46,6 +47,7 @@ export default function StrongholdScene({
   now: number;
   onOpen: (id: string) => void;
 }) {
+  const t = useT();
   const box = useRef<HTMLDivElement | null>(null);
   const [cam, setCam] = useState({ x: 0, y: 0, z: 1 });
   const [focus, setFocus] = useState<string | null>(null);
@@ -118,7 +120,7 @@ export default function StrongholdScene({
       setCam({ x: clamp((50 - spot.hit.x) * 0.5, -34, 34), y: clamp((50 - spot.hit.y) * 0.34, -30, 30), z: 1.12 });
     }
     if (gated) {
-      setTip(`Requer Castelo Lv.${nextLevel}`);
+      setTip(t('realm.build.gated', { level: nextLevel }));
       return;
     }
     window.setTimeout(() => onOpen(id), 240);
@@ -149,7 +151,7 @@ export default function StrongholdScene({
         >
           <img
             src={SCENE}
-            alt="Sua fortaleza"
+            alt=""
             width={1024}
             height={1280}
             className="absolute inset-0 h-full w-full object-cover"
@@ -172,7 +174,7 @@ export default function StrongholdScene({
               <button
                 key={bt.id}
                 onClick={(e) => { e.stopPropagation(); tap(bt.id, gated && lvl === 0, lvl + 1); }}
-                aria-label={`${bt.name} nível ${lvl}`}
+                aria-label={`${bt.name} Lv.${lvl}`}
                 className="sh-hit absolute"
                 style={{
                   left: `${spot.hit.x}%`, top: `${spot.hit.y}%`,
@@ -196,7 +198,7 @@ export default function StrongholdScene({
 
                 {/* placa discreta, integrada à cena */}
                 <span className={`sh-name ${focused ? 'sh-name-on' : ''}`}>
-                  <b>{SHORT[bt.id] ?? bt.name} <em>Lv.{lvl}</em></b>
+                  <b>{t(SHORT_KEY[bt.id] ?? '') || bt.name} <em>Lv.{lvl}</em></b>
                 </span>
               </button>
             );
@@ -210,19 +212,19 @@ export default function StrongholdScene({
 
         <div className="stronghold-hud pointer-events-none absolute left-3 top-3">
           <span className="stronghold-crest">⚜</span>
-          <span>Fortaleza <b className="text-amber-100">Lv.{level}</b></span>
+          <span>{t('realm.strongholdCap')} <b className="text-amber-100">Lv.{level}</b></span>
         </div>
         <button
           onClick={() => { setCam({ x: 0, y: 0, z: 1 }); setFocus(null); }}
           className="sh-recenter absolute right-3 top-3"
-          aria-label="Centralizar câmera"
+          aria-label="recenter"
         >
           ⟟
         </button>
 
         {tip && <span className="stronghold-tip">{tip}</span>}
       </div>
-      <p className="text-center text-[9px] text-slate-500">Arraste para explorar · pinça para aproximar · toque em uma construção</p>
+      <p className="text-center text-[9px] text-slate-500">{t('realm.sh.hint')}</p>
     </section>
   );
 }

@@ -16,15 +16,16 @@ import {
 } from '../realm';
 import RealmBattleScene from './RealmBattleScene';
 import RealmRunScene from './RealmRunScene';
+import { useT } from '../LanguageContext';
 
 const WORLD_MAP = '/assets/game/realm/world-map.jpg';
 
-const DEPTH_TIER: Record<string, string> = {
-  normal: 'Normal',
-  hard: 'Difícil',
-  elite: 'Elite',
-  mythic: 'Mítico',
-  abyssal: 'Abissal',
+const DEPTH_TIER_KEY: Record<string, string> = {
+  normal: 'realm.tier.normal',
+  hard: 'realm.tier.hard',
+  elite: 'realm.tier.elite',
+  mythic: 'realm.tier.mythic',
+  abyssal: 'realm.tier.abyssal',
 };
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -58,6 +59,7 @@ type Props = {
  * cinematic exploration scene (real places, party walking, fog of war, camera pan).
  */
 export default function RealmExplorationMap({ data, initData, now, level, busy, call, run }: Props) {
+  const t = useT();
   const regions = data.regions;
   const [selected, setSelected] = useState<string | null>(null);
   const [afkOpen, setAfkOpen] = useState(false);
@@ -97,7 +99,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
       }
       if (Number(log.damage) > 0) bits.push(`−${log.damage} HP`);
       if (Number(log.damage) < 0) bits.push(`+${Math.abs(Number(log.damage))} HP`);
-      setFlash(bits.length ? bits.join('  ') : 'Nada aconteceu...');
+      setFlash(bits.length ? bits.join('  ') : t('realm.map.nothing'));
       window.setTimeout(() => setFlash(null), 2600);
     }
   };
@@ -122,7 +124,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
     return (
       <section className="space-y-4">
         <div className="relative overflow-hidden rounded-3xl border border-amber-300/10">
-          <img src={WORLD_MAP} alt="Mapa do mundo de Mythreon" loading="lazy" className="h-60 w-full object-cover" />
+          <img src={WORLD_MAP} alt="" loading="lazy" className="h-60 w-full object-cover" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#05070f] via-transparent to-[#05070f]/40" />
           {regions.map((r, i) => {
             const pin = REGION_PIN[i % REGION_PIN.length];
@@ -165,7 +167,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 <span className="shrink-0 rounded-xl border border-amber-300/40 bg-black/50 px-2 py-1 text-center">
                   <b className="block text-[10px] font-black uppercase tracking-[.14em] text-amber-200">Depth {meta.depth}</b>
                   <span className="block text-[8px] font-bold uppercase tracking-[.14em] text-slate-400">
-                    {DEPTH_TIER[meta.stats.tier] ?? meta.stats.tier}
+                    {t(DEPTH_TIER_KEY[meta.stats.tier] ?? '') || meta.stats.tier}
                   </span>
                 </span>
               )}
@@ -174,24 +176,24 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
             {meta && !regionLocked && (
               <div className="grid grid-cols-3 gap-1.5 text-center">
                 <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Entrada</span>
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.entry')}</span>
                   <b className={`block text-[11px] font-black ${affordable ? 'text-amber-200' : 'text-rose-300'}`}>
                     {fmt(meta.stats.entryCost)} FC
                   </b>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Poder rec.</span>
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.powerRec')}</span>
                   <b className="block text-[11px] font-black text-cyan-200">{fmt(meta.stats.recommendedPower)}</b>
                 </div>
                 <div className="rounded-xl border border-white/10 bg-black/30 p-1.5">
-                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">Melhor</span>
+                  <span className="block text-[8px] font-bold uppercase tracking-[.12em] text-slate-500">{t('realm.map.best')}</span>
                   <b className="block text-[11px] font-black text-slate-200">Depth {meta.bestDepth}</b>
                 </div>
               </div>
             )}
 
             {regionLocked ? (
-              <p className="text-[10px] font-bold text-slate-500">🔒 Requer Stronghold Lv.{region.unlock_stronghold_level}</p>
+              <p className="text-[10px] font-bold text-slate-500">{t('realm.map.lockedRegion', { level: region.unlock_stronghold_level })}</p>
             ) : (
               <>
                 <button
@@ -199,11 +201,11 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                   onClick={() => setConfirm(region.id)}
                   className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40"
                 >
-                  Explorar região
+                  {t('realm.map.explore')}
                 </button>
                 {!affordable && (
                   <p className="text-center text-[9px] font-bold uppercase tracking-[.12em] text-rose-300">
-                    Forge Coins insuficientes — você precisa de {fmt(meta?.stats.entryCost ?? 0)} FC
+                    {t('realm.map.needFc', { fc: fmt(meta?.stats.entryCost ?? 0) })}
                   </p>
                 )}
               </>
@@ -219,21 +221,21 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 {region.name} — Depth {meta.depth}
               </b>
               <div className="space-y-1 text-[10px] text-slate-300">
-                <div className="flex justify-between"><span className="text-slate-500">Entrada</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b></div>
-                <div className="flex justify-between"><span className="text-slate-500">Poder recomendado</span><b className="text-cyan-200">{fmt(meta.stats.recommendedPower)}</b></div>
-                <div className="flex justify-between"><span className="text-slate-500">Dificuldade</span><b className="text-slate-200">{DEPTH_TIER[meta.stats.tier] ?? meta.stats.tier}</b></div>
-                <div className="flex justify-between"><span className="text-slate-500">Loot</span><b className="text-emerald-200">{meta.stats.lootMult.toFixed(2)}x</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.entry')}</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.recPower')}</span><b className="text-cyan-200">{fmt(meta.stats.recommendedPower)}</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.difficulty')}</span><b className="text-slate-200">{t(DEPTH_TIER_KEY[meta.stats.tier] ?? '') || meta.stats.tier}</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.loot')}</span><b className="text-emerald-200">{meta.stats.lootMult.toFixed(2)}x</b></div>
                 {meta.stats.isBossDepth && (
                   <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-2 py-1 text-center text-[9px] font-black uppercase tracking-[.12em] text-rose-200">
-                    👑 Depth de BOSS
+                    {t('realm.map.bossDepth')}
                   </p>
                 )}
-                <p className="pt-1 text-[9px] uppercase tracking-[.12em] text-slate-500">Recompensas possíveis</p>
-                <p className="text-[10px] text-slate-300">Materiais raros • Fragmentos • Equipamentos • Essência Ancestral</p>
+                <p className="pt-1 text-[9px] uppercase tracking-[.12em] text-slate-500">{t('realm.map.possibleRewards')}</p>
+                <p className="text-[10px] text-slate-300">{t('realm.map.rewardList')}</p>
               </div>
               {!affordable && (
                 <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-2 py-1.5 text-center text-[9px] font-black uppercase tracking-[.12em] text-rose-200">
-                  FC insuficiente
+                  {t('realm.map.noFc')}
                 </p>
               )}
               <button
@@ -241,10 +243,10 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 onClick={() => { setConfirm(null); call(() => realmExploreStart(initData, region.id)); }}
                 className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40"
               >
-                Iniciar exploração
+                {t('realm.map.startExplore')}
               </button>
               <button onClick={() => setConfirm(null)} className="w-full rounded-2xl border border-white/15 py-2.5 text-[10px] font-bold uppercase tracking-[.14em] text-slate-300">
-                Cancelar
+                {t('realm.map.cancel')}
               </button>
             </div>
           </div>
@@ -253,13 +255,13 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
         {/* SECONDARY / AFK MODE — legacy timer expeditions */}
         <div className="rounded-3xl border border-white/8 p-3">
           <button onClick={() => setAfkOpen((v) => !v)} className="flex w-full items-center justify-between">
-            <b className="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">Expedições automáticas</b>
+            <b className="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">{t('realm.map.afk')}</b>
             <span className="text-[11px] text-slate-500">{afkOpen ? '−' : '+'}</span>
           </button>
           {afkOpen && region && !regionLocked && (
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <button disabled={busy} onClick={() => call(() => realmStartExpedition(initData, region.id, 'gather'))} className="rounded-2xl border border-white/15 py-2.5 text-[10px] font-bold text-slate-200 disabled:opacity-40">Coleta 15m</button>
-              <button disabled={busy} onClick={() => call(() => realmStartExpedition(initData, region.id, 'deep'))} className="rounded-2xl border border-amber-300/30 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-100 disabled:opacity-40">Profunda 1h</button>
+              <button disabled={busy} onClick={() => call(() => realmStartExpedition(initData, region.id, 'gather'))} className="rounded-2xl border border-white/15 py-2.5 text-[10px] font-bold text-slate-200 disabled:opacity-40">{t('realm.map.gather15')}</button>
+              <button disabled={busy} onClick={() => call(() => realmStartExpedition(initData, region.id, 'deep'))} className="rounded-2xl border border-amber-300/30 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-100 disabled:opacity-40">{t('realm.map.deep1h')}</button>
             </div>
           )}
           {data.expeditions.length > 0 && (
@@ -271,11 +273,11 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                   <div key={e.id} className="flex items-center justify-between border-b border-white/5 py-2">
                     <div>
                       <b className="text-[11px] text-amber-100">{r?.name ?? e.region_id}</b>
-                      <p className="text-[9px] text-slate-500">{e.expedition_type === 'deep' ? 'Expedição profunda' : 'Coleta rápida'}</p>
+                      <p className="text-[9px] text-slate-500">{e.expedition_type === 'deep' ? t('realm.map.deepExp') : t('realm.map.quickGather')}</p>
                     </div>
                     {left > 0
                       ? <span className="text-[11px] font-bold tabular-nums text-cyan-300">{realmTimer(left)}</span>
-                      : <button disabled={busy} onClick={() => call(() => realmClaimExpedition(initData, e.id))} className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black">Coletar</button>}
+                      : <button disabled={busy} onClick={() => call(() => realmClaimExpedition(initData, e.id))} className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-300 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black">{t('realm.map.collect')}</button>}
                   </div>
                 );
               })}

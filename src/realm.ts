@@ -383,3 +383,70 @@ export const REALM_OPTION_LABEL: Record<string, string> = {
 
 export const REALM_RISK_LABEL = (risk: number) =>
   risk >= 70 ? 'ALTÍSSIMO' : risk >= 45 ? 'ALTO' : risk >= 20 ? 'MÉDIO' : 'BAIXO';
+
+// ── i18n KEY MAPS ──────────────────────────────────────────────────────────
+// The literal maps above stay for backwards compatibility; screens should use
+// these key maps together with `useT()` so every language is respected.
+export const REALM_ROOM_LABEL_KEY: Record<string, string> = {
+  combat: 'realm.room.combat',
+  elite: 'realm.room.elite',
+  boss: 'realm.room.boss',
+  treasure: 'realm.room.treasure',
+  trap: 'realm.room.trap',
+  shrine: 'realm.room.shrine',
+  rest: 'realm.room.rest',
+};
+
+export const REALM_NODE_LABEL_KEY: Record<string, string> = {
+  combat: 'realm.room.combat',
+  elite: 'realm.room.elite',
+  boss: 'realm.room.boss',
+  gather: 'realm.node.label.gather',
+  treasure: 'realm.room.treasure',
+  event: 'realm.node.label.event',
+  trap: 'realm.room.trap',
+  shrine: 'realm.room.shrine',
+  rest: 'realm.node.label.rest',
+};
+
+export const REALM_NODE_TITLE_KEY: Record<string, string> = {
+  combat: 'realm.node.title.combat',
+  elite: 'realm.node.title.elite',
+  boss: 'realm.node.title.boss',
+  gather: 'realm.node.title.gather',
+  treasure: 'realm.node.title.treasure',
+  event: 'realm.node.title.event',
+  trap: 'realm.node.title.trap',
+  shrine: 'realm.node.title.shrine',
+  rest: 'realm.node.title.rest',
+};
+
+export const REALM_NODE_DESC_KEY: Record<string, string> = {
+  combat: 'realm.node.desc.combat',
+  elite: 'realm.node.desc.elite',
+  boss: 'realm.node.desc.boss',
+  gather: 'realm.node.desc.gather',
+  treasure: 'realm.node.desc.treasure',
+  event: 'realm.node.desc.event',
+  trap: 'realm.node.desc.trap',
+  shrine: 'realm.node.desc.shrine',
+  rest: 'realm.node.desc.rest',
+};
+
+export const REALM_OPTION_LABEL_KEY: Record<string, string> = {
+  safe: 'realm.option.safe',
+  force: 'realm.option.force',
+  ignore: 'realm.option.ignore',
+  accept: 'realm.option.accept',
+  offer: 'realm.option.offer',
+  bless: 'realm.option.bless',
+  empower: 'realm.option.empower',
+  careful: 'realm.option.careful',
+  default: 'realm.option.default',
+};
+
+export const REALM_RISK_KEY = (risk: number) =>
+  risk >= 70 ? 'realm.risk.veryHigh' : risk >= 45 ? 'realm.risk.high' : risk >= 20 ? 'realm.risk.medium' : 'realm.risk.low';
+
+/** Error code carried by the thrown Error so screens can translate it. */
+export const REALM_ERROR_CODES = Object.keys(REALM_ERRORS);

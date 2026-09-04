@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import type { RealmBounty } from '../realm';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 
 const BOARD_BG = '/assets/game/realm/bounty-board-bg.jpg';
 const FC_ICON = '/assets/game/coins/forge-coin.png';
 const FRAG_ICON = '/assets/game/realm/mat-crystal-shard.png';
 
-const TYPE_ART: Record<string, { icon: string; hint: string }> = {
-  expedition: { icon: '/assets/game/realm/bounty-icon-expedition.png', hint: 'Envie expedições pelas regiões do reino.' },
-  ruin: { icon: '/assets/game/realm/bounty-icon-ruin.png', hint: 'Desbrave as Ruínas Ancestrais e extraia o loot.' },
-  craft: { icon: '/assets/game/realm/bounty-icon-craft.png', hint: 'Conclua produções na Forja do reino.' },
-  upgrade: { icon: '/assets/game/realm/bounty-icon-upgrade.png', hint: 'Evolua as construções da sua fortaleza.' },
+const TYPE_ART: Record<string, { icon: string; hintKey: string }> = {
+  expedition: { icon: '/assets/game/realm/bounty-icon-expedition.png', hintKey: 'realm.bounty.hint.expedition' },
+  ruin: { icon: '/assets/game/realm/bounty-icon-ruin.png', hintKey: 'realm.bounty.hint.ruin' },
+  craft: { icon: '/assets/game/realm/bounty-icon-craft.png', hintKey: 'realm.bounty.hint.craft' },
+  upgrade: { icon: '/assets/game/realm/bounty-icon-upgrade.png', hintKey: 'realm.bounty.hint.upgrade' },
 };
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -21,10 +23,10 @@ const stateOf = (b: RealmBounty): State => {
   return b.progress >= b.target ? 'claimable' : 'progress';
 };
 
-const STATE_LABEL: Record<State, string> = {
-  claimable: 'Pronto para resgatar',
-  progress: 'Em andamento',
-  claimed: 'Concluído',
+const STATE_KEY: Record<State, string> = {
+  claimable: 'realm.bounty.state.claimable',
+  progress: 'realm.bounty.state.progress',
+  claimed: 'realm.bounty.state.claimed',
 };
 
 function resetIn(now: number) {
@@ -49,7 +51,7 @@ function RewardChips({ b }: { b: RealmBounty }) {
       )}
       {frags > 0 && (
         <span className="bounty-chip bounty-chip--blue">
-          <img src={FRAG_ICON} alt="Fragmentos" loading="lazy" className="h-4 w-4 object-contain" />
+          <img src={FRAG_ICON} alt="" loading="lazy" className="h-4 w-4 object-contain" />
           <b>{frags}</b> frag.
         </span>
       )}
@@ -68,6 +70,7 @@ function ProgressBar({ pct, state }: { pct: number; state: State }) {
 function BountyCard({
   b, featured, busy, onClaim, index,
 }: { b: RealmBounty; featured?: boolean; busy: boolean; onClaim: () => void; index: number }) {
+  const t: Translator = useT();
   const art = TYPE_ART[b.bounty_type] ?? TYPE_ART.expedition;
   const state = stateOf(b);
   const cur = Math.min(b.progress, b.target);
@@ -78,7 +81,7 @@ function BountyCard({
       className={`bounty-card bounty-card--${state} ${featured ? 'bounty-card--featured' : ''}`}
       style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
-      {featured && <span className="bounty-featured-tag">Contrato em destaque</span>}
+      {featured && <span className="bounty-featured-tag">{t('realm.bounty.featured')}</span>}
       <div className="flex items-start gap-3">
         <div className={`bounty-icon ${featured ? 'bounty-icon--lg' : ''}`}>
           <img src={art.icon} alt="" loading="lazy" className="h-full w-full object-contain" />
@@ -86,15 +89,15 @@ function BountyCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <b className={`block ${featured ? 'text-[14px]' : 'text-[12px]'} font-black leading-tight text-amber-50`}>{b.title}</b>
-            <span className={`bounty-status bounty-status--${state}`}>{STATE_LABEL[state]}</span>
+            <span className={`bounty-status bounty-status--${state}`}>{t(STATE_KEY[state])}</span>
           </div>
-          <p className="mt-1 text-[9.5px] leading-snug text-slate-400">{art.hint}</p>
+          <p className="mt-1 text-[9.5px] leading-snug text-slate-400">{t(art.hintKey)}</p>
         </div>
       </div>
 
       <div className="mt-3 space-y-1.5">
         <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">
-          <span>Progresso</span>
+          <span>{t('realm.bounty.progress')}</span>
           <span className="tabular-nums text-amber-200/90">{cur}/{b.target}</span>
         </div>
         <ProgressBar pct={pct} state={state} />
@@ -102,7 +105,7 @@ function BountyCard({
 
       <div className="mt-3 flex items-end justify-between gap-3">
         <div className="space-y-1">
-          <span className="text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">Recompensas</span>
+          <span className="text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">{t('realm.bounty.rewards')}</span>
           <RewardChips b={b} />
         </div>
         {state === 'claimed' && <span className="bounty-seal">✓</span>}
@@ -110,7 +113,7 @@ function BountyCard({
 
       {state === 'claimable' && (
         <button disabled={busy} onClick={onClaim} className="bounty-claim mt-3" type="button">
-          Resgatar recompensa
+          {t('realm.bounty.claim')}
         </button>
       )}
     </article>
@@ -124,6 +127,7 @@ function BountyCard({
 export default function RealmBountyBoard({
   bounties, busy, now, onClaim,
 }: { bounties: RealmBounty[]; busy: boolean; now: number; onClaim: (id: string) => void }) {
+  const t: Translator = useT();
   const { ordered, featured, active, completed, totalFc, totalFrags } = useMemo(() => {
     const rank: Record<State, number> = { claimable: 0, progress: 1, claimed: 2 };
     const list = [...bounties].sort((a, b) => rank[stateOf(a)] - rank[stateOf(b)]);
@@ -146,19 +150,19 @@ export default function RealmBountyBoard({
       <header className="relative space-y-1 text-center">
         <span className="bounty-crest">⚜</span>
         <h2 className="text-[16px] font-black uppercase tracking-[.18em] text-amber-100 drop-shadow-[0_0_18px_rgba(251,191,36,.35)]">
-          Contratos diários
+          {t('realm.bounty.dailyTitle')}
         </h2>
         <p className="mx-auto max-w-[16rem] text-[9.5px] leading-snug text-slate-400">
-          Missões renovadas diariamente para fortalecer seu reino.
+          {t('realm.bounty.dailySub')}
         </p>
       </header>
 
       <div className="relative mt-4 grid grid-cols-4 gap-1.5">
         {[
-          { k: 'Ativos', v: String(active) },
-          { k: 'Concluídos', v: `${completed}/${bounties.length}` },
-          { k: 'Reset', v: resetIn(now) },
-          { k: 'Do dia', v: `${fmt(totalFc)} FC` },
+          { k: t('realm.bounty.active'), v: String(active) },
+          { k: t('realm.bounty.done'), v: `${completed}/${bounties.length}` },
+          { k: t('realm.bounty.reset'), v: resetIn(now) },
+          { k: t('realm.bounty.today'), v: `${fmt(totalFc)} FC` },
         ].map((s) => (
           <div key={s.k} className="bounty-stat">
             <b className="block truncate text-[10.5px] font-black tabular-nums text-amber-100">{s.v}</b>
@@ -168,7 +172,7 @@ export default function RealmBountyBoard({
       </div>
 
       {bounties.length === 0 ? (
-        <p className="relative py-10 text-center text-[10px] text-slate-500">Nenhum contrato ativo hoje.</p>
+        <p className="relative py-10 text-center text-[10px] text-slate-500">{t('realm.bounty.empty')}</p>
       ) : (
         <div className="relative mt-4 space-y-3">
           {featured && (
@@ -182,10 +186,10 @@ export default function RealmBountyBoard({
 
       <footer className="relative mt-5 space-y-2 border-t border-amber-200/10 pt-3 text-center">
         <p className="text-[9px] leading-snug text-slate-500">
-          Os contratos são renovados diariamente. Complete-os para fortalecer seu reino e obter recompensas.
+          {t('realm.bounty.footer')}
         </p>
         <p className="text-[9px] font-bold uppercase tracking-[.14em] text-amber-200/70">
-          Total do dia: {fmt(totalFc)} FC • {totalFrags} fragmentos
+          {t('realm.bounty.total', { fc: fmt(totalFc), frags: totalFrags })}
         </p>
       </footer>
     </section>
