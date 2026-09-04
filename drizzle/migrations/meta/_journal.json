@@ -666,6 +666,13 @@
       "when": 1788541465974,
       "tag": "0094_realm_state_ruin_entry",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1788542023031,
+      "tag": "0095_drop_legacy_realm_ruin_start_overload",
+      "breakpoints": true
     }
   ]
 }

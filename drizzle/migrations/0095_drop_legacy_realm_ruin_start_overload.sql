@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.realm_ruin_start(uuid, text);

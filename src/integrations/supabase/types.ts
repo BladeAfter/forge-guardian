@@ -25724,12 +25724,10 @@ export type Database = {
         Args: { p_cleared: boolean; p_run: string; p_user: string }
         Returns: Json
       }
-      realm_ruin_start:
-        | { Args: { p_region: string; p_user: string }; Returns: Json }
-        | {
-            Args: { p_region: string; p_tier?: string; p_user: string }
-            Returns: Json
-          }
+      realm_ruin_start: {
+        Args: { p_region: string; p_tier?: string; p_user: string }
+        Returns: Json
+      }
       realm_ruin_stats: { Args: { p_user: string }; Returns: Json }
       realm_state: { Args: { p_user: string }; Returns: Json }
       reconcile_pet_egg_orders: {
