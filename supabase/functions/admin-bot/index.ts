@@ -16039,12 +16039,8 @@ async function rxPrompt(ctx: Ctx, key: string, args: string[], text: string) {
     const [rawId, regionId, rawDepth] = text.trim().split(/\s+/);
     if (!rawId || !regionId)
       throw new Error("KEEP_SESSION::⚠️ Envie <code>telegram_id regiao [depth]</code>. Ex.: <code>8118569391 greenvale 5</code>");
-    const { data: player } = await db
-      .from("game_players")
-      .select("id, display_name")
-      .eq("telegram_id", Number(String(rawId).replace(/\D/g, "")))
-      .maybeSingle();
-    if (!player) throw new Error("KEEP_SESSION::⚠️ Jogador não encontrado.");
+    const player = await rpc("admin_player_detail", { p_admin_id: ctx.adminId, p_ref: String(rawId).trim() });
+    if (!player?.id) throw new Error("KEEP_SESSION::⚠️ Jogador não encontrado.");
     const depth = rawDepth ? Number(rawDepth) : null;
     const res = await rpc("admin_realm_player_depth", {
       p_user: player.id,
@@ -16054,7 +16050,7 @@ async function rxPrompt(ctx: Ctx, key: string, args: string[], text: string) {
     await clearSession(ctx);
     await send(
       ctx,
-      `👤 <b>${esc(player.display_name)}</b> — ${esc(regionId)}\n` +
+      `👤 <b>${esc(player.name)}</b> — ${esc(regionId)}\n` +
         `Depth atual: <b>${res?.current_depth}</b> • Melhor: <b>${res?.highest_completed_depth}</b>\n` +
         `Entrada: <b>${fmt(res?.stats?.entryCost)} FC</b> • Poder recomendado: <b>${fmt(res?.stats?.recommendedPower)}</b>`,
     );
