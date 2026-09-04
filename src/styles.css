@@ -1517,7 +1517,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   border-color: rgba(251, 191, 36, 0.55);
   box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.12), 0 14px 40px -22px rgba(251, 191, 36, 0.55);
 }
-.bounty-card--claimed { border-color: rgba(52, 211, 153, 0.4); opacity: 0; }
+.bounty-card--claimed { border-color: rgba(52, 211, 153, 0.4); }
 .bounty-card--claimed .bounty-icon { filter: grayscale(0.35); }
 .bounty-card--featured {
   border-color: rgba(251, 191, 36, 0.45);
