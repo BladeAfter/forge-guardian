@@ -574,6 +574,10 @@ function App() {
   const [partnersOpen,setPartnersOpen]=useState(false);
   const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [realmSoonOpen,setRealmSoonOpen]=useState(false);
+  // MYTHREON REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
+  const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
+  useEffect(()=>{const i=window.setInterval(()=>setRealmNowTs(Date.now()),20000);return()=>window.clearInterval(i)},[]);
+  const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8118569391;
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
