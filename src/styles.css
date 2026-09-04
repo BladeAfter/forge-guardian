@@ -1149,7 +1149,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 
 /* ============ MINAS DE TON (prédio do cenário, abaixo do Salão do Clã) ============ */
-.ton-mine{position:absolute;left:50%;top:84%;z-index:1;display:flex;width:clamp(118px,31vw,148px);max-width:calc(100vw - 240px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
+.ton-mine{position:absolute;left:50%;top:86%;z-index:1;display:flex;width:clamp(92px,22vw,120px);max-width:calc(100vw - 268px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
 .ton-mine:active{transform:scale(.98)}
 .ton-mine-ground{position:absolute;bottom:10px;left:14%;width:72%;height:16px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
 .ton-mine-shape{position:relative;display:block;width:100%;line-height:0}
