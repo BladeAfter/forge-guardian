@@ -55,6 +55,7 @@ export default function RealmDungeonScene({
   onExtract: () => Promise<RealmState | null>;
   onLeave: () => void;
 }) {
+  const t = useT();
   const [phase, setPhase] = useState<Phase>('intro');
   const [flash, setFlash] = useState<string | null>(null);
   const [confirmExtract, setConfirmExtract] = useState(false);
