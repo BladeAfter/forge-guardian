@@ -3,13 +3,47 @@ import type { RealmExploreLog } from '../realm';
 
 const HERO_IMG = '/assets/game/realm/battle-hero.png';
 
-/** Region id → enemy artwork (AI-generated AAA creatures, no icons). */
-function foeImage(regionId?: string | null) {
+type Theme = {
+  key: 'greenvale' | 'crystal' | 'abyss';
+  foe: string;
+  ground: string;
+  foreground: string;
+};
+
+/** Region id → battlefield theme (background art, ground plane, foreground vegetation, enemy). */
+function themeOf(regionId?: string | null): Theme {
   const id = (regionId ?? '').toLowerCase();
-  if (id.includes('crystal') || id.includes('rift')) return '/assets/game/realm/foe-crystal-rift.png';
-  if (id.includes('abyss') || id.includes('void')) return '/assets/game/realm/foe-abyss.png';
-  return '/assets/game/realm/foe-greenvale.png';
+  if (id.includes('crystal') || id.includes('rift')) {
+    return {
+      key: 'crystal',
+      foe: '/assets/game/realm/foe-crystal-rift.png',
+      ground: '/assets/game/realm/battle-ground-crystal-rift.jpg',
+      foreground: '/assets/game/realm/battle-fg-crystal-rift.png',
+    };
+  }
+  if (id.includes('abyss') || id.includes('void')) {
+    return {
+      key: 'abyss',
+      foe: '/assets/game/realm/foe-abyss.png',
+      ground: '/assets/game/realm/battle-ground-abyss.jpg',
+      foreground: '/assets/game/realm/battle-fg-abyss.png',
+    };
+  }
+  return {
+    key: 'greenvale',
+    foe: '/assets/game/realm/foe-greenvale.png',
+    ground: '/assets/game/realm/battle-ground-greenvale.jpg',
+    foreground: '/assets/game/realm/battle-fg-greenvale.png',
+  };
 }
+
+/**
+ * Fixed combat slots. `x` is the horizontal center, `groundY` is the ground line the
+ * sprite's feet are anchored to (percent from the top of the battlefield stage), and
+ * `scale` handles the small perspective difference between near/far combatants.
+ */
+const PLAYER_SLOT = { x: 30, groundY: 79, scale: 1.0 };
+const ENEMY_SLOT = { x: 71, groundY: 74, scale: 0.92 };
 
 const fmt = (n: number) => n.toLocaleString('pt-BR');
 
@@ -22,14 +56,15 @@ type Props = {
 };
 
 /**
- * ⚔️ REALM BATTLE SCENE — fullscreen cinematic combat.
+ * ⚔️ REALM BATTLE SCENE — fullscreen cinematic combat inside a layered battlefield stage.
  *
- * Pure presentation over the server-resolved combat log: the rounds already decided by the
- * backend are replayed one at a time with real creature art, HP bars, impact flashes and a
- * final victory/defeat banner. No client-side combat math.
+ * Presentation only: replays the rounds the backend already resolved. Combatants are grounded
+ * with contact shadows + ambient occlusion, sit on a real ground plane, receive light wrap from
+ * the environment and are partially overlapped by foreground vegetation. No combat math here.
  */
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, onClose }: Props) {
   const rounds = log.rounds ?? [];
+  const theme = useMemo(() => themeOf(regionId), [regionId]);
   const totals = useMemo(() => ({
     foe: rounds.reduce((s, r) => s + Number(r.playerHit ?? 0), 0) || 1,
     hero: rounds.reduce((s, r) => s + Number(r.enemyHit ?? 0), 0) || 1,
@@ -58,14 +93,18 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
   const heroHp = Math.max(12, 100 - (heroDone / totals.hero) * 62);
   const finished = step >= rounds.length;
   const defeat = log.result === 'failed';
+  const foeDown = finished && !defeat;
 
   return (
-    <div className="realm-battle fixed inset-0 z-[80] flex flex-col">
-      <img src={regionImage ?? '/assets/game/realm/world-map.jpg'} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#04060d]/85 via-[#04060d]/55 to-[#04060d]" />
+    <div className={`realm-battle bf-stage bf-stage--${theme.key} fixed inset-0 z-[80] flex flex-col`}>
+      {/* ── BACKGROUND (sky / mountains) ─────────────────────────────── */}
+      <img src={regionImage ?? '/assets/game/realm/world-map.jpg'} alt="" className="bf-bg" />
+      <span className="bf-bg-haze" aria-hidden />
+      {/* ── MIDGROUND (distant depth + horizon push down) ─────────────── */}
+      <span className="bf-mid" aria-hidden />
 
-      {/* HUD */}
-      <header className="relative z-10 flex items-center justify-between gap-2 px-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+      {/* HUD (~12%) */}
+      <header className="relative z-30 flex items-center justify-between gap-2 px-4 pt-[calc(1rem+env(safe-area-inset-top))]">
         <div className="min-w-0 flex-1">
           <p className="text-[8px] font-black uppercase tracking-[.24em] text-amber-200/80">Sua equipe</p>
           <div className="realm-hpbar mt-1"><span style={{ width: `${heroHp}%` }} className="realm-hpfill realm-hpfill-hero" /></div>
@@ -77,52 +116,92 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
         </div>
       </header>
 
-      {/* ARENA */}
-      <div className="relative z-10 flex flex-1 items-end justify-between px-2 pb-2">
-        <img
-          src={HERO_IMG}
-          alt="Campeão da sua equipe"
-          loading="lazy"
-          className={`realm-fighter realm-fighter-hero ${impact === 'foe' ? 'is-attacking' : ''} ${impact === 'hero' ? 'is-hit' : ''}`}
-        />
-        <img
-          src={foeImage(regionId)}
-          alt="Inimigo"
-          loading="lazy"
-          className={`realm-fighter realm-fighter-foe ${impact === 'hero' ? 'is-attacking' : ''} ${impact === 'foe' ? 'is-hit' : ''}`}
-        />
+      {/* ── BATTLEFIELD ──────────────────────────────────────────────── */}
+      <div className="bf-field relative z-10 flex-1">
+        {/* ground plane */}
+        <img src={theme.ground} alt="" loading="lazy" className="bf-ground" />
+        <span className="bf-ground-blend" aria-hidden />
+        {/* local arena light between combatants ("stage") */}
+        <span className="bf-arena-light" aria-hidden />
+
+        {/* PLAYER SLOT */}
+        <div
+          className="bf-slot"
+          style={{ left: `${PLAYER_SLOT.x}%`, top: `${PLAYER_SLOT.groundY}%`, ['--slot-scale' as string]: PLAYER_SLOT.scale }}
+        >
+          <span className="bf-shadow" aria-hidden />
+          <span className="bf-ao" aria-hidden />
+          <img
+            src={HERO_IMG}
+            alt="Campeão da sua equipe"
+            loading="lazy"
+            className={`bf-sprite bf-sprite--hero ${impact === 'foe' ? 'is-attacking' : ''} ${impact === 'hero' ? 'is-hit' : ''}`}
+          />
+          <span className={`bf-wrap bf-wrap--${theme.key}`} aria-hidden />
+          {impact === 'foe' && <span className="bf-dust" aria-hidden />}
+        </div>
+
+        {/* ENEMY SLOT */}
+        <div
+          className={`bf-slot ${foeDown ? 'is-down' : ''}`}
+          style={{ left: `${ENEMY_SLOT.x}%`, top: `${ENEMY_SLOT.groundY}%`, ['--slot-scale' as string]: ENEMY_SLOT.scale }}
+        >
+          <span className="bf-shadow bf-shadow--foe" aria-hidden />
+          <span className="bf-ao" aria-hidden />
+          <img
+            src={theme.foe}
+            alt="Inimigo"
+            loading="lazy"
+            className={`bf-sprite bf-sprite--foe ${impact === 'hero' ? 'is-attacking' : ''} ${impact === 'foe' ? 'is-hit' : ''}`}
+          />
+          <span className={`bf-wrap bf-wrap--${theme.key}`} aria-hidden />
+          {impact === 'hero' && <span className="bf-dust" aria-hidden />}
+        </div>
 
         {impact && <span className="realm-battle-slash" />}
 
-        {step === -1 && (
-          <div className="absolute inset-0 grid place-items-center">
-            <p className="realm-battle-encounter text-[15px] font-black uppercase tracking-[.34em] text-rose-200">Inimigo se aproxima</p>
-          </div>
-        )}
-
+        {/* floating damage */}
         {step >= 0 && !finished && rounds[step] && (
-          <div className="pointer-events-none absolute inset-x-0 top-1/3 flex justify-between px-6">
+          <div className="pointer-events-none absolute inset-x-0 top-[38%] z-20 flex justify-between px-8">
             <b key={`f${step}`} className="realm-dmg text-[22px] font-black text-emerald-300">−{fmt(Number(rounds[step].playerHit))}</b>
             <b key={`h${step}`} className="realm-dmg realm-dmg-late text-[18px] font-black text-rose-300">−{fmt(Number(rounds[step].enemyHit))}</b>
           </div>
         )}
+
+        {step === -1 && (
+          <div className="absolute inset-x-0 top-[18%] z-20 grid place-items-center">
+            <p className="realm-battle-encounter text-[15px] font-black uppercase tracking-[.34em] text-rose-200">Inimigo se aproxima</p>
+          </div>
+        )}
+
+        {/* ── FOREGROUND (grass / crystals / rocks — overlaps feet slightly) ── */}
+        <img src={theme.foreground} alt="" loading="lazy" className="bf-fg" />
+        <span className="bf-fg-mist" aria-hidden />
       </div>
 
-      {/* RESULT */}
-      <footer className="relative z-10 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+      {/* RESULT (~20%) */}
+      <footer className="relative z-30 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         {finished ? (
-          <div className="realm-battle-result rounded-3xl border border-white/10 bg-black/60 p-4 text-center backdrop-blur">
-            <p className={`text-[15px] font-black uppercase tracking-[.2em] ${defeat ? 'text-rose-300' : 'text-amber-200'}`}>
+          <div className="bf-result">
+            <p className={`text-[14px] font-black uppercase tracking-[.2em] ${defeat ? 'text-rose-300' : 'text-amber-200'}`}>
               {defeat ? 'Equipe derrotada' : log.result === 'cleared' ? 'Região conquistada' : 'Vitória'}
             </p>
-            <p className="mt-1 text-[11px] text-emerald-200">
-              +{fmt(Number(log.fc ?? 0))} FC
-              {Number(log.fragments) ? ` · +${fmt(Number(log.fragments))} frag.` : ''}
-              {Number(log.damage) ? ` · −${log.damage} HP` : ''}
-            </p>
-            <button onClick={onClose} className="mt-3 w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black">
-              Continuar
-            </button>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="bf-reward">
+                <img src="/assets/game/coins/forge-coin.png" alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
+                <b>+{fmt(Number(log.fc ?? 0))}</b> FC
+              </span>
+              {Number(log.fragments) > 0 && (
+                <span className="bf-reward">
+                  <img src="/assets/game/realm/mat-rune-dust.png" alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
+                  <b>+{fmt(Number(log.fragments))}</b> frag.
+                </span>
+              )}
+              {Number(log.damage) > 0 && (
+                <span className="bf-reward bf-reward--dmg">❤ <b>−{log.damage}</b> HP</span>
+              )}
+            </div>
+            <button onClick={onClose} className="bf-continue">Continuar</button>
           </div>
         ) : (
           <p className="text-center text-[10px] font-black uppercase tracking-[.2em] text-slate-400">
