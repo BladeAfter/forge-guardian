@@ -92,7 +92,21 @@ type Props = {
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, heroes = [], heroId = null, onPickHero, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [rarityFilter, setRarityFilter] = useState<string>('all');
+  const [sortDesc, setSortDesc] = useState(true);
   const chosen = useMemo(() => heroes.find((h) => h.heroId === heroId) ?? heroes[0] ?? null, [heroes, heroId]);
+  const rarityOptions = useMemo(
+    () => Array.from(new Set(heroes.map((h) => String(h.rarity)))),
+    [heroes],
+  );
+  const visibleHeroes = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return heroes
+      .filter((h) => (rarityFilter === 'all' || String(h.rarity) === rarityFilter) && (!q || h.name.toLowerCase().includes(q)))
+      .sort((a, b) => (sortDesc ? b.power - a.power : a.power - b.power));
+  }, [heroes, query, rarityFilter, sortDesc]);
+
   const party = useMemo(() => {
     const base = duel ? PARTY.slice(0, 1) : PARTY;
     if (!chosen) return base;
@@ -367,8 +381,34 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           <button type="button" className="flex-1" aria-label="close" onClick={() => setPickerOpen(false)} />
           <div className="rb-picker">
             <p className="text-center text-[10px] font-black uppercase tracking-[.22em] text-amber-200">{t('realm.battle.pickHero')}</p>
+            <div className="mt-2 flex items-center gap-1.5">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="..."
+                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-[10px] text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-300/60"
+              />
+              <select
+                value={rarityFilter}
+                onChange={(e) => setRarityFilter(e.target.value)}
+                className="rounded-lg border border-white/10 bg-black/60 px-1.5 py-1 text-[9px] font-bold uppercase text-slate-200 outline-none"
+              >
+                <option value="all">★</option>
+                {rarityOptions.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setSortDesc((v) => !v)}
+                className="rounded-lg border border-white/10 bg-black/60 px-2 py-1 text-[9px] font-black uppercase tracking-[.1em] text-amber-200"
+              >
+                {sortDesc ? '▼' : '▲'}
+              </button>
+            </div>
             <div className="mt-2 grid max-h-[46vh] grid-cols-3 gap-2 overflow-y-auto">
-              {heroes.map((h) => {
+              {visibleHeroes.map((h) => {
+
                 const on = h.heroId === (chosen?.heroId ?? '');
                 return (
                   <button
