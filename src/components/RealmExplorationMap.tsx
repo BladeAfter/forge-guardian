@@ -55,6 +55,8 @@ type Props = {
  * choice sheet, combat plays a quick auto-battle overlay and loot is accumulated on the run
  * until EXTRACT. The legacy timer expeditions stay available as the secondary AFK mode.
  */
+import RealmBattleScene from './RealmBattleScene';
+
 export default function RealmExplorationMap({ data, initData, now, level, busy, call, run }: Props) {
   const regions = data.regions;
   const [selected, setSelected] = useState<string | null>(null);
@@ -95,7 +97,6 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
     if (!log || log.result === 'pending') return;
     if (log.rounds && log.rounds.length > 0) {
       setCombat(log);
-      combatTimer.current = window.setTimeout(() => setCombat(null), 3400);
     } else {
       const bits: string[] = [];
       if (Number(log.fc)) bits.push(`+${fmt(Number(log.fc))} FC`);
@@ -378,34 +379,14 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
         </div>
       )}
 
-      {/* QUICK COMBAT OVERLAY */}
       {combat && (
-        <div className="fixed inset-0 z-[70] grid place-items-center bg-black/90 p-6">
-          <div className="w-full max-w-sm text-center">
-            <p className="text-[10px] font-black uppercase tracking-[.24em] text-rose-300">{REALM_NODE_LABEL[combat.nodeType ?? 'combat']}</p>
-            <div className="mt-4 flex items-center justify-center gap-6">
-              <span className="realm-combat-hero grid h-16 w-16 place-items-center rounded-2xl border border-amber-300/40 bg-amber-500/10 text-[24px]">🛡</span>
-              <span className="text-[11px] font-black text-slate-500">VS</span>
-              <span className="realm-combat-foe grid h-16 w-16 place-items-center rounded-2xl border border-rose-400/40 bg-rose-500/10 text-[24px]">
-                {REALM_NODE_GLYPH[combat.nodeType ?? 'combat']}
-              </span>
-            </div>
-            <div className="mt-4 space-y-1">
-              {(combat.rounds ?? []).map((r) => (
-                <p key={r.round} className="text-[10px] text-slate-300">
-                  Round {r.round}: <b className="text-emerald-300">−{fmt(r.playerHit)}</b> no inimigo · <b className="text-rose-300">−{r.enemyHit}</b> na equipe
-                </p>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] font-black uppercase tracking-[.16em] text-amber-100">
-              {combat.result === 'failed' ? 'EQUIPE DERROTADA' : combat.result === 'cleared' ? 'REGIÃO CONQUISTADA' : 'VITÓRIA'}
-            </p>
-            <p className="mt-1 text-[10px] text-emerald-200">
-              +{fmt(Number(combat.fc ?? 0))} FC{Number(combat.fragments) ? ` · +${combat.fragments} frag.` : ''}{Number(combat.damage) ? ` · −${combat.damage} HP` : ''}
-            </p>
-            <button onClick={() => setCombat(null)} className="mt-4 w-full rounded-2xl border border-white/15 py-2.5 text-[10px] font-black uppercase tracking-[.16em] text-slate-300">Continuar</button>
-          </div>
-        </div>
+        <RealmBattleScene
+          log={combat}
+          regionId={region?.id}
+          regionName={region?.name}
+          regionImage={region?.image_url}
+          onClose={() => setCombat(null)}
+        />
       )}
     </section>
   );
