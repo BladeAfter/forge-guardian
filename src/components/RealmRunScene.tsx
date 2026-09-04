@@ -326,37 +326,38 @@ export default function RealmRunScene({
 
 
 
-      {/* ── HUD ──────────────────────────────────────────────────────────── */}
-      <div className="absolute inset-x-0 top-0 p-3 pt-[max(12px,env(safe-area-inset-top))]">
-        <div className="realm-run-topbar">
-          <b className="realm-run-region">{region?.name ?? run.region_id}</b>
-          <span className="realm-pill realm-pill-depth">{Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}</span>
-          <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-pill realm-pill-auto disabled:opacity-40">Auto</button>
-          <button onClick={() => setMenu(true)} aria-label="Mais opções" className="realm-pill realm-pill-menu">⋯</button>
-        </div>
-
-        <div className="mt-1.5 flex items-center gap-1.5">
-          <button onClick={() => setLootOpen(true)} className="realm-stat-block min-w-0 flex-1">
-            <span className="realm-stat-cap">HP</span>
-            <span className="realm-hpbar realm-hpbar-pro w-16 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
-            <span className="text-[9px] font-black tabular-nums text-rose-100">{run.hp}</span>
-            <span className="realm-badge realm-badge-loot ml-auto">Loot {lootCount}</span>
-          </button>
-          <span className={`realm-badge flex-none ${riskTone}`}>Risco {REALM_RISK_LABEL(run.risk)}</span>
-          <button
-            onClick={onExtract}
-            disabled={busy || walking}
-            className={`realm-extract flex-none disabled:opacity-40 ${safeHere ? 'realm-extract-hot' : ''}`}
-          >
-            ⤴ Extrair
-          </button>
+      {/* ── HUD — uma única faixa glass compacta ──────────────────────────── */}
+      <div className="absolute inset-x-0 top-0 p-2.5 pt-[max(10px,env(safe-area-inset-top))]">
+        <div className="realm-run-bar">
+          <div className="realm-run-bar-row">
+            <b className="realm-run-region">{region?.name ?? run.region_id}</b>
+            <span className="realm-run-depth">{Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}</span>
+            <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-run-ghost disabled:opacity-40">Auto</button>
+            <button onClick={() => setMenu(true)} aria-label="Mais opções" className="realm-run-ghost">⋯</button>
+          </div>
+          <div className="realm-run-bar-row realm-run-bar-row--stats">
+            <button onClick={() => setLootOpen(true)} className="realm-run-stat">
+              <span className="realm-hpbar realm-hpbar-pro w-14 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
+              <i>{run.hp}%</i>
+            </button>
+            <button onClick={() => setLootOpen(true)} className="realm-run-stat">Loot <i>{lootCount}</i></button>
+            <span className={`realm-run-stat ${riskTone}`}>{REALM_RISK_LABEL(run.risk)}</span>
+            <button
+              onClick={onExtract}
+              disabled={busy || walking}
+              className={`realm-run-exit disabled:opacity-40 ${safeHere ? 'realm-run-exit-hot' : ''}`}
+            >
+              ⤴ Extrair
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* prompt when a fork is available */}
-      {open.length > 0 && !pick && !pending && !walking && (
+      {/* dica só na primeira exploração */}
+      {showHint && open.length > 0 && !pick && !pending && !walking && (
         <p className="realm-run-hint">Toque em um local para viajar</p>
       )}
+
       {open.length === 0 && !pending && (
         <div className="absolute inset-x-3 bottom-4">
           <button onClick={onExtract} disabled={busy} className="realm-extract-cta disabled:opacity-40">
