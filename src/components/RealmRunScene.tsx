@@ -277,51 +277,43 @@ export default function RealmRunScene({
 
       {/* ── HUD ──────────────────────────────────────────────────────────── */}
       <div className="absolute inset-x-0 top-0 p-3 pt-[max(12px,env(safe-area-inset-top))]">
-        <div className="flex items-center gap-2">
-          <b className="flex-1 truncate text-[12px] font-black uppercase tracking-[.16em] text-amber-100 [text-shadow:0_1px_8px_#000]">
-            {region?.name ?? run.region_id}
-          </b>
-          <span className="rounded-full border border-white/15 bg-black/55 px-2 py-0.5 text-[9px] font-black text-slate-200">
-            {Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}
-          </span>
-          <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="rounded-full border border-amber-300/30 bg-black/55 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-amber-100 disabled:opacity-40">Auto</button>
-          <button onClick={() => setMenu(true)} aria-label="Mais opções" className="rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-[11px] font-black leading-none text-slate-300">⋯</button>
+        <div className="realm-run-topbar">
+          <b className="realm-run-region">{region?.name ?? run.region_id}</b>
+          <span className="realm-pill realm-pill-depth">{Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}</span>
+          <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-pill realm-pill-auto disabled:opacity-40">Auto</button>
+          <button onClick={() => setMenu(true)} aria-label="Mais opções" className="realm-pill realm-pill-menu">⋯</button>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
-          <button onClick={() => setLootOpen(true)} className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-2.5 py-1.5">
-            <span className="text-[8px] font-black uppercase tracking-[.16em] text-slate-400">HP</span>
-            <span className="realm-hpbar w-16 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
-            <span className="text-[9px] font-black tabular-nums text-rose-200">{run.hp}</span>
-            <span className="ml-auto text-[9px] font-black uppercase tracking-[.12em] text-emerald-200">LOOT {lootCount}</span>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <button onClick={() => setLootOpen(true)} className="realm-stat-block min-w-0 flex-1">
+            <span className="realm-stat-cap">HP</span>
+            <span className="realm-hpbar realm-hpbar-pro w-16 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
+            <span className="text-[9px] font-black tabular-nums text-rose-100">{run.hp}</span>
+            <span className="realm-badge realm-badge-loot ml-auto">Loot {lootCount}</span>
           </button>
-          <span className="flex-none rounded-2xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[.14em] text-slate-300">
-            RISCO {REALM_RISK_LABEL(run.risk)}
-          </span>
+          <span className={`realm-badge flex-none ${riskTone}`}>Risco {REALM_RISK_LABEL(run.risk)}</span>
           <button
             onClick={onExtract}
             disabled={busy || walking}
-            className={`flex-none rounded-2xl px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] disabled:opacity-40 ${
-              safeHere ? 'bg-gradient-to-r from-emerald-400 to-teal-300 text-black' : 'border border-emerald-300/30 bg-black/50 text-emerald-200'}`}
+            className={`realm-extract flex-none disabled:opacity-40 ${safeHere ? 'realm-extract-hot' : ''}`}
           >
-            Extrair
+            ⤴ Extrair
           </button>
         </div>
       </div>
 
       {/* prompt when a fork is available */}
       {open.length > 0 && !pick && !pending && !walking && (
-        <p className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-[9px] font-black uppercase tracking-[.24em] text-amber-100/80 [text-shadow:0_1px_8px_#000]">
-          Toque em um local para viajar
-        </p>
+        <p className="realm-run-hint">Toque em um local para viajar</p>
       )}
       {open.length === 0 && !pending && (
         <div className="absolute inset-x-3 bottom-4">
-          <button onClick={onExtract} disabled={busy} className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black disabled:opacity-40">
+          <button onClick={onExtract} disabled={busy} className="realm-extract-cta disabled:opacity-40">
             Extrair com o loot
           </button>
         </div>
       )}
+
 
       {/* ── CINEMATIC BANNERS ────────────────────────────────────────────── */}
       {banner && (
