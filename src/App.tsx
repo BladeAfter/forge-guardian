@@ -956,29 +956,29 @@ function App() {
           </div>
 
           <div className="flex w-full items-start justify-between">
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
               <button
                 onClick={()=>setPartnersOpen(true)}
-                className="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
               >🤝 {t('partners.button')}</button>
               <button
                 onClick={()=>{setActivePage(null);navigateTo('missions')}}
-                className="flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
               >📜 MISSIONS</button>
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
               <button
                 onClick={()=>setCalendarOpen(true)}
-                className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-2 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
               >
                 🗓 {t('calendar')}
               </button>
 
               <button
                 onClick={()=>setPremiumOffersOpen(true)}
-                className="flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-2 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
               >💎 OFERTAS</button>
 
             </div>
