@@ -92,7 +92,21 @@ type Props = {
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, heroes = [], heroId = null, onPickHero, onClose }: Props) {
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [rarityFilter, setRarityFilter] = useState<string>('all');
+  const [sortDesc, setSortDesc] = useState(true);
   const chosen = useMemo(() => heroes.find((h) => h.heroId === heroId) ?? heroes[0] ?? null, [heroes, heroId]);
+  const rarityOptions = useMemo(
+    () => Array.from(new Set(heroes.map((h) => String(h.rarity)))),
+    [heroes],
+  );
+  const visibleHeroes = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return heroes
+      .filter((h) => (rarityFilter === 'all' || String(h.rarity) === rarityFilter) && (!q || h.name.toLowerCase().includes(q)))
+      .sort((a, b) => (sortDesc ? b.power - a.power : a.power - b.power));
+  }, [heroes, query, rarityFilter, sortDesc]);
+
   const party = useMemo(() => {
     const base = duel ? PARTY.slice(0, 1) : PARTY;
     if (!chosen) return base;
