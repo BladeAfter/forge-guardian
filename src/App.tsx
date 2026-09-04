@@ -574,6 +574,10 @@ function App() {
   const [partnersOpen,setPartnersOpen]=useState(false);
   const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [realmSoonOpen,setRealmSoonOpen]=useState(false);
+  // MYTHREON REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
+  const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
+  useEffect(()=>{const i=window.setInterval(()=>setRealmNowTs(Date.now()),20000);return()=>window.clearInterval(i)},[]);
+  const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8118569391;
   const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
   const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
@@ -868,7 +872,7 @@ function App() {
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
   // MYTHREON REALM — acesso antecipado: o backend também valida (realm_access_allowed).
-  if(activePage==='realm'&&telegramInitData&&telegramUser?.id===8118569391)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
+  if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
 
 
   return (
@@ -951,7 +955,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'EM BREVE'} onClick={()=>{if(telegramUser?.id===8118569391)openInternal('realm');else setRealmSoonOpen(true)}}/>
+            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
