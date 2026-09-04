@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  REALM_NODE_DESC,
-  REALM_NODE_LABEL,
-  REALM_NODE_TITLE,
-  REALM_OPTION_LABEL,
-  REALM_RISK_LABEL,
+  REALM_NODE_DESC_KEY,
+  REALM_NODE_LABEL_KEY,
+  REALM_NODE_TITLE_KEY,
+  REALM_OPTION_LABEL_KEY,
+  REALM_RISK_KEY,
   type RealmExploreNode,
   type RealmExploreRun,
   type RealmMaterial,
   type RealmRegion,
 } from '../realm';
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 
 /** Region scenery — layered painted backdrops (no node graph). */
 const SCENE: Record<string, string> = {
@@ -44,27 +46,27 @@ const FOE_ART: Record<string, string> = {
 };
 
 /** Named foe per region, so the fight is against a creature — not a percentage. */
-function foeNameFor(regionId: string | null | undefined, type: string) {
+function foeNameFor(regionId: string | null | undefined, type: string, t: Translator) {
   const id = (regionId ?? '').toLowerCase();
-  const base = id.includes('crystal') || id.includes('rift') ? 'Guardião de Cristal'
-    : id.includes('abyss') || id.includes('void') ? 'Devorador do Abismo'
-    : 'Bruto da Mata';
-  if (type === 'boss') return `${base} Ancestral`;
-  if (type === 'elite') return `${base} Élite`;
+  const base = t(id.includes('crystal') || id.includes('rift') ? 'realm.foe.crystal'
+    : id.includes('abyss') || id.includes('void') ? 'realm.foe.abyss'
+    : 'realm.foe.wild');
+  if (type === 'boss') return t('realm.foe.ancestral', { name: base });
+  if (type === 'elite') return t('realm.foe.eliteSuffix', { name: base });
   return base;
 }
 
 /** Visual danger language per place (glow colour + short risk word). */
 const PLACE_MOOD: Record<string, { glow: string; risk: string }> = {
-  combat: { glow: 'rgba(248,113,113,.75)', risk: 'PERIGO' },
-  elite: { glow: 'rgba(251,146,60,.85)', risk: 'ALTO RISCO' },
-  boss: { glow: 'rgba(250,204,21,.9)', risk: 'MORTAL' },
-  gather: { glow: 'rgba(74,222,128,.7)', risk: 'SEGURO' },
-  treasure: { glow: 'rgba(251,191,36,.85)', risk: 'TESOURO' },
-  event: { glow: 'rgba(192,132,252,.8)', risk: 'MISTÉRIO' },
-  trap: { glow: 'rgba(244,63,94,.8)', risk: 'ARRISCADO' },
-  shrine: { glow: 'rgba(96,165,250,.8)', risk: 'SEGURO' },
-  rest: { glow: 'rgba(52,211,153,.75)', risk: 'SEGURO' },
+  combat: { glow: 'rgba(248,113,113,.75)', risk: 'realm.mood.danger' },
+  elite: { glow: 'rgba(251,146,60,.85)', risk: 'realm.mood.highRisk' },
+  boss: { glow: 'rgba(250,204,21,.9)', risk: 'realm.mood.deadly' },
+  gather: { glow: 'rgba(74,222,128,.7)', risk: 'realm.mood.safe' },
+  treasure: { glow: 'rgba(251,191,36,.85)', risk: 'realm.mood.treasure' },
+  event: { glow: 'rgba(192,132,252,.8)', risk: 'realm.mood.mystery' },
+  trap: { glow: 'rgba(244,63,94,.8)', risk: 'realm.mood.risky' },
+  shrine: { glow: 'rgba(96,165,250,.8)', risk: 'realm.mood.safe' },
+  rest: { glow: 'rgba(52,211,153,.75)', risk: 'realm.mood.safe' },
 };
 
 /** Base width (% of scene) per place type — depth scaling is applied on top. */
@@ -130,6 +132,7 @@ export default function RealmRunScene({
   const [menu, setMenu] = useState(false);
   const [lootOpen, setLootOpen] = useState(false);
   const [walking, setWalking] = useState(false);
+  const t = useT();
   const [banner, setBanner] = useState<string | null>(region?.name ?? null);
   const [cameraTo, setCameraTo] = useState<number | null>(null);
   const walkTimer = useRef<number | null>(null);
@@ -287,7 +290,7 @@ export default function RealmRunScene({
               key={node.id}
               disabled={busy || walking || Boolean(pending)}
               onClick={() => setPick(node)}
-              aria-label={REALM_NODE_LABEL[node.node_type] ?? node.node_type}
+              aria-label={t(REALM_NODE_LABEL_KEY[node.node_type] ?? '') || node.node_type}
               style={{
                 left: `${at.x}%`, top: `${at.y}%`, width: `${w}%`,
                 ['--poi-glow' as string]: mood.glow,
@@ -307,8 +310,8 @@ export default function RealmRunScene({
               {/* névoa de distância sobre lugares mais ao fundo */}
               {near < 0.85 && <span className="realm-place-fog" aria-hidden />}
               <span className="realm-place-tag">
-                <b>{REALM_NODE_TITLE[node.node_type] ?? node.node_type}</b>
-                <em style={{ color: mood.glow }}>{mood.risk}</em>
+                <b>{t(REALM_NODE_TITLE_KEY[node.node_type] ?? '') || node.node_type}</b>
+                <em style={{ color: mood.glow }}>{t(mood.risk)}</em>
               </span>
             </button>
           );
@@ -352,22 +355,22 @@ export default function RealmRunScene({
           <div className="realm-run-bar-row">
             <b className="realm-run-region">{region?.name ?? run.region_id}</b>
             <span className="realm-run-depth">{Math.min(depth + 1, finalDepth + 1)}/{finalDepth + 1}</span>
-            <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-run-ghost disabled:opacity-40">Auto</button>
-            <button onClick={() => setMenu(true)} aria-label="Mais opções" className="realm-run-ghost">⋯</button>
+            <button onClick={onAuto} disabled={busy || Boolean(pending) || walking} className="realm-run-ghost disabled:opacity-40">{t('realm.run.auto')}</button>
+            <button onClick={() => setMenu(true)} aria-label="menu" className="realm-run-ghost">⋯</button>
           </div>
           <div className="realm-run-bar-row realm-run-bar-row--stats">
             <button onClick={() => setLootOpen(true)} className="realm-run-stat">
               <span className="realm-hpbar realm-hpbar-pro w-14 flex-none"><span className="realm-hpfill realm-hpfill-hero" style={{ width: `${hpPct}%` }} /></span>
               <i>{run.hp}%</i>
             </button>
-            <button onClick={() => setLootOpen(true)} className="realm-run-stat">Loot <i>{lootCount}</i></button>
-            <span className={`realm-run-stat ${riskTone}`}>{REALM_RISK_LABEL(run.risk)}</span>
+            <button onClick={() => setLootOpen(true)} className="realm-run-stat">{t('realm.run.loot')} <i>{lootCount}</i></button>
+            <span className={`realm-run-stat ${riskTone}`}>{t(REALM_RISK_KEY(run.risk))}</span>
             <button
               onClick={onExtract}
               disabled={busy || walking}
               className={`realm-run-exit disabled:opacity-40 ${safeHere ? 'realm-run-exit-hot' : ''}`}
             >
-              ⤴ Extrair
+              {t('realm.run.extract')}
             </button>
           </div>
         </div>
@@ -375,13 +378,13 @@ export default function RealmRunScene({
 
       {/* dica só na primeira exploração */}
       {showHint && open.length > 0 && !pick && !pending && !walking && (
-        <p className="realm-run-hint">Toque em um local para viajar</p>
+        <p className="realm-run-hint">{t('realm.run.hint')}</p>
       )}
 
       {open.length === 0 && !pending && (
         <div className="absolute inset-x-3 bottom-4">
           <button onClick={onExtract} disabled={busy} className="realm-extract-cta disabled:opacity-40">
-            Extrair com o loot
+            {t('realm.run.extractLoot')}
           </button>
         </div>
       )}
@@ -392,7 +395,7 @@ export default function RealmRunScene({
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <div className="realm-banner text-center">
             <b className="block text-[22px] font-black uppercase tracking-[.28em] text-amber-100">{banner}</b>
-            <span className="mt-1 block text-[9px] uppercase tracking-[.3em] text-slate-400">{region?.tagline ?? 'Exploração'}</span>
+            <span className="mt-1 block text-[9px] uppercase tracking-[.3em] text-slate-400">{region?.tagline ?? t('realm.run.exploration')}</span>
           </div>
         </div>
       )}
@@ -406,15 +409,15 @@ export default function RealmRunScene({
       {pick && (
         <div className="absolute inset-0 z-[20] flex items-end bg-gradient-to-t from-black/90 via-black/35 to-transparent p-3 pb-[max(12px,env(safe-area-inset-bottom))]" onClick={() => setPick(null)}>
           <div onClick={(e) => e.stopPropagation()} className="realm-dest-sheet realm-sheet-in">
-            <span className="block text-[7.5px] font-black uppercase tracking-[.3em] text-slate-500">Destino</span>
+            <span className="block text-[7.5px] font-black uppercase tracking-[.3em] text-slate-500">{t('realm.run.destination')}</span>
             <div className="mt-0.5 flex items-center gap-2">
               <img src={PLACE_ART[pick.node_type] ?? PLACE_ART.event} alt="" aria-hidden loading="lazy" className="h-10 w-10 flex-none object-contain" style={{ filter: `drop-shadow(0 0 10px ${PLACE_MOOD[pick.node_type]?.glow})` }} />
-              <b className="flex-1 text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{REALM_NODE_TITLE[pick.node_type]}</b>
+              <b className="flex-1 text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{t(REALM_NODE_TITLE_KEY[pick.node_type] ?? '')}</b>
               <span style={{ color: PLACE_MOOD[pick.node_type]?.glow, borderColor: PLACE_MOOD[pick.node_type]?.glow }} className="realm-badge">
-                {PLACE_MOOD[pick.node_type]?.risk}
+                {t(PLACE_MOOD[pick.node_type]?.risk ?? '')}
               </span>
             </div>
-            <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pick.node_type]}</p>
+            <p className="mt-1.5 text-[10px] leading-4 text-slate-400">{t(REALM_NODE_DESC_KEY[pick.node_type] ?? '')}</p>
 
             {FIGHT_NODES.includes(pick.node_type) && (
               <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl border border-rose-400/25 bg-rose-500/[.06] p-2.5">
@@ -425,20 +428,20 @@ export default function RealmRunScene({
                 />
                 <div className="min-w-0">
                   <span className="block text-[7.5px] font-black uppercase tracking-[.24em] text-rose-300/90">
-                    {pick.node_type === 'boss' ? 'Chefe da região' : pick.node_type === 'elite' ? 'Inimigo elite' : 'Inimigo'}
+                    {pick.node_type === 'boss' ? t('realm.run.regionBoss') : pick.node_type === 'elite' ? t('realm.run.eliteFoe') : t('realm.run.foe')}
                   </span>
                   <b className="block truncate text-[12px] font-black uppercase tracking-[.1em] text-rose-100">
-                    {foeNameFor(region?.id, pick.node_type)}
+                    {foeNameFor(region?.id, pick.node_type, t)}
                   </b>
-                  <span className="text-[9px] text-slate-400">Batalha com seu herói</span>
+                  <span className="text-[9px] text-slate-400">{t('realm.run.fightHero')}</span>
                 </div>
               </div>
             )}
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button onClick={() => setPick(null)} className="realm-dest-ghost">Voltar</button>
+              <button onClick={() => setPick(null)} className="realm-dest-ghost">{t('realm.run.back')}</button>
               <button disabled={busy} onClick={() => travel(pick)} className="realm-dest-go disabled:opacity-40">
-                {FIGHT_NODES.includes(pick.node_type) ? 'Enfrentar' : 'Viajar'}
+                {FIGHT_NODES.includes(pick.node_type) ? t('realm.run.fight') : t('realm.run.travel')}
               </button>
             </div>
 
@@ -450,9 +453,9 @@ export default function RealmRunScene({
       {pending && pendingNode && (
         <div className="absolute inset-0 z-[30] flex items-end bg-black/80 p-3 pb-[max(12px,env(safe-area-inset-bottom))]">
           <div className="w-full rounded-3xl border border-amber-300/30 bg-[#080b16] p-4 realm-sheet-in">
-            <span className="block text-[8px] font-black uppercase tracking-[.3em] text-slate-500">Descoberta</span>
-            <b className="mt-0.5 block text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{REALM_NODE_TITLE[pendingNode.node_type]}</b>
-            <p className="mt-1 text-[10px] leading-4 text-slate-400">{REALM_NODE_DESC[pendingNode.node_type]}</p>
+            <span className="block text-[8px] font-black uppercase tracking-[.3em] text-slate-500">{t('realm.run.discovery')}</span>
+            <b className="mt-0.5 block text-[13px] font-black uppercase tracking-[.12em] text-amber-100">{t(REALM_NODE_TITLE_KEY[pendingNode.node_type] ?? '')}</b>
+            <p className="mt-1 text-[10px] leading-4 text-slate-400">{t(REALM_NODE_DESC_KEY[pendingNode.node_type] ?? '')}</p>
             <div className="mt-3 space-y-2">
               {pending.options.map((opt) => (
                 <button
@@ -461,7 +464,7 @@ export default function RealmRunScene({
                   onClick={() => onChoose(opt)}
                   className="w-full rounded-2xl border border-amber-300/25 bg-amber-500/[.07] py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-amber-100 disabled:opacity-40"
                 >
-                  {REALM_OPTION_LABEL[opt] ?? opt}
+                  {t(REALM_OPTION_LABEL_KEY[opt] ?? '') || opt}
                 </button>
               ))}
             </div>
@@ -473,12 +476,12 @@ export default function RealmRunScene({
       {lootOpen && (
         <div className="absolute inset-0 z-[30] flex items-end bg-black/80 p-3" onClick={() => setLootOpen(false)}>
           <div onClick={(e) => e.stopPropagation()} className="w-full rounded-3xl border border-emerald-300/25 bg-[#080b16] p-4 realm-sheet-in">
-            <b className="block text-[11px] font-black uppercase tracking-[.2em] text-emerald-200">Loot da run</b>
+            <b className="block text-[11px] font-black uppercase tracking-[.2em] text-emerald-200">{t('realm.run.lootTitle')}</b>
             {lootCount === 0
-              ? <p className="mt-2 text-[10px] text-slate-500">Nada coletado ainda.</p>
+              ? <p className="mt-2 text-[10px] text-slate-500">{t('realm.run.lootEmpty')}</p>
               : <ul className="mt-2 space-y-1">{lootBits().map((b) => <li key={b} className="text-[11px] text-slate-200">• {b}</li>)}</ul>}
-            <p className="mt-2 text-[9px] text-slate-500">HP da equipe: {run.hp} • Risco {REALM_RISK_LABEL(run.risk)}</p>
-            <button onClick={() => setLootOpen(false)} className="mt-3 w-full rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">Fechar</button>
+            <p className="mt-2 text-[9px] text-slate-500">{t('realm.run.partyHp', { hp: run.hp, risk: t(REALM_RISK_KEY(run.risk)) })}</p>
+            <button onClick={() => setLootOpen(false)} className="mt-3 w-full rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">{t('realm.close')}</button>
           </div>
         </div>
       )}
@@ -487,15 +490,15 @@ export default function RealmRunScene({
       {menu && (
         <div className="absolute inset-0 z-[40] flex items-end bg-black/80 p-3" onClick={() => setMenu(false)}>
           <div onClick={(e) => e.stopPropagation()} className="w-full space-y-2 rounded-3xl border border-white/12 bg-[#080b16] p-4 realm-sheet-in">
-            <button onClick={() => { setMenu(false); setLootOpen(true); }} className="w-full rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-200">Ver loot e equipe</button>
+            <button onClick={() => { setMenu(false); setLootOpen(true); }} className="w-full rounded-2xl border border-white/12 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-slate-200">{t('realm.run.seeLoot')}</button>
             <button
               disabled={busy}
-              onClick={() => { if (window.confirm('Abandonar a run? Todo o loot será perdido.')) { setMenu(false); onAbandon(); } }}
+              onClick={() => { if (window.confirm(t('realm.run.abandonConfirm'))) { setMenu(false); onAbandon(); } }}
               className="w-full rounded-2xl border border-rose-400/30 py-2.5 text-[10px] font-black uppercase tracking-[.14em] text-rose-200 disabled:opacity-40"
             >
-              Abandonar run
+              {t('realm.run.abandon')}
             </button>
-            <button onClick={() => setMenu(false)} className="w-full py-1 text-[9px] font-bold uppercase tracking-[.18em] text-slate-500">Fechar</button>
+            <button onClick={() => setMenu(false)} className="w-full py-1 text-[9px] font-bold uppercase tracking-[.18em] text-slate-500">{t('realm.close')}</button>
           </div>
         </div>
       )}

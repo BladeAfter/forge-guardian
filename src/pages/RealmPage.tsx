@@ -6,8 +6,10 @@ import RealmDungeonScene from '../components/RealmDungeonScene';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 
+import { useT } from '../LanguageContext';
+import type { Translator } from '../i18n';
 import {
-  REALM_ROOM_LABEL,
+  REALM_ROOM_LABEL_KEY,
   fetchRealmState,
   realmClaimBounty,
   realmClaimBuilding,
@@ -30,12 +32,12 @@ const REALM_CREST = '/assets/game/realm/realm-crest.png';
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
-const TABS: { id: Tab; label: string; glyph: string }[] = [
-  { id: 'stronghold', label: 'Stronghold', glyph: '🏰' },
-  { id: 'map', label: 'Mapa', glyph: '🗺' },
-  { id: 'forge', label: 'Forja', glyph: '⚒' },
-  { id: 'ruins', label: 'Ruínas', glyph: '☠' },
-  { id: 'bounties', label: 'Contratos', glyph: '📜' },
+const TABS: { id: Tab; labelKey: string; glyph: string }[] = [
+  { id: 'stronghold', labelKey: 'realm.tab.stronghold', glyph: '🏰' },
+  { id: 'map', labelKey: 'realm.tab.map', glyph: '🗺' },
+  { id: 'forge', labelKey: 'realm.tab.forge', glyph: '⚒' },
+  { id: 'ruins', labelKey: 'realm.tab.ruins', glyph: '☠' },
+  { id: 'bounties', labelKey: 'realm.tab.bounties', glyph: '📜' },
 ];
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -46,6 +48,7 @@ const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n ||
  * UI mobile-first: hierarquia enxuta, detalhes sempre em bottom sheet.
  */
 export function RealmPage({ telegramInitData, onBack }: { telegramInitData: string; onBack: () => void }) {
+  const t = useT();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('stronghold');
   const [now, setNow] = useState(() => Date.now());
@@ -71,7 +74,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const apply = (next: RealmState) => {
     qc.setQueryData(['realm', telegramInitData], next);
     const reward = next.lastReward as Record<string, unknown> | undefined;
-    if (reward) setNotice(describeReward(reward));
+    if (reward) setNotice(describeReward(reward, t));
   };
 
   const act = useMutation({
@@ -153,8 +156,8 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   if (error || !data) {
     return (
       <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-6 text-center">
-        <p className="mt-16 text-sm text-rose-300">{(error as Error)?.message || 'Falha ao abrir o MYTHREON REALM.'}</p>
-        <button onClick={onBack} className="mt-6 rounded-2xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.2em] text-amber-200">VOLTAR</button>
+        <p className="mt-16 text-sm text-rose-300">{(error as Error)?.message || t('realm.loadFail')}</p>
+        <button onClick={onBack} className="mt-6 rounded-2xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.2em] text-amber-200">{t('realm.backCta')}</button>
       </div>
     );
   }
@@ -178,7 +181,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         run={ruinRun}
         rooms={openRooms}
         lastRoom={data.lastRoom}
-        regionName={region?.name ?? 'Ruínas Ancestrais'}
+        regionName={region?.name ?? t('realm.ruins.title')}
         busy={busy}
         onChoose={(branch) => runAsync(() => realmRuinChoose(telegramInitData, ruinRun.id, branch))}
         onExtract={() => runAsync(() => realmRuinExtract(telegramInitData, ruinRun.id))}
@@ -195,13 +198,13 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         <div className="realm-hud-atmo" aria-hidden />
         <div className="relative px-3 pb-1.5 pt-2">
           <div className="flex items-center gap-2">
-            <button onClick={onBack} className="realm-hud-back">‹ Voltar</button>
+            <button onClick={onBack} className="realm-hud-back">{t('realm.back')}</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
               <h1 className="realm-hud-title truncate">MYTHREON REALM</h1>
             </div>
             <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
-              <span className="realm-lv-cap">Stronghold</span>
+              <span className="realm-lv-cap">{t('realm.strongholdCap')}</span>
               <b className="realm-lv-num">LV.{level}</b>
             </div>
           </div>
@@ -221,19 +224,19 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
               </button>
             ))}
 
-            <button onClick={() => setResourcesOpen(true)} aria-label="Recursos" className="realm-res-plus">+</button>
+            <button onClick={() => setResourcesOpen(true)} aria-label={t('realm.resources')} className="realm-res-plus">+</button>
           </div>
 
           {/* navegação do Realm */}
           <nav className="realm-nav">
-            {TABS.map((t) => (
+            {TABS.map((item) => (
               <button
-                key={t.id}
-                onClick={() => { setTab(t.id); if (t.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-                className={`realm-tab ${tab === t.id ? 'realm-tab-on' : ''}`}
+                key={item.id}
+                onClick={() => { setTab(item.id); if (item.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
+                className={`realm-tab ${tab === item.id ? 'realm-tab-on' : ''}`}
               >
-                <span className="block text-[14px] leading-4">{t.glyph}</span>
-                <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t.label}</span>
+                <span className="block text-[14px] leading-4">{item.glyph}</span>
+                <span className="block text-[8px] font-black uppercase tracking-[.12em]">{t(item.labelKey)}</span>
               </button>
             ))}
           </nav>
@@ -297,14 +300,14 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         {tab === 'ruins' && (
           <section className="space-y-4">
             <div className="relative overflow-hidden rounded-3xl">
-              <img src={RUINS_BG} alt="Ruínas Ancestrais" loading="lazy" className="h-44 w-full object-cover" />
+              <img src={RUINS_BG} alt="" loading="lazy" className="h-44 w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#05070f] via-transparent to-transparent" />
-              <b className="absolute bottom-3 left-4 text-[13px] font-black uppercase tracking-[.14em] text-purple-100">RUÍNAS ANCESTRAIS</b>
+              <b className="absolute bottom-3 left-4 text-[13px] font-black uppercase tracking-[.14em] text-purple-100">{t('realm.ruins.title')}</b>
             </div>
 
             {ruinRun && ruinRun.status === 'running' && (
               <button onClick={() => setDungeonOpen(true)} className="w-full rounded-2xl bg-gradient-to-r from-purple-500 to-fuchsia-400 py-3 text-[11px] font-black uppercase tracking-[.16em] text-black">
-                Retomar descida · sala {Math.min(ruinRun.current_room + 1, 10)}/10
+                {t('realm.ruins.resume', { room: Math.min(ruinRun.current_room + 1, 10) })}
               </button>
             )}
 
@@ -314,32 +317,32 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                   <div key={r.id} className="flex items-center justify-between border-b border-white/5 py-2.5">
                     <div>
                       <b className="text-[11px] font-black text-purple-100">{r.name}</b>
-                      <p className="text-[9px] text-slate-500">10 salas • Poder {fmt(r.recommended_power)}</p>
+                      <p className="text-[9px] text-slate-500">{t('realm.ruins.rooms', { power: fmt(r.recommended_power) })}</p>
                     </div>
-                    <button disabled={busy} onClick={() => { setDungeonOpen(true); call(() => realmRuinStart(telegramInitData, r.id)); }} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">Entrar</button>
+                    <button disabled={busy} onClick={() => { setDungeonOpen(true); call(() => realmRuinStart(telegramInitData, r.id)); }} className="rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-black disabled:opacity-40">{t('realm.ruins.enter')}</button>
                   </div>
                 ))}
                 {data.regions.filter((r) => r.ruin_enabled && level < r.unlock_stronghold_level).map((r) => (
-                  <p key={r.id} className="py-1.5 text-[10px] text-slate-500">🔒 {r.name} — Stronghold Lv.{r.unlock_stronghold_level}</p>
+                  <p key={r.id} className="py-1.5 text-[10px] text-slate-500">{t('realm.ruins.locked', { name: r.name, level: r.unlock_stronghold_level })}</p>
                 ))}
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="flex justify-between text-center">
-                  <Stat label="Sala" value={`${ruinRun.current_room + 1}/10`} />
-                  <Stat label="Vitalidade" value={`${ruinRun.hp}%`} />
-                  <Stat label="Moedas" value={fmt(ruinRun.ruin_coins)} />
+                  <Stat label={t('realm.ruins.room')} value={`${ruinRun.current_room + 1}/10`} />
+                  <Stat label={t('realm.ruins.vitality')} value={`${ruinRun.hp}%`} />
+                  <Stat label={t('realm.ruins.coins')} value={fmt(ruinRun.ruin_coins)} />
                 </div>
-                {data.lastRoom && <p className="text-[10px] text-slate-400">{describeRoom(data.lastRoom)}</p>}
+                {data.lastRoom && <p className="text-[10px] text-slate-400">{describeRoom(data.lastRoom, t)}</p>}
                 <div className="grid grid-cols-2 gap-2">
                   {openRooms.map((room) => (
                     <button key={room.id} disabled={busy} onClick={() => call(() => realmRuinChoose(telegramInitData, ruinRun.id, room.branch))} className="rounded-3xl bg-white/[.05] px-3 py-5 text-center">
-                      <b className="text-[11px] font-black uppercase tracking-[.14em] text-purple-100">{REALM_ROOM_LABEL[room.room_type] ?? room.room_type}</b>
-                      <p className="mt-1 text-[9px] text-slate-500">Dificuldade {room.config?.difficulty ?? 1}</p>
+                      <b className="text-[11px] font-black uppercase tracking-[.14em] text-purple-100">{t(REALM_ROOM_LABEL_KEY[room.room_type] ?? '') || room.room_type}</b>
+                      <p className="mt-1 text-[9px] text-slate-500">{t('realm.difficulty')} {room.config?.difficulty ?? 1}</p>
                     </button>
                   ))}
                 </div>
-                <button disabled={busy} onClick={() => call(() => realmRuinExtract(telegramInitData, ruinRun.id))} className="w-full rounded-2xl border border-white/15 py-3 text-[10px] font-bold text-slate-200">Extrair com o loot</button>
+                <button disabled={busy} onClick={() => call(() => realmRuinExtract(telegramInitData, ruinRun.id))} className="w-full rounded-2xl border border-white/15 py-3 text-[10px] font-bold text-slate-200">{t('realm.ruins.extract')}</button>
               </div>
             )}
           </section>
@@ -358,7 +361,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
       </main>
 
       {/* ---------- SHEETS ---------- */}
-      <Sheet open={resourcesOpen} onClose={() => setResourcesOpen(false)} title="Recursos do Realm">
+      <Sheet open={resourcesOpen} onClose={() => setResourcesOpen(false)} title={t('realm.resourcesTitle')}>
         <div className="grid grid-cols-2 gap-2">
           {materials.map((m) => (
             <div key={m.id} className="flex items-center gap-2 rounded-2xl bg-white/[.04] p-2">
@@ -395,30 +398,30 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                     <span className="stronghold-seal">Lv.{lvl}</span>
                   </div>
                   <p className="mt-1 text-[9.5px] leading-snug text-slate-400">{buildingType.description}</p>
-                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">Nível máximo {buildingType.max_level} · obra base {realmTimer(buildingType.base_seconds)}</p>
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">{t('realm.build.maxInfo', { max: buildingType.max_level, time: realmTimer(buildingType.base_seconds) })}</p>
                 </div>
               </div>
 
               {buildingType.id === 'forge' && lvl > 0 && (
-                <button onClick={() => { setBuildingSheet(null); setTab('forge'); }} className="w-full rounded-2xl border border-amber-300/40 bg-amber-500/10 py-2.5 text-[11px] font-black uppercase tracking-[.16em] text-amber-100">Abrir Forja</button>
+                <button onClick={() => { setBuildingSheet(null); setTab('forge'); }} className="w-full rounded-2xl border border-amber-300/40 bg-amber-500/10 py-2.5 text-[11px] font-black uppercase tracking-[.16em] text-amber-100">{t('realm.build.openForge')}</button>
               )}
               {buildingType.id === 'watchtower' && (() => {
                 const next = data.regions.filter((r) => level < r.unlock_stronghold_level).sort((a, b) => a.unlock_stronghold_level - b.unlock_stronghold_level)[0];
                 return (
                   <p className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 px-3 py-2 text-[10px] leading-4 text-cyan-200">
-                    {next ? `Próxima região: ${next.name} — requer Stronghold Lv.${next.unlock_stronghold_level}` : 'Todas as regiões já estão desbloqueadas.'}
+                    {next ? t('realm.build.nextRegion', { name: next.name, level: next.unlock_stronghold_level }) : t('realm.build.allUnlocked')}
                   </p>
                 );
               })()}
 
               {gated && !upgrading && !ready && (
                 <p className="rounded-2xl border border-slate-400/25 bg-white/[.04] px-3 py-2 text-[10px] font-bold text-slate-300">
-                  Bloqueado · evolua o Castelo até o Lv.{lvl + 1} para liberar esta obra.
+                  {t('realm.build.gated', { level: lvl + 1 })}
                 </p>
               )}
 
               <div className="space-y-1.5">
-                <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">{lvl === 0 ? 'Custo de construção' : 'Custo de evolução'}</p>
+                <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">{lvl === 0 ? t('realm.build.costBuild') : t('realm.build.costUpgrade')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   <span className="realm-cost-chip realm-cost-chip--gold">
                     <img src="/assets/game/coins/forge-coin.png" alt="" loading="lazy" className="h-4 w-4 object-contain" />
@@ -434,12 +437,12 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
               </div>
 
               {upgrading ? (
-                <p className="text-center text-[11px] font-black tabular-nums text-cyan-300">Em obras · {realmTimer(left)}</p>
+                <p className="text-center text-[11px] font-black tabular-nums text-cyan-300">{t('realm.build.working', { time: realmTimer(left) })}</p>
               ) : ready ? (
-                <button disabled={busy} onClick={() => call(() => realmClaimBuilding(telegramInitData, buildingType.id))} className="realm-action-btn realm-action-btn--done">Concluir</button>
+                <button disabled={busy} onClick={() => call(() => realmClaimBuilding(telegramInitData, buildingType.id))} className="realm-action-btn realm-action-btn--done">{t('realm.build.finish')}</button>
               ) : (
                 <button disabled={busy || maxed} onClick={() => call(() => realmUpgradeBuilding(telegramInitData, buildingType.id))} className="realm-action-btn">
-                  {maxed ? 'Nível máximo' : lvl === 0 ? 'Construir' : 'Evoluir'}
+                  {maxed ? t('realm.build.maxed') : lvl === 0 ? t('realm.build.build') : t('realm.build.upgrade')}
                 </button>
               )}
             </div>
@@ -456,7 +459,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end" role="dialog">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/70" />
+      <button aria-label="close" onClick={onClose} className="absolute inset-0 bg-black/70" />
       <div className="relative w-full rounded-t-3xl border-t border-white/10 bg-[#0a0d18] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="mb-3 flex items-center justify-between gap-2">
           <b className="text-[12px] font-black uppercase tracking-[.12em] text-amber-100">{title}</b>
@@ -477,24 +480,24 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function describeReward(reward: Record<string, unknown>) {
+function describeReward(reward: Record<string, unknown>, t: Translator) {
   const parts: string[] = [];
   if (reward.fc) parts.push(`${fmt(Number(reward.fc))} FC`);
   if (reward.qty && reward.material) parts.push(`${fmt(Number(reward.qty))} ${String(reward.material).replace(/_/g, ' ')}`);
   if (reward.name) parts.push(`${reward.qty ?? ''} ${String(reward.name)}`.trim());
-  if (reward.fragments) parts.push(`${fmt(Number(reward.fragments))} fragmentos`);
+  if (reward.fragments) parts.push(`${fmt(Number(reward.fragments))} ${t('realm.reward.fragments')}`);
   Object.entries(reward).forEach(([key, value]) => {
     if (['fc', 'qty', 'material', 'name', 'kind', 'ref', 'cleared', 'fragments'].includes(key)) return;
     if (typeof value === 'number') parts.push(`${fmt(value)} ${key.replace(/_/g, ' ')}`);
   });
-  return parts.length ? `Recebido: ${parts.join(' · ')}` : 'Recompensa entregue.';
+  return parts.length ? t('realm.reward.received', { list: parts.join(' · ') }) : t('realm.reward.delivered');
 }
 
-function describeRoom(room: Record<string, unknown>) {
-  const type = REALM_ROOM_LABEL[String(room.roomType)] ?? String(room.roomType);
+function describeRoom(room: Record<string, unknown>, t: Translator) {
+  const type = t(REALM_ROOM_LABEL_KEY[String(room.roomType)] ?? '') || String(room.roomType);
   const dmg = Number(room.damage ?? 0);
   const coins = Number(room.coins ?? 0);
   const extra = room.material ? ` · ${fmt(Number(room.qty ?? 0))} ${String(room.material).replace(/_/g, ' ')}` : '';
-  const heal = dmg < 0 ? ` · +${Math.abs(dmg)}% vitalidade` : dmg > 0 ? ` · -${dmg}% vitalidade` : '';
-  return `${type}${heal} · +${fmt(coins)} moedas${extra}${room.result === 'failed' ? ' · VOCÊ CAIU' : room.result === 'cleared' ? ' · RUÍNA CONCLUÍDA' : ''}`;
+  const heal = dmg < 0 ? ` · +${Math.abs(dmg)}% ${t('realm.reward.vitality')}` : dmg > 0 ? ` · -${dmg}% ${t('realm.reward.vitality')}` : '';
+  return `${type}${heal} · +${fmt(coins)} ${t('realm.reward.coins')}${extra}${room.result === 'failed' ? ` · ${t('realm.reward.youFell')}` : room.result === 'cleared' ? ` · ${t('realm.ruins.cleared')}` : ''}`;
 }

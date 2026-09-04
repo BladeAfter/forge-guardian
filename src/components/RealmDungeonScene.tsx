@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { REALM_ROOM_LABEL, type RealmRuinRoom, type RealmRuinRun, type RealmState } from '../realm';
+import { REALM_ROOM_LABEL_KEY, type RealmRuinRoom, type RealmRuinRun, type RealmState } from '../realm';
+import { useT } from '../LanguageContext';
 
 const BG_HALL = '/assets/game/realm/dungeon-hall.jpg';
 const BG_TREASURE = '/assets/game/realm/dungeon-treasure.jpg';
@@ -17,14 +18,14 @@ const ROOM_BG: Record<string, string> = {
   boss: BG_BOSS,
 };
 
-const ROOM_HINT: Record<string, string> = {
-  combat: 'Sons de passos e metal na escuridão.',
-  elite: 'Algo grande respira do outro lado.',
-  trap: 'O chão à frente parece instável.',
-  rest: 'Uma fogueira apagada convida ao descanso.',
-  shrine: 'Runas antigas pulsam com energia curativa.',
-  treasure: 'Um brilho dourado escapa pelas frestas.',
-  boss: 'O ar pesa. O Guardião aguarda.',
+const ROOM_HINT_KEY: Record<string, string> = {
+  combat: 'realm.dungeon.hint.combat',
+  elite: 'realm.dungeon.hint.elite',
+  trap: 'realm.dungeon.hint.trap',
+  rest: 'realm.dungeon.hint.rest',
+  shrine: 'realm.dungeon.hint.shrine',
+  treasure: 'realm.dungeon.hint.treasure',
+  boss: 'realm.dungeon.hint.boss',
 };
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -54,6 +55,7 @@ export default function RealmDungeonScene({
   onExtract: () => Promise<RealmState | null>;
   onLeave: () => void;
 }) {
+  const t = useT();
   const [phase, setPhase] = useState<Phase>('intro');
   const [flash, setFlash] = useState<string | null>(null);
   const [confirmExtract, setConfirmExtract] = useState(false);
@@ -92,7 +94,7 @@ export default function RealmDungeonScene({
     setConfirmExtract(false);
     const next = await onExtract();
     if (next) {
-      setFlash('Você extraiu com o loot.');
+      setFlash(t('realm.dungeon.extracted'));
       window.setTimeout(onLeave, 900);
     }
   };
@@ -117,45 +119,45 @@ export default function RealmDungeonScene({
               <span key={i} className={`dungeon-pip ${i < roomNumber - 1 ? 'is-done' : i === roomNumber - 1 ? 'is-now' : ''}`} />
             ))}
           </div>
-          <span className="dungeon-hud-room">SALA {roomNumber}/10</span>
+          <span className="dungeon-hud-room">{t('realm.dungeon.room', { n: roomNumber })}</span>
         </div>
         <div className="dungeon-loot">
-          <span className="dungeon-loot-cap">LOOT</span>
+          <span className="dungeon-loot-cap">{t('realm.dungeon.lootCap')}</span>
           <b>{fmt(run.ruin_coins)}</b>
         </div>
       </header>
 
       <div className="dungeon-hp">
         <div className="dungeon-hp-fill" style={{ width: `${Math.max(0, Math.min(100, run.hp))}%` }} />
-        <span className="dungeon-hp-label">VITALIDADE {Math.max(0, run.hp)}%</span>
+        <span className="dungeon-hp-label">{t('realm.dungeon.vitality', { v: Math.max(0, run.hp) })}</span>
       </div>
 
 
 
       {phase === 'intro' && (
         <div className="dungeon-intro">
-          <b>RUÍNAS ANCESTRAIS</b>
-          <span>{regionName} · descida iniciada</span>
+          <b>{t('realm.ruins.title')}</b>
+          <span>{t('realm.dungeon.descentStarted', { region: regionName })}</span>
         </div>
       )}
 
       {phase === 'result' && lastRoom && (
         <div className="dungeon-discovery">
-          <b>{REALM_ROOM_LABEL[currentType] ?? currentType}</b>
+          <b>{t(REALM_ROOM_LABEL_KEY[currentType] ?? '') || currentType}</b>
           <p>
-            {damage > 0 && <em className="text-rose-300">−{damage}% vitalidade </em>}
-            {damage < 0 && <em className="text-emerald-300">+{Math.abs(damage)}% vitalidade </em>}
-            +{fmt(Number((lastRoom as { coins?: number }).coins ?? 0))} loot
+            {damage > 0 && <em className="text-rose-300">−{damage}% {t('realm.dungeon.vit')} </em>}
+            {damage < 0 && <em className="text-emerald-300">+{Math.abs(damage)}% {t('realm.dungeon.vit')} </em>}
+            +{fmt(Number((lastRoom as { coins?: number }).coins ?? 0))} {t('realm.dungeon.loot')}
           </p>
-          {finished === 'failed' && <span className="dungeon-fail">SUA EQUIPE CAIU</span>}
-          {finished === 'cleared' && <span className="dungeon-clear">RUÍNA CONCLUÍDA</span>}
+          {finished === 'failed' && <span className="dungeon-fail">{t('realm.dungeon.failed')}</span>}
+          {finished === 'cleared' && <span className="dungeon-clear">{t('realm.dungeon.cleared')}</span>}
         </div>
       )}
 
       {/* PORTAS */}
       <div className="dungeon-doors">
         {rooms.length === 0 && phase !== 'walking' && (
-          <p className="dungeon-empty">Aguardando a próxima passagem…</p>
+          <p className="dungeon-empty">{t('realm.dungeon.waiting')}</p>
         )}
         {rooms.map((room) => (
           <button
@@ -166,25 +168,25 @@ export default function RealmDungeonScene({
           >
             <img src={DOOR} alt="" className="dungeon-door-art" loading="lazy" width={768} height={1024} />
             <span className="dungeon-door-glow" aria-hidden />
-            <b className="dungeon-door-label">{REALM_ROOM_LABEL[room.room_type] ?? room.room_type}</b>
-            <span className="dungeon-door-hint">{ROOM_HINT[room.room_type] ?? 'Passagem desconhecida.'}</span>
-            <span className="dungeon-door-diff">RISCO {room.config?.difficulty ?? 1}</span>
+            <b className="dungeon-door-label">{t(REALM_ROOM_LABEL_KEY[room.room_type] ?? '') || room.room_type}</b>
+            <span className="dungeon-door-hint">{t(ROOM_HINT_KEY[room.room_type] ?? 'realm.dungeon.hint.unknown')}</span>
+            <span className="dungeon-door-diff">{t('realm.dungeon.risk', { n: room.config?.difficulty ?? 1 })}</span>
           </button>
         ))}
       </div>
 
       <button onClick={() => setConfirmExtract(true)} disabled={busy} className="dungeon-extract">
-        Extrair com {fmt(run.ruin_coins)} de loot
+        {t('realm.dungeon.extractWith', { n: fmt(run.ruin_coins) })}
       </button>
 
       {confirmExtract && (
         <div className="dungeon-modal" role="dialog">
           <div className="dungeon-modal-card">
-            <b>Extrair agora?</b>
-            <p>Você sai das Ruínas com {fmt(run.ruin_coins)} de loot e encerra a descida na sala {roomNumber}.</p>
+            <b>{t('realm.dungeon.extractNow')}</b>
+            <p>{t('realm.dungeon.extractDesc', { n: fmt(run.ruin_coins), room: roomNumber })}</p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmExtract(false)} className="dungeon-modal-ghost">Continuar</button>
-              <button onClick={extract} className="dungeon-modal-cta">Extrair</button>
+              <button onClick={() => setConfirmExtract(false)} className="dungeon-modal-ghost">{t('realm.dungeon.continue')}</button>
+              <button onClick={extract} className="dungeon-modal-cta">{t('realm.dungeon.extract')}</button>
             </div>
           </div>
         </div>
