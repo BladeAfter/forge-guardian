@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
 import RealmBountyBoard from '../components/RealmBountyBoard';
-import RealmDungeonScene from '../components/RealmDungeonScene';
+import RealmDungeonScene, { duelLogFrom, FIGHT_ROOMS } from '../components/RealmDungeonScene';
+import RealmBattleScene from '../components/RealmBattleScene';
+import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 
@@ -58,6 +60,9 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   
 
   const [dungeonOpen, setDungeonOpen] = useState(true);
+  /* Duelo 1x1 (estilo Familiar Hunt) quando o servidor resolve uma sala de combate. */
+  const [duelLog, setDuelLog] = useState<RealmExploreLog | null>(null);
+  const seenDuelRoom = useRef<string>('');
   const [ruinRegion, setRuinRegion] = useState<string | null>(null);
 
 
@@ -99,6 +104,17 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
     }
   };
 
+
+  /* Sempre que o servidor devolve o resultado de uma sala de luta, abre o duelo 1x1. */
+  const lastRoomData = data?.lastRoom;
+  useEffect(() => {
+    if (!lastRoomData) return;
+    const key = JSON.stringify(lastRoomData);
+    if (key === seenDuelRoom.current) return;
+    seenDuelRoom.current = key;
+    if (!FIGHT_ROOMS.includes(String((lastRoomData as { roomType?: string }).roomType ?? ''))) return;
+    setDuelLog(duelLogFrom(lastRoomData));
+  }, [lastRoomData]);
 
   useEffect(() => {
     if (!notice) return;
@@ -179,6 +195,15 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   if (ruinRun && ruinRun.status === 'running' && dungeonOpen) {
     const region = data.regions.find((r) => r.id === ruinRun.region_id);
     return (
+      <>
+      {duelLog && (
+        <RealmBattleScene
+          log={duelLog} duel
+          regionId={ruinRun.region_id}
+          regionName={region?.name ?? t('realm.ruins.title')}
+          onClose={() => setDuelLog(null)}
+        />
+      )}
       <RealmDungeonScene
         run={ruinRun}
         rooms={openRooms}
@@ -189,12 +214,21 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         onExtract={() => runAsync(() => realmRuinExtract(telegramInitData, ruinRun.id))}
         onLeave={() => { setDungeonOpen(false); setTab('ruins'); qc.invalidateQueries({ queryKey: ['realm', telegramInitData] }); }}
       />
+      </>
     );
   }
 
 
   return (
     <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-28">
+      {duelLog && (
+        <RealmBattleScene
+          log={duelLog} duel
+          regionId={data.ruinRun?.region_id ?? null}
+          regionName={t('realm.ruins.title')}
+          onClose={() => setDuelLog(null)}
+        />
+      )}
       {/* TOP HUD premium do Realm */}
       <header className="realm-hud sticky top-0 z-20">
         <div className="realm-hud-atmo" aria-hidden />
