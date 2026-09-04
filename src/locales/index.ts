@@ -39,9 +39,12 @@ import { sovereignPack } from './sovereignPack';
 import { vanguardPack } from './vanguardPack';
 import { adventurerPack } from './adventurerPack';
 import { mythicPowerPack } from './mythicPowerPack';
+import { realmCore } from './realmCore';
+import { realmExplore } from './realmExplore';
+import { realmContent } from './realmContent';
 import { tr as trOverrides } from './tr';
 
-const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission, marketingPool, clanWar, tonMines, privateTrade, celestialPack, sovereignPack, vanguardPack, adventurerPack, mythicPowerPack];
+const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, wallet, profile, quests, pass, pool, clans, events, market, spending, clanBoss, partners, tower, nftx, expeditionExtra, expeditionBoost, pvpSelect, giveaway, activity, arsenal, pvpLeague, tactical, clanAdmin, auction, nameMission, marketingPool, clanWar, tonMines, privateTrade, celestialPack, sovereignPack, vanguardPack, adventurerPack, mythicPowerPack, realmCore, realmExplore, realmContent];
 
 
 
