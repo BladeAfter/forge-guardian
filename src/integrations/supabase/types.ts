@@ -15349,11 +15349,15 @@ export type Database = {
           auto: boolean
           completed_at: string | null
           depth: number
+          depth_level: number
+          difficulty: Json
+          entry_cost: number
           final_depth: number
           hp: number
           id: string
           log: Json
           loot: Json
+          loot_multiplier: number
           pending: Json | null
           region_id: string
           risk: number
@@ -15366,11 +15370,15 @@ export type Database = {
           auto?: boolean
           completed_at?: string | null
           depth?: number
+          depth_level?: number
+          difficulty?: Json
+          entry_cost?: number
           final_depth?: number
           hp?: number
           id?: string
           log?: Json
           loot?: Json
+          loot_multiplier?: number
           pending?: Json | null
           region_id: string
           risk?: number
@@ -15383,11 +15391,15 @@ export type Database = {
           auto?: boolean
           completed_at?: string | null
           depth?: number
+          depth_level?: number
+          difficulty?: Json
+          entry_cost?: number
           final_depth?: number
           hp?: number
           id?: string
           log?: Json
           loot?: Json
+          loot_multiplier?: number
           pending?: Json | null
           region_id?: string
           risk?: number
@@ -15621,14 +15633,77 @@ export type Database = {
         }
         Relationships: []
       }
+      realm_region_progress: {
+        Row: {
+          current_depth: number
+          failed_runs: number
+          highest_completed_depth: number
+          id: string
+          region_id: string
+          successful_runs: number
+          total_runs: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_depth?: number
+          failed_runs?: number
+          highest_completed_depth?: number
+          id?: string
+          region_id: string
+          successful_runs?: number
+          total_runs?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_depth?: number
+          failed_runs?: number
+          highest_completed_depth?: number
+          id?: string
+          region_id?: string
+          successful_runs?: number
+          total_runs?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "realm_region_progress_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "realm_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "realm_region_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       realm_regions: {
         Row: {
+          atk_growth: number
+          boss_interval: number
           created_at: string
+          def_growth: number
           enabled: boolean
+          entry_cost_base: number
+          entry_cost_growth: number
+          entry_cost_max: number
+          hp_growth: number
           id: string
           image_url: string | null
+          loot_growth: number
+          loot_growth_max: number
+          max_depth: number
           name: string
           order_index: number
+          power_base: number
+          power_growth: number
           recommended_power: number
           ruin_enabled: boolean
           tagline: string
@@ -15636,12 +15711,24 @@ export type Database = {
           unlock_stronghold_level: number
         }
         Insert: {
+          atk_growth?: number
+          boss_interval?: number
           created_at?: string
+          def_growth?: number
           enabled?: boolean
+          entry_cost_base?: number
+          entry_cost_growth?: number
+          entry_cost_max?: number
+          hp_growth?: number
           id: string
           image_url?: string | null
+          loot_growth?: number
+          loot_growth_max?: number
+          max_depth?: number
           name: string
           order_index?: number
+          power_base?: number
+          power_growth?: number
           recommended_power?: number
           ruin_enabled?: boolean
           tagline?: string
@@ -15649,12 +15736,24 @@ export type Database = {
           unlock_stronghold_level?: number
         }
         Update: {
+          atk_growth?: number
+          boss_interval?: number
           created_at?: string
+          def_growth?: number
           enabled?: boolean
+          entry_cost_base?: number
+          entry_cost_growth?: number
+          entry_cost_max?: number
+          hp_growth?: number
           id?: string
           image_url?: string | null
+          loot_growth?: number
+          loot_growth_max?: number
+          max_depth?: number
           name?: string
           order_index?: number
+          power_base?: number
+          power_growth?: number
           recommended_power?: number
           ruin_enabled?: boolean
           tagline?: string
@@ -25468,7 +25567,16 @@ export type Database = {
         }
         Returns: Json
       }
+      realm_depth_stats: {
+        Args: { p_depth: number; p_region: string }
+        Returns: Json
+      }
+      realm_depth_tier: { Args: { p_depth: number }; Returns: string }
       realm_ensure_profile: { Args: { p_user: string }; Returns: undefined }
+      realm_entry_cost: {
+        Args: { p_depth: number; p_region: string }
+        Returns: number
+      }
       realm_expedition_claim: {
         Args: { p_id: string; p_user: string }
         Returns: Json
@@ -25537,6 +25645,27 @@ export type Database = {
         }
         Returns: number
       }
+      realm_progress_row: {
+        Args: { p_region: string; p_user: string }
+        Returns: {
+          current_depth: number
+          failed_runs: number
+          highest_completed_depth: number
+          id: string
+          region_id: string
+          successful_runs: number
+          total_runs: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "realm_region_progress"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      realm_region_meta: { Args: { p_user: string }; Returns: Json }
       realm_ruin_build_rooms: {
         Args: { p_room: number; p_run: string }
         Returns: undefined
