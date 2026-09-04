@@ -22,7 +22,7 @@ const log = (message: string, extra?: unknown) => {
  * aparecer — o jogador não precisa clicar em nada.
  *
  * Fluxo anti-"queimar impressão":
- *   1. `popup-reserve` → o servidor escolhe 0 ou 1 oferta (prioridade: Sovereign 200 > Celestial 100
+ *   1. `popup-reserve` → o servidor escolhe 0 ou 1 oferta (prioridade: Sovereign 150 > Celestial 100
  *      > Founder 50 > Veteran 40) e NÃO grava impressão nenhuma;
  *   2. o modal abre de verdade;
  *   3. só depois de montado chamamos `popup-confirm-shown`, que grava a impressão do dia de forma

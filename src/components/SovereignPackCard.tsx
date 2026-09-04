@@ -14,7 +14,7 @@ import packArt from '../assets/celestial-sovereign-pack.jpg';
 const int = (value: number) => Math.round(Number(value || 0)).toLocaleString('pt-BR');
 
 /**
- * 👑 CELESTIAL SOVEREIGN PACK (200 TON) — card permanente em OFERTAS PREMIUM e popup diário.
+ * 👑 CELESTIAL SOVEREIGN PACK (150 TON) — card permanente em OFERTAS PREMIUM e popup diário.
  *
  * Preço, janela, estoque, limite, entrega atômica e o bônus permanente de mineração TON da conta são
  * decididos pelo servidor. Herói Celestial e Pet NFT Celestial chegam com mineração "A REVELAR":

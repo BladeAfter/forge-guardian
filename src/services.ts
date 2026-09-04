@@ -304,7 +304,7 @@ export const fetchCelestialPack=(initData:string)=>walletRequest<CelestialPackSt
 export const startCelestialPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<CelestialPackPurchaseResult>(initData,{action:'celestial-pack-buy',idempotencyKey,walletAddress});
 /** Liquida o pagamento TonConnect on-chain exatamente uma vez. */
 export const verifyCelestialPackPurchases=(initData:string)=>walletRequest<{checked:number;confirmed:string[];pending:string[];state:CelestialPackState}>(initData,{action:'celestial-pack-verify'});
-/** 👑 CELESTIAL SOVEREIGN PACK (200 TON): estado, preço, estoque e revelação vêm do servidor. */
+/** 👑 CELESTIAL SOVEREIGN PACK (150 TON): estado, preço, estoque e revelação vêm do servidor. */
 export const fetchSovereignPack=(initData:string)=>walletRequest<SovereignPackState>(initData,{action:'sovereign-pack'});
 /** TON interno quando cobre 100% do preço, TonConnect caso contrário — saldos nunca são misturados. */
 export const startSovereignPackPurchase=(initData:string,idempotencyKey:string,walletAddress?:string)=>walletRequest<SovereignPackPurchaseResult>(initData,{action:'sovereign-pack-buy',idempotencyKey,walletAddress});
