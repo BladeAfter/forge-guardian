@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { REALM_ROOM_LABEL_KEY, type RealmRuinRoom, type RealmRuinRun, type RealmState } from '../realm';
 import { useT } from '../LanguageContext';
+import RealmBattleScene from './RealmBattleScene';
+import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 
 const BG_HALL = '/assets/game/realm/dungeon-hall.jpg';
 const BG_TREASURE = '/assets/game/realm/dungeon-treasure.jpg';
@@ -27,6 +29,33 @@ const ROOM_HINT_KEY: Record<string, string> = {
   treasure: 'realm.dungeon.hint.treasure',
   boss: 'realm.dungeon.hint.boss',
 };
+
+const FIGHT_ROOMS = ['combat', 'elite', 'boss'];
+
+/**
+ * Turns the authoritative room result into a round-by-round script for the duel scene.
+ * Presentation only: the totals (damage taken, loot) come straight from the server.
+ */
+function duelLogFrom(lastRoom: Record<string, unknown>): RealmExploreLog {
+  const type = String(lastRoom.roomType ?? 'combat') as RealmExploreNodeType;
+  const damage = Math.max(0, Number(lastRoom.damage ?? 0));
+  const coins = Math.max(1, Number(lastRoom.coins ?? 0));
+  const failed = String(lastRoom.result ?? '') === 'failed';
+  const turns = type === 'boss' ? 5 : type === 'elite' ? 4 : 3;
+  const rounds = Array.from({ length: turns }).map((_, i) => ({
+    round: i + 1,
+    playerHit: Math.max(1, Math.round((coins * 4) / turns)),
+    enemyHit: Math.max(1, Math.round((damage * 12) / turns)),
+  }));
+  return {
+    nodeType: type,
+    rounds,
+    damage,
+    fc: coins,
+    hp: Number(lastRoom.hp ?? 0),
+    result: failed ? 'failed' : String(lastRoom.result ?? '') === 'cleared' ? 'cleared' : 'ongoing',
+  };
+}
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
@@ -60,6 +89,7 @@ export default function RealmDungeonScene({
   const [flash, setFlash] = useState<string | null>(null);
   const [confirmExtract, setConfirmExtract] = useState(false);
   const seenRoom = useRef<string>('');
+  const [duel, setDuel] = useState<RealmExploreLog | null>(null);
 
   const roomNumber = Math.min(run.current_room + 1, 10);
   const bossNext = roomNumber >= 10 || rooms.some((r) => r.room_type === 'boss');
@@ -75,6 +105,11 @@ export default function RealmDungeonScene({
     const key = JSON.stringify(lastRoom);
     if (key === seenRoom.current) return;
     seenRoom.current = key;
+    if (FIGHT_ROOMS.includes(String((lastRoom as { roomType?: string }).roomType ?? ''))) {
+      setDuel(duelLogFrom(lastRoom));
+      setPhase('idle');
+      return;
+    }
     setPhase('result');
     const id = window.setTimeout(() => setPhase('idle'), 2600);
     return () => window.clearTimeout(id);
@@ -194,6 +229,16 @@ export default function RealmDungeonScene({
             </div>
           </div>
         </div>
+      )}
+
+      {duel && (
+        <RealmBattleScene
+          log={duel}
+          duel
+          regionId={run.region_id}
+          regionName={regionName}
+          onClose={() => setDuel(null)}
+        />
       )}
 
       {flash && <div className="dungeon-flash">{flash}</div>}
