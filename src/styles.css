@@ -1289,9 +1289,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 @keyframes shMist { from { opacity: .5; transform: translateX(-2%); } to { opacity: 1; transform: translateX(2%); } }
 
-.stronghold-slot { transition: transform 200ms ease-out, filter 200ms ease-out; }
-.stronghold-slot:active { transform: translate(-50%, -50%) scale(1.06); }
-.stronghold-slot-on { filter: brightness(1.18) drop-shadow(0 0 12px rgba(251, 191, 36, .45)); }
+.stronghold-slot { transform: translate(-50%, -100%); transform-origin: 50% 100%; transition: transform 200ms ease-out, filter 200ms ease-out; }
+.stronghold-slot:active { transform: translate(-50%, -100%) scale(1.05); }
+.stronghold-slot-on { filter: brightness(1.12) drop-shadow(0 0 14px rgba(251, 191, 36, .4)); }
+.stronghold-art { position: relative; display: block; }
+.stronghold-ghost { opacity: .3; filter: grayscale(1) brightness(.35) blur(.4px); }
+
 
 .stronghold-aura { width: 130%; height: 90%; border-radius: 50%; animation: shAura 4.5s ease-in-out infinite; }
 @keyframes shAura { 0%, 100% { opacity: .5; transform: translate(-50%, -50%) scale(1); } 50% { opacity: .85; transform: translate(-50%, -50%) scale(1.1); } }
