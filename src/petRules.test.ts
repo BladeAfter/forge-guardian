@@ -1,14 +1,17 @@
-import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus,calculatePetBonus,calculatePetEvolutionCostFc,canPetEvolve,canPhoenixRevive,canTriggerPetSkill,deterministicPercent,evolutionStage,foodCost,fragmentCost,levelCostFc,normalizePetRarity,petPower,xpRequired}from'./petRules';
+import{describe,expect,it}from'vitest';import{activateOnlyPet,applyEligibleBonus,calculatePetBonus,calculatePetEvolutionCostFc,calculatePremiumPetBonus,canPetEvolve,canPhoenixRevive,canTriggerPetSkill,deterministicPercent,evolutionStage,foodCost,fragmentCost,levelCostFc,normalizePetRarity,petPower,xpRequired}from'./petRules';
 describe('pet rules',()=>{
  it('keeps only one pet active',()=>expect(activateOnlyPet([{id:'a',isActive:true},{id:'b',isActive:false}],'b').filter(x=>x.isActive).map(x=>x.id)).toEqual(['b']));
  it('normalizes Portuguese rarities',()=>expect(['comum','incomum','raro','épico','lendário'].map(normalizePetRarity)).toEqual(['common','uncommon','rare','epic','legendary']));
- it('falls unknown rarity back to common',()=>expect(normalizePetRarity('mythic')).toBe('common'));
+ it('falls unknown rarity back to common',()=>expect(normalizePetRarity('nonsense')).toBe('common'));
  it('increases boss damage by the final bonus',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
  it('increases team hp correctly',()=>expect(applyEligibleBonus(100,5,true)).toBe(105));
  it('does not affect ineligible farm rewards',()=>expect(applyEligibleBonus(1000,15,false)).toBe(1000));
  it('applies xp bonus once',()=>expect(applyEligibleBonus(1000,5,true)).toBe(1050));
- it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(20));
- it('caps critical chance',()=>expect(calculatePetBonus(20,'legendary',30,'critical_chance_percent')).toBe(10));
+ it('uses rarity and level multipliers',()=>expect(calculatePetBonus(5,'legendary',30,'boss_damage_percent')).toBe(16.03));
+ it('lets normal pets grow above the base cap without exceeding 1.5x',()=>expect(calculatePetBonus(100,'legendary',30,'critical_chance_percent')).toBe(34.35));
+ it('grows buffs gradually per evolution stage',()=>expect([0,1,2].map(st=>calculatePetBonus(20,'mythic',10,'boss_damage_percent',st))).toEqual([62.7,68.97,75.24]));
+ it('preserves the historical 2% premium growth without normal-pet caps',()=>{expect(calculatePremiumPetBonus(100,'common',2)).toBe(102);expect(calculatePremiumPetBonus(30,'mythic',10,2)).toBe(169.92)});
+ it('keeps a superior rarity stronger at the same level',()=>{const p=(r:string)=>petPower(r,10,{boss_damage_percent:20});expect(p('mythic')).toBeGreaterThan(p('rare'));expect(p('nft_exclusive')).toBeGreaterThan(p('ancestral'))});
  it('does not exceed max level stage',()=>expect(evolutionStage(99)).toBe('ancestral'));
  it('has visual evolution thresholds',()=>expect([1,10,20,30].map(evolutionStage)).toEqual(['baby','young','adult','ancestral']));
  it('skill respects cooldown',()=>{expect(canTriggerPetSkill(5,5,0)).toBe(true);expect(canTriggerPetSkill(4,5,0)).toBe(false)});
@@ -19,6 +22,6 @@ describe('pet rules',()=>{
  it('never returns NaN for bad bonuses',()=>expect(calculatePetBonus(Number.NaN,'unknown',Number.NaN)).toBe(0));
  it('power is display-only and finite',()=>expect(Number.isFinite(petPower('legendary',30,{boss_damage_percent:20}))).toBe(true));
  it('does not produce negative reward',()=>expect(applyEligibleBonus(-1,5,true)).toBe(0));
- it('requires XP before evolution',()=>{expect(canPetEvolve(1,249)).toBe(false);expect(canPetEvolve(1,250)).toBe(true);expect(canPetEvolve(30,999999)).toBe(false)});
+ it('requires XP before evolution',()=>{expect(canPetEvolve(1,249)).toBe(false);expect(canPetEvolve(1,250)).toBe(true);expect(canPetEvolve(50,999999)).toBe(false)});
  it('evolution cost grows by level and rarity',()=>{expect(calculatePetEvolutionCostFc(1,'common')).toBe(2500);expect(calculatePetEvolutionCostFc(1,'legendary')).toBe(8000);expect(calculatePetEvolutionCostFc(10,'rare')).toBeGreaterThan(calculatePetEvolutionCostFc(5,'rare'))});
 });

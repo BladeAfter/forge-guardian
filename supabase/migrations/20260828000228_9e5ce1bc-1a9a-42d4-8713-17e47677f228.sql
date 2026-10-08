@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.clan_treasury_donate(bigint, text, numeric);

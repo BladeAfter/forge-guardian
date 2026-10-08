@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS player_heroes_user_idx ON public.player_heroes (user_id);

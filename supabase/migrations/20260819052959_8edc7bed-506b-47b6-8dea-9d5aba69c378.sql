@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_founder_frame_border() FROM anon, authenticated, PUBLIC;

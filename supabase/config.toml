@@ -1,1 +1,13 @@
 project_id = "oaivxwzrggfqhapohlht"
+
+[functions.admin-bot]
+verify_jwt = false
+
+[functions.game-api]
+verify_jwt = false
+
+[functions.clan-boss-auto-tick]
+verify_jwt = false
+
+[functions.ton-auto-withdraw]
+verify_jwt = false

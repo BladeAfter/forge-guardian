@@ -1,56 +1,251 @@
-import{useState}from'react';
+import{useEffect,useRef,useState}from'react';
 import{useMutation,useQuery,useQueryClient}from'@tanstack/react-query';
-import{History,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
+import{History,Plus,Search,Shield,Swords,Ticket,Trophy,Users,X}from'lucide-react';
 import{toast}from'sonner';
-import{usePvpDashboard}from'../hooks';
-import{pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
-import type{PvpBattleResult,PvpHero,PvpOpponent}from'../pvp';
+import{usePetDashboard,usePvpDashboard}from'../hooks';
+import{useT,useLanguage}from'../LanguageContext';
+import{PetCompanion}from'../components/PetCompanion';
+import{PvpBattleArena}from'../components/PvpBattleArena';
+import{TacticalArenaPanel}from'../components/TacticalArenaPanel';
+import{beginPvpAdView,buyPvpTickets,claimPvpAdReward,pvpRequest,searchPvpOpponents,startPvpBattle}from'../services';
+import{showAd}from'../adsgram';
+import type{PvpAdsState,PvpBattleResult,PvpHero,PvpOpponent,PvpTicketShop}from'../pvp';
+import{PlayerTag}from'../premiumTitles';
 
-type Team='attack'|'defense';type View='teams'|'history'|'ranking';
-const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24'};
+
+
+const templateOf=(h:{templateId?:string;heroKey?:string;name:string;heroId:string})=>String(h.templateId||h.heroKey||h.name||h.heroId).toLowerCase();
+type Team='attack'|'defense';type View='teams'|'history'|'ranking';type Mode='classic'|'tactical';
+const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f472b6',ancestral:'#f97316',nft_exclusive:'#22d3ee', celestial: '#fde68a',};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
- const q=useQueryClient(),{data,isLoading,error}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[battle,setBattle]=useState<PvpBattleResult|null>(null);
+ const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false),[mode,setMode]=useState<Mode>('classic');
+ useEffect(()=>{console.log('[PVP] start')},[]);
+ useEffect(()=>{if(data)console.log('[PVP] profile + teams loaded',{attack:data.attackTeam.length,defense:data.defenseTeam.length,tickets:data.tickets})},[data]);
+ useEffect(()=>{if(error)console.error('[SCREEN ERROR]',{screen:'pvp',step:'dashboard',message:error instanceof Error?error.message:String(error)})},[error]);
+ // A pending query with nothing in flight (offline flag / paused) must offer a retry, never spin.
+ const stalled=isLoading&&!isFetching;
  const opponents=useQuery({queryKey:['pvp-opponents',telegramInitData],queryFn:async()=>[]as PvpOpponent[],enabled:false,initialData:[]});
- const refresh=()=>Promise.all([q.invalidateQueries({queryKey:['pvp-dashboard',telegramInitData]}),q.invalidateQueries({queryKey:['player-heroes']}),q.invalidateQueries({queryKey:['wallet-balance']}),q.invalidateQueries({queryKey:['game-state',telegramInitData]})]);
- const search=useMutation({mutationFn:()=>searchPvpOpponents(telegramInitData),onSuccess:r=>{q.setQueryData(['pvp-opponents',telegramInitData],r.opponents);setChosen(null);if(!r.opponents.length)toast.error('Nenhum adversário encontrado.')},onError:e=>toast.error(message(e))});
- const equip=useMutation({mutationFn:({heroId,targetSlot}:{heroId:string;targetSlot:number})=>pvpRequest(telegramInitData,{action:'equip',teamType:team,slot:targetSlot,heroId}),onSuccess:async d=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);setSlot(null);await refresh();toast.success('Herói equipado!')},onError:e=>toast.error(message(e))});
- const fight=useMutation({mutationFn:(id:string)=>startPvpBattle(telegramInitData,id),onSuccess:async r=>{setBattle(r);setChosen(null);q.setQueryData(['pvp-opponents',telegramInitData],[]);await refresh()},onError:e=>toast.error(message(e))});
- if(isLoading)return<Shell onClose={onClose}><Center text="Carregando arena..."/></Shell>;
- if(error||!data)return<Shell onClose={onClose}><Center text={message(error)}/></Shell>;
+ const refresh=()=>Promise.all([q.invalidateQueries({queryKey:['pvp-dashboard',telegramInitData]}),q.invalidateQueries({queryKey:['player-heroes']}),q.invalidateQueries({queryKey:['community-pool']}),q.invalidateQueries({queryKey:['wallet-balance']}),q.invalidateQueries({queryKey:['game-state',telegramInitData]}),q.invalidateQueries({queryKey:['daily-quests']}),q.invalidateQueries({queryKey:['season-pass']}),q.invalidateQueries({queryKey:['market-sellable']}),q.invalidateQueries({queryKey:['telegram-profile']}),q.invalidateQueries({queryKey:['pvp-ranking']}),q.invalidateQueries({queryKey:['hero-fusion']}),q.invalidateQueries({queryKey:['rarity-fusion']})]);
+ const search=useMutation({mutationFn:()=>searchPvpOpponents(telegramInitData),onSuccess:r=>{q.setQueryData(['pvp-opponents',telegramInitData],r.opponents);setChosen(null);if(!r.opponents.length)toast.error(t('pvp.noOpponentsFound'))},onError:e=>toast.error(tError(e))});
+ const removeSlot=useMutation({mutationFn:(targetSlot:number)=>pvpRequest(telegramInitData,{action:'remove',teamType:team,slot:targetSlot}),onSuccess:async(d,targetSlot)=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);setSlot(null);await refresh();toast.success(t('pvp.sel.removedSlot',{slot:targetSlot}))},onError:(e:any)=>toast.error(tError(e))});
+ const equip=useMutation({mutationFn:({heroId,targetSlot}:{heroId:string;targetSlot:number;moved?:boolean})=>pvpRequest(telegramInitData,{action:'equip',teamType:team,slot:targetSlot,heroId}),onSuccess:async(d,vars)=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);setSlot(null);await refresh();toast.success(t(vars.moved?'pvp.sel.movedSlot':'pvp.sel.equippedSlot',{slot:vars.targetSlot}))},onError:(e:any)=>{console.error('[PVP EQUIP FAILED]',{team,message:e?.message,code:e?.code,details:e?.details,hint:e?.hint});toast.error(tError(e))}});
+ const fight=useMutation({mutationFn:async(opponent:PvpOpponent)=>({battle:await startPvpBattle(telegramInitData,opponent.userId),opponent}),onSuccess:async r=>{setArena(r);setChosen(null);q.setQueryData(['pvp-opponents',telegramInitData],[]);await refresh()},onError:e=>toast.error(tError(e))});
+ const buy=useMutation({mutationFn:(quantity:number)=>buyPvpTickets(telegramInitData,quantity,`${quantity}:${Date.now()}`),onSuccess:async(d,quantity)=>{q.setQueryData(['pvp-dashboard',telegramInitData],d);await refresh();toast.success(t('pvp.ticketsPurchased',{count:quantity}))},onError:e=>toast.error(tError(e))});
+
+ if(arena)return<PvpBattleArena battle={arena.battle} attackTeam={data?.attackTeam??[]} defenseTeam={arena.opponent.defenseTeam} opponentName={arena.opponent.name} pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image}:null} onContinue={async()=>{setArena(null);await refresh()}}/>;
+ // TACTICAL ARENA (3v3) is a fully separate mode: own team, deck, rating and engine.
+ if(mode==='tactical')return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><TacticalArenaPanel initData={telegramInitData}/></Shell>;
+ if(isLoading&&!stalled)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><Center text={t('pvp.arenaLoading')}/></Shell>;
+ if(error||stalled||!data)return<Shell onClose={onClose}><ModeTabs mode={mode} onChange={setMode} t={t}/><div className="py-24 text-center"><p className="text-sm text-slate-300">{error?tError(error):t('pvp.genericError')}</p><button onClick={()=>void refetch()} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.12em] text-amber-200">{t('events.retry')}</button></div></Shell>;
  const current=team==='attack'?data.attackTeam:data.defenseTeam;
+ const dupIn=(list:typeof current)=>new Set(list.map(templateOf)).size!==list.length;
+ const attackInvalid=Boolean(data.attackTeamHasDuplicates)||dupIn(data.attackTeam);
+ const defenseInvalid=Boolean(data.defenseTeamHasDuplicates)||dupIn(data.defenseTeam);
+ const currentInvalid=team==='attack'?attackInvalid:defenseInvalid;
+
  return <Shell onClose={onClose}>
+  <ModeTabs mode={mode} onChange={setMode} t={t}/>
   <section className="overflow-hidden rounded-[2rem] border border-amber-400/30 bg-gradient-to-b from-[#111b2d]/95 to-black/75 px-6 py-7 shadow-[0_18px_50px_rgba(0,0,0,.45)]">
    <div className="flex flex-col items-center justify-center text-center">
     <div className="grid h-[72px] w-[72px] place-items-center rounded-full border border-amber-300/35 bg-amber-500/10 shadow-[0_0_30px_rgba(251,191,36,.22)]"><Trophy className="h-16 w-16 text-amber-300 drop-shadow-[0_4px_12px_rgba(245,158,11,.45)]" strokeWidth={1.45}/></div>
-    <h2 className="mt-4 text-[30px] font-black leading-none tracking-tight text-amber-50">Arena da Forja</h2>
-    <p className="mt-2 text-[13px] font-bold uppercase tracking-[.22em] text-amber-300">PVP ENTRE HERÓIS</p>
-    <p className="mt-2 text-[10px] font-semibold text-slate-400">{data.trophies.toLocaleString()} troféus</p>
+    <h2 className="mt-4 text-[30px] font-black leading-none tracking-tight text-amber-50">{t('pvp.title')}</h2>
+    <p className="mt-2 text-[13px] font-bold uppercase tracking-[.22em] text-amber-300">{t('pvp.subtitle')}</p>
+    <p className="mt-2 text-[10px] font-semibold text-slate-400">{t('pvp.trophies',{count:data.trophies.toLocaleString()})}</p>
    </div>
-   <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/35 py-4"><Stat icon={<Shield/>} label="Liga" value={data.league}/><Stat icon={<Swords/>} label="Poder" value={data.teamPower}/><Stat icon={<Ticket/>} label="Tickets" value={data.tickets}/></div>
-   <div className="mt-6 grid grid-cols-3 gap-2"><Nav active={view==='teams'} onClick={()=>setView('teams')} icon={<Users/>} text="Equipes"/><Nav active={view==='history'} onClick={()=>setView('history')} icon={<History/>} text="Histórico"/><Nav active={view==='ranking'} onClick={()=>setView('ranking')} icon={<Trophy/>} text="Ranking"/></div>
+   <div className="mt-7 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-black/35 py-4"><Stat icon={<Shield/>} label={t('pvp.league')} value={data.league}/><Stat icon={<Swords/>} label={t('pvp.power')} value={data.teamPower}/><Stat icon={<Ticket/>} label={t('pvp.ticketsLabel')} value={data.tickets} onBuy={()=>setShop(true)} buyAria={t('tickets.buyAria')}/></div>
+   <div className="mt-6 grid grid-cols-3 gap-2"><Nav active={view==='teams'} onClick={()=>setView('teams')} icon={<Users/>} text={t('pvp.navTeams')}/><Nav active={view==='history'} onClick={()=>setView('history')} icon={<History/>} text={t('pvp.navHistory')}/><Nav active={view==='ranking'} onClick={()=>setView('ranking')} icon={<Trophy/>} text={t('pvp.navRanking')}/></div>
   </section>
   {view==='teams'&&<>
-   <div className="mt-5 grid grid-cols-2 gap-3"><button onClick={()=>setTeam('attack')} className={teamButton(team==='attack')}>Equipe Ataque</button><button onClick={()=>setTeam('defense')} className={teamButton(team==='defense')}>Equipe Defesa</button></div>
-   <section className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3"><div className="grid grid-cols-5 gap-1">{[1,2,3,4,5].map(n=><HeroSlot key={n} slot={n} hero={current.find(x=>Number(x.slot)===n)} onClick={()=>setSlot(n)}/>)}</div><p className="mt-2 text-[9px] text-slate-400">{current.length}/5 heróis · ATK {current.reduce((s,h)=>s+h.finalAtk,0).toLocaleString()} · HP {current.reduce((s,h)=>s+h.finalHp,0).toLocaleString()}</p></section>
-   <button type="button" disabled={search.isPending||data.attackTeam.length===0} onClick={()=>search.mutate()} className="mt-3 w-full rounded-2xl bg-gradient-to-b from-amber-300 to-orange-500 py-4 text-sm font-black text-black disabled:grayscale disabled:opacity-40"><Search className="mr-2 inline h-4 w-4"/>{search.isPending?'PROCURANDO...':'PROCURAR JOGADORES'}</button>
-   <div className="mt-3 space-y-3">{opponents.data.map(o=><Opponent key={o.userId} opponent={o} selected={chosen?.userId===o.userId} onSelect={()=>setChosen(o)} onFight={()=>fight.mutate(o.userId)} pending={fight.isPending}/>)}</div>
+   {/* The active companion must show the SAME effective bonus the server applies
+       (`bonuses` from get_pet_bonuses), never the per-pet preview value. */}
+   <PetCompanion pet={pets.data?.activePet?{name:pets.data.activePet.name,image:pets.data.activePet.image,level:pets.data.activePet.level,rarity:pets.data.activePet.rarity}:null} buffKey={pets.data?.activePet?.primaryBuffKey} buffValue={(()=>{const p=pets.data?.activePet;if(!p)return undefined;const k=p.primaryBuffKey;const eff=k?(pets.data?.bonuses as Record<string,number>|undefined)?.[k]:undefined;return eff!=null?Number(eff):p.primaryBuffValue})()} label={t('pvp.companionLabel')} />
+   <div className="mt-5 grid grid-cols-2 gap-3"><button onClick={()=>setTeam('attack')} className={teamButton(team==='attack')}>{t('pvp.teamAttack')}</button><button onClick={()=>setTeam('defense')} className={teamButton(team==='defense')}>{t('pvp.teamDefense')}</button></div>
+   <section className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3"><div className="grid grid-cols-5 gap-1">{[1,2,3,4,5].map(n=><HeroSlot key={n} slot={n} hero={current.find(x=>Number(x.slot)===n)} onClick={()=>setSlot(n)}/>)}</div><p className="mt-2 text-[9px] text-slate-400">{t('pvp.teamSummary',{count:current.length,atk:current.reduce((s,h)=>s+h.finalAtk,0).toLocaleString(),hp:current.reduce((s,h)=>s+h.finalHp,0).toLocaleString()})}</p></section>
+   {currentInvalid&&<p className="mt-3 rounded-2xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-center text-[10px] font-black uppercase tracking-[.1em] text-rose-200">{t('pvp.teamNeedsFix')}</p>}
+   <button type="button" disabled={search.isPending||data.attackTeam.length===0||attackInvalid} onClick={()=>search.mutate()} className="mt-3 w-full rounded-2xl bg-gradient-to-b from-amber-300 to-orange-500 py-4 text-sm font-black text-black disabled:grayscale disabled:opacity-40"><Search className="mr-2 inline h-4 w-4"/>{search.isPending?t('pvp.searching'):t('pvp.searchPlayers')}</button>
+   <div className="mt-3 space-y-3">{opponents.data.map(o=><Opponent key={o.userId} opponent={o} selected={chosen?.userId===o.userId} onSelect={()=>setChosen(o)} onFight={()=>{if(attackInvalid){toast.error(t('pvp.teamNeedsFix'));return}fight.mutate(o)}} pending={fight.isPending} tickets={data.tickets} onBuyTickets={()=>setShop(true)} t={t}/>)}</div>
   </>}
-  {view==='history'&&<div className="mt-5 space-y-2">{data.history.length?data.history.map(h=><div key={h.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3"><div><b>{h.opponentName}</b><p className="text-[9px] text-slate-400">{new Date(h.createdAt).toLocaleString()} · {h.turns} turnos</p></div><div className="text-right"><b className={h.result==='win'?'text-emerald-300':'text-rose-300'}>{h.result==='win'?'VITÓRIA':'DERROTA'}</b><p className="text-[9px]">{h.trophyChange>0?'+':''}{h.trophyChange} 🏆</p></div></div>):<Center text="Nenhuma batalha realizada."/>}</div>}
-  {view==='ranking'&&<div className="mt-5 space-y-2">{data.ranking.map(r=><div key={r.id} className="grid grid-cols-[35px_38px_1fr_auto] items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-2"><b className="text-center text-amber-300">#{r.position}</b><Avatar src={r.avatarUrl} name={r.name}/><div><b className="text-xs">{r.name}</b><p className="text-[9px] text-slate-400">{r.league} · {r.wins} vitórias</p></div><b className="text-xs">{r.trophies} 🏆</b></div>)}</div>}
-  {slot!==null&&<HeroSelector slot={slot} heroes={data.ownedHeroes} current={current} pending={equip.isPending} onClose={()=>setSlot(null)} onEquip={heroId=>equip.mutate({heroId,targetSlot:slot})}/>}
-  {battle&&<BattleResult battle={battle} onClose={()=>setBattle(null)}/>}
+  {view==='history'&&<div className="mt-5 space-y-2">{data.history.length?data.history.map(h=><div key={h.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3"><div><b>{h.opponentName}{h.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">AI</span>:null}</b><p className="text-[9px] text-slate-400">{new Date(h.createdAt).toLocaleString()} · {h.turns} turnos</p></div><div className="text-right"><b className={h.result==='win'?'text-emerald-300':'text-rose-300'}>{h.result==='win'?t('pvp.win'):t('pvp.lose')}</b><p className="text-[9px]">{h.trophyChange>0?'+':''}{h.trophyChange} 🏆</p></div></div>):<Center text={t('pvp.noBattles')}/>}</div>}
+  {view==='ranking'&&<div className="mt-5 space-y-2">{data.ranking.map(r=><div key={r.id} className="grid grid-cols-[35px_38px_1fr_auto] items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-2"><b className="text-center text-amber-300">#{r.position}</b><Avatar src={r.avatarUrl} name={r.name}/><div className="min-w-0"><b className="block truncate text-xs">{r.name}</b><PlayerTag userId={r.id} username={r.username} className="text-[9px] text-amber-200/80"/><p className="truncate text-[9px] text-slate-400">{r.league} · {t('pvp.wins',{count:r.wins})}</p></div><b className="text-xs">{r.trophies} 🏆</b></div>)}</div>}
+  {slot!==null&&<HeroSelector slot={slot} heroes={data.ownedHeroes} current={current} other={team==='attack'?data.defenseTeam:data.attackTeam} otherTeam={team==='attack'?'DEFENSE':'ATTACK'} pending={equip.isPending||removeSlot.isPending} onClose={()=>setSlot(null)} onEquip={(heroId,moved)=>equip.mutate({heroId,targetSlot:slot,moved})} onRemove={()=>removeSlot.mutate(slot)} t={t}/>}
+  {shop&&<TicketSheet tickets={data.tickets} shop={data.ticketShop} ads={data.adsShop} initData={telegramInitData} onRewarded={refresh} pending={buy.isPending} onClose={()=>setShop(false)} onBuy={qty=>buy.mutate(qty)} t={t}/>}
+
+  
  </Shell>
 }
 
-function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>void}){return<button type="button" onClick={onClick} className="min-h-28 overflow-hidden rounded-xl border bg-black/70" style={{borderColor:hero?color[hero.rarity]:'#475569'}}>{hero?<><img src={hero.imageUrl} className="aspect-square w-full object-cover"/><p className="truncate px-1 text-[8px] font-bold">{hero.name}</p><p className="text-[7px]">ATK {hero.finalAtk}</p><p className="pb-1 text-[7px]">HP {hero.finalHp}</p></>:<span className="text-xl text-slate-500">＋</span>}</button>}
-function HeroSelector({slot,heroes,current,pending,onClose,onEquip}:{slot:number;heroes:PvpHero[];current:PvpHero[];pending:boolean;onClose:()=>void;onEquip:(id:string)=>void}){return<div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/80 p-3" onClick={onClose}><div className="max-h-[75dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}><div className="flex justify-between"><b>Selecionar herói · Slot {slot}</b><button onClick={onClose}><X/></button></div><div className="mt-3 grid grid-cols-3 gap-2">{heroes.map(h=>{const used=current.some(x=>x.heroId===h.heroId&&Number(x.slot)!==slot);return<button type="button" disabled={used||pending} onClick={()=>onEquip(h.heroId)} key={h.heroId} className="overflow-hidden rounded-xl border bg-black/70 disabled:opacity-35" style={{borderColor:color[h.rarity]}}><img src={h.imageUrl} className="aspect-square w-full object-cover"/><div className="p-2 text-left"><b className="block truncate text-[9px]">{h.name}</b><p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · Nv. {h.level}</p><p className="text-[8px]">{h.archetype}</p><p className="text-[8px]">ATK {h.finalAtk} · HP {h.finalHp}</p><p className="text-[8px] text-amber-200">Poder {h.power}</p></div></button>})}</div></div></div>}
-function BattleResult({battle,onClose}:{battle:PvpBattleResult;onClose:()=>void}){return<div className="fixed inset-0 z-[100] grid place-items-center bg-black/90 p-5"><div className="w-full max-w-sm rounded-[2rem] border border-amber-300/30 bg-[#0a0e16] p-5 text-center"><Swords className="mx-auto h-16 w-16 text-amber-300"/><h2 className={`mt-3 text-3xl font-black ${battle.result==='attacker_win'?'text-emerald-300':'text-rose-300'}`}>{battle.result==='attacker_win'?'VITÓRIA':'DERROTA'}</h2><p className="mt-2 text-sm">{battle.totalTurns} turnos · {battle.trophyChange>0?'+':''}{battle.trophyChange} troféus</p>{battle.rewardFc>0&&<p className="text-amber-300">+{battle.rewardFc.toLocaleString()} FC</p>}<div className="mt-4 max-h-36 overflow-y-auto rounded-xl bg-black/50 p-2 text-left text-[9px] text-slate-300">{battle.battleLog.slice(-12).map(x=><p key={x.turn}>Turno {x.turn}: {x.damage} de dano · HP {x.remainingHp}</p>)}</div><button onClick={onClose} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">CONTINUAR</button></div></div>}
-function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){return<div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]"/><div className="relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10"><header className="mb-4 flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.28em] text-amber-300">Forge Village</p><h1 className="text-xl font-black">PVP ENTRE HERÓIS</h1></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X/></button></header>{children}</div></div>}
-function Opponent({opponent:o,selected,onSelect,onFight,pending}:{opponent:PvpOpponent;selected:boolean;onSelect:()=>void;onFight:()=>void;pending:boolean}){return<div onClick={onSelect} className={`rounded-2xl border bg-black/60 p-3 ${selected?'border-amber-300':'border-white/10'}`}><div className="flex items-center gap-3"><Avatar src={o.avatarUrl} name={o.name}/><div className="flex-1"><b>{o.name}</b><p className="text-[9px] text-slate-400">{o.league} · {o.trophies} troféus · {o.wins} vitórias</p></div><b className="text-xs text-amber-200">⚔ {o.teamPower}</b></div><div className="mt-3 grid grid-cols-5 gap-1">{o.defenseTeam.map(h=><div key={h.heroId} className="overflow-hidden rounded-lg border bg-black" style={{borderColor:color[h.rarity]}}><img src={h.imageUrl} className="aspect-square w-full object-cover"/><p className="truncate px-1 text-[7px]">{h.name}</p><p className="px-1 pb-1 text-[6px]">A {h.finalAtk} · H {h.finalHp}</p></div>)}</div>{selected&&<button type="button" disabled={pending} onClick={e=>{e.stopPropagation();onFight()}} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-400 to-red-700 py-3 font-black text-white">{pending?'BATALHANDO...':'BATALHAR'}</button>}</div>}
-function Stat({icon,label,value}:{icon:React.ReactNode;label:string;value:string|number}){return<div className="flex min-w-0 flex-col items-center justify-center px-2 text-center"><div className="h-7 w-7 text-amber-300 [&>svg]:h-full [&>svg]:w-full">{icon}</div><b className="mt-2 block max-w-full truncate text-[11px] text-white">{typeof value==='number'?value.toLocaleString():value}</b><p className="mt-1 text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p></div>}
+function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>void}){return<button type="button" onClick={onClick} className={`relative min-h-28 overflow-hidden rounded-xl border bg-black/70 ${hero?.isNft?'nft-hero-card':''}`} style={{borderColor:hero?(hero.isNft?undefined:color[hero.rarity]):'#475569'}}>{hero?<>{hero.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span>{hero.nftSerial?<span className="nft-hero-serial">#{String(hero.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={hero.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[8px] font-bold ${hero.isNft?'nft-hero-name':''}`}>{hero.name}</p>{hero.isNft?<p className="nft-hero-rarity px-1 text-[6px] font-black tracking-widest">EXCLUSIVE</p>:null}<p className="text-[7px]">ATK {hero.finalAtk}</p><p className="pb-1 text-[7px]">HP {hero.finalHp}</p></>:<span className="text-xl text-slate-500">＋</span>}</button>}
+/**
+ * PvP hero selection sheet.
+ * Interaction contract (battle rules, stats and Power math untouched):
+ *  - tap a free hero            -> equip in this slot
+ *  - tap the hero of THIS slot  -> remove it (slot may stay EMPTY)
+ *  - tap a hero of ANOTHER slot -> "already in Slot N" + optional MOVE (single atomic op)
+ * Compact filters: rarity dropdown, power sort, expandable search. Unavailable heroes
+ * always state WHY (market / locked / global boss / tower / other PvP team).
+ */
+const RARITIES=['common','uncommon','rare','epic','legendary','mythic','ancestral','nft_exclusive'] as const;
+function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEquip,onRemove,t}:{slot:number;heroes:PvpHero[];current:PvpHero[];other:PvpHero[];otherTeam:'ATTACK'|'DEFENSE';pending:boolean;onClose:()=>void;onEquip:(id:string,moved?:boolean)=>void;onRemove:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const equipped=current.find(x=>Number(x.slot)===slot)||null;
+ const [rarity,setRarity]=useState<string>('all');
+ const [sort,setSort]=useState<'default'|'high'|'low'>('default');
+ const [rarityOpen,setRarityOpen]=useState(false);
+ const [searchOpen,setSearchOpen]=useState(false);
+ const [term,setTerm]=useState('');
+ const rarityOf=(h:PvpHero)=>h.isNft?'nft_exclusive':String(h.rarity||'').toLowerCase();
+ const needle=term.trim().toLowerCase();
+ const list=heroes
+  .filter(h=>rarity==='all'||rarityOf(h)===rarity)
+  .filter(h=>!needle||[h.name,h.archetype,rarityOf(h)].some(v=>String(v||'').toLowerCase().includes(needle)));
+ const rows=sort==='default'?list:[...list].sort((a,b)=>sort==='high'?b.power-a.power:a.power-b.power);
+ const chip='inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[.1em]';
+ const rarityLabel=rarity==='all'?t('pvp.sel.all'):(rarity==='nft_exclusive'?'NFT':rarity.toUpperCase());
+ return <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/80 p-3" onClick={onClose}>
+  <div className="max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}>
+   <div className="flex items-center justify-between gap-2">
+    <b className="truncate text-[12px]">{t('pvp.selectHeroSlot',{slot})}</b>
+    <div className="flex shrink-0 items-center gap-2">
+     {equipped?<button type="button" disabled={pending} onClick={onRemove} className="rounded-full border border-rose-400/45 bg-rose-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-rose-200 disabled:opacity-50">{t('pvp.sel.remove')}</button>:null}
+     <button type="button" onClick={onClose} aria-label="close"><X className="h-4 w-4"/></button>
+    </div>
+   </div>
+   <div className="mt-2 flex flex-wrap items-center gap-2">
+    <div className="relative">
+     <button type="button" onClick={()=>setRarityOpen(v=>!v)} className={`${chip} border-white/15 bg-white/5 text-slate-200`}>{rarityLabel} ▾</button>
+     {rarityOpen?<div className="absolute left-0 z-20 mt-1 w-40 overflow-hidden rounded-xl border border-white/15 bg-[#0b1220] shadow-xl">
+      {['all',...RARITIES].map(r=><button key={r} type="button" onClick={()=>{setRarity(r);setRarityOpen(false)}} className={`block w-full px-3 py-2 text-left text-[9px] font-black uppercase tracking-[.1em] ${rarity===r?'bg-amber-500/15 text-amber-200':'text-slate-300'}`}>{r==='all'?t('pvp.sel.allRarities'):r==='nft_exclusive'?'NFT EXCLUSIVE':r.toUpperCase()}</button>)}
+     </div>:null}
+    </div>
+    <button type="button" onClick={()=>setSort(s=>s==='default'?'high':s==='high'?'low':'default')} className={`${chip} ${sort==='default'?'border-white/15 bg-white/5 text-slate-200':'border-amber-300/45 bg-amber-500/10 text-amber-200'}`}>{t('pvp.sel.power')} {sort==='default'?'↕':sort==='high'?'↓':'↑'}</button>
+    {searchOpen
+     ?<div className="flex min-w-[140px] flex-1 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2.5 py-1">
+       <Search className="h-3 w-3 text-slate-400"/>
+       <input autoFocus value={term} onChange={e=>setTerm(e.target.value)} placeholder={t('pvp.sel.search')} className="w-full bg-transparent text-[10px] text-slate-100 outline-none placeholder:text-slate-500"/>
+       <button type="button" onClick={()=>{setSearchOpen(false);setTerm('')}} aria-label="close search"><X className="h-3 w-3 text-slate-400"/></button>
+      </div>
+     :<button type="button" onClick={()=>setSearchOpen(true)} className={`${chip} border-white/15 bg-white/5 text-slate-200`} aria-label="search"><Search className="h-3 w-3"/></button>}
+   </div>
+   <div className="mt-3 grid grid-cols-3 gap-2">{rows.map(h=>{
+    const inSlot=equipped?.heroId===h.heroId;
+    const otherSlotHero=current.find(x=>x.heroId===h.heroId&&Number(x.slot)!==slot);
+    const dupe=!inSlot&&!otherSlotHero&&current.some(x=>Number(x.slot)!==slot&&templateOf(x)===templateOf(h));
+    const inOther=other.some(x=>x.heroId===h.heroId);
+    const hard=h.blockReason==='MARKET'||h.blockReason==='LOCKED';
+    const reason=hard?t(`pvp.sel.block.${h.blockReason}`)
+     :otherSlotHero?t('pvp.sel.inSlot',{slot:Number(otherSlotHero.slot)})
+     :dupe?t('pvp.sel.block.DUPLICATE')
+     :h.blockReason?t(`pvp.sel.block.${h.blockReason}`)
+     :inOther?t(`pvp.sel.block.${otherTeam}`):null;
+    const act=()=>{
+     if(hard||pending)return;
+     if(inSlot){onRemove();return}
+     if(dupe){toast.error(t('pvp.sel.block.DUPLICATE'));return}
+     if(otherSlotHero){toast(t('pvp.sel.alreadyInSlot',{name:h.name,slot:Number(otherSlotHero.slot)}));return}
+     onEquip(h.heroId);
+    };
+    return <div key={h.heroId} className={`relative overflow-hidden rounded-xl border bg-black/70 ${hard?'opacity-40':''} ${h.isNft?'nft-hero-card':''}`} style={{borderColor:inSlot?'#fbbf24':(h.isNft?undefined:color[h.rarity])}}>
+     <button type="button" disabled={hard||pending} onClick={act} className="block w-full text-left disabled:cursor-not-allowed">
+      {h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">💎 NFT EXCLUSIVE</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}
+      <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover object-top"/>
+      {inSlot?<span className="absolute left-1 top-1 rounded-full bg-amber-400 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.1em] text-black">✓ {t('pvp.sel.equipped')}</span>:null}
+      {!inSlot&&reason?<span className="absolute left-1 top-1 rounded-full bg-black/80 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.08em] text-slate-200">{reason}</span>:null}
+      <div className="p-2 text-left">
+       <b className={`block truncate text-[9px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</b>
+       {h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}
+       <p className="text-[8px] text-slate-400">{h.archetype}</p>
+       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} · HP {h.finalHp}</p>
+       <p className="text-[9px] font-black text-amber-200">{t('boss.power')} {h.power}</p>
+       {inSlot?<p className="text-[7px] font-bold uppercase tracking-[.08em] text-rose-300">{t('pvp.sel.tapToRemove')}</p>:null}
+      </div>
+     </button>
+     {otherSlotHero&&!hard?<button type="button" disabled={pending} onClick={()=>onEquip(h.heroId,true)} className="w-full bg-amber-400/15 py-1 text-[7px] font-black uppercase tracking-[.08em] text-amber-200 disabled:opacity-50">{t('pvp.sel.moveHere',{slot})}</button>:null}
+    </div>})}
+   </div>
+   {!rows.length?<p className="py-8 text-center text-[10px] font-bold uppercase tracking-[.1em] text-slate-500">{t('pvp.sel.noResults')}</p>:null}
+  </div>
+ </div>
+}
+
+
+function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fixed inset-0 z-[75] overflow-y-auto bg-[#04070c] text-white"><div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#183153_0%,#060910_48%,#030508_100%)]"/><div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] p-3 pb-10"><header className="mb-4 flex items-center justify-between"><div><p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p><h1 className="text-xl font-black">{t('pvp.subtitle')}</h1></div><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X/></button></header>{children}</div></div>}
+function Opponent({opponent:o,selected,onSelect,onFight,pending,tickets,onBuyTickets,t}:{opponent:PvpOpponent;selected:boolean;onSelect:()=>void;onFight:()=>void;pending:boolean;tickets:number;onBuyTickets:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){const noTickets=tickets<1;return<div onClick={onSelect} className={`rounded-2xl border bg-black/60 p-3 ${selected?'border-amber-300':'border-white/10'}`}><div className="flex items-center gap-3"><Avatar src={o.avatarUrl} name={o.avatarLetter??o.name} color={o.avatarColor}/><div className="flex-1"><b className="block truncate">{o.name}{o.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">AI</span>:null}</b><PlayerTag userId={o.userId} username={o.username} className="text-[9px] text-amber-200/80"/><p className="text-[9px] text-slate-400">{o.league} · {t('pvp.trophies',{count:o.trophies})} · {t('pvp.wins',{count:o.wins})}</p></div><b className="text-xs text-amber-200">⚔ {o.teamPower}</b></div><div className="mt-3 grid grid-cols-5 gap-1">{o.defenseTeam.map(h=><div key={h.heroId} className={`relative overflow-hidden rounded-lg border bg-black ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:color[h.rarity]}}>{h.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={h.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[7px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</p><p className="px-1 pb-1 text-[6px]">A {h.finalAtk} · H {h.finalHp}</p></div>)}</div>{selected&&(noTickets?<div className="mt-3"><p className="text-center text-[10px] font-black uppercase tracking-[.18em] text-rose-300">{t('pvp.noTickets')}</p><button type="button" onClick={e=>{e.stopPropagation();onBuyTickets()}} className="mt-2 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 text-[11px] font-black text-black">{t('pvp.buyTickets')}</button></div>:<button type="button" disabled={pending} onClick={e=>{e.stopPropagation();onFight()}} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-400 to-red-700 py-3 font-black text-white disabled:grayscale disabled:opacity-40">{pending?t('pvp.starting'):t('pvp.battle1Ticket')}</button>)}</div>}
+/**
+ * Rewarded-ad block: the click only OPENS the ad (server-registered view). The ticket is
+ * credited exclusively after AdsGram reports a valid completion and the backend confirms it.
+ */
+function AdRewardBlock({ads,initData,onRewarded,t}:{ads?:PvpAdsState;initData:string;onRewarded:()=>void|Promise<unknown>;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const [phase,setPhase]=useState<'idle'|'loading'|'watching'>('idle');
+ const busy=useRef(false);
+ if(!ads?.enabled||!ads.blockId)return null;
+ const limit=ads.dailyLimit??10,used=ads.watchedToday??0,reached=used>=limit;
+ const run=async()=>{
+  if(busy.current||reached)return;             // double click / limit guard
+  busy.current=true;setPhase('loading');
+  try{
+   const begin=await beginPvpAdView(initData); // server checks the daily limit first
+   setPhase('watching');
+   const outcome=await showAd(begin.blockId||ads.blockId!);
+   if(outcome!=='completed'){
+    toast.error(outcome==='no-ads'?t('pvp.ads.noAds'):outcome==='skipped'?t('pvp.ads.notCompleted'):t('pvp.ads.error'));
+    return;                                    // no ticket, no counter increment
+   }
+   const result=await claimPvpAdReward(initData,begin.viewId);
+   if(result.granted){toast.success(t('pvp.ads.rewardSuccess'));await onRewarded()}
+   else toast.error(t('pvp.ads.notCompleted'));
+  }catch(error){toast.error(error instanceof Error?error.message:t('pvp.ads.error'))}
+  finally{busy.current=false;setPhase('idle')}
+ };
+ const label=phase==='loading'?t('pvp.ads.loading'):phase==='watching'?t('pvp.ads.watching'):t('pvp.ads.watch');
+ return<div className="mt-4 rounded-2xl border border-sky-300/30 bg-gradient-to-b from-sky-400/10 to-transparent p-3">
+  <b className="block text-[12px] font-black text-sky-200">{t('pvp.ads.title')}</b>
+  <p className="mt-1 whitespace-pre-line text-[10px] text-slate-300">{t('pvp.ads.description')}</p>
+  <button type="button" disabled={reached||phase!=='idle'} onClick={run} className="mt-3 w-full rounded-xl bg-gradient-to-b from-sky-400 to-blue-700 py-3 text-[11px] font-black text-white disabled:grayscale disabled:opacity-40">{label}</button>
+  <p className="mt-2 text-center text-[10px] font-bold text-slate-300">{t('pvp.ads.counter')}: {used} / {limit}</p>
+  {reached?<p className="mt-1 text-center text-[10px] font-black text-emerald-300">{t('pvp.ads.limitReached')}</p>:null}
+ </div>;
+}
+
+/** Compact bottom sheet: the arena keeps its layout, the ticket counter just gains a [+]. */
+function TicketSheet({tickets,shop,ads,initData,onRewarded,pending,onClose,onBuy,t}:{tickets:number;shop?:PvpTicketShop;ads?:PvpAdsState;initData:string;onRewarded:()=>void|Promise<unknown>;pending:boolean;onClose:()=>void;onBuy:(quantity:number)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const limit=shop?.dailyLimit??10,bought=shop?.boughtToday??0,remaining=Math.max(0,shop?.remaining??limit-bought),packs=shop?.packs?.length?shop.packs:[{tickets:1,priceFc:5000},{tickets:3,priceFc:13500},{tickets:5,priceFc:20000}];
+
+ return<div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/80" onClick={onClose}>
+  <div className="forge-safe-page w-full max-w-[480px] rounded-t-3xl border border-amber-300/30 bg-[#080c14] p-4" onClick={e=>e.stopPropagation()}>
+   <div className="flex items-start justify-between">
+    <div><p className="text-[8px] font-black uppercase tracking-[.28em] text-amber-300">MYTHREON</p><b className="text-base font-black">{t('tickets.title')}</b></div>
+    <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/60"><X className="h-4 w-4"/></button>
+   </div>
+   <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+    <div className="rounded-xl border border-white/10 bg-black/50 py-2"><p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{t('tickets.current')}</p><b className="text-sm text-amber-200">{tickets.toLocaleString()} 🎟</b></div>
+    <div className="rounded-xl border border-white/10 bg-black/50 py-2"><p className="text-[8px] uppercase tracking-[.16em] text-slate-400">{t('tickets.today')}</p><b className="text-sm">{bought} / {limit}</b></div>
+   </div>
+   <div className="mt-3 space-y-2">{packs.map(p=>{const blocked=pending||p.tickets>remaining;return<button key={p.tickets} type="button" disabled={blocked} onClick={()=>onBuy(p.tickets)} className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left ${blocked?'border-white/10 bg-black/40 opacity-45':'border-amber-300/40 bg-gradient-to-r from-amber-400/15 to-transparent'}`}>
+    <b className="text-[12px] font-black">{t('tickets.packLabel',{count:p.tickets})}</b>
+    <span className="text-[12px] font-black text-amber-200">{p.priceFc.toLocaleString()} BERRIES</span>
+   </button>})}</div>
+   {remaining===0?<p className="mt-3 text-center text-[10px] font-bold text-rose-300">{t('tickets.dailyLimitReached')}</p>
+    :remaining<Math.max(...packs.map(p=>p.tickets))?<p className="mt-3 text-center text-[10px] text-amber-200">{t('tickets.remainingToday',{count:remaining})}</p>:null}
+   {shop?.hasPass
+    ?<p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-center text-[10px] font-bold text-amber-200">{t('tickets.battlePassBonus',{count:Math.max(0,(shop.passLimit??20)-(shop.freeLimit??10))})}</p>
+    :<p className="mt-3 text-center text-[9px] text-slate-400">{t('tickets.passUpsell',{count:shop?.passLimit??20})}</p>}
+   <AdRewardBlock ads={ads} initData={initData} onRewarded={onRewarded} t={t}/>
+   <button type="button" onClick={onClose} className="mt-3 w-full rounded-xl border border-white/10 bg-black/60 py-3 text-[11px] font-black text-slate-200">{t('tickets.close')}</button>
+  </div>
+ </div>
+}
+
+function Stat({icon,label,value,onBuy,buyAria}:{icon:React.ReactNode;label:string;value:string|number;onBuy?:()=>void;buyAria?:string}){return<div className="flex min-w-0 flex-col items-center justify-center px-2 text-center"><div className="h-7 w-7 text-amber-300 [&>svg]:h-full [&>svg]:w-full">{icon}</div><div className="mt-2 flex max-w-full items-center justify-center gap-1"><b className="block min-w-0 truncate text-[11px] text-white">{typeof value==='number'?value.toLocaleString():value}</b>{onBuy?<button type="button" onClick={onBuy} aria-label={buyAria} className="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-amber-300/60 bg-amber-400/20 text-amber-200 active:scale-95"><Plus className="h-3 w-3" strokeWidth={3}/></button>:null}</div><p className="mt-1 text-[8px] uppercase tracking-[.16em] text-slate-400">{label}</p></div>}
 function Nav({active,onClick,icon,text}:{active:boolean;onClick:()=>void;icon:React.ReactNode;text:string}){return<button type="button" onClick={onClick} className={`flex h-[72px] min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-[9px] font-black transition ${active?'bg-amber-400 text-black shadow-[0_6px_18px_rgba(245,158,11,.22)]':'bg-[#101a2a] text-white'}`}><span className="h-6 w-6 [&>svg]:h-full [&>svg]:w-full">{icon}</span><span className="block truncate text-center">{text}</span></button>}
-function Avatar({src,name}:{src:string|null;name:string}){return src?<img src={src} className="h-10 w-10 rounded-full object-cover"/>:<div className="grid h-10 w-10 place-items-center rounded-full bg-amber-900 font-black">{name[0]}</div>}
+function Avatar({src,name,color}:{src:string|null;name:string;color?:string}){return src?<img src={src} className="h-10 w-10 rounded-full object-cover"/>:<div className="grid h-10 w-10 place-items-center rounded-full font-black text-white" style={{background:color??'#7d3a12'}}>{(name[0]??'?').toUpperCase()}</div>}
 function Center({text}:{text:string}){return<p className="py-20 text-center text-sm text-slate-300">{text}</p>}
 const teamButton=(active:boolean)=>`h-12 rounded-xl border px-2 text-center text-[10px] font-black uppercase ${active?'border-amber-300 bg-amber-400 text-black':'border-white/10 bg-[#101a2a] text-white'}`;
-const message=(e:unknown)=>e instanceof Error?e.message:'Não foi possível processar o PvP.';
+
+/** Mode switch between the untouched Classic Arena (5v5) and the Tactical Arena (3v3). */
+function ModeTabs({mode,onChange,t}:{mode:Mode;onChange:(m:Mode)=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+ const tab=(active:boolean,accent:string)=>`rounded-xl border px-2 py-2.5 text-[10px] font-black uppercase tracking-[.1em] transition ${active?accent:'border-white/10 bg-black/40 text-slate-400'}`;
+ return<div className="mb-3 grid grid-cols-2 gap-2">
+  <button type="button" onClick={()=>onChange('classic')} className={tab(mode==='classic','border-amber-300/60 bg-amber-500/15 text-amber-100')}>{t('tactical.tabClassic')}</button>
+  <button type="button" onClick={()=>onChange('tactical')} className={tab(mode==='tactical','border-cyan-300/60 bg-cyan-500/15 text-cyan-100')}>{t('tactical.tabTactical')}</button>
+ </div>;
+}

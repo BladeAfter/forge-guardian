@@ -4,11 +4,11 @@ module.exports = {
     extend: {
       colors: {
         forge: {
-          black: '#07090d',
-          surface: '#10131a',
-          navy: '#0f172a',
-          gold: '#d5b455',
-          ember: '#e26c35'
+          black: 'hsl(var(--forge-black) / <alpha-value>)',
+          surface: 'hsl(var(--forge-surface) / <alpha-value>)',
+          navy: 'hsl(var(--forge-navy) / <alpha-value>)',
+          gold: 'hsl(var(--forge-gold) / <alpha-value>)',
+          ember: 'hsl(var(--forge-ember) / <alpha-value>)'
         }
       },
       boxShadow: {

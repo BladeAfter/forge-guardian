@@ -1,0 +1,133 @@
+import type { LocaleBundle } from './registry';
+
+/** Home screen, hero shop, daily calendar, chests, settings and notifications. */
+export const home: LocaleBundle = {
+  en: {
+    'home.title': 'Home',
+    'home.calendar': 'Calendar',
+    'home.collectedToday': 'Collected today',
+    'home.notificationsBody.claimed': 'Daily reward collected.',
+    'home.notificationsBody.available': 'Your daily reward is available!',
+    'home.buildingLocked': 'This building is still locked.',
+
+    'shop.title': 'Hero Shop',
+    'shop.recruitment': 'Hero recruitment',
+    'shop.recruit': 'Recruit',
+    'shop.odds': 'Summon odds',
+    'shop.latestHeroes': 'Latest heroes',
+
+    'calendar.dailyRewards': 'Daily rewards',
+    'calendar.title30': '30-day calendar',
+    'calendar.selectDay': 'Select the highlighted day to receive your reward.',
+    'calendar.nextDayIn': 'Next day in',
+    'calendar.rewardClaimed': 'REWARD COLLECTED',
+    'calendar.newBalance': 'New balance',
+    'calendar.itemStored': 'Item stored in your inventory.',
+    'calendar.goToPets': 'GO TO PETS',
+    'calendar.store': 'STORE',
+
+    'chest.opened': 'CHEST OPENED',
+    'chest.newHero': 'NEW HERO',
+
+    'settings.title': 'Settings',
+    'settings.language': 'Language',
+    'settings.languageSaved': 'Language updated.',
+    'settings.languageError': 'Unable to save your language. Try again.',
+  },
+  pt: {
+    'home.title': 'Início',
+    'home.calendar': 'Calendário',
+    'home.collectedToday': 'Coletado hoje',
+    'home.notificationsBody.claimed': 'Recompensa diária coletada.',
+    'home.notificationsBody.available': 'Sua recompensa diária está disponível!',
+    'home.buildingLocked': 'Esta construção ainda está bloqueada.',
+
+    'shop.title': 'Loja de Heróis',
+    'shop.recruitment': 'Recrutamento de heróis',
+    'shop.recruit': 'Recrutar',
+    'shop.odds': 'Chances de invocação',
+    'shop.latestHeroes': 'Últimos heróis',
+
+    'calendar.dailyRewards': 'Recompensas diárias',
+    'calendar.title30': 'Calendário de 30 dias',
+    'calendar.selectDay': 'Selecione o dia destacado para receber a recompensa.',
+    'calendar.nextDayIn': 'Próximo dia em',
+    'calendar.rewardClaimed': 'RECOMPENSA COLETADA',
+    'calendar.newBalance': 'Novo saldo',
+    'calendar.itemStored': 'Item guardado no inventário.',
+    'calendar.goToPets': 'IR PARA PETS',
+    'calendar.store': 'GUARDAR',
+
+    'chest.opened': 'BAÚ ABERTO',
+    'chest.newHero': 'NOVO HERÓI',
+
+    'settings.title': 'Configurações',
+    'settings.language': 'Idioma',
+    'settings.languageSaved': 'Idioma atualizado.',
+    'settings.languageError': 'Não foi possível salvar seu idioma. Tente novamente.',
+  },
+  es: {
+    'home.title': 'Inicio',
+    'home.calendar': 'Calendario',
+    'home.collectedToday': 'Recogido hoy',
+    'home.notificationsBody.claimed': 'Recompensa diaria recogida.',
+    'home.notificationsBody.available': '¡Tu recompensa diaria está disponible!',
+    'home.buildingLocked': 'Este edificio aún está bloqueado.',
+
+    'shop.title': 'Tienda de Héroes',
+    'shop.recruitment': 'Reclutamiento de héroes',
+    'shop.recruit': 'Reclutar',
+    'shop.odds': 'Probabilidades de invocación',
+    'shop.latestHeroes': 'Últimos héroes',
+
+    'calendar.dailyRewards': 'Recompensas diarias',
+    'calendar.title30': 'Calendario de 30 días',
+    'calendar.selectDay': 'Selecciona el día destacado para recibir tu recompensa.',
+    'calendar.nextDayIn': 'Próximo día en',
+    'calendar.rewardClaimed': 'RECOMPENSA RECOGIDA',
+    'calendar.newBalance': 'Nuevo saldo',
+    'calendar.itemStored': 'Objeto guardado en tu inventario.',
+    'calendar.goToPets': 'IR A MASCOTAS',
+    'calendar.store': 'GUARDAR',
+
+    'chest.opened': 'COFRE ABIERTO',
+    'chest.newHero': 'NUEVO HÉROE',
+
+    'settings.title': 'Configuración',
+    'settings.language': 'Idioma',
+    'settings.languageSaved': 'Idioma actualizado.',
+    'settings.languageError': 'No se pudo guardar tu idioma. Inténtalo de nuevo.',
+  },
+  ru: {
+    'home.title': 'Главная',
+    'home.calendar': 'Календарь',
+    'home.collectedToday': 'Получено сегодня',
+    'home.notificationsBody.claimed': 'Ежедневная награда получена.',
+    'home.notificationsBody.available': 'Ежедневная награда доступна!',
+    'home.buildingLocked': 'Это здание ещё заблокировано.',
+
+    'shop.title': 'Магазин героев',
+    'shop.recruitment': 'Набор героев',
+    'shop.recruit': 'Призвать',
+    'shop.odds': 'Шансы призыва',
+    'shop.latestHeroes': 'Последние герои',
+
+    'calendar.dailyRewards': 'Ежедневные награды',
+    'calendar.title30': 'Календарь на 30 дней',
+    'calendar.selectDay': 'Выберите выделенный день, чтобы получить награду.',
+    'calendar.nextDayIn': 'Следующий день через',
+    'calendar.rewardClaimed': 'НАГРАДА ПОЛУЧЕНА',
+    'calendar.newBalance': 'Новый баланс',
+    'calendar.itemStored': 'Предмет сохранён в инвентаре.',
+    'calendar.goToPets': 'К ПИТОМЦАМ',
+    'calendar.store': 'СОХРАНИТЬ',
+
+    'chest.opened': 'СУНДУК ОТКРЫТ',
+    'chest.newHero': 'НОВЫЙ ГЕРОЙ',
+
+    'settings.title': 'Настройки',
+    'settings.language': 'Язык',
+    'settings.languageSaved': 'Язык обновлён.',
+    'settings.languageError': 'Не удалось сохранить язык. Попробуйте снова.',
+  },
+};

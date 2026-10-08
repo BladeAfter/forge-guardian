@@ -1,4 +1,4 @@
-export type TelegramPlayerProfile={telegramId:string;firstName:string;lastName:string|null;username:string|null;photoUrl:string|null};
+export type TelegramPlayerProfile={telegramId:string;firstName:string;lastName:string|null;username:string|null;photoUrl:string|null;avatarBorder?:string|null;premiumTitle?:string|null};
 
 export function getDisplayName(profile:TelegramPlayerProfile):string{
   return [profile.firstName,profile.lastName].filter(Boolean).join(' ').trim()||profile.username||'Jogador';

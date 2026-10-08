@@ -1,15 +1,19 @@
-export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive' | 'celestial';
 
 export const HERO_RARITY_STATS = {
   common: { baseAtk: 1.875, baseHp: 100, timeReductionMinutes: 48 },
   uncommon: { baseAtk: 1.975, baseHp: 130, timeReductionMinutes: 60 },
   rare: { baseAtk: 2.165, baseHp: 170, timeReductionMinutes: 80 },
   epic: { baseAtk: 2.395, baseHp: 220, timeReductionMinutes: 100 },
-  legendary: { baseAtk: 2.68, baseHp: 300, timeReductionMinutes: 120 }
+  legendary: { baseAtk: 2.68, baseHp: 300, timeReductionMinutes: 120 },
+  mythic: { baseAtk: 3.02, baseHp: 400, timeReductionMinutes: 145 },
+  ancestral: { baseAtk: 3.42, baseHp: 530, timeReductionMinutes: 175 },
+  nft_exclusive: { baseAtk: 4.45, baseHp: 689, timeReductionMinutes: 200 },
+  celestial: { baseAtk: 5.2, baseHp: 780, timeReductionMinutes: 220 }
 } as const;
 
 export const RARITY_DAMAGE_RESISTANCE: Record<HeroRarity, number> = {
-  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8
+  common: 1, uncommon: .95, rare: .9, epic: .85, legendary: .8, mythic: .75, ancestral: .7, nft_exclusive: .62, celestial: .58
 };
 export const BASE_BOSS_DURATION_SECONDS = 86_400;
 export const MIN_BOSS_DURATION_SECONDS = 14_400;
@@ -21,18 +25,74 @@ export type CombatHero = {
   slot: number; level: number; baseAtk: number; finalAtk: number; baseHp: number;
   maxHp: number; currentHp: number; isAlive: boolean; knockedOutAt: string | null;
   reviveAt: string | null;
+  /** Backend-authoritative revive state: one guaranteed attack per revive. */
+  reviveProtected?: boolean; reviveAttackAt?: string | null; reviveAttackUsed?: boolean;
 };
 
+export type GlobalBossState = {
+  cycleId: string; cycleNumber: number; name: string; image?: string | null;
+  /** Progression metadata (10 global bosses, each stronger than the previous one). */
+  bossKey?: string | null; bossNumber?: number | null; subtitle?: string | null;
+  theme?: string | null; background?: string | null; totalBosses?: number | null;
+  bossLevel?: number | null; endedReason?: 'defeated' | 'expired' | string | null;
+  status: 'active' | 'defeated' | 'expired' | 'distributing' | 'completed';
+  maxHp: number; currentHp: number; rewardPoolFc: number; totalDamage: number;
+  participants: number; startsAt?: string | null; endsAt?: string | null; defeatedAt?: string | null;
+  yourDamage: number; yourRank: number | null; yourSharePercent: number; estimatedReward: number;
+  minimumDamage: number; minimumRewardFc: number; rankBonusEnabled: boolean;
+  lastReward?: { cycleNumber?: number; rewardFc: number; rank: number; damage: number } | null;
+};
+
+export type GlobalBossHistoryRow = {
+  cycleId: string; cycleNumber: number; name: string; bossNumber?: number | null; bossKey?: string | null;
+  status: string; endedReason?: 'defeated' | 'expired' | string | null;
+  maxHp: number; totalDamage: number; participants: number; rewardPoolFc: number;
+  completedAt?: string | null; defeatedAt?: string | null;
+  topName?: string | null; topDamage?: number | null;
+  yourDamage: number; yourRank: number | null; yourReward: number;
+};
+
+
+export type GlobalBossRankingEntry = {
+  rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null; avatarBorder?: string | null;
+  damage: number; sharePercent: number; estimatedReward: number; isYou: boolean;
+};
+export type GlobalBossRanking = {
+  cycle: { cycleId: string; cycleNumber: number; name: string; status: string; maxHp: number; currentHp: number;
+    rewardPoolFc: number; totalDamage: number; participants: number; minimumDamage: number } | null;
+  top: GlobalBossRankingEntry[];
+  you: { rank: number; damage: number; sharePercent: number; estimatedReward: number } | null;
+};
+
+export type GlobalBossAutoAttackState = {
+  eligible: boolean; passTier?: string | null; enabled: boolean; hasTeam: boolean; active: boolean;
+  intervalSeconds: number; lastAttackAt?: string | null; nextAttackAt?: string | null;
+  /** Official revive moment of the dead team (server). */
+  revivesAt?: string | null;
+  /** True when the revive timer — not the cooldown — is what blocks the next attack. */
+  waitingRevive?: boolean;
+  blockedBy?: 'revive' | 'cooldown' | null;
+  attacksTotal?: number; reason?: 'no_pass' | 'disabled' | 'no_team' | null;
+};
+
+
 export type BossCombat = {
-  id: string; bossId: string | null; bossName: string; bossLevel: number;
+  id: string | null; bossId: string | null; bossName: string; bossLevel: number;
   bossMaxHp: number; bossCurrentHp: number; bossAttack: number;
   bossAttackIntervalSeconds: number; rewardAmount: number;
-  status: 'active' | 'defeated' | 'rewarded'; totalDamageDealt: number;
+  status: 'active' | 'defeated' | 'rewarded' | 'inactive' | 'expired';
+  /** Single source of truth: an admin-activated boss template inside its time window. */
+  bossActive?: boolean; bossStartsAt?: string | null; bossEndsAt?: string | null;
+  totalDamageDealt: number;
   defeats: number; startedAt: string; lastProcessedAt: string;
-  nextHeroAttackAt: string; bossLastAttackAt: string; bossNextAttackAt: string;
+  nextHeroAttackAt: string | null; bossLastAttackAt: string | null; bossNextAttackAt: string | null;
   defeatedAt: string | null; rewardClaimedAt: string | null;
   teamChangeAvailableAt: string | null; serverNow: string; heroes: CombatHero[];
   ownedHeroes?: Array<{ id: string; heroKey: string; name: string; image?: string; rarity: HeroRarity; level: number }>;
+  /** Server-authoritative shared boss state (one boss for the whole server). */
+  globalBoss?: GlobalBossState | null;
+  /** Season Pass benefit: offline Auto ATK on the Global Boss (server-driven). */
+  autoAttack?: GlobalBossAutoAttackState | null;
   petSummary?: { activePet: { name: string; image: string; level: number; rarity: string } | null; bonuses: Record<string, number> };
 };
 
@@ -42,7 +102,10 @@ export function normalizeRarity(rarity?: string | null): HeroRarity {
     common: 'common', comum: 'common', uncommon: 'uncommon', incomum: 'uncommon',
     rare: 'rare', raro: 'rare', rara: 'rare', epic: 'epic', 'épico': 'epic', epico: 'epic',
     'épica': 'epic', epica: 'epic', legendary: 'legendary', 'lendário': 'legendary',
-    lendario: 'legendary', 'lendária': 'legendary', lendaria: 'legendary'
+    lendario: 'legendary', 'lendária': 'legendary', lendaria: 'legendary',
+    mythic: 'mythic', 'mítico': 'mythic', mitico: 'mythic', 'mítica': 'mythic', mitica: 'mythic',
+    ancestral: 'ancestral', ancient: 'ancestral',
+    nft_exclusive: 'nft_exclusive', nft: 'nft_exclusive', 'nft-exclusive': 'nft_exclusive', celestial: 'celestial', celeste: 'celestial'
   };
   return aliases[value] ?? 'common';
 }
