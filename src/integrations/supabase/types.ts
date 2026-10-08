@@ -17992,6 +17992,101 @@ export type Database = {
         }
         Relationships: []
       }
+
+      ton_auto_withdraw_log: {
+        Row: {
+          amount_ton: number | null
+          created_at: string
+          error: string | null
+          id: string
+          status: string
+          telegram_id: number | null
+          tx_hash: string | null
+          withdrawal_id: string | null
+        }
+        Insert: {
+          amount_ton?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          withdrawal_id?: string | null
+        }
+        Update: {
+          amount_ton?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          telegram_id?: number | null
+          tx_hash?: string | null
+          withdrawal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ton_auto_withdraw_log_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ton_auto_withdraw_settings: {
+        Row: {
+          batch_size: number
+          daily_cap_ton: number
+          enabled: boolean
+          hot_wallet: string | null
+          id: boolean
+          last_error: string | null
+          last_run_at: string | null
+          max_auto_ton: number
+          min_auto_ton: number
+          per_user_daily_count: number
+          per_user_daily_ton: number
+          per_user_window_hours: number
+          updated_at: string
+          worker_key: string | null
+        }
+        Insert: {
+          batch_size?: number
+          daily_cap_ton?: number
+          enabled?: boolean
+          hot_wallet?: string | null
+          id?: boolean
+          last_error?: string | null
+          last_run_at?: string | null
+          max_auto_ton?: number
+          min_auto_ton?: number
+          per_user_daily_count?: number
+          per_user_daily_ton?: number
+          per_user_window_hours?: number
+          updated_at?: string
+          worker_key?: string | null
+        }
+        Update: {
+          batch_size?: number
+          daily_cap_ton?: number
+          enabled?: boolean
+          hot_wallet?: string | null
+          id?: boolean
+          last_error?: string | null
+          last_run_at?: string | null
+          max_auto_ton?: number
+          min_auto_ton?: number
+          per_user_daily_count?: number
+          per_user_daily_ton?: number
+          per_user_window_hours?: number
+          updated_at?: string
+          worker_key?: string | null
+        }
+        Relationships: []
+      }
+
+
       ton_mine_claims: {
         Row: {
           amount_ton: number
@@ -20587,6 +20682,16 @@ export type Database = {
         Args: { p_key: string; p_telegram_id: number; p_value: Json }
         Returns: Json
       }
+
+      admin_auto_withdraw_overview: {
+        Args: { p_admin_id: number }
+        Returns: Json
+      }
+      admin_auto_withdraw_set: {
+        Args: { p_admin_id: number; p_field: string; p_value: string }
+        Returns: Json
+      }
+
       admin_boss_control: {
         Args: {
           p_action: string
@@ -22731,6 +22836,26 @@ export type Database = {
         Returns: undefined
       }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
+    auto_withdraw_claim_batch: { Args: never; Returns: Json }
+      auto_withdraw_complete: {
+        Args: {
+          p_amount_ton: number
+          p_tx_hash: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
+      auto_withdraw_config: { Args: never; Returns: Json }
+      auto_withdraw_register_worker: {
+        Args: { p_key: string }
+        Returns: undefined
+      }
+      auto_withdraw_release: {
+        Args: { p_error: string; p_withdrawal_id: string }
+        Returns: undefined
+      }
+      auto_withdraw_tick: { Args: never; Returns: undefined }
+
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
