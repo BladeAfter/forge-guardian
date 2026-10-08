@@ -40,11 +40,11 @@ export function VillagePage({ game, onUpgrade, lang, telegramInitData }: Village
                   <h4 className="text-sm font-semibold">{building.name}</h4>
                   <p className="text-[12px] text-slate-400">{lang.levelLabel}: {building.level}</p>
                 </div>
-                <div className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">{building.productionPerHour} FC/h</div>
+                <div className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">{building.productionPerHour} BERRIES/h</div>
               </div>
               <div className="relative mt-3 flex flex-col gap-2 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
-                <span>{lang.storage}: {formatCurrency(building.storage)} FC</span>
-                <span>{lang.upgradeCost}: {formatCurrency(building.upgradeCost)} FC</span>
+                <span>{lang.storage}: {formatCurrency(building.storage)} BERRIES</span>
+                <span>{lang.upgradeCost}: {formatCurrency(building.upgradeCost)} BERRIES</span>
               </div>
               <button
                 onClick={() => onUpgrade(building.id)}

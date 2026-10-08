@@ -16,7 +16,7 @@ const chip = (active: boolean) =>
   `rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${active ? 'border-sky-300/70 bg-sky-400/20 text-sky-100' : 'border-white/10 bg-white/[.03] text-slate-300'}`;
 
 /**
- * AUCTION — 100% internal TON. Bidding never opens TonConnect and never touches FC:
+ * AUCTION — 100% internal TON. Bidding never opens TonConnect and never touches BERRIES:
  * the backend reserves the player's available TON and releases it when outbid.
  * Every number here comes from the server (min next bid, fee, countdown, reserves).
  */

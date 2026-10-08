@@ -94,7 +94,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
   const [channelError, setChannelError] = useState<{ key: string; message: string } | null>(null);
   const [joined, setJoined] = useState<Record<string, boolean>>({});
 
-  /** JOIN never pays: only this verify call (server-side getChatMember) can credit FC. */
+  /** JOIN never pays: only this verify call (server-side getChatMember) can credit BERRIES. */
   const verify = useMutation({
     mutationFn: (channelKey: string) => channelsRequest(telegramInitData ?? '', { action: 'verify', channelKey }),
     onSuccess: () => {
@@ -222,7 +222,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
                         <Check className="h-3 w-3" /> {t('profile.claimed')}
                       </span>
                     ) : (
-                      <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} FC</span>
+                      <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} BERRIES</span>
                     )}
                   </div>
                   {channel.claimed ? (

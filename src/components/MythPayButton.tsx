@@ -4,7 +4,7 @@ import { formatMyth, mythDiscountLabel, mythPrice, type MythFeatureCode, type My
 /**
  * Shared MYTH payment button.
  *
- * It is always an EXTRA option next to the existing FC/TON buttons: the price comes from the
+ * It is always an EXTRA option next to the existing BERRIES/TON buttons: the price comes from the
  * backend rate/discount and the amount is burned on success. Never rendered when the backend
  * has MYTH (globally or per feature) turned off.
  */

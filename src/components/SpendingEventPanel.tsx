@@ -13,14 +13,14 @@ import { PlayerTag } from '../premiumTitles';
  */
 const GROUP_LABELS: Record<string, string> = {
   ton_direct_deposit: 'TON DIRECT DEPOSITS',
-  ton_to_fc: 'TON → FC',
+  ton_to_fc: 'TON → BERRIES',
   myth_sale: 'MYTH PURCHASES',
   season_pass: 'SEASON PASS',
   packs: 'PACKS (FOUNDER / VETERAN)',
   nft_shop: 'NFT SHOP',
   marketplace: 'MARKETPLACE',
   auction: 'AUCTION',
-  fc_spend: 'FC SPENDING',
+  fc_spend: 'BERRIES SPENDING',
   other_ton: 'OTHER TON SPENDING',
 };
 
@@ -114,7 +114,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
           <Cell label="Next position" value={player.nextRank ? `#${player.nextRank}` : player.position === 1 ? 'TOP 1' : '—'} />
           <Cell label="Points needed" value={player.neededToNext ? `+${abbreviatePoints(player.neededToNext)} pts` : player.position === 1 ? 'LEADING' : '—'} tone="cyan" />
           <Cell label="TON spent" value={`${formatTon(player.tonSpent)} TON`} />
-          <Cell label="FC spent" value={fullPoints(player.fcSpent)} />
+          <Cell label="BERRIES spent" value={fullPoints(player.fcSpent)} />
         </div>
         {player.estimatedReward && (
           <div className="mt-2 rounded-2xl border border-amber-300/30 bg-black/55 p-3">
@@ -128,7 +128,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
       <SectionTitle icon={<TrendingUp className="h-3.5 w-3.5" />} title="YOUR EVENT ACTIVITY" subtitle="Where your event points came from." />
       <div className="rounded-3xl border border-white/10 bg-black/55 p-3.5">
         {breakdown.length === 0 ? (
-          <p className="py-4 text-center text-[10px] text-slate-400">No eligible activity yet. Deposits, purchases and FC spending all score points.</p>
+          <p className="py-4 text-center text-[10px] text-slate-400">No eligible activity yet. Deposits, purchases and BERRIES spending all score points.</p>
         ) : (
           <>
             <ul className="space-y-1.5">
@@ -146,7 +146,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
           </>
         )}
         <p className="mt-2 text-[9px] leading-4 text-slate-500">
-          1 TON = {abbreviatePoints(event?.tonRateFc ?? 100000)} pts · 1 FC spent = {fullPoints(event?.fcRate ?? 1)} pt. Rewards received (boss, PvP, clan, mining, pool) never score points.
+          1 TON = {abbreviatePoints(event?.tonRateFc ?? 100000)} pts · 1 BERRIES spent = {fullPoints(event?.fcRate ?? 1)} pt. Rewards received (boss, PvP, clan, mining, pool) never score points.
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
         <div className="pointer-events-none absolute -top-10 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-amber-400/20 blur-3xl" />
         <div className="relative">
           <h3 className="bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-lg font-black tracking-[.06em] text-transparent">CLIMB THE LEADERBOARD</h3>
-          <p className="mx-auto mt-1 max-w-[16rem] text-[10px] leading-4 text-slate-300">Every eligible deposit, purchase and FC sink adds points instantly.</p>
+          <p className="mx-auto mt-1 max-w-[16rem] text-[10px] leading-4 text-slate-300">Every eligible deposit, purchase and BERRIES sink adds points instantly.</p>
           {onGoToWallet && <button onClick={onGoToWallet} className="mt-3 w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3.5 text-xs font-black uppercase tracking-[.24em] text-black shadow-[0_0_25px_rgba(245,158,11,.35)]"><Wallet className="mr-1 inline h-4 w-4" />DEPOSIT TON</button>}
           {onGoToSale && <button onClick={onGoToSale} className="mt-2 w-full rounded-2xl border border-amber-300/35 bg-black/50 py-3 text-[11px] font-black uppercase tracking-[.24em] text-amber-200"><Coins className="mr-1 inline h-3.5 w-3.5" />MYTH SALE</button>}
         </div>
@@ -209,8 +209,8 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
         <b className="text-[10px] font-black uppercase tracking-[.24em] text-amber-200"><Users className="mr-1 inline h-3.5 w-3.5" />EVENT RULES</b>
         <ul className="mt-2 space-y-1 text-[10px] leading-4 text-slate-400">
           <li>· Duration: 14 days — the backend clock is the only authority</li>
-          <li>· Score sources: TON deposits, TON → FC, MYTH purchases, Season Pass, packs, NFT shop, marketplace, auction wins and every eligible FC sink</li>
-          <li>· Converting TON to FC scores once; spending that FC later scores again as a new sink</li>
+          <li>· Score sources: TON deposits, TON → BERRIES, MYTH purchases, Season Pass, packs, NFT shop, marketplace, auction wins and every eligible BERRIES sink</li>
+          <li>· Converting TON to BERRIES scores once; spending that BERRIES later scores again as a new sink</li>
           <li>· Rewards, mining, pool payouts and admin grants never score points</li>
           <li>· When the event ends the ranking is locked and rewards are paid by final rank</li>
         </ul>
@@ -230,7 +230,7 @@ function RankRow({ row, me }: { row: SpendingRankRow; me: boolean }) {
         : <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-[10px] font-black text-slate-300">{row.name.slice(0, 1).toUpperCase()}</div>}
       <div className="min-w-0 flex-1">
         <b className={`block truncate text-[11px] font-black ${me ? 'text-emerald-100' : 'text-slate-100'}`}>{me ? 'YOU' : null}{me ? null : <PlayerTag userId={row.userId} username={row.username} fallback={row.name}/>}</b>
-        <p className="truncate text-[9px] text-slate-400">{formatTon(row.tonSpent)} TON · {abbreviatePoints(row.fcSpent)} FC</p>
+        <p className="truncate text-[9px] text-slate-400">{formatTon(row.tonSpent)} TON · {abbreviatePoints(row.fcSpent)} BERRIES</p>
       </div>
       <b className="shrink-0 text-[12px] font-black text-amber-100">{abbreviatePoints(row.points)} pts</b>
     </div>

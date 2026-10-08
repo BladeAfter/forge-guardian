@@ -49,7 +49,7 @@ export function HeroFusionPanel({
   const fragmentsPerFusion = next?.fragmentsRequired ?? dashboard.fragmentsPerFusion ?? 25;
   const readyWithFragments = canFuseWithFragments(current, dashboard.balance, universalFragments, fragmentsPerFusion);
 
-  // MYTH fee: the copies/fragments requirement is unchanged, only the FC fee is replaced.
+  // MYTH fee: the copies/fragments requirement is unchanged, only the BERRIES fee is replaced.
   const { data: myth } = useMythUtility(telegramInitData);
   const [feeCurrency, setFeeCurrency] = useState<'FC' | 'MYTH'>('FC');
   const mythFee = next ? mythPrice(myth, 'HERO_FUSE', { fc: next.costFc }) : null;
@@ -158,7 +158,7 @@ export function HeroFusionPanel({
               onClick={() => setFeeCurrency('FC')}
               className={`min-h-10 rounded-xl border text-[10px] font-black uppercase tracking-wide ${feeCurrency === 'FC' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
             >
-              {fmt(next.costFc)} FC
+              {fmt(next.costFc)} BERRIES
             </button>
             <button
               type="button"

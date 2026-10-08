@@ -1,6 +1,6 @@
 import type { LocaleBundle } from './registry';
 
-/** auction namespace — leilão exclusivamente em TON interno (nunca FC). */
+/** auction namespace — leilão exclusivamente em TON interno (nunca BERRIES). */
 export const auction: LocaleBundle = {
   en: {
     'auction.tab': 'AUCTION',
@@ -29,7 +29,7 @@ export const auction: LocaleBundle = {
     'auction.required': 'Required',
     'auction.available': 'Available',
     'auction.depositTon': 'DEPOSIT TON',
-    'auction.noFc': 'FC is never used in the Auction. Deposit TON to your internal balance first.',
+    'auction.noFc': 'BERRIES is never used in the Auction. Deposit TON to your internal balance first.',
     'auction.cannotBidOwn': 'You cannot bid on your own auction.',
     'auction.confirmBid': 'CONFIRM BID',
     'auction.cancel': 'CANCEL',
@@ -84,7 +84,7 @@ export const auction: LocaleBundle = {
     'auction.required': 'Necessário',
     'auction.available': 'Disponível',
     'auction.depositTon': 'DEPOSITAR TON',
-    'auction.noFc': 'FC não participa do Leilão. Deposite TON no saldo interno primeiro.',
+    'auction.noFc': 'BERRIES não participa do Leilão. Deposite TON no saldo interno primeiro.',
     'auction.cannotBidOwn': 'Você não pode dar lance no seu próprio leilão.',
     'auction.confirmBid': 'CONFIRMAR LANCE',
     'auction.cancel': 'CANCELAR',
@@ -139,7 +139,7 @@ export const auction: LocaleBundle = {
     'auction.required': 'Necesario',
     'auction.available': 'Disponible',
     'auction.depositTon': 'DEPOSITAR TON',
-    'auction.noFc': 'FC no participa en la Subasta. Deposita TON en tu saldo interno.',
+    'auction.noFc': 'BERRIES no participa en la Subasta. Deposita TON en tu saldo interno.',
     'auction.cannotBidOwn': 'No puedes pujar en tu propia subasta.',
     'auction.confirmBid': 'CONFIRMAR PUJA',
     'auction.cancel': 'CANCELAR',
@@ -194,7 +194,7 @@ export const auction: LocaleBundle = {
     'auction.required': 'Нужно',
     'auction.available': 'Доступно',
     'auction.depositTon': 'ПОПОЛНИТЬ TON',
-    'auction.noFc': 'FC не участвует в аукционе. Сначала пополните внутренний баланс TON.',
+    'auction.noFc': 'BERRIES не участвует в аукционе. Сначала пополните внутренний баланс TON.',
     'auction.cannotBidOwn': 'Нельзя делать ставку на свой аукцион.',
     'auction.confirmBid': 'ПОДТВЕРДИТЬ',
     'auction.cancel': 'ОТМЕНА',
@@ -249,7 +249,7 @@ export const auction: LocaleBundle = {
     'auction.required': 'Gerekli',
     'auction.available': 'Kullanılabilir',
     'auction.depositTon': 'TON YATIR',
-    'auction.noFc': 'Açık artırmada FC kullanılmaz. Önce iç TON bakiyene yatır.',
+    'auction.noFc': 'Açık artırmada BERRIES kullanılmaz. Önce iç TON bakiyene yatır.',
     'auction.cannotBidOwn': 'Kendi açık artırmana teklif veremezsin.',
     'auction.confirmBid': 'TEKLİFİ ONAYLA',
     'auction.cancel': 'İPTAL',

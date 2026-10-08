@@ -30,11 +30,11 @@ export type EggPurchaseVerification = {
 };
 
 /**
- * The ONE egg price formatter. An egg is priced in FC *or* in TON — never both, never twice.
+ * The ONE egg price formatter. An egg is priced in BERRIES *or* in TON — never both, never twice.
  * When neither price exists the egg is not for sale and we show its availability label instead.
  */
 export function formatEggPrice(egg: { priceFc?: number | null; priceTon?: number | null; availabilityLabel?: string | null }): string {
-  if (egg.priceFc) return `${new Intl.NumberFormat('pt-BR').format(egg.priceFc)} FC`;
+  if (egg.priceFc) return `${new Intl.NumberFormat('pt-BR').format(egg.priceFc)} BERRIES`;
   if (egg.priceTon) return `${formatTon(egg.priceTon)} TON`;
   return egg.availabilityLabel || 'Evento exclusivo';
 }
@@ -44,7 +44,7 @@ type SendTon = (tx: { validUntil: number; messages: Array<{ address: string; amo
 /**
  * The ONE premium egg purchase pipeline (pet shop and wallet both use it):
  * create order → pay with TonConnect (carrying the order comment) → backend confirms on-chain → egg hatches.
- * A premium egg purchase is never a deposit: no FC is credited.
+ * A premium egg purchase is never a deposit: no BERRIES is credited.
  */
 export async function purchasePremiumEgg(input: {
   telegramInitData: string | null;

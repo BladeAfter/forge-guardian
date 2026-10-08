@@ -2,7 +2,7 @@
  * Player Market — types shared by the shop panel and the service layer.
  * Every rule (eligibility, fee, minimum price, price band, atomic purchase, TON
  * reservation) is enforced by the backend RPCs; the client only renders what the
- * server returns. Listings are priced in FC or in TON, never in both.
+ * server returns. Listings are priced in BERRIES or in TON, never in both.
  */
 export type MarketItemType = 'hero' | 'pet' | 'item';
 export type MarketSort = 'newest' | 'price_low' | 'price_high';
@@ -10,14 +10,14 @@ export type MarketCurrency = 'FC' | 'TON';
 
 export type MarketSettings = {
   feePercent: number;
-  /** Fee applied to TON sales (may differ from the FC fee). */
+  /** Fee applied to TON sales (may differ from the BERRIES fee). */
   feePercentTon?: number;
   maxActiveListings: number;
   maxPriceFc: number;
   maxPriceTon?: number;
   minPrice: Partial<Record<MarketItemType, number>>;
   minPriceTon?: Partial<Record<MarketItemType, number>>;
-  /** Escrow window for FC sales: how long a sale stays on hold before the seller is paid. */
+  /** Escrow window for BERRIES sales: how long a sale stays on hold before the seller is paid. */
   settlementHours?: number;
   /** Escrow window for TON sales. 0 = instant settlement after payment confirmation. */
   settlementHoursTon?: number;
@@ -194,11 +194,11 @@ export const marketFeeSplit = (price: number, feePercent: number, currency: Mark
   return { price: clean, fee, receives };
 };
 
-/** Display helper: FC uses thousands separators, TON keeps up to 3 decimals. */
+/** Display helper: BERRIES uses thousands separators, TON keeps up to 3 decimals. */
 export const marketPriceLabel = (listing: { currency: MarketCurrency; priceFc: number; priceTon: number }) =>
   listing.currency === 'TON'
     ? `${Number(listing.priceTon ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 })} TON`
-    : `${Number(listing.priceFc ?? 0).toLocaleString('en-US')} FC`;
+    : `${Number(listing.priceFc ?? 0).toLocaleString('en-US')} BERRIES`;
 
 
 /**

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Crown, Dna, Egg, Gem, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
+import { Check, ChevronUp, Crown, Egg, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard, useMythUtility } from '../hooks';
@@ -64,7 +64,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
-  // MYTH is an alternative payment method for food/eggs/evolution: FC keeps working untouched.
+  // MYTH is an alternative payment method for food/eggs/evolution: BERRIES keeps working untouched.
   const { data: myth } = useMythUtility(telegramInitData);
   // Main section selector shown in the header: PETS | NFT EXCLUSIVE.
   const [section, setSection] = useState<Section>('pets');
@@ -461,7 +461,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
                   <p className="mt-2 text-[9px] text-slate-400">{t('pets.youOwnLabel')}</p>
                   <b className="text-lg leading-none">{fmt(food.quantity)}</b>
                   <p className="mt-1 text-[9px] font-bold text-amber-200">
-                    {food.priceFc ? `${fmt(food.priceFc)} FC` : t('pets.unavailable')}
+                    {food.priceFc ? `${fmt(food.priceFc)} BERRIES` : t('pets.unavailable')}
                   </p>
                   <div className="mt-auto">
                     <Action
@@ -598,11 +598,8 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
   const t = useT();
   const primary: [Section, string, React.ReactNode][] = [
     ['pets', 'PETS', <PawPrint key="pets" className="h-4 w-4" />],
-    ['nft', 'NFT EXCLUSIVE', <Gem key="nft" className="h-4 w-4 text-sky-300 drop-shadow-[0_0_6px_rgba(56,189,248,.8)]" />],
-    ['shop', 'BUY NFT', <ShoppingCart key="shop" className="h-4 w-4 text-amber-300" />],
   ];
   const secondary: [Section, string, React.ReactNode, string][] = [
-    ['breeding', 'BREEDING', <Dna key="breeding" className="h-3.5 w-3.5" />, 'violet'],
     ['expeditions', 'EXPEDITIONS', <Map key="expeditions" className="h-3.5 w-3.5" />, 'sky'],
   ];
   return (
@@ -744,7 +741,7 @@ function EvolveButton({ pet, balance, universal = 0, pending, onEvolve, myth, on
   const missingFragments = pet.fragments + universal < next.fragmentCost;
   const ready = !missingLevel && !missingFc && !missingFragments;
   const label = missingLevel ? t('pets.evolveAtLevel', { level: next.requiredLevel }) : missingFc ? t('pets.notEnoughFc') : missingFragments ? t('pets.notEnoughFragments') : t('pets.evolve', { label: next.label });
-  // MYTH only replaces the FC fee — level and fragments are still required.
+  // MYTH only replaces the BERRIES fee — level and fragments are still required.
   const mythCost = mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost });
   const canPayMyth = !!onEvolveMyth && mythCost !== null && !missingLevel && !missingFragments;
   return (
@@ -790,7 +787,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed, 
             <p className="mt-1 text-[9px] leading-relaxed text-slate-300">
               {t('pets.requirements')} <b className={pet.level >= next.requiredLevel ? 'text-emerald-300' : 'text-rose-300'}>{next.requiredLevel}</b>
               {' · '}
-              <b className={balance >= next.fcCost ? 'text-emerald-300' : 'text-rose-300'}>{fmt(next.fcCost)} FC</b>
+              <b className={balance >= next.fcCost ? 'text-emerald-300' : 'text-rose-300'}>{fmt(next.fcCost)} BERRIES</b>
               {' · '}
               <b className={pet.fragments + universal >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
@@ -1241,16 +1238,16 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
           <>
             <QuantityPicker quantity={quantity} onChange={setQuantity} max={20} />
             <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
-              <Row label={t('pets.unitPrice')} value={`${fmt(unit)} FC`} />
+              <Row label={t('pets.unitPrice')} value={`${fmt(unit)} BERRIES`} />
               <Row label={t('pets.quantity')} value={`${quantity}x`} />
-              <Row label={t('pets.total')} value={`${fmt(total)} FC`} strong />
-              <Row label={t('pets.currentBalance')} value={`${fmt(balance)} FC`} />
-              <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+              <Row label={t('pets.total')} value={`${fmt(total)} BERRIES`} strong />
+              <Row label={t('pets.currentBalance')} value={`${fmt(balance)} BERRIES`} />
+              <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} BERRIES`} danger={missing} />
             </div>
           </>
         )}
 
-        {/* FC eggs also accept MYTH: same item, price converted server-side and the MYTH is burned. */}
+        {/* BERRIES eggs also accept MYTH: same item, price converted server-side and the MYTH is burned. */}
         {!isTon && unit > 0 && onBuyMyth && (
           <div className="mt-3">
             <MythPayButton state={myth} feature="EGG_PURCHASE" fc={unit} quantity={quantity} disabled={pending} onPay={() => onBuyMyth(quantity)} />
@@ -1311,11 +1308,11 @@ function BuyFoodModal({ food, balance, pending, onClose, onBuy, myth, onBuyMyth 
         <QuantityPicker quantity={quantity} onChange={setQuantity} max={200} shortcuts={[1, 5, 10, 25, 50]} />
 
         <div className="mt-3 rounded-2xl border border-white/10 bg-black/50 p-3 text-[10px]">
-          <Row label={t('pets.unitPrice')} value={`${fmt(unit)} FC`} />
+          <Row label={t('pets.unitPrice')} value={`${fmt(unit)} BERRIES`} />
           <Row label={t('pets.xpTotal')} value={`+${fmt(food.xpValue * quantity)} XP`} />
-          <Row label={t('pets.total')} value={`${fmt(total)} FC`} strong />
-          <Row label={t('pets.currentBalance')} value={`${fmt(balance)} FC`} />
-          <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} FC`} danger={missing} />
+          <Row label={t('pets.total')} value={`${fmt(total)} BERRIES`} strong />
+          <Row label={t('pets.currentBalance')} value={`${fmt(balance)} BERRIES`} />
+          <Row label={t('pets.afterPurchase')} value={`${fmt(Math.max(0, balance - total))} BERRIES`} danger={missing} />
         </div>
 
         {unit > 0 && onBuyMyth && (

@@ -140,7 +140,7 @@ export type RealmExploreRun = {
   status: string;
   /** Depth this run was started at (progression level of the region). */
   depth_level: number;
-  /** FC paid to enter — already debited server-side. */
+  /** BERRIES paid to enter — already debited server-side. */
   entry_cost: number;
   loot_multiplier: number;
   difficulty: Partial<RealmDepthStats> | null;
@@ -266,17 +266,17 @@ const REALM_ERRORS: Record<string, string> = {
   REALM_BUILDING_BUSY: 'Esta construção já está em obras.',
   REALM_BUILDING_MAX: 'Nível máximo alcançado.',
   REALM_CASTLE_TOO_LOW: 'Suba o Castelo antes de evoluir esta construção.',
-  REALM_NOT_ENOUGH_FC: 'Forge Coins insuficientes.',
+  REALM_NOT_ENOUGH_FC: 'BERRIES insuficientes.',
   REALM_NOT_READY: 'Ainda não terminou.',
   REALM_REGION_LOCKED: 'Região bloqueada: evolua o Stronghold.',
   REALM_EXPEDITION_SLOTS_FULL: 'Todas as rotas de expedição estão ocupadas.',
   REALM_CRAFT_SLOTS_FULL: 'Todas as bancadas da Forja estão ocupadas.',
   REALM_FORGE_TOO_LOW: 'Nível da Forja insuficiente para esta receita.',
   REALM_BOUNTY_INCOMPLETE: 'Contrato ainda não concluído.',
-  REALM_NO_FC: 'Forge Coins insuficientes para pagar a entrada das Ruínas.',
+  REALM_NO_FC: 'BERRIES insuficientes para pagar a entrada das Ruínas.',
   REALM_NO_TON: 'Saldo de TON insuficiente para a entrada premium das Ruínas.',
   REALM_TIER_UNKNOWN: 'Tipo de entrada inválido.',
-  REALM_INSUFFICIENT_FC: 'Forge Coins insuficientes para pagar a entrada desta exploração.',
+  REALM_INSUFFICIENT_FC: 'BERRIES insuficientes para pagar a entrada desta exploração.',
   PLAYER_NOT_FOUND: 'Jogador não encontrado.',
 };
 

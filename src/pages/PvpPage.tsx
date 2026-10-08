@@ -222,7 +222,7 @@ function TicketSheet({tickets,shop,ads,initData,onRewarded,pending,onClose,onBuy
    </div>
    <div className="mt-3 space-y-2">{packs.map(p=>{const blocked=pending||p.tickets>remaining;return<button key={p.tickets} type="button" disabled={blocked} onClick={()=>onBuy(p.tickets)} className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left ${blocked?'border-white/10 bg-black/40 opacity-45':'border-amber-300/40 bg-gradient-to-r from-amber-400/15 to-transparent'}`}>
     <b className="text-[12px] font-black">{t('tickets.packLabel',{count:p.tickets})}</b>
-    <span className="text-[12px] font-black text-amber-200">{p.priceFc.toLocaleString()} FC</span>
+    <span className="text-[12px] font-black text-amber-200">{p.priceFc.toLocaleString()} BERRIES</span>
    </button>})}</div>
    {remaining===0?<p className="mt-3 text-center text-[10px] font-bold text-rose-300">{t('tickets.dailyLimitReached')}</p>
     :remaining<Math.max(...packs.map(p=>p.tickets))?<p className="mt-3 text-center text-[10px] text-amber-200">{t('tickets.remainingToday',{count:remaining})}</p>:null}

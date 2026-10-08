@@ -165,7 +165,7 @@ begin
  if(select forge_coins from game_players where id=v_user for update)<v_cost then raise exception 'NOT_ENOUGH_FC';end if;
  update game_players set forge_coins=forge_coins-v_cost,updated_at=now() where id=v_user;
  for i in 1..p_count loop
-   roll:=random()*100;rarity_pick:=case when roll<.3 then 'legendary' when roll<3 then 'epic' when roll<13 then 'rare' when roll<38 then 'uncommon' else 'common' end;
+   roll:=random()*100;rarity_pick:=case when roll<.3 then 'legendary' when roll<3 then 'epic' when roll<13 then 'rare' when roll<48 then 'uncommon' else 'common' end;
    select * into picked from hero_catalog where rarity=rarity_pick and enabled order by random() limit 1;
    insert into player_heroes(user_id,hero_key,name,rarity,level,image) values(v_user,picked.hero_key,picked.name,picked.rarity,1,picked.image) returning id into new_hero_id;
    result:=result||jsonb_build_array(jsonb_build_object('id',new_hero_id,'heroKey',picked.hero_key,'name',picked.name,'rarity',picked.rarity,'level',1,'image',picked.image));

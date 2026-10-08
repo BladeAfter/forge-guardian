@@ -5,6 +5,7 @@ import type { Translator } from '../i18n';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 import type { PvpHero } from '../pvp';
 import { RARITY_COLORS } from '../heroCatalog';
+import { coin } from '../gameAssets';
 
 type Theme = {
   key: 'greenvale' | 'crystal' | 'abyss';
@@ -335,8 +336,8 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
             </p>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
               <span className="bf-reward">
-                <img src="/assets/game/coins/forge-coin.png" alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
-                <b>+{fmt(Number(log.fc ?? 0))}</b> FC
+                <img src={coin} alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
+                <b>+{fmt(Number(log.fc ?? 0))}</b> BERRIES
               </span>
               {Number(log.fragments) > 0 && (
                 <span className="bf-reward">

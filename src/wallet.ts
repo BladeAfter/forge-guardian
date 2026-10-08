@@ -4,7 +4,7 @@ export type WalletHistoryItem={id:string;type:'deposit'|'withdrawal'|'egg_order'
 export type WalletSummary={balanceFc:number;equivalentTon:number;withdrawFeePercent?:number;fcPerTon?:number;depositConfig?:WalletDepositConfig;deposits:Array<{id:string;depositType?:DepositType;txHash?:string|null;amountTon:number;amountFc:number;status:string;createdAt:string}>;withdrawals:Array<{id:string;amountFc:number;amountTon:number;grossTon?:number;feePercent?:number;feeTon?:number;netTon?:number;status:string;createdAt:string}>;eggOrders:Array<{id:string;eggName:string;priceTon:number;status:string;createdAt:string}>;history:WalletHistoryItem[]};
 export type TonPaymentIntent={id:string;depositType?:DepositType;paymentAddress:string;amountNano:string;amountTon:number;amountFc?:number;paymentComment:string;expiresAt:string};
 
-/** Withdrawable TON balance: fed ONLY by official rewards (pool, events, admin). Never by FC. */
+/** Withdrawable TON balance: fed ONLY by official rewards (pool, events, admin). Never by BERRIES. */
 export type TonRewardEntry={id:string;amountTon:number;direction:'credit'|'debit';sourceType:string;sourceId:string|null;status:string;note:string|null;createdAt:string};
 export type TonWithdrawalEntry={id:string;grossTon:number;feePercent:number;feeTon:number;netTon:number;status:string;source:string;createdAt:string};
 export type TonWallet={balanceFc:number;availableTon:number;lockedTon?:number;withdrawableTon?:number;reservedTon:number;feePercent:number;minWithdrawTon:number;depositRequirementTon?:number;depositTotalTon?:number;depositRequirementMet?:boolean;passRequirementMet?:boolean;passRequirementTon?:number;rewards:TonRewardEntry[];withdrawals:TonWithdrawalEntry[]};

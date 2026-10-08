@@ -1,6 +1,6 @@
 export type CalendarRewardType='fc'|'hero_chest'|'pet_egg';
 export type CalendarReward={day:number;type:CalendarRewardType;amountFc?:number;itemCode?:string;title:string;subtitle?:string};
-const fc=(day:number,amountFc:number):CalendarReward=>({day,type:'fc',amountFc,title:`${amountFc.toLocaleString('pt-BR')} FC`});
+const fc=(day:number,amountFc:number):CalendarReward=>({day,type:'fc',amountFc,title:`${amountFc.toLocaleString('pt-BR')} BERRIES`});
 const item=(day:number,type:'hero_chest'|'pet_egg',itemCode:string,title:string,subtitle:string):CalendarReward=>({day,type,itemCode,title,subtitle});
 export const CALENDAR_REWARDS:CalendarReward[]=[
  fc(1,2000),fc(2,3000),item(3,'hero_chest','common_chest','Baú de Herói','Comum'),fc(4,2500),fc(5,4000),item(6,'pet_egg','common-egg','Ovo de Pet','Comum'),item(7,'hero_chest','common_chest','Baú de Herói','Comum'),fc(8,3000),fc(9,4000),item(10,'hero_chest','rare_chest','Baú de Herói','Raro'),fc(11,3500),item(12,'pet_egg','common-egg','Ovo de Pet','Comum'),fc(13,5000),item(14,'hero_chest','common_chest','Baú de Herói','Comum'),fc(15,6000),fc(16,3500),item(17,'hero_chest','rare_chest','Baú de Herói','Raro'),fc(18,4000),item(19,'pet_egg','rare-egg','Ovo de Pet','Raro'),fc(20,7000),item(21,'hero_chest','common_chest','Baú de Herói','Comum'),fc(22,4500),fc(23,5000),item(24,'hero_chest','rare_chest','Baú de Herói','Raro'),fc(25,8000),fc(26,4500),item(27,'pet_egg','rare-egg','Ovo de Pet','Raro'),fc(28,6000),item(29,'hero_chest','epic_chest','Baú de Herói','Épico'),fc(30,10000)

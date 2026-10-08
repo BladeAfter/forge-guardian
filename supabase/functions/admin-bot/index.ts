@@ -34,15 +34,21 @@ function secretMatches(header: string | null): boolean {
   return diff === 0;
 }
 
-/** Every GET maintenance action requires the server-only setup key. Missing key = no access. */
-function setupKeyOk(url: URL): boolean {
-  const setupKey = (Deno.env.get("TELEGRAM_ADMIN_SETUP_KEY") || "").trim();
-  const provided = String(url.searchParams.get("key") || url.searchParams.get("setup") || "");
-  if (!setupKey || !provided || provided.length !== setupKey.length) return false;
+/** Every GET maintenance action requires a server-only key. Missing key = no access. */
+function keyMatches(expected: string, provided: string): boolean {
+  if (!expected || !provided || provided.length !== expected.length) return false;
   let diff = 0;
-  for (let i = 0; i < provided.length; i++) diff |= provided.charCodeAt(i) ^ setupKey.charCodeAt(i);
+  for (let i = 0; i < provided.length; i++) diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
   return diff === 0;
 }
+
+function setupKeyOk(url: URL): boolean {
+  const provided = String(url.searchParams.get("key") || url.searchParams.get("setup") || "");
+  const setupKey = (Deno.env.get("TELEGRAM_ADMIN_SETUP_KEY") || "").trim();
+  const maintenanceKey = (Deno.env.get("TELEGRAM_ADMIN_MAINTENANCE_KEY") || "").trim();
+  return keyMatches(setupKey, provided) || keyMatches(maintenanceKey, provided);
+}
+
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -256,8 +262,68 @@ const petCms = createPetCms({
   clearSession,
 });
 
+/** 🤖 AUTO WITHDRAW: pays small withdrawals automatically, bigger ones stay manual. */
+async function autoWithdrawPanel(ctx: Ctx, msg?: string) {
+  const d = await rpc("admin_auto_withdraw_overview", { p_admin_id: ctx.adminId });
+  const recent = (d.recent as any[]) ?? [];
+  const lines =
+    recent
+      .map(
+        (r) =>
+          `• ${r.status === "paid" ? "✅" : r.status === "failed" ? "⚠️" : "⏳"} ${fmt(r.amountTon ?? 0)} TON ${
+            r.error ? `— <i>${esc(String(r.error).slice(0, 60))}</i>` : ""
+          }`,
+      )
+      .join("\n") || "—";
+  return edit(
+    ctx,
+    `🤖 <b>SAQUE AUTOMÁTICO</b>\n\nStatus: <b>${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}</b>\n🔥 Carteira: <code>${esc(String(d.hotWallet ?? "—"))}</code>\n💸 Limite por saque: <b>${fmt(d.maxAutoTon)} TON</b> (acima disso = manual)\n🔽 Mínimo: <b>${fmt(d.minAutoTon)} TON</b>\n🧢 Teto diário: <b>${fmt(d.dailyCapTon)} TON</b> (hoje: ${fmt(d.paidTodayTon)})\n📦 Por rodada: <b>${d.batchSize}</b>\n\n🔒 <b>ANTI-DIVISÃO</b>\n👤 Por jogador: <b>${fmt(d.perUserDailyTon)} TON</b> / <b>${d.perUserDailyCount}</b> saque(s) a cada <b>${d.perUserWindowHours}h</b>\n\n🟡 Pendentes: <b>${d.pendingCount}</b> (${fmt(d.pendingTon)} TON)\n⏳ Em pagamento: <b>${d.processingCount}</b>\n${d.lastError ? `\n⚠️ Último erro: <code>${esc(String(d.lastError).slice(0, 120))}</code>` : ""}\n\n<b>Últimas rodadas</b>\n${lines}${msg ? `\n\n${msg}` : ""}`,
+    kb([
+      [{ t: d.enabled ? "⛔ DESATIVAR" : "✅ ATIVAR", d: `aw:toggle:${d.enabled ? 0 : 1}` }],
+      [
+        { t: `💸 LIMITE (${fmt(d.maxAutoTon)})`, d: "aw:ask:awmax" },
+        { t: `🧢 TETO DIÁRIO (${fmt(d.dailyCapTon)})`, d: "aw:ask:awcap" },
+      ],
+      [
+        { t: `🔽 MÍNIMO (${fmt(d.minAutoTon)})`, d: "aw:ask:awmin" },
+        { t: `📦 POR RODADA (${d.batchSize})`, d: "aw:ask:awbatch" },
+      ],
+      [
+        { t: `👤 TON/JOGADOR (${fmt(d.perUserDailyTon)})`, d: "aw:ask:awuserton" },
+        { t: `🔢 SAQUES/JOGADOR (${d.perUserDailyCount})`, d: "aw:ask:awusercount" },
+      ],
+      [{ t: `⏱️ JANELA (${d.perUserWindowHours}h)`, d: "aw:ask:awuserwindow" }],
+      [{ t: "🔥 CARTEIRA PAGADORA", d: "aw:ask:awwallet" }],
+      [{ t: "▶️ RODAR AGORA", d: "aw:run" }],
+      [{ t: "🔄 ATUALIZAR", d: "aw:menu" }],
+      nav("m:wallet"),
+    ]),
+  );
+}
+
+/** Fires the payout worker once, on demand. */
+async function autoWithdrawRun(ctx: Ctx) {
+  const secret = String(Deno.env.get("TON_AUTO_WITHDRAW_SECRET") || "");
+  if (!secret) return autoWithdrawPanel(ctx, "⚠️ Chave interna do pagador não configurada.");
+  try {
+    const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/ton-auto-withdraw`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-auto-withdraw-secret": secret },
+      body: "{}",
+    });
+    const out = await res.json().catch(() => ({}));
+    const note = out?.error
+      ? `⚠️ <code>${esc(String(out.error))}</code>`
+      : `✅ Rodada concluída — pagos: <b>${out?.paid ?? 0}</b>`;
+    return autoWithdrawPanel(ctx, note);
+  } catch (e) {
+    return autoWithdrawPanel(ctx, `⚠️ <code>${esc(e instanceof Error ? e.message : String(e))}</code>`);
+  }
+}
+
 /** Deposit methods hub: the player picks the destination before paying, admin controls both here. */
 async function depositSettingsHub(ctx: Ctx) {
+
   const cfg = await rpc("admin_deposit_settings", { p_admin_id: ctx.adminId, p_key: null, p_value: null });
   const on = (v: unknown) => (v ? "✅ ATIVO" : "⛔ DESATIVADO");
   return edit(
@@ -3704,6 +3770,8 @@ async function module(ctx: Ctx, name: string) {
           [{ t: "💳 CONNECTED WALLETS", d: "m:wallets" }],
           [{ t: "🔥 HOT WALLET", d: "m:hotwallet" }],
           [{ t: "💠 MÉTODOS DE DEPÓSITO", d: "dp:hub" }],
+          [{ t: "🤖 SAQUE AUTOMÁTICO", d: "aw:menu" }],
+
           [{ t: "📢 PAYOUT ANNOUNCEMENTS", d: "pa:menu" }],
           [
             { t: "💱 TON → FC RATE", d: "ask:tonrate" },
@@ -4583,6 +4651,15 @@ async function rlPrompt(ctx: Ctx, key: string, args: string[], text: string) {
 }
 
 const PROMPTS: Record<string, string> = {
+  awmax: "💸 Envie o <b>limite por saque</b> pago automaticamente, em TON. Ex.: <code>5</code>",
+  awmin: "🔽 Envie o <b>valor mínimo</b> para pagamento automático, em TON. Ex.: <code>0.5</code>",
+  awcap: "🧢 Envie o <b>teto diário</b> total de pagamentos automáticos, em TON. Ex.: <code>50</code>",
+  awbatch: "📦 Envie quantos saques pagar por rodada (1 a 20). Ex.: <code>3</code>",
+  awwallet: "🔥 Envie o <b>endereço da carteira</b> que vai pagar os saques.",
+  awuserton: "👤 Envie o <b>total em TON</b> que cada jogador pode receber automaticamente na janela. Ex.: <code>3</code>",
+  awusercount: "🔢 Envie quantos <b>saques automáticos</b> cada jogador pode ter na janela (1 a 20). Ex.: <code>1</code>",
+  awuserwindow: "⏱️ Envie a <b>janela em horas</b> do limite por jogador (1 a 168). Ex.: <code>24</code>",
+
   rxbase: "💰 Envie o <b>custo base de entrada</b> em FC. Ex.: <code>100000</code>",
   rxgrowth: "📈 Envie o <b>crescimento do custo</b> por Depth. Ex.: <code>5</code> (=5%)",
   rxmax: "🧢 Envie o <b>custo máximo</b> de entrada em FC. Ex.: <code>500000</code>",
@@ -9324,7 +9401,22 @@ async function handleCallback(ctx: Ctx, data: string) {
     if (rest[0] !== "ask") await clearSession(ctx);
     return nmCallback(ctx, rest);
   }
+  // 🤖 Auto withdraw: on/off, per-request limit, daily cap and manual run.
+  if (head === "aw") {
+    if (rest[0] === "ask") return ask(ctx, rest[1], PROMPTS[rest[1]] ?? "Envie o valor.");
+    await clearSession(ctx);
+    if (rest[0] === "toggle") {
+      await rpc("admin_auto_withdraw_set", {
+        p_admin_id: ctx.adminId,
+        p_field: "enabled",
+        p_value: rest[1] === "1" ? "true" : "false",
+      });
+    }
+    if (rest[0] === "run") return autoWithdrawRun(ctx);
+    return autoWithdrawPanel(ctx);
+  }
   // 💠 Deposit methods: TON -> FC purchase and TON -> internal TON balance (toggles + minimum).
+
   if (head === "dp") {
     if (rest[0] === "ask") return ask(ctx, rest[1], PROMPTS[rest[1].split("|")[0]] ?? "Envie o valor.");
     await clearSession(ctx);
@@ -14895,7 +14987,29 @@ async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
         kb([[{ t: "💳 CARTEIRA", d: "m:wallet" }], nav()]),
       );
     }
+    case "awmax":
+    case "awmin":
+    case "awcap":
+    case "awbatch":
+    case "awuserton":
+    case "awusercount":
+    case "awuserwindow":
+    case "awwallet": {
+      const field = key === "awmax" ? "max" : key === "awmin" ? "min" : key === "awcap" ? "cap" : key === "awbatch" ? "batch"
+        : key === "awuserton" ? "userton" : key === "awusercount" ? "usercount" : key === "awuserwindow" ? "userwindow" : "wallet";
+      const raw = field === "wallet" ? text.trim().split(/\s+/)[0] : text.replace(",", ".").replace(/[^\d.]/g, "");
+      if (field === "wallet") {
+        if (!/^[A-Za-z0-9_-]{48}$/.test(raw))
+          throw new Error("KEEP_SESSION::⚠️ Endereço inválido. Envie o endereço TON completo.");
+      } else if (!Number.isFinite(Number(raw)) || Number(raw) < 0) {
+        throw new Error("KEEP_SESSION::⚠️ Valor inválido.");
+      }
+      await rpc("admin_auto_withdraw_set", { p_admin_id: ctx.adminId, p_field: field, p_value: raw });
+      await send(ctx, "✅ Configuração de saque automático atualizada.");
+      return autoWithdrawPanel(ctx);
+    }
     case "wdfee": {
+
       const value = Number(text.replace(",", ".").replace(/[^\d.]/g, ""));
       if (!Number.isFinite(value) || value < 0 || value > 50)
         return send(ctx, "⚠️ Informe um percentual entre 0 e 50.", MAIN_MENU);

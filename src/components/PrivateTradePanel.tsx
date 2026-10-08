@@ -240,7 +240,7 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
       </div>
 
       <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[10px]">
-        <span className="rounded-lg border border-white/10 bg-black/40 px-1 py-1 text-amber-200">{side.fc.toLocaleString('en-US')} FC</span>
+        <span className="rounded-lg border border-white/10 bg-black/40 px-1 py-1 text-amber-200">{side.fc.toLocaleString('en-US')} BERRIES</span>
         <span className="rounded-lg border border-white/10 bg-black/40 px-1 py-1 text-sky-200">{side.ton} TON</span>
         <span className="rounded-lg border border-white/10 bg-black/40 px-1 py-1 text-fuchsia-200">{side.myth} MYTH</span>
       </div>
@@ -289,7 +289,7 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
           <div className="rounded-2xl border border-white/10 bg-black/40 p-3">
             <span className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-400">{t('privateTrade.currencies')}</span>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              <input inputMode="decimal" value={fc} onChange={(e) => setFc(e.target.value)} placeholder={`FC · ${state.balances.fc}`}
+              <input inputMode="decimal" value={fc} onChange={(e) => setFc(e.target.value)} placeholder={`BERRIES · ${state.balances.fc}`}
                 className="min-w-0 rounded-xl border border-white/10 bg-black/50 px-2 py-2 text-[11px] text-slate-100 outline-none" />
               <input inputMode="decimal" value={ton} onChange={(e) => setTon(e.target.value)} placeholder={`TON · ${state.balances.ton}`}
                 className="min-w-0 rounded-xl border border-white/10 bg-black/50 px-2 py-2 text-[11px] text-slate-100 outline-none" />

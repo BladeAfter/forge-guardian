@@ -98,7 +98,7 @@ export const nftx: LocaleBundle = {
     'expeditions.materials': 'Materials',
     'expeditions.equipment': 'Equipment',
     'expeditions.pvpTickets': 'PvP Tickets',
-    'expeditions.fc': 'FC Coins',
+    'expeditions.fc': 'BERRIES Coins',
   },
   pt: {
     'nft.noPetYet': 'Você ainda não possui um Pet NFT Exclusive.',
@@ -196,7 +196,7 @@ export const nftx: LocaleBundle = {
     'expeditions.materials': 'Materiais',
     'expeditions.equipment': 'Equipamento',
     'expeditions.pvpTickets': 'PvP Tickets',
-    'expeditions.fc': 'FC Coins',
+    'expeditions.fc': 'BERRIES Coins',
   },
   es: {
     'nft.noPetYet': 'Aún no tienes una Mascota NFT Exclusive.',
@@ -294,7 +294,7 @@ export const nftx: LocaleBundle = {
     'expeditions.materials': 'Materiales',
     'expeditions.equipment': 'Equipo',
     'expeditions.pvpTickets': 'Tickets PvP',
-    'expeditions.fc': 'FC Coins',
+    'expeditions.fc': 'BERRIES Coins',
   },
   ru: {
     'nft.noPetYet': 'У вас пока нет NFT Exclusive питомца.',
@@ -392,7 +392,7 @@ export const nftx: LocaleBundle = {
     'expeditions.materials': 'Материалы',
     'expeditions.pvpTickets': 'PvP билеты',
     'expeditions.equipment': 'Снаряжение',
-    'expeditions.fc': 'FC Coins',
+    'expeditions.fc': 'BERRIES Coins',
   },
   tr: {
     'nft.noPetYet': 'Henüz bir NFT Exclusive evcil hayvanın yok.',
@@ -490,6 +490,6 @@ export const nftx: LocaleBundle = {
     'expeditions.materials': 'Materyaller',
     'expeditions.equipment': 'Ekipman',
     'expeditions.pvpTickets': 'PvP Bileti',
-    'expeditions.fc': 'FC Coins',
+    'expeditions.fc': 'BERRIES Coins',
   },
 };

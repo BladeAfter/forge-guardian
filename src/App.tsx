@@ -89,7 +89,7 @@ function OpenInTelegramGate() {
 }
 
 function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;subtitle?:string;onClick:()=>void}){
-  return <button type="button" onClick={onClick} className="home-feature forge-golden-tile group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
+  return <button type="button" onClick={onClick} className="home-feature forge-golden-tile group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} loading="lazy" width={512} height={512} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 text-center text-[10px] font-black uppercase tracking-[.11em] text-amber-200">{label}</span>{subtitle&&<span className="home-feature-subtitle relative mt-0.5 text-[7px] font-bold uppercase text-emerald-300">{subtitle}</span>}</button>;
 }
 
 
@@ -461,9 +461,9 @@ function App() {
       });
   },[backendEnabled,telegramInitData,telegramStartParam,queryClient]);
 
-  // FC have a single source of truth: the server balance (game_players.forge_coins).
+  // BERRIES have a single source of truth: the server balance (game_players.forge_coins).
   const {data:serverWallet}=useWalletSummary(telegramInitData,backendEnabled);
-  // Withdrawable TON lives on its own ledger (rewards only) and is shown beside FC.
+  // Withdrawable TON lives on its own ledger (rewards only) and is shown beside BERRIES.
   const {data:tonRewardWallet}=useTonRewardWallet(telegramInitData,backendEnabled);
   // A falha temporária de uma request NUNCA deve mostrar 0: mantemos o último valor conhecido do servidor.
   const lastTon=useRef(0);
@@ -633,7 +633,7 @@ function App() {
       if (!current) return current;
       const mission = current.missions.find((item) => item.id === id);
       if (!mission?.complete || mission.claimed) return current;
-      toast.success(`+${formatCurrency(mission.reward)} FC`);
+      toast.success(`+${formatCurrency(mission.reward)} BERRIES`);
       return {
         ...current,
         balance: current.balance + mission.reward,
@@ -876,7 +876,7 @@ function App() {
 
 
   return (
-    <div className={`telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
+    <div className={`mythreon-pirate telegram-safe-page relative min-h-screen overflow-x-hidden bg-black text-white ${tab === 'village' ? 'h-[100dvh] overflow-y-hidden' : ''}`}>
       <PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/>
       {realmSoonOpen?<div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 px-6" onClick={()=>setRealmSoonOpen(false)}>
         <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/30 bg-gradient-to-b from-[#141021] to-[#07090d] p-5 text-center shadow-[0_20px_60px_rgba(0,0,0,.8)]" onClick={e=>e.stopPropagation()}>
@@ -955,7 +955,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image="/assets/game/realm/realm-castle-entry.png" label="REALM" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
+            <HomeFeature image={mainScreenArt.realm} label="REALM" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
             <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
@@ -970,7 +970,7 @@ function App() {
 
           <div className="flex w-full items-start justify-between">
             <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={petDashboard?.activePet?.image||mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
+              <HomeFeature image={mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
               <button
                 onClick={()=>setPartnersOpen(true)}
                 className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
@@ -981,7 +981,7 @@ function App() {
               >📜 MISSIONS</button>
             </div>
             <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={characters.knight} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
+              <HomeFeature image={mainScreenArt.heroes} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
               <button
                 onClick={()=>setCalendarOpen(true)}
                 className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-2 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
@@ -1052,8 +1052,8 @@ function App() {
                         className={`aspect-square rounded-xl border p-1 text-center transition ${collected ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : current ? 'border-amber-300 bg-amber-400/15 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,.2)]' : 'border-white/5 bg-white/[.03] text-slate-600'}`}
                       >
                         <span className="block text-[8px] font-black">DIA {day}</span>
-                        {reward?.type==='fc'?<img src={coin} alt="FC" className="mx-auto h-5 w-5 object-contain"/>:reward?.type==='hero_chest'?<img src={chests[chestIndex]} alt="Baú" className="mx-auto h-5 w-5 object-contain"/>:<img src={`/assets/game/pet-eggs/${reward?.itemCode}.webp`} alt="Ovo" className="mx-auto h-5 w-5 object-contain"/>}
-                        <span className="block truncate text-[6px]">{collected?'OK':claiming?'...':!current?'🔒':reward?.type==='fc'?`${(reward.amountFc??0)/1000}K FC`:reward?.type==='hero_chest'?'BAÚ':'OVO'}</span>
+                        {reward?.type==='fc'?<img src={coin} alt="BERRIES" className="mx-auto h-5 w-5 object-contain"/>:reward?.type==='hero_chest'?<img src={chests[chestIndex]} alt="Baú" className="mx-auto h-5 w-5 object-contain"/>:<img src={`/assets/game/pet-eggs/${reward?.itemCode}.webp`} alt="Ovo" className="mx-auto h-5 w-5 object-contain"/>}
+                        <span className="block truncate text-[6px]">{collected?'OK':claiming?'...':!current?'🔒':reward?.type==='fc'?`${(reward.amountFc??0)/1000}K BERRIES`:reward?.type==='hero_chest'?'BAÚ':'OVO'}</span>
                       </button>
                     );
                   })}
@@ -1093,7 +1093,7 @@ function App() {
             </div>
           ) : null}
 
-          {calendarResult?<div className="fixed inset-0 z-[65] grid place-items-center bg-black/80 p-5"><div className="w-full max-w-sm rounded-3xl border border-amber-300/30 bg-[#090d15] p-6 text-center"><p className="text-[10px] tracking-[.25em] text-amber-300">RECOMPENSA COLETADA</p><h2 className="mt-2 text-2xl font-black">Dia {calendarResult.reward.day}</h2><p className="mt-3 text-lg text-amber-100">{calendarResult.reward.title}{calendarResult.reward.subtitle?` · ${calendarResult.reward.subtitle}`:''}</p>{calendarResult.reward.type==='fc'?<p className="mt-2 text-emerald-300">Novo saldo: {formatCurrency(calendarResult.balance)} FC</p>:<p className="mt-2 text-slate-300">Item guardado no inventário.</p>}<div className="mt-5 grid grid-cols-2 gap-2">{calendarResult.reward.type==='pet_egg'?<button type="button" onClick={()=>{setCalendarResult(null);setCalendarOpen(false);setPetsOpen(true)}} className="rounded-xl bg-amber-400 py-3 font-black text-black">IR PARA PETS</button>:calendarResult.reward.type==='hero_chest'?<button type="button" disabled={!calendarResult.inventoryItemId||calendarChestMutation.isPending} onClick={()=>calendarResult.inventoryItemId&&openChest(calendarResult.inventoryItemId)} className="rounded-xl bg-amber-400 py-3 font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'ABRINDO...':'ABRIR AGORA'}</button>:<span/>}<button type="button" onClick={()=>setCalendarResult(null)} className="rounded-xl border border-white/15 py-3 font-bold">{calendarResult.reward.type==='fc'?'CONTINUAR':'GUARDAR'}</button></div></div></div>:null}
+          {calendarResult?<div className="fixed inset-0 z-[65] grid place-items-center bg-black/80 p-5"><div className="w-full max-w-sm rounded-3xl border border-amber-300/30 bg-[#090d15] p-6 text-center"><p className="text-[10px] tracking-[.25em] text-amber-300">RECOMPENSA COLETADA</p><h2 className="mt-2 text-2xl font-black">Dia {calendarResult.reward.day}</h2><p className="mt-3 text-lg text-amber-100">{calendarResult.reward.title}{calendarResult.reward.subtitle?` · ${calendarResult.reward.subtitle}`:''}</p>{calendarResult.reward.type==='fc'?<p className="mt-2 text-emerald-300">Novo saldo: {formatCurrency(calendarResult.balance)} BERRIES</p>:<p className="mt-2 text-slate-300">Item guardado no inventário.</p>}<div className="mt-5 grid grid-cols-2 gap-2">{calendarResult.reward.type==='pet_egg'?<button type="button" onClick={()=>{setCalendarResult(null);setCalendarOpen(false);setPetsOpen(true)}} className="rounded-xl bg-amber-400 py-3 font-black text-black">IR PARA PETS</button>:calendarResult.reward.type==='hero_chest'?<button type="button" disabled={!calendarResult.inventoryItemId||calendarChestMutation.isPending} onClick={()=>calendarResult.inventoryItemId&&openChest(calendarResult.inventoryItemId)} className="rounded-xl bg-amber-400 py-3 font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'ABRINDO...':'ABRIR AGORA'}</button>:<span/>}<button type="button" onClick={()=>setCalendarResult(null)} className="rounded-xl border border-white/15 py-3 font-bold">{calendarResult.reward.type==='fc'?'CONTINUAR':'GUARDAR'}</button></div></div></div>:null}
 
           {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">BAÚ ABERTO</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">NOVO HERÓI</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} · HP {chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">CONTINUAR</button></div></div>:null}
 
@@ -1164,7 +1164,7 @@ function App() {
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400">{lang.productionPerHour}</p>
-              <p className="text-base font-bold text-emerald-400">+{formatCurrency(totalProduction)} FC/h</p>
+              <p className="text-base font-bold text-emerald-400">+{formatCurrency(totalProduction)} BERRIES/h</p>
             </div>
             <img src={mainScreenArt.productionAnvil} alt="Produção" className="h-9 w-9 object-contain" />
           </div>
@@ -1172,22 +1172,22 @@ function App() {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#07090d]/90" />
             <img src={mainScreenArt.forgeTower} alt="Forja principal" className="village-forge absolute bottom-0 left-1/2 h-[325px] w-[325px] -translate-x-1/2 scale-x-110 object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,.85)]" />
             <div className="village-furnace-glow pointer-events-none absolute bottom-[-12px] left-1/2 z-10 h-28 w-36 -translate-x-1/2 rounded-full" />
-            <button onClick={() => upgradeBuilding('iron-mine')} title={`Melhorar Mina de Ferro: ${formatCurrency(game.buildings[0]?.upgradeCost ?? 0)} FC`} className="building-upgrade-button absolute left-[3%] top-[27%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
+            <button onClick={() => upgradeBuilding('iron-mine')} title={`Melhorar Mina de Ferro: ${formatCurrency(game.buildings[0]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[3%] top-[27%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Mina de ferro</p>
               <p className="text-[10px] text-slate-400">Nv. {game.buildings[0]?.level}</p>
             </button>
-            <button onClick={() => upgradeBuilding('coal-mine')} title={`Melhorar Mina de Carvão: ${formatCurrency(game.buildings[1]?.upgradeCost ?? 0)} FC`} className="building-upgrade-button absolute left-[2%] top-[56%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
+            <button onClick={() => upgradeBuilding('coal-mine')} title={`Melhorar Mina de Carvão: ${formatCurrency(game.buildings[1]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[2%] top-[56%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Mina de carvão</p>
               <p className="text-[10px] text-slate-400">Nv. {game.buildings[1]?.level}</p>
             </button>
-            <button onClick={() => upgradeBuilding('royal-workshop')} title={`Melhorar Oficina: ${formatCurrency(game.buildings[3]?.upgradeCost ?? 0)} FC`} className="building-upgrade-button absolute right-[2%] top-[43%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
+            <button onClick={() => upgradeBuilding('royal-workshop')} title={`Melhorar Oficina: ${formatCurrency(game.buildings[3]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute right-[2%] top-[43%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Oficina</p>
               <p className="text-[10px] text-slate-400">Nv. {game.buildings[3]?.level}</p>
             </button>
           </div>
           <div className="village-collect shrink-0 overflow-hidden rounded-2xl border border-amber-300/30 bg-[#090c12]/92 text-center shadow-[0_12px_28px_rgba(0,0,0,.45)]">
             <div className="collect-balance-panel px-3 py-2">
-              <p className="text-3xl font-black tracking-wide text-white">{formatCurrency(Math.floor(game.offlineProduction))} FC</p>
+              <p className="text-3xl font-black tracking-wide text-white">{formatCurrency(Math.floor(game.offlineProduction))} BERRIES</p>
               <p className="mt-1 text-xs uppercase tracking-[0.28em] text-slate-400">{lang.offlineProduction}</p>
               <div className="mx-auto mt-2 h-1.5 w-3/4 overflow-hidden rounded-full bg-white/10">
                 <div className="h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-500" style={{ width: `${Math.min(100, (game.offlineProduction / storageCapacity) * 100)}%` }} />
@@ -1203,7 +1203,7 @@ function App() {
             <div className="flex items-center justify-center gap-2 bg-black/45 px-2 py-1.5 text-xs text-slate-300">
               <span>🔥 {loginStreak} {lang.loginStreak.toLowerCase()}</span>
               <span className="text-slate-600">•</span>
-              <span>{formatCurrency(storageCapacity)} FC max.</span>
+              <span>{formatCurrency(storageCapacity)} BERRIES max.</span>
             </div>
           </div>
         </section>
@@ -1235,20 +1235,22 @@ function App() {
           {navItems.map((item) => {
             const isMarket = item.key === 'market';
             const active = isMarket ? marketOpen : tab === item.key;
-            const icon = isMarket ? mainScreenArt.market : (active ? navigationIcons[item.key].selected : navigationIcons[item.key].normal);
+            const icon = active ? navigationIcons[item.key].selected : navigationIcons[item.key].normal;
             return (
             <button
               key={item.key}
               onClick={() => isMarket ? openInternal('market') : navigateTo(item.key as TabKey)}
-              className={`flex min-w-[0] flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-xs transition ${active ? 'bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
+              className={`pirate-nav-item flex min-w-[0] flex-1 flex-col items-center justify-center px-1 py-1.5 text-xs transition ${active ? 'is-active bg-amber-500/15 text-amber-200' : 'text-slate-400 hover:text-white'}`}
             >
               <img
                 src={icon}
                 alt=""
-                className="h-7 w-7 object-contain transition duration-200"
-                style={active ? { filter: 'sepia(1) saturate(1.8) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 6px rgba(251,191,36,.65))' } : undefined}
+                loading="lazy"
+                width={512}
+                height={512}
+                className="pirate-nav-icon h-9 w-9 object-contain transition duration-200"
               />
-              <span className="mt-1">{item.label}</span>
+              <span className="pirate-nav-label mt-0.5">{item.label}</span>
             </button>
           );})}
 

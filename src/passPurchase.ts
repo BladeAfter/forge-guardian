@@ -11,7 +11,7 @@ type SendTon = SendTonTransaction;
 /**
  * The ONE battle pass purchase pipeline: create order → pay with TonConnect (carrying the order
  * comment so the backend can tie the payment to THIS player) → server confirms on-chain → pass activated.
- * A pass purchase is never a deposit: no TON is converted into FC.
+ * A pass purchase is never a deposit: no TON is converted into BERRIES.
  */
 export async function purchaseBattlePass(input: {
   telegramInitData: string | null;

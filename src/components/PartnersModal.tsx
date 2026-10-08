@@ -61,7 +61,7 @@ export function PartnersModal({ telegramInitData, onClose }: { telegramInitData:
     onSuccess: async (result) => {
       queryClient.setQueryData(['partner-channels', telegramInitData], { partners: result.partners });
       if (result.status === 'claimed') {
-        toast.success(`${t('partners.rewardTitle')} +${formatCurrency(result.creditedFc)} FC`);
+        toast.success(`${t('partners.rewardTitle')} +${formatCurrency(result.creditedFc)} BERRIES`);
       }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['game-state'] }),
@@ -158,7 +158,7 @@ export function PartnersModal({ telegramInitData, onClose }: { telegramInitData:
                     </span>
                   ) : (
                     <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/15 px-2 py-0.5 text-[8px] font-black tracking-[0.1em] text-amber-200">
-                      <Sparkles className="h-2.5 w-2.5" />+{formatCurrency(partner.rewardFc)} FC
+                      <Sparkles className="h-2.5 w-2.5" />+{formatCurrency(partner.rewardFc)} BERRIES
                     </span>
                   )}
                 </div>

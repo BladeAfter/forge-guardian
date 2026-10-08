@@ -20,13 +20,10 @@ import {
 import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMinPriceTon, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSellCategory, type MarketSort } from '../market';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
-import { NftHeroCollectionSection, NftHeroShopSection } from './NftHeroShopSection';
 import { PrivateTradePanel } from './PrivateTradePanel';
 import { AuctionPanel } from './AuctionPanel';
 import { ItemDetailsModal } from './ItemDetailsModal';
 import { sendTonPayment } from '../tonPayment';
-import { RouletteOverlay } from './RouletteOverlay';
-import rouletteWheel from '../assets/roulette/wheel.png';
 
 
 type Props = {
@@ -48,7 +45,7 @@ const rarityColor = (rarity: string) => RARITY_COLORS[(rarity as HeroRarity)] ??
 const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', { maximumFractionDigits: 3 });
 
 /**
- * Marketplace with two currencies: FC (game coin) and TON. TON purchases spend the
+ * Marketplace with two currencies: BERRIES (game coin) and TON. TON purchases spend the
  * internal withdrawable TON balance first; when it is not enough the backend reserves
  * the listing and the buyer pays from the connected wallet.
  */
@@ -64,10 +61,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const mythUtility = useMythUtility(telegramInitData, mode === 'recruit');
   // Tapping a listing opens the read-only premium preview (real backend attributes).
   const [detailsId, setDetailsId] = useState<string | null>(null);
-  // Hero shop sub-tabs: RECRUIT, 💎 NFT EXCLUSIVE and 🛒 BUY NFT (same structure as pets).
-  const [heroTab, setHeroTab] = useState<'recruit' | 'nft' | 'buy-nft'>('recruit');
-  // 🎡 Global Mystery Roulette lives inside the hero shop (fullscreen overlay).
-  const [rouletteOpen, setRouletteOpen] = useState(false);
 
   // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
   const [section, setSection] = useState<'market' | 'auction' | 'private'>('market');
@@ -106,10 +99,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const maxQuantity = Math.max(1, Number(selected?.max ?? 1));
   const isStackable = sellKind === 'item' && selected?.stackable !== false && maxQuantity > 1;
   const listedQuantity = Math.min(Math.max(1, Math.trunc(quantity) || 1), maxQuantity);
-  // TON sales settle instantly (no hold); FC sales keep the configured anti-fraud hold.
+  // TON sales settle instantly (no hold); BERRIES sales keep the configured anti-fraud hold.
   const settlementHours = Number(settings?.settlementHours ?? 72);
   const tonSettlementHours = Number(settings?.settlementHoursTon ?? 0);
-  // FC and TON sales both settle the moment the purchase is confirmed (no hold).
+  // BERRIES and TON sales both settle the moment the purchase is confirmed (no hold).
   const instantSettlement = isTonSale ? tonSettlementHours <= 0 : true;
   const availableTon = Number(browse.data?.availableTon ?? sellable.data?.availableTon ?? tonBalance ?? 0);
   // Header chip: prefer the live server value, fall back to the HUD balance.
@@ -135,7 +128,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const priceValue = Number(price) || 0;
   const outOfBand = priceValue > 0 && (priceValue < bandMin || priceValue > bandMax);
   const split = useMemo(() => marketFeeSplit(priceValue, feePercent, sellCurrency), [priceValue, feePercent, sellCurrency]);
-  const priceUnit = isTonSale ? 'TON' : 'FC';
+  const priceUnit = isTonSale ? 'TON' : 'BERRIES';
   const amountLabel = (value: number) => (isTonSale ? tonAmount(value) : formatCurrency(value));
 
   const sortLabel = (value: MarketSort) =>
@@ -221,7 +214,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
 
     onSuccess: async (result) => {
       if (result) {
-        const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} FC`;
+        const paid = result.currency === 'TON' ? `${tonAmount(result.pricePaid)} TON` : `${formatCurrency(result.pricePaid)} BERRIES`;
         toast.success(`${t('market.purchaseCompleted')} · ${result.name} · -${paid}`, {
           description: t('market.purchaseCompletedBody', { name: String(result.name ?? '') }),
         });
@@ -303,7 +296,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
 
   return (
     <>
-    <div className={`fullscreen-page flex items-center justify-center p-3 ${rouletteOpen ? 'hidden' : ''}`}>
+    <div className="fullscreen-page flex items-center justify-center p-3">
 
 
       <div className="relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl">
@@ -313,7 +306,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? t('market.tabMarket') : t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} FC</span>
+            <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} BERRIES</span>
             <span className="flex items-center gap-1 rounded-full border border-sky-300/30 bg-black/40 px-2.5 py-1 text-[10px] font-black text-sky-300">
               <Gem className="h-3 w-3" />{tonAmount(tonWalletBalance)} TON
             </span>
@@ -322,48 +315,9 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         </div>
 
 
-        {tab === 'recruit' ? (
-          <div className="mt-3 grid grid-cols-3 gap-1.5 px-4">
-            {([
-              ['recruit', t('shop.tabRecruit')],
-              ['nft', t('shop.tabNft')],
-              ['buy-nft', t('shop.tabBuyNft')],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setHeroTab(key)}
-                className={`rounded-xl px-1 py-2 text-[9px] font-black uppercase tracking-[.12em] ${heroTab === key ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'border border-white/10 bg-white/[.03] text-slate-300'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
-          {tab === 'recruit' && heroTab === 'nft' ? (
-            telegramInitData ? <NftHeroCollectionSection telegramInitData={telegramInitData} /> : null
-          ) : tab === 'recruit' && heroTab === 'buy-nft' ? (
-            telegramInitData ? <NftHeroShopSection telegramInitData={telegramInitData} /> : null
-          ) : tab === 'recruit' ? (
+          {tab === 'recruit' ? (
             <div>
-
-              {/* 🎡 GLOBAL MYSTERY ROULETTE — entrada premium. Nada do ciclo global é exposto aqui. */}
-              <button
-                type="button"
-                onClick={() => setRouletteOpen(true)}
-                className="mb-3 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-amber-300/30 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.18),rgba(0,0,0,0.6))] p-3 text-left"
-              >
-                <img src={rouletteWheel} alt="" className="h-14 w-14 shrink-0 object-contain drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[12px] font-black uppercase tracking-[0.12em] text-amber-300">Global Mystery Roulette</span>
-                  <span className="block text-[9px] uppercase tracking-[0.18em] text-slate-400">Gire e receba recompensas reais</span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-amber-300" />
-              </button>
-
-
 
               <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
                 <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
@@ -391,7 +345,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <div key={count} className="flex flex-col gap-1.5">
                     <button onClick={() => onRecruit(count, 'FC')} className="rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/[.06] to-black/40 px-1 py-3 text-center active:scale-95">
                       <span className="block text-xl font-black text-white">{count}×</span>
-                      <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} FC</span>
+                      <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} BERRIES</span>
                     </button>
                     {/* Extra payment option: MYTH (price + burn are decided by the backend). */}
                     <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />
@@ -511,7 +465,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                   <div className="-mx-1 mt-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {(['all', 'FC', 'TON'] as const).map((value) => (
                       <button key={value} onClick={() => { setCurrencyFilter(value); setPage(1); }} className={`${chipClass(currencyFilter === value)} shrink-0`}>
-                        {value === 'all' ? t('market.all') : value}
+                        {value === 'all' ? t('market.all') : value === 'FC' ? 'BERRIES' : value}
                       </button>
                     ))}
                     {availableTon > 0 ? (
@@ -718,7 +672,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                         key={value}
                         onClick={() => { setSellCurrency(value); setPrice(''); setConfirming(false); }}
                         className={`rounded-lg border px-1 py-1.5 text-[9px] font-black uppercase ${sellCurrency === value ? (value === 'TON' ? 'border-sky-300/60 bg-sky-400/15 text-sky-200' : 'border-amber-300/60 bg-amber-400/15 text-amber-200') : 'border-white/10 bg-white/[.03] text-slate-400'}`}
-                      >{value}</button>
+                      >{value === 'FC' ? 'BERRIES' : value}</button>
                     ))}
                   </div>
                   {sellCurrency === 'TON' ? (
@@ -987,10 +941,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     </div>
 
 
-      {/* Fullscreen exclusive mode: portals to body, shop above stays display:none. */}
-      {rouletteOpen ? (
-        <RouletteOverlay telegramInitData={telegramInitData} onClose={() => setRouletteOpen(false)} />
-      ) : null}
     </>
   );
 }

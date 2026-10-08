@@ -98,7 +98,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
   const activePet = data.petSummary?.activePet ?? null;
   const petBuffs = activePetBonuses(data.petSummary?.bonuses ?? null, Object.keys(data.petSummary?.bonuses ?? {})).slice(0, 4);
   const rewards = data.firstClear ? data.rewards : data.replayRewards;
-  // The server-side FC balance is authoritative; the prop is only a fallback.
+  // The server-side BERRIES balance is authoritative; the prop is only a fallback.
   const fc = Number.isFinite(Number(data.balanceFc)) ? Number(data.balanceFc) : Number(balance) || 0;
   const canEnter = !enter.isPending;
   // Second entry option: pay with the internal TON balance (no TonConnect, no conversion).
@@ -158,7 +158,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           <div className="rounded-2xl bg-black/65 p-2.5">
             <p className="text-slate-400">{t('tower.entryCost')}</p>
             <p className={`mt-1 font-semibold ${payWith === 'ton' ? (tonBalance >= entryTon ? 'text-sky-300' : 'text-rose-300') : (balance >= data.entryCost ? 'text-amber-300' : 'text-rose-300')}`}>
-              {payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} FC`}
+              {payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : `${compact(data.entryCost)} BERRIES`}
             </p>
           </div>
           <div className="rounded-2xl bg-black/65 p-2.5">
@@ -167,14 +167,14 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           </div>
         </div>
 
-        {/* Payment choice for the entry: current 100k FC option OR internal TON balance. */}
+        {/* Payment choice for the entry: current 100k BERRIES option OR internal TON balance. */}
         <div className="relative mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setPayWith('fc')}
             className={`min-h-10 rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'fc' ? 'border-amber-300/70 bg-amber-400/20 text-amber-200' : 'border-white/10 bg-black/50 text-slate-400'}`}
           >
-            {compact(data.entryCost)} FC
+            {compact(data.entryCost)} BERRIES
           </button>
           <button
             type="button"
@@ -227,7 +227,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             disabled={!canEnter}
             className="min-h-11 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-300 text-xs font-black uppercase tracking-wide text-black disabled:opacity-45"
           >
-            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : payWith === 'myth' ? `${formatMyth(entryMyth ?? 0)} MYTH` : `${compact(data.entryCost)} FC`}`}
+            {enter.isPending ? t('tower.loadingBattle') : `${t('tower.enterDungeon')} • ${payWith === 'ton' ? `${entryTon.toFixed(2)} TON` : payWith === 'myth' ? `${formatMyth(entryMyth ?? 0)} MYTH` : `${compact(data.entryCost)} BERRIES`}`}
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.heroXp')}</p><p className="mt-1 font-semibold text-amber-300">{compact(rewards.heroXp)}</p></div>
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.petFood')}</p><p className="mt-1 font-semibold text-emerald-300">x{rewards.petFood}</p></div>
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.gearChest')}</p><p className="mt-1 font-semibold text-fuchsia-300">{rewards.heroChest ? `x${rewards.heroChest}` : '—'}</p></div>
-          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.fcBonus')}</p><p className="mt-1 font-semibold text-amber-200">{compact(rewards.forgeCoins ?? 0)} FC</p></div>
+          <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.fcBonus')}</p><p className="mt-1 font-semibold text-amber-200">{compact(rewards.forgeCoins ?? 0)} BERRIES</p></div>
           <div className="rounded-2xl bg-black/65 p-2.5"><p className="text-slate-400">{t('tower.universalFragments')}</p><p className="mt-1 font-semibold text-cyan-300">{rewards.universalFragments ? `x${rewards.universalFragments}` : '—'}</p></div>
         </div>
 

@@ -49,7 +49,7 @@ export type TowerRewards = {
   towerKey: number;
   /** Chest rarity granted on this floor (server-side). */
   chestCode?: string | null;
-  /** Straight FC bonus paid on a clear. */
+  /** Straight BERRIES bonus paid on a clear. */
   forgeCoins?: number;
   /** Universal fragments (hero fusion currency). */
   universalFragments?: number;
@@ -157,16 +157,16 @@ export type TowerRanking = {
 
 /** Milestone rewards shown on the tower screen (presentational only). */
 export const TOWER_MILESTONES = [
-  { floor: 10, reward: '50,000 FC + Eternity Key x1 + Eternity Chest x1' },
+  { floor: 10, reward: '50,000 BERRIES + Eternity Key x1 + Eternity Chest x1' },
   { floor: 20, reward: 'Eternity Chest x2' },
-  { floor: 25, reward: '100,000 FC + Universal Frag. x15 + Void Key x1' },
+  { floor: 25, reward: '100,000 BERRIES + Universal Frag. x15 + Void Key x1' },
   { floor: 30, reward: 'Void Chest x1' },
   { floor: 40, reward: 'Eternity Chest x2' },
-  { floor: 50, reward: '150,000 FC + Epic Gear Chest + Void Key x1 + Void Chest x2' },
+  { floor: 50, reward: '150,000 BERRIES + Epic Gear Chest + Void Key x1 + Void Chest x2' },
   { floor: 60, reward: 'Celestial Chest x1' },
   { floor: 70, reward: 'Void Chest x2' },
-  { floor: 75, reward: '250,000 FC + Universal Frag. x25 + Celestial Key x1' },
+  { floor: 75, reward: '250,000 BERRIES + Universal Frag. x25 + Celestial Key x1' },
   { floor: 80, reward: 'Celestial Chest x1' },
   { floor: 90, reward: 'Celestial Chest x2' },
-  { floor: 100, reward: '500,000 FC + Legendary Gear Chest + Celestial Key x1 + Celestial Chest x3' },
+  { floor: 100, reward: '500,000 BERRIES + Legendary Gear Chest + Celestial Key x1 + Celestial Chest x3' },
 ] as const;

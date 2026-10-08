@@ -17,7 +17,7 @@ const CLAN_ERRORS: Record<string, string> = {
   ABOVE_GLOBAL_CAP: 'Acima do teto global de contribuição diária do clã.',
   INVALID_MINIMUM: 'Mínimo inválido.',
   INVALID_MAXIMUM: 'Máximo deve ser maior que zero.',
-  INSUFFICIENT_FC: 'Forge Coins insuficientes.',
+  INSUFFICIENT_FC: 'BERRIES insuficientes.',
   INSUFFICIENT_MYTH: 'Saldo de MYTH insuficiente.',
   CLAN_JOIN_COOLDOWN: 'Você saiu de um clã recentemente. Aguarde o cooldown de 24h.',
 };

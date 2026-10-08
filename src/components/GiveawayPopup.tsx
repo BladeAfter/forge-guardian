@@ -20,11 +20,11 @@ export function GiveawayPopup({ onJoin, onClose }: Props) {
   const fc = (v: number) => v.toLocaleString('en-US');
 
   const prizes: Prize[] = [
-    { medal: '🥇', place: '1st', lines: ['0.700 TON', `${fc(150000)} FC`, t('giveaway.legendaryChest'), `30 ${t('giveaway.fragments')}`] },
-    { medal: '🥈', place: '2nd', lines: ['0.400 TON', `${fc(100000)} FC`, t('giveaway.epicChest'), `20 ${t('giveaway.fragments')}`] },
-    { medal: '🥉', place: '3rd', lines: ['0.250 TON', `${fc(75000)} FC`, t('giveaway.rareChest'), `15 ${t('giveaway.fragments')}`] },
-    { medal: '4️⃣', place: t('giveaway.place4'), lines: ['0.100 TON', `${fc(50000)} FC`, `10 ${t('giveaway.fragments')}`, `2 ${t('giveaway.tickets')}`] },
-    { medal: '5️⃣', place: t('giveaway.place5'), lines: ['0.050 TON', `${fc(25000)} FC`, `5 ${t('giveaway.fragments')}`, `1 ${t('giveaway.tickets')}`] },
+    { medal: '🥇', place: '1st', lines: ['0.700 TON', `${fc(150000)} BERRIES`, t('giveaway.legendaryChest'), `30 ${t('giveaway.fragments')}`] },
+    { medal: '🥈', place: '2nd', lines: ['0.400 TON', `${fc(100000)} BERRIES`, t('giveaway.epicChest'), `20 ${t('giveaway.fragments')}`] },
+    { medal: '🥉', place: '3rd', lines: ['0.250 TON', `${fc(75000)} BERRIES`, t('giveaway.rareChest'), `15 ${t('giveaway.fragments')}`] },
+    { medal: '4️⃣', place: t('giveaway.place4'), lines: ['0.100 TON', `${fc(50000)} BERRIES`, `10 ${t('giveaway.fragments')}`, `2 ${t('giveaway.tickets')}`] },
+    { medal: '5️⃣', place: t('giveaway.place5'), lines: ['0.050 TON', `${fc(25000)} BERRIES`, `5 ${t('giveaway.fragments')}`, `1 ${t('giveaway.tickets')}`] },
   ];
 
   return (

@@ -680,6 +680,55 @@
       "when": 1788543180658,
       "tag": "0096_realm_progression_harder_and_shrine_xp",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1788653332432,
+      "tag": "0097_fix_pass_nft_reward_claim_status_case",
+      "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1788653426376,
+      "tag": "0098_spending_event_track_all_packs",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1788653496434,
+      "tag": "0099_spending_source_group_packs",
+      "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1788738300601,
+      "tag": "0100_speed_up_admin_hero_mining_overview",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1788738518272,
+      "tag": "0101_ton_auto_withdraw_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1788738815120,
+      "tag": "0102_ton_auto_withdraw_scheduler",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1788739312579,
+      "tag": "0103_auto_withdraw_limits_and_antisplit",
+      "breakpoints": true
     }
   ]
 }

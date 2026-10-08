@@ -1,9 +1,9 @@
 /**
  * MYTHREON :: MYTH TOKEN UTILITY (frontend contract only).
  *
- * MYTH is an ALTERNATIVE payment method: FC and TON keep working exactly as before.
+ * MYTH is an ALTERNATIVE payment method: BERRIES and TON keep working exactly as before.
  * The client never decides prices — it only mirrors the backend formula to render a preview.
- * Reference: 1 TON = 20,000 MYTH = 100,000 FC (1 MYTH = 5 FC), minus the utility discount.
+ * Reference: 1 TON = 20,000 MYTH = 100,000 BERRIES (1 MYTH = 5 BERRIES), minus the utility discount.
  *
  * Hard rules owned by the backend:
  * - only the AVAILABLE MYTH balance can pay (staked MYTH is untouchable);

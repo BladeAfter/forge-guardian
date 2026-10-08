@@ -101,7 +101,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
     { icon: '🐉', label: 'Pet Premium', detail: 'Mítico / exclusivo' },
     { icon: '⚔️', label: 'Baú Lendário', detail: 'Equipamento lendário' },
     { icon: '💎', label: `${state.fragments} Fragmentos`, detail: 'Universais' },
-    { icon: '🎁', label: 'Baús Premium', detail: 'FC · tickets · fragmentos' },
+    { icon: '🎁', label: 'Baús Premium', detail: 'BERRIES · tickets · fragmentos' },
     { icon: '💠', label: 'Recompensas TON', detail: `Até ${formatTon(state.tonRewardBudget)} TON no ciclo` },
     { icon: '👑', label: 'Cosméticos Veteran', detail: 'Badge + moldura' },
   ];

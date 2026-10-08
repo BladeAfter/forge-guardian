@@ -100,7 +100,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
       setCombat(log);
     } else {
       const bits: string[] = [];
-      if (Number(log.fc)) bits.push(`+${fmt(Number(log.fc))} FC`);
+      if (Number(log.fc)) bits.push(`+${fmt(Number(log.fc))} BERRIES`);
       if (Number(log.fragments)) bits.push(`+${fmt(Number(log.fragments))} frag.`);
       if (log.material && Number(log.materialQty)) {
         bits.push(`+${fmt(Number(log.materialQty))} ${materialById[log.material]?.name ?? log.material}`);
@@ -184,7 +184,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 </div>
                 <div className="realm-dossier-row">
                   <span>{t('realm.map.entry')}</span>
-                  <b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b>
+                  <b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} BERRIES</b>
                 </div>
                 <div className="realm-dossier-row">
                   <span>{t('realm.map.possibleRewards')}</span>
@@ -213,7 +213,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
         )}
 
 
-        {/* ENTRY CONFIRMATION — cost, depth and possible rewards before the FC debit */}
+        {/* ENTRY CONFIRMATION — cost, depth and possible rewards before the BERRIES debit */}
         {confirm && region && meta && (
           <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-5" onClick={() => setConfirm(null)}>
             <div className="w-full max-w-xs space-y-3 rounded-3xl border border-amber-300/30 bg-[#080b14] p-4" onClick={(e) => e.stopPropagation()}>
@@ -221,7 +221,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
                 {region.name} — Depth {meta.depth}
               </b>
               <div className="space-y-1 text-[10px] text-slate-300">
-                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.entry')}</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} FC</b></div>
+                <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.entry')}</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} BERRIES</b></div>
                 <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.recPower')}</span><b className="text-cyan-200">{fmt(meta.stats.recommendedPower)}</b></div>
                 <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.difficulty')}</span><b className="text-slate-200">{t(DEPTH_TIER_KEY[meta.stats.tier] ?? '') || meta.stats.tier}</b></div>
                 <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.loot')}</span><b className="text-emerald-200">{meta.stats.lootMult.toFixed(2)}x</b></div>

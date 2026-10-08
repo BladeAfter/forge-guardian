@@ -14,6 +14,19 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  --forge-black: 207 61% 10%;
+  --forge-surface: 207 48% 16%;
+  --forge-navy: 207 61% 16%;
+  --forge-gold: 47 88% 61%;
+  --forge-ember: 358 69% 50%;
+  --pirate-ocean: 207 61% 16%;
+  --pirate-sea: 204 75% 42%;
+  --pirate-red: 358 69% 50%;
+  --pirate-gold: 47 88% 61%;
+  --pirate-parchment: 43 67% 86%;
+  --pirate-wood: 24 48% 19%;
+  --pirate-ink: 210 68% 8%;
+  --pirate-line: 42 76% 58%;
 }
 
 html, body, #root {
@@ -50,12 +63,253 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(circle at top, rgba(255, 190, 87, 0.14), transparent 25%), radial-gradient(circle at bottom right, rgba(230, 108, 53, 0.14), transparent 25%);
+  background-image: radial-gradient(circle at top, hsl(var(--pirate-sea) / .2), transparent 28%), radial-gradient(circle at bottom right, hsl(var(--pirate-red) / .16), transparent 30%);
   pointer-events: none;
 }
 
 button {
   @apply font-semibold tracking-wide;
+}
+
+/* ── MYTHREON · PIRATE ADVENTURE SKIN ─────────────────────────────────────
+   Presentation only. Layout, control dimensions and game behavior stay intact. */
+.mythreon-pirate {
+  --pirate-panel: linear-gradient(155deg, hsl(var(--pirate-ocean) / .94), hsl(var(--pirate-ink) / .97) 58%, hsl(var(--pirate-wood) / .9));
+  isolation: isolate;
+  background-color: hsl(var(--pirate-ink));
+}
+
+.mythreon-pirate::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, hsl(var(--pirate-sea) / .1), transparent 22%),
+    repeating-radial-gradient(ellipse at 50% 110%, transparent 0 22px, hsl(var(--pirate-parchment) / .035) 23px 25px, transparent 26px 42px);
+  mix-blend-mode: screen;
+}
+
+.mythreon-pirate .telegram-profile-card,
+.mythreon-pirate .forge-golden-tile,
+.mythreon-pirate .gb-panel,
+.mythreon-pirate .realm-dossier,
+.mythreon-pirate section > div[class*="rounded-2xl"],
+.mythreon-pirate section > div[class*="rounded-3xl"] {
+  border-color: hsl(var(--pirate-line) / .5) !important;
+  box-shadow: inset 0 1px 0 hsl(var(--pirate-parchment) / .18), 0 10px 24px hsl(var(--pirate-ink) / .58) !important;
+}
+
+.mythreon-pirate .telegram-profile-card,
+.mythreon-pirate .gb-panel {
+  background: var(--pirate-panel) !important;
+}
+
+.mythreon-pirate .telegram-profile-card::before,
+.mythreon-pirate .forge-golden-tile::before,
+.mythreon-pirate .gb-panel::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid hsl(var(--pirate-parchment) / .09);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.mythreon-pirate .forge-golden-tile {
+  background:
+    linear-gradient(180deg, hsl(var(--pirate-sea) / .26), transparent 45%),
+    repeating-linear-gradient(92deg, hsl(var(--pirate-wood) / .96) 0 15px, hsl(var(--pirate-ink) / .96) 16px 18px) !important;
+  border-radius: 6px !important;
+  transform: rotate(var(--tile-tilt, 0deg));
+}
+
+.mythreon-pirate .forge-golden-tile:nth-of-type(odd) { --tile-tilt: -.45deg; }
+.mythreon-pirate .forge-golden-tile:nth-of-type(even) { --tile-tilt: .45deg; }
+.mythreon-pirate .forge-golden-tile:active { transform: rotate(0) scale(.95); }
+
+.mythreon-pirate .home-feature-image {
+  filter: drop-shadow(0 8px 8px hsl(var(--pirate-ink) / .85)) saturate(1.16) contrast(1.04);
+}
+
+.mythreon-pirate .home-feature-label,
+.mythreon-pirate [class*="text-amber-2"],
+.mythreon-pirate [class*="text-amber-3"] {
+  color: hsl(var(--pirate-gold)) !important;
+  text-shadow: 0 2px 2px hsl(var(--pirate-ink)), 0 0 10px hsl(var(--pirate-gold) / .22);
+}
+
+.mythreon-pirate button[class*="bg-amber"],
+.mythreon-pirate button[class*="from-amber"],
+.mythreon-pirate a[class*="from-amber"] {
+  border-color: hsl(var(--pirate-parchment) / .7) !important;
+  background-image: linear-gradient(180deg, hsl(var(--pirate-gold)), hsl(var(--pirate-red))) !important;
+  box-shadow: inset 0 2px 0 hsl(var(--pirate-parchment) / .45), 0 5px 0 hsl(var(--pirate-wood)), 0 10px 22px hsl(var(--pirate-ink) / .5) !important;
+}
+
+.mythreon-pirate .telegram-safe-nav {
+  left: 50% !important;
+  right: auto !important;
+  width: min(100%, 480px);
+  transform: translateX(-50%);
+  border: 1px solid hsl(var(--pirate-gold) / .5) !important;
+  border-bottom: 0 !important;
+  border-radius: 18px 18px 0 0;
+  background:
+    linear-gradient(180deg, hsl(var(--pirate-ocean) / .97), hsl(var(--pirate-ink) / .99)) !important;
+  box-shadow:
+    0 -12px 32px hsl(var(--pirate-ink) / .72),
+    inset 0 1px 0 hsl(var(--pirate-parchment) / .2),
+    inset 0 8px 24px hsl(var(--pirate-sea) / .16);
+  overflow: hidden;
+}
+
+.mythreon-pirate .telegram-safe-nav::before {
+  content: '';
+  position: absolute;
+  inset: 3px 8px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--pirate-gold) / .72), transparent);
+  pointer-events: none;
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item {
+  position: relative;
+  min-height: 62px;
+  border: 0;
+  border-radius: 10px !important;
+  color: hsl(var(--pirate-parchment) / .64);
+  background: transparent !important;
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 1px;
+  background: linear-gradient(transparent, hsl(var(--pirate-gold) / .22), transparent);
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item:last-child::after {
+  display: none;
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item.is-active {
+  color: hsl(var(--pirate-gold)) !important;
+  background: radial-gradient(ellipse at 50% 32%, hsl(var(--pirate-sea) / .42), transparent 72%) !important;
+  box-shadow: inset 0 -2px 0 hsl(var(--pirate-gold) / .9) !important;
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item.is-active::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 28%;
+  right: 28%;
+  height: 2px;
+  border-radius: 2px;
+  background: hsl(var(--pirate-gold));
+  box-shadow: 0 0 10px hsl(var(--pirate-gold) / .72);
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-icon {
+  filter: saturate(.82) brightness(.82) drop-shadow(0 3px 3px hsl(var(--pirate-ink) / .9));
+  opacity: .78;
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-item.is-active .pirate-nav-icon {
+  filter: saturate(1.16) brightness(1.1) drop-shadow(0 0 7px hsl(var(--pirate-gold) / .5));
+  opacity: 1;
+  transform: translateY(-2px) scale(1.1);
+}
+
+.mythreon-pirate .telegram-safe-nav .pirate-nav-label {
+  max-width: 100%;
+  overflow: hidden;
+  color: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 2px hsl(var(--pirate-ink));
+  white-space: nowrap;
+}
+
+.mythreon-pirate .fullscreen-page {
+  background:
+    radial-gradient(circle at 50% 10%, hsl(var(--pirate-sea) / .3), transparent 34%),
+    hsl(var(--pirate-ink) / .95) !important;
+}
+
+.mythreon-pirate .boss-arena,
+.mythreon-pirate .gb-hero {
+  border-color: hsl(var(--pirate-gold) / .58) !important;
+  border-radius: 8px !important;
+}
+
+.mythreon-pirate .gb-arena-art {
+  opacity: .88;
+  filter: saturate(1.15) contrast(1.08);
+}
+
+.mythreon-pirate input,
+.mythreon-pirate select,
+.mythreon-pirate textarea {
+  border-color: hsl(var(--pirate-line) / .38) !important;
+  background-color: hsl(var(--pirate-ink) / .82) !important;
+}
+
+.pirate-progress {
+  border-color: hsl(var(--pirate-gold) / .72);
+  background: hsl(var(--pirate-ink) / .74);
+  box-shadow: 0 0 18px hsl(var(--pirate-sea) / .48), 0 4px 0 hsl(var(--pirate-wood));
+}
+
+.pirate-progress-fill {
+  background: linear-gradient(90deg, hsl(var(--pirate-red)), hsl(var(--pirate-gold)), hsl(var(--pirate-parchment)));
+  box-shadow: 0 0 12px hsl(var(--pirate-gold) / .85);
+}
+
+.pirate-progress-label {
+  color: hsl(var(--pirate-parchment));
+  text-shadow: 0 2px 6px hsl(var(--pirate-ink)), 0 0 12px hsl(var(--pirate-gold) / .45);
+}
+
+/* Anime "wanted poster" tiles for the home menu */
+.mythreon-pirate .home-feature.forge-golden-tile {
+  background:
+    radial-gradient(ellipse at 50% 40%, hsl(var(--pirate-parchment)) 0 55%, hsl(43 55% 72%) 100%) !important;
+  border: 3px solid hsl(var(--pirate-ink)) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 2px hsl(var(--pirate-wood)), 4px 5px 0 hsl(var(--pirate-ink) / .8) !important;
+}
+.mythreon-pirate .home-feature.forge-golden-tile > div:first-child { display: none; }
+.mythreon-pirate .home-feature.forge-golden-tile::before { border: 1.5px dashed hsl(var(--pirate-wood) / .55); }
+.mythreon-pirate .home-feature .home-feature-label {
+  color: hsl(var(--pirate-ink)) !important;
+  font-weight: 900; letter-spacing: .06em;
+  text-shadow: none !important;
+}
+.mythreon-pirate .home-feature .home-feature-subtitle {
+  color: hsl(var(--pirate-parchment)) !important;
+  background: hsl(var(--pirate-red));
+  padding: 0 4px; border-radius: 2px;
+}
+.mythreon-pirate .home-feature .home-feature-image {
+  filter: drop-shadow(2px 3px 0 hsl(var(--pirate-ink) / .55)) saturate(1.25) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mythreon-pirate .home-feature-image { animation: pirateDeckSway 5.8s ease-in-out infinite; }
+  .mythreon-pirate .home-feature:nth-child(even) .home-feature-image { animation-delay: -2.9s; }
+}
+
+@keyframes pirateDeckSway {
+  0%, 100% { transform: rotate(-1deg) translateY(0); }
+  50% { transform: rotate(1deg) translateY(-2px); }
 }
 
 .village-stage::before {
@@ -431,7 +685,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   font-size:clamp(11px,3.2vw,14px);
   line-height:1.1;
 }
-.balance-chip-label{font-size:8px;line-height:1.1;white-space:nowrap}
+.balance-chip-label{font-size:7px;line-height:1.1;letter-spacing:0;white-space:nowrap}
 
 /* ---- Village-only compact TON balance chip (libera espaço para nome do jogador) ---- */
 .ton-balance-chip--village-compact{
@@ -524,51 +778,21 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .forge-golden-tile:active .home-feature-label{color:#fef3c7;text-shadow:0 0 14px rgba(251,191,36,.85)}
 .forge-golden-tile:focus-visible{outline:2px solid rgba(253,224,71,.8);outline-offset:2px}
 
-/* ============ CLAN HALL (village scenery building, not a card) ============ */
-.clan-hall{position:absolute;left:50%;top:50%;z-index:0;display:flex;width:clamp(140px,38vw,178px);max-width:calc(100vw - 220px);translate:-50% -50%;flex-direction:column;align-items:center;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .18s ease,filter .25s ease}
-.clan-hall:active{transform:scale(.98)}
-.clan-hall-ground{position:absolute;bottom:8px;left:16%;width:68%;height:18px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.72),transparent 72%)}
-.clan-hall-shape{position:relative;display:block;width:100%;line-height:0}
-.clan-hall-art{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 12px rgba(56,110,190,.22)) saturate(1.02) brightness(.97)}
-.clan-hall:hover .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 16px rgba(251,191,36,.28)) brightness(1.05)}
-.clan-hall:active .clan-hall-art{filter:drop-shadow(0 16px 18px rgba(0,0,0,.85)) drop-shadow(0 0 20px rgba(251,191,36,.42)) brightness(1.08)}
-.clan-hall-window-glow{position:absolute;inset:24% 26% 34% 26%;border-radius:34% 34% 20% 20%;background:radial-gradient(ellipse at center,rgba(251,191,36,.2),transparent 70%);opacity:.65;animation:clan-hall-windows 5.5s ease-in-out infinite;pointer-events:none}
-.clan-hall:hover .clan-hall-window-glow{opacity:1}
-@keyframes clan-hall-windows{0%,100%{opacity:.5}50%{opacity:.85}}
-.clan-hall-torch{position:absolute;bottom:41%;width:7%;aspect-ratio:1;pointer-events:none}
-.clan-hall-torch--left{left:38%}
-.clan-hall-torch--right{right:38%}
-.clan-hall-torch i{position:absolute;inset:22%;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 62%,#fff7d1,#fbbf24 42%,rgba(249,115,22,.25) 70%,transparent 78%);filter:blur(1px);animation:clan-hall-flame 1.5s ease-in-out infinite}
-.clan-hall-torch--right i{animation-delay:.45s}
-@keyframes clan-hall-flame{0%,100%{transform:scale(1) translateY(0);opacity:.85}50%{transform:scale(1.18) translateY(-8%);opacity:1}}
-.clan-hall-smoke{position:absolute;left:44%;top:-4%;width:22%;height:30%;pointer-events:none;overflow:visible}
-.clan-hall-smoke i{position:absolute;bottom:0;left:40%;width:8px;height:8px;border-radius:50%;background:rgba(190,205,225,.16);filter:blur(3px);animation:clan-hall-smoke 6s linear infinite}
-.clan-hall-smoke i:nth-child(2){left:58%;animation-delay:2.6s}
-@keyframes clan-hall-smoke{0%{opacity:0;transform:translateY(0) scale(.6)}25%{opacity:.5}100%{opacity:0;transform:translateY(-46px) scale(1.7)}}
-.clan-hall-motes{position:absolute;inset:0;pointer-events:none}
-.clan-hall-motes i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(251,214,143,.85);box-shadow:0 0 6px rgba(251,191,36,.7);opacity:0;animation:clan-hall-mote 7s ease-in-out infinite}
-.clan-hall-motes i:nth-child(1){left:22%;bottom:26%}
-.clan-hall-motes i:nth-child(2){left:52%;bottom:18%;animation-delay:1.8s}
-.clan-hall-motes i:nth-child(3){left:74%;bottom:32%;animation-delay:3.4s;background:rgba(147,197,253,.85);box-shadow:0 0 6px rgba(59,130,246,.7)}
-.clan-hall-motes i:nth-child(4){left:38%;bottom:38%;animation-delay:5.1s}
-@keyframes clan-hall-mote{0%{opacity:0;transform:translateY(0)}30%{opacity:.9}100%{opacity:0;transform:translateY(-34px)}}
-.clan-hall-flag{position:absolute;bottom:44%;width:5%;pointer-events:none;transform-origin:top center}
-.clan-hall-flag--left{left:21%}
-.clan-hall-flag--right{right:21%}
-.clan-hall-flag::before{content:'';position:absolute;top:-52%;left:50%;width:2px;height:56%;translate:-50% 0;background:linear-gradient(#c8a35c,#5a4321)}
-.clan-hall-flag b{display:block;width:100%;padding-top:165%;background:linear-gradient(var(--flag-top,#1f3a63),var(--flag-bottom,#07101f));border:1px solid rgba(251,191,36,.55);border-top-width:2px;clip-path:polygon(0 0,100% 0,100% 72%,50% 100%,0 72%);box-shadow:0 4px 10px rgba(0,0,0,.6);animation:clan-hall-flag 3.4s ease-in-out infinite;transform-origin:top center}
-.clan-hall-flag--right b{animation-delay:.9s}
-@keyframes clan-hall-flag{0%,100%{transform:rotate(-2.5deg) skewY(1deg)}50%{transform:rotate(2.5deg) skewY(-1.5deg)}}
-.clan-hall-invite{position:absolute;top:2%;left:50%;display:grid;translate:-50% 0;place-items:center;width:22px;height:22px;border-radius:8px;border:1px solid rgba(251,191,36,.6);background:rgba(4,8,14,.82);color:#fcd34d;animation:clan-hall-invite 2.6s ease-in-out infinite}
-.clan-hall-invite svg{width:12px;height:12px}
-.clan-hall-invite svg:last-child{position:absolute;right:-4px;bottom:-4px;width:11px;height:11px;border-radius:50%;background:#fbbf24;color:#07090d}
-@keyframes clan-hall-invite{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 4px rgba(251,191,36,.4))}50%{transform:translateY(-3px);filter:drop-shadow(0 0 10px rgba(251,191,36,.8))}}
+/* Clan Hall — compact hanging plaque fixed to the entrance below the central door. */
+.clan-hall{position:absolute;z-index:24;left:50%;top:clamp(178px,calc(50dvh + 34px),430px);display:flex;align-items:center;justify-content:center;gap:6px;width:clamp(132px,37vw,164px);margin:0;padding:5px 8px;border:2px solid hsl(var(--pirate-ink));border-radius:4px;background:radial-gradient(ellipse at 50% 40%,hsl(var(--pirate-parchment)) 0 55%,hsl(43 55% 72%) 100%);box-shadow:0 0 0 2px hsl(var(--pirate-wood)),3px 4px 0 hsl(var(--pirate-ink)/.8);cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transform:translateX(-50%) rotate(-.4deg);transition:transform .18s ease,filter .25s ease}
+.clan-hall::before{content:'';position:absolute;bottom:100%;left:50%;width:2px;height:9px;background:hsl(var(--pirate-ink));box-shadow:-43px 3px 0 hsl(var(--pirate-ink)),43px 3px 0 hsl(var(--pirate-ink));transform:translateX(-50%);pointer-events:none}
+.clan-hall:active{transform:translateX(-50%) rotate(0) scale(.96)}
+.clan-hall:hover{filter:brightness(1.05)}
+.clan-hall-crest-icon{height:30px;width:30px;flex-shrink:0;color:hsl(var(--pirate-ink))}
+.clan-hall-sign{display:flex;min-width:0}
+.clan-hall-sign-text{display:flex;flex-direction:column;gap:2px;line-height:1.2;min-width:0}
+.clan-hall-sign-text b{color:hsl(var(--pirate-ink));font-size:14px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none}
+.clan-hall-sign-text i{font-style:normal;color:hsl(var(--pirate-parchment));background:hsl(var(--pirate-red));font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clan-hall-sign{position:relative;z-index:2;display:inline-flex;align-items:center;gap:5px;margin-top:-2px;max-width:100%;padding:2px 7px;border:1px solid rgba(198,157,74,.75);border-radius:4px;background:linear-gradient(#2a1a0e,#160d06);box-shadow:0 4px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,214,140,.18)}
 .clan-hall-sign-text{display:block;min-width:0;text-align:center}
 .clan-hall-sign-text b{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
 .clan-hall-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a58a5f}
-@media (max-width:380px){.clan-hall{width:clamp(126px,34vw,150px);max-width:calc(100vw - 200px)}}
-@media (prefers-reduced-motion:reduce){.clan-hall-torch i,.clan-hall-flag b,.clan-hall-smoke i,.clan-hall-motes i,.clan-hall-window-glow,.clan-hall-invite{animation:none}.clan-hall-smoke,.clan-hall-motes{display:none}}
+@media (max-width:380px){.clan-hall{width:132px}}
 
 /* Spending Event entry highlight: light fade + scale (250ms), nothing heavy. */
 @keyframes spendingPopupIn {

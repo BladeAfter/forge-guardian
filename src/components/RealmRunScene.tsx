@@ -184,7 +184,7 @@ export default function RealmRunScene({
 
   const lootBits = () => {
     const parts: string[] = [];
-    if (Number(loot.fc)) parts.push(`${fmt(Number(loot.fc))} FC`);
+    if (Number(loot.fc)) parts.push(`${fmt(Number(loot.fc))} BERRIES`);
     if (Number(loot.fragments)) parts.push(`${fmt(Number(loot.fragments))} frag.`);
     Object.entries(loot.materials ?? {}).forEach(([id, qty]) =>
       parts.push(`${fmt(Number(qty))} ${materialById[id]?.name ?? id}`));

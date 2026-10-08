@@ -80,7 +80,7 @@ export function PetXpTransferModal({
                 </p>
                 <p className="text-emerald-300">{t('pets.recoverableXp')}: <b>{fmt(data.totalXp)} XP</b></p>
                 <p className={notEnoughFc ? 'text-rose-300' : 'text-amber-200'}>
-                  {t('pets.resetCost')}: <b>{fmt(data.costFc)} FC</b>
+                  {t('pets.resetCost')}: <b>{fmt(data.costFc)} BERRIES</b>
                 </p>
               </div>
             </div>
@@ -96,7 +96,7 @@ export function PetXpTransferModal({
                   <Line label={pet.name} value={`Lv.${data.level} → Lv.1`} />
                   <Line label={t('pets.xpTransferredLabel')} value={`${fmt(data.totalXp)} XP`} />
                   <Line label={t('pets.targetLabel')} value={target.name} />
-                  <Line label={t('pets.costLabel')} value={`${fmt(data.costFc)} FC`} />
+                  <Line label={t('pets.costLabel')} value={`${fmt(data.costFc)} BERRIES`} />
                 </div>
                 <p className="mt-2 text-center text-[9px] text-rose-300">{t('pets.cannotUndo')}</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">

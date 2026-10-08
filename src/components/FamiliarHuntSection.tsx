@@ -52,7 +52,7 @@ const lootOptionLine = (option: LootLine | LootLine[] | null | undefined) =>
 /**
  * 🐾⚔️ FAMILIAR HUNT — LINEAR progression. ONE clean screen: the CURRENT stage only.
  * Winning unlocks exactly the next stage; losing keeps the player on the same one.
- * Entry is 100.000 FC (item-only loot) or 5 TON (premium loot). Internal TON is used
+ * Entry is 100.000 BERRIES (item-only loot) or 5 TON (premium loot). Internal TON is used
  * only when it covers the entry in full — otherwise TonConnect charges the FULL amount.
  * Stage, payment, fight and loot are all decided server-side.
  */
@@ -126,7 +126,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
   const launch = (currency: 'fc' | 'ton') => {
     if (team.length !== 3) { setFeedback('Selecione 3 familiares para caçar.'); return; }
     if (currency === 'fc' && (data?.balances.fc ?? 0) < (data?.entry.fc ?? 0)) {
-      setFeedback('FC insuficiente para a entrada padrão.'); return;
+      setFeedback('BERRIES insuficiente para a entrada padrão.'); return;
     }
     setFeedback(null);
     hunt.mutate(currency);
@@ -291,7 +291,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-400">ENTRADA</p>
-          <p className="text-[9px] font-bold text-slate-500">{fmt(data.balances.fc)} FC · {fmtTon(data.balances.ton)} TON</p>
+          <p className="text-[9px] font-bold text-slate-500">{fmt(data.balances.fc)} BERRIES · {fmtTon(data.balances.ton)} TON</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -301,7 +301,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
             className="rounded-2xl border border-amber-300/55 bg-amber-300/12 px-2 py-3 text-center transition active:scale-95 disabled:opacity-50"
           >
             <span className="flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-[.1em] text-amber-100">
-              <Swords className="h-3.5 w-3.5" /> {fmt(data.entry.fc)} FC
+              <Swords className="h-3.5 w-3.5" /> {fmt(data.entry.fc)} BERRIES
             </span>
             <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[.14em] text-amber-300/70">STANDARD · SÓ ITENS</span>
           </button>
@@ -314,7 +314,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
             <span className="flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-[.1em] text-sky-100">
               <Sparkles className="h-3.5 w-3.5" /> {fmtTon(data.entry.ton)} TON
             </span>
-            <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[.14em] text-sky-300/70">PREMIUM · FC + ÉPICO</span>
+            <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[.14em] text-sky-300/70">PREMIUM · BERRIES + ÉPICO</span>
           </button>
         </div>
         {busy ? (
@@ -378,7 +378,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
               {data.history.map((row) => (
                 <li key={row.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[.02] px-3 py-2 text-[10px] font-bold">
                   <span className="text-slate-300">STAGE {row.stage}</span>
-                  <span className="text-slate-500">{row.currency === 'fc' ? `${fmt(row.amount)} FC` : `${fmtTon(row.amount)} TON`}</span>
+                  <span className="text-slate-500">{row.currency === 'fc' ? `${fmt(row.amount)} BERRIES` : `${fmtTon(row.amount)} TON`}</span>
                   <span className={row.victory ? 'text-emerald-300' : 'text-rose-300'}>{row.victory ? 'VITÓRIA' : 'DERROTA'}</span>
                 </li>
               ))}
@@ -430,14 +430,14 @@ function DropRatesModal({ fc, ton, entryFc, entryTon, onClose }: {
             onClick={() => setTab(value)}
             className={`rounded-xl border py-2 text-[9px] font-black uppercase tracking-[.12em] ${tab === value ? 'border-amber-300/60 bg-amber-300/15 text-amber-100' : 'border-white/10 bg-white/[.02] text-slate-400'}`}
           >
-            {value === 'fc' ? `${fmt(entryFc)} FC` : `${fmtTon(entryTon)} TON`}
+            {value === 'fc' ? `${fmt(entryFc)} BERRIES` : `${fmtTon(entryTon)} TON`}
           </button>
         ))}
       </div>
       {tab === 'fc' ? (
-        <p className="mb-2 text-[10px] font-bold text-amber-200/80">Entrada em FC nunca devolve FC — apenas itens.</p>
+        <p className="mb-2 text-[10px] font-bold text-amber-200/80">Entrada em BERRIES nunca devolve BERRIES — apenas itens.</p>
       ) : (
-        <p className="mb-2 text-[10px] font-bold text-sky-200/80">Loot premium: FC, baús, equipamentos épicos e lendários.</p>
+        <p className="mb-2 text-[10px] font-bold text-sky-200/80">Loot premium: BERRIES, baús, equipamentos épicos e lendários.</p>
       )}
       <ul className="space-y-2">
         {tiers.map((tier) => (

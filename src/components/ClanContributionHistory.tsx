@@ -6,9 +6,9 @@ import { clanErrorMessage } from '../lib/clanErrors';
 
 /**
  * TREASURY → CONTRIBUTION HISTORY.
- * Everything here is read-only: FC donated, MYTH donated and clan contribution points
+ * Everything here is read-only: BERRIES donated, MYTH donated and clan contribution points
  * are three separate numbers, aggregated server-side from the real treasury ledger.
- * No conversion between FC and MYTH is ever performed.
+ * No conversion between BERRIES and MYTH is ever performed.
  */
 
 type Period = 'today' | 'week' | 'total';
@@ -45,10 +45,10 @@ const full = (v: number) => Math.round(v).toLocaleString('pt-BR');
 const stamp = (iso: string) =>
   new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-/** Only assets actually contributed are rendered — never "0 FC" or "0 MYTH". */
+/** Only assets actually contributed are rendered — never "0 BERRIES" or "0 MYTH". */
 function AssetLine({ fc, myth, dense = false }: { fc: number; myth: number; dense?: boolean }) {
   const parts: React.ReactNode[] = [];
-  if (fc > 0) parts.push(<span key="fc" className="inline-flex items-center gap-0.5 text-amber-200"><Coins className="h-3 w-3" />{short(fc)} FC</span>);
+  if (fc > 0) parts.push(<span key="fc" className="inline-flex items-center gap-0.5 text-amber-200"><Coins className="h-3 w-3" />{short(fc)} BERRIES</span>);
   if (myth > 0) parts.push(<span key="myth" className="inline-flex items-center gap-0.5 text-violet-200"><Gem className="h-3 w-3" />{short(myth)} MYTH</span>);
   if (!parts.length) return <span className={`${dense ? 'text-[9px]' : 'text-[10px]'} text-slate-600`}>sem doações</span>;
   return (
@@ -65,7 +65,7 @@ function MyCard({ label, totals, highlight }: { label: string; totals: Totals; h
     <div className={`rounded-xl border bg-black/45 px-2 py-1.5 ${highlight ? 'border-amber-400/40' : 'border-white/10'}`}>
       <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
       <div className="mt-0.5 space-y-0.5 leading-tight">
-        {totals.fc > 0 ? <div className="text-[11px] font-black text-amber-200">{short(totals.fc)} FC</div> : null}
+        {totals.fc > 0 ? <div className="text-[11px] font-black text-amber-200">{short(totals.fc)} BERRIES</div> : null}
         {totals.myth > 0 ? <div className="text-[11px] font-black text-violet-200">{short(totals.myth)} MYTH</div> : null}
         {totals.fc <= 0 && totals.myth <= 0 ? <div className="text-[11px] font-black text-slate-600">—</div> : null}
         {totals.points > 0 ? <div className="text-[8px] font-bold text-slate-500">{full(totals.points)} pts</div> : null}
@@ -129,7 +129,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
 
   return (
     <div className="space-y-2">
-      {/* MY OWN SUMMARY — real FC / MYTH values, points as a secondary line */}
+      {/* MY OWN SUMMARY — real BERRIES / MYTH values, points as a secondary line */}
       <div className="grid grid-cols-3 gap-1.5">
         <MyCard label="Hoje" totals={data?.me?.today ?? { fc: 0, myth: 0, points: 0 }} />
         <MyCard label="Semana" totals={data?.me?.week ?? { fc: 0, myth: 0, points: 0 }} highlight />
@@ -199,7 +199,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                 <div key={label} className="rounded-xl bg-black/45 px-2 py-1.5">
                   <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] font-bold">
-                    {t.fc > 0 ? <span className="text-amber-200">FC: {full(t.fc)}</span> : null}
+                    {t.fc > 0 ? <span className="text-amber-200">BERRIES: {full(t.fc)}</span> : null}
                     {t.myth > 0 ? <span className="text-violet-200">MYTH: {full(t.myth)}</span> : null}
                     {t.fc <= 0 && t.myth <= 0 ? <span className="text-slate-600">sem doações</span> : null}
                     {t.points > 0 ? <span className="text-slate-400">{full(t.points)} pts</span> : null}

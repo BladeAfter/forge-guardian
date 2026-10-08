@@ -102,7 +102,7 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
     { icon: '🗡️', label: 'Arma Founder EXCLUSIVE', detail: 'Equipamento exclusivo 1/1' },
     { icon: '🗝️', label: `${state.legendaryChests ?? 1} Baús Lendários`, detail: 'Equipamentos lendários' },
     { icon: '💎', label: `${state.fragments} Fragmentos`, detail: 'Universais' },
-    { icon: '📦', label: 'Baú Premium', detail: 'FC · tickets · fragmentos' },
+    { icon: '📦', label: 'Baú Premium', detail: 'BERRIES · tickets · fragmentos' },
     { icon: '👑', label: 'Badge de Fundador', detail: 'Perfil permanente' },
     { icon: '🖼️', label: 'Moldura de Fundador', detail: 'Cosmético exclusivo' },
   ];

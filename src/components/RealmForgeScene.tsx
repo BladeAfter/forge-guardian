@@ -10,12 +10,13 @@ import {
 } from '../realm';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
+import { coin } from '../gameAssets';
 
 const SCENE_COLD = '/assets/game/realm/forge-scene-cold.jpg';
 const SCENE_LIT = '/assets/game/realm/forge-scene-lit.jpg';
 const SCENE_MASTER = '/assets/game/realm/forge-scene-master.jpg';
 const ANVIL = '/assets/game/realm/forge-anvil.png';
-const FC_COIN = '/assets/game/coins/forge-coin.png';
+const FC_COIN = coin;
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
@@ -190,7 +191,7 @@ export default function RealmForgeScene({
             <div className="flex flex-wrap justify-center gap-1.5">
               <span className="realm-cost-chip realm-cost-chip--gold">
                 <img src={FC_COIN} alt="" loading="lazy" className="h-4 w-4 object-contain" />
-                <b>{fmt(upgradeCost)}</b> FC
+                <b>{fmt(upgradeCost)}</b> BERRIES
               </span>
               <span className="realm-cost-chip"><b>{realmTimer(forgeType.base_seconds)}</b> {t('realm.forge.buildTime')}</span>
             </div>
@@ -338,7 +339,7 @@ export default function RealmForgeScene({
             <div className="flex flex-wrap gap-1.5">
               <span className="realm-cost-chip realm-cost-chip--gold">
                 <img src={FC_COIN} alt="" loading="lazy" className="h-4 w-4 object-contain" />
-                <b>{fmt(detail.fc_cost * (detailLocked ? 1 : qty))}</b> FC
+                <b>{fmt(detail.fc_cost * (detailLocked ? 1 : qty))}</b> BERRIES
               </span>
               {Object.entries(detail.inputs).map(([id, need]) => {
                 const total = Number(need) * (detailLocked ? 1 : qty);

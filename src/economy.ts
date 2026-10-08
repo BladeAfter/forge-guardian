@@ -29,7 +29,7 @@ export function formatTon(value:number|string|null|undefined):string{
 
 export type TonWithdrawalQuote={grossTon:number;feePercent:number;feeTon:number;netTon:number};
 /**
- * Withdrawals are TON-only now (FC has no direct cash-out value).
+ * Withdrawals are TON-only now (BERRIES has no direct cash-out value).
  * Display estimate; the backend recalculates and stays the authority.
  */
 export function tonWithdrawalQuote(ton:number,feePercent:number=DEFAULT_WITHDRAW_FEE_PERCENT):TonWithdrawalQuote{

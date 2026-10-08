@@ -52,7 +52,7 @@ export function StarterPackPopup({ onClaim, onDone }: Props) {
   };
 
   const cards = [
-    { art: COINS_ART, label: 'FC', value: (50000).toLocaleString('pt-BR') },
+    { art: COINS_ART, label: 'BERRIES', value: (50000).toLocaleString('pt-BR') },
     { art: EGG_ART, label: t('starterEgg'), value: '×1' },
     { art: CHEST_ART, label: t('starterChest'), value: '×5' },
   ];

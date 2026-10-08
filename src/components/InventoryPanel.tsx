@@ -118,7 +118,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
     // FOUNDER PACK premium resource chest: its own server action (FC, fragments, tickets, chest).
     if (item.itemType === 'resource_chest' || item.action === 'open-resource-chest') {
       const payload = await openResourceChest(telegramInitData, String(item.instanceId));
-      const parts = [payload.rewards.fc ? `${payload.rewards.fc.toLocaleString('pt-BR')} FC` : '', payload.rewards.fragments ? `${payload.rewards.fragments} fragmentos` : '', payload.rewards.pvpTickets ? `${payload.rewards.pvpTickets} tickets PvP` : ''].filter(Boolean);
+      const parts = [payload.rewards.fc ? `${payload.rewards.fc.toLocaleString('pt-BR')} BERRIES` : '', payload.rewards.fragments ? `${payload.rewards.fragments} fragmentos` : '', payload.rewards.pvpTickets ? `${payload.rewards.pvpTickets} tickets PvP` : ''].filter(Boolean);
       return parts.length ? parts.join(' · ') : null;
     }
     if (item.itemType === 'exclusive_chest' || item.action === 'open-exclusive-chest') {

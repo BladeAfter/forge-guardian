@@ -7,6 +7,7 @@ import RealmBattleScene from '../components/RealmBattleScene';
 import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
+import { coin } from '../gameAssets';
 
 import { usePlayerHeroes } from '../hooks';
 import { useT } from '../LanguageContext';
@@ -423,7 +424,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                           </div>
                           <div className="text-right">
                             <b className={`block text-[13px] font-black ${tier === 'ton' ? 'text-amber-200' : 'text-slate-100'}`}>
-                              {tier === 'fc' ? `${fmt(cost)} FC` : `${cost.toFixed(2)} TON`}
+                              {tier === 'fc' ? `${fmt(cost)} BERRIES` : `${cost.toFixed(2)} TON`}
                             </b>
                             <span className="text-[8px] uppercase tracking-[.12em] text-slate-500">
                               {t(tier === 'fc' ? 'realm.ruins.yourFc' : 'realm.ruins.yourTon')}:{' '}
@@ -461,7 +462,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                             <em className={`ml-1 not-italic ${h.tier === 'ton' ? 'text-amber-300' : 'text-slate-500'}`}>{h.tier === 'ton' ? 'TON' : 'FC'}</em>
                           </span>
                           <span className={h.status === 'cleared' ? 'text-emerald-300' : h.status === 'failed' ? 'text-rose-300' : 'text-slate-400'}>
-                            {Math.min(10, h.room)}/10 · {fmt(Number(h.fc ?? 0))} FC
+                            {Math.min(10, h.room)}/10 · {fmt(Number(h.fc ?? 0))} BERRIES
                           </span>
                         </div>
                       ))}
@@ -572,8 +573,8 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                 <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-500">{lvl === 0 ? t('realm.build.costBuild') : t('realm.build.costUpgrade')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   <span className="realm-cost-chip realm-cost-chip--gold">
-                    <img src="/assets/game/coins/forge-coin.png" alt="" loading="lazy" className="h-4 w-4 object-contain" />
-                    <b>{fmt(cost)}</b> FC
+                    <img src={coin} alt="" loading="lazy" className="h-4 w-4 object-contain" />
+                    <b>{fmt(cost)}</b> BERRIES
                   </span>
                   {Object.entries(buildingType.cost_materials).map(([id, qty]) => (
                     <span key={id} className="realm-cost-chip">
@@ -630,7 +631,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function describeReward(reward: Record<string, unknown>, t: Translator) {
   const parts: string[] = [];
-  if (reward.fc) parts.push(`${fmt(Number(reward.fc))} FC`);
+  if (reward.fc) parts.push(`${fmt(Number(reward.fc))} BERRIES`);
   if (reward.qty && reward.material) parts.push(`${fmt(Number(reward.qty))} ${String(reward.material).replace(/_/g, ' ')}`);
   if (reward.name) parts.push(`${reward.qty ?? ''} ${String(reward.name)}`.trim());
   if (reward.fragments) parts.push(`${fmt(Number(reward.fragments))} ${t('realm.reward.fragments')}`);

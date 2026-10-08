@@ -245,7 +245,7 @@ export function ClanCollectivePanel({
   const donationRow = (
     <>
       <div className="mb-2 grid grid-cols-2 gap-2 text-center text-[11px]">
-        <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-amber-300">{formatCurrency(state.treasury?.fc ?? 0)}</div><div className="text-[9px] text-slate-500">FC</div></div>
+        <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-amber-300">{formatCurrency(state.treasury?.fc ?? 0)}</div><div className="text-[9px] text-slate-500">BERRIES</div></div>
         <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-violet-300">{formatCurrency(state.treasury?.myth ?? 0)}</div><div className="text-[9px] text-slate-500">MYTH</div></div>
       </div>
       <div className="mb-2 space-y-1">{(don?.assets ?? []).map(limitLine)}</div>
@@ -258,7 +258,7 @@ export function ClanCollectivePanel({
           className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none"
         />
         <button disabled={busy || !donation || fcLimit?.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'FC', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
-          className="rounded-xl bg-amber-500/20 px-2.5 text-[10px] font-black text-amber-200 disabled:opacity-40">DOAR FC</button>
+          className="rounded-xl bg-amber-500/20 px-2.5 text-[10px] font-black text-amber-200 disabled:opacity-40">DOAR BERRIES</button>
         {mythLimit ? (
           <button disabled={busy || !donation || mythLimit.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'MYTH', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
             className="rounded-xl bg-violet-500/20 px-2.5 text-[10px] font-black text-violet-200 disabled:opacity-40">MYTH</button>
@@ -297,7 +297,7 @@ export function ClanCollectivePanel({
           ) : canManageUpgrades ? (
             <button disabled={busy} onClick={() => setConfirmUpgrade(u)}
               className="shrink-0 rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200 disabled:opacity-40">
-              {formatCurrency(u.nextCost)} FC
+              {formatCurrency(u.nextCost)} BERRIES
             </button>
           ) : (
             <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
@@ -316,8 +316,8 @@ export function ClanCollectivePanel({
         <div className="mt-3 space-y-1 text-[11px] text-slate-300">
           <div className="flex justify-between"><span className="text-slate-500">Atual</span><span className="font-bold">Nv {confirmUpgrade.level}</span></div>
           <div className="flex justify-between"><span className="text-slate-500">Próximo</span><span className="font-bold text-amber-300">Nv {confirmUpgrade.level + 1}</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Custo</span><span className="font-bold">{formatCurrency(confirmUpgrade.nextCost)} FC</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Tesouro do clã</span><span className="font-bold">{formatCurrency(state.treasury?.fc ?? 0)} FC</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Custo</span><span className="font-bold">{formatCurrency(confirmUpgrade.nextCost)} BERRIES</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Tesouro do clã</span><span className="font-bold">{formatCurrency(state.treasury?.fc ?? 0)} BERRIES</span></div>
         </div>
         {(state.treasury?.fc ?? 0) < confirmUpgrade.nextCost ? (
           <p className="mt-2 text-center text-[10px] font-black uppercase text-rose-300">Fundos do clã insuficientes</p>
@@ -356,7 +356,7 @@ export function ClanCollectivePanel({
           </div>
           <button disabled={busy} onClick={() => void run({ action: 'buff-activate', code: b.code }, 'Buff ativado!')}
             className="shrink-0 rounded-lg bg-violet-500/20 px-2 py-1 text-[10px] font-black text-violet-200 disabled:opacity-40">
-            {formatCurrency(b.costFc)} FC
+            {formatCurrency(b.costFc)} BERRIES
           </button>
         </div>
       ))}

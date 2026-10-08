@@ -68,7 +68,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const passRequirementTon = tonWallet?.passRequirementTon ?? 20;
   const passRequirementMet = tonWallet?.passRequirementMet ?? true;
   const [depositTon, setDepositTon] = useState(1);
-  // Deposit destination chosen by the player: buy FC with TON, or top up the internal TON balance 1:1.
+  // Deposit destination chosen by the player: buy BERRIES with TON, or top up the internal TON balance 1:1.
   const [depositMode, setDepositMode] = useState<DepositType>('ton_to_fc');
   const [withdrawTon, setWithdrawTon] = useState(0);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
@@ -108,7 +108,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     ]);
   };
 
-  /** One message per reconciliation: direct top-ups report TON, FC purchases report the credited count. */
+  /** One message per reconciliation: direct top-ups report TON, BERRIES purchases report the credited count. */
   const creditMessage = (result: { confirmed: string[]; credits?: Array<{ depositType: string; amountTon: number }> }) => {
     const direct = (result.credits ?? []).filter(entry => entry.depositType === 'ton_balance');
     if (direct.length && direct.length === result.confirmed.length) {
@@ -297,7 +297,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
       <div className="grid grid-cols-2 gap-2">
         <Panel title={t('wallet.balance')} icon={<Coins />}>
-          <div className="flex items-center gap-2"><img src={coin} className="h-8 w-8 object-contain" alt="FC"/><strong className="text-lg text-amber-200">{Math.floor(balance).toLocaleString('pt-BR')} FC</strong></div>
+          <div className="flex items-center gap-2"><img src={coin} className="h-8 w-8 object-contain" alt="BERRIES"/><strong className="text-lg text-amber-200">{Math.floor(balance).toLocaleString('pt-BR')} BERRIES</strong></div>
           <p className="mt-1 text-[9px] leading-relaxed text-slate-400">{t('wallet.fcInGameOnly')}</p>
         </Panel>
         <Panel title={t('wallet.tonWithdrawable')} icon={<Gift />}>
@@ -317,7 +317,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
       <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
         <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
-        <p className="mt-1 text-[10px] text-slate-300">1 TON = {FC_PER_TON.toLocaleString('pt-BR')} FC — {t('wallet.oneWayNote')}</p>
+        <p className="mt-1 text-[10px] text-slate-300">1 TON = {FC_PER_TON.toLocaleString('pt-BR')} BERRIES — {t('wallet.oneWayNote')}</p>
       </div>
 
 
@@ -329,7 +329,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
             disabled={!depositConfig.fcEnabled}
             title={t('wallet.depositModeFc')}
             hint={t('wallet.depositModeFcHint', { fc: FC_PER_TON.toLocaleString('pt-BR') })}
-            icon={<img src={coin} alt="FC" className="h-5 w-5 object-contain" />}
+            icon={<img src={coin} alt="BERRIES" className="h-5 w-5 object-contain" />}
             onClick={() => { setDepositMode('ton_to_fc'); setDepositTon(Math.max(depositTon, depositConfig.minFcTon)); }}
           />
           <DepositModeCard
@@ -351,7 +351,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         {!depositAmountValid ? <p className="mt-1 text-[9px] font-bold text-rose-300">{depositMode === 'ton_balance' ? t('wallet.errors.minDirectDeposit', { ton: formatTon(minDepositTon) }) : t('wallet.errors.minDeposit', { ton: formatTon(minDepositTon) })}</p> : null}
         <Result
           label={t('wallet.youWillReceive')}
-          value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} FC`}
+          value={depositMode === 'ton_balance' ? `${formatTon(depositTon)} TON` : `${tonToFc(depositTon).toLocaleString('pt-BR')} BERRIES`}
         />
         {depositMode === 'ton_balance' ? <p className="mt-1 text-[9px] leading-relaxed text-sky-300/80">{t('wallet.depositDirectNote')}</p> : null}
         <Primary onClick={() => deposit.mutate()} disabled={deposit.isPending || !depositAmountValid || !depositModeEnabled}>{deposit.isPending ? t('wallet.openingWallet') : depositMode === 'ton_balance' ? t('wallet.depositTonBalanceButton') : t('wallet.depositButton')}</Primary>
@@ -425,7 +425,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
 function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
-/** Destination selector shown before the payment: buy FC, or top up the internal TON balance. */
+/** Destination selector shown before the payment: buy BERRIES, or top up the internal TON balance. */
 function DepositModeCard({ active, disabled, title, hint, icon, onClick }: { active: boolean; disabled?: boolean; title: string; hint: string; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active}

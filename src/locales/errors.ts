@@ -2,17 +2,17 @@ import type { LocaleBundle } from './registry';
 
 /**
  * Friendly, translated copy for backend error codes. The backend returns codes
- * (INSUFFICIENT_FC, BOSS_NOT_ACTIVE, ...) and the client translates them here.
+ * (INSUFFICIENT_BERRIES, BOSS_NOT_ACTIVE, ...) and the client translates them here.
  * Raw SQL/technical messages are never shown to players — only logged.
  */
 export const errors: LocaleBundle = {
   en: {
     'errors.generic': 'Something went wrong. Please try again.',
     'errors.network': 'Connection failed. Check your internet and try again.',
-    'errors.INSUFFICIENT_FC': 'Insufficient balance.',
+    'errors.INSUFFICIENT_BERRIES': 'Insufficient balance.',
     'errors.LEVEL_PURCHASE_DISABLED': 'Level purchase is disabled right now.',
     'errors.MAX_LEVEL_REACHED': 'You already reached the max Battle Pass level.',
-    'errors.NOT_ENOUGH_FC': 'Insufficient balance.',
+    'errors.NOT_ENOUGH_BERRIES': 'Insufficient balance.',
     'errors.INSUFFICIENT_BALANCE': 'Insufficient balance.',
     'errors.NOT_ENOUGH_PET_FOOD': 'You do not have enough food for this amount.',
     'errors.PET_NOT_OWNED': 'This companion does not belong to you.',
@@ -53,10 +53,10 @@ export const errors: LocaleBundle = {
   pt: {
     'errors.generic': 'Algo deu errado. Tente novamente.',
     'errors.network': 'Falha de conexão. Verifique sua internet e tente novamente.',
-    'errors.INSUFFICIENT_FC': 'Saldo insuficiente.',
+    'errors.INSUFFICIENT_BERRIES': 'Saldo insuficiente.',
     'errors.LEVEL_PURCHASE_DISABLED': 'A compra de níveis está desativada agora.',
     'errors.MAX_LEVEL_REACHED': 'Você já alcançou o nível máximo do Passe.',
-    'errors.NOT_ENOUGH_FC': 'Saldo insuficiente.',
+    'errors.NOT_ENOUGH_BERRIES': 'Saldo insuficiente.',
     'errors.INSUFFICIENT_BALANCE': 'Saldo insuficiente.',
     'errors.NOT_ENOUGH_PET_FOOD': 'Você não tem comida suficiente para essa quantidade.',
     'errors.PET_NOT_OWNED': 'Este companheiro não pertence a você.',
@@ -97,10 +97,10 @@ export const errors: LocaleBundle = {
   es: {
     'errors.generic': 'Algo salió mal. Inténtalo de nuevo.',
     'errors.network': 'Fallo de conexión. Revisa tu internet e inténtalo de nuevo.',
-    'errors.INSUFFICIENT_FC': 'Saldo insuficiente.',
+    'errors.INSUFFICIENT_BERRIES': 'Saldo insuficiente.',
     'errors.LEVEL_PURCHASE_DISABLED': 'La compra de niveles está desactivada ahora.',
     'errors.MAX_LEVEL_REACHED': 'Ya alcanzaste el nivel máximo del Pase.',
-    'errors.NOT_ENOUGH_FC': 'Saldo insuficiente.',
+    'errors.NOT_ENOUGH_BERRIES': 'Saldo insuficiente.',
     'errors.INSUFFICIENT_BALANCE': 'Saldo insuficiente.',
     'errors.NOT_ENOUGH_PET_FOOD': 'No tienes suficiente comida para esa cantidad.',
     'errors.PET_NOT_OWNED': 'Esta mascota no te pertenece.',
@@ -141,10 +141,10 @@ export const errors: LocaleBundle = {
   ru: {
     'errors.generic': 'Что-то пошло не так. Попробуйте снова.',
     'errors.network': 'Ошибка соединения. Проверьте интернет и попробуйте снова.',
-    'errors.INSUFFICIENT_FC': 'Недостаточно средств.',
+    'errors.INSUFFICIENT_BERRIES': 'Недостаточно средств.',
     'errors.LEVEL_PURCHASE_DISABLED': 'Покупка уровней сейчас отключена.',
     'errors.MAX_LEVEL_REACHED': 'Вы уже достигли максимального уровня пропуска.',
-    'errors.NOT_ENOUGH_FC': 'Недостаточно средств.',
+    'errors.NOT_ENOUGH_BERRIES': 'Недостаточно средств.',
     'errors.INSUFFICIENT_BALANCE': 'Недостаточно средств.',
     'errors.NOT_ENOUGH_PET_FOOD': 'Недостаточно корма для этого количества.',
     'errors.PET_NOT_OWNED': 'Этот питомец вам не принадлежит.',

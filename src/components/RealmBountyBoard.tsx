@@ -2,9 +2,10 @@ import { useMemo } from 'react';
 import type { RealmBounty } from '../realm';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
+import { coin } from '../gameAssets';
 
 const BOARD_BG = '/assets/game/realm/bounty-board-bg.jpg';
-const FC_ICON = '/assets/game/coins/forge-coin.png';
+const FC_ICON = coin;
 const FRAG_ICON = '/assets/game/realm/mat-crystal-shard.png';
 
 const TYPE_ART: Record<string, { icon: string; hintKey: string }> = {
@@ -45,8 +46,8 @@ function RewardChips({ b }: { b: RealmBounty }) {
     <div className="flex flex-wrap items-center gap-1.5">
       {fc > 0 && (
         <span className="bounty-chip">
-          <img src={FC_ICON} alt="Forge Coins" loading="lazy" className="h-4 w-4 object-contain" />
-          <b>{fmt(fc)}</b> FC
+          <img src={FC_ICON} alt="BERRIES" loading="lazy" className="h-4 w-4 object-contain" />
+          <b>{fmt(fc)}</b> BERRIES
         </span>
       )}
       {frags > 0 && (
@@ -162,7 +163,7 @@ export default function RealmBountyBoard({
           { k: t('realm.bounty.active'), v: String(active) },
           { k: t('realm.bounty.done'), v: `${completed}/${bounties.length}` },
           { k: t('realm.bounty.reset'), v: resetIn(now) },
-          { k: t('realm.bounty.today'), v: `${fmt(totalFc)} FC` },
+          { k: t('realm.bounty.today'), v: `${fmt(totalFc)} BERRIES` },
         ].map((s) => (
           <div key={s.k} className="bounty-stat">
             <b className="block truncate text-[10.5px] font-black tabular-nums text-amber-100">{s.v}</b>

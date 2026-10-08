@@ -98,7 +98,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
   const chosen = selected.map((id) => byId.get(id) ?? null).filter(Boolean) as RarityFusionHero[];
   const sourceRarity = chosen[0]?.rarity ?? null;
   const tier = sourceRarity ? tiers[sourceRarity] : null;
-  // Rarity fusion is MYTH-only: the cost is burned, never charged in FC.
+  // Rarity fusion is MYTH-only: the cost is burned, never charged in BERRIES.
   const cost = tier?.cost_myth ?? 0;
   const mythAvailable = Number(data.mythAvailable ?? data.mythBalance ?? 0);
   const complete = selected.length === required;

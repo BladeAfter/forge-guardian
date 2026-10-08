@@ -20,7 +20,7 @@ const REWARD_KEY: Record<string, string> = {
   MATERIAL: 'expeditions.materials',
   EQUIPMENT: 'expeditions.equipment',
   PVP_TICKET: 'expeditions.pvpTickets',
-  FC: 'expeditions.fc',
+  BERRIES: 'expeditions.fc',
 };
 
 const rewardText = (reward: ExpeditionReward, t: (key: string) => string) => {
@@ -41,7 +41,7 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
   const [team, setTeam] = useState<string[]>([]);
   const [mission, setMission] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
-  // Extra-attempt modal is ALWAYS bound to one mission: its ads/FC counters are per mission.
+  // Extra-attempt modal is ALWAYS bound to one mission: its ads/BERRIES counters are per mission.
   const [extraFor, setExtraFor] = useState<string | null>(null);
 
   const state = useQuery({
@@ -245,7 +245,7 @@ function MissionCard({ mission, active, teamPower, onSelect, onExtra }: { missio
   );
 }
 
-/** Per-mission extra attempts: 5 ads + 5 FC purchases per game day, independent limits. */
+/** Per-mission extra attempts: 5 ads + 5 BERRIES purchases per game day, independent limits. */
 function ExtraAttemptModal({ mission, initData, onClose, onChanged }: {
   mission: ExpeditionMission; initData: string; onClose: () => void; onChanged: () => void;
 }) {

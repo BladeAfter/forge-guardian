@@ -162,7 +162,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
             </div>
             <div className="flex items-center justify-between pt-2 text-[10px] text-slate-300">
               <span>{t('clan.cost')}</span>
-              <b className="text-amber-300">{data.createCostFc == null ? '…' : `${formatCurrency(data.createCostFc)} FC`}</b>
+              <b className="text-amber-300">{data.createCostFc == null ? '…' : `${formatCurrency(data.createCostFc)} BERRIES`}</b>
             </div>
             <button
               disabled={busy}
