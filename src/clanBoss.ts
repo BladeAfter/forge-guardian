@@ -1,0 +1,206 @@
+import { clanRequest } from './clans';
+
+/**
+ * Clan Boss (Abyssal Warlord) — a fully independent system.
+ * It never reads global boss state: HP, cycles, cooldown, damage, ranking and
+ * rewards all live in the clan-scoped backend tables.
+ */
+export type ClanBossRankRow = {
+  userId: string;
+  name: string;
+  username: string | null;
+  avatar: string | null;
+  damage: number;
+  attacks: number;
+  isMe: boolean;
+};
+
+export type ClanBossHistoryRow = {
+  cycle: number;
+  status: 'defeated' | 'expired' | string;
+  maxHp: number;
+  totalDamage: number;
+  clanXp: number;
+  finishedAt: string | null;
+  topName: string | null;
+  topDamage?: number | null;
+  bossName?: string | null;
+  bossKey?: string | null;
+};
+
+
+/**
+ * Season Pass benefit state for the CLAN boss Auto ATK. Mirrors the global boss
+ * shape but is a completely separate preference / cooldown on the backend.
+ */
+export type ClanBossAutoAttackState = {
+  eligible: boolean;
+  passTier?: string | null;
+  enabled: boolean;
+  hasTeam: boolean;
+  inClan?: boolean;
+  bossActive?: boolean;
+  active: boolean;
+  intervalSeconds: number;
+  lastAttackAt?: string | null;
+  nextAttackAt?: string | null;
+  /** Official revive moment of the dead team (server). */
+  revivesAt?: string | null;
+  /** True when the revive timer — not the cooldown — is what blocks the next attack. */
+  waitingRevive?: boolean;
+  blockedBy?: 'revive' | 'cooldown' | null;
+  attacksTotal?: number;
+  reason?: 'no_pass' | 'disabled' | 'no_team' | 'no_clan' | 'no_boss' | null;
+};
+
+export type ClanBossDaily = {
+  defeated: number;
+  limit: number;
+  globalLimit?: number;
+  override?: number | null;
+  limitReached: boolean;
+  resetAt?: string | null;
+  secondsToReset?: number;
+};
+
+export type ClanBossState = {
+  inClan: boolean;
+  /** Personal Clan Boss: every member fights his own adaptive instance. */
+  personal?: boolean;
+  /** Server-side daily DEFEATED counter (per player, never per clan). */
+  daily?: ClanBossDaily | null;
+  /** Season Pass offline Auto ATK state for the clan boss (server-driven). */
+  autoAttack?: ClanBossAutoAttackState | null;
+
+
+  bossName?: string;
+  /** How many bosses exist in the cycle progression (currently 10). */
+  totalBosses?: number;
+  /** Server-side 24h cycle lock: at most one rewarding clan boss per cycle. */
+  cycleLocked?: boolean;
+  nextBossAt?: string | null;
+  nextBossInSeconds?: number;
+  lastBoss?: {
+    name?: string;
+    cycle?: number;
+    status?: string;
+    maxHp?: number;
+    totalDamage?: number;
+    bossPower?: number;
+    finishedAt?: string | null;
+    durationSeconds?: number | null;
+  } | null;
+  clan?: { id: string; name: string; tag: string; level: number; emblem: Record<string, string> };
+
+  boss?: {
+    id: string;
+    key: string;
+    name: string;
+    subtitle?: string;
+    theme?: string;
+    imageUrl?: string | null;
+    backgroundUrl?: string | null;
+    bossNumber?: number;
+    isFinal?: boolean;
+    baseDamage?: number;
+    rewardFc?: number;
+    cycle: number;
+    level: number;
+    /** Personal difficulty rating computed at spawn (locked). */
+    difficulty?: string | null;
+    bossNumberToday?: number;
+    maxHp: number;
+    currentHp: number;
+    /** Boss stats locked at spawn. */
+    def?: number;
+    atk?: number;
+    power?: number;
+
+
+
+    status: 'active' | 'defeated' | 'expired' | string;
+    startsAt: string;
+    endsAt: string;
+    clanDamage: number;
+    attacks: number;
+    participants: number;
+    minDamageForRewards: number;
+    clanXpReward: number;
+    cooldownSeconds: number;
+  };
+  me?: {
+    damage: number;
+    attacks: number;
+    rank: number | null;
+    nextAttackAt: string | null;
+    canAttack: boolean;
+    eligibleForRewards: boolean;
+    power: number;
+  };
+  ranking?: ClanBossRankRow[];
+  rewards?: Record<string, unknown>;
+  history?: ClanBossHistoryRow[];
+  serverTime: string;
+};
+
+
+export type ClanBossStrike = {
+  status: string;
+  damage: number;
+  critical: boolean;
+  currentHp: number;
+  maxHp: number;
+  defeated: boolean;
+  nextAttackAt: string;
+  /**
+   * Optional presentation-only fields. The battle backend currently returns the
+   * player strike; when it also reports the boss retaliation these are used to
+   * animate it. Never synthesized on the client.
+   */
+  eventId?: string;
+  bossAttack?: { damage?: number; teamDamage?: number } | null;
+  teamDamage?: number | null;
+  heroesDefeated?: string[] | null;
+  heroesRevived?: string[] | null;
+};
+
+
+export const fetchClanBoss = (initData: string) => clanRequest<ClanBossState>(initData, { action: 'boss-state' });
+
+export const strikeClanBoss = (initData: string, instanceId: string | null) =>
+  clanRequest<ClanBossStrike>(initData, { action: 'boss-strike', instanceId });
+
+/**
+ * Season Pass benefit: turn the offline Auto ATK ON/OFF for the CLAN boss only.
+ * The global boss toggle lives in services.ts and is never affected by this.
+ */
+export const setClanBossAutoAttack = (initData: string, enabled: boolean) =>
+  clanRequest<ClanBossAutoAttackState>(initData, { action: 'boss-auto-attack', enabled });
+
+
+/** Compact number formatting used across the clan boss screen (13.2K, 1.05M). */
+export function abbreviateDamage(value: number | null | undefined): string {
+  const n = Math.max(0, Math.round(Number(value) || 0));
+  if (n < 1000) return String(n);
+  const units: [number, string][] = [[1_000_000_000, 'B'], [1_000_000, 'M'], [1_000, 'K']];
+  for (const [size, suffix] of units) {
+    if (n >= size) {
+      const scaled = n / size;
+      return `${(scaled >= 100 ? scaled.toFixed(0) : scaled.toFixed(scaled >= 10 ? 1 : 2)).replace(/\.0+$/, '')}${suffix}`;
+    }
+  }
+  return String(n);
+}
+
+/** "18h 42m" / "42m 10s" countdown, always derived from the server clock. */
+export function countdownLabel(target: string | null | undefined, now: number): string {
+  if (!target) return '--';
+  const ms = new Date(target).getTime() - now;
+  if (!Number.isFinite(ms) || ms <= 0) return '00m 00s';
+  const total = Math.floor(ms / 1000);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  if (hours > 0) return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+  return `${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+}

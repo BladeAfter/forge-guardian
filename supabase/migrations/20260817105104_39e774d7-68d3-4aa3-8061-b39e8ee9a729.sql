@@ -1,0 +1,2 @@
+ALTER TABLE public.tower_bosses DROP CONSTRAINT IF EXISTS tower_bosses_floor_index_check;
+ALTER TABLE public.tower_bosses ADD CONSTRAINT tower_bosses_floor_index_check CHECK (floor_index BETWEEN 1 AND 50);

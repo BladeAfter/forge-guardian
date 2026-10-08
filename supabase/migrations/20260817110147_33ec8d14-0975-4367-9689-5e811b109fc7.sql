@@ -1,0 +1,1 @@
+grant execute on function public.open_legend_chest(bigint, uuid) to postgres;

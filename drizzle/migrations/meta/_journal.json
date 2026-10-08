@@ -1,0 +1,685 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787966537726,
+      "tag": "0000_ton_mining_premium_gate",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787966754465,
+      "tag": "0001_ton_mining_premium_gate_scheduled_start",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787967004502,
+      "tag": "0002_roulette_reward_settlement_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787967624292,
+      "tag": "0003_roulette_exclusive_nft_heroes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787968830594,
+      "tag": "0004_ton_staking_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787968952836,
+      "tag": "0005_ton_staking_rpcs",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787969737780,
+      "tag": "0006_ton_staking_economy_guardrails",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787970135203,
+      "tag": "0007_clan_war_roster_selection",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788048720743,
+      "tag": "0008_withdraw_floor_amount",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788048757181,
+      "tag": "0009_withdraw_floor_amount_fix_return",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788131585253,
+      "tag": "0010_pool_ranking_tiers_nanoton_allocation",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788131666231,
+      "tag": "0011_pool_settlement_exact_pools",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788131717534,
+      "tag": "0012_pool_dashboard_allocation_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788132139683,
+      "tag": "0013_fix_fusion_myth_available_staking",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788132260447,
+      "tag": "0014_hero_mining_per_hero_ton_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1788132779707,
+      "tag": "0015_pass_reward_feedback_and_pvp_ticket_inventory",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788132929387,
+      "tag": "0016_unify_pet_buffs_all_modes",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788133099961,
+      "tag": "0017_nft_mining_ledger_allow_rare_myth_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1788134994819,
+      "tag": "0018_private_trade_core_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788135064072,
+      "tag": "0019_private_trade_escrow_and_risk",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788135250554,
+      "tag": "0020_private_trade_lifecycle_rpcs",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788135355176,
+      "tag": "0021_private_trade_settlement_and_admin",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788135735299,
+      "tag": "0022_hero_card_respects_mining_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788136314374,
+      "tag": "0023_limit_market_sellable_large_inventories",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788140806537,
+      "tag": "0024_season_pass_perks_fusion_and_myth_mining",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788141052103,
+      "tag": "0025_battle_pass_versioning_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788141267921,
+      "tag": "0026_battle_pass_versioning_runtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788141323566,
+      "tag": "0027_battle_pass_claim_across_versions",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1788141785528,
+      "tag": "0028_private_trade_escrow_reference_collision",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788141832796,
+      "tag": "0029_private_trade_risk_flags_array_fix",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1788142137873,
+      "tag": "0030_celestial_hero_ton_mining_eligible",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1788142477417,
+      "tag": "0031_battle_pass_v2_reward_engine",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1788142514713,
+      "tag": "0032_battle_pass_dashboard_slots_highlights",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1788142775778,
+      "tag": "0033_admin_pass_reward_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1788144863004,
+      "tag": "0034_key_chest_reward_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1788144919316,
+      "tag": "0035_key_chest_inventory_and_pass_claim",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1788221037111,
+      "tag": "0036_battle_pass_v2_audience_completers_or_unpurchased",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1788222070173,
+      "tag": "0037_fix_hero_fusion_dashboard_fragments",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1788223067269,
+      "tag": "0038_founder_pack_pass_uses_player_version_season",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1788223102115,
+      "tag": "0039_founder_pack_deliver_pass_target_season",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1788223441347,
+      "tag": "0040_fix_mythic_egg_multi_open_and_pet_buff_growth",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1788223587765,
+      "tag": "0041_fix_pet_egg_move_missing_unique_constraint",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1788223795847,
+      "tag": "0042_pass_audience_keeps_paid_buyers",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1788223988160,
+      "tag": "0043_pet_buff_no_nerf_growth_above_cap",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1788224093021,
+      "tag": "0044_ton_mining_v2_only_legendary_pass",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1788224261054,
+      "tag": "0045_ton_mining_v2_buyers_strict_rule",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1788224504230,
+      "tag": "0046_restore_premium_pet_legacy_buffs",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1788225015653,
+      "tag": "0047_clan_raid_legendary_hero_on_kill",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1788261586242,
+      "tag": "0048_admin_mining_overview_excludes_suspended",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1788261932365,
+      "tag": "0049_withdraw_lock_min_deposit_balance",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1788261968401,
+      "tag": "0050_withdraw_enforce_locked_deposit",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1788262514114,
+      "tag": "0051_ton_mining_v2_cohort_any_pass_rule",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1788262564400,
+      "tag": "0052_mining_gate_price_5_for_cohort",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1788262775151,
+      "tag": "0053_ton_mining_manual_suspension",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1788275464793,
+      "tag": "0054_private_trade_assets_listing",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1788275958718,
+      "tag": "0055_withdraw_requires_paid_v2_pass",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1788288703511,
+      "tag": "0056_withdraw_lock_exempt_pass_or_nft",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1788289587402,
+      "tag": "0057_private_trade_assets_priority_ordering",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1788295083415,
+      "tag": "0058_market_sellable_rarity_priority",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1788307620428,
+      "tag": "0059_fix_market_sellable_hero_row_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1788308781325,
+      "tag": "0060_celestial_mystery_pack_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1788309188659,
+      "tag": "0061_celestial_pack_daily_popup_impressions",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1788309237267,
+      "tag": "0062_probe_premium_offers_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1788309287952,
+      "tag": "0063_celestial_pack_offer_state",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1788310284413,
+      "tag": "0064_celestial_sovereign_pack_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1788310464478,
+      "tag": "0065_mythic_chest_and_celestial_armors",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1788310681193,
+      "tag": "0066_premium_offer_popup_reserve_confirm_and_admin_tools",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1788310710696,
+      "tag": "0067_fix_popup_confirm_uses_popup_mark",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1788310899630,
+      "tag": "0068_popup_confirm_reactivates_reset_impression",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1788311544164,
+      "tag": "0069_mythic_vanguard_pack_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1788312221347,
+      "tag": "0070_mythic_vanguard_pack_popup_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1788312904297,
+      "tag": "0071_legendary_adventurer_pack_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1788312954990,
+      "tag": "0072_legendary_adventurer_pack_popup_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1788313401325,
+      "tag": "0073_tower_difficulty_minus_20_percent",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1788314016243,
+      "tag": "0074_tower_key_purchase_with_ton",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1788314275062,
+      "tag": "0075_tower_premium_chest_drops_and_milestones",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1788314747809,
+      "tag": "0076_fix_pack_hero_pool_and_stock",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1788384800219,
+      "tag": "0077_add_celestial_pet_rarity",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1788387866043,
+      "tag": "0078_mythic_power_pack_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1788388128531,
+      "tag": "0079_mythic_power_pack_admin_param_rename",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1788388318783,
+      "tag": "0080_allow_celestial_pet_rarity",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1788389339843,
+      "tag": "0081_celestial_pet_premium_buffs",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1788389394214,
+      "tag": "0082_celestial_pet_fixed_buffs",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1788393706996,
+      "tag": "0083_celestial_pet_level_scaling_buffs",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1788395880372,
+      "tag": "0084_mythreon_realm_v1_core_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1788396133874,
+      "tag": "0085_mythreon_realm_v1_seed_and_rpcs",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1788399230823,
+      "tag": "0086_realm_interactive_exploration",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1788480548073,
+      "tag": "0087_withdraw_requires_legendary_v2_pass",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1788484682116,
+      "tag": "0088_expand_sub_nft_templates_pool",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1788485173631,
+      "tag": "0089_realm_exploration_entry_cost_and_depth",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1788485216058,
+      "tag": "0090_realm_region_meta_and_admin_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1788485269112,
+      "tag": "0091_realm_explore_depth_damage_scaling",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1788536983417,
+      "tag": "0092_nft_pool_account_ton_bonus_and_celestial_pet_swap",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1788541434743,
+      "tag": "0093_realm_ruins_entry_tiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1788541465974,
+      "tag": "0094_realm_state_ruin_entry",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1788542023031,
+      "tag": "0095_drop_legacy_realm_ruin_start_overload",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1788543180658,
+      "tag": "0096_realm_progression_harder_and_shrine_xp",
+      "breakpoints": true
+    }
+  ]
+}

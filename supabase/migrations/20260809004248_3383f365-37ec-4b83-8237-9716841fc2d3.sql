@@ -1,0 +1,1 @@
+alter function public.hatch_pet_egg(bigint, uuid, text) set search_path = public, extensions;

@@ -1,0 +1,2 @@
+ALTER TABLE public.boss_combats DROP CONSTRAINT IF EXISTS boss_combats_status_check;
+ALTER TABLE public.boss_combats ADD CONSTRAINT boss_combats_status_check CHECK (status IN ('active','defeated','rewarded','expired'));

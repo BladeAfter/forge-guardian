@@ -1,0 +1,1 @@
+DELETE FROM public.spending_event_popup_views WHERE event_id IN (SELECT id FROM public.spending_events WHERE status = 'active');

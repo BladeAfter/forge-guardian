@@ -34,8 +34,10 @@ export default async function handler(req, res) {
     if (action === 'deposit') {
       const amount = Number(req.body?.amountTon), address = String(req.body?.walletAddress || '');
       if (!Number.isFinite(amount) || amount <= 0 || !address) throw new Error('Valor de depósito inválido.');
+      // Destination is frozen at intent creation; minimums are enforced server-side by the RPC.
+      const depositType = String(req.body?.depositType || 'ton_to_fc') === 'ton_balance' ? 'ton_balance' : 'ton_to_fc';
       fn = 'create_wallet_deposit';
-      args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_idempotency_key: `deposit:${user.id}:${String(req.body?.idempotencyKey || randomUUID())}` };
+      args = { ...args, p_amount_ton: amount, p_from_wallet: address, p_deposit_type: depositType, p_idempotency_key: `deposit:${user.id}:${String(req.body?.idempotencyKey || randomUUID())}` };
     } else if (action === 'withdraw') {
       const amount = Number(req.body?.amountFc), address = String(req.body?.walletAddress || '');
       if (!Number.isInteger(amount) || amount < 100000 || amount % 100000 !== 0 || !address) throw new Error('O valor deve ser múltiplo de 100.000 FC.');

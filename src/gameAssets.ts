@@ -11,7 +11,8 @@ export const buildings: Record<string, string> = {
   'coal-mine': gameAsset('buildings/coal-mine.png'),
   forge: gameAsset('buildings/forge.png'),
   'royal-workshop': gameAsset('buildings/royal-workshop.png'),
-  'dragon-foundry': gameAsset('buildings/dragon-foundry.png')
+  'dragon-foundry': gameAsset('buildings/dragon-foundry.png'),
+  'clan-hall': gameAsset('buildings/mythreon-clan-hall.png')
 };
 
 export const characters = {
@@ -34,6 +35,7 @@ export const mainScreenArt = {
   pvp: gameAsset('ui/pool.webp'),
   invite: gameAsset('ui/invite-referral.webp'),
   pet: gameAsset('pets/pyron.webp')
+  ,market: gameAsset('ui/player-market.png')
   ,seasonPass: gameAsset('ui/season-pass-icon.png')
 };
 
@@ -59,6 +61,9 @@ export const logo = {
 };
 
 export const coin = gameAsset('coins/forge-coin.png');
+/** MYTH Token art (decorative only — no price, no trading, no utility yet). */
+export const mythToken = gameAsset('coins/myth-token.png');
+export const mythTokenCard = gameAsset('ui/myth-token-card.jpg');
 export const dragon = gameAsset('bosses/ancient-dragon.png');
 
 export const bossHeroes = [

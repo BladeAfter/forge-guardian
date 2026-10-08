@@ -1,0 +1,1 @@
+revoke execute on function public.open_legend_chest(bigint, uuid) from authenticated, anon;

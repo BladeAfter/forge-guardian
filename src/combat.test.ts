@@ -10,7 +10,7 @@ describe('boss combat formulas', () => {
   it('knocked-out heroes deal no damage', () => expect(calculateTeamDamagePerCycle([hero('common', false)])).toBe(0));
   it('applies level growth and safe HP', () => { expect(calculateHeroAttack(1.875, 2)).toBe(1.931); expect(calculateHeroMaxHp(100, 2)).toBe(105); expect(clampHp(-8, 100)).toBe(0); });
   it('boss damage respects rarity and never drops below one', () => { expect(calculateBossDamageToHero(8, 'common')).toBe(8); expect(calculateBossDamageToHero(8, 'lendário')).toBe(6); expect(calculateBossDamageToHero(0, 'rare')).toBe(1); });
-  it('normalizes Portuguese and unknown rarity', () => { expect(normalizeRarity('ÉPICA')).toBe('epic'); expect(normalizeRarity('mythic')).toBe('common'); });
+  it('normalizes Portuguese and unknown rarity', () => { expect(normalizeRarity('ÉPICA')).toBe('epic'); expect(normalizeRarity('MÍTICO')).toBe('mythic'); expect(normalizeRarity('ancestral')).toBe('ancestral'); expect(normalizeRarity('nonsense')).toBe('common'); });
   it('preserves proportional HP without free healing', () => expect(preserveProportionalHp(50, 100, 200)).toBe(100));
   it('never formats NaN, infinity or negative values', () => { expect(formatDuration(Infinity)).toBe('--'); expect(formatDuration(NaN)).toBe('--'); expect(formatDuration(-1)).toBe('--'); });
   it('boss attacks only a selected living hero and HP never becomes negative',()=>{const living=hero(),dead=hero('rare',false);const hit=applyBossHit([living,dead],999,living.id,0);expect(hit[0].currentHp).toBe(0);expect(hit[1]).toEqual(dead);});
