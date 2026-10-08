@@ -17992,7 +17992,6 @@ export type Database = {
         }
         Relationships: []
       }
-
       ton_auto_withdraw_log: {
         Row: {
           amount_ton: number | null
@@ -18085,8 +18084,6 @@ export type Database = {
         }
         Relationships: []
       }
-
-
       ton_mine_claims: {
         Row: {
           amount_ton: number
@@ -20682,7 +20679,6 @@ export type Database = {
         Args: { p_key: string; p_telegram_id: number; p_value: Json }
         Returns: Json
       }
-
       admin_auto_withdraw_overview: {
         Args: { p_admin_id: number }
         Returns: Json
@@ -20691,7 +20687,6 @@ export type Database = {
         Args: { p_admin_id: number; p_field: string; p_value: string }
         Returns: Json
       }
-
       admin_boss_control: {
         Args: {
           p_action: string
@@ -22836,7 +22831,7 @@ export type Database = {
         Returns: undefined
       }
       audit_player_deposits: { Args: { p_telegram_id: number }; Returns: Json }
-    auto_withdraw_claim_batch: { Args: never; Returns: Json }
+      auto_withdraw_claim_batch: { Args: never; Returns: Json }
       auto_withdraw_complete: {
         Args: {
           p_amount_ton: number
@@ -22855,7 +22850,6 @@ export type Database = {
         Returns: undefined
       }
       auto_withdraw_tick: { Args: never; Returns: undefined }
-
       award_pool_points: {
         Args: { p_activity: string; p_source_id: string; p_user_id: string }
         Returns: undefined
