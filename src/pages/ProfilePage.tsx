@@ -147,7 +147,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
 
       <div className="captain-log">
         <div className="captain-streak"><CalendarDays size={18} /><div><span>Dias a bordo</span><strong>{game.loginStreak}<small> {game.loginStreak === 1 ? 'dia seguido' : 'dias seguidos'}</small></strong></div></div>
-        <button type="button" onClick={onOpenBattlePass} className="captain-pass"><img src={profileArt.pass} alt="" width={60} height={60} loading="lazy" /><div><span>{t('profile.battlePass')}</span><strong>{seasonPass.isLoading ? '…' : passLabel}</strong><small className={passActive ? 'captain-status-active' : ''}>{passActive ? t('profile.active') : t('profile.inactive')}</small></div><ChevronRight size={18} /></button>
+        <OceanControl type="button" onClick={onOpenBattlePass} className="captain-pass"><img src={profileArt.pass} alt="" width={60} height={60} loading="lazy" /><div><span>{t('profile.battlePass')}</span><strong>{seasonPass.isLoading ? '…' : passLabel}</strong><small className={passActive ? 'captain-status-active' : ''}>{passActive ? t('profile.active') : t('profile.inactive')}</small></div><ChevronRight size={18} /></OceanControl>
       </div>
 
       <div className="captain-showcase">
@@ -157,7 +157,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       </section>
 
       <section className="captain-journal">
-        <div className="captain-section-heading"><div><span>ESPÓLIOS DA JORNADA</span><h2>Diário de conquistas</h2></div>{items.length > 0 && <button type="button" onClick={() => setShowAll(value => !value)} className="captain-text-action">{showAll ? t('profile.showLess') : t('profile.viewAll')}<ChevronRight size={14} /></button>}</div>
+        <div className="captain-section-heading"><div><span>ESPÓLIOS DA JORNADA</span><h2>Diário de conquistas</h2></div>{items.length > 0 && <OceanControl type="button" onClick={() => setShowAll(value => !value)} className="captain-text-action">{showAll ? t('profile.showLess') : t('profile.viewAll')}<ChevronRight size={14} /></OceanControl>}</div>
         {history.isLoading ? <p className="captain-muted">{t('profile.loadingRewards')}</p> : items.length ? <ul className={`captain-rewards ${showAll ? 'captain-rewards-expanded' : ''}`}>{items.map((item, index) => <RewardRow key={`${item.reward_type}-${item.reward_key}-${item.created_at}-${index}`} item={item} />)}</ul> : <div className="captain-empty"><img src={profileArt.treasure} alt="" width={72} height={72} loading="lazy" /><div><p>Seu tesouro começa aqui</p><span>{t('profile.noRewardsYet')}</span></div></div>}
       </section>
       </div>
@@ -170,7 +170,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
           const failed = channelError?.key === channel.key;
           return <article className="captain-channel" key={channel.key}>
             <div className="captain-channel-info"><Icon size={21} /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : `+${formatFc(channel.rewardFc)}`}</span></div>
-            {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><button type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></button></div> : <div className="captain-channel-actions"><button type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></button><button type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</button></div>}
+            {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><OceanControl type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></OceanControl></div> : <div className="captain-channel-actions"><OceanControl type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></OceanControl><OceanControl type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</OceanControl></div>}
             {failed && <p className="captain-channel-error">{channelError?.message}</p>}
           </article>;
         })}</div>}
