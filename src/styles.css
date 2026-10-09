@@ -4090,3 +4090,38 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .market-pulse .market-activity li>span:first-child{width:22px;height:22px}
 .market-pulse .market-activity li strong{font-size:11px}
 .seas-logo{width:min(88vw,420px);height:auto;filter:drop-shadow(0 10px 24px hsl(220 70% 5%/.75)) drop-shadow(0 0 30px hsl(43 100% 60%/.25))}
+
+/* Mythic Seas — Duelos do Convés */
+:root { --duel-surface: 204 51% 14%; --duel-ink: 208 66% 9%; --duel-text: 180 70% 96%; --duel-muted: 188 29% 70%; --duel-line: 185 49% 70%; --duel-accent: 176 70% 43%; --duel-danger: 358 69% 50%; }
+.seas-duels { position:fixed; inset:0; z-index:75; overflow-y:auto; background:hsl(var(--duel-ink)); color:hsl(var(--duel-text)); letter-spacing:0; }
+.duels-page { width:100%; max-width:580px; margin:auto; padding:16px 16px 40px; }
+.duels-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.duels-header span { font-size:9px; font-weight:800; color:hsl(var(--ocean-gold)); }
+.duels-header h1 { font-size:24px; font-weight:900; line-height:1.3; }
+.duels-deck { position:relative; height:250px; margin:0 -16px; overflow:hidden; background:hsl(var(--duel-surface)); }
+.duels-deck>img { width:100%; height:100%; object-fit:cover; }
+.duels-deck-title { position:absolute; bottom:0; left:0; right:0; padding:34px 22px 18px; background:linear-gradient(transparent,hsl(var(--duel-ink)/.95)); }
+.duels-deck-title>span { color:hsl(var(--ocean-gold)); font-size:9px; font-weight:800; }
+.duels-deck-title h2 { font-size:28px; line-height:1.25; font-weight:900; margin:4px 0 6px; }
+.duels-deck-title p { display:flex; gap:7px; align-items:center; font-size:12px; }
+.duels-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:18px 0; border-bottom:1px solid hsl(var(--duel-line)/.25); }
+.duels-stats>div { display:flex; align-items:center; gap:8px; padding:0 8px; min-width:0; }
+.duels-stats>div+div { border-left:1px solid hsl(var(--duel-line)/.2); }
+.duels-stats svg { color:hsl(var(--ocean-gold)); flex-shrink:0; }
+.duels-stats span { font-size:9px; color:hsl(var(--duel-muted)); min-width:0; }
+.duels-stats strong { display:block; color:hsl(var(--duel-text)); font-size:12px; overflow-wrap:anywhere; }
+.duels-stats .ocean-control { min-width:24px; min-height:26px; padding:2px; margin-left:auto; }
+.duels-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; padding:16px 0 8px; }
+.duels-tabs .duels-tab { flex-direction:column; padding:10px 4px; border:0; background:none; box-shadow:none; font-size:10px; color:hsl(var(--duel-muted)); }
+.duels-tab svg { width:19px; height:19px; }
+.duels-tabs .duels-tab-active { color:hsl(var(--ocean-gold)); border-bottom:2px solid hsl(var(--ocean-gold)); border-radius:0; }
+.seas-duels section { border-radius:8px; background:hsl(var(--duel-surface)) !important; border-color:hsl(var(--duel-line)/.25) !important; box-shadow:none !important; }
+.seas-duels [class*="rounded-2xl"], .seas-duels [class*="rounded-xl"] { border-radius:8px; }
+.seas-duels [class*="bg-black"], .seas-duels [class*="bg-[#"] { background-color:hsl(var(--duel-surface)); }
+.seas-duels [class*="text-slate-"] { color:hsl(var(--duel-muted)); }
+.seas-duels [class*="tracking-"] { letter-spacing:0; }
+.seas-duels .duels-search { display:flex; width:100%; margin-top:16px; min-height:50px; background:hsl(var(--duel-danger)); border:0; color:hsl(var(--duel-text)); font-size:13px; font-weight:900; }
+.seas-duels .ocean-control:disabled { opacity:.45; cursor:not-allowed; }
+.seas-duels .fixed { background:hsl(var(--duel-ink)/.9); }
+.seas-duels .fixed>div { background:hsl(var(--duel-surface)); }
+@media(max-width:360px) { .duels-stats>div { padding:0 5px; gap:5px; } .duels-stats>div>svg { width:15px; } .duels-deck-title h2 { font-size:25px; } }

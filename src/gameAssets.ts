@@ -1,3 +1,4 @@
+import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
 import pirateHarborVillage from './assets/pirate-harbor-village.jpg';
 import pirateLoading from './assets/pirate-loading.jpg';
 import pirateBossArena from './assets/pirate-boss-arena.jpg';
@@ -27,6 +28,8 @@ import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
 import grandLineOcean from './assets/grand-line-ocean.jpg';
 import grandLineShip from './assets/grand-line-ship.png';
+
+export const duelArt = { deck: pirateDuelDeck };
 
 export const grandLineArt = { ocean: grandLineOcean, ship: grandLineShip, berry: pirateBerryCoin };
 
