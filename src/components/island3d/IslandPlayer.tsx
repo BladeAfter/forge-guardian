@@ -15,7 +15,7 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     return c;
   }, [world]);
   useEffect(() => () => { world.removeCharacterController(controller); }, [world, controller]);
-  const state = useRef({ phase: 'landing' as IslandTelemetry['phase'], vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0 });
+  const state = useRef({ phase: 'landing' as IslandTelemetry['phase'], gangwayReached: false, vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0 });
   const cameraTarget = useMemo(() => new THREE.Vector3(), []);
   const cameraLook = useMemo(() => new THREE.Vector3(), []);
   const cameraDirection = useMemo(() => new THREE.Vector3(), []);
@@ -24,13 +24,14 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     const b = body.current;
     if (!b || state.current.returned) return;
     const dt = 1 / 60, s = state.current, i = input.current, p = b.translation();
-    if (i.boarding) s.phase = 'boarding';
+    if (i.boarding && s.phase !== 'boarding') { s.phase = 'boarding'; s.gangwayReached = false; }
     let dx = 0, dz = 0, targetSpeed = 0;
     if (s.phase === 'landing' || s.phase === 'boarding') {
-      const goal = s.phase === 'landing' ? ISLAND_3D.shore : ISLAND_3D.spawn;
+      const goal = !s.gangwayReached ? ISLAND_3D.gangway : s.phase === 'landing' ? ISLAND_3D.shore : ISLAND_3D.spawn;
       const x = goal.x - p.x, z = goal.z - p.z, d = Math.hypot(x, z);
       if (d < .35) {
-        if (s.phase === 'landing') s.phase = 'exploring';
+        if (!s.gangwayReached) s.gangwayReached = true;
+        else if (s.phase === 'landing') s.phase = 'exploring';
         else { s.returned = true; onReturn(); return; }
       } else { dx = x / d; dz = z / d; targetSpeed = 2.2; }
     } else if (!i.blocked) {

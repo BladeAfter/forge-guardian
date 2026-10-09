@@ -30,7 +30,7 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     <Suspense fallback={<Loader />}>
       <Physics timeStep={1 / 60} gravity={[0, -19, 0]}>
         <IslandTerrain palette={palette} /><Dock palette={palette} />
-        <IslandProp model="ship" x={7} z={44} y={-.15} scale={1.25} rotation={Math.PI / 2} collider="trimesh" />
+        <IslandProp model="ship" x={6} z={44} y={-1.65} scale={1.25} collider="trimesh" />
         <IslandProp model="flag" x={-1.4} z={43} y={1} scale={1.2} collider="none" />
         {palms.map((p, i) => <IslandProp key={`palm-${i}`} model={i % 3 ? 'palm' : 'palmStraight'} {...p} rotation={i * 1.3} collider="tree" wind />)}
         {[-1, 1].flatMap(side => Array.from({ length: 5 }, (_, i) => <IslandProp key={`rock-${side}-${i}`} model={i % 2 ? 'rock' : 'rockB'} x={side * (19 + i * 4)} z={8 - i * 7} scale={.6 + i * .12} rotation={i * 2} />))}

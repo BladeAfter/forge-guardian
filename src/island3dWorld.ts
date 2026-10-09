@@ -1,6 +1,6 @@
 import type { RealmExploreNode } from './realm';
 
-export const ISLAND_3D = { size: 120, water: -0.35, dock: { x: 0, z: 40 }, spawn: { x: 0, z: 43 }, shore: { x: 0, z: 29 } };
+export const ISLAND_3D = { size: 120, water: -0.35, dock: { x: 0, z: 40 }, spawn: { x: 4.4, z: 43 }, gangway: { x: 0, z: 43 }, shore: { x: 0, z: 29 } };
 export type IslandMotion = 'idle' | 'walk' | 'run' | 'sprint' | 'jump' | 'fall' | 'dodge' | 'attack' | 'interact' | 'swim' | 'climb' | 'descend';
 export type IslandInput = { x: number; y: number; sprint: boolean; jump: boolean; dodge: boolean; attack: boolean; interact: boolean; yaw: number; pitch: number; zoom: number; blocked: boolean; boarding: boolean };
 export const newIslandInput = (): IslandInput => ({ x: 0, y: 0, sprint: false, jump: false, dodge: false, attack: false, interact: false, yaw: 0, pitch: .32, zoom: 7.5, blocked: false, boarding: false });

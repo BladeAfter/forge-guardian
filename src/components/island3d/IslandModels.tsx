@@ -115,7 +115,7 @@ export function Dock({ palette }: { palette: IslandPalette }) {
     <mesh position={[0, .87, 38]} receiveShadow castShadow><boxGeometry args={[3.5, .24, 16]} /><meshStandardMaterial map={texture} roughness={.85} color={palette.sand} /></mesh>
     <CuboidCollider args={[1.75, .12, 8]} position={[0, .87, 38]} />
     {[31, 36, 41, 45].flatMap(z => [-1.5, 1.5].map(x => <mesh key={`${x}-${z}`} position={[x, -.25, z]} castShadow><cylinderGeometry args={[.15, .2, 3, 8]} /><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>))}
-    <mesh position={[2.6, .87, 43]} receiveShadow castShadow><boxGeometry args={[2, .2, 1.4]} /><meshStandardMaterial map={texture} /></mesh>
-    <CuboidCollider args={[1, .1, .7]} position={[2.6, .87, 43]} />
+    <mesh position={[2.6, 1.1, 43]} receiveShadow castShadow><boxGeometry args={[5.2, .2, 1.4]} /><meshStandardMaterial map={texture} /></mesh>
+    <CuboidCollider args={[2.6, .1, .7]} position={[2.6, 1.1, 43]} />
   </RigidBody>;
 }
