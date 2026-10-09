@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('./apiClient', () => ({ forgeAuthProbe: vi.fn() }));
 describe('Telegram message consent', () => {
-  beforeEach(() => vi.resetModules());
+  beforeEach(() => { vi.resetModules(); });
   it('requests once and respects refusal', async () => {
     const { requestTelegramMessages } = await import('./telegram');
     const request = vi.fn((callback?: (allowed: boolean) => void) => callback?.(false));
