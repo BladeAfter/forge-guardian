@@ -634,6 +634,9 @@ const TONCENTER_BASE = (Deno.env.get('TONCENTER_BASE_URL') || 'https://toncenter
 
 /** Reads the hot wallet transactions from TonCenter (v3), paginating so older payments are still found. */
 async function fetchHotWalletIncoming(hotWallet: string, pages = 3): Promise<any[]> {
+  const epoch = await serviceClient().from('game_settings').select('value').eq('key', 'game_reset_epoch').maybeSingle();
+  if (epoch.error) throw new Error('Não foi possível verificar o início da nova temporada.');
+  const epochSeconds = epoch.data?.value ? Date.parse(String(epoch.data.value)) / 1000 : 0;
   const apiKey = String(Deno.env.get('TONCENTER_API_KEY') || '').trim();
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (apiKey) headers['X-API-Key'] = apiKey;
@@ -652,7 +655,7 @@ async function fetchHotWalletIncoming(hotWallet: string, pages = 3): Promise<any
     all.push(...batch);
     if (batch.length < 100) break;
   }
-  return all;
+  return all.filter(tx => !epochSeconds || Number(tx?.now ?? 0) >= epochSeconds);
 }
 
 const msgComment = (message: any): string =>
