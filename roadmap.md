@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Corrigir a abertura da Grand Line: oceano imediato sem depender do carregamento das atividades; manter validação do servidor ao atracar.
+- [x] Corrigir a abertura da Grand Line: oceano imediato sem depender do carregamento das atividades; saldo existente repassado e validação do servidor mantida ao atracar. Cena verificada isoladamente sem resposta das atividades; quatro testes de navegação passaram. Acesso real no Telegram não verificado.
 
 - [ ] Varrer as telas ativas e substituir referências visuais e textos do jogo antigo, preservando identificadores e regras.
   - Catálogo visual central, construções e personagens base, oficina naval, exploração, cavernas e batalhas renovados com artes piratas; rótulos Grand Line, Duelos do Convés e BERRIES aplicados. Doze artes carregadas no navegador; atividades autenticadas no Telegram não verificadas. Hashtags, handles, storage keys, memos e RPCs preservados; materiais e construções fornecidos pelo servidor ainda exigem auditoria visual.
