@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Anchor, Compass, CalendarDays, Check, ChevronRight, Copy, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
+import { Anchor, Compass, CalendarDays, Check, ChevronRight, Copy, Loader2 } from 'lucide-react';
 import { useChannelRewards, useRewardHistory, useSeasonPass } from '../hooks';
 import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../services';
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
@@ -8,7 +8,7 @@ import type { GameState } from '../types';
 import { useT } from '../LanguageContext';
 import{PlayerTag}from'../premiumTitles';
 import { AvatarWithBorder } from '../components/AvatarWithBorder';
-import { profileArt } from '../gameAssets';
+import { profileArt, profileChannelArt } from '../gameAssets';
 import { captainCharacters, readCaptainStyle, saveCaptainStyle, type CaptainStyle } from '../captainCharacter';
 import { OceanControl } from '../components/OceanControl';
 
@@ -22,8 +22,6 @@ type ProfilePageProps = {
   backendEnabled: boolean;
   onOpenBattlePass: () => void;
 };
-
-const CHANNEL_ICON: Record<string, typeof Megaphone> = { news: Megaphone, community: MessageCircle, payments: WalletIcon };
 
 const formatFc = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 
@@ -165,11 +163,11 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       <section className="captain-signals">
         <div className="captain-section-heading"><div><span><Anchor size={17} />RÁDIO DO NAVIO</span><h2>{t('profile.officialChannels')}</h2></div></div>
         {channels.isLoading ? <p className="captain-muted">{t('profile.loadingChannels')}</p> : <div className="captain-channel-list">{(channels.data?.channels ?? []).filter(channel => channel.enabled).map((channel: ChannelReward) => {
-          const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
+          const channelImage = profileChannelArt[channel.key] ?? profileChannelArt.news;
           const pending = verify.isPending && verify.variables === channel.key;
           const failed = channelError?.key === channel.key;
           return <article className="captain-channel" key={channel.key}>
-            <div className="captain-channel-info"><Icon size={21} /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : `+${formatFc(channel.rewardFc)}`}</span></div>
+            <div className="captain-channel-info"><img className="captain-channel-art" src={channelImage} alt="" width={48} height={48} loading="lazy" /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : `+${formatFc(channel.rewardFc)}`}</span></div>
             {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><OceanControl type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></OceanControl></div> : <div className="captain-channel-actions"><OceanControl type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></OceanControl><OceanControl type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</OceanControl></div>}
             {failed && <p className="captain-channel-error">{channelError?.message}</p>}
           </article>;

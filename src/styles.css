@@ -4026,8 +4026,9 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .captain-cover-title h1 em { font-style:normal; color:hsl(var(--profile-accent)); }
 .captain-cover-title>i { display:block; width:48px; height:2px; margin-top:14px; background:hsl(var(--profile-accent)); }
 .captain-profile .captain-identity { padding-top:44px; gap:18px; }
-.captain-profile .captain-portrait { width:90px; height:90px; border:2px solid hsl(var(--profile-accent)); border-radius:50%; padding:5px; box-shadow:0 6px 22px hsl(var(--profile-shadow)/.5); background:hsl(var(--profile-ink)/.6); }
+.captain-profile .captain-portrait { width:90px; height:90px; border:0; padding:0; box-shadow:none; background:none; }
 .captain-profile .captain-portrait>img { border-radius:50%; }
+.captain-profile .captain-channel-art { width:48px; height:48px; object-fit:contain; flex-shrink:0; background:none; border:0; }
 .captain-profile .captain-name h2 { font-size:28px; text-shadow:0 2px 12px hsl(var(--profile-shadow)/.5); }
 .captain-content { position:relative; max-width:1040px; margin:-20px auto 0; padding:0 20px; z-index:2; }
 .captain-profile .captain-registry { padding:0 0 10px; background:none; color:hsl(var(--profile-muted)); border-bottom:1px solid hsl(var(--profile-rule)/.5); }

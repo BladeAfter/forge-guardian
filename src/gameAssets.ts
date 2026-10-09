@@ -77,6 +77,9 @@ import recruitAdventurer from './assets/recruit-adventurer.jpg';
 import recruitCrew from './assets/recruit-crew.jpg';
 import recruitFleet from './assets/recruit-fleet.jpg';
 import pirateCaptainProfile from './assets/pirate-captain-profile.jpg';
+import profileChannelNews from './assets/profile-channel-news.png';
+import profileChannelCommunity from './assets/profile-channel-community.png';
+import profileChannelPayments from './assets/profile-channel-payments.png';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
 import grandLineOcean from './assets/grand-line-ocean.jpg';
@@ -145,6 +148,7 @@ export const communityArt = { cove: pirateCommunityCove, treasure: pirateBerrySt
 export const marketArt = { port: pirateMarketPort, chest: '/assets/game/chests/common-chest.png', hero: voyageHeroArt.deckblade, pet: piratePetIcon };
 
 export const profileArt = { deck: pirateCaptainProfile, captain: pirateProfileIcon, pass: pirateSeasonPassIcon, treasure: pirateBerryStack };
+export const profileChannelArt: Record<string, string> = { news: profileChannelNews, community: profileChannelCommunity, payments: profileChannelPayments };
 
 export const recruitmentArt = { harbor: pirateRecruitHarbor, contracts: { 1: recruitAdventurer, 5: recruitCrew, 10: recruitFleet } };
 export const balanceArt = { berries: pirateBerryStack, ton: pirateTonCompass };
