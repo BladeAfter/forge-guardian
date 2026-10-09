@@ -15,6 +15,7 @@ import piratePvpIcon from './assets/home-icons/pirate-pvp.png';
 import piratePetIcon from './assets/home-icons/pirate-pet.png';
 import pirateHeroesIcon from './assets/home-icons/pirate-heroes.png';
 import pirateBerryCoin from './assets/pirate-berry-coin.png';
+import { voyageHeroArt } from './voyageArt';
 
 const gameAsset = (path: string) => `/assets/game/${path}`;
 
@@ -89,11 +90,11 @@ export const mythTokenCard = gameAsset('ui/myth-token-card.jpg');
 export const dragon = gameAsset('bosses/ancient-dragon.png');
 
 export const bossHeroes = [
-  { id: 'common', name: 'Espadachim', rarity: 'Comum', damage: 0.15, color: '#94a3b8', image: gameAsset('heroes/common-warrior.png') },
-  { id: 'uncommon', name: 'Arqueira', rarity: 'Incomum', damage: 0.25, color: '#4ade80', image: gameAsset('heroes/uncommon-archer.png') },
-  { id: 'rare', name: 'Guardião', rarity: 'Raro', damage: 0.4, color: '#60a5fa', image: gameAsset('heroes/rare-guardian.png') },
-  { id: 'epic', name: 'Maga Rúnica', rarity: 'Épico', damage: 0.7, color: '#c084fc', image: gameAsset('heroes/epic-mage.png') },
-  { id: 'legendary', name: 'Cavaleiro Dragão', rarity: 'Lendário', damage: 1.2, color: '#fbbf24', image: gameAsset('heroes/legendary-dragon-knight.png') }
+  { id: 'common', name: 'Espadachim', rarity: 'Comum', damage: 0.15, color: '#94a3b8', image: voyageHeroArt.deckblade },
+  { id: 'uncommon', name: 'Arqueira', rarity: 'Incomum', damage: 0.25, color: '#4ade80', image: voyageHeroArt.starshot },
+  { id: 'rare', name: 'Guardião', rarity: 'Raro', damage: 0.4, color: '#60a5fa', image: voyageHeroArt.anchorward },
+  { id: 'epic', name: 'Maga Rúnica', rarity: 'Épico', damage: 0.7, color: '#c084fc', image: voyageHeroArt.tempestcall },
+  { id: 'legendary', name: 'Cavaleiro Dragão', rarity: 'Lendário', damage: 1.2, color: '#fbbf24', image: voyageHeroArt.dawncaptain }
 ] as const;
 
 export const chests = [
