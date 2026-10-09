@@ -15,5 +15,5 @@ export function paymentCaption(notice: PaymentNotice) {
   const date = new Date(notice.occurred_at).toLocaleString('pt-BR', { timeZone: 'UTC' });
   const berries = notice.kind === 'deposit' && Number(notice.amount_fc) > 0
     ? `\n🪙 ${new Intl.NumberFormat('pt-BR').format(Number(notice.amount_fc))} BERRIES creditados` : '';
-  return `<b>${title} — ${amount} TON</b>${berries}\n👛 ${escape(wallet)}\n🕒 ${date} UTC\n🔗 <a href="https://tonviewer.com/transaction/${encodeURIComponent(notice.tx_hash)}">Ver transação na Tonviewer</a>\n\n#MythicSeas ${notice.kind === 'deposit' ? '#Deposito' : '#Saque'}`;
+  return `<b>${title} — ${amount} TON</b>${berries}\n👛 ${escape(wallet)}\n🔗 <a href="https://tonviewer.com/transaction/${encodeURIComponent(notice.tx_hash)}">Ver na Tonviewer</a>\n🕒 ${date} UTC\n#MythicSeasbot #payout`;
 }
