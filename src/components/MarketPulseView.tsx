@@ -27,7 +27,7 @@ export function MarketPulseView({ mine, maintenance = false }: { mine?: MarketMi
     row.quantity += entry.quantity; acc[entry.name] = row; return acc;
   }, {})).sort((a,b) => b.quantity - a.quantity).slice(0,3);
   const now = Date.now();
-  const values = example ? (currency === 'FC' ? [8000, 16000, 12000, 34000, 22000, 46000, 57000] : [.1,.4,.2,.8,.5,1,1.5]) : Array.from({length:7}, (_,i) => filtered.filter(e => {
+  const values = example ? (currency === 'FC' ? [0, 0, 0, 0, 0, 8000, 37000] : [0,0,0,0,0,0,.5]) : Array.from({length:7}, (_,i) => filtered.filter(e => {
     const days = Math.floor((now - Date.parse(e.date)) / 86400000); return days === 6-i;
   }).reduce((sum,e) => sum + e.amount,0));
   const max = Math.max(...values,1);
