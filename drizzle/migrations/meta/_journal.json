@@ -771,6 +771,13 @@
       "when": 1791577807101,
       "tag": "0109_naval_collision_and_safety",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1791577975125,
+      "tag": "0110_naval_authoritative_geometry",
+      "breakpoints": true
     }
   ]
 }

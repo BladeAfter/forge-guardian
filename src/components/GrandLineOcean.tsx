@@ -151,7 +151,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     if (docking.current !== null) return;
     const rect = event.currentTarget.getBoundingClientRect(); const s = state.current;
     const point={ x: (event.clientX - rect.left - rect.width / 2) / s.scale + s.camera.x, y: (event.clientY - rect.top - rect.height / 2) / s.scale + s.camera.y };
-    const hit=currentNetwork.current?.others.find(other => seaDistance(point,other)<SHIP_MODELS.find(m => m.id===other.model)?.size / 2 || seaDistance(point,other)<80);
+    const hit=currentNetwork.current?.others.find(other => seaDistance(point,other)<(SHIP_MODELS.find(m => m.id===other.model)?.size ?? 160) / 2);
     if(hit) { setSelected(hit.user_id);setInspecting(false);return; }
     setSelected(null);s.target = seaClickTarget(point);
   };
