@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Transformar a entrada GRAND LINE em oceano contínuo navegável com ilhas físicas, navios, descobertas e acesso às atividades existentes, sem alterar economia ou recompensas.
+
 - [x] Renovar o tema completo da Pool Comunitária e suas abas sem alterar valores, regras ou ações; arte, paleta, seleção de Eventos e retorno verificados isoladamente.
 
 - [x] Renovar o Mercado com visão de negociações, gráfico, ranking e histórico, mantendo a manutenção e identificando exemplos; gráficos, moeda e expansão testados isoladamente, sem pagamentos.
