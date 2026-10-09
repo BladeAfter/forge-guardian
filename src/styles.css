@@ -3787,12 +3787,11 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .crew-rarity-mythic { --crew-rarity: hsl(350 90% 73%); }
 .crew-contract-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 10px; }
 .crew-contract-option { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
-.crew-contract { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 12px 4px 0; border: 1px solid var(--crew-line); border-radius: 8px; background: linear-gradient(160deg,var(--crew-panel),var(--crew-ink)); color: var(--crew-paper); overflow: hidden; transition: transform .18s,border-color .18s; }
+.crew-contract { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0; border: 1px solid var(--crew-line); border-radius: 8px; background: linear-gradient(160deg,var(--crew-panel),var(--crew-ink)); color: var(--crew-paper); overflow: hidden; transition: transform .18s,border-color .18s; }
 .crew-contract:hover { transform: translateY(-2px); border-color: var(--crew-gold); }
 .crew-contract:active { transform: translateY(1px); }
 .crew-contract:focus-visible { outline: 2px solid var(--crew-gold); outline-offset: 3px; }
-.crew-contract-icon { color: var(--crew-gold); }
-.crew-contract-icon svg { width: 22px; height: 22px; }
+.crew-contract-art { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-bottom: 1px solid var(--crew-line); }
 .crew-contract>strong { font-size: 26px; line-height: 1.2; margin-top: 4px; font-weight: 950; }
 .crew-contract-name { font-size: 8px; font-weight: 900; color: var(--crew-muted); margin-top: 3px; }
 .crew-contract-price { font-size: 11px; color: var(--crew-gold); margin: 10px 0; font-weight: 900; }

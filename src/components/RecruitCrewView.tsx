@@ -45,7 +45,7 @@ export function RecruitCrewView({ odds, price, results, onRecruit, rarityLabel, 
           {([1, 5, 10] as const).map(count => (
             <div className="crew-contract-option" key={count}>
               <button type="button" className={`crew-contract ${count === 10 ? 'crew-contract-fleet' : ''}`} onClick={() => onRecruit(count)} aria-label={`Recrutar ${count} ${count === 1 ? 'herói' : 'heróis'} por ${formatCurrency(price(count))} BERRIES`}>
-                <span className="crew-contract-icon">{count === 1 ? <Compass /> : count === 5 ? <Swords /> : <Anchor />}</span>
+                <img className="crew-contract-art" src={recruitmentArt.contracts[count]} alt={count === 1 ? 'Aventureiro pirata no porto' : count === 5 ? 'Tripulação de cinco aventureiros' : 'Frota de navios piratas'} width={768} height={1024} loading="lazy" />
                 <strong>{count}×</strong>
                 <span className="crew-contract-name">{count === 1 ? 'AVENTUREIRO' : count === 5 ? 'TRIPULAÇÃO' : 'FROTA'}</span>
                 <span className="crew-contract-price">{formatCurrency(price(count))}<small>BERRIES</small></span>
