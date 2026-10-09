@@ -19,7 +19,7 @@
 - Gate game API and deposit reconciliation with the server-owned reset state; reject pre-epoch blockchain transactions after a reset to prevent old financial activity from recreating balances.
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
-- Keep PirateActionArena grounded, with proportional enemies, semantic tokens and gameAssets artwork; crew selection never uses airborne catalog art. Motion is cosmetic; only official callbacks change damage, HP or rewards. Unsupported powers stay locked.
+- Keep PirateActionArena grounded with proportional enemies and gameAssets artwork; selected crew and portraits share grounded voyage identities, defaulting to the first equipped slot. Never use airborne art. Motion is cosmetic; official callbacks own combat. Unsupported powers stay locked.
 - Present mascot egg catalogs as mysterious chests through `gameAssets.ts` and `MascotChestCard`; keep egg IDs, purchase actions, odds and settlement unchanged so the nautical theme cannot alter the economy.
 - Isolate season-pass presentation in SeasonVoyageView with shared artwork and semantic season tokens; keep official reward titles in details and all prices, claims and delivered reward types server-owned so nautical images cannot promise nonexistent ship or treasure-map utility.
 - Hide retired offer items through a shared presentation predicate without deleting ownership or settlement records so historical payments remain replay-safe.
