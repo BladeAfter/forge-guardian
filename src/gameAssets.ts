@@ -19,8 +19,11 @@ import { voyageHeroArt } from './voyageArt';
 import pirateRecruitHarbor from './assets/pirate-recruit-harbor.jpg';
 import pirateBerryStack from './assets/pirate-berry-stack.png';
 import pirateTonCompass from './assets/pirate-ton-compass.png';
+import recruitAdventurer from './assets/recruit-adventurer.jpg';
+import recruitCrew from './assets/recruit-crew.jpg';
+import recruitFleet from './assets/recruit-fleet.jpg';
 
-export const recruitmentArt = { harbor: pirateRecruitHarbor };
+export const recruitmentArt = { harbor: pirateRecruitHarbor, contracts: { 1: recruitAdventurer, 5: recruitCrew, 10: recruitFleet } };
 export const balanceArt = { berries: pirateBerryStack, ton: pirateTonCompass };
 
 const gameAsset = (path: string) => `/assets/game/${path}`;
