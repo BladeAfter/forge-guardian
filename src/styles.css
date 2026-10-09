@@ -57,7 +57,9 @@
   --season-art: 204 64% 86%;
 }
 
-.seas-season { z-index:10010; overflow-y:auto; background:hsl(var(--season-surface)); color:hsl(var(--season-paper)); font-family:inherit; }
+.fullscreen-page.seas-season { z-index:10010; overflow-y:auto; background:hsl(var(--season-surface)); color:hsl(var(--season-paper)); font-family:inherit; padding-top:0; }
+.mythreon-pirate .fullscreen-page.seas-season { background:hsl(var(--season-surface)) !important; }
+.season-reward.ocean-control:hover { background:hsl(var(--season-paper)); color:hsl(var(--season-ink)); border-color:hsl(var(--season-gold)); }
 .season-topbar { position:sticky; top:0; z-index:4; display:flex; align-items:center; gap:12px; padding:calc(12px + env(safe-area-inset-top)) 16px 12px; background:hsl(var(--season-surface)); border-bottom:1px solid hsl(var(--season-muted)/.2); }
 .season-topbar>div { display:flex; flex-direction:column; gap:3px; }.season-topbar span { color:hsl(var(--season-gold)); font-size:9px; }.season-topbar b { font-size:12px; }.season-topbar .season-level-chip { margin-left:auto; font-size:12px; }
 .season-cover { position:relative; height:300px; overflow:hidden; }.season-cover>img { width:100%; height:100%; object-fit:cover; object-position:60% 50%; }.season-cover-shade { position:absolute; inset:0; background:linear-gradient(0deg,hsl(var(--season-surface)),hsl(var(--season-surface)/.05) 85%); }.season-cover-title { position:absolute; bottom:26px; left:max(20px,calc((100% - 760px)/2)); right:20px; }.season-cover-title>span { color:hsl(var(--season-gold)); font-size:10px; font-weight:800; }.season-cover-title h1 { font-size:30px; font-weight:900; line-height:1.1; margin:8px 0; }.season-cover-title p { font-size:12px; }
