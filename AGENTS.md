@@ -1,5 +1,7 @@
 # Architecture Rules
 
+- Queue payment-channel notices in server-only database triggers on credited deposits and paid withdrawals, deliver through a secret-authenticated worker with atomic claims, and hold ambiguous sends for review; notifications must never mutate balances or enable financial workers.
+
 - Keep the pirate presentation centralized in semantic CSS tokens and `gameAssets.ts`; gameplay logic and page structure must remain theme-independent.
 - Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.
 - Keep crew management in CrewDeck with ship-scene selection and semantic crew tokens; map existing archetypes to cosmetic pirate roles, keep XP read-only and equipment server-owned, and omit fusion/inventory navigation so the redesign cannot invent progression or privileges.

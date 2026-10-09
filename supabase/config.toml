@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.ton-auto-withdraw]
 verify_jwt = false
+
+[functions.payment-channel]
+verify_jwt = false
