@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Refazer a arena do chefe global com cenário anime pirata, capitão do perfil, mascote físico, tripulação lateral e controles compactos; preservar dano, recompensas, equipe e tempos oficiais, sem inventar poderes não existentes.
+
 - [x] Liberar o acesso após o reinício: manutenção e bloqueio de reset desativados com autorização do usuário; marco financeiro do reinício preservado, saques automáticos e PvP naval não reativados. Carregamento real das telas no Telegram ainda não verificado.
 
 - [ ] Sistema de navios: seis modelos e skins, customização física, presença de jogadores reais, combate naval autoritativo, abordagem, progressão e reparos com materiais.
