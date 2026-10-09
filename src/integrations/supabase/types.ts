@@ -11530,6 +11530,87 @@ export type Database = {
           },
         ]
       }
+      payment_channel_health: {
+        Row: {
+          bot_username: string | null
+          checked_at: string | null
+          detail: string | null
+          id: boolean
+          ready: boolean
+        }
+        Insert: {
+          bot_username?: string | null
+          checked_at?: string | null
+          detail?: string | null
+          id?: boolean
+          ready?: boolean
+        }
+        Update: {
+          bot_username?: string | null
+          checked_at?: string | null
+          detail?: string | null
+          id?: boolean
+          ready?: boolean
+        }
+        Relationships: []
+      }
+      payment_channel_outbox: {
+        Row: {
+          amount_fc: number
+          amount_ton: number
+          attempts: number
+          claimed_at: string | null
+          created_at: string
+          id: string
+          kind: string
+          last_error: string | null
+          message_id: number | null
+          next_attempt_at: string
+          occurred_at: string
+          sent_at: string | null
+          source_id: string
+          status: string
+          tx_hash: string
+          wallet: string | null
+        }
+        Insert: {
+          amount_fc?: number
+          amount_ton: number
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          last_error?: string | null
+          message_id?: number | null
+          next_attempt_at?: string
+          occurred_at: string
+          sent_at?: string | null
+          source_id: string
+          status?: string
+          tx_hash: string
+          wallet?: string | null
+        }
+        Update: {
+          amount_fc?: number
+          amount_ton?: number
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          last_error?: string | null
+          message_id?: number | null
+          next_attempt_at?: string
+          occurred_at?: string
+          sent_at?: string | null
+          source_id?: string
+          status?: string
+          tx_hash?: string
+          wallet?: string | null
+        }
+        Relationships: []
+      }
       payment_recovery_audit: {
         Row: {
           action: string
@@ -25458,6 +25539,35 @@ export type Database = {
       }
       pass_versions_apply_due: { Args: never; Returns: undefined }
       pass_versions_run_scheduled: { Args: never; Returns: Json }
+      payment_channel_claim: {
+        Args: never
+        Returns: {
+          amount_fc: number
+          amount_ton: number
+          attempts: number
+          claimed_at: string | null
+          created_at: string
+          id: string
+          kind: string
+          last_error: string | null
+          message_id: number | null
+          next_attempt_at: string
+          occurred_at: string
+          sent_at: string | null
+          source_id: string
+          status: string
+          tx_hash: string
+          wallet: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "payment_channel_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      payment_channel_retry: { Args: never; Returns: undefined }
+      payment_channel_tick: { Args: never; Returns: undefined }
       payment_recovery_deliver: {
         Args: {
           p_admin_id: number
