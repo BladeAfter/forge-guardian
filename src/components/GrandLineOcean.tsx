@@ -54,6 +54,10 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
       const aim = wideRef.current ? { x: 1600, y: 1066 } : s.position;
       s.camera.x += (aim.x - s.camera.x) * Math.min(1, dt * 5); s.camera.y += (aim.y - s.camera.y) * Math.min(1, dt * 5);
       ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0); ctx.fillStyle = deep; ctx.fillRect(0, 0, width, height);
+      // Continue the sea beyond the authored archipelago without empty viewport bands.
+      if (ocean.complete && ocean.naturalWidth) {
+        ctx.drawImage(ocean, 980, 710, 110, 120, 0, 0, width, height);
+      }
       ctx.save(); ctx.translate(width / 2, height / 2); ctx.scale(s.scale, s.scale); ctx.translate(-s.camera.x, -s.camera.y);
       if (ocean.complete && ocean.naturalWidth) ctx.drawImage(ocean, 0, 0, SEA_SIZE.width, SEA_SIZE.height);
       const sprite = (p: SeaPoint, angle: number, size: number, enemy = false) => {
@@ -83,6 +87,7 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
         uiTime = time; setSpeed(s.moving ? 8 : 0);
         const index = SEA_ISLANDS.findIndex(i => seaDistance(s.position, i.dock) < 190); setNearby(index < 0 ? null : index);
         canvas.dataset.shipX = s.position.x.toFixed(0); canvas.dataset.shipY = s.position.y.toFixed(0);
+        canvas.dataset.cameraX = s.camera.x.toFixed(2); canvas.dataset.cameraY = s.camera.y.toFixed(2); canvas.dataset.scale = String(s.scale);
         if (!bottleFoundRef.current && seaDistance(s.position, {x:1850,y:1470}) < 80) { bottleFoundRef.current = true; setBottleFound(true); setMessage('Uma garrafa! “Na selva, procure a praia a leste da caverna.”'); }
         if (bottleFoundRef.current && !secretFoundRef.current && seaDistance(s.position, {x:1090,y:1450}) < 80) { secretFoundRef.current = true; setSecretFound(true); setMessage('Passagem secreta descoberta — Selva dos Segredos.'); }
       }

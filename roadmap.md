@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Transformar a entrada GRAND LINE em oceano contínuo navegável com ilhas físicas, navios, descobertas e acesso às atividades existentes, sem alterar economia ou recompensas.
+- [x] Criar a primeira experiência navegável de GRAND LINE: oceano, cinco ilhas físicas, navios animados, garrafa com pista, passagem secreta e atracação nas atividades existentes; navegação, descoberta e callbacks verificados isoladamente. Sem novas recompensas ou batalhas navais; acesso real pelo Telegram não verificado.
 
 - [x] Renovar o tema completo da Pool Comunitária e suas abas sem alterar valores, regras ou ações; arte, paleta, seleção de Eventos e retorno verificados isoladamente.
 
