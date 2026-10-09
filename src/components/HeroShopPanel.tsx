@@ -5,6 +5,7 @@ import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
 import { ArrowLeftRight, X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
 import { RecruitCrewView } from './RecruitCrewView';
+import { MarketPulseView } from './MarketPulseView';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
@@ -87,7 +88,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const marketOpen = tab === 'market' && marketAccess;
   useMarketRealtime(marketOpen);
   const browse = useMarketBrowse(telegramInitData, marketOpen && marketTab === 'browse', itemType, rarity, sort, currencyFilter);
-  const mine = useMarketMine(telegramInitData, marketOpen && marketTab === 'mine');
+  const mine = useMarketMine(telegramInitData, marketOpen);
   const sellable = useMarketSellable(telegramInitData, marketOpen && marketTab === 'sell');
 
   const settings = browse.data?.settings ?? mine.data?.settings ?? sellable.data?.settings;
@@ -299,7 +300,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     <div className="fullscreen-page flex items-center justify-center p-3">
 
 
-      <div className={`${tab === 'recruit' ? 'crew-shop-shell' : ''} relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl`}>
+      <div className={`${tab === 'recruit' ? 'crew-shop-shell' : 'market-port-shell'} relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl`}>
         <div className="crew-shop-header flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">Mythic Seas</p>
@@ -328,25 +329,13 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             />
 
           ) : !marketAccess ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
-              <div className="rounded-2xl border border-amber-300/20 bg-amber-400/10 p-6">
-                <Store className="mx-auto h-10 w-10 text-amber-300 opacity-60" />
-                <p className="mt-3 text-[10px] uppercase tracking-[0.25em] text-slate-400">{t('market.title')}</p>
-                <p className="mt-1 text-sm font-black uppercase tracking-[0.12em] text-amber-200">🛠 {t('market.maintenance')}</p>
-                <p className="mt-2 text-[10px] leading-relaxed text-slate-300">{status.data?.maintenanceMessage ?? t('market.maintenanceMessage')}</p>
-                <div className="mt-4 flex justify-center gap-2">
-                  <button onClick={() => void status.refetch()} className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-amber-200">
-                    <RefreshCw className="-mt-0.5 mr-1 inline h-3 w-3" />{t('market.retry')}
-                  </button>
-                  <button onClick={onClose} className="rounded-lg border border-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-                    {t('close')}
-                  </button>
-
-                </div>
-              </div>
+            <div>
+              <div className="market-maintenance-strip"><Lock size={16} /><div><strong>{t('market.maintenance')}</strong><p>{status.data?.maintenanceMessage ?? t('market.maintenanceMessage')}</p></div><button type="button" onClick={() => void status.refetch()} aria-label={t('market.retry')} title={t('market.retry')}><RefreshCw size={17} /></button></div>
+              <MarketPulseView maintenance />
             </div>
           ) : (
             <div>
+              <MarketPulseView mine={mine.data} />
               {/* MARKET ↔ AUCTION switch. The auction is a separate trading floor: internal TON only. */}
               <div className="mb-3 grid grid-cols-3 gap-1.5 rounded-2xl border border-white/10 bg-black/40 p-1">
                 {([['market', t('market.tabMarket')], ['auction', t('auction.tab')], ['private', t('privateTrade.tab')]] as const).map(([key, label]) => (
