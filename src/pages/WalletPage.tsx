@@ -16,7 +16,6 @@ import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
 import { useMythWallet, useMythRealtime, usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { MythTokenCard } from '../components/MythTokenCard';
-import { MythStakingCard } from '../components/MythStakingCard';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
@@ -311,8 +310,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
       {/* MYTH Token: decorative only — tapping it opens an informative popup, never a purchase/swap/withdraw flow. */}
       <MythTokenCard wallet={myth} />
 
-      {/* MYTH STAKING (internal, MYTH -> MYTH): compact card right below the MYTH token card. */}
-      <MythStakingCard initData={telegramInitData} enabled={backendEnabled} />
 
 
       <div className="rounded-2xl border border-white/10 bg-black/30 p-3">

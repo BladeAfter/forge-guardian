@@ -14,10 +14,7 @@ import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue
 import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
-import { TowerOfEternityPanel } from '../components/TowerOfEternityPanel';
-import FamiliarHuntSection from '../components/FamiliarHuntSection';
 
-type BossMode='global'|'tower'|'hunt';
 
 type OwnedHero={id:string;heroKey?:string;name:string;image?:string;rarity:HeroRarity;level:number;finalAtk?:number;finalHp?:number;power?:number;isNft?:boolean};
 type Props={game:GameState;lang:LanguageStrings;languageCode:LanguageCode;combat?:BossCombat;collection?:PvpHero[];collectionLoading?:boolean;collectionError?:string|null;syncing?:boolean;backendOfficial:boolean;isEquipping:boolean;telegramInitData?:string|null;onEquipHero:(heroId:string,slot:CombatSlot)=>Promise<BossCombat|void>;onRemoveHero?:(slot:CombatSlot)=>Promise<void>|void;onAttack?:()=>Promise<void>|void;isAttacking?:boolean;onOpenSeasonPass?:()=>void;onWallet?:()=>void;onClaimReward:()=>Promise<void>|void};
@@ -33,7 +30,6 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const [autoBusy,setAutoBusy]=useState(false);
   const [autoOverride,setAutoOverride]=useState<GlobalBossAutoAttackState|null>(null);
   const auto=autoOverride??combat?.autoAttack??null;
-  const [bossMode,setBossMode]=useState<BossMode>('global');
   const global=combat?.globalBoss??null;
   const ranking=useGlobalBossRanking(telegramInitData??null,Boolean(telegramInitData)&&isRankingOpen);
   
@@ -104,15 +100,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
-  const modeSelector=<div className="grid grid-cols-3 gap-1 rounded-2xl border border-amber-400/25 bg-black/60 p-1">
-    {([['global','🌍 GLOBAL BOSS'],['tower','🏰 TOWER'],['hunt','🐾 FAMILIAR HUNT']] as Array<[BossMode,string]>).map(([value,label])=>{
-      const active=bossMode===value;
-      return <button type="button" key={value} onClick={()=>setBossMode(value)} className={`min-h-9 rounded-xl text-[10px] font-black uppercase tracking-wide transition ${active?'border border-amber-300/70 bg-gradient-to-b from-amber-500/25 to-amber-900/40 text-amber-100':'text-slate-400'}`}>{label}</button>;
-    })}
-  </div>;
-  if(bossMode==='hunt')return <section className="space-y-3">{modeSelector}<FamiliarHuntSection initData={telegramInitData??''} onWallet={onWallet}/></section>;
-  if(bossMode==='tower')return <section className="space-y-3">{modeSelector}<TowerOfEternityPanel balance={game.balance} collection={collection} collectionLoading={collectionLoading} telegramInitData={telegramInitData}/></section>;
-  return <section className="space-y-3">{modeSelector}<div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
+  return <section className="space-y-3"><div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
 
     <img key={`arena-${theme.key}`} src={backgrounds.boss} alt="" aria-hidden className="gb-arena-art"/><div className="gb-arena-shade"/><div className="gb-arena-mist"/>
     {swap?<div className="gb-swap-overlay"><b>{swap==='defeated'?t('boss.swapDefeated'):t('boss.swapExpired')}</b><span>{t('boss.swapRewards')}</span><span>{t('boss.swapNext')}</span></div>:null}
