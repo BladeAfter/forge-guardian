@@ -1,4 +1,4 @@
-// MYTHREON :: Master Admin Bot (Telegram)
+// Mythic Seas :: Master Admin Bot (Telegram)
 // Every operation re-validates the super admin Telegram ID server-side (bot + database).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { toFriendlyTonAddress } from "../_shared/tonAddress.ts";
@@ -374,7 +374,7 @@ function fmtTon(value: unknown): string {
 
 // ---------------------------------------------------------------- views
 async function home(ctx: Ctx, editing = false) {
-  const text = "🎮 <b>MYTHREON ADMIN</b>\nControle total do jogo. Escolha um módulo:";
+  const text = "🎮 <b>Mythic Seas ADMIN</b>\nControle total do jogo. Escolha um módulo:";
   editing ? await edit(ctx, text, MAIN_MENU) : await send(ctx, text, MAIN_MENU);
 }
 
@@ -1337,7 +1337,7 @@ async function heroManagementHub(ctx: Ctx) {
       `Catálogo central: <b>${fmt(d.total)}</b> heróis.`,
       "",
       "Tudo por botões: nome, foto enviada aqui no Telegram, raridade, classe, stats e loja.",
-      "A imagem enviada aparece automaticamente em toda a Mythreon (loja, coleção, PvP, chefe, fusão, baús).",
+      "A imagem enviada aparece automaticamente em toda a Mythic Seas (loja, coleção, PvP, chefe, fusão, baús).",
     ].join("\n"),
     kb([
       [{ t: "➕ CREATE HERO", d: "hw:new" }],
@@ -1517,7 +1517,7 @@ async function hwSave(ctx: Ctx, draft: HeroDraft) {
   await clearSession(ctx);
   return send(
     ctx,
-    `✅ Herói salvo: <b>${esc(r.name)}</b>\n<code>${esc(r.hero_key)}</code> · ${esc(r.rarity)} · ⚔️ ${fmt(r.base_atk)} · ❤️ ${fmt(r.base_hp)}${r.in_shop ? ` · 🛒 ${fmt(r.price_fc)} FC` : ""}\n\nJá disponível na Mythreon (sem deploy).`,
+    `✅ Herói salvo: <b>${esc(r.name)}</b>\n<code>${esc(r.hero_key)}</code> · ${esc(r.rarity)} · ⚔️ ${fmt(r.base_atk)} · ❤️ ${fmt(r.base_hp)}${r.in_shop ? ` · 🛒 ${fmt(r.price_fc)} FC` : ""}\n\nJá disponível na Mythic Seas (sem deploy).`,
     kb([[{ t: "✏️ EDITAR ESTE HERÓI", d: `hw:e:${r.hero_key}` }], [{ t: "🦸 HERO MANAGEMENT", d: "m:heroes" }], nav()]),
   );
 }
@@ -1880,7 +1880,7 @@ async function clansHub(ctx: Ctx) {
   const total = (d.clans || []).length;
   return edit(
     ctx,
-    `🏰 <b>CLÃS</b>\nGestão completa dos clãs do Mythreon.\nClãs listados: <b>${fmt(total)}</b>${total ? `\n\n🥇 ${clanRow(d.clans[0])}` : ""}`,
+    `🏰 <b>CLÃS</b>\nGestão completa dos clãs do Mythic Seas.\nClãs listados: <b>${fmt(total)}</b>${total ? `\n\n🥇 ${clanRow(d.clans[0])}` : ""}`,
     kb([
       [
         { t: "📋 ALL CLANS", d: "cl:all" },
@@ -4017,7 +4017,7 @@ function connectedWalletsText(items: any[]) {
 }
 
 // ---------------------------------------------------------------- payout announcements (payments channel)
-// The receipt must be posted by the MYTHREON game bot, so the game token comes first.
+// The receipt must be posted by the Mythic Seas game bot, so the game token comes first.
 const GAME_BOT_TOKEN = (
   Deno.env.get("TELEGRAM_BOT_TOKEN_GAME") ||
   Deno.env.get("TELEGRAM_GAME_BOT_TOKEN") ||
@@ -4189,7 +4189,7 @@ async function handlePayoutAnnouncements(ctx: Ctx, action: string) {
       );
     const res = await tgAs(GAME_BOT_TOKEN, "sendMessage", {
       chat_id: chatId,
-      text: "✅ <b>Mythreon Payments Channel Connected</b>",
+      text: "✅ <b>Mythic Seas Payments Channel Connected</b>",
       parse_mode: "HTML",
     });
     return send(
@@ -4943,7 +4943,7 @@ const PROMPTS: Record<string, string> = {
   npcfg30: "💠 Envie o novo rendimento diário do tier 30 TON. Ex.: <code>0.8</code>",
   npcfgmin: "💠 Envie o valor mínimo de resgate em TON. Ex.: <code>0.01</code>",
   nftmint: "💎 Envie <code>slug quantidade</code> para criar novas unidades.\nEx.: <code>ignarion 3</code>",
-  ptname: "🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>MYTHREON NEWS</code>",
+  ptname: "🤝 Envie o <b>nome</b> do parceiro (é o único texto que o jogador vê).\nEx.: <code>Mythic Seas NEWS</code>",
   ptreward: "🪙 Envie a <b>recompensa em FC</b> paga uma única vez por jogador.\nEx.: <code>500</code>",
   pturl: "🔗 <b>Envie o link do parceiro/canal</b>\nEx.: <code>https://t.me/seucanal</code>",
   ptchat: "🆔 Envie o <b>CHAT ID</b> do canal/grupo (não é o link).\nEx.: <code>-1001234567890</code>",
@@ -5029,7 +5029,7 @@ const PROMPTS: Record<string, string> = {
   cltrophy: "Envie o mínimo de troféus para entrar no clã. Ex.: <code>500</code>",
   find: "Envie Telegram ID, @usuário, nome, carteira ou ID interno.",
   tonadj:
-    "💎 <b>AJUSTAR TON</b>\n\nEnvie o <b>Telegram ID</b> do jogador.\nEx.: <code>8118569391</code>\n\n<i>Ajusta apenas o saldo TON interno/sacável do Mythreon. Não altera Hot Wallet nem carteira externa.</i>",
+    "💎 <b>AJUSTAR TON</b>\n\nEnvie o <b>Telegram ID</b> do jogador.\nEx.: <code>8118569391</code>\n\n<i>Ajusta apenas o saldo TON interno/sacável do Mythic Seas. Não altera Hot Wallet nem carteira externa.</i>",
   pachat:
     "Envie o <b>chat id</b> do canal de pagamentos (ex.: <code>-1004303374351</code>) ou @canalpublico.\nO bot do jogo precisa ser administrador do canal com permissão de envio.",
   passuser: "Envie Telegram ID, @usuário, nome, carteira ou ID interno do jogador para gerenciar o Battle Pass.",
@@ -7473,14 +7473,14 @@ async function mythCallback(ctx: Ctx, rest: string[]) {
 }
 
 // ---------------------------------------------------------------- 🔒 MYTH STAKING (interno)
-// Staking do ecossistema Mythreon: MYTH -> MYTH, sem smart contract e sem criar supply.
+// Staking do ecossistema Mythic Seas: MYTH -> MYTH, sem smart contract e sem criar supply.
 // Toda recompensa sai do REWARD POOL reservado; ligar/desligar aqui vale na hora, sem deploy.
 async function stakingHub(ctx: Ctx, useEdit = true) {
   const d = (await rpc("admin_myth_staking_overview", { p_admin_id: ctx.adminId })) as any;
   const plans = (d.plans ?? []) as any[];
   const text = [
     "🔒 <b>MYTH STAKING</b>",
-    "<i>Mythreon Ecosystem Staking · interno · MYTH → MYTH</i>",
+    "<i>Mythic Seas Ecosystem Staking · interno · MYTH → MYTH</i>",
     "",
     `STATUS: <b>${d.enabled ? "✅ ACTIVE" : "⛔ OFF (Coming Soon)"}</b>`,
     `NOVOS STAKES: <b>${d.newStakesPaused ? "⏸ PAUSADOS" : "▶️ LIBERADOS"}</b> · RESGATES: <b>${d.claimsEnabled ? "✅ ON" : "⛔ OFF"}</b>`,
@@ -7698,7 +7698,7 @@ async function fhPrompt(ctx: Ctx, key: string, text: string) {
   return fhHub({ ...ctx, messageId: undefined }, false);
 }
 
-// ---------------------------------------------------------------- 👑 MYTHREON FOUNDER PACK (25 TON)
+// ---------------------------------------------------------------- 👑 Mythic Seas FOUNDER PACK (25 TON)
 
 // Pacote único para contas novas. Preço, janela, conteúdo e cosméticos vivem no banco:
 // tudo aqui é leitura/escrita de configuração — nenhuma recompensa é entregue pelo bot.
@@ -7707,7 +7707,7 @@ async function fpHub(ctx: Ctx, useEdit = true) {
   const recent = (d.recent ?? []) as any[];
   const rc = d.resourceChest ?? {};
   const text = [
-    "👑 <b>MYTHREON FOUNDER PACK</b>",
+    "👑 <b>Mythic Seas FOUNDER PACK</b>",
     "<i>Exclusivo para contas novas · 1 compra por conta · entrega automática</i>",
     "",
     `<b>Status:</b> ${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"} · <b>Versão:</b> v${fmt(d.packVersion)}`,
@@ -7801,7 +7801,7 @@ async function fpPrompt(ctx: Ctx, key: string, text: string) {
   return fpHub({ ...ctx, messageId: undefined }, false);
 }
 
-// ---------------------------------------------------------------- ⚔️ MYTHREON VETERAN VAULT (45-day cycle)
+// ---------------------------------------------------------------- ⚔️ Mythic Seas VETERAN VAULT (45-day cycle)
 // Oferta para jogadores ANTIGOS. Preço, idade mínima, conteúdo, cronograma de rewards e o
 // financiamento dos pools (TON real / MYTH da reserva oficial) vivem no banco: o bot só configura.
 // Nenhuma venda é permitida sem reserva de TON/MYTH suficiente no Veteran Reward Pool.
@@ -7814,7 +7814,7 @@ async function vvHub(ctx: Ctx, useEdit = true) {
     .map(([day, value]) => `D${day}: ${fmt(value)}`)
     .join(" · ");
   const text = [
-    "⚔️ <b>MYTHREON VETERAN VAULT</b>",
+    "⚔️ <b>Mythic Seas VETERAN VAULT</b>",
     "<i>Somente jogadores antigos · 1 compra por versão · ciclo de recompensas</i>",
     "",
     `<b>Status:</b> ${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}${d.salesPaused ? " · ⏸ VENDAS PAUSADAS" : ""}`,
@@ -8207,7 +8207,7 @@ async function vv2Hub(ctx: Ctx, useEdit = true) {
   const tpl = d.templates ?? {};
   const recent = (d.recent ?? []) as any[];
   const text = [
-    "⚔️ <b>MYTHREON VETERAN VAULT</b>",
+    "⚔️ <b>Mythic Seas VETERAN VAULT</b>",
     "<i>Pacote premium · 1 compra por conta · mineração exclusiva em MYTH</i>",
     "",
     `<b>Status:</b> ${d.enabled ? "✅ ATIVO" : "⛔ DESATIVADO"}${d.salesPaused ? " · ⏸ VENDAS PAUSADAS" : ""}`,
@@ -12280,7 +12280,7 @@ async function heroProgressionPrompt(ctx: Ctx, key: string, args: string[], text
     await clearSession(ctx);
     await send(
       ctx,
-      `✅ <b>${esc(field)}</b>${target && target !== "-" ? ` · <code>${esc(target)}</code>` : ""} atualizado para <b>${Math.round(value)}</b>.\nAplicado na Mythreon imediatamente (sem deploy).`,
+      `✅ <b>${esc(field)}</b>${target && target !== "-" ? ` · <code>${esc(target)}</code>` : ""} atualizado para <b>${Math.round(value)}</b>.\nAplicado na Mythic Seas imediatamente (sem deploy).`,
     );
     return heroProgressionHub({ ...ctx, messageId: undefined }, false);
   }

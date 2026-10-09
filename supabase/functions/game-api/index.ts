@@ -97,7 +97,7 @@ export async function telegramLiveDisplayName(telegramUserId: number): Promise<s
   }
 }
 
-/** Exact hashtag token match, case-insensitive. "#MythreonFake" and "Mythreon" never match. */
+/** Exact hashtag token match, case-insensitive. "#MythreonFake" and "Mythic Seas" never match. */
 export function hashtagPresent(displayName: string, hashtag: string): boolean {
   const tag = String(hashtag || '').replace(/^#+/, '').trim().toLowerCase();
   if (!tag) return false;
@@ -202,7 +202,7 @@ const json = (body: unknown, status = 200) =>
 function serviceClient() {
   const url = Deno.env.get('SUPABASE_URL');
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!url || !key) throw new Error('O backend do MYTHREON não está configurado.');
+  if (!url || !key) throw new Error('O backend do Mythic Seas não está configurado.');
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
@@ -1711,7 +1711,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
 
 
 
-  // ---------------- 👑 MYTHREON FOUNDER PACK (25 TON, new players only) ----------------
+  // ---------------- 👑 Mythic Seas FOUNDER PACK (25 TON, new players only) ----------------
   // Eligibility, price, snapshot, payment and delivery are 100% server-side.
   // ---------------- 💫 CELESTIAL MYSTERY PACK (100 TON) ----------------
   // Estoque real (Celestiais sem dono), entrega atômica e mineração "a ser revelada" vivem no banco.
@@ -1753,7 +1753,7 @@ async function handleWallet(db: Db, user: TelegramUser, body: Record<string, any
     args = { ...args, p_wallet_address: toFriendlyTonAddress(body.walletAddress), p_idempotency_key: `founder:${user.id}:${String(body.idempotencyKey || crypto.randomUUID())}` };
   } else if (action === 'founder-pack-verify') {
     return await verifyFounderPackPurchases(db, user);
-  // ---------------- ⚔️ MYTHREON VETERAN VAULT (55 TON, veteran players only) ----------------
+  // ---------------- ⚔️ Mythic Seas VETERAN VAULT (55 TON, veteran players only) ----------------
   // Eligibility (account age / pre-launch account), price, reward pools, 45-day cycle and every
   // credited TON/MYTH are owned by the database. The client only displays server truth.
   } else if (action === 'veteran-vault') {
@@ -2433,7 +2433,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
-   * Promotional campaign popup (e.g. MYTHREON GIVEAWAY). Shown ONCE per player per
+   * Promotional campaign popup (e.g. Mythic Seas GIVEAWAY). Shown ONCE per player per
    * campaign_id: switching the campaign id in settings starts a new campaign for everyone.
    * It never grants rewards — it is promotional only.
    */
@@ -3032,7 +3032,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     throw new Error('Ação inválida.');
   },
 
-  /** MYTHREON ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
+  /** Mythic Seas ARSENAL: the player's full equipment collection (normal + NFT 1/1). */
   arsenal: async (db, user) => await rpc(db, 'arsenal_json', { p_telegram_id: user.id }),
 
 
@@ -3229,7 +3229,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
   },
 
   /**
-   * 🏰 MYTHREON REALM — Stronghold, world map, expeditions, crafting, Ancient Ruins and
+   * 🏰 Mythic Seas REALM — Stronghold, world map, expeditions, crafting, Ancient Ruins and
    * daily bounties. Soft launch: only Telegram IDs allowed by `realm_access_allowed`
    * (admin list in game_settings) can reach this route. Every timer, cost and reward roll
    * is decided by the database; the client only renders committed state.
@@ -3324,7 +3324,7 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
 async function healthReport() {
   const report: Record<string, unknown> = {
     ok: false,
-    app: 'MYTHREON',
+    app: 'Mythic Seas',
     backend: 'online',
     database: 'offline',
     telegram_auth: gameBotToken() ? 'configured' : 'missing',

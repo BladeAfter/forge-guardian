@@ -1,10 +1,10 @@
 import type { LocaleBundle } from './registry';
 
-/** nameMission namespace: "ADD #Mythic Seas TO YOUR TELEGRAM NAME" promo mission. */
+/** nameMission namespace: "ADD #Mythreon TO YOUR TELEGRAM NAME" promo mission. */
 export const nameMission: LocaleBundle = {
   en: {
-    'nameMission.title': 'ADD #Mythic Seas TO YOUR TELEGRAM NAME',
-    'nameMission.description': 'Add #Mythic Seas to your Telegram display name and verify it to claim your reward.',
+    'nameMission.title': 'ADD #Mythreon TO YOUR TELEGRAM NAME',
+    'nameMission.description': 'Add #Mythreon to your Telegram display name and verify it to claim your reward.',
     'nameMission.how': 'HOW TO DO IT',
     'nameMission.verify': 'VERIFY & CLAIM',
     'nameMission.verifying': 'VERIFYING...',
@@ -23,8 +23,8 @@ export const nameMission: LocaleBundle = {
     'nameMission.verifiedName': 'Verified name: {name}',
   },
   pt: {
-    'nameMission.title': 'ADICIONE #Mythic Seas AO SEU NOME DO TELEGRAM',
-    'nameMission.description': 'Adicione #Mythic Seas ao seu nome de exibição do Telegram e verifique para receber a recompensa.',
+    'nameMission.title': 'ADICIONE #Mythreon AO SEU NOME DO TELEGRAM',
+    'nameMission.description': 'Adicione #Mythreon ao seu nome de exibição do Telegram e verifique para receber a recompensa.',
     'nameMission.how': 'COMO FAZER',
     'nameMission.verify': 'VERIFICAR & RESGATAR',
     'nameMission.verifying': 'VERIFICANDO...',
@@ -43,8 +43,8 @@ export const nameMission: LocaleBundle = {
     'nameMission.verifiedName': 'Nome verificado: {name}',
   },
   es: {
-    'nameMission.title': 'AÑADE #Mythic Seas A TU NOMBRE DE TELEGRAM',
-    'nameMission.description': 'Añade #Mythic Seas a tu nombre visible de Telegram y verifícalo para reclamar tu recompensa.',
+    'nameMission.title': 'AÑADE #Mythreon A TU NOMBRE DE TELEGRAM',
+    'nameMission.description': 'Añade #Mythreon a tu nombre visible de Telegram y verifícalo para reclamar tu recompensa.',
     'nameMission.how': 'CÓMO HACERLO',
     'nameMission.verify': 'VERIFICAR Y RECLAMAR',
     'nameMission.verifying': 'VERIFICANDO...',
@@ -63,8 +63,8 @@ export const nameMission: LocaleBundle = {
     'nameMission.verifiedName': 'Nombre verificado: {name}',
   },
   ru: {
-    'nameMission.title': 'ДОБАВЬТЕ #Mythic Seas В ИМЯ В TELEGRAM',
-    'nameMission.description': 'Добавьте #Mythic Seas в отображаемое имя Telegram и подтвердите, чтобы получить награду.',
+    'nameMission.title': 'ДОБАВЬТЕ #Mythreon В ИМЯ В TELEGRAM',
+    'nameMission.description': 'Добавьте #Mythreon в отображаемое имя Telegram и подтвердите, чтобы получить награду.',
     'nameMission.how': 'КАК СДЕЛАТЬ',
     'nameMission.verify': 'ПРОВЕРИТЬ И ПОЛУЧИТЬ',
     'nameMission.verifying': 'ПРОВЕРКА...',
@@ -83,8 +83,8 @@ export const nameMission: LocaleBundle = {
     'nameMission.verifiedName': 'Проверенное имя: {name}',
   },
   tr: {
-    'nameMission.title': 'TELEGRAM ADINIZA #Mythic Seas EKLEYİN',
-    'nameMission.description': 'Telegram görünen adınıza #Mythic Seas ekleyin ve ödülünüzü almak için doğrulayın.',
+    'nameMission.title': 'TELEGRAM ADINIZA #Mythreon EKLEYİN',
+    'nameMission.description': 'Telegram görünen adınıza #Mythreon ekleyin ve ödülünüzü almak için doğrulayın.',
     'nameMission.how': 'NASIL YAPILIR',
     'nameMission.verify': 'DOĞRULA VE AL',
     'nameMission.verifying': 'DOĞRULANIYOR...',
