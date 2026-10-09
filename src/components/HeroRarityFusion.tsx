@@ -8,7 +8,7 @@ import { useT, useLanguage } from '../LanguageContext';
 
 const fmt = (value: number) => new Intl.NumberFormat('pt-BR').format(Math.round(value || 0));
 const SLOTS = [0, 1, 2, 3, 4];
-const FILTERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral'];
+const FILTERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
 
 /** Compact 48px slot used in the horizontal selection bar. */
 function SlotChip({ hero, index, onClear }: { hero: RarityFusionHero | null; index: number; onClear: () => void }) {

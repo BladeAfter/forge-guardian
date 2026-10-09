@@ -942,9 +942,8 @@ const RARITY_LABEL: Record<string, string> = {
   epic: "ÉPICO",
   legendary: "LENDÁRIO",
   mythic: "MÍTICO",
-  ancestral: "ANCESTRAL",
 };
-const RARITY_ORDER = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "ancestral"];
+const RARITY_ORDER = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
 const pct = (n: unknown) => Number(n ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 4 });
 
 type HeroShopOverview = {
@@ -1282,7 +1281,6 @@ const HW_RARITIES: [string, string][] = [
   ["epic", "🟣 EPIC"],
   ["legendary", "🟡 LEGENDARY"],
   ["mythic", "🔴 MYTHIC"],
-  ["ancestral", "🌟 ANCESTRAL"],
 ];
 const HW_CLASSES: [string, string][] = [
   ["warrior", "⚔️ Warrior"],
@@ -5053,7 +5051,7 @@ const PROMPTS: Record<string, string> = {
   rfpool: "Envie: <code>hero_key on|off</code> para incluir/excluir o herói do sorteio da Rarity Fusion.",
   rfaudit: "Envie Telegram ID, @usuário, nome, carteira ou ID interno para filtrar a auditoria de fusões.",
   rates:
-    'Envie as chances em JSON (total 100). Ex.: <code>{"comum":45,"incomum":25,"raro":15,"epico":8,"lendario":5,"mitico":1.5,"ancestral":0.5}</code>',
+    'Envie as chances em JSON (total 100). Ex.: <code>{"comum":45,"incomum":25,"raro":15,"epico":8,"lendario":5,"mitico":2}</code>',
   granthero: "Envie: <code>usuário hero_key [nível]</code>",
   pet: 'Envie: <code>slug {json}</code> — ex.: <code>pyron {"name":"Pyron","category":"fire","is_enabled":true}</code>',
   food: 'Envie: <code>code {json}</code> — ex.: <code>racao {"name":"Ração","xp_value":50,"rarity":"comum","enabled":true}</code>',
@@ -5458,7 +5456,7 @@ async function bossRanking(ctx: Ctx) {
 }
 
 // ---------------------------------------------------------------- user management hub
-const RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "ancestral"];
+const RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
 
 async function userFcMenu(ctx: Ctx, tg: string) {
   const p = (await rpc("admin_player_detail", { p_admin_id: ctx.adminId, p_ref: tg })) as any;
@@ -5625,7 +5623,6 @@ const GIFT_RARITIES: [string, string][] = [
   ["epico", "Épico"],
   ["lendario", "Lendário"],
   ["mitico", "Mítico"],
-  ["ancestral", "Ancestral"],
 ];
 
 type GiftItem = { key: string; label: string; sub?: string };
