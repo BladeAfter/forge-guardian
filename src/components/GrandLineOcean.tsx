@@ -14,9 +14,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const joystickKnob = useRef<HTMLSpanElement>(null);
   const joystickPointer = useRef<number | null>(null);
   const joystickVector = useRef({ x: 0, y: 0 });
+  const autopilot = useRef(false);
   const resetJoystick = () => {
     joystickPointer.current = null;
     joystickVector.current = { x: 0, y: 0 };
+    autopilot.current = false;
     if (joystickKnob.current) joystickKnob.current.style.transform = 'translate(0px, 0px)';
     state.current.target = { ...state.current.position };
   };
@@ -70,6 +72,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       const dx = yardRef.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
       const dy = yardRef.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
       if (dx || dy) s.target = { x: s.position.x + dx * 120, y: s.position.y + dy * 120 };
+      else if (!autopilot.current && !docking.current) s.target = { ...s.position };
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
       const live = currentNetwork.current;
       if (live) {
@@ -87,7 +90,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         frame=requestAnimationFrame(render);return;
       }
       if (time - uiTime > 180) {
-        uiTime = time; setSpeed(s.moving ? Math.round(8*throttleRef.current) : 0);
+        uiTime = time; setSpeed(live ? Math.round(8 * live.ship.throttle) : Math.round(Math.hypot(s.velocity.x, s.velocity.y) / 122 * 8));
         setNearby(seaIslandsAround(s.position, 1).find(i => seaDistance(s.position, i.dock) < 190) ?? null);
         const canvas = canvasRef.current;
         if (!canvas) { frame=requestAnimationFrame(render);return; }
@@ -105,7 +108,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
 
   const sail = (point: SeaPoint) => {
     if (docking.current !== null) return;
-    setSelected(null); state.current.target = seaClickTarget(point);
+    setSelected(null); autopilot.current = true; state.current.target = seaClickTarget(point);
   };
   const island = nearby;
   const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
