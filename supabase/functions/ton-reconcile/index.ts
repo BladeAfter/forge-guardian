@@ -54,6 +54,13 @@ Deno.serve(async req => {
     const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
+    const reset = await db.from('game_settings').select('value').eq('key', 'game_reset_in_progress').maybeSingle();
+    if (reset.error) throw new Error('Reset availability check failed');
+    if (reset.data?.value === true) return json({ ok: true, skipped: 'game_reset' });
+    const epoch = await db.from('game_settings').select('value').eq('key', 'game_reset_epoch').maybeSingle();
+    if (epoch.error) throw new Error('Reset epoch check failed');
+    const epochSeconds = epoch.data?.value ? Date.parse(String(epoch.data.value)) / 1000 : 0;
+
     const settings = await db.from('wallet_settings').select('value_text').eq('key', 'ton_hot_wallet').maybeSingle();
     const hotWallet = String(settings.data?.value_text || Deno.env.get('TON_HOT_WALLET') || '').trim();
     if (!hotWallet) return json({ error: 'Hot wallet is not configured.' }, 503);
@@ -70,7 +77,7 @@ Deno.serve(async req => {
     const deposits = pending.data ?? [];
     
 
-    const transactions = await fetchIncoming(hotWallet);
+    const transactions = (await fetchIncoming(hotWallet)).filter(tx => !epochSeconds || Number(tx?.now ?? 0) >= epochSeconds);
     const used = new Set<string>();
     const credited: string[] = [];
     const stillPending: string[] = [];

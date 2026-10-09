@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { petDisplayRarity } from '../petLabels';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
-import { ArrowLeftRight, X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
+import { X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
 import { RecruitCrewView } from './RecruitCrewView';
 import { MarketPulseView } from './MarketPulseView';
 import { useT } from '../LanguageContext';
@@ -21,7 +21,7 @@ import {
 import { MARKET_SELL_CATEGORIES, marketFeeSplit, marketKindForCategory, marketMinPriceTon, marketPriceLabel, type MarketCurrency, type MarketItemType, type MarketLockReason, type MarketSellCategory, type MarketSort } from '../market';
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { encodeCommentPayload } from '../tonComment';
-import { PrivateTradePanel } from './PrivateTradePanel';
+import { OceanControl } from './OceanControl';
 import { AuctionPanel } from './AuctionPanel';
 import { ItemDetailsModal } from './ItemDetailsModal';
 import { sendTonPayment } from '../tonPayment';
@@ -64,7 +64,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
   // Trading floor: the classic Market (FC/TON) or the Auction (internal TON only).
-  const [section, setSection] = useState<'market' | 'auction' | 'private'>('market');
+  const [section, setSection] = useState<'market' | 'auction'>('market');
   const [marketTab, setMarketTab] = useState<'browse' | 'mine' | 'sell'>('browse');
   const [itemType, setItemType] = useState<MarketItemType | 'all'>('all');
   const [rarity, setRarity] = useState<string>('all');
@@ -304,7 +304,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         <div className="crew-shop-header flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">Mythic Seas</p>
-            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? t('market.tabMarket') : t('shop')}</h2>
+            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? 'Bazar do Porto' : t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} BERRIES</span>
@@ -337,27 +337,21 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             <div>
               <MarketPulseView mine={mine.data} />
               {/* MARKET ↔ AUCTION switch. The auction is a separate trading floor: internal TON only. */}
-              <div className="mb-3 grid grid-cols-3 gap-1.5 rounded-2xl border border-white/10 bg-black/40 p-1">
-                {([['market', t('market.tabMarket')], ['auction', t('auction.tab')], ['private', t('privateTrade.tab')]] as const).map(([key, label]) => (
-                  <button
+              <div className="seas-trading-tabs" role="tablist" aria-label="Negociações do porto">
+                {([['market', 'Bazar do Porto'], ['auction', 'Pregão dos Piratas']] as const).map(([key, label]) => (
+                  <OceanControl
                     key={key}
-                    type="button"
+                    role="tab"
+                    aria-selected={section === key}
                     onClick={() => setSection(key)}
-                    className={`rounded-xl px-1 py-2 text-[10px] font-black uppercase tracking-[.12em] ${section === key
-                      ? key === 'auction' ? 'bg-gradient-to-b from-sky-300 to-cyan-500 text-black'
-                        : key === 'private' ? 'bg-gradient-to-b from-fuchsia-300 to-purple-500 text-black'
-                        : 'bg-gradient-to-b from-amber-300 to-orange-500 text-black'
-                      : 'text-slate-300'}`}
+                    className={`seas-trading-tab ${section === key ? 'seas-trading-tab-active' : ''}`}
                   >
-                    {key === 'auction' ? <Gavel className="-mt-0.5 mr-1 inline h-3 w-3" />
-                      : key === 'private' ? <ArrowLeftRight className="-mt-0.5 mr-1 inline h-3 w-3" />
-                      : <Store className="-mt-0.5 mr-1 inline h-3 w-3" />}{label}
-                  </button>
+                    {key === 'auction' ? <Gavel size={16} /> : <Store size={16} />}{label}
+                  </OceanControl>
                 ))}
               </div>
 
-              {section === 'private' ? <PrivateTradePanel telegramInitData={telegramInitData} />
-                : section === 'auction' ? <AuctionPanel telegramInitData={telegramInitData} /> : (<>
+              {section === 'auction' ? <AuctionPanel telegramInitData={telegramInitData} /> : (<>
 
               {status.data && !status.data.enabled ? (
                 <div className="mb-2 flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1.5">
@@ -370,8 +364,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
 
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-black text-white">{t('market.title')}</p>
-                  <p className="text-[9px] text-slate-400">{t('market.subtitle')}</p>
+                  <p className="seas-trading-title">Bazar do Porto</p>
+                  <p className="seas-trading-subtitle">Tesouros da tripulação · BERRIES e TON</p>
                 </div>
                 <button
                   onClick={() => setMarketTab(marketTab === 'mine' ? 'browse' : 'mine')}

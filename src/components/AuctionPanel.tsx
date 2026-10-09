@@ -126,8 +126,8 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
 
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-sm font-black text-white"><Gavel className="h-3.5 w-3.5 text-sky-300" />{t('auction.title')}</p>
-          <p className="text-[9px] text-slate-400">{t('auction.subtitle')}</p>
+          <p className="seas-trading-title flex items-center gap-1.5"><Gavel size={16} />Pregão dos Piratas</p>
+          <p className="seas-trading-subtitle">Relíquias em disputa · lances em TON</p>
         </div>
         <span className="shrink-0 rounded-full border border-sky-300/40 bg-sky-500/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.14em] text-sky-200">{t('auction.tonOnly')}</span>
       </div>

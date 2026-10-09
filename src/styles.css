@@ -71,6 +71,11 @@
 .ocean-discovery span { color: hsl(var(--ocean-gold)); font-size: 9px; font-weight: 800; }
 .ocean-discovery p { margin-top: 4px; font-size: 12px; line-height: 1.5; }
 .ocean-coordinate { position: absolute; bottom: calc(10px + var(--tg-safe-area-inset-bottom)); left: 20px; font-size: 8px; color: hsl(var(--ocean-foam) / .7); text-shadow: 0 2px 4px hsl(var(--ocean-shadow)); }
+.seas-trading-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-bottom: 14px; border-bottom: 1px solid hsl(var(--ocean-line) / .3); padding-bottom: 10px; }
+.seas-trading-tabs .seas-trading-tab { min-height: 48px; font-size: 11px; font-weight: 800; box-shadow: none; white-space: normal; text-align: left; }
+.seas-trading-tabs .seas-trading-tab-active { color: hsl(var(--ocean-gold)); border-color: hsl(var(--ocean-gold) / .7); background: hsl(var(--pirate-sea) / .25); }
+.seas-trading-title { color: hsl(var(--ocean-foam)); font-size: 14px; font-weight: 900; }
+.seas-trading-subtitle { color: hsl(var(--ocean-line)); font-size: 10px; line-height: 1.5; margin-top: 2px; }
 @media (max-width: 540px) { .ocean-hud { left: 12px; right: 12px; gap: 8px; } .ocean-brand h1 { font-size: 18px; } .ocean-brand > span { font-size: 8px; } .ocean-berries { padding: 8px 6px; font-size: 11px; gap: 3px; } .ocean-berries span { display: none; } .ocean-instruments { left: 12px; } .ocean-helm { left: 12px; } .ocean-view { right: 12px; } }
 
 html, body, #root {

@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Executar reinício total confirmado: excluir jogadores, progresso, itens, anúncios, saldos e históricos antigos, protegendo processos automáticos e preservando estrutura/configuração.
+- [ ] Renovar a área do mercado: nomes piratas para Mercado e Leilão, remover Troca Privada da interface sem mudar compras e lances.
+
 - [x] Criar a primeira experiência navegável de GRAND LINE: oceano, cinco ilhas físicas, navios animados, garrafa com pista, passagem secreta e atracação nas atividades existentes; navegação, descoberta e callbacks verificados isoladamente. Sem novas recompensas ou batalhas navais; acesso real pelo Telegram não verificado.
 
 - [x] Renovar o tema completo da Pool Comunitária e suas abas sem alterar valores, regras ou ações; arte, paleta, seleção de Eventos e retorno verificados isoladamente.
