@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves, Ship, Crosshair, Zap, Swords, Flag } from 'lucide-react';
-import { grandLineArt, navalArt } from '../gameAssets';
+import { grandLineArt } from '../gameAssets';
 import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type NavalShip } from '../naval';
 import OceanWorld3D from './OceanWorld3D';
 import { useNavalOcean } from '../useNavalOcean';
@@ -61,7 +61,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     let frame = 0; let previous = 0; let uiTime = 0;
 
     const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
-    const keyup = (e: KeyboardEvent) => state.current.keys.delete(e.key);
+    const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
     window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
     const render = (time: number) => {
@@ -83,7 +83,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       if (docking.current !== null && seaDistance(s.position, s.target) < (live ? 85 : 5)) {
         const island = docking.current; docking.current = null; s.moving = false;
         if(live) { void network.action('leave').then(ok => { if(ok) dockCallback.current(island.destination,island.templateIndex,live.ship);else setDockingNow(false); }); }
-        else dockCallback.current(island.destination, island.templateIndex);
+        else dockCallback.current(island.destination, island.templateIndex, { ...DEFAULT_SHIP, x: s.position.x, y: s.position.y, heading: s.heading });
         frame=requestAnimationFrame(render);return;
       }
       if (time - uiTime > 180) {
