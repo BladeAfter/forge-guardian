@@ -1,6 +1,7 @@
 # Architecture Rules
 
-- Queue payment-channel notices in server-only database triggers on credited deposits and paid withdrawals, deliver through a secret-authenticated worker with atomic claims, and hold ambiguous sends for review; notifications must never mutate balances or enable financial workers.
+- Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
+- Validate game-bot webhook secrets and reply inline to private starts; native message consent is requested once per session, honoring refusal without affecting gameplay.
 
 - Keep the pirate presentation centralized in semantic CSS tokens and `gameAssets.ts`; gameplay logic and page structure must remain theme-independent.
 - Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.

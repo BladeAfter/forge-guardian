@@ -9,6 +9,8 @@ describe('payment channel rules', () => {
     expect(caption).toContain('UQDD12…VgWR');
     expect(caption).toContain('https://tonviewer.com/transaction/actual%2Fhash');
     expect(caption).toContain('Ver na Tonviewer');
+    expect(caption).toContain('Transação: <code>actual/hash</code>');
+    expect(caption).toContain('Data:');
     expect(caption).toContain('#MythicSeasbot #payout');
     expect(caption).not.toContain('GRAM');
   });

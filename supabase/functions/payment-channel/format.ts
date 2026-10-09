@@ -13,7 +13,8 @@ export function paymentCaption(notice: PaymentNotice) {
   const title = notice.kind === 'deposit' ? '⚓ Depósito confirmado' : '✅ Saque pago';
   const wallet = notice.wallet ? `${notice.wallet.slice(0, 6)}…${notice.wallet.slice(-4)}` : 'Não informada';
   const date = new Date(notice.occurred_at).toLocaleString('pt-BR', { timeZone: 'UTC' });
+  const transaction = notice.tx_hash.length > 16 ? `${notice.tx_hash.slice(0, 6)}…${notice.tx_hash.slice(-6)}` : notice.tx_hash;
   const berries = notice.kind === 'deposit' && Number(notice.amount_fc) > 0
     ? `\n🪙 ${new Intl.NumberFormat('pt-BR').format(Number(notice.amount_fc))} BERRIES creditados` : '';
-  return `<b>${title} — ${amount} TON</b>${berries}\n👛 ${escape(wallet)}\n🔗 <a href="https://tonviewer.com/transaction/${encodeURIComponent(notice.tx_hash)}">Ver na Tonviewer</a>\n🕒 ${date} UTC\n#MythicSeasbot #payout`;
+  return `<b>${title} — ${amount} TON</b>${berries}\n👛 Carteira: ${escape(wallet)}\n🕒 Data: ${date} UTC\n🧾 Transação: <code>${escape(transaction)}</code>\n🔗 <a href="https://tonviewer.com/transaction/${encodeURIComponent(notice.tx_hash)}">Ver na Tonviewer</a>\n#MythicSeasbot #payout`;
 }
