@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Expand, Flame, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
+import { Expand, Flame, Hand, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
 import { actionArenaArt } from '../gameAssets';
 import { captainCharacters, readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
@@ -23,7 +23,7 @@ export function PirateActionArena(props: Props) {
   const stage = useRef<HTMLDivElement>(null);
   const inFlight = useRef(false);
   const direction = useRef({ x: 0, y: 0 });
-  const position = useRef({ x: 28, y: 72 });
+  const position = useRef({ x: 32, y: 76 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [action, setAction] = useState<'idle' | 'strike' | 'dodge'>('idle');
   const [selectedHero, setSelectedHero] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function PirateActionArena(props: Props) {
   const phase = ratio > 75 ? 1 : ratio > 50 ? 2 : ratio > 25 ? 3 : 4;
   const selected = heroes.find(hero => hero.heroId === selectedHero);
   const captain = captainCharacters[readCaptainStyle(props.telegramId)];
-  const actor = selected?.image || captain.image;
+  const actor = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
   const telegraph = active && props.bossCountdown !== null && props.bossCountdown <= 2;
 
@@ -43,8 +43,8 @@ export function PirateActionArena(props: Props) {
     let frame = 0; let previous = performance.now();
     const tick = (now: number) => {
       const delta = Math.min((now - previous) / 1000, .05); previous = now;
-      position.current.x = Math.max(16, Math.min(52, position.current.x + direction.current.x * delta * 20));
-      position.current.y = Math.max(60, Math.min(82, position.current.y + direction.current.y * delta * 16));
+      position.current.x = Math.max(22, Math.min(46, position.current.x + direction.current.x * delta * 20));
+      position.current.y = Math.max(69, Math.min(80, position.current.y + direction.current.y * delta * 16));
       stage.current?.style.setProperty('--actor-x', `${position.current.x}%`);
       stage.current?.style.setProperty('--actor-y', `${position.current.y}%`);
       stage.current?.classList.toggle('action-running', Math.hypot(direction.current.x, direction.current.y) > .05);
@@ -98,7 +98,7 @@ export function PirateActionArena(props: Props) {
     <div className="action-boss-ground" aria-hidden="true" />
     <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
     {telegraph && <div className="action-telegraph" role="status"><span>GOLPE IMINENTE</span></div>}
-    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected?.name || 'Pirata do perfil'} /><span className="action-slash" aria-hidden="true" /></div>
+    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt="Pirata do perfil em postura de combate" width={1024} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
     {flash && <div className="action-combo" role="status"><strong>{hits}</strong><span>GOLPE{hits > 1 ? 'S' : ''} CONFIRMADO{hits > 1 ? 'S' : ''}</span></div>}
     {hit && <div className="action-impact" aria-hidden="true" />}
@@ -108,7 +108,7 @@ export function PirateActionArena(props: Props) {
     <div className="action-player-hud"><Swords size={13}/><span>{props.damage.toLocaleString('pt-BR')} dano</span><span>#{props.rank ?? '—'}</span><b>{props.reward.toLocaleString('pt-BR')} BERRIES</b></div>
     <IslandJoystick onDirection={value => { direction.current = value; }} disabled={false} />
     <nav className="action-controls" aria-label="Ações de combate">
-      <OceanControl className="action-basic" disabled={!ready} onClick={() => void strike()} aria-label="Ataque básico" title="Ataque básico · Espaço"><Swords /><span>{attacking ? '…' : cooldown > 0 ? `${cooldown}s` : 'GOLPE'}</span></OceanControl>
+      <OceanControl className="action-basic" disabled={!ready} onClick={() => void strike()} aria-label="Ataque básico" title="Ataque básico · Espaço"><Hand /><span>{attacking ? '…' : cooldown > 0 ? `${cooldown}s` : 'GOLPE'}</span></OceanControl>
       {([{key:'Q',name:'Armamento',Icon:Shield},{key:'E',name:'Poder da fruta',Icon:Flame},{key:'R',name:'Conquistador',Icon:Zap},{key:'F',name:'Ultimate',Icon:Sparkles}]).map(({key,name:label,Icon}) => <OceanControl key={key} disabled aria-label={`${label} indisponível`} title={`${label} · Ainda não disponível nas regras de combate`}><Icon/><span>{key}</span><LockKeyhole className="action-lock"/></OceanControl>)}
       <OceanControl onClick={() => animate('dodge')} aria-label="Esquiva visual" title="Esquiva visual · Shift · Não altera o dano oficial"><Wind/><span>ESQUIVA</span></OceanControl>
     </nav>
