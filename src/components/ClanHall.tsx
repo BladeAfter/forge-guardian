@@ -112,30 +112,20 @@ export function ClanStatusChip({ clan, onOpen }: { clan?: ClanSummary | null; on
 }
 
 /**
- * Clan Hall: poster-style entry matching the "wanted poster" tiles of the home
- * screen. No building art — the button itself carries the clan colors, crest
- * and a red plaque label.
+ * Clan Hall: accessible hotspot aligned with the building in the village artwork.
  */
 export function ClanHall({ clan, onOpen }: { clan?: ClanSummary | null; onOpen: () => void }) {
   const t = useT();
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={t('clan.hall')}
-      className="clan-hall"
-    >
-      {clan ? (
-        <ClanCrest emblem={clan.emblem} initials={clan.name} size={34} />
-      ) : (
-        <Shield className="clan-hall-crest-icon" aria-hidden />
-      )}
-      <span className="clan-hall-sign">
-        <span className="clan-hall-sign-text">
-          <b>{clan ? clan.name : t('clan.hall')}</b>
-          <i>{clan ? `Lv. ${clan.level} • ${clan.members}/${clan.memberLimit}` : t('clan.chipJoin')}</i>
-        </span>
-      </span>
-    </button>
+    <div className="clan-scene-hit-layer">
+      <div className="clan-scene-hit-art">
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={clan ? `${t('clan.hall')}: ${clan.name}` : t('clan.hall')}
+          className="clan-hall"
+        />
+      </div>
+    </div>
   );
 }
