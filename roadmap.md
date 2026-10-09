@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Substituir a exploração da ilha por mundo 3D contínuo: modelos animados, câmera third-person livre, colisões, porto, vegetação, cavernas e baús; preservar encontros e recompensas oficiais, sem trocar de tela no combate. Verificar renderização, movimento e retorno.
+
 - [x] Excluir raridades Ancestral, NFT Exclusivo e Celestial de heróis e mascotes: catálogos e vínculos removidos, contagens restantes dessas raridades em zero; filtros e chances limpos, recriação bloqueada por triggers nas migrações 0112–0113, Admin Bot implantado. Proteção de pagamentos preservada; 24 testes passaram. Sessão Telegram real não verificada.
 
 - [x] Refazer Tripulação como convés vivo com arte IA, capitão, membros selecionáveis, câmera e ficha individual; remover Fusão, Inventário e filtros desta tela. Seleção, progresso de XP, detalhes, turnos e fechamento verificados isoladamente; 24 testes passaram. Equipamentos oficiais preservados.
