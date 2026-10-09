@@ -85,7 +85,7 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     // Camera raycast uses physical scene colliders and ignores the player.
     const ray = new rapier.Ray(cameraLook, cameraDirection);
     const hit = world.castRay(ray, i.zoom, true, undefined, undefined, undefined, b);
-    const distance = hit ? Math.max(1.5, hit.toi - .25) : i.zoom;
+    const distance = hit ? Math.max(1.5, hit.timeOfImpact - .25) : i.zoom;
     cameraTarget.copy(cameraLook).addScaledVector(cameraDirection, distance);
     if (!s.cameraStarted) { camera.position.copy(cameraTarget); s.cameraStarted = true; }
     else camera.position.lerp(cameraTarget, 1 - Math.exp(-8 * dt));
