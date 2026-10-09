@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Redesenhar a Loja de Heróis como recrutamento de tripulação pirata anime, preservando preços, chances e pagamentos.
+- [x] Redesenhar a Loja de Heróis como recrutamento de tripulação pirata anime, preservando preços, chances e pagamentos; arte e botões verificados isoladamente na prévia, sem executar compras reais no Telegram.
 
 - [x] Verificar erros Features/Index: arquivos e chamadas ausentes na versão atual; erros não reproduzidos na abertura da prévia.
 - [ ] Executar reset de produção confirmado: remover contas do jogo, saldos, progresso, bens e históricos financeiros/auditoria; preservar estrutura e sistemas para o novo catálogo.
