@@ -952,22 +952,22 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.realm} label="REALM" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
-            <HomeFeature image={mainScreenArt.pool} label="POOL" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
+            <HomeFeature image={mainScreenArt.realm} label="GRAND LINE" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
+            <HomeFeature image={mainScreenArt.pool} label="BAÚ DA FROTA" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.heroShop} label={t('shop')} onClick={()=>setShopOpen(true)}/>
-            <HomeFeature image={mainScreenArt.seasonPass} label="PASSE" subtitle="TEMPORADA" onClick={()=>openInternal('season-pass')}/>
+            <HomeFeature image={mainScreenArt.heroShop} label="TAVERNA" onClick={()=>setShopOpen(true)}/>
+            <HomeFeature image={mainScreenArt.seasonPass} label="DIÁRIO DE BORDO" subtitle="TEMPORADA" onClick={()=>openInternal('season-pass')}/>
           </div>
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.invite} label={t('invite')} onClick={()=>openInternal('invites')}/>
-            <HomeFeature image={mainScreenArt.pvp} label={t('pvp')} onClick={()=>openInternal('pvp')}/>
+            <HomeFeature image={mainScreenArt.invite} label="RECRUTAR" onClick={()=>openInternal('invites')}/>
+            <HomeFeature image={mainScreenArt.pvp} label="DUELOS" onClick={()=>openInternal('pvp')}/>
           </div>
 
           <div className="flex w-full items-start justify-between">
             <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
+              <HomeFeature image={mainScreenArt.pet} label="MASCOTE" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
 
               <button
                 onClick={()=>{setActivePage(null);navigateTo('missions')}}
