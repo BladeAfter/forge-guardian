@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Substituir artes antigas restantes de pets e heróis pelas novas artes piratas, preservando inventários e regras.
+
 - [x] Remover Canais Parceiros e calendário de recompensas da interface e seus acessos, preservando bens recebidos.
 
 - [x] Refazer os indicadores BERRIES e TON como bilhetes náuticos com artes inéditas, sem alterar saldos ou acesso à carteira.
