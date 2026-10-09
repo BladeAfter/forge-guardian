@@ -47,6 +47,7 @@
   --island3d-sun: #fff0cc;
   --island3d-ink: #172c34;
   --island3d-gold: #efb847;
+  --island3d-pirate-red: #b82e3c;
 }
 
 .grand-line-ocean { position: fixed; inset: 0; z-index: 10000; width: 100%; height: 100dvh; overflow: hidden; background: hsl(var(--ocean-deep)); color: hsl(var(--ocean-foam)); isolation: isolate; }

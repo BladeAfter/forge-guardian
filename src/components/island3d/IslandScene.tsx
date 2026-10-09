@@ -3,13 +3,13 @@ import { Environment, Lightformer, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Physics, RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
-import { islandModels } from '../../gameAssets';
 import { islandHeight, newHarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
 import type { RealmExploreNode } from '../../realm';
-import { IslandTerrain, IslandWater, type IslandPalette } from './IslandTerrain';
+import { IslandTerrain, type IslandPalette } from './IslandTerrain';
 import { IslandProp, IslandPirate, Dock } from './IslandModels';
 import { IslandPlayer } from './IslandPlayer';
 import { IslandHarbor } from './IslandHarbor';
+import { IllustratedIsland } from './IllustratedIsland';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
@@ -28,11 +28,12 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     <hemisphereLight args={[palette.sky, palette.sand, .8]} />
     <directionalLight position={[25, 40, 20]} intensity={2.2} color={palette.sun} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-camera-left={-50} shadow-camera-right={50} shadow-camera-top={50} shadow-camera-bottom={-50} shadow-bias={-.0008} />
     <Environment resolution={64} frames={1}><Lightformer intensity={2} position={[0, 20, 0]} rotation-x={-Math.PI / 2} scale={[60, 60, 1]} color={palette.sky} /><Lightformer intensity={1.4} position={[30, 10, 20]} scale={[30, 20, 1]} color={palette.sun} /></Environment>
-    <IslandWater palette={palette} />
     <Suspense fallback={<Loader />}>
+      <IllustratedIsland islandIndex={islandIndex} />
       <Physics timeStep={1 / 60} gravity={[0, -19, 0]}>
-        <IslandTerrain palette={palette} /><Dock palette={palette} />
+        <group visible={false}><IslandTerrain palette={palette} /></group><Dock palette={palette} />
         <IslandHarbor harbor={harbor} palette={palette} />
+        <group visible={false}>
         <IslandProp model="flag" x={-1.4} z={43} y={1} scale={1.2} collider="none" />
         {palms.map((p, i) => <IslandProp key={`palm-${i}`} model={i % 3 ? 'palm' : 'palmStraight'} {...p} rotation={i * 1.3} collider="tree" wind />)}
         {[-1, 1].flatMap(side => Array.from({ length: 5 }, (_, i) => <IslandProp key={`rock-${side}-${i}`} model={i % 2 ? 'rock' : 'rockB'} x={side * (19 + i * 4)} z={8 - i * 7} scale={.6 + i * .12} rotation={i * 2} />))}
@@ -46,11 +47,12 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
         <IslandProp model="barrel" x={-18} z={13} scale={1.3} />
         <IslandProp model="crate" x={-23} z={15} scale={1.3} />
         <IslandProp model="cannon" x={-17} z={9} scale={1.3} rotation={1.3} />
+        </group>
         {encounters.filter(e => e.kind !== 'ship' && e.kind !== 'secret').map(e => {
           const enemy = e.node && ['combat', 'elite', 'boss'].includes(e.node.node_type);
           const humanoid = enemy || e.kind === 'npc' || e.node?.node_type === 'event';
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
-          return <IslandProp key={e.id} model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} />;
+          return <group key={e.id} visible={e.kind !== 'activity'}><IslandProp model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} /></group>;
         })}
         <IslandPlayer harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} />}</IslandPlayer>
         <IslandDust input={input} palette={palette} />
