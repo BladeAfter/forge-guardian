@@ -743,6 +743,13 @@
       "when": 1791570531771,
       "tag": "0105_allow_nft_reference_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1791570777884,
+      "tag": "0106_permit_retired_nft_unlock_cleanup",
+      "breakpoints": true
     }
   ]
 }
