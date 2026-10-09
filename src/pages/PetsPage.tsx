@@ -31,14 +31,14 @@ type Section = 'pets' | 'nft' | 'shop' | 'breeding';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const TAB_FALLBACK: Record<Tab, string> = { pets: 'MASCOTES', eggs: 'BAÚS', food: 'COMIDAS', evolution: 'EVOLUÇÃO', catalog: 'CATÁLOGO' };
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'exclusive', 'nft_exclusive'];
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
 const cleanEggName = (name: string) => name.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').replace(/\s+/g, ' ').trim();
 /** Rates always render in ascending rarity order, once per rarity. */
 const rarityRank = (key: string) => { const i = RARITY_ORDER.indexOf(String(key).toLowerCase()); return i < 0 ? 99 : i; };
 const sortedRates = (rates: Record<string, number>) =>
-  Object.entries(rates ?? {}).filter(([, value]) => Number(value) > 0).sort((a, b) => rarityRank(a[0]) - rarityRank(b[0]));
+  Object.entries(rates ?? {}).filter(([key, value]) => RARITY_ORDER.includes(key) && Number(value) > 0).sort((a, b) => rarityRank(a[0]) - rarityRank(b[0]));
 
 const rarityColor: Record<string, string> = { common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24', mythic: '#e879f9', ancestral: '#f472b6', exclusive: '#f0abfc', nft_exclusive: '#fbbf24', celestial: '#f8fafc' };
 
