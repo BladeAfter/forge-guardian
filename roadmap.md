@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Refazer a apresentação da arena do chefe global com duas artes IA, capitão do perfil, mascote físico, tripulação lateral, joystick, golpe animado, esquiva visual, fases visuais e controles compactos. Corrigidos cortes dos controles e sobreposição do mascote na inspeção visual; 24 testes passaram e fluxo isolado conferido no navegador. Dano, recompensas, equipe e tempos oficiais preservados.
+  - Pendente: Haki, frutas, energia, ultimate, combos com dano e esquiva real não existem nas regras oficiais; poderes permanecem bloqueados, movimento/esquiva/fases são cosméticos. Combate real no Telegram não verificado por falta de sessão Telegram assinada.
+
 - [x] Liberar o acesso após o reinício: manutenção e bloqueio de reset desativados com autorização do usuário; marco financeiro do reinício preservado, saques automáticos e PvP naval não reativados. Carregamento real das telas no Telegram ainda não verificado.
 
 - [ ] Sistema de navios: seis modelos e skins, customização física, presença de jogadores reais, combate naval autoritativo, abordagem, progressão e reparos com materiais.

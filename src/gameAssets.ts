@@ -1,4 +1,6 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
+import seasActionArena from './assets/seas-action-arena.jpg';
+import seasStormDragon from './assets/seas-storm-dragon.png';
 import navalFleet from './assets/naval-fleet.png';
 import islandPort from './assets/island-port.jpg';
 import islandJungle from './assets/island-jungle.jpg';
@@ -62,6 +64,7 @@ export function mascotChestName(key: string) {
 }
 
 export const duelArt = { deck: pirateDuelDeck };
+export const actionArenaArt = { harbor: seasActionArena, dragon: seasStormDragon };
 
 /** Presentation only: persistent Realm and building IDs are unchanged. */
 export const realmArt = {

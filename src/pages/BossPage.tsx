@@ -9,7 +9,9 @@ import { HERO_CATALOG, RARITY_COLORS, type HeroRarity } from '../heroCatalog';
 import { setGlobalBossAutoAttack } from '../services';
 import { calculateEstimatedSecondsRemaining, calculateHeroAttack, calculateHeroMaxHp, calculateRarityEstimatedDuration, calculateTeamDamagePerCycle, formatDuration, HERO_RARITY_STATS, type BossCombat, type CombatHero, type GlobalBossAutoAttackState } from '../combat';
 import { COMBAT_SLOTS, mapCombatSlots, type CombatSlot } from '../combatSlots';
-import { PetCompanion } from '../components/PetCompanion';
+import { PirateActionArena } from '../components/PirateActionArena';
+import { OceanControl } from '../components/OceanControl';
+import { actionArenaArt } from '../gameAssets';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
 import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
 import { globalBossArt, globalBossTheme } from '../globalBossThemes';
@@ -97,61 +99,30 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
     try{await onEquipHero(hero.id,selectedSlot);setIsHeroModalOpen(false);setSelectedSlot(null);}catch(error){console.error('Falha ao equipar herói',error);}finally{equipInFlight.current=false;}
   };
   const theme=globalBossTheme(global?.bossKey,global?.bossNumber);
-  const bossArt=globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon;
+  const bossArt=bossNumberForArt(global?.bossNumber)===1?actionArenaArt.dragon:(globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon);
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
-  return <section className="space-y-3"><div className={`boss-arena gb-hero relative overflow-hidden rounded-3xl border ${theme.border} p-3 shadow-card ${hit?'boss-arena-hit':''}`} style={{backgroundColor:'#05070c'}}>
-
-    <img key={`arena-${theme.key}`} src={backgrounds.boss} alt="" aria-hidden className="gb-arena-art"/><div className="gb-arena-shade"/><div className="gb-arena-mist"/>
-    {swap?<div className="gb-swap-overlay"><b>{swap==='defeated'?t('boss.swapDefeated'):t('boss.swapExpired')}</b><span>{t('boss.swapRewards')}</span><span>{t('boss.swapNext')}</span></div>:null}
-    <div className="relative flex items-start justify-between gap-2"><div><p className={`text-[10px] uppercase tracking-[.3em] ${theme.accent}`}>{t('boss.globalBoss')}{global?` · ${t('boss.cycle')} #${global.cycleNumber}`:''}</p><h3 className="text-lg font-semibold leading-tight">{global?.name??combat?.bossName??t('boss.defaultName')}</h3><p className="text-[10px] text-slate-300/80">{global?.subtitle??`${t('boss.globalBoss')} · ${t('levelShort')}${global?.bossLevel??combat?.bossLevel??1}`}</p><p className="text-[10px] text-slate-300/80">{lang.boss} {bossNumber}/{totalBosses}{endsIn!==null?` · ${t('boss.endsIn')} ${formatDuration(endsIn)}`:''}</p></div><div className="text-right"><ShieldCheck className="ml-auto h-5 w-5 text-rose-400"/><p className="text-[10px] text-slate-300/80">{translate(languageCode,'kills')}: {combat?.defeats??game.boss.defeats??0}</p><button type="button" onClick={()=>setIsRankingOpen(true)} className="mt-2 inline-flex min-h-9 items-center gap-1 rounded-xl border border-amber-300/40 bg-amber-400/10 px-2.5 text-[10px] font-bold text-amber-300"><Trophy className="h-3.5 w-3.5"/>{t('boss.ranking')}</button></div></div>
-    <div className="gb-stage relative mx-auto mt-2 flex w-full items-center justify-center">
-      <div className="gb-arena-floor"/>
-      <div className="gb-aura absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl sm:h-40 sm:w-40" style={{backgroundImage:theme.aura}}/>
-      <img key={`${global?.cycleId??'boss'}`} src={bossArt} alt={global?.name??combat?.bossName??t('boss.defaultName')} className="gb-boss gb-enter" style={{filter:theme.glow}}/>
-    </div>
-
-      <div className="relative mt-2 rounded-2xl border border-white/10 bg-black/70 p-3 backdrop-blur-sm"><div className="flex justify-between text-sm"><span>{t('boss.globalHp')}</span><b>{Math.ceil(hp).toLocaleString()} / {maxHp.toLocaleString()} HP</b></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10"><div className="h-full transition-all duration-500" style={{width:`${progress}%`,backgroundImage:theme.bar}}/></div>{global?<div className="mt-2 flex justify-between text-[9px] text-slate-400"><span>{t('boss.participants')}: {global.participants.toLocaleString()}</span><span>{t('boss.rewardPool')}: {compact(global.rewardPoolFc)} BERRIES</span></div>:null}</div>
-    </div><div className="gb-panel relative rounded-3xl border border-white/10 p-3 shadow-card">
-
-      {global?.lastReward?<p className="mt-2 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-2.5 text-center text-[10px] text-emerald-200">{t('boss.lastReward')}: <b>{compact(global.lastReward.rewardFc)} BERRIES</b> · #{global.lastReward.rank}</p>:null}
-      <div className="mt-3 grid grid-cols-2 gap-2 text-xs"><Stat label={t('boss.totalDamage')} value={compact(global?.totalDamage??0)}/><Stat label={t('boss.yourDamage')} value={compact(global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage)}/><Stat label={t('boss.yourRank')} value={global?.yourRank?`#${global.yourRank}`:'—'}/><Stat label={t('boss.estReward')} value={`${compact(Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100)))} BERRIES`} gold/><Stat label={t('teamAttack')} value={Math.round(totalAtk).toLocaleString()}/><Stat label={t('teamHealth')} value={`${Math.round(totalHp).toLocaleString()}/${Math.round(totalMaxHp).toLocaleString()}`}/><Stat label={t('damagePerCycle')} value={Math.round(damage).toLocaleString()}/><Stat label={t('boss.petBonusLabel')} value={activePet?`${activePet.name} · ${petBonusText}`:petBonusText}/><Stat label={t('timeRemainingLabel')} value={alive.length?formatDuration(remaining??NaN):t('waitingRevive')}/><Stat label="Revive" value={formatDuration(effectiveReviveSeconds(petReviveBonus))}/><Stat label={t('rarityEstimate')} value={formatDuration(calculateRarityEstimatedDuration(heroes))}/><Stat label={t('nextAttacks')} value={`${t('teamLabel')} ${formatDuration(secondsUntil(combat?.nextHeroAttackAt))} · ${t('bossLabel')} ${formatDuration(secondsUntil(combat?.bossNextAttackAt))}`}/></div>
-      {global&&global.minimumDamage>0?<p className="mt-2 text-center text-[9px] text-slate-400">{t('boss.minDamage')}: {compact(global.minimumDamage)}</p>:null}
-      {isFinalBoss?<p className="mt-2 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-2.5 text-center text-[10px] font-bold text-amber-200">{t('boss.comingSoon')}</p>:null}
-      
-
-
-      <PetCompanion pet={activePet} buffs={bossPetBonuses} />
-      <div className="mt-4 flex items-center justify-between"><p className="text-xs font-bold uppercase tracking-[.2em]">{t('combatEquipment')}</p><span className="text-[9px] text-emerald-400">{syncing?t('syncingBackend'):backendOfficial?t('officialBackend'):t('testMode')}</span></div>
-      <div className="mt-2 grid grid-cols-5 gap-1.5">{slotted.map((h,i)=>{const nft=Boolean(h&&owned.find(o=>o.id===h.heroId)?.isNft);return <button type="button" key={COMBAT_SLOTS[i]} onClick={()=>openHeroSelector(COMBAT_SLOTS[i])} className={`relative min-h-[145px] overflow-hidden rounded-xl border bg-black/65 ${nft?'nft-hero-card':''}`} style={{borderColor:h?(nft?undefined:RARITY_COLORS[h.rarity as HeroRarity]):'#64748b88'}}>{h?<>{nft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span></div>:null}<img src={h.image||HERO_CATALOG.find(x=>x.id===(combat?.ownedHeroes?.find(o=>o.id===h.heroId)?.heroKey))?.image} alt={h.name} className="aspect-square w-full object-cover object-top"/><div className="p-1 text-center"><p className={`truncate text-[8px] font-bold ${nft?'nft-hero-name':''}`}>{h.name}</p>{nft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:RARITY_COLORS[h.rarity as HeroRarity]}}>{t(h.rarity)} · {t('levelShort')}{h.level}</p>}<p className="text-[8px]">ATK {Math.round(h.finalAtk).toLocaleString()}</p><p className="text-[8px]">HP {Math.round(h.currentHp).toLocaleString()}/{Math.round(h.maxHp).toLocaleString()}</p>{!h.isAlive&&<p className="text-[8px] text-rose-400">{t('defeated')}<br/>{t('revivesIn')} {formatDuration(secondsUntil(h.reviveAt))}</p>}{h.isAlive&&h.reviveProtected&&!h.reviveAttackUsed&&<p className="animate-pulse text-[8px] font-bold text-amber-300">{t('boss.revived')}<br/>{t('boss.readyToStrike')}</p>}</div></>:<span className="text-2xl text-slate-500">＋</span>}</button>})}</div>
-      {/* Team building is always allowed; only attacking depends on an active boss. */}
-      {combat&&combat.bossActive===false&&<p className="mt-3 rounded-2xl border border-white/10 bg-black/70 p-3 text-center text-[11px] text-slate-300">{t('boss.notActiveLine1')}<br/>{t('boss.notActiveLine2')}</p>}
-      {auto?<div className={`mt-4 flex items-center justify-between gap-2 rounded-2xl border p-3 ${auto.active?'border-amber-300/50 bg-gradient-to-r from-amber-400/15 to-orange-500/10':'border-white/10 bg-black/60'}`}>
-        <div className="min-w-0">
-          <p className={`text-[11px] font-black uppercase tracking-[.18em] ${auto.active?'text-amber-200':'text-slate-300'}`}>{auto.eligible?'⚔️':'🔒'} {t('boss.autoAtk')}</p>
-          <p className="mt-0.5 truncate text-[9px] text-slate-400">
-            {!auto.eligible?t('boss.autoAtkRequired')
-            :!auto.enabled?t('boss.autoAtkOff')
-            :!auto.hasTeam?t('boss.autoAtkNoTeam')
-            :auto.waitingRevive?`${t('boss.autoAtkOffline')} · ${t('boss.autoAtkRevive')}`
-            /* one single official countdown: the server already merged cooldown + revive */
-            :`${t('boss.autoAtkOffline')} · ${t('boss.autoAtkNext')} ${formatDuration(secondsUntil(auto.nextAttackAt))}`}
-          </p>
-        </div>
-        {auto.eligible
-          ?<button type="button" disabled={autoBusy||!telegramInitData} onClick={async()=>{
-              if(!telegramInitData)return; setAutoBusy(true);
-              try{setAutoOverride(await setGlobalBossAutoAttack(telegramInitData,!auto.enabled))}
-              catch(error){toast.error(error instanceof Error?error.message:t('boss.autoAtkError'))}
-              finally{setAutoBusy(false)}
-            }} className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] transition active:scale-95 disabled:opacity-50 ${auto.enabled?'bg-gradient-to-b from-amber-300 to-orange-500 text-black':'border border-white/15 bg-black/60 text-slate-300'}`}>{auto.enabled?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</button>
-          :<button type="button" onClick={()=>onOpenSeasonPass?.()} className="shrink-0 rounded-full border border-amber-300/40 bg-black/60 px-4 py-2 text-[10px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95">{t('boss.autoAtkUnlock')}</button>}
-      </div>:null}
-      {global&&global.status!=='active'
-        ?<p className="mt-4 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3 text-center text-[11px] font-bold text-amber-200">{t('boss.defeatedGlobal')}</p>
-        :combat?.status==='defeated'
-        ?<button onClick={onClaimReward} className="mt-4 w-full rounded-2xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 font-black text-black">{t('collectReward')} {combat.rewardAmount.toLocaleString()} BERRIES</button>
-        :onAttack?<button type="button" onClick={()=>onAttack()} disabled={isAttacking||combat?.bossActive===false} className="mt-4 w-full rounded-2xl bg-gradient-to-b from-rose-400 to-rose-700 py-3 font-black text-white disabled:opacity-40">{isAttacking?t('boss.attacking'):t('boss.attack')}</button>:null}
+  const telegramId = (()=>{try {const user=JSON.parse(new URLSearchParams(telegramInitData??'').get('user')??'null');return user?.id?String(user.id):undefined;}catch{return undefined;}})();
+  return <section className="seas-combat">
+    <PirateActionArena name={global?.name??combat?.bossName??t('boss.defaultName')} image={bossArt}
+      hp={hp} maxHp={maxHp} heroes={heroes} pet={activePet} telegramId={telegramId}
+      hit={hit} attacking={isAttacking} active={combat?.bossActive!==false&&(!global||global.status==='active')}
+      cooldown={secondsUntil(combat?.nextHeroAttackAt)} bossCountdown={combat?.bossNextAttackAt?secondsUntil(combat.bossNextAttackAt):null}
+      damage={global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage} rank={global?.yourRank??null}
+      reward={Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} status={combat?.status}
+      swap={swap} onAttack={onAttack} onEquip={openHeroSelector} onRanking={()=>setIsRankingOpen(true)} />
+    <div className="action-service-strip">
+      {global?.lastReward?<span>Último tesouro: {compact(global.lastReward.rewardFc)} BERRIES</span>:null}
+      {global&&global.minimumDamage>0?<span>Dano mínimo: {compact(global.minimumDamage)}</span>:null}
+      {auto?<><span>{t('boss.autoAtk')} · {auto.active?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</span>
+        <OceanControl disabled={autoBusy||!telegramInitData} onClick={async()=>{
+          if(!auto.eligible){onOpenSeasonPass?.();return;}if(!telegramInitData)return;setAutoBusy(true);
+          try{setAutoOverride(await setGlobalBossAutoAttack(telegramInitData,!auto.enabled));}
+          catch(error){toast.error(error instanceof Error?error.message:t('boss.autoAtkError'));}
+          finally{setAutoBusy(false);}
+        }}>{auto.eligible?(auto.enabled?'Pausar automático':'Ativar automático'):t('boss.autoAtkUnlock')}</OceanControl></>:null}
+      {combat?.status==='defeated'&&(!global||global.status==='active')?<OceanControl onClick={()=>void onClaimReward()}>{t('collectReward')} {combat.rewardAmount.toLocaleString()} BERRIES</OceanControl>:null}
+      {isFinalBoss?<span>{t('boss.comingSoon')}</span>:null}
     </div>
 
     {isRankingOpen&&<div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={()=>setIsRankingOpen(false)}><div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e=>e.stopPropagation()}>
@@ -179,3 +150,5 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   </section>;
 }
 function Stat({label,value,gold=false}:{label:string;value:string;gold?:boolean}){return <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{label}</p><p className={`mt-1 font-semibold ${gold?'text-amber-300':''}`}>{value}</p></div>}
+
+function bossNumberForArt(value?:number|null){return Number(value??1);}

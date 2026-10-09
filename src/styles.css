@@ -4207,3 +4207,78 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .mascot-chest-overlay .pet-reveal-actions .ocean-control { background:hsl(var(--ocean-hud)); color:hsl(var(--ocean-foam)); border-radius:6px; }
 @keyframes mascotLidOpen { 0% { transform:none; } 60%,100% { transform:translateY(-38px) rotate(-12deg); } }
 @media(prefers-reduced-motion:reduce) { .mascot-chest-overlay .mascot-chest-lid { animation:none; } }
+
+/* Cinematic global-boss presentation. Combat values remain server-owned. */
+:root { --action-ink: 200 48% 7%; --action-text: 42 60% 96%; --action-gold: 43 96% 66%; --action-life: 168 68% 53%; --action-danger: 7 88% 57%; --action-energy: 192 93% 67%; --action-shadow: 210 55% 4%; }
+.seas-combat { color:hsl(var(--action-text)); }
+.seas-action-arena { position:relative; isolation:isolate; overflow:hidden; width:100%; min-height:640px; height:min(850px,calc(100dvh - 155px)); background:hsl(var(--action-ink)); --actor-x:28%; --actor-y:72%; }
+.action-expanded { position:fixed; inset:0; z-index:79; height:100dvh; min-height:0; }
+.action-world,.action-atmosphere { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 50%; z-index:-3; }
+.action-atmosphere { z-index:-2; background:linear-gradient(180deg,hsl(var(--action-shadow)/.85),transparent 28%,transparent 66%,hsl(var(--action-shadow)/.8)); }
+.action-boss-hud { position:absolute; top:18px; left:18px; right:18px; z-index:5; }
+.action-boss-title { display:flex; align-items:center; gap:8px; }
+.action-boss-title>div { flex:1; min-width:0; }
+.action-boss-title small { font-size:8px; color:hsl(var(--action-gold)); }
+.action-boss-title h2 { font-size:23px; line-height:1.15; margin:4px 0 10px; font-weight:900; overflow-wrap:anywhere; }
+.seas-combat .ocean-control { background:hsl(var(--action-ink)/.8); border:1px solid hsl(var(--action-gold)/.35); color:hsl(var(--action-text)); border-radius:6px; }
+.action-boss-life { height:9px; position:relative; background:hsl(var(--action-text)/.15); border:1px solid hsl(var(--action-gold)/.5); transform:skewX(-10deg); overflow:hidden; }
+.action-boss-life>span { display:block; height:100%; background:linear-gradient(90deg,hsl(var(--action-danger)),hsl(var(--action-gold))); transition:width .6s; }
+.action-boss-life>i { position:absolute; top:0; height:100%; width:1px; background:hsl(var(--action-ink)/.6); }
+.action-boss-meta { display:flex; justify-content:space-between; font-size:9px; margin-top:6px; text-shadow:0 1px 3px hsl(var(--action-shadow)); }
+.action-boss-meta b { color:hsl(var(--action-gold)); }
+.action-monster { position:absolute; width:80%; height:53%; object-fit:contain; top:24%; left:21%; transform-origin:50% 90%; filter:drop-shadow(0 12px 9px hsl(var(--action-shadow)/.65)); animation:actionBossBreathe 4s ease-in-out infinite; }
+.action-boss-ground { position:absolute; width:48%; height:6%; top:68%; left:44%; background:hsl(var(--action-shadow)/.5); border-radius:50%; filter:blur(12px); }
+.action-crew { position:absolute; left:12px; top:145px; display:flex; flex-direction:column; gap:8px; z-index:6; }
+.action-crew>div { position:relative; }
+.action-crew .ocean-control { width:43px; height:46px; min-width:0; min-height:0; padding:2px; position:relative; overflow:hidden; }
+.action-crew img { width:100%; height:100%; object-fit:cover; object-position:top; }
+.action-crew .action-crew-selected { border-color:hsl(var(--action-gold)); box-shadow:0 0 10px hsl(var(--action-gold)/.4); }
+.action-crew .action-crew-edit { position:absolute; right:-9px; bottom:-3px; width:18px; height:18px; font-size:12px; }
+.action-crew-life { position:absolute; bottom:2px; left:2px; right:2px; height:3px; background:hsl(var(--action-danger)); }
+.action-crew-life i { display:block; height:100%; background:hsl(var(--action-life)); }
+.action-ko { position:absolute; inset:0; display:grid; place-items:center; background:hsl(var(--action-shadow)/.7); color:hsl(var(--action-danger)); font-weight:900; }
+.action-actor { position:absolute; left:var(--actor-x); top:var(--actor-y); width:22%; height:26%; transform:translate(-50%,-80%); transform-origin:center bottom; z-index:3; }
+.action-actor>img { width:100%; height:100%; object-fit:contain; position:relative; filter:drop-shadow(0 6px 4px hsl(var(--action-shadow)/.7)); }
+.action-actor-shadow { position:absolute; bottom:5%; width:80%; height:6%; left:10%; border-radius:50%; background:hsl(var(--action-shadow)/.55); filter:blur(3px); }
+.action-running .action-actor>img { animation:actionRun .2s infinite alternate; }
+.action-strike .action-actor { animation:actionLunge .9s ease-in-out; }
+.action-dodge .action-actor { animation:actionDodge .8s ease-out; }
+.action-actor-ko { opacity:.5; }
+.action-slash { display:none; position:absolute; width:130%; height:65%; left:35%; top:0; border-top:6px solid hsl(var(--action-text)); border-radius:50%; box-shadow:0 -5px 16px hsl(var(--action-energy)); transform:rotate(-35deg); }
+.action-strike .action-slash { display:block; animation:actionFade .9s; }
+.action-mascot { position:absolute; left:17%; top:77%; width:14%; z-index:2; text-align:center; }
+.action-mascot img { height:74px; width:100%; object-fit:contain; animation:actionBossBreathe 3s infinite; }
+.action-mascot span { font-size:8px; display:block; text-shadow:0 2px 3px hsl(var(--action-shadow)); }
+.action-telegraph { position:absolute; left:17%; top:70%; width:53%; height:12%; border:2px solid hsl(var(--action-danger)); border-radius:50%; background:hsl(var(--action-danger)/.25); animation:actionWarn .4s infinite alternate; z-index:2; }
+.action-telegraph span { position:absolute; top:-22px; left:10%; font-size:9px; font-weight:900; color:hsl(var(--action-text)); background:hsl(var(--action-danger)); padding:3px 8px; }
+.action-combo { position:absolute; right:20px; top:42%; z-index:6; color:hsl(var(--action-gold)); transform:rotate(-6deg); text-shadow:2px 3px 0 hsl(var(--action-shadow)); animation:actionFade 1.2s; }
+.action-combo strong { font-size:55px; display:block; font-weight:900; line-height:1; }.action-combo span { font-size:9px; font-weight:900; }
+.action-boss-hit .action-monster { animation:actionRecoil .4s; }
+.action-impact { position:absolute; left:55%; top:53%; width:30%; aspect-ratio:1; background:hsl(var(--action-gold)/.85); clip-path:polygon(50% 0,58% 37%,90% 10%,68% 45%,100% 50%,65% 57%,90% 90%,56% 68%,50% 100%,44% 65%,5% 90%,35% 55%,0 50%,35% 44%,10% 10%,44% 35%); animation:actionFade .5s; pointer-events:none; }
+.action-player-hud { position:absolute; bottom:99px; left:100px; right:12px; display:flex; align-items:center; gap:8px; font-size:9px; text-shadow:0 2px 3px hsl(var(--action-shadow)); }.action-player-hud b { margin-left:auto; color:hsl(var(--action-gold)); }
+.action-controls { position:absolute; right:12px; bottom:22px; display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); width:calc(100% - 115px); max-width:420px; gap:5px; z-index:6; }
+.action-controls .ocean-control { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; min-width:0; min-height:54px; padding:5px 2px; position:relative; }.action-controls svg { width:19px; height:19px; }.action-controls span { font-size:7px; font-weight:800; }.action-controls .action-basic { background:hsl(var(--action-danger)/.9); border-color:hsl(var(--action-gold)); }.action-controls :disabled { opacity:.4; cursor:not-allowed; }.action-controls .action-lock { position:absolute; right:2px; top:3px; width:8px; height:8px; }
+.seas-action-arena .ocean-helm { left:12px; bottom:18px; }.seas-action-arena .ocean-joystick { width:78px; height:78px; border-radius:50%; }
+.action-announcement { position:absolute; top:43%; left:10%; right:10%; z-index:7; text-align:center; font-size:25px; font-weight:900; color:hsl(var(--action-gold)); text-shadow:0 3px 10px hsl(var(--action-shadow)); }.action-announcement small { display:block; font-size:11px; margin-top:8px; }
+.action-feedback { position:absolute; bottom:126px; left:70px; right:16px; text-align:center; font-size:11px; color:hsl(var(--action-text)); text-shadow:0 2px 4px hsl(var(--action-shadow)); }
+.action-service-strip { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 8px; font-size:9px; color:hsl(var(--action-text)/.7); }.action-service-strip .ocean-control { font-size:9px; padding:6px 10px; min-height:28px; }
+.action-wind { position:absolute; inset:0; pointer-events:none; }.action-wind i { position:absolute; top:35%; left:-20%; width:30%; height:1px; background:hsl(var(--action-text)/.3); animation:actionWind 6s linear infinite; }.action-wind i:nth-child(2) { top:60%; animation-delay:2s; }.action-wind i:nth-child(3) { top:80%; animation-delay:4s; }
+.action-phase-3 .action-atmosphere,.action-phase-4 .action-atmosphere { background:linear-gradient(180deg,hsl(var(--action-shadow)/.85),hsl(var(--action-danger)/.09) 40%,transparent 60%,hsl(var(--action-shadow)/.8)); }
+@keyframes actionBossBreathe { 50% { transform:translateY(-5px) rotate(.7deg); } }
+@keyframes actionRun { to { transform:translateY(-4px) rotate(3deg); } }
+@keyframes actionLunge { 40% { transform:translate(55%,-80%) rotate(-10deg); } }
+@keyframes actionDodge { 45% { transform:translate(-110%,-65%) rotate(-22deg); opacity:.5; } }
+@keyframes actionFade { 0% { opacity:0; } 20% { opacity:1; } 100% { opacity:0; } }
+@keyframes actionWarn { to { opacity:.5; transform:scale(.95); } }
+@keyframes actionRecoil { 40% { transform:translateX(12px) rotate(4deg); } }
+@keyframes actionWind { to { left:120%; } }
+@media(min-width:700px) { .seas-action-arena { min-height:700px; }.action-monster { left:29%; width:69%; height:67%; top:16%; }.action-actor { width:20%; height:31%; }.action-controls { width:420px; }.action-controls span { font-size:9px; }.action-boss-title h2 { font-size:30px; } }
+@media(max-width:360px) { .action-controls { width:calc(100% - 98px); right:8px; gap:3px; }.seas-action-arena .ocean-joystick { width:68px; height:68px; }.action-boss-title h2 { font-size:20px; }.action-player-hud { left:90px; gap:4px; font-size:8px; } }
+@media(prefers-reduced-motion:reduce) { .seas-action-arena *, .seas-action-arena *::before { animation:none!important; transition:none!important; } }
+/* Keep compact controls within the arena even in a narrow, wide-screen panel. */
+.action-controls { width:min(420px,calc(100% - 115px)); }
+.action-crew { top:175px; }
+.action-mascot { top:73%; }
+.action-combo { max-width:145px; text-align:right; }
+.action-combo span { display:block; overflow-wrap:anywhere; }
+@media(max-width:360px) { .action-controls { width:calc(100% - 98px); } }
