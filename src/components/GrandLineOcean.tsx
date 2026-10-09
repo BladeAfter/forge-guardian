@@ -19,6 +19,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const resetJoystick = () => {
     joystickPointer.current = null;
     joystickVector.current = { x: 0, y: 0 };
+    network.steer({ dx: 0, dy: 0, throttle: 0 });
     autopilot.current = false;
     if (joystickKnob.current) joystickKnob.current.style.transform = 'translate(0px, 0px)';
     state.current.target = { ...state.current.position };
@@ -129,6 +130,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const ratio = distance > radius ? radius / distance : 1;
     const offset = { x: x * ratio, y: y * ratio };
     joystickVector.current = distance < 6 ? { x: 0, y: 0 } : { x: offset.x / radius, y: offset.y / radius };
+    network.steer({ dx: joystickVector.current.x, dy: joystickVector.current.y, throttle: yardRef.current ? 0 : throttleRef.current });
     if (distance < 6) state.current.target = { ...state.current.position };
     if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
   };
