@@ -4125,3 +4125,16 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .seas-duels .fixed { background:hsl(var(--duel-ink)/.9); }
 .seas-duels .fixed>div { background:hsl(var(--duel-surface)); }
 @media(max-width:360px) { .duels-stats>div { padding:0 5px; gap:5px; } .duels-stats>div>svg { width:15px; } .duels-deck-title h2 { font-size:25px; } }
+
+/* Shared nautical presentation; does not affect Realm progression or actions. */
+.seas-realm {
+  --realm-surface: 199 50% 11%;
+  --realm-line: 174 55% 57%;
+  background-color: hsl(var(--realm-surface));
+}
+.seas-realm .realm-hud { background: hsl(var(--realm-surface) / .96); border-color: hsl(var(--realm-line) / .3); }
+.seas-realm .realm-hud-title { color: hsl(var(--ocean-gold)); }
+.seas-realm .forge-stage { border-color: hsl(var(--realm-line) / .3); }
+.seas-realm .forge-stage-firelight { opacity: .22; }
+.seas-realm .forge-stage-cold .forge-stage-bg { filter: saturate(.65) brightness(.7); }
+.seas-battle-backdrop { background-size: cover; background-position: center; }

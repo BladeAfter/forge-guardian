@@ -16,7 +16,11 @@ import piratePvpIcon from './assets/home-icons/pirate-pvp.png';
 import piratePetIcon from './assets/home-icons/pirate-pet.png';
 import pirateHeroesIcon from './assets/home-icons/pirate-heroes.png';
 import pirateBerryCoin from './assets/pirate-berry-coin.png';
-import { voyageHeroArt } from './voyageArt';
+import { voyageHeroArt, voyagePetArt } from './voyageArt';
+import seasLogo from './assets/mythic-seas-logo.png';
+import pirateWorkshop from './assets/pirate-shipwright-workshop.jpg';
+import pirateOutpost from './assets/pirate-island-outpost.jpg';
+import pirateCave from './assets/pirate-treasure-cave.jpg';
 import pirateRecruitHarbor from './assets/pirate-recruit-harbor.jpg';
 import pirateBerryStack from './assets/pirate-berry-stack.png';
 import pirateTonCompass from './assets/pirate-ton-compass.png';
@@ -30,6 +34,17 @@ import grandLineOcean from './assets/grand-line-ocean.jpg';
 import grandLineShip from './assets/grand-line-ship.png';
 
 export const duelArt = { deck: pirateDuelDeck };
+
+/** Presentation only: persistent Realm and building IDs are unchanged. */
+export const realmArt = {
+  workshop: pirateWorkshop, outpost: pirateOutpost, cave: pirateCave,
+  ocean: grandLineOcean, deck: pirateDuelDeck, crest: pirateRealmIcon,
+  tool: pirateHeroShopIcon, treasure: pirateWalletIcon, supplies: piratePoolIcon,
+  mystery: pirateInviteIcon, rest: pirateVillageIcon, trap: piratePvpIcon,
+  foes: { wild: voyagePetArt.stormape, crystal: voyagePetArt.reefclaw, abyss: voyagePetArt.abysscoil },
+  party: [voyageHeroArt.deckblade, voyageHeroArt.tempestcall, voyageHeroArt.starshot],
+  tabs: { stronghold: pirateVillageIcon, map: pirateRealmIcon, forge: pirateHeroShopIcon, ruins: pirateBossIcon, bounties: pirateInviteIcon },
+};
 
 export const grandLineArt = { ocean: grandLineOcean, ship: grandLineShip, berry: pirateBerryCoin };
 
@@ -51,29 +66,29 @@ export const backgrounds = {
 };
 
 export const buildings: Record<string, string> = {
-  'iron-mine': gameAsset('buildings/iron-mine.png'),
-  'coal-mine': gameAsset('buildings/coal-mine.png'),
-  forge: gameAsset('buildings/forge.png'),
-  'royal-workshop': gameAsset('buildings/royal-workshop.png'),
-  'dragon-foundry': gameAsset('buildings/dragon-foundry.png'),
-  'clan-hall': gameAsset('buildings/mythreon-clan-hall.png')
+  'iron-mine': piratePoolIcon,
+  'coal-mine': pirateWalletIcon,
+  forge: pirateHeroShopIcon,
+  'royal-workshop': pirateSeasonPassIcon,
+  'dragon-foundry': pirateBossIcon,
+  'clan-hall': pirateVillageIcon
 };
 
 export const characters = {
-  novice: gameAsset('characters/novice-blacksmith.png'),
-  master: gameAsset('characters/master-blacksmith.png'),
-  merchant: gameAsset('characters/merchant.png'),
-  knight: gameAsset('characters/knight.png'),
-  king: gameAsset('characters/king.png')
+  novice: voyageHeroArt.deckblade,
+  master: voyageHeroArt.dawncaptain,
+  merchant: voyageHeroArt.starshot,
+  knight: voyageHeroArt.anchorward,
+  king: voyageHeroArt.dawncaptain
 };
 
 export const mainScreenArt = {
-  avatar: gameAsset('characters/blacksmith-avatar.webp'),
-  villageLevel: gameAsset('ui/village-level-crest.webp'),
-  dailyStreak: gameAsset('ui/daily-streak.webp'),
-  missionIngots: gameAsset('ui/mission-ingots.webp'),
-  productionAnvil: gameAsset('ui/production-anvil.webp'),
-  forgeTower: gameAsset('buildings/main-forge-tower.webp'),
+  avatar: pirateProfileIcon,
+  villageLevel: pirateVillageIcon,
+  dailyStreak: pirateSeasonPassIcon,
+  missionIngots: pirateBerryStack,
+  productionAnvil: piratePoolIcon,
+  forgeTower: pirateHeroShopIcon,
   realm: pirateRealmIcon,
   heroShop: pirateHeroShopIcon,
   pool: piratePoolIcon,
@@ -81,17 +96,17 @@ export const mainScreenArt = {
   invite: pirateInviteIcon,
   pet: piratePetIcon,
   heroes: pirateHeroesIcon,
-  market: gameAsset('ui/player-market.png'),
+  market: pirateMarketIcon,
   seasonPass: pirateSeasonPassIcon
 };
 
 export const missionIcons = [
-  gameAsset('icons/daily-login-icon.png'),
-  gameAsset('icons/collect-production-icon.png'),
-  gameAsset('icons/upgrade-building-icon.png'),
-  gameAsset('icons/attack-boss-icon.png'),
-  gameAsset('icons/watch-ad-icon.png'),
-  gameAsset('icons/invite-friend-icon.png')
+  pirateSeasonPassIcon,
+  piratePoolIcon,
+  pirateHeroShopIcon,
+  pirateBossIcon,
+  pirateInviteIcon,
+  pirateInviteIcon
 ];
 
 export const navigationIcons: Record<string, { normal: string; selected: string }> = {
@@ -104,22 +119,22 @@ export const navigationIcons: Record<string, { normal: string; selected: string 
 };
 
 export const logo = {
-  horizontal: gameAsset('logo/forge-village-logo.png'),
-  icon: gameAsset('logo/forge-village-icon.png')
+  horizontal: seasLogo,
+  icon: '/mythic-seas-icon-512.png'
 };
 
 export const coin = pirateBerryCoin;
 /** MYTH Token art (decorative only — no price, no trading, no utility yet). */
 export const mythToken = gameAsset('coins/myth-token.png');
-export const mythTokenCard = gameAsset('ui/myth-token-card.jpg');
-export const dragon = gameAsset('bosses/ancient-dragon.png');
+export const mythTokenCard = pirateCommunityCove;
+export const dragon = voyagePetArt.abysscoil;
 
 export const bossHeroes = [
   { id: 'common', name: 'Espadachim', rarity: 'Comum', damage: 0.15, color: '#94a3b8', image: voyageHeroArt.deckblade },
   { id: 'uncommon', name: 'Arqueira', rarity: 'Incomum', damage: 0.25, color: '#4ade80', image: voyageHeroArt.starshot },
   { id: 'rare', name: 'Guardião', rarity: 'Raro', damage: 0.4, color: '#60a5fa', image: voyageHeroArt.anchorward },
-  { id: 'epic', name: 'Maga Rúnica', rarity: 'Épico', damage: 0.7, color: '#c084fc', image: voyageHeroArt.tempestcall },
-  { id: 'legendary', name: 'Cavaleiro Dragão', rarity: 'Lendário', damage: 1.2, color: '#fbbf24', image: voyageHeroArt.dawncaptain }
+  { id: 'epic', name: 'Navegadora da Tempestade', rarity: 'Épico', damage: 0.7, color: '#c084fc', image: voyageHeroArt.tempestcall },
+  { id: 'legendary', name: 'Capitão da Aurora', rarity: 'Lendário', damage: 1.2, color: '#fbbf24', image: voyageHeroArt.dawncaptain }
 ] as const;
 
 export const chests = [

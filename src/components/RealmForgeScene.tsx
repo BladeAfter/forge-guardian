@@ -10,12 +10,12 @@ import {
 } from '../realm';
 import { useT } from '../LanguageContext';
 import type { Translator } from '../i18n';
-import { coin } from '../gameAssets';
+import { coin, realmArt } from '../gameAssets';
 
-const SCENE_COLD = '/assets/game/realm/forge-scene-cold.jpg';
-const SCENE_LIT = '/assets/game/realm/forge-scene-lit.jpg';
-const SCENE_MASTER = '/assets/game/realm/forge-scene-master.jpg';
-const ANVIL = '/assets/game/realm/forge-anvil.png';
+const SCENE_COLD = realmArt.outpost;
+const SCENE_LIT = realmArt.workshop;
+const SCENE_MASTER = realmArt.workshop;
+const ANVIL = realmArt.tool;
 const FC_COIN = coin;
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));

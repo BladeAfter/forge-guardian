@@ -1100,7 +1100,7 @@ export const tr: Dict = {
   "pvp.teamSummary": "{count}/5 kahraman · ATK {atk} · HP {hp}",
   "pvp.ticketsLabel": "Biletler",
   "pvp.ticketsPurchased": "+{count} PvP bileti!",
-  "pvp.title": "Forge Arena",
+  "pvp.title": "Güverte Düelloları",
   "pvp.trophies": "{count} kupa",
   "pvp.trophyChange": "{sign}{count} KUPA",
   "pvp.turnOf": "Tur {turn} / {total}",
