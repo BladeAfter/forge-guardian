@@ -97,14 +97,14 @@ function PirateOutfit({ object, palette }: { object: THREE.Object3D; palette: Is
       const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); if (scale) mesh.scale.set(...scale); mesh.castShadow = true; gear.add(mesh); return mesh;
     };
     // Bone-attached tricorne, red hatband and ivory insignia keep every existing animation.
-    add(new THREE.CylinderGeometry(.23, .27, .09, 3), materials.dark, [0, .20, 0], [1, 1, .85]).rotation.y = Math.PI;
-    add(new THREE.SphereGeometry(.17, 12, 8), materials.dark, [0, .22, 0], [1, .7, .85]);
-    add(new THREE.CylinderGeometry(.173, .18, .035, 12), materials.red, [0, .19, 0]);
-    add(new THREE.SphereGeometry(.035, 8, 6), materials.ivory, [0, .23, .137], [1, 1, .35]);
-    for (const tilt of [-.65, .65]) { const bone = add(new THREE.CapsuleGeometry(.006, .07, 3, 6), materials.ivory, [0, .20, .145]); bone.rotation.z = tilt; }
+    add(new THREE.CylinderGeometry(.23, .27, .09, 3), materials.dark, [0, .33, 0], [1, 1, .85]).rotation.y = Math.PI;
+    add(new THREE.SphereGeometry(.17, 12, 8), materials.dark, [0, .37, 0], [1, .7, .85]);
+    add(new THREE.CylinderGeometry(.173, .18, .035, 12), materials.red, [0, .335, 0]);
+    add(new THREE.SphereGeometry(.035, 8, 6), materials.ivory, [0, .37, .137], [1, 1, .35]);
+    for (const tilt of [-.65, .65]) { const bone = add(new THREE.CapsuleGeometry(.006, .07, 3, 6), materials.ivory, [0, .34, .145]); bone.rotation.z = tilt; }
     // Cover the casual spectacles with a dark pirate eye patch and strap.
-    add(new THREE.SphereGeometry(.048, 10, 8), materials.dark, [-.083, .035, .155], [1, .8, .3]);
-    const strap = add(new THREE.TorusGeometry(.175, .009, 4, 20), materials.dark, [0, .04, 0], [1, .6, 1]); strap.rotation.x = Math.PI / 2;
+    add(new THREE.SphereGeometry(.048, 10, 8), materials.dark, [-.083, .14, .155], [1, .8, .3]);
+    const strap = add(new THREE.TorusGeometry(.175, .009, 4, 20), materials.dark, [0, .14, 0], [1, .6, 1]); strap.rotation.x = Math.PI / 2;
     head.add(gear);
     const torso = object.getObjectByName('torso');
     const sash = new THREE.Mesh(new THREE.BoxGeometry(.29, .05, .19), materials.red); sash.position.set(0, .05, 0); sash.rotation.z = -.15; torso?.add(sash);
