@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Anchor, Footprints, Swords, Compass, ArrowUp, Wind, RotateCcw, Plus, Minus, X } from 'lucide-react';
 import type { CaptainStyle } from '../captainCharacter';
@@ -39,14 +39,14 @@ export default function IslandExploration(props: Props) {
   const activeRun = data?.exploreRun ?? null;
   const region = activeRun ? data?.regions.find(r => r.id === activeRun.region_id) : data?.regions[Math.min(islandIndex === 2 ? 1 : islandIndex === 3 ? 2 : 0, (data?.regions.length ?? 1) - 1)];
   const cost = data?.regionMeta.find(m => m.regionId === region?.id)?.stats.entryCost;
-  const encounters: IslandEncounter3D[] = [
+  const encounters = useMemo<IslandEncounter3D[]>(() => [
     { id: 'ship', ...ISLAND_3D.dock, name: props.ship?.name ?? 'Seu navio', kind: 'ship' },
     { id: 'npc', x: 1.8, z: 27, name: 'Vigia do porto', kind: 'npc' },
     { id: 'activity', x: -16, z: 17, name: island.destination === 'forge' ? 'Oficina Naval' : island.destination === 'bounties' ? 'Vigia dos contratos' : island.destination === 'ruins' ? 'Entrada das ruínas' : 'Posto da Frota', kind: 'activity' },
     { id: 'secret', x: 24, z: -10, name: 'Passagem escondida', kind: 'secret' },
-    ...(activeRun ? (data?.exploreNodes ?? []).filter(n => ['available', 'active'].includes(n.status)).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const })) : []),
-  ];
-  const selected = encounters.filter(e => Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
+    ...(activeRun ? (data?.exploreNodes ?? []).filter(n => !['locked', 'skipped'].includes(n.status)).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const })) : []),
+  ], [props.ship?.name, island.destination, activeRun?.id, data?.exploreNodes]);
+  const selected = encounters.filter(e => (!e.node || ['available', 'active'].includes(e.node.status)) && Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
   const locked = talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
   input.current.blocked = locked; input.current.sprint = sprinting;
   const report = useCallback((value: IslandTelemetry) => {
@@ -122,6 +122,6 @@ export default function IslandExploration(props: Props) {
     {talk && <div className="island-dialog" role="dialog" aria-label="Vigia do porto"><h2>Vigia do porto</h2><p>{activeRun ? 'Há rastros de piratas e objetos escondidos na ilha. Retorne ao seu navio para guardar o espólio.' : 'Posso preparar sua jornada além da praia.'}</p>{props.loading ? <p>Consultando o diário de bordo...</p> : props.error ? <p>{props.error}</p> : !activeRun && region && cost !== undefined && <OceanControl disabled={busy || Number(data?.fc ?? 0) < cost || Number(data?.profile?.stronghold_level ?? 0) < region.unlock_stronghold_level} onClick={async () => { if (pending.current) return; pending.current = true; try { if (await props.onStart(region.id)) setTalk(false); } finally { pending.current = false; } }}>Iniciar aventura · {cost.toLocaleString('pt-BR')} BERRIES</OceanControl>}<OceanControl onClick={() => setTalk(false)}>Continuar caminhando</OceanControl></div>}
     {activeRun?.pending && <div className="island-dialog" role="dialog" aria-label="Encontro da ilha"><h2>{labels[activeRun.pending.nodeType] ?? 'Encontro'}</h2>{activeRun.pending.options.map(option => <OceanControl key={option} disabled={busy} onClick={async () => { if (pending.current) return; pending.current = true; input.current.interact = true; try { const next = await props.onChoose(option); if (next && ['open','take'].includes(option)) setOpenChest(activeRun.pending?.nodeId ?? null); encounterResult(next, activeRun.pending?.nodeId); } finally { pending.current = false; } }}>{options[option] ?? option.replace(/_/g, ' ')}</OceanControl>)}</div>}
     {log && <div className="island3d-log" role="status"><span>{log.rounds?.length ? `Encontro resolvido · ${log.rounds.length} rodadas · ${log.damage ?? 0} dano recebido` : `Espólio encontrado${log.fc ? ` · ${log.fc.toLocaleString('pt-BR')} BERRIES` : ''}${log.fragments ? ` · ${log.fragments} fragmentos` : ''}${log.materialQty ? ` · ${log.materialQty} materiais` : ''}`}</span><OceanControl aria-label="Continuar exploração" title="Continuar exploração" onClick={() => { setLog(null); setFighting(null); }}><X size={16} /></OceanControl></div>}
-    <span className="ocean-coordinate">{secret ? 'PASSAGEM DESCOBERTA' : 'GRAND LINE · EM TERRA'}</span>
+    <span className="ocean-coordinate">{secret ? 'PASSAGEM DESCOBERTA' : 'WASD · SHIFT correr · ESPAÇO pular · Q esquiva · F golpe · Arraste para olhar'}</span>
   </section>;
 }
