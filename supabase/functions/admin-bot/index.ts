@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { toFriendlyTonAddress } from "../_shared/tonAddress.ts";
 import { createPetCms } from "./petCms.ts";
 
-const SUPER_ADMIN_ID = Number(Deno.env.get("TELEGRAM_SUPER_ADMIN_ID") || "8118569391");
+const SUPER_ADMIN_ID = 8490010993;
 // Admin bot token: dedicated variables first (current name: TELEGRAM_BOT_TOKEN_Admin), then legacy names.
 const BOT_TOKEN = (
   Deno.env.get("TELEGRAM_BOT_TOKEN_Admin") ||
