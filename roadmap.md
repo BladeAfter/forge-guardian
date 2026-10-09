@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Reduzir travamentos no desembarque e na caminhada, com câmera interpolada, cena leve e desembarque mais ágil; preservar mapa e colisões.
+
 - [x] Fazer o personagem da arena e seu retrato acompanharem o pirata selecionado, com cinco artes apoiadas no chão e composição portuária preservada. Troca visual, retrato correspondente, joystick e callbacks oficiais conferidos isoladamente; 27 testes passaram. Validação real no Telegram pendente.
 
 - [x] Renovar a aba Kraken conforme a referência portuária: duas artes IA inéditas, Kraken proporcional, capitão no chão, HUD limpa e controles circulares. Artes, joystick, callbacks de golpe/equipamento/ranking e poderes bloqueados conferidos isoladamente; 24 testes passaram. Validação real dentro do Telegram indisponível.
