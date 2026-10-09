@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Substituir ovos e sua loja por Baús Misteriosos de mascotes, com artes piratas, abertura de baú e textos em português; preservar preços, chances e entregas.
+
 - [x] Corrigir a abertura da Grand Line: oceano imediato sem depender do carregamento das atividades; saldo existente repassado e validação do servidor mantida ao atracar. Cena verificada isoladamente sem resposta das atividades; quatro testes de navegação passaram. Acesso real no Telegram não verificado.
 
 - [ ] Varrer as telas ativas e substituir referências visuais e textos do jogo antigo, preservando identificadores e regras.
