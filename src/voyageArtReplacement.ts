@@ -1,4 +1,5 @@
 import { voyageHeroArt, voyagePetArt } from './voyageArt';
+import { mascotChestImage } from './gameAssets';
 
 const petImages = Object.values(voyagePetArt);
 const heroImages = Object.values(voyageHeroArt);
@@ -8,8 +9,9 @@ const stableIndex = (key: string, length: number) => {
   return hash % length;
 };
 
-/** Only legacy creature artwork is replaced; item art and response values are untouched. */
+/** Legacy creature and mascot-container artwork only; gameplay values are untouched. */
 export function replaceVoyageImage(image: string): string {
+  if (/\/pet-eggs\/|\/veteran\/egg-|\/pets-sub-nft\/sub-egg|season-1-mythic-egg/i.test(image)) return mascotChestImage(image);
   if (image.includes('/new-voyage/')) return image;
   const kind = /\/(?:pets(?:-[^/]*)?|pet-images)\//.test(image) ? 'pet'
     : /\/(?:heroes(?:-[^/]*)?|hero-images)\//.test(image) ? 'hero' : null;

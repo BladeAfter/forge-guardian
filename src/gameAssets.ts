@@ -32,6 +32,28 @@ import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
 import grandLineOcean from './assets/grand-line-ocean.jpg';
 import grandLineShip from './assets/grand-line-ship.png';
+import mascotChestCommon from './assets/mascot-chest-common.png';
+import mascotChestRare from './assets/mascot-chest-rare.png';
+import mascotChestEpic from './assets/mascot-chest-epic.png';
+import mascotChestLegendary from './assets/mascot-chest-legendary.png';
+import mascotChestMythic from './assets/mascot-chest-mythic.png';
+
+export const mascotChestArt = { common: mascotChestCommon, rare: mascotChestRare, epic: mascotChestEpic, legendary: mascotChestLegendary, mythic: mascotChestMythic };
+
+/** Cosmetic tier only; reward odds and persistent egg identifiers stay server-owned. */
+export function mascotChestTier(key: string): keyof typeof mascotChestArt {
+  if (/mythic|ancestral|celestial|season|sub-|veteran|zephyros|pyrrhax|nyxareon|glacyrn|aurethon/i.test(key)) return 'mythic';
+  if (/dragon|legend/i.test(key)) return 'legendary';
+  if (/epic/i.test(key)) return 'epic';
+  if (/rare|uncommon/i.test(key)) return 'rare';
+  return 'common';
+}
+export const mascotChestImage = (key: string) => mascotChestArt[mascotChestTier(key)];
+export function mascotChestName(key: string) {
+  const labels = { common: 'Comum', rare: 'Raro', epic: 'Épico', legendary: 'Lendário', mythic: 'Mítico' };
+  const special = /ancestral/i.test(key) ? 'Ancestral' : /celestial/i.test(key) ? 'Celestial' : labels[mascotChestTier(key)];
+  return `Baú Misterioso ${special}`;
+}
 
 export const duelArt = { deck: pirateDuelDeck };
 
