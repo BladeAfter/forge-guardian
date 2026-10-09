@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Liberar o acesso após o reinício: manutenção e bloqueio de reset desativados com autorização do usuário; marco financeiro do reinício preservado, saques automáticos e PvP naval não reativados. Carregamento real das telas no Telegram ainda não verificado.
+
 - [ ] Sistema de navios: seis modelos e skins, customização física, presença de jogadores reais, combate naval autoritativo, abordagem, progressão e reparos com materiais.
   - Seis modelos IA, seis estilos, bandeira/proa/decoração/esteira no canvas e estaleiro; presença por polling autenticado, manobra validada, canhões de bordo, habilidade, fuga, dano, XP, reparos e transferência atômica de BERRIES/materiais implementados. Onze testes passaram e estaleiro/navegação verificados isoladamente.
   - Bloqueios: manutenção/reset ativo e zero jogadores impedem testes reais; percentual, origem e limites do saque de BERRIES/itens não definidos, PvP permanece desativado. Abordagem aplica dano naval validado, mas combate físico de personagens nos conveses ainda não implementado. Materiais de reparo padrão: 5 madeira e 3 ferro por nível, configuráveis.
