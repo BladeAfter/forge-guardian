@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Substituir ícones dos três contratos de recrutamento por imagens padronizadas, preservando preços e callbacks.
+- [x] Substituir ícones dos três contratos de recrutamento por imagens padronizadas, preservando preços e callbacks; três artes carregadas e cliques 1/5/10 verificados isoladamente, sem compras reais.
 
 - [ ] Excluir todos os bens NFT e suas cópias nos inventários, preservar saldos/pagamentos e bloquear novas entregas NFT.
 
