@@ -764,6 +764,13 @@
       "when": 1791577769870,
       "tag": "0108_grand_line_naval_system",
       "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1791577807101,
+      "tag": "0109_naval_collision_and_safety",
+      "breakpoints": true
     }
   ]
 }
