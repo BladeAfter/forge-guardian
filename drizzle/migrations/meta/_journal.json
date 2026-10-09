@@ -813,6 +813,13 @@
       "when": 1791585283773,
       "tag": "0115_payment_channel_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1791585336228,
+      "tag": "0116_payment_channel_private_grants",
+      "breakpoints": true
     }
   ]
 }
