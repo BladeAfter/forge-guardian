@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Trocar as setas da Grand Line por joystick arrastável e verificar direção e parada ao soltar.
+- [x] Trocar as setas da Grand Line por joystick arrastável; movimento com captura fora da base, parada ao soltar e retorno ao centro verificados na cena isolada, com aparência conferida em tela grande e pequena. Acesso real no Telegram não verificado.
 
 - [x] Substituir ovos e sua loja por Baús Misteriosos de mascotes: cinco artes inéditas, loja e carteira renovadas, inventário e recompensas com nomes de baús, abertura com tampa animada. Dez testes passaram; imagens, seleção, revelação e retorno verificados isoladamente. Compras reais no Telegram não verificadas durante a manutenção do jogo; preços, chances e entregas preservados.
 
