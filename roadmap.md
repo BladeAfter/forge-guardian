@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Remover packs, pop-ups promocionais, staking e acessos Tower/Familiar Hunt/Expeditions do jogo antigo, preservando o visual pirata atual.
+- [x] Remover da interface packs, pop-ups promocionais, staking e acessos Tower/Familiar Hunt/Expeditions do jogo antigo; imports e renderizações removidos das telas, visual pirata preservado. Acesso real pelo Telegram não verificado.
 
 - [x] Executar reinício total: jogadores, heróis, pets, equipamentos, anúncios, leilões, clãs e registros financeiros com contagens verificadas em zero; catálogos preservados e processos automáticos pausados.
 - [x] Renomear Mercado para Bazar do Porto e Leilão para Pregão dos Piratas; remover Troca Privada da interface sem mudar compras e lances. Verificação visual isolada inconclusiva; acesso real pelo Telegram não verificado.
