@@ -4386,7 +4386,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
  .action-boss-title { gap:3px; }.action-boss-title h2 { font-size:15px; }.action-boss-title small { font-size:6px; }
  .action-boss-title .ocean-control { min-width:23px; min-height:23px; padding:3px; }.action-boss-title svg { width:13px; height:13px; }
  .action-boss-meta { font-size:7px; }.action-boss-life { height:7px; }
- .action-crew { left:8px; top:24%; gap:4px; }.action-crew .ocean-control { width:34px; height:35px; }.action-crew .action-crew-edit { width:15px; height:15px; right:-7px; }
+ .action-crew { left:8px; top:24%; gap:4px; }.action-crew .ocean-control { width:30px; height:30px; }.action-crew .action-crew-edit { width:15px; height:15px; right:-7px; }
  .action-actor { width:27%; height:25%; }.action-monster { width:57%; height:43%; left:42%; bottom:31%; }
  .action-controls { transform:scale(.65); transform-origin:right bottom; bottom:14px; right:10px; }
  .seas-action-arena .ocean-helm { left:10px; bottom:16px; }.seas-action-arena .ocean-joystick { width:76px; height:76px; }

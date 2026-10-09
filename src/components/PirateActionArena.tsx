@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Expand, Flame, Hand, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
 import { actionArenaArt } from '../gameAssets';
-import { captainCharacters, readCaptainStyle } from '../captainCharacter';
+import { readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
 import type { CombatSlot } from '../combatSlots';
 import { COMBAT_SLOTS } from '../combatSlots';
@@ -34,7 +34,6 @@ export function PirateActionArena(props: Props) {
   const ratio = Math.max(0, Math.min(100, maxHp > 0 ? hp / maxHp * 100 : 0));
   const phase = ratio > 75 ? 1 : ratio > 50 ? 2 : ratio > 25 ? 3 : 4;
   const selected = heroes.find(hero => hero.heroId === selectedHero);
-  const captain = captainCharacters[readCaptainStyle(props.telegramId)];
   const actor = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
   const telegraph = active && props.bossCountdown !== null && props.bossCountdown <= 2;
