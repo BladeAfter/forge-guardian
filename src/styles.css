@@ -3805,3 +3805,81 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .crew-scene h3 { font-size: 25px; }
 }
 @media (prefers-reduced-motion: reduce) { .crew-contract { transition: none; } .crew-contract:hover { transform: none; } }
+
+/* Mythic Seas — captain's ship registry. */
+:root {
+  --profile-paper: 44 48% 94%;
+  --profile-ink: 207 61% 16%;
+  --profile-muted: 207 20% 42%;
+  --profile-rule: 207 24% 78%;
+  --profile-accent: 358 69% 45%;
+  --profile-success: 158 64% 30%;
+  --profile-sky: 192 80% 85%;
+  --profile-cover-shade: linear-gradient(180deg, hsl(var(--pirate-ink) / .28), transparent 40%, hsl(var(--pirate-ink) / .94));
+}
+.captain-profile { color: hsl(var(--profile-ink)); background: hsl(var(--profile-paper)); margin: -4px; padding-bottom: 20px; overflow: hidden; }
+.captain-profile button { letter-spacing: 0; }
+.captain-cover { position: relative; min-height: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 20px 20px; color: hsl(var(--profile-paper)); }
+.captain-deck { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.captain-cover::after { content: ''; position: absolute; inset: 0; background: var(--profile-cover-shade); pointer-events: none; }
+.captain-cover-title, .captain-identity { position: relative; z-index: 1; }
+.captain-cover-title > span { font-size: 10px; font-weight: 800; letter-spacing: 0; }
+.captain-cover-title h1 { font-size: 27px; line-height: 1.15; font-weight: 900; margin-top: 4px; }
+.captain-identity { display: flex; gap: 14px; align-items: center; padding-top: 65px; }
+.captain-portrait { width: 80px; height: 80px; flex-shrink: 0; display: grid; place-items: center; }
+.captain-portrait > img { object-fit: contain; width: 100%; height: 100%; }
+.captain-name { min-width: 0; }
+.captain-name h2 { font-size: 24px; line-height: 1.2; font-weight: 900; overflow-wrap: anywhere; }
+.captain-name p { margin-top: 5px; font-size: 12px; color: hsl(var(--profile-sky)); overflow-wrap: anywhere; }
+.captain-registry { background: hsl(var(--profile-accent)); color: hsl(var(--profile-paper)); display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 18px; font-size: 9px; font-weight: 800; }
+.captain-registry > div { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.captain-copy { width: 32px; height: 32px; display: grid; place-items: center; }
+.captain-copy:disabled { opacity: .45; }
+.captain-log { padding: 18px; display: grid; gap: 12px; border-bottom: 1px solid hsl(var(--profile-rule)); }
+.captain-streak { display: flex; align-items: center; gap: 12px; }
+.captain-streak > svg { color: hsl(var(--profile-accent)); }
+.captain-streak span, .captain-pass span { display: block; font-size: 11px; color: hsl(var(--profile-muted)); }
+.captain-streak strong { display: block; font-size: 27px; line-height: 1.1; margin-top: 3px; }
+.captain-streak small { font-size: 12px; font-weight: 500; }
+.captain-pass { display: flex; align-items: center; gap: 12px; text-align: left; padding-top: 12px; border-top: 1px dashed hsl(var(--profile-rule)); width: 100%; }
+.captain-pass > img { width: 50px; height: 50px; object-fit: contain; }
+.captain-pass > div { min-width: 0; flex: 1; }
+.captain-pass strong { display: block; font-size: 14px; margin: 3px 0; overflow-wrap: anywhere; }
+.captain-pass small { font-size: 9px; text-transform: uppercase; color: hsl(var(--profile-muted)); }
+.captain-profile .captain-status-active { color: hsl(var(--profile-success)); }
+.captain-journal, .captain-signals { padding: 22px 18px 0; }
+.captain-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.captain-section-heading > div > span { font-size: 9px; font-weight: 800; color: hsl(var(--profile-accent)); }
+.captain-section-heading h2 { font-size: 19px; line-height: 1.2; font-weight: 900; margin-top: 4px; }
+.captain-text-action { display: flex; align-items: center; gap: 4px; font-size: 11px; min-height: 36px; color: hsl(var(--profile-accent)); }
+.captain-empty { display: flex; align-items: center; gap: 12px; padding: 20px 0; border-bottom: 1px dashed hsl(var(--profile-rule)); }
+.captain-empty img { object-fit: contain; width: 60px; height: 60px; flex-shrink: 0; }
+.captain-empty p { font-size: 13px; font-weight: 800; }
+.captain-empty span { display: block; font-size: 11px; margin-top: 4px; color: hsl(var(--profile-muted)); }
+.captain-muted { padding: 20px 0; font-size: 12px; color: hsl(var(--profile-muted)); }
+.captain-rewards { margin-top: 12px; }
+.captain-rewards-expanded { max-height: 52vh; overflow-y: auto; }
+.captain-reward { display: flex; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid hsl(var(--profile-rule)); }
+.captain-reward-art { width: 42px; height: 42px; flex-shrink: 0; overflow: hidden; display: grid; place-items: center; }
+.captain-reward-name { font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+.captain-rarity { font-size: 9px; text-transform: uppercase; color: hsl(var(--profile-muted)); }
+.captain-rarity--legendary, .captain-rarity--mythic, .captain-rarity--ancestral { color: hsl(var(--profile-accent)); }
+.captain-reward-time { font-size: 9px; flex-shrink: 0; color: hsl(var(--profile-muted)); }
+.captain-channel-bonus { font-size: 9px; color: hsl(var(--profile-success)); font-weight: 800; }
+.captain-channel { border-bottom: 1px solid hsl(var(--profile-rule)); padding: 16px 0; }
+.captain-channel-info { display: flex; gap: 10px; align-items: center; }
+.captain-channel-info > svg { flex-shrink: 0; color: hsl(var(--profile-accent)); }
+.captain-channel-info > div { flex: 1; min-width: 0; }
+.captain-channel-info h3 { font-size: 12px; font-weight: 800; overflow-wrap: anywhere; }
+.captain-channel-info p { font-size: 10px; color: hsl(var(--profile-muted)); margin-top: 3px; overflow-wrap: anywhere; }
+.captain-channel-info > span { font-size: 12px; font-weight: 800; color: hsl(var(--profile-success)); }
+.captain-channel-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 10px; }
+.captain-channel-actions > span { flex: 1; }
+.captain-channel-join, .captain-channel-verify { min-height: 40px; flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 4px; font-size: 11px; }
+.captain-channel-join { border: 1px solid hsl(var(--profile-rule)); }
+.captain-channel-verify { background: hsl(var(--profile-ink)); color: hsl(var(--profile-paper)); }
+.captain-channel-verify.is-joined { background: hsl(var(--profile-success)); }
+.captain-channel-verify:disabled { opacity: .5; }
+.captain-channel-error { color: hsl(var(--profile-accent)); font-size: 11px; margin-top: 8px; }
+.captain-profile button:focus-visible { outline: 2px solid hsl(var(--profile-accent)); outline-offset: 3px; }
+@media (min-width: 600px) { .captain-cover { min-height: 310px; } }

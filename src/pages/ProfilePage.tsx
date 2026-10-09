@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Check, ChevronRight, Copy, Crown, Gift, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Copy, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
 import { useChannelRewards, useRewardHistory, useSeasonPass } from '../hooks';
 import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../services';
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
@@ -8,6 +8,7 @@ import type { GameState } from '../types';
 import { useT } from '../LanguageContext';
 import{PlayerTag}from'../premiumTitles';
 import { AvatarWithBorder } from '../components/AvatarWithBorder';
+import { profileArt } from '../gameAssets';
 
 /** Reward icons come from mixed sources: only real URLs can be rendered as images. */
 const isImageUrl = (value?: string | null) => Boolean(value && (/^https?:\/\//.test(value) || value.startsWith('/') || value.startsWith('data:')));
@@ -21,8 +22,6 @@ type ProfilePageProps = {
 };
 
 const CHANNEL_ICON: Record<string, typeof Megaphone> = { news: Megaphone, community: MessageCircle, payments: WalletIcon };
-
-const RARITY_COLOR: Record<string, string> = { common: '#cbd5f5', uncommon: '#4ade80', rare: '#38bdf8', epic: '#c084fc', legendary: '#fbbf24', mythic: '#fb7185', ancestral: '#f472b6', adventurer: '#38bdf8' };
 
 const formatFc = (value: number) => new Intl.NumberFormat('en-US').format(Math.round(value));
 
@@ -63,21 +62,20 @@ function itemTitle(item: RewardHistoryItem, t: (key: string) => string): string 
 function RewardRow({ item }: { item: RewardHistoryItem }) {
   const t = useT();
   const rarity = item.rarity?.toLowerCase() ?? null;
-  const color = rarity ? RARITY_COLOR[rarity] ?? '#cbd5f5' : '#cbd5f5';
   return (
-    <li className="flex items-center gap-2.5 rounded-2xl border border-amber-300/10 bg-black/35 px-2.5 py-2">
-      <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-300/20 bg-[#0b1120]">
+    <li className="captain-reward">
+      <div className="captain-reward-art">
         {isImageUrl(item.image_url)
           ? <img src={item.image_url as string} alt={item.reward_name} loading="lazy" className="h-full w-full object-cover" />
-          : <Gift className="h-4 w-4 text-amber-300" />}
+          : <img src={profileArt.treasure} alt="" width={40} height={40} loading="lazy" />}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] font-bold text-white">{itemTitle(item, t)}</p>
-        <p className="truncate text-[9px] font-semibold uppercase tracking-[0.12em]" style={{ color }}>
+        <p className="captain-reward-name">{itemTitle(item, t)}</p>
+        <p className={`captain-rarity captain-rarity--${rarity ?? 'common'}`}>
           {rarity ? rarity : typeLabel(item.reward_type, t)}
         </p>
       </div>
-      <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-slate-400">{relativeTime(item.created_at, t)}</span>
+      <span className="captain-reward-time">{relativeTime(item.created_at, t)}</span>
     </li>
   );
 }
@@ -129,144 +127,43 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
   };
 
   return (
-    <section className="space-y-3 pb-2">
-      <p className="px-1 text-[10px] font-bold uppercase tracking-[0.3em] text-amber-300">{t('profile.title')}</p>
-
-      {/* Single identity block — the app header is hidden on this tab to avoid duplication. */}
-      <div className="relative overflow-hidden rounded-3xl border border-amber-300/25 bg-[#080d17]/90 p-3 shadow-[0_12px_35px_rgba(0,0,0,.55)]">
-        <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="relative flex items-center gap-3">
-          <AvatarWithBorder photoUrl={profile?.photoUrl} border={profile?.avatarBorder} fallback={getInitials(name)} size={profile?.avatarBorder ? 78 : 56} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-black leading-tight text-white">{name}</p>
-            <p className="truncate text-[11px] font-semibold text-sky-300"><PlayerTag telegramId={profile?.telegramId} username={profile?.username} fallback={t('profile.noUsername')}/></p>
-            <div className="mt-1 flex items-center gap-1.5">
-              <span className="truncate text-[10px] text-slate-400">ID: {profile?.telegramId ?? '--'}</span>
-              <button
-                type="button"
-                onClick={copyId}
-                aria-label={t('profile.copyIdAria')}
-                className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-amber-300/25 bg-black/40 text-amber-200 active:scale-95"
-              >
-                {copied ? <Check className="h-3 w-3 text-emerald-300" /> : <Copy className="h-3 w-3" />}
-              </button>
-            </div>
+    <section className="captain-profile">
+      <header className="captain-cover">
+        <img className="captain-deck" src={profileArt.deck} alt="Convés de um navio nas águas de Mythic Seas" width={1280} height={768} />
+        <div className="captain-cover-title"><span>MYTHIC SEAS</span><h1>Ficha de capitão</h1></div>
+        <div className="captain-identity">
+          <div className="captain-portrait">
+            {profile?.photoUrl ? <AvatarWithBorder photoUrl={profile.photoUrl} border={profile.avatarBorder} fallback={getInitials(name)} size={80} /> : <img src={profileArt.captain} alt="" width={80} height={80} />}
           </div>
+          <div className="captain-name"><h2>{name}</h2><p><PlayerTag telegramId={profile?.telegramId} username={profile?.username} fallback={t('profile.noUsername')} /></p></div>
         </div>
+      </header>
+
+      <div className="captain-registry"><span>REGISTRO DE NAVEGANTE</span><div><span>ID {profile?.telegramId ?? '—'}</span><button type="button" onClick={copyId} disabled={!profile?.telegramId} title={t('profile.copyIdAria')} aria-label={t('profile.copyIdAria')} className="captain-copy">{copied ? <Check size={15} /> : <Copy size={15} />}</button></div></div>
+
+      <div className="captain-log">
+        <div className="captain-streak"><CalendarDays size={18} /><div><span>Dias a bordo</span><strong>{game.loginStreak}<small> {game.loginStreak === 1 ? 'dia seguido' : 'dias seguidos'}</small></strong></div></div>
+        <button type="button" onClick={onOpenBattlePass} className="captain-pass"><img src={profileArt.pass} alt="" width={60} height={60} loading="lazy" /><div><span>{t('profile.battlePass')}</span><strong>{seasonPass.isLoading ? '…' : passLabel}</strong><small className={passActive ? 'captain-status-active' : ''}>{passActive ? t('profile.active') : t('profile.inactive')}</small></div><ChevronRight size={18} /></button>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-2xl border border-amber-300/15 bg-[#080d17]/85 p-3">
-          <div className="flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-amber-300" />
-            <p className="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">{t('profile.loginStreak')}</p>
-          </div>
-          <p className="mt-1.5 text-lg font-black text-white">{game.loginStreak}d</p>
-        </div>
-        <button type="button" onClick={onOpenBattlePass} className="rounded-2xl border border-amber-300/15 bg-[#080d17]/85 p-3 text-left active:scale-[0.98]">
-          <div className="flex items-center gap-1.5">
-            <Crown className="h-3.5 w-3.5 shrink-0 text-amber-300" />
-            <p className="truncate text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">{t('profile.battlePass')}</p>
-          </div>
-          <p className={`mt-1.5 text-[11px] font-black uppercase ${passActive ? 'text-emerald-300' : 'text-slate-500'}`}>{passActive ? t('profile.active') : t('profile.inactive')}</p>
-          <p className="truncate text-[10px] font-semibold text-amber-200">{seasonPass.isLoading ? '...' : passLabel}</p>
-        </button>
-      </div>
+      <section className="captain-journal">
+        <div className="captain-section-heading"><div><span>ESPÓLIOS DA JORNADA</span><h2>Diário de conquistas</h2></div>{items.length > 0 && <button type="button" onClick={() => setShowAll(value => !value)} className="captain-text-action">{showAll ? t('profile.showLess') : t('profile.viewAll')}<ChevronRight size={14} /></button>}</div>
+        {history.isLoading ? <p className="captain-muted">{t('profile.loadingRewards')}</p> : items.length ? <ul className={`captain-rewards ${showAll ? 'captain-rewards-expanded' : ''}`}>{items.map((item, index) => <RewardRow key={`${item.reward_type}-${item.reward_key}-${item.created_at}-${index}`} item={item} />)}</ul> : <div className="captain-empty"><img src={profileArt.treasure} alt="" width={72} height={72} loading="lazy" /><div><p>Seu tesouro começa aqui</p><span>{t('profile.noRewardsYet')}</span></div></div>}
+      </section>
 
-      <div className="rounded-3xl border border-amber-300/15 bg-[#080d17]/85 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">{t('profile.recentlyUnlocked')}</p>
-          {items.length ? (
-            <button type="button" onClick={() => setShowAll((value) => !value)} className="flex shrink-0 items-center gap-0.5 text-[10px] font-bold text-sky-300">
-              {showAll ? t('profile.showLess') : t('profile.viewAll')} <ChevronRight className="h-3 w-3" />
-            </button>
-          ) : null}
-        </div>
-        {history.isLoading ? (
-          <p className="mt-3 text-[11px] text-slate-400">{t('profile.loadingRewards')}</p>
-        ) : items.length ? (
-          <ul className={`mt-2.5 space-y-1.5 ${showAll ? 'max-h-[52vh] overflow-y-auto pr-0.5' : ''}`}>
-            {items.map((item, index) => <RewardRow key={`${item.reward_type}-${item.reward_key}-${item.created_at}-${index}`} item={item} />)}
-          </ul>
-        ) : (
-          <div className="mt-2.5 rounded-2xl border border-white/5 bg-black/30 px-3 py-4 text-center">
-            <p className="text-[12px] font-bold text-white">{t('profile.noRewardsYet')}</p>
-            <p className="mt-1 text-[10px] text-slate-400">{t('profile.playToEarn')}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-3xl border border-amber-300/15 bg-[#080d17]/85 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">{t('profile.officialChannels')}</p>
-          <span className="shrink-0 text-[9px] font-bold uppercase tracking-wide text-emerald-300">{t('profile.rewardPerChannel', { amount: '5,000' })}</span>
-        </div>
-        {channels.isLoading ? (
-          <p className="mt-3 text-[11px] text-slate-400">{t('profile.loadingChannels')}</p>
-        ) : (
-          <div className="mt-2.5 space-y-1.5">
-            {(channels.data?.channels ?? []).filter((channel) => channel.enabled).map((channel: ChannelReward) => {
-              const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
-              const pending = verify.isPending && verify.variables === channel.key;
-              const failed = channelError?.key === channel.key;
-              return (
-                <div key={channel.key} className="rounded-2xl border border-amber-300/10 bg-black/35 p-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-[#0b1120] text-amber-300"><Icon className="h-4 w-4" /></span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[11px] font-black uppercase tracking-wide text-white">{channel.title}</p>
-                      <p className="truncate text-[9px] text-slate-400">{channel.subtitle}</p>
-                    </div>
-                    {channel.claimed ? (
-                      <span className="flex shrink-0 items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
-                        <Check className="h-3 w-3" /> {t('profile.claimed')}
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-[10px] font-black text-amber-300">+{formatFc(channel.rewardFc)} BERRIES</span>
-                    )}
-                  </div>
-                  {channel.claimed ? (
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <p className="min-w-0 flex-1 truncate text-[9px] font-black uppercase tracking-wide text-emerald-300">
-                        {t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => openTelegramLink(channel.url)}
-                        className="flex h-9 shrink-0 items-center justify-center gap-1 rounded-xl border border-amber-300/25 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wide text-amber-200 active:scale-[0.98]"
-                      >
-                        {t('profile.openChannel')} <ChevronRight className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => { setJoined((state) => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}
-                        className="flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border border-amber-300/25 bg-black/50 text-[10px] font-black uppercase tracking-wide text-amber-200 active:scale-[0.98]"
-                      >
-                        {t('profile.join')} <ChevronRight className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() => verify.mutate(channel.key)}
-                        className={`flex h-10 flex-1 items-center justify-center gap-1 rounded-xl border text-[10px] font-black uppercase tracking-wide active:scale-[0.98] ${joined[channel.key] ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/25 bg-amber-500/10 text-amber-200'} disabled:opacity-50`}
-                      >
-                        {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                        {pending ? t('profile.verifying') : t('profile.verify')}
-                      </button>
-                    </div>
-                  )}
-                  {failed ? <p className="mt-1.5 text-[9px] font-semibold text-rose-300">{channelError?.message}</p> : null}
-
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
+      <section className="captain-signals">
+        <div className="captain-section-heading"><div><span>RÁDIO DO NAVIO</span><h2>{t('profile.officialChannels')}</h2></div><span className="captain-channel-bonus">{t('profile.rewardPerChannel', { amount: '5,000' })}</span></div>
+        {channels.isLoading ? <p className="captain-muted">{t('profile.loadingChannels')}</p> : <div className="captain-channel-list">{(channels.data?.channels ?? []).filter(channel => channel.enabled).map((channel: ChannelReward) => {
+          const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
+          const pending = verify.isPending && verify.variables === channel.key;
+          const failed = channelError?.key === channel.key;
+          return <article className="captain-channel" key={channel.key}>
+            <div className="captain-channel-info"><Icon size={21} /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : `+${formatFc(channel.rewardFc)}`}</span></div>
+            {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><button type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></button></div> : <div className="captain-channel-actions"><button type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></button><button type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</button></div>}
+            {failed && <p className="captain-channel-error">{channelError?.message}</p>}
+          </article>;
+        })}</div>}
+      </section>
     </section>
   );
 }
