@@ -968,20 +968,10 @@ function App() {
           <div className="flex w-full items-start justify-between">
             <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={mainScreenArt.pet} label="MASCOTE" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-
-              <button
-                onClick={()=>{setActivePage(null);navigateTo('missions')}}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
-              >📜 MISSIONS</button>
             </div>
             <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={mainScreenArt.heroes} label="TRIPULAÇÃO" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
 
-
-              <button
-                onClick={()=>setPremiumOffersOpen(true)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-2 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
-              >💎 OFERTAS</button>
 
             </div>
           </div>
