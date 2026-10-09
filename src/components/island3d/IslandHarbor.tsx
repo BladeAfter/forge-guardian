@@ -11,6 +11,9 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
   const { scene } = useGLTF(islandModels.ship);
   const ship = useRef<RapierRigidBody>(null), bridge = useRef<RapierRigidBody>(null);
   const reflectionGroup = useRef<THREE.Group>(null), wake = useRef<THREE.Group>(null);
+  const bridgeRotation = useMemo(() => new THREE.Quaternion(), []);
+  const bridgeEuler = useMemo(() => new THREE.Euler(), []);
+  const lastDeployment = useRef(-1);
   const { object, reflection } = useMemo(() => {
     const object = scene.clone(true), reflection = scene.clone(true);
     object.traverse(o => { if (o instanceof THREE.Mesh) { o.castShadow = true; o.receiveShadow = true; } });
@@ -27,9 +30,12 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
     const h = harbor.current;
     ship.current?.setNextKinematicTranslation({ x: h.x, y: h.y, z: h.z });
     const length = HARBOR.gangway.end - HARBOR.gangway.start;
-    const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, (1 - h.deployment) * Math.PI / 2));
-    bridge.current?.setTranslation({ x: (HARBOR.gangway.start + HARBOR.gangway.end) / 2, y: HARBOR.pier.top - .1 + (1 - h.deployment) * length / 2, z: HARBOR.gangway.z }, true);
-    bridge.current?.setRotation(rotation, true);
+    if (lastDeployment.current !== h.deployment) {
+      lastDeployment.current = h.deployment;
+      bridgeRotation.setFromEuler(bridgeEuler.set(0, 0, (1 - h.deployment) * Math.PI / 2));
+      bridge.current?.setTranslation({ x: (HARBOR.gangway.start + HARBOR.gangway.end) / 2, y: HARBOR.pier.top - .1 + (1 - h.deployment) * length / 2, z: HARBOR.gangway.z }, true);
+      bridge.current?.setRotation(bridgeRotation, true);
+    }
   });
   useFrame(() => {
     const h = harbor.current;
@@ -76,6 +82,10 @@ function HullShadow({ harbor, palette }: { harbor: MutableRefObject<HarborState>
 function Mooring({ offset, harbor, palette }: { offset: number; harbor: MutableRefObject<HarborState>; palette: IslandPalette }) {
   const mesh = useRef<THREE.Mesh>(null);
   const geometry = useMemo(() => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(1, -.3, 0), new THREE.Vector3(2, 0, 0)]), 12, .035, 5), []);
+  const rope = useMemo(() => {
+    const points = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+    return { points, curve: new THREE.CatmullRomCurve3(points) };
+  }, []);
   const lastUpdate = useRef(-1);
   useEffect(() => () => geometry.dispose(), [geometry]);
   useFrame(() => {
@@ -85,9 +95,20 @@ function Mooring({ offset, harbor, palette }: { offset: number; harbor: MutableR
     if (h.elapsed - lastUpdate.current < .1) return;
     lastUpdate.current = h.elapsed;
     // Update only the short rope strip; endpoints track ship heave and dock bollards.
-    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(1.6, 1.25, 49 + offset), new THREE.Vector3((1.6 + h.x - 2.8) / 2, 1.05, (49 + h.z) / 2 + offset), new THREE.Vector3(h.x - 2.8, h.y + 2.625, h.z + offset)]);
-    const next = new THREE.TubeGeometry(curve, 12, .035, 5);
-    m.geometry.dispose(); m.geometry = next;
+    rope.points[0].set(1.6, 1.25, 49 + offset);
+    rope.points[1].set((1.6 + h.x - 2.8) / 2, 1.05, (49 + h.z) / 2 + offset);
+    rope.points[2].set(h.x - 2.8, h.y + 2.625, h.z + offset);
+    const frames = rope.curve.computeFrenetFrames(12, false);
+    const positions = geometry.getAttribute('position');
+    for (let segment = 0; segment <= 12; segment++) {
+      const center = rope.curve.getPointAt(segment / 12);
+      for (let side = 0; side <= 5; side++) {
+        const angle = side / 5 * Math.PI * 2, normal = frames.normals[segment], binormal = frames.binormals[segment];
+        positions.setXYZ(segment * 6 + side, center.x + .035 * (-Math.cos(angle) * normal.x + Math.sin(angle) * binormal.x), center.y + .035 * (-Math.cos(angle) * normal.y + Math.sin(angle) * binormal.y), center.z + .035 * (-Math.cos(angle) * normal.z + Math.sin(angle) * binormal.z));
+      }
+    }
+    positions.needsUpdate = true;
+    geometry.computeBoundingSphere();
   });
   return <mesh ref={mesh} geometry={geometry} castShadow><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>;
 }
