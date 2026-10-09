@@ -4013,3 +4013,34 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .seas-title-bottom{font-size:clamp(3.4rem,18vw,5.6rem);letter-spacing:.14em}
 .seas-title-rule{margin-top:.35rem;width:min(62vw,240px);height:3px;border-radius:9999px;background:linear-gradient(90deg,transparent,hsl(43 95% 62%),hsl(8 80% 55%),hsl(43 95% 62%),transparent);box-shadow:0 0 12px hsl(43 100% 60%/.6)}
 @keyframes seasTitleIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+
+/* Mercado compacto */
+.market-pulse .market-port-mini{display:flex;align-items:center;gap:.6rem;height:auto;max-height:76px;min-height:0;padding:.5rem .65rem;border-radius:12px;background:hsl(215 55% 10%/.92);border:1px solid hsl(185 70% 45%/.25);overflow:hidden}
+.market-pulse .market-port-mini img{position:static;width:56px;height:56px;min-height:0;flex:none;border-radius:9px;object-fit:cover}
+.market-pulse .market-port-mini>div{position:static;flex:1;min-width:0;padding:0;background:none}
+.market-pulse .market-port-mini h2{margin:0;font-size:13px;line-height:1.1;letter-spacing:.08em;text-transform:uppercase;color:hsl(43 90% 70%)}
+.market-pulse .market-port-mini span{display:block;font-size:10px;letter-spacing:0;color:hsl(190 40% 75%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.market-pulse .market-port-mini em{font-style:normal;font-size:9px;font-weight:900;letter-spacing:.12em;padding:.2rem .45rem;border-radius:999px;color:hsl(185 80% 70%);background:hsl(185 70% 40%/.15);border:1px solid hsl(185 70% 50%/.35)}
+.market-pulse .market-pulse-body{padding:.5rem .1rem 0;gap:.4rem}
+.market-pulse .market-pulse-body>*{margin-top:0;margin-bottom:0}
+.market-pulse .market-data-mode{padding:.2rem 0;font-size:9px}
+.market-pulse .market-overview-line{display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-block:1px solid hsl(185 60% 50%/.15);background:none;font-size:11px;color:hsl(190 30% 70%)}
+.market-pulse .market-overview-line strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:hsl(43 90% 72%);text-transform:uppercase}
+.market-pulse .market-overview-line b{color:hsl(185 80% 70%);font-size:13px}
+.market-pulse .market-section-title{padding:.3rem 0 0;margin:0}
+.market-pulse .market-section-title h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.market-pulse .market-currency-switch button{padding:.15rem .5rem;font-size:9px}
+.market-pulse .market-chart{padding:.35rem .25rem;border:0;border-radius:10px;background:hsl(215 55% 9%/.6);box-shadow:none}
+.market-pulse .market-chart>div:first-child{font-size:9px;margin:0}
+.market-pulse .market-chart>div:first-child strong{font-size:11px}
+.market-pulse .market-chart svg{height:100px;width:100%}
+.market-pulse .market-chart-line{stroke-width:1.5}
+.market-pulse .market-chart-days button{font-size:8px;padding:.1rem 0}
+.market-pulse .market-ranking,.market-pulse .market-activity{gap:0;margin:0;padding:0}
+.market-pulse .market-ranking li,.market-pulse .market-activity li{min-height:0;padding:.4rem .15rem;gap:.5rem;border:0;border-bottom:1px solid hsl(185 60% 50%/.12);border-radius:0;background:none;box-shadow:none;font-size:11px}
+.market-pulse .market-ranking li img{width:30px;height:30px;border-radius:7px}
+.market-pulse .market-rank-number{font-size:10px;width:auto}
+.market-pulse .market-activity li p{font-size:11px;margin:0;line-height:1.25}
+.market-pulse .market-activity li div>span{font-size:9px}
+.market-pulse .market-activity li>span:first-child{width:22px;height:22px}
+.market-pulse .market-activity li strong{font-size:11px}
