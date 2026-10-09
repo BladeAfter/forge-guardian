@@ -4275,3 +4275,10 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @media(min-width:700px) { .seas-action-arena { min-height:700px; }.action-monster { left:29%; width:69%; height:67%; top:16%; }.action-actor { width:20%; height:31%; }.action-controls { width:420px; }.action-controls span { font-size:9px; }.action-boss-title h2 { font-size:30px; } }
 @media(max-width:360px) { .action-controls { width:calc(100% - 98px); right:8px; gap:3px; }.seas-action-arena .ocean-joystick { width:68px; height:68px; }.action-boss-title h2 { font-size:20px; }.action-player-hud { left:90px; gap:4px; font-size:8px; } }
 @media(prefers-reduced-motion:reduce) { .seas-action-arena *, .seas-action-arena *::before { animation:none!important; transition:none!important; } }
+/* Keep compact controls within the arena even in a narrow, wide-screen panel. */
+.action-controls { width:min(420px,calc(100% - 115px)); }
+.action-crew { top:175px; }
+.action-mascot { top:73%; }
+.action-combo { max-width:145px; text-align:right; }
+.action-combo span { display:block; overflow-wrap:anywhere; }
+@media(max-width:360px) { .action-controls { width:calc(100% - 98px); } }
