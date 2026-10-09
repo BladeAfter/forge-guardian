@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowRight, Anchor, Compass, Maximize2, Minimize2, Waves } from 'lucide-react';
+import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves } from 'lucide-react';
 import { grandLineArt } from '../gameAssets';
 import { SEA_ISLANDS, SEA_SIZE, sailToward, seaClickTarget, seaDistance, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
@@ -7,6 +7,15 @@ import { OceanControl } from './OceanControl';
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination) => void };
 export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const joystickKnob = useRef<HTMLSpanElement>(null);
+  const joystickPointer = useRef<number | null>(null);
+  const joystickVector = useRef({ x: 0, y: 0 });
+  const resetJoystick = () => {
+    joystickPointer.current = null;
+    joystickVector.current = { x: 0, y: 0 };
+    if (joystickKnob.current) joystickKnob.current.style.transform = 'translate(0px, 0px)';
+    state.current.target = { ...state.current.position };
+  };
   const state = useRef({ position: { x: 1700, y: 1340 }, target: { x: 1700, y: 1340 }, heading: 0, camera: { x: 1700, y: 1340 }, scale: 0.7, keys: new Set<string>(), moving: false });
   const [wide, setWide] = useState(false);
   const wideRef = useRef(false);
@@ -33,13 +42,13 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
     const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
     const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => state.current.keys.delete(e.key);
-    const clear = () => state.current.keys.clear();
+    const clear = () => { state.current.keys.clear(); resetJoystick(); };
     window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
     const render = (time: number) => {
       const dt = Math.min((time - (previous || time)) / 1000, .05); previous = time;
       const s = state.current; const k = s.keys;
-      const dx = Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
-      const dy = Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
+      const dx = joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
+      const dy = joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
       if (dx || dy) s.target = { x: s.position.x + dx * 120, y: s.position.y + dy * 120 };
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
       if (s.moving) {
@@ -102,6 +111,19 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
     s.target = seaClickTarget({ x: (event.clientX - rect.left - rect.width / 2) / s.scale + s.camera.x, y: (event.clientY - rect.top - rect.height / 2) / s.scale + s.camera.y });
   };
   const island = nearby === null ? null : SEA_ISLANDS[nearby];
+  const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (joystickPointer.current !== event.pointerId) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    const radius = rect.width * .29;
+    const distance = Math.hypot(x, y);
+    const ratio = distance > radius ? radius / distance : 1;
+    const offset = { x: x * ratio, y: y * ratio };
+    joystickVector.current = distance < 6 ? { x: 0, y: 0 } : { x: offset.x / radius, y: offset.y / radius };
+    if (distance < 6) state.current.target = { ...state.current.position };
+    if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+  };
   return <section className="grand-line-ocean" aria-label="Grand Line — oceano navegável">
     <canvas ref={canvasRef} onPointerDown={sail} aria-label="Oceano da Grand Line" role="img" />
     <header className="ocean-hud">
@@ -114,7 +136,17 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
     <div className="ocean-view"><OceanControl title={wide ? 'Seguir navio' : 'Ver o arquipélago'} aria-label={wide ? 'Seguir navio' : 'Ver o arquipélago'} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? 'MAPA NA GARRAFA' : 'DESCOBERTA'}</span><p>{message}</p></div>}
     {island && <div className="ocean-dock"><span>{island.name}</span><OceanControl onClick={() => onDock(island.destination)}><Anchor size={17} />{island.action}</OceanControl></div>}
-    <nav className="ocean-helm" aria-label="Direção do navio">{[{ key:'ArrowUp', icon:ArrowUp, name:'Navegar ao norte' },{ key:'ArrowLeft', icon:ArrowLeft, name:'Navegar a oeste' },{ key:'ArrowDown', icon:ArrowDown, name:'Navegar ao sul' },{ key:'ArrowRight', icon:ArrowRight, name:'Navegar a leste' }].map(({key,icon:Icon,name}) => <OceanControl key={key} className={`helm-${key}`} title={name} aria-label={name} onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); state.current.keys.add(key); }} onPointerUp={() => { state.current.keys.delete(key); state.current.target = {...state.current.position}; }} onPointerCancel={() => state.current.keys.delete(key)} onClick={() => { const s = state.current; if (!s.keys.size) s.target = {x:s.position.x + (key === 'ArrowRight' ? 90 : key === 'ArrowLeft' ? -90 : 0), y:s.position.y + (key === 'ArrowDown' ? 90 : key === 'ArrowUp' ? -90 : 0)}; }}><Icon size={20}/></OceanControl>)}</nav>
+    <nav className="ocean-helm" aria-label="Direção do navio">
+      <OceanControl className="ocean-joystick" title="Joystick do navio" aria-label="Joystick do navio"
+        onPointerDown={event => { if (joystickPointer.current !== null) return; joystickPointer.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId); steer(event); }}
+        onPointerMove={steer}
+        onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
+        onPointerCancel={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
+        onLostPointerCapture={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}>
+        <span className="ocean-joystick-ring" aria-hidden="true" />
+        <span ref={joystickKnob} className="ocean-joystick-knob" aria-hidden="true"><Compass size={24} strokeWidth={1.5} /></span>
+      </OceanControl>
+    </nav>
     <span className="ocean-coordinate">MAR ABERTO · {secretFound ? 'PASSAGEM DESCOBERTA' : bottleFound ? 'MAPA ENCONTRADO' : 'VENTO LESTE'}</span>
   </section>;
 }
