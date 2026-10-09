@@ -575,7 +575,7 @@ function App() {
   // Mythic Seas REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
   const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
   useEffect(()=>{const i=window.setInterval(()=>setRealmNowTs(Date.now()),20000);return()=>window.clearInterval(i)},[]);
-  const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8118569391;
+  const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8490010993;
   const shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
   const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
   const setPetsOpen=(open:boolean)=>open?openInternal('pets'):closeInternal();
@@ -656,7 +656,7 @@ function App() {
 
   // Admin-only diagnostics screen (Telegram id checked against the super admin).
   if (window.location.pathname === '/admin/diagnostics' && !telegramBooting) {
-    if (telegramUser?.id !== 8118569391) {
+    if (telegramUser?.id !== 8490010993) {
       return <StatusScreen title="Acesso restrito" message="Esta área é exclusiva do administrador." />;
     }
     return (
@@ -952,7 +952,7 @@ function App() {
 
 
           <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.realm} label="GRAND LINE" subtitle={realmUnlocked?(telegramUser?.id===8118569391?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
+            <HomeFeature image={mainScreenArt.realm} label="GRAND LINE" subtitle={realmUnlocked?(telegramUser?.id===8490010993?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
             <HomeFeature image={mainScreenArt.pool} label="BAÚ DA FROTA" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
           </div>
 
