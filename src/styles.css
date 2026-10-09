@@ -38,6 +38,15 @@
   --ocean-line: 185 49% 70%;
   --ocean-vitality: 160 65% 53%;
   --ocean-shadow: 210 80% 7%;
+  --island3d-sky: #a6dfe9;
+  --island3d-water: #19a6aa;
+  --island3d-foam: #eefcf6;
+  --island3d-sand: #ead6a0;
+  --island3d-grass: #65a34d;
+  --island3d-stone: #8e9990;
+  --island3d-sun: #fff0cc;
+  --island3d-ink: #172c34;
+  --island3d-gold: #efb847;
 }
 
 .grand-line-ocean { position: fixed; inset: 0; z-index: 10000; width: 100%; height: 100dvh; overflow: hidden; background: hsl(var(--ocean-deep)); color: hsl(var(--ocean-foam)); isolation: isolate; }
@@ -97,6 +106,19 @@
 .ocean-coordinate { position: absolute; bottom: calc(10px + var(--tg-safe-area-inset-bottom)); left: 20px; font-size: 8px; color: hsl(var(--ocean-foam) / .7); text-shadow: 0 2px 4px hsl(var(--ocean-shadow)); }
 .island-exploration { position: fixed; inset: 0; z-index: 10000; height: 100dvh; overflow: hidden; background: hsl(var(--ocean-shadow)); color: hsl(var(--ocean-foam)); }
 .island-exploration canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.island3d-stage { position: absolute; inset: 0; }
+.island3d-loading { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); padding: 12px 18px; border-radius: 6px; color: hsl(var(--ocean-foam)); background: hsl(var(--ocean-hud) / .85); font-size: 12px; }
+.island3d-actions { position: absolute; right: 20px; bottom: calc(35px + var(--tg-safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 44px); gap: 10px; }
+.island3d-actions .ocean-control { width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+.island3d-actions .ocean-control[aria-pressed=true] { color: hsl(var(--ocean-gold)); border-color: hsl(var(--ocean-gold)); }
+.island3d-camera { position: absolute; right: 20px; top: calc(120px + var(--tg-safe-area-inset-top)); display: flex; flex-direction: column; gap: 7px; }
+.island3d-camera .ocean-control { width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; }
+.island3d-log { position: absolute; top: 22%; left: 50%; transform: translateX(-50%); width: min(320px, calc(100% - 32px)); padding: 12px 16px; border-left: 2px solid hsl(var(--ocean-gold)); background: hsl(var(--ocean-hud) / .86); color: hsl(var(--ocean-foam)); font-size: 12px; display: flex; align-items: center; gap: 12px; }
+.island3d-log .ocean-control { margin-left: auto; flex-shrink: 0; }
+.island-exploration .ocean-hud, .island-exploration .ocean-instruments { z-index: 2; }
+.island-exploration .island-dialog { max-height: min(48dvh, 380px); overflow-y: auto; z-index: 4; }
+.island-exploration .ocean-control:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 600px) { .island3d-actions, .island3d-camera { right: 12px; }.island-exploration .ocean-hud { left: 12px; right: 12px; }.island-exploration .ocean-brand h1 { font-size: 17px; }.island-exploration .ocean-instruments { left: 12px; gap: 10px; font-size: 10px; }.island-exploration .ocean-berries { font-size: 11px; }.island3d-log { top: 25%; } }
 .island-exploration .ocean-brand { min-width: 0; }
 .island-exploration .ocean-brand h1 { font-size: 20px; overflow-wrap: anywhere; }
 .island-dialog { position: absolute; left: 50%; bottom: calc(158px + var(--tg-safe-area-inset-bottom)); transform: translateX(-50%); width: min(390px, calc(100% - 32px)); display: flex; flex-wrap: wrap; gap: 10px; padding: 18px; border-radius: 8px; background: hsl(var(--ocean-hud) / .96); border: 1px solid hsl(var(--ocean-line) / .5); box-shadow: 0 10px 32px hsl(var(--ocean-shadow) / .4); }
