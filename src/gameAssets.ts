@@ -1,4 +1,5 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
+import navalFleet from './assets/naval-fleet.png';
 import islandPort from './assets/island-port.jpg';
 import islandJungle from './assets/island-jungle.jpg';
 import islandVolcano from './assets/island-volcano.jpg';
@@ -74,6 +75,7 @@ export const realmArt = {
 };
 
 export const grandLineArt = { ocean: grandLineOcean, ship: grandLineShip, berry: pirateBerryCoin };
+export const navalArt = { fleet: navalFleet };
 export const islandArt = [islandJungle, islandPort, islandVolcano, islandIce, islandPirates];
 
 export const communityArt = { cove: pirateCommunityCove, treasure: pirateBerryStack };
