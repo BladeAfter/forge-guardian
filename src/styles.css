@@ -3952,3 +3952,54 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .market-maintenance-strip button { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; }
 .market-pulse-empty { font-size: 11px; padding: 14px 0; color: hsl(var(--market-muted)); }
 .market-pulse button:focus-visible { outline: 2px solid hsl(var(--market-accent)); outline-offset: 2px; }
+
+/* Community treasure cove — isolated from the legacy game palette. */
+:root {
+  --community-bg: 185 28% 93%;
+  --community-surface: 0 0% 100%;
+  --community-ink: 188 62% 16%;
+  --community-muted: 190 20% 40%;
+  --community-sea: 177 66% 30%;
+  --community-sea-soft: 174 44% 86%;
+  --community-coral: 8 73% 48%;
+  --community-line: 183 25% 75%;
+  --community-success: 155 65% 28%;
+  --community-overlay: linear-gradient(180deg, transparent 25%, hsl(var(--community-ink) / .9));
+}
+.seas-community { background: hsl(var(--community-bg)) !important; color: hsl(var(--community-ink)); }
+.seas-community-page { margin: 0 auto; width: 100%; max-width: 480px; min-height: 100%; padding-bottom: 40px; }
+.seas-community-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: hsl(var(--community-surface)); color: hsl(var(--community-ink)); }
+.seas-community-header > button { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid hsl(var(--community-line)); border-radius: 6px; }
+.seas-community-header > span { font-size: 11px; font-weight: 900; letter-spacing: 0; }
+.seas-community-header > img { width: 36px; height: 36px; object-fit: contain; }
+.seas-community-cover { position: relative; height: 210px; }
+.seas-community-cover > img { width: 100%; height: 100%; object-fit: cover; }
+.seas-community-cover::after { content: ''; position: absolute; inset: 0; background: var(--community-overlay); pointer-events: none; }
+.seas-community-cover > div { position: absolute; z-index: 1; bottom: 20px; left: 20px; right: 20px; color: hsl(var(--community-surface)); }
+.seas-community-cover span { font-size: 9px; font-weight: 800; }
+.seas-community-cover h1 { font-size: 27px; line-height: 1.15; font-weight: 900; margin-top: 5px; overflow-wrap: anywhere; }
+.seas-community-content { padding: 16px; }
+.seas-community-tabs { display: flex; gap: 4px; border-bottom: 1px solid hsl(var(--community-line)); margin-bottom: 20px; }
+.seas-community-tabs button { flex: 1; min-height: 44px; font-size: 11px; padding: 8px 4px; color: hsl(var(--community-muted)); border-bottom: 3px solid transparent; }
+.seas-community-tabs button[aria-pressed=true] { color: hsl(var(--community-sea)); border-bottom-color: hsl(var(--community-coral)); font-weight: 900; }
+.seas-community button { letter-spacing: 0 !important; text-shadow: none !important; box-shadow: none !important; }
+.seas-community-content [class*="tracking-"] { letter-spacing: 0 !important; }
+.seas-community-content [class*="text-white"], .seas-community-content [class*="text-black"], .seas-community-content [class*="text-amber"], .seas-community-content [class*="text-yellow"] { color: hsl(var(--community-ink)) !important; text-shadow: none !important; }
+.seas-community-content [class*="text-slate"], .seas-community-content [class*="text-violet"], .seas-community-content [class*="text-purple"] { color: hsl(var(--community-muted)) !important; }
+.seas-community-content [class*="text-cyan"], .seas-community-content [class*="text-sky"] { color: hsl(var(--community-sea)) !important; }
+.seas-community-content [class*="text-emerald"] { color: hsl(var(--community-success)) !important; }
+.seas-community-content [class*="text-rose"] { color: hsl(var(--community-coral)) !important; }
+.seas-community-content [class*="border-"] { border-color: hsl(var(--community-line)) !important; }
+.seas-community-content [class*="bg-black"], .seas-community-content [class*="bg-[#"], .seas-community-content [class*="bg-gradient"], .seas-community-content [class*="bg-white"], .seas-community-content [class*="bg-amber"], .seas-community-content [class*="bg-violet"], .seas-community-content [class*="bg-rose"] { background: hsl(var(--community-surface)) !important; box-shadow: none !important; }
+.seas-community-content [class*="rounded-"] { border-radius: 6px !important; }
+.seas-community-content button:not(.seas-community-tabs button) { background: hsl(var(--community-sea)) !important; color: hsl(var(--community-surface)) !important; border: 0 !important; border-radius: 6px !important; }
+.seas-community-content button svg { color: inherit !important; }
+.seas-community-content [class*="bg-gradient"].h-full { background: hsl(var(--community-sea)) !important; }
+.seas-community-content [class*="blur-"], .seas-community-content .pointer-events-none { display: none; }
+.seas-community-content > section { border: 0 !important; border-bottom: 3px solid hsl(var(--community-coral)) !important; border-radius: 0 !important; }
+.seas-community-content > .py-28 { padding-top: 34px; padding-bottom: 38px; }
+.seas-community-content > .py-28 > p { font-size: 13px; line-height: 1.6; max-width: 300px; margin: 0 auto; }
+.seas-community-treasure { width: 80px; height: 80px; object-fit: contain; margin: 0 auto; }
+.seas-community-content .fixed { background: hsl(var(--community-ink) / .75) !important; }
+.seas-community-content .fixed > div { background: hsl(var(--community-surface)) !important; }
+.seas-community button:focus-visible { outline: 2px solid hsl(var(--community-coral)); outline-offset: 3px; }
