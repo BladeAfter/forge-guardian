@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Egg, Gift, Wallet } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Archive, Gift, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
-import { coin } from '../gameAssets';
+import { mascotChestImage, mascotChestName, mascotChestArt, coin } from '../gameAssets';
 import tonIcon from '../assets/ton-coin.png';
 import { DEFAULT_WITHDRAW_FEE_PERCENT, FC_PER_TON, MIN_DEPOSIT_TON, formatTon, tonToFc, tonWithdrawalQuote } from '../economy';
 import type { DepositType, WalletDepositConfig } from '../wallet';
@@ -19,6 +19,9 @@ import { MythTokenCard } from '../components/MythTokenCard';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
+import { MascotChestCard } from '../components/MascotChestCard';
+import { OceanControl } from '../components/OceanControl';
+import { useItemName } from '../itemNames';
 
 
 type Props = {
@@ -38,6 +41,7 @@ const cleanTonLabel = (label: string) => String(label ?? '').replace(/\d+\.\d+/g
 
 export function WalletPage({ game, telegramInitData, connected, address, onConnect, onDisconnect, isConnecting }: Props) {
   const t = useT();
+  const itemName = useItemName();
   const { tError } = useLanguage();
   const [tonConnectUI] = useTonConnectUI();
   const queryClient = useQueryClient();
@@ -234,7 +238,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
     await invalidateEggs();
     if (!hatched?.result) return false;
     const dashboard = hatched.dashboard as PetDashboard | undefined;
-    const eggImage = dashboard?.eggs.find(egg => egg.id === hatched.eggId)?.image || fallbackImage || '/assets/game/pet-eggs/common-egg.webp';
+    const eggImage = (dashboard?.eggs.find(egg => egg.id === hatched.eggId) ? mascotChestImage(dashboard.eggs.find(egg => egg.id === hatched.eggId)?.slug ?? '') : fallbackImage) || mascotChestArt.common;
     setReveal({ result: { ...hatched.result, rarity: hatched.result.rarity as PetRarity }, eggImage });
     return true;
   };
@@ -404,13 +408,14 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </div>
       ) : null}
 
-      {premiumEggs.length ? <Panel title={t('wallet.premiumEggs')} icon={<Egg />}><div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <div key={egg.id} className="rounded-xl border border-violet-400/20 bg-black/35 p-2 text-center"><img src={egg.image} className="mx-auto h-16 w-16 object-contain"/><p className="text-[10px] font-bold">{egg.name}</p><p className="text-xs font-black text-violet-300">{formatEggPrice(egg)}</p><button onClick={() => buyEgg.mutate({ id: egg.id, image: egg.image })} disabled={!connected || buyEgg.isPending} className="mt-2 w-full rounded-lg border border-violet-300/30 bg-violet-500/15 py-2 text-[8px] font-black text-violet-100 disabled:opacity-35">{t('wallet.buyButton', { price: formatEggPrice(egg) })}</button></div>)}</div>
-        <button onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full rounded-xl border border-violet-400/40 bg-violet-500/10 px-3 py-2 text-[10px] font-black tracking-wide text-violet-100 disabled:opacity-50">
+      {premiumEggs.length ? <Panel title={t('wallet.premiumEggs')} icon={<Archive />}>
+        <div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <MascotChestCard key={egg.id} egg={{ ...egg, quantity: 0 }} pending={!connected || buyEgg.isPending} onOpen={() => undefined} onBuy={() => buyEgg.mutate({ id: egg.id, image: mascotChestImage(egg.slug) })} />)}</div>
+        <OceanControl onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full">
           {reconcile.isPending ? t('wallet.verifying') : t('wallet.receiveEgg')}
-        </button></Panel> : null}
+        </OceanControl></Panel> : null}
 
       <Panel title={t('wallet.history')} icon={<Clock3 />}>
-        <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${cleanTonLabel(item.label).toUpperCase()} · ${formatTon(Number(item.amountTon ?? 0))} TON` : cleanTonLabel(item.label)}</p>
+        <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${itemName(cleanTonLabel(item.label)).toUpperCase()} · ${formatTon(Number(item.amountTon ?? 0))} TON` : cleanTonLabel(item.label)}</p>
           {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">{t('wallet.historyGross')}: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} TON · {t('wallet.historyFee', { percent: Number(item.feePercent ?? 0) })}: {formatTon(Number(item.feeTon ?? 0))} TON · {t('wallet.historyReceived')}: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
           <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status, t)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">{t('wallet.noMovement')}</p>}</div>
       </Panel>
