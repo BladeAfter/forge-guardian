@@ -27,6 +27,10 @@
   --pirate-wood: 24 48% 19%;
   --pirate-ink: 210 68% 8%;
   --pirate-line: 42 76% 58%;
+  --balance-paper: 43 67% 86%;
+  --balance-ink: 210 68% 8%;
+  --balance-ton-surface: 204 75% 30%;
+  --balance-ton-text: 190 80% 94%;
 }
 
 html, body, #root {
@@ -687,6 +691,47 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 }
 .balance-chip-label{font-size:7px;line-height:1.1;letter-spacing:0;white-space:nowrap}
 
+/* Nautical currency tickets: presentation only, balances stay server-owned. */
+.voyage-balance{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  height:44px;
+  padding:5px 8px 5px 4px;
+  border:0;
+  border-radius:3px;
+  border-bottom:3px solid hsl(var(--pirate-red));
+  background:hsl(var(--balance-paper));
+  color:hsl(var(--balance-ink));
+  box-shadow:0 3px 0 hsl(var(--balance-ink) / .5);
+  letter-spacing:0;
+}
+.voyage-balance::before{
+  content:'';
+  position:absolute;
+  inset:3px;
+  border:1px solid hsl(var(--balance-ink) / .2);
+  border-radius:1px;
+  pointer-events:none;
+}
+.voyage-balance .balance-chip-coin{
+  flex-shrink:0;
+  width:30px;
+  height:34px;
+  object-fit:contain;
+}
+.voyage-balance .balance-chip-value{font-size:13px;line-height:1.2}
+.voyage-balance .balance-chip-label{font-size:7px;font-weight:800;line-height:1.4}
+.voyage-balance--ton{
+  background:hsl(var(--balance-ton-surface));
+  color:hsl(var(--balance-ton-text));
+  border-bottom-color:hsl(var(--pirate-gold));
+}
+.voyage-balance--ton::before{border-color:hsl(var(--balance-ton-text) / .3)}
+.voyage-balance:focus-visible{outline:2px solid hsl(var(--pirate-gold));outline-offset:3px}
+.voyage-balance[type='button']:active{transform:translateY(1px)}
+
 /* ---- Village-only compact TON balance chip (libera espaço para nome do jogador) ---- */
 .ton-balance-chip--village-compact{
   width: clamp(74px, 20vw, 90px);
@@ -697,8 +742,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   gap: 0.2rem;
 }
 .ton-balance-chip--village-compact .ton-balance-chip-coin{
-  width: clamp(17px, 4.8vw, 22px);
-  height: clamp(17px, 4.8vw, 22px);
+  width: 26px;
+  height: 32px;
 }
 .ton-balance-chip--village-compact .ton-balance-chip-value{
   font-size: clamp(11px, 3.2vw, 14px);
@@ -737,9 +782,9 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   .player-tgid{display:none}
   .balance-chip-label{font-size:7px}
   .balance-chip{width:clamp(74px,21vw,92px);min-width:74px;max-width:92px;padding-left:.375rem;padding-right:.375rem}
-  .balance-chip-coin{width:18px;height:18px}
+  .voyage-balance .balance-chip-coin{width:24px;height:28px}
   .ton-balance-chip--village-compact{width:clamp(64px,17vw,78px);min-width:64px;max-width:78px;padding-left:.25rem;padding-right:.25rem;gap:.15rem}
-  .ton-balance-chip--village-compact .ton-balance-chip-coin{width:15px;height:15px}
+  .ton-balance-chip--village-compact .ton-balance-chip-coin{width:21px;height:28px}
   .ton-balance-chip--village-compact .ton-balance-chip-value{font-size:clamp(10px,3vw,12px)}
 }
 @media (max-width:339px){

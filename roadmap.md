@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Refazer os indicadores BERRIES e TON como bilhetes náuticos com artes inéditas, sem alterar saldos ou acesso à carteira.
+
 - [x] Redesenhar a Loja de Heróis como recrutamento de tripulação pirata anime, preservando preços, chances e pagamentos; arte e botões verificados isoladamente na prévia, sem executar compras reais no Telegram.
 
 - [x] Verificar erros Features/Index: arquivos e chamadas ausentes na versão atual; erros não reproduzidos na abertura da prévia.

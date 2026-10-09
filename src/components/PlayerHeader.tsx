@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { coin } from '../gameAssets';
-import tonIcon from '../assets/ton-coin.png';
+import { balanceArt } from '../gameAssets';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
 import avatarBorderFounder from '../assets/avatar-border-founder.png.asset.json';
 import avatarBorderArenaKing from '../assets/avatar-border-arena-king.png.asset.json';
@@ -99,13 +98,13 @@ export function BalanceChip({ balance, onClick }: { balance: number; onClick?: (
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className="balance-chip flex items-center gap-1.5 rounded-xl border border-amber-400/40 bg-black/80 px-2 py-1.5 text-amber-200 shadow-[inset_0_0_18px_rgba(245,158,11,.08)]"
+      className="balance-chip voyage-balance voyage-balance--berries"
       aria-label={t('profile.balanceAria', { value })}
     >
-      <img src={coin} alt="" width={512} height={512} className="balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(251,191,36,.45)]" />
+      <img src={balanceArt.berries} alt="" width={816} height={816} className="balance-chip-coin" />
       <span className="min-w-0 flex-1 text-right">
-        <span className="balance-chip-value block font-black text-amber-100">{value}</span>
-        <span className="balance-chip-label block uppercase text-slate-400">BERRIES</span>
+        <span className="balance-chip-value block font-black">{value}</span>
+        <span className="balance-chip-label block uppercase">BERRIES</span>
       </span>
     </Tag>
   );
@@ -127,13 +126,13 @@ export function TonBalanceChip({
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      className={`balance-chip ton-balance-chip flex items-center gap-1.5 rounded-xl border border-sky-400/40 bg-black/80 px-2 py-1.5 text-sky-200 shadow-[inset_0_0_18px_rgba(56,189,248,.1)] ${variant === 'villageCompact' ? 'ton-balance-chip--village-compact' : ''}`}
+      className={`balance-chip ton-balance-chip voyage-balance voyage-balance--ton ${variant === 'villageCompact' ? 'ton-balance-chip--village-compact' : ''}`}
       aria-label={t('profile.tonBalanceAria', { value })}
     >
-      <img src={tonIcon} alt="" className="balance-chip-coin ton-balance-chip-coin shrink-0 object-contain drop-shadow-[0_0_6px_rgba(56,189,248,.5)]" />
+      <img src={balanceArt.ton} alt="" width={816} height={816} className="balance-chip-coin ton-balance-chip-coin" />
       <span className="min-w-0 flex-1 text-right">
-        <span className="balance-chip-value ton-balance-chip-value block font-black text-sky-100">{value}</span>
-        <span className="balance-chip-label ton-balance-chip-label block uppercase tracking-[.12em] text-slate-400">TON</span>
+        <span className="balance-chip-value ton-balance-chip-value block font-black">{value}</span>
+        <span className="balance-chip-label ton-balance-chip-label block uppercase">TON</span>
       </span>
     </Tag>
   );
