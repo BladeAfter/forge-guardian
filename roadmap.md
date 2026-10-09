@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Restaurar oceano ilustrado, corrigir seta de saída, reduzir custo da navegação, ocultar Veteran Vault (baús/heróis/equipamentos) e renovar Passe de Temporada com artes IA náuticas; preservar entregas e preços oficiais, sem inventar utilidade para peças de navios ou mapas.
+
 - [ ] Finalizar entrega dos avisos no @MythicSeasPayout: duas artes IA criadas e disponíveis, fila privada ligada a depósitos creditados e saques pagos, proteção de duplicidade e recuperação de falhas implantadas; três testes passaram. Bloqueio confirmado pelo Telegram: @MythreonBot não consegue acessar os membros do canal; adicioná-lo como administrador com permissão de publicar. Nenhuma transação falsa foi publicada; envio real ainda não verificado. Indexador e saques automáticos antigos continuam pausados.
 
 - [x] Recuperar o mapa ilustrado da ilha e caracterizar o personagem com tricórnio, faixa vermelha, insígnia e tapa-olho; movimento, desembarque, conversa e retorno ao navio conferidos em cena isolada. 16 testes passaram, compilação automática OK; ações autenticadas no Telegram não verificadas por falta de sessão Telegram assinada.
