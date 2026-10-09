@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Criar desembarque animado, exploração física das cinco ilhas com personagem do perfil, encontros e retorno ao navio, preservando ações e recompensas oficiais.
+- [x] Criar desembarque animado, caminhada com joystick, cinco cenários de ilhas, personagem compartilhado com perfil, NPC físico, encontros baseados nos nós oficiais e embarque de retorno. Oito testes passaram; atracação, desembarque, caminhada, conversa e retorno verificados em cena isolada.
+  - Recompensas e aventuras autenticadas no Telegram não verificadas durante a manutenção. Equipamentos, itens de mascotes e novas categorias de tesouro dependem de catálogos e regras oficiais ainda não existentes no Realm; nenhum prêmio foi inventado. Escolha visual masculina/feminina salva neste dispositivo; sincronização entre dispositivos não implementada.
 
 - [x] Trocar as setas da Grand Line por joystick arrastável; movimento com captura fora da base, parada ao soltar e retorno ao centro verificados na cena isolada, com aparência conferida em tela grande e pequena. Acesso real no Telegram não verificado.
 

@@ -43,7 +43,7 @@ export default function IslandExploration(props: Props) {
   const [secret, setSecret] = useState(false);
   const secretRef = useRef(false);
   const pendingRef = useRef(false);
-  const activeRun = data?.exploreRun?.status === 'running' ? data.exploreRun : null;
+  const activeRun = data?.exploreRun ?? null;
   const region = activeRun ? data?.regions.find(r => r.id === activeRun.region_id) : data?.regions[Math.min(islandIndex === 1 ? 0 : islandIndex === 2 ? 1 : islandIndex === 3 ? 2 : 0, (data?.regions.length ?? 1) - 1)];
   const meta = data?.regionMeta.find(m => m.regionId === region?.id);
   const cost = meta?.stats.entryCost;
@@ -87,7 +87,7 @@ export default function IslandExploration(props: Props) {
       if (moving && Math.abs(s.position.x - before.x) > .2) s.flip = s.position.x < before.x;
       if (s.phase === 'landing' && seaDistance(s.position, ISLAND_LANDING) < 5) { s.phase = 'exploring'; setPhase('exploring'); }
       if (s.phase === 'boarding' && seaDistance(s.position, ISLAND_SHIP) < 5) { s.phase = 'departed'; onReturn(); return; }
-      const w = canvas.clientWidth, h = canvas.clientHeight, scale = w < 600 ? .9 : Math.max(.8, Math.min(1.15, w / 1536));
+      const w = canvas.clientWidth, h = canvas.clientHeight, scale = Math.max(.9, w / ISLAND_SIZE.width, h / ISLAND_SIZE.height);
       s.camera.x += (s.position.x - s.camera.x) * Math.min(1, dt * 7); s.camera.y += (s.position.y - s.camera.y) * Math.min(1, dt * 7);
       const cameraX = Math.min(ISLAND_SIZE.width - Math.min(w / scale / 2, 768), Math.max(Math.min(w / scale / 2, 768), s.camera.x));
       const cameraY = Math.min(ISLAND_SIZE.height - Math.min(h / scale / 2, 512), Math.max(Math.min(h / scale / 2, 512), s.camera.y));
@@ -104,7 +104,7 @@ export default function IslandExploration(props: Props) {
       }
       ctx.save(); ctx.translate(s.position.x, s.position.y); ctx.fillStyle = ink; ctx.globalAlpha = .3; ctx.beginPath(); ctx.ellipse(0, 0, 17, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
       if (s.flip) ctx.scale(-1, 1);
-      if (pirate.complete && pirate.naturalWidth) ctx.drawImage(pirate, -32, -78 + (moving ? Math.sin(time / 90) * 2 : 0), 64, 80);
+      if (pirate.complete && pirate.naturalWidth) ctx.drawImage(pirate, -32, -78 + (moving && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? Math.sin(time / 90) * 2 : 0), 64, 80);
       ctx.restore(); ctx.restore();
       canvas.dataset.pirateX = s.position.x.toFixed(0); canvas.dataset.pirateY = s.position.y.toFixed(0); canvas.dataset.phase = s.phase;
       canvas.dataset.cameraX = String(cameraX); canvas.dataset.cameraY = String(cameraY); canvas.dataset.scale = String(scale);
