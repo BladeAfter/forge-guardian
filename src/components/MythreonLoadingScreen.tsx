@@ -1,3 +1,4 @@
+import seasLogo from '../assets/mythic-seas-logo.png';
 import { backgrounds } from '../gameAssets';
 
 /**
@@ -20,13 +21,8 @@ export function MythreonLoadingScreen({ progress, note, fading }: { progress: nu
         style={{ width: '100vw', height: '100dvh' }}
         fetchPriority="high"
       />
-      <div className="seas-title-wrap" style={{ top: `calc(env(safe-area-inset-top, 0px) + 7dvh)` }}>
-        <span className="seas-title-kicker">⚓ A grande aventura ⚓</span>
-        <h1 className="seas-title">
-          <span className="seas-title-top">MYTHIC</span>
-          <span className="seas-title-bottom">SEAS</span>
-        </h1>
-        <span className="seas-title-rule" />
+      <div className="seas-title-wrap" style={{ top: `calc(env(safe-area-inset-top, 0px) + 4dvh)` }}>
+        <img src={seasLogo} alt="Mythic Seas — The Grand Adventure" width={1280} height={896} className="seas-logo" />
       </div>
       <div
         className="absolute inset-x-0 flex flex-col items-center gap-2 px-8"
