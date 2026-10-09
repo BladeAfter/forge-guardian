@@ -7,7 +7,7 @@ import { fetchNameMission, verifyNameMission, type NameMissionState } from '../n
 import { formatCurrency } from '../utils';
 
 /**
- * MISSION: ADD #MYTHREON TO YOUR TELEGRAM NAME.
+ * MISSION: ADD #Mythic Seas TO YOUR TELEGRAM NAME.
  * VERIFY & CLAIM is a single idempotent backend operation: the server reads the real
  * Telegram profile, validates the exact hashtag and pays once per Telegram ID. The
  * in-game profile name is never used as proof.
@@ -26,7 +26,7 @@ export function NameMissionCard({ telegramInitData }: { telegramInitData: string
   });
 
   const state: NameMissionState | null = data ?? null;
-  const hashtag = state?.hashtag ?? '#Mythreon';
+  const hashtag = state?.hashtag ?? '#Mythic Seas';
 
   const verify = useMutation({
     mutationFn: () => verifyNameMission(telegramInitData),

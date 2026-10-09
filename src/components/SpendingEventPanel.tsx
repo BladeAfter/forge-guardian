@@ -7,7 +7,7 @@ import type { SpendingRankRow } from '../spendingEvent';
 import { PlayerTag } from '../premiumTitles';
 
 /**
- * MYTHREON SPENDING EVENT — competitive 14-day spending leaderboard.
+ * Mythic Seas SPENDING EVENT — competitive 14-day spending leaderboard.
  * Every number (score, rank, totals, breakdown, ranking, reward table and end date) comes
  * from the backend scoring engine; the client never computes points.
  */
@@ -78,9 +78,9 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-amber-300/60 bg-black/60 shadow-[0_0_35px_rgba(245,158,11,.45)]">
             <Trophy className="h-9 w-9 animate-pulse text-amber-300" />
           </div>
-          <h2 className="mt-3 bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-2xl font-black tracking-[.06em] text-transparent">🔥 MYTHREON SPENDING EVENT</h2>
+          <h2 className="mt-3 bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-2xl font-black tracking-[.06em] text-transparent">🔥 Mythic Seas SPENDING EVENT</h2>
           <p className="mt-1 text-[9px] font-black uppercase tracking-[.34em] text-amber-300">14-DAY SPENDING EVENT</p>
-          <p className="mx-auto mt-2 max-w-[17rem] text-[10px] leading-4 text-slate-300">Spend, deposit and participate across Mythreon to climb the live leaderboard and compete for exclusive Top {event?.topLimit ?? 20} rewards.</p>
+          <p className="mx-auto mt-2 max-w-[17rem] text-[10px] leading-4 text-slate-300">Spend, deposit and participate across Mythic Seas to climb the live leaderboard and compete for exclusive Top {event?.topLimit ?? 20} rewards.</p>
           <div className="mt-4 rounded-2xl border border-amber-300/30 bg-black/60 p-3">
             <p className="text-[8px] font-black uppercase tracking-[.3em] text-amber-300/80"><Timer className="mr-1 inline h-3 w-3" />{finished ? 'EVENT ENDED — FINAL RANKING LOCKED' : 'ENDS IN'}</p>
             <b className="mt-1 block text-xl font-black tabular-nums text-amber-100">

@@ -3,7 +3,7 @@ import type { GameState, LanguageStrings } from "./types";
 export const LANGUAGES: Record<string, LanguageStrings> = {
   en: {
     loading: "Loading game data...",
-    welcome: "Welcome back to MYTHREON!",
+    welcome: "Welcome back to Mythic Seas!",
     welcomeBack: "Welcome back, blacksmith",
     approxTon: "Approx. {amount}",
     productionPerHour: "Production / hour",
@@ -52,7 +52,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   pt: {
     loading: "Carregando dados do jogo...",
-    welcome: "Bem-vindo de volta a MYTHREON!",
+    welcome: "Bem-vindo de volta a Mythic Seas!",
     welcomeBack: "Bem-vindo de volta, ferreiro",
     approxTon: "Aprox. {amount}",
     productionPerHour: "Produção / hora",
@@ -101,7 +101,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   es: {
     loading: "Cargando datos del juego...",
-    welcome: "¡Bienvenido de nuevo a MYTHREON!",
+    welcome: "¡Bienvenido de nuevo a Mythic Seas!",
     welcomeBack: "Bienvenido de nuevo, herrero",
     approxTon: "Aprox. {amount}",
     productionPerHour: "Producción / hora",
@@ -150,7 +150,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   ru: {
     loading: "Загрузка данных игры...",
-    welcome: "С возвращением в MYTHREON!",
+    welcome: "С возвращением в Mythic Seas!",
     welcomeBack: "С возвращением, кузнец",
     approxTon: "Примерно {amount}",
     productionPerHour: "Производство / час",
@@ -199,7 +199,7 @@ export const LANGUAGES: Record<string, LanguageStrings> = {
   },
   tr: {
     loading: "Oyun verileri yükleniyor...",
-    welcome: "MYTHREON'a tekrar hoş geldin!",
+    welcome: "Mythic Seas'a tekrar hoş geldin!",
     welcomeBack: "Tekrar hoş geldin, demirci",
     approxTon: "Yaklaşık {amount}",
     productionPerHour: "Üretim / saat",
@@ -337,7 +337,7 @@ export const buildDefaults = (): GameState => ({
     {
       id: "mission-1",
       title: "Open the game",
-      description: "Visit Mythreon and keep your streak alive.",
+      description: "Visit Mythic Seas and keep your streak alive.",
       reward: 5000,
       complete: true,
     },
@@ -365,7 +365,7 @@ export const buildDefaults = (): GameState => ({
     {
       id: "mission-5",
       title: "Invite a friend",
-      description: "Invite a friend to join Mythreon.",
+      description: "Invite a friend to join Mythic Seas.",
       reward: 2000,
       complete: false,
     },

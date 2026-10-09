@@ -124,7 +124,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
         <header className="mb-3 flex items-center justify-between">
           <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft /></button>
           <div className="text-center">
-            <p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p>
+            <p className="text-[9px] tracking-[.28em] text-amber-300">Mythic Seas</p>
             <b className="text-sm">CLAN RAID</b>
           </div>
           <Flame className="text-rose-400" />

@@ -17,5 +17,5 @@ export type ReferralDashboard={
   notifications:Array<{id:string;title:string;message:string;amountFc:number|null;createdAt:string}>;
 };
 
-export const buildTelegramShareUrl=(referralLink:string,text='Entre no MYTHREON pelo meu convite!')=>
+export const buildTelegramShareUrl=(referralLink:string,text='Entre no Mythic Seas pelo meu convite!')=>
   `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;

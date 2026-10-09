@@ -34,7 +34,7 @@ export function assertNanoAmount(amountNano: string): bigint {
 /**
  * The ONE gateway between the game and the player's wallet.
  *
- * Guarantees, for every TON purchase in Mythreon (pass, NFTs, eggs, equipment, deposits):
+ * Guarantees, for every TON purchase in Mythic Seas (pass, NFTs, eggs, equipment, deposits):
  * - the transfer amount is the exact `amountNano` the backend stored in the payment intent;
  * - the payload carries exactly ONE outgoing message, and its total is compared with the expected
  *   amount before the wallet is opened (mismatch => TON_PAYMENT_AMOUNT_MISMATCH, wallet stays closed);

@@ -11,7 +11,7 @@ import { formatTon } from '../economy';
 import veteranArt from '../assets/veteran-vault.jpg';
 
 /**
- * ⚔️ MYTHREON VETERAN VAULT — exclusive for veteran accounts, with a 45-day reward journey.
+ * ⚔️ Mythic Seas VETERAN VAULT — exclusive for veteran accounts, with a 45-day reward journey.
  *
  * The server owns everything: who sees the card (`state.show`), the price, whether the Veteran Reward
  * Pool is funded (`soldOut`), the current cycle day, matured rewards and each credited TON/MYTH.
@@ -111,7 +111,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
     const claimable = vault.claimable;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-cyan-300/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={veteranArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={veteranArt} alt="Mythic Seas Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -171,7 +171,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-cyan-300/40 bg-forge-black/80 text-left shadow-card"
       >
-        <img src={veteranArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src={veteranArt} alt="Mythic Seas Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-300">
@@ -193,7 +193,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                  <Swords className="h-3 w-3" /> Mythreon Veteran Vault
+                  <Swords className="h-3 w-3" /> Mythic Seas Veteran Vault
                 </p>
                 <h3 className="mt-1 text-lg font-semibold text-white">Jornada de {state.cycleDays} dias</h3>
                 <p className="text-[11px] text-slate-300">Exclusivo para jogadores antigos · uma compra por conta</p>

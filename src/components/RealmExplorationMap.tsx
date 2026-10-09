@@ -59,7 +59,7 @@ type Props = {
 };
 
 /**
- * 🗺️ MYTHREON REALM — WORLD MAP + EXPLORATION ENTRY.
+ * 🗺️ Mythic Seas REALM — WORLD MAP + EXPLORATION ENTRY.
  *
  * Out of a run, the world map is clickable: each region is a glowing pin and the legacy
  * timer expeditions stay available as the secondary AFK mode. Once a server-authoritative

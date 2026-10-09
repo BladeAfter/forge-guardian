@@ -1,7 +1,7 @@
 /**
- * MYTHREON :: INTERNAL MYTH STAKING (frontend contract only).
+ * Mythic Seas :: INTERNAL MYTH STAKING (frontend contract only).
  *
- * This is Mythreon ecosystem staking, NOT TON on-chain / validator staking:
+ * This is Mythic Seas ecosystem staking, NOT TON on-chain / validator staking:
  * MYTH only moves between the available balance and a staking position, and every reward is paid
  * from a reserve of the existing supply. APR, locks, limits and the on/off switch come from the
  * backend (Admin Bot) — the client never computes rewards nor decides whether staking is open.
@@ -57,7 +57,7 @@ export const formatUnlockDate = (iso: string | null | undefined) =>
 export const mythStakingErrorLabel = (message: string): string => {
   const key = (message || '').replace(/^.*::/, '').trim();
   const map: Record<string, string> = {
-    MYTH_STAKING_DISABLED: 'Staking is being prepared for a future Mythreon update.',
+    MYTH_STAKING_DISABLED: 'Staking is being prepared for a future Mythic Seas update.',
     MYTH_STAKING_PAUSED: 'New stakes are paused right now.',
     MYTH_STAKING_CLAIMS_DISABLED: 'Reward claims are temporarily disabled.',
     MYTH_STAKING_PLAN_INVALID: 'This staking plan is not active.',

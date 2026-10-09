@@ -609,7 +609,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
         <header className="relative mb-4 overflow-hidden rounded-[22px] border border-amber-300/35 bg-[linear-gradient(160deg,rgba(19,34,60,.95)_0%,rgba(6,10,18,.98)_55%,rgba(12,20,36,.95)_100%)] px-3 pb-3 pt-2.5 shadow-[0_0_0_1px_rgba(0,0,0,.6),0_18px_40px_-18px_rgba(0,0,0,.9),inset_0_1px_0_rgba(255,255,255,.06)]">
           <div className="pointer-events-none absolute -top-16 left-1/2 h-32 w-56 -translate-x-1/2 rounded-full bg-amber-300/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-2">
-            <p className="text-[9px] font-black uppercase tracking-[.34em] text-amber-300/90">MYTHREON</p>
+            <p className="text-[9px] font-black uppercase tracking-[.34em] text-amber-300/90">Mythic Seas</p>
             <button
               type="button"
               onClick={onClose}

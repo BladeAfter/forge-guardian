@@ -11,7 +11,7 @@ import { formatTon } from '../economy';
 import founderArt from '../assets/founder-pack.jpg';
 
 /**
- * 👑 MYTHREON FOUNDER PACK — 25 TON, exclusive to brand new accounts.
+ * 👑 Mythic Seas FOUNDER PACK — 25 TON, exclusive to brand new accounts.
  *
  * The card only renders when the SERVER says the player is inside the eligibility window and has not
  * bought it yet (`state.show`). Payment follows the same rule as every other TON product in the game:
@@ -114,7 +114,7 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 text-left shadow-card"
       >
-        <img src={founderArt} alt="Mythreon Founder Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src={founderArt} alt="Mythic Seas Founder Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
@@ -141,7 +141,7 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
                   <Sparkles className="h-3 w-3" /> Oferta única
                 </p>
-                <h3 className="text-lg font-semibold text-white">Mythreon Founder Pack</h3>
+                <h3 className="text-lg font-semibold text-white">Mythic Seas Founder Pack</h3>
               </div>
               <button onClick={close} className="rounded-full bg-white/5 p-2 text-slate-300" aria-label="Fechar">
                 <X className="h-4 w-4" />

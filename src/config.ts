@@ -4,7 +4,7 @@ export const APP_URL = import.meta.env.VITE_APP_URL || window.location.origin;
 
 
 // Wallets fetch this URL from their own servers, so it must always be the public
-// production manifest (name: MYTHREON, official icon), never a preview/dev origin.
+// production manifest (name: Mythic Seas, official icon), never a preview/dev origin.
 export const TONCONNECT_MANIFEST_URL =
   import.meta.env.VITE_TONCONNECT_MANIFEST_URL || 'https://mythreon.lovable.app/tonconnect-manifest.json';
 

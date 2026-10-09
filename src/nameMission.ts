@@ -1,7 +1,7 @@
 import { forgeFetch } from './apiClient';
 
 /**
- * MISSION: ADD #MYTHREON TO YOUR TELEGRAM NAME.
+ * MISSION: ADD #Mythic Seas TO YOUR TELEGRAM NAME.
  * The client never sends (nor is trusted with) the display name: it only asks the
  * backend to VERIFY & CLAIM. The server reads the real Telegram profile and pays once.
  */

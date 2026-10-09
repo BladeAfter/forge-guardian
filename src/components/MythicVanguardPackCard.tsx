@@ -102,7 +102,7 @@ export function MythicVanguardPackCard({ telegramInitData, popupMode = false, on
     if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-rose-400/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={packArt} alt="Mythreon Mythic Vanguard Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={packArt} alt="Mythic Seas Mythic Vanguard Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-200">
             <Swords className="h-3 w-3" /> {t('vp.title')}
@@ -138,7 +138,7 @@ export function MythicVanguardPackCard({ telegramInitData, popupMode = false, on
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-rose-400/40 bg-forge-black/80 p-4 text-left shadow-card"
     >
-      <img src={packArt} alt="Mythreon Mythic Vanguard Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt="Mythic Seas Mythic Vanguard Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-rose-200">
           <Swords className="h-3 w-3" /> ⚔️ {t('vp.title')}

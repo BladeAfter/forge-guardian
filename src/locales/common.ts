@@ -83,7 +83,7 @@ export const common: LocaleBundle = {
     'rarity.nft_exclusive': 'NFT Exclusive',
     'rarity.celestial': 'Celestial',
 
-    'gate.title': 'MYTHREON runs inside Telegram',
+    'gate.title': 'Mythic Seas runs inside Telegram',
     'gate.button': 'OPEN IN TELEGRAM',
   },
   pt: {
@@ -164,7 +164,7 @@ export const common: LocaleBundle = {
     'rarity.nft_exclusive': 'NFT Exclusivo',
     'rarity.celestial': 'Celestial',
 
-    'gate.title': 'O MYTHREON funciona dentro do Telegram',
+    'gate.title': 'O Mythic Seas funciona dentro do Telegram',
     'gate.button': 'ABRIR NO TELEGRAM',
   },
   es: {
@@ -245,7 +245,7 @@ export const common: LocaleBundle = {
     'rarity.nft_exclusive': 'NFT Exclusivo',
     'rarity.celestial': 'Celestial',
 
-    'gate.title': 'MYTHREON funciona dentro de Telegram',
+    'gate.title': 'Mythic Seas funciona dentro de Telegram',
     'gate.button': 'ABRIR EN TELEGRAM',
   },
   ru: {
@@ -326,7 +326,7 @@ export const common: LocaleBundle = {
     'rarity.nft_exclusive': 'NFT Эксклюзив',
     'rarity.celestial': 'Целестиал',
 
-    'gate.title': 'MYTHREON работает внутри Telegram',
+    'gate.title': 'Mythic Seas работает внутри Telegram',
     'gate.button': 'ОТКРЫТЬ В TELEGRAM',
   },
 };

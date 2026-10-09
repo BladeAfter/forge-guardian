@@ -1,5 +1,5 @@
 /**
- * MYTHREON :: MYTH TOKEN UTILITY (frontend contract only).
+ * Mythic Seas :: MYTH TOKEN UTILITY (frontend contract only).
  *
  * MYTH is an ALTERNATIVE payment method: BERRIES and TON keep working exactly as before.
  * The client never decides prices — it only mirrors the backend formula to render a preview.

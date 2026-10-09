@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Trocar a marca exibida para Mythic Seas, preservando URLs, pagamentos e identificadores internos.
+
 - [x] Substituir artes antigas restantes de pets e heróis pelas novas artes piratas, preservando inventários e regras. Catálogos: 120 pets, 278 heróis, 12 modelos Sub-NFT e 124.408 imagens de heróis possuídos atualizados; 47 testes passaram e as 13 artes carregaram.
 
 - [x] Remover Canais Parceiros e calendário de recompensas da interface e seus acessos, preservando bens recebidos.

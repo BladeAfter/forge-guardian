@@ -1,5 +1,5 @@
 /**
- * 👑 MYTHREON FOUNDER PACK — 25 TON, new players only.
+ * 👑 Mythic Seas FOUNDER PACK — 25 TON, new players only.
  *
  * Everything here is display-only typing: price, eligibility window, reward contents, payment method
  * and delivery are owned by the backend (`founder_pack_*` RPCs) and can be re-tuned by the Admin Bot

@@ -39,7 +39,7 @@ export const REWARD_CATEGORIES: RewardCategory[] = [
     icon: iconChest,
     short: 'CHEST',
     name: 'LEGENDARY CHEST',
-    blurb: 'Baú lendário com loot raro do Mythreon.',
+    blurb: 'Baú lendário com loot raro do Mythic Seas.',
     ring: 'border-amber-300/60',
     glow: 'shadow-[0_0_18px_rgba(251,191,36,0.45)]',
     text: 'text-amber-200',

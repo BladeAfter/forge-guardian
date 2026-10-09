@@ -6,7 +6,7 @@ import type{SpendingEventPopup as SpendingEventPopupData}from'../spendingEvent';
 import{useT}from'../LanguageContext';
 
 /**
- * MYTHREON :: SPENDING EVENT entry highlight.
+ * Mythic Seas :: SPENDING EVENT entry highlight.
  *
  * Purely informational: it never changes the event, never blocks the game and is
  * dismissible with a single tap. The backend decides IF it should appear
@@ -30,7 +30,7 @@ export function SpendingEventPopup({data,onClose,onView}:{data:SpendingEventPopu
           <X className="h-4 w-4"/>
         </button>
 
-        <p className="relative text-[8px] font-black uppercase tracking-[.34em] text-amber-200/70">MYTHREON</p>
+        <p className="relative text-[8px] font-black uppercase tracking-[.34em] text-amber-200/70">Mythic Seas</p>
 
         <img
           src={treasure}

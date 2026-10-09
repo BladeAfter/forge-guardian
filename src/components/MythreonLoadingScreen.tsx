@@ -1,7 +1,7 @@
 import { backgrounds } from '../gameAssets';
 
 /**
- * Single boot screen for the Mini App: the official Mythreon art plus a real
+ * Single boot screen for the Mini App: the official Mythic Seas art plus a real
  * progress bar driven by the initialization stages (Telegram -> auth -> data).
  */
 export function MythreonLoadingScreen({ progress, note, fading }: { progress: number; note?: string | null; fading?: boolean }) {
@@ -13,7 +13,7 @@ export function MythreonLoadingScreen({ progress, note, fading }: { progress: nu
     >
       <img
         src={backgrounds.loading}
-        alt="Mythreon"
+        alt="Mythic Seas"
         width={1024}
         height={1536}
         className="absolute inset-0 h-full w-full object-cover object-center"

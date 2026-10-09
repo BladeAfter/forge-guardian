@@ -1,5 +1,5 @@
 /**
- * MYTHREON REALM — client-side types and API access.
+ * Mythic Seas REALM — client-side types and API access.
  *
  * The Realm is 100% server-authoritative: timers, costs, material ledger and every
  * reward roll live in the database (see `realm_*` RPCs). This module only carries the
@@ -262,7 +262,7 @@ export type RealmState = {
 
 
 const REALM_ERRORS: Record<string, string> = {
-  REALM_LOCKED: 'O MYTHREON REALM ainda está em acesso antecipado.',
+  REALM_LOCKED: 'O Mythic Seas REALM ainda está em acesso antecipado.',
   REALM_BUILDING_BUSY: 'Esta construção já está em obras.',
   REALM_BUILDING_MAX: 'Nível máximo alcançado.',
   REALM_CASTLE_TOO_LOW: 'Suba o Castelo antes de evoluir esta construção.',
@@ -286,7 +286,7 @@ export async function realmCall<T = RealmState>(initData: string, body: Record<s
   if (!response.ok || !payload) {
     const raw = String(payload?.error || '');
     const match = Object.keys(REALM_ERRORS).find((code) => raw.includes(code));
-    throw new Error(match ? REALM_ERRORS[match] : raw || 'Falha no MYTHREON REALM.');
+    throw new Error(match ? REALM_ERRORS[match] : raw || 'Falha no Mythic Seas REALM.');
   }
   return payload;
 }

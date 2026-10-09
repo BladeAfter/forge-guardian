@@ -98,7 +98,7 @@ export function CelestialPackCard({ telegramInitData, popupMode = false, onPopup
     if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-violet-300/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={packArt} alt="Mythreon Celestial Mystery Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={packArt} alt="Mythic Seas Celestial Mystery Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-violet-200">
             <Stars className="h-3 w-3" /> {t('cp.title')}
@@ -134,7 +134,7 @@ export function CelestialPackCard({ telegramInitData, popupMode = false, onPopup
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-amber-200/40 bg-forge-black/80 p-4 text-left shadow-card"
     >
-      <img src={packArt} alt="Mythreon Celestial Mystery Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt="Mythic Seas Celestial Mystery Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">
           <Stars className="h-3 w-3" /> 🌟 {t('cp.title')}

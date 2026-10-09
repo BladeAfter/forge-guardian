@@ -146,7 +146,7 @@ function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; to
 }
 
 /**
- * MYTHREON ARSENAL — sub-screen of HEROES → INVENTORY. Read-only view over the
+ * Mythic Seas ARSENAL — sub-screen of HEROES → INVENTORY. Read-only view over the
  * server state: the collection, the player's NFT 1/1 pieces and the primary NFT
  * store. Equipping still happens in the hero details slots.
  */

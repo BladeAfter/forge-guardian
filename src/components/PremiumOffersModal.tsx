@@ -21,7 +21,7 @@ export function PremiumOffersModal({ telegramInitData, onClose }: { telegramInit
       <div className="mx-auto w-full max-w-[440px] space-y-3 pb-10">
         <div className="flex items-center justify-between rounded-2xl border border-amber-300/25 bg-[#090d15]/95 px-4 py-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-300">MYTHREON</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-300">Mythic Seas</p>
             <h2 className="text-lg font-black text-white">OFERTAS PREMIUM</h2>
           </div>
           <button onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 place-items-center rounded-full bg-white/5">

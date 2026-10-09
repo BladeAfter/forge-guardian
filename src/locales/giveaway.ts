@@ -1,12 +1,12 @@
 import type { LocaleBundle } from './registry';
 
 /**
- * MYTHREON GIVEAWAY popup. Prize numbers stay outside i18n (they are the same in
+ * Mythic Seas GIVEAWAY popup. Prize numbers stay outside i18n (they are the same in
  * every language); only the labels/copy are translated.
  */
 export const giveaway: LocaleBundle = {
   en: {
-    'giveaway.title': 'MYTHREON GIVEAWAY',
+    'giveaway.title': 'Mythic Seas GIVEAWAY',
     'giveaway.subtitle': '5 RANDOM WINNERS',
     'giveaway.body': 'Join our official group and follow the giveaway!',
     'giveaway.button': 'JOIN GROUP',
@@ -21,7 +21,7 @@ export const giveaway: LocaleBundle = {
     'giveaway.tickets': 'PvP Tickets',
   },
   pt: {
-    'giveaway.title': 'SORTEIO MYTHREON',
+    'giveaway.title': 'SORTEIO Mythic Seas',
     'giveaway.subtitle': '5 GANHADORES ALEATÓRIOS',
     'giveaway.body': 'Participe do nosso grupo oficial e acompanhe o sorteio!',
     'giveaway.button': 'ENTRAR NO GRUPO',
@@ -36,7 +36,7 @@ export const giveaway: LocaleBundle = {
     'giveaway.tickets': 'Tickets de PvP',
   },
   es: {
-    'giveaway.title': 'SORTEO MYTHREON',
+    'giveaway.title': 'SORTEO Mythic Seas',
     'giveaway.subtitle': '5 GANADORES ALEATORIOS',
     'giveaway.body': '¡Únete a nuestro grupo oficial y sigue el sorteo!',
     'giveaway.button': 'UNIRSE AL GRUPO',
@@ -51,7 +51,7 @@ export const giveaway: LocaleBundle = {
     'giveaway.tickets': 'Tickets PvP',
   },
   ru: {
-    'giveaway.title': 'РОЗЫГРЫШ MYTHREON',
+    'giveaway.title': 'РОЗЫГРЫШ Mythic Seas',
     'giveaway.subtitle': '5 СЛУЧАЙНЫХ ПОБЕДИТЕЛЕЙ',
     'giveaway.body': 'Присоединяйтесь к нашей официальной группе и следите за розыгрышем!',
     'giveaway.button': 'ВСТУПИТЬ В ГРУППУ',
@@ -66,7 +66,7 @@ export const giveaway: LocaleBundle = {
     'giveaway.tickets': 'PvP-билета',
   },
   tr: {
-    'giveaway.title': 'MYTHREON ÇEKİLİŞİ',
+    'giveaway.title': 'Mythic Seas ÇEKİLİŞİ',
     'giveaway.subtitle': '5 RASTGELE KAZANAN',
     'giveaway.body': 'Resmi grubumuza katılın ve çekilişi takip edin!',
     'giveaway.button': 'GRUBA KATIL',
