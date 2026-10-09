@@ -1,7 +1,7 @@
 # Roadmap
 
-- [ ] Executar reinício total confirmado: excluir jogadores, progresso, itens, anúncios, saldos e históricos antigos, protegendo processos automáticos e preservando estrutura/configuração.
-- [ ] Renovar a área do mercado: nomes piratas para Mercado e Leilão, remover Troca Privada da interface sem mudar compras e lances.
+- [x] Executar reinício total: jogadores, heróis, pets, equipamentos, anúncios, leilões, clãs e registros financeiros com contagens verificadas em zero; catálogos preservados e processos automáticos pausados.
+- [x] Renomear Mercado para Bazar do Porto e Leilão para Pregão dos Piratas; remover Troca Privada da interface sem mudar compras e lances. Verificação visual isolada inconclusiva; acesso real pelo Telegram não verificado.
 
 - [x] Criar a primeira experiência navegável de GRAND LINE: oceano, cinco ilhas físicas, navios animados, garrafa com pista, passagem secreta e atracação nas atividades existentes; navegação, descoberta e callbacks verificados isoladamente. Sem novas recompensas ou batalhas navais; acesso real pelo Telegram não verificado.
 
@@ -13,7 +13,7 @@
 
 - [x] Substituir ícones dos três contratos de recrutamento por imagens padronizadas, preservando preços e callbacks; três artes carregadas e cliques 1/5/10 verificados isoladamente, sem compras reais.
 
-- [ ] Excluir todos os bens NFT e suas cópias nos inventários, preservar saldos/pagamentos e bloquear novas entregas NFT.
+- [x] Excluir bens NFT e inventários antigos no reinício total; a preservação financeira anterior foi substituída pelo reset executado.
 
 - [x] Trocar a marca exibida para Mythic Seas nos textos da interface, metadados, políticas, manifesto da carteira e mensagens das funções do bot; preservar URLs, pagamentos, hashtags e identificadores internos.
 
@@ -26,10 +26,10 @@
 - [x] Redesenhar a Loja de Heróis como recrutamento de tripulação pirata anime, preservando preços, chances e pagamentos; arte e botões verificados isoladamente na prévia, sem executar compras reais no Telegram.
 
 - [x] Verificar erros Features/Index: arquivos e chamadas ausentes na versão atual; erros não reproduzidos na abertura da prévia.
-- [ ] Executar reset de produção confirmado: remover contas do jogo, saldos, progresso, bens e históricos financeiros/auditoria; preservar estrutura e sistemas para o novo catálogo.
+- [x] Executar reset: contas do jogo, saldos, progresso, bens e históricos removidos; estrutura, configurações e catálogos preservados.
 - [ ] Criar artes inéditas por IA para os novos pets e heróis e substituir referências antigas conforme o novo catálogo.
   - Oito artes inéditas de pets e cinco de heróis criadas; agora aplicadas a todos os catálogos, inclusive NFTs, celestiais e exclusivos, sem apagar dados. As formas de evolução compartilham a nova arte base; artes individuais para cada evolução ainda não foram criadas.
-  - Validação: 56 testes de pets, fusão, passe e combate passaram. Reset não executado: indexador TON e saque automático continuam ativos e exigem bloqueio seguro antes da limpeza.
+  - Validação anterior: 56 testes de pets, fusão, passe e combate passaram. Reset executado posteriormente com indexador TON e saques automáticos pausados.
 - [ ] Tratar os três alertas de acesso a históricos/configuração durante o reset, preservando acesso exclusivo do servidor aos dados privados.
 
 - [x] Corrigir o erro de tipagem da nova raridade Celestial no preview.
