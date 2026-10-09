@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Renovar perfil conforme referência premium: cenário naval, título/avatar destacados, personagem grande com seleção vertical, diário ao lado e canais oficiais; preservar dados e callbacks.
+- [x] Perfil renovado conforme referência premium: cenário naval, título/avatar destacados, personagem grande com seleção vertical, diário ao lado e canais oficiais. Imagens, seleção, passe, links e ausência de cortes conferidos isoladamente; dados e callbacks preservados. Conferência dentro do Telegram depende de sessão assinada.
 
 - [x] Restaurar oceano ilustrado em canvas leve, corrigir seta de saída independente da rede, limitar desenho a 30fps e reduzir resolução/sombras na ilha; ocultar Veteran Vault em passe, tripulação, inventário e equipamentos. Passe renovado com seis artes IA náuticas e imagem de viagem; 15 testes passaram e seta, atracação, travessia de região, imagens e callback de resgate conferidos isoladamente. Entregas, tipos e preços oficiais preservados: peças de navios/mapas com nova utilidade não implementados, dependem de regras e catálogo oficiais. Sessão Telegram assinada indisponível, experiência completa real e eliminação do lag em aparelho não verificadas.
 
