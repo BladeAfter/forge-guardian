@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Renovar perfil conforme referência premium: cenário naval, título/avatar destacados, personagem grande com seleção vertical, diário ao lado e canais oficiais; preservar dados e callbacks.
+
 - [x] Restaurar oceano ilustrado em canvas leve, corrigir seta de saída independente da rede, limitar desenho a 30fps e reduzir resolução/sombras na ilha; ocultar Veteran Vault em passe, tripulação, inventário e equipamentos. Passe renovado com seis artes IA náuticas e imagem de viagem; 15 testes passaram e seta, atracação, travessia de região, imagens e callback de resgate conferidos isoladamente. Entregas, tipos e preços oficiais preservados: peças de navios/mapas com nova utilidade não implementados, dependem de regras e catálogo oficiais. Sessão Telegram assinada indisponível, experiência completa real e eliminação do lag em aparelho não verificadas.
 
 - [ ] Finalizar entrega dos avisos no @MythicSeasPayout: duas artes IA criadas e disponíveis, fila privada ligada a depósitos creditados e saques pagos, proteção de duplicidade e recuperação de falhas implantadas; três testes passaram. Bloqueio confirmado pelo Telegram: @MythreonBot não consegue acessar os membros do canal; adicioná-lo como administrador com permissão de publicar. Nenhuma transação falsa foi publicada; envio real ainda não verificado. Indexador e saques automáticos antigos continuam pausados.

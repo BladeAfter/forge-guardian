@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Check, ChevronRight, Copy, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
+import { Anchor, Compass, CalendarDays, Check, ChevronRight, Copy, Loader2, MessageCircle, Megaphone, Wallet as WalletIcon } from 'lucide-react';
 import { useChannelRewards, useRewardHistory, useSeasonPass } from '../hooks';
 import { channelsRequest, type ChannelReward, type RewardHistoryItem } from '../services';
 import { getDisplayName, getInitials, type TelegramPlayerProfile } from '../playerProfile';
@@ -133,7 +133,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
     <section className="captain-profile">
       <header className="captain-cover">
         <img className="captain-deck" src={profileArt.deck} alt="Convés de um navio nas águas de Mythic Seas" width={1280} height={768} />
-        <div className="captain-cover-title"><span>MYTHIC SEAS</span><h1>Ficha de capitão</h1></div>
+        <div className="captain-cover-title"><span><Compass size={25} strokeWidth={1.3} />MYTHIC SEAS</span><h1>Ficha de <em>capitão</em></h1><i aria-hidden="true" /></div>
         <div className="captain-identity">
           <div className="captain-portrait">
             {profile?.photoUrl ? <AvatarWithBorder photoUrl={profile.photoUrl} border={profile.avatarBorder} fallback={getInitials(name)} size={80} /> : <img src={profileArt.captain} alt="" width={80} height={80} />}
@@ -142,25 +142,28 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
         </div>
       </header>
 
-      <div className="captain-registry"><span>REGISTRO DE NAVEGANTE</span><div><span>ID {profile?.telegramId ?? '—'}</span><button type="button" onClick={copyId} disabled={!profile?.telegramId} title={t('profile.copyIdAria')} aria-label={t('profile.copyIdAria')} className="captain-copy">{copied ? <Check size={15} /> : <Copy size={15} />}</button></div></div>
+      <div className="captain-content">
+      <div className="captain-registry"><span>REGISTRO DE NAVEGANTE</span><div><span>ID {profile?.telegramId ?? '—'}</span><OceanControl onClick={copyId} disabled={!profile?.telegramId} title={t('profile.copyIdAria')} aria-label={t('profile.copyIdAria')} className="captain-copy">{copied ? <Check size={15} /> : <Copy size={15} />}</OceanControl></div></div>
 
       <div className="captain-log">
         <div className="captain-streak"><CalendarDays size={18} /><div><span>Dias a bordo</span><strong>{game.loginStreak}<small> {game.loginStreak === 1 ? 'dia seguido' : 'dias seguidos'}</small></strong></div></div>
         <button type="button" onClick={onOpenBattlePass} className="captain-pass"><img src={profileArt.pass} alt="" width={60} height={60} loading="lazy" /><div><span>{t('profile.battlePass')}</span><strong>{seasonPass.isLoading ? '…' : passLabel}</strong><small className={passActive ? 'captain-status-active' : ''}>{passActive ? t('profile.active') : t('profile.inactive')}</small></div><ChevronRight size={18} /></button>
       </div>
 
+      <div className="captain-showcase">
       <section className="captain-character-section" aria-label="Personagem do perfil">
-        <div className="captain-section-heading"><div><span>SEU PERSONAGEM</span><h2>Pirata de bordo</h2></div></div>
-        <div className="captain-character-options">{(['male', 'female'] as const).map(style => <OceanControl key={style} aria-label={style === 'male' ? 'Escolher pirata masculino' : 'Escolher pirata feminina'} aria-pressed={captainStyle === style} disabled={!profile?.telegramId} className={`captain-character-choice ${captainStyle === style ? 'is-selected' : ''}`} onClick={() => { if (!profile?.telegramId) return; saveCaptainStyle(profile.telegramId, style); setCaptainStyle(style); }}><img src={captainCharacters[style].image} alt={style === 'male' ? 'Pirata masculino' : 'Pirata feminina'} width={100} height={130} loading="lazy" />{captainStyle === style && <Check size={18} />}</OceanControl>)}</div>
+        <div className="captain-section-heading"><div><span><Compass size={13} />SEU PERSONAGEM</span><h2>Pirata de bordo</h2></div></div>
+        <div className="captain-character-stage"><img className="captain-featured-character" src={captainCharacters[captainStyle].image} alt={captainStyle === 'male' ? 'Capitão pirata selecionado' : 'Capitã pirata selecionada'} width={512} height={512} /><div className="captain-character-options">{(['male', 'female'] as const).map(style => <OceanControl key={style} aria-label={style === 'male' ? 'Escolher pirata masculino' : 'Escolher pirata feminina'} aria-pressed={captainStyle === style} disabled={!profile?.telegramId} className={`captain-character-choice ${captainStyle === style ? 'is-selected' : ''}`} onClick={() => { if (!profile?.telegramId) return; saveCaptainStyle(profile.telegramId, style); setCaptainStyle(style); }}><img src={captainCharacters[style].image} alt={style === 'male' ? 'Pirata masculino' : 'Pirata feminina'} width={100} height={130} loading="lazy" />{captainStyle === style && <Check size={18} />}</OceanControl>)}</div></div>
       </section>
 
       <section className="captain-journal">
         <div className="captain-section-heading"><div><span>ESPÓLIOS DA JORNADA</span><h2>Diário de conquistas</h2></div>{items.length > 0 && <button type="button" onClick={() => setShowAll(value => !value)} className="captain-text-action">{showAll ? t('profile.showLess') : t('profile.viewAll')}<ChevronRight size={14} /></button>}</div>
         {history.isLoading ? <p className="captain-muted">{t('profile.loadingRewards')}</p> : items.length ? <ul className={`captain-rewards ${showAll ? 'captain-rewards-expanded' : ''}`}>{items.map((item, index) => <RewardRow key={`${item.reward_type}-${item.reward_key}-${item.created_at}-${index}`} item={item} />)}</ul> : <div className="captain-empty"><img src={profileArt.treasure} alt="" width={72} height={72} loading="lazy" /><div><p>Seu tesouro começa aqui</p><span>{t('profile.noRewardsYet')}</span></div></div>}
       </section>
+      </div>
 
       <section className="captain-signals">
-        <div className="captain-section-heading"><div><span>RÁDIO DO NAVIO</span><h2>{t('profile.officialChannels')}</h2></div><span className="captain-channel-bonus">{t('profile.rewardPerChannel', { amount: '5,000' })}</span></div>
+        <div className="captain-section-heading"><div><span><Anchor size={17} />RÁDIO DO NAVIO</span><h2>{t('profile.officialChannels')}</h2></div></div>
         {channels.isLoading ? <p className="captain-muted">{t('profile.loadingChannels')}</p> : <div className="captain-channel-list">{(channels.data?.channels ?? []).filter(channel => channel.enabled).map((channel: ChannelReward) => {
           const Icon = CHANNEL_ICON[channel.key] ?? Megaphone;
           const pending = verify.isPending && verify.variables === channel.key;
@@ -172,6 +175,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
           </article>;
         })}</div>}
       </section>
+      </div>
     </section>
   );
 }

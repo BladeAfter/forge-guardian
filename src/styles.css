@@ -3937,16 +3937,20 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 
 /* Mythic Seas — captain's ship registry. */
 :root {
-  --profile-paper: 44 48% 94%;
-  --profile-ink: 207 61% 16%;
-  --profile-muted: 207 20% 42%;
-  --profile-rule: 207 24% 78%;
-  --profile-accent: 358 69% 45%;
-  --profile-success: 158 64% 30%;
+  --profile-paper: 195 48% 95%;
+  --profile-ink: 207 70% 7%;
+  --profile-muted: 211 30% 66%;
+  --profile-rule: 42 44% 36%;
+  --profile-accent: 43 96% 68%;
+  --profile-success: 158 64% 55%;
+  --profile-panel: 207 65% 9%;
+  --profile-blue: 205 82% 53%;
+  --profile-red: 358 79% 60%;
+  --profile-shadow: 210 80% 4%;
   --profile-sky: 192 80% 85%;
   --profile-cover-shade: linear-gradient(180deg, hsl(var(--pirate-ink) / .28), transparent 40%, hsl(var(--pirate-ink) / .94));
 }
-.captain-profile { color: hsl(var(--profile-ink)); background: hsl(var(--profile-paper)); margin: -4px; padding-bottom: 20px; overflow: hidden; }
+.captain-profile { color: hsl(var(--profile-paper)); background: hsl(var(--profile-ink)); margin: -4px; padding-bottom: 30px; overflow: hidden; }
 .captain-profile button { letter-spacing: 0; }
 .captain-cover { position: relative; min-height: 280px; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 20px 20px; color: hsl(var(--profile-paper)); }
 .captain-deck { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
