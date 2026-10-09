@@ -3,7 +3,7 @@ import type { LocaleBundle } from './registry';
 /** pvp namespace translations (arena, battle, tickets). */
 export const pvp: LocaleBundle = {
   en: {
-    'pvp.title': 'Forge Arena',
+    'pvp.title': 'Deck Duels',
     'pvp.subtitle': 'HERO PVP',
     'pvp.trophies': '{count} trophies',
     'pvp.league': 'League',
@@ -68,7 +68,7 @@ export const pvp: LocaleBundle = {
     'pvp.ads.notCompleted': "Ad was not completed — no ticket granted.",
   },
   pt: {
-    'pvp.title': 'Arena da Forja',
+    'pvp.title': 'Duelos do Convés',
     'pvp.subtitle': 'PVP ENTRE HERÓIS',
     'pvp.trophies': '{count} troféus',
     'pvp.league': 'Liga',
@@ -133,7 +133,7 @@ export const pvp: LocaleBundle = {
     'pvp.ads.notCompleted': "Anúncio não concluído — nenhum ticket concedido.",
   },
   es: {
-    'pvp.title': 'Arena de la Forja',
+    'pvp.title': 'Duelos de Cubierta',
     'pvp.subtitle': 'PVP ENTRE HÉROES',
     'pvp.trophies': '{count} trofeos',
     'pvp.league': 'Liga',
@@ -198,7 +198,7 @@ export const pvp: LocaleBundle = {
     'pvp.ads.notCompleted': "Anuncio no completado — no se otorgó ticket.",
   },
   ru: {
-    'pvp.title': 'Арена Кузницы',
+    'pvp.title': 'Дуэли на палубе',
     'pvp.subtitle': 'PVP МЕЖДУ ГЕРОЯМИ',
     'pvp.trophies': '{count} трофеев',
     'pvp.league': 'Лига',

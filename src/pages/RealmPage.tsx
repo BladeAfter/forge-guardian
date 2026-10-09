@@ -8,7 +8,7 @@ import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 import GrandLineOcean from '../components/GrandLineOcean';
-import { coin } from '../gameAssets';
+import { coin, realmArt } from '../gameAssets';
 
 import { usePlayerHeroes } from '../hooks';
 import { useT } from '../LanguageContext';
@@ -30,19 +30,19 @@ import {
   type RealmState,
 } from '../realm';
 
-const RUINS_BG = '/assets/game/realm/ruins-bg.jpg';
-const REALM_CREST = '/assets/game/realm/realm-crest.png';
+const RUINS_BG = realmArt.cave;
+const REALM_CREST = realmArt.crest;
 
 
 
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
 const TABS: { id: Tab; labelKey: string; art: string }[] = [
-  { id: 'stronghold', labelKey: 'realm.tab.stronghold', art: '/assets/game/realm/tab-stronghold.png' },
-  { id: 'map', labelKey: 'realm.tab.map', art: '/assets/game/realm/tab-map.png' },
-  { id: 'forge', labelKey: 'realm.tab.forge', art: '/assets/game/realm/tab-forge.png' },
-  { id: 'ruins', labelKey: 'realm.tab.ruins', art: '/assets/game/realm/tab-ruins.png' },
-  { id: 'bounties', labelKey: 'realm.tab.bounties', art: '/assets/game/realm/tab-contracts.png' },
+  { id: 'stronghold', labelKey: 'realm.tab.stronghold', art: realmArt.tabs.stronghold },
+  { id: 'map', labelKey: 'realm.tab.map', art: realmArt.tabs.map },
+  { id: 'forge', labelKey: 'realm.tab.forge', art: realmArt.tabs.forge },
+  { id: 'ruins', labelKey: 'realm.tab.ruins', art: realmArt.tabs.ruins },
+  { id: 'bounties', labelKey: 'realm.tab.bounties', art: realmArt.tabs.bounties },
 ];
 
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
@@ -179,7 +179,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (isLoading) {
     return (
-      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-4">
+      <div className="fullscreen-page forge-safe-page seas-realm overflow-y-auto bg-[#05070f] p-4">
         {[1, 2, 3].map((k) => <div key={k} className="mb-3 h-32 animate-pulse rounded-3xl bg-white/5" />)}
       </div>
     );
@@ -187,7 +187,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   if (error || !data) {
     return (
-      <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] p-6 text-center">
+      <div className="fullscreen-page forge-safe-page seas-realm overflow-y-auto bg-[#05070f] p-6 text-center">
         <p className="mt-16 text-sm text-rose-300">{(error as Error)?.message || t('realm.loadFail')}</p>
         <button onClick={onBack} className="mt-6 rounded-2xl border border-amber-300/40 px-5 py-3 text-xs font-black uppercase tracking-[.2em] text-amber-200">{t('realm.backCta')}</button>
       </div>
@@ -243,7 +243,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
 
   return (
-    <div className="fullscreen-page forge-safe-page overflow-y-auto bg-[#05070f] pb-28">
+    <div className="fullscreen-page forge-safe-page seas-realm overflow-y-auto bg-[#05070f] pb-28">
       {duelLog && (
         <RealmBattleScene
           log={duelLog} duel
@@ -261,7 +261,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
             <button onClick={() => setOceanOpen(true)} className="realm-hud-back">← Oceano</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
-              <h1 className="realm-hud-title truncate">Mythic Seas REALM</h1>
+              <h1 className="realm-hud-title truncate">Grand Line</h1>
             </div>
             <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
               <span className="realm-lv-cap">{t('realm.strongholdCap')}</span>
@@ -469,7 +469,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
                         <div key={i} className="flex items-center justify-between border-b border-white/5 py-1.5 text-[9px]">
                           <span className="text-slate-300">
                             {data.regions.find((r) => r.id === h.region)?.name ?? h.region}
-                            <em className={`ml-1 not-italic ${h.tier === 'ton' ? 'text-amber-300' : 'text-slate-500'}`}>{h.tier === 'ton' ? 'TON' : 'FC'}</em>
+                            <em className={`ml-1 not-italic ${h.tier === 'ton' ? 'text-amber-300' : 'text-slate-500'}`}>{h.tier === 'ton' ? 'TON' : 'BERRIES'}</em>
                           </span>
                           <span className={h.status === 'cleared' ? 'text-emerald-300' : h.status === 'failed' ? 'text-rose-300' : 'text-slate-400'}>
                             {Math.min(10, h.room)}/10 · {fmt(Number(h.fc ?? 0))} BERRIES

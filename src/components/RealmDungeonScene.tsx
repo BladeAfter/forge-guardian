@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { REALM_ROOM_LABEL_KEY, type RealmRuinRoom, type RealmRuinRun, type RealmState } from '../realm';
 import { useT } from '../LanguageContext';
+import { realmArt } from '../gameAssets';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 
-const BG_HALL = '/assets/game/realm/dungeon-hall.jpg';
-const BG_TREASURE = '/assets/game/realm/dungeon-treasure.jpg';
-const BG_SHRINE = '/assets/game/realm/dungeon-shrine.jpg';
-const BG_BOSS = '/assets/game/realm/dungeon-boss.jpg';
-const DOOR = '/assets/game/realm/dungeon-door.png';
+const BG_HALL = realmArt.cave;
+const BG_TREASURE = realmArt.cave;
+const BG_SHRINE = realmArt.cave;
+const BG_BOSS = realmArt.cave;
+const DOOR = realmArt.crest;
 
 const ROOM_BG: Record<string, string> = {
   combat: BG_HALL,

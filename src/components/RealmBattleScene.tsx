@@ -5,7 +5,7 @@ import type { Translator } from '../i18n';
 import type { RealmExploreLog, RealmExploreNodeType } from '../realm';
 import type { PvpHero } from '../pvp';
 import { RARITY_COLORS } from '../heroCatalog';
-import { coin } from '../gameAssets';
+import { coin, realmArt } from '../gameAssets';
 
 type Theme = {
   key: 'greenvale' | 'crystal' | 'abyss';
@@ -20,23 +20,23 @@ function themeOf(regionId?: string | null): Theme {
   if (id.includes('crystal') || id.includes('rift')) {
     return {
       key: 'crystal',
-      foe: '/assets/game/realm/foe-crystal-rift.png',
-      ground: '/assets/game/realm/battle-ground-crystal-rift.jpg',
+      foe: realmArt.foes.crystal,
+      ground: realmArt.cave,
       bossNameKey: 'realm.foe.crystal',
     };
   }
   if (id.includes('abyss') || id.includes('void')) {
     return {
       key: 'abyss',
-      foe: '/assets/game/realm/foe-abyss.png',
-      ground: '/assets/game/realm/battle-ground-abyss.jpg',
+      foe: realmArt.foes.abyss,
+      ground: realmArt.cave,
       bossNameKey: 'realm.foe.abyss',
     };
   }
   return {
     key: 'greenvale',
-    foe: '/assets/game/realm/foe-greenvale.png',
-    ground: '/assets/game/realm/battle-ground-greenvale.jpg',
+    foe: realmArt.foes.wild,
+    ground: realmArt.deck,
     bossNameKey: 'realm.foe.wild',
   };
 }
@@ -45,19 +45,19 @@ function themeOf(regionId?: string | null): Theme {
 function foeOf(nodeType: RealmExploreNodeType | undefined, theme: Theme, t: Translator) {
   const base = t(theme.bossNameKey);
   if (nodeType === 'boss') {
-    return { art: '/assets/game/realm/poi-boss.png', rank: t('realm.battle.rank.boss'), name: t('realm.foe.ancestral', { name: base }) };
+    return { art: realmArt.foes.abyss, rank: t('realm.battle.rank.boss'), name: t('realm.foe.ancestral', { name: base }) };
   }
   if (nodeType === 'elite') {
-    return { art: '/assets/game/realm/poi-elite.png', rank: t('realm.battle.rank.elite'), name: t('realm.foe.eliteSuffix', { name: base }) };
+    return { art: realmArt.foes.wild, rank: t('realm.battle.rank.elite'), name: t('realm.foe.eliteSuffix', { name: base }) };
   }
   return { art: theme.foe, rank: t('realm.battle.rank.foe'), name: base };
 }
 
 /** The three heroes shown in the party row (presentation only). */
 const PARTY = [
-  { name: 'Aldric', image: '/assets/game/realm/party-knight.png', glow: 'rgba(251,191,36,.55)' },
-  { name: 'Sylvane', image: '/assets/game/realm/party-mage.png', glow: 'rgba(168,85,247,.55)' },
-  { name: 'Kaelis', image: '/assets/game/realm/party-ranger.png', glow: 'rgba(52,211,153,.55)' },
+  { name: 'Espadachim', image: realmArt.party[0], glow: 'rgba(251,191,36,.55)' },
+  { name: 'Navegadora', image: realmArt.party[1], glow: 'rgba(168,85,247,.55)' },
+  { name: 'Atiradora', image: realmArt.party[2], glow: 'rgba(52,211,153,.55)' },
 ];
 
 const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString('pt-BR');
@@ -341,7 +341,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               </span>
               {Number(log.fragments) > 0 && (
                 <span className="bf-reward">
-                  <img src="/assets/game/realm/mat-rune-dust.png" alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
+                  <img src={realmArt.supplies} alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
                   <b>+{fmt(Number(log.fragments))}</b> frag.
                 </span>
               )}

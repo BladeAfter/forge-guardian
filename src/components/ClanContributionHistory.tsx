@@ -150,7 +150,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
       {/* SORT — assets are never summed together */}
       <div className="flex items-center gap-1.5">
         <span className="text-[8px] uppercase tracking-widest text-slate-500">Ordenar</span>
-        {([['points', 'PTS'], ['fc', 'FC'], ['myth', 'MYTH']] as [SortKey, string][]).map(([k, label]) => (
+        {([['points', 'PTS'], ['fc', 'BERRIES'], ['myth', 'MYTH']] as [SortKey, string][]).map(([k, label]) => (
           <button key={k} onClick={() => setSort(k)}
             className={`rounded-full border px-2 py-0.5 text-[9px] font-black transition ${
               sort === k ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/45 text-slate-400'}`}>
@@ -219,7 +219,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                   <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg bg-black/40 px-2 py-1">
                     <span className="text-[9px] text-slate-500">{stamp(e.createdAt)}</span>
                     <span className={`text-[10px] font-black ${e.reversed ? 'text-rose-300 line-through' : e.asset === 'MYTH' ? 'text-violet-200' : 'text-amber-200'}`}>
-                      {e.amount > 0 ? '+' : ''}{full(e.amount)} {e.asset}
+                      {e.amount > 0 ? '+' : ''}{full(e.amount)} {e.asset === 'FC' ? 'BERRIES' : e.asset}
                     </span>
                   </div>
                 )) : <p className="py-2 text-center text-[10px] text-slate-500">Sem doações registradas.</p>}

@@ -262,16 +262,16 @@ export type RealmState = {
 
 
 const REALM_ERRORS: Record<string, string> = {
-  REALM_LOCKED: 'O Mythic Seas REALM ainda está em acesso antecipado.',
+  REALM_LOCKED: 'A Grand Line ainda está em acesso antecipado.',
   REALM_BUILDING_BUSY: 'Esta construção já está em obras.',
   REALM_BUILDING_MAX: 'Nível máximo alcançado.',
-  REALM_CASTLE_TOO_LOW: 'Suba o Castelo antes de evoluir esta construção.',
+  REALM_CASTLE_TOO_LOW: 'Evolua o Posto do Capitão antes de evoluir esta construção.',
   REALM_NOT_ENOUGH_FC: 'BERRIES insuficientes.',
   REALM_NOT_READY: 'Ainda não terminou.',
-  REALM_REGION_LOCKED: 'Região bloqueada: evolua o Stronghold.',
+  REALM_REGION_LOCKED: 'Região bloqueada: evolua o Posto da Frota.',
   REALM_EXPEDITION_SLOTS_FULL: 'Todas as rotas de expedição estão ocupadas.',
-  REALM_CRAFT_SLOTS_FULL: 'Todas as bancadas da Forja estão ocupadas.',
-  REALM_FORGE_TOO_LOW: 'Nível da Forja insuficiente para esta receita.',
+  REALM_CRAFT_SLOTS_FULL: 'Todas as bancadas da Oficina Naval estão ocupadas.',
+  REALM_FORGE_TOO_LOW: 'Nível da Oficina Naval insuficiente para esta receita.',
   REALM_BOUNTY_INCOMPLETE: 'Contrato ainda não concluído.',
   REALM_NO_FC: 'BERRIES insuficientes para pagar a entrada das Ruínas.',
   REALM_NO_TON: 'Saldo de TON insuficiente para a entrada premium das Ruínas.',
@@ -286,7 +286,7 @@ export async function realmCall<T = RealmState>(initData: string, body: Record<s
   if (!response.ok || !payload) {
     const raw = String(payload?.error || '');
     const match = Object.keys(REALM_ERRORS).find((code) => raw.includes(code));
-    throw new Error(match ? REALM_ERRORS[match] : raw || 'Falha no Mythic Seas REALM.');
+    throw new Error(match ? REALM_ERRORS[match] : raw || 'Falha na Grand Line.');
   }
   return payload;
 }

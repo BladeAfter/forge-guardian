@@ -2,6 +2,7 @@ import{useEffect,useMemo,useRef,useState}from'react';
 import{Swords,Zap}from'lucide-react';
 import type{PvpBattleResult,PvpHero}from'../pvp';
 import{useT}from'../LanguageContext';
+import { duelArt } from '../gameAssets';
 
 const rarityColor:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',ancestral:'#f472b6'};
 const archetypeFx:Record<string,{icon:string;color:string}>={warrior:{icon:'⚔',color:'#fbbf24'},assassin:{icon:'✦',color:'#f472b6'},tank:{icon:'🛡',color:'#60a5fa'},mage:{icon:'✷',color:'#c084fc'},archer:{icon:'➤',color:'#34d399'},support:{icon:'✚',color:'#4ade80'}};
@@ -39,7 +40,7 @@ export function PvpBattleArena({battle,attackTeam,defenseTeam,opponentName,pet,o
  const turn=Math.min(battle.totalTurns,events[Math.min(index,events.length-1)]?.turn??battle.totalTurns);
 
  return<div className="fixed inset-0 z-[120] overflow-y-auto bg-[#04070c] text-white">
-  <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#2a1533_0%,#080b12_55%,#020407_100%)]"/>
+  <div className="pointer-events-none fixed inset-0 seas-battle-backdrop" style={{backgroundImage:`linear-gradient(180deg,rgba(4,19,28,.76),rgba(4,19,28,.96)),url(${duelArt.deck})`}}/>
   <div className="forge-safe-page relative mx-auto flex min-h-full w-full max-w-[480px] flex-col px-3 pb-6 pt-4">
    <header className="text-center">
     <p className="text-[9px] font-black uppercase tracking-[.3em] text-amber-300">{t('pvp.battleTitle')}</p>

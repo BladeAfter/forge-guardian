@@ -17,8 +17,9 @@ import {
 import RealmBattleScene from './RealmBattleScene';
 import RealmRunScene from './RealmRunScene';
 import { useT } from '../LanguageContext';
+import { realmArt } from '../gameAssets';
 
-const WORLD_MAP = '/assets/game/realm/world-map.png';
+const WORLD_MAP = realmArt.ocean;
 
 const DEPTH_TIER_KEY: Record<string, string> = {
   normal: 'realm.tier.normal',

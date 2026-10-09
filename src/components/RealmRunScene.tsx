@@ -11,38 +11,39 @@ import {
   type RealmRegion,
 } from '../realm';
 import { useT } from '../LanguageContext';
+import { realmArt } from '../gameAssets';
 import type { Translator } from '../i18n';
 
 /** Region scenery — layered painted backdrops (no node graph). */
 const SCENE: Record<string, string> = {
-  greenvale: '/assets/game/realm/scene-greenvale.jpg',
-  crystal_rift: '/assets/game/realm/scene-crystal-rift.jpg',
-  'crystal-rift': '/assets/game/realm/scene-crystal-rift.jpg',
-  abyss: '/assets/game/realm/scene-abyss.jpg',
+  greenvale: realmArt.outpost,
+  crystal_rift: realmArt.cave,
+  'crystal-rift': realmArt.cave,
+  abyss: realmArt.cave,
 };
 
 /** Every logical node type is drawn as a real place / creature in the world. */
 const PLACE_ART: Record<string, string> = {
-  combat: '/assets/game/realm/poi-combat.png',
-  elite: '/assets/game/realm/poi-elite.png',
-  boss: '/assets/game/realm/poi-boss.png',
-  gather: '/assets/game/realm/poi-gather.png',
-  treasure: '/assets/game/realm/poi-treasure.png',
-  event: '/assets/game/realm/poi-event.png',
-  trap: '/assets/game/realm/poi-trap.png',
-  shrine: '/assets/game/realm/poi-shrine.png',
-  rest: '/assets/game/realm/poi-rest.png',
+  combat: realmArt.foes.wild,
+  elite: realmArt.foes.crystal,
+  boss: realmArt.foes.abyss,
+  gather: realmArt.supplies,
+  treasure: realmArt.treasure,
+  event: realmArt.mystery,
+  trap: realmArt.trap,
+  shrine: realmArt.crest,
+  rest: realmArt.rest,
 };
 
-const PARTY_ART = '/assets/game/realm/poi-party.png';
+const PARTY_ART = realmArt.party[0];
 
 /** Nodes that lead to a real hero-vs-boss battle scene. */
 const FIGHT_NODES = ['combat', 'elite', 'boss'];
 
 const FOE_ART: Record<string, string> = {
-  combat: '/assets/game/realm/foe-greenvale.png',
-  elite: '/assets/game/realm/poi-elite.png',
-  boss: '/assets/game/realm/poi-boss.png',
+  combat: realmArt.foes.wild,
+  elite: realmArt.foes.crystal,
+  boss: realmArt.foes.abyss,
 };
 
 /** Named foe per region, so the fight is against a creature — not a percentage. */
