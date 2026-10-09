@@ -1,6 +1,7 @@
 # Roadmap
 
 - [ ] Varrer as telas ativas e substituir referências visuais e textos do jogo antigo, preservando identificadores e regras.
+  - Catálogo visual central, construções e personagens base, oficina naval, exploração, cavernas e batalhas renovados com artes piratas; rótulos Grand Line, Duelos do Convés e BERRIES aplicados. Doze artes carregadas no navegador; atividades autenticadas no Telegram não verificadas. Hashtags, handles, storage keys, memos e RPCs preservados; materiais e construções fornecidos pelo servidor ainda exigem auditoria visual.
 
 - [x] Remover da interface packs, pop-ups promocionais, staking e acessos Tower/Familiar Hunt/Expeditions do jogo antigo; imports e renderizações removidos das telas, visual pirata preservado. Acesso real pelo Telegram não verificado.
 
