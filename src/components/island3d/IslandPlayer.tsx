@@ -71,6 +71,12 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
     if (bounds && s.phase === 'exploring') { dx = -p.x / Math.hypot(p.x, p.z); dz = -p.z / Math.hypot(p.x, p.z); speed.current = 2; }
     controller.computeColliderMovement(collider, { x: dx * speed.current * dt, y: s.vy * dt, z: dz * speed.current * dt }, undefined, undefined, c => c.parent()?.handle !== b.handle);
     const movement = controller.computedMovement();
+    if (typeof window !== 'undefined' && s.phase === 'landing') {
+      const hits = Array.from({ length: controller.numComputedCollisions() }, (_, index) => {
+        const c = controller.computedCollision(index); return c ? { position: c.collider?.translation(), normal: c.normal1 } : null;
+      });
+      (window as unknown as { harborDebug: unknown }).harborDebug = { waypoint: s.waypoint, speed: speed.current, movement, hits };
+    }
     s.grounded = controller.computedGrounded();
     if (s.grounded && s.vy < 0) s.vy = 0;
     b.setNextKinematicTranslation({ x: p.x + movement.x, y: p.y + movement.y, z: p.z + movement.z });
