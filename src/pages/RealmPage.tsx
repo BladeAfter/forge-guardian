@@ -8,6 +8,9 @@ import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 import GrandLineOcean from '../components/GrandLineOcean';
+import IslandExploration from '../components/IslandExploration';
+import { readCaptainStyle } from '../captainCharacter';
+import { SEA_ISLANDS, type SeaPoint } from '../grandLineNavigation';
 import { coin, realmArt } from '../gameAssets';
 
 import { usePlayerHeroes } from '../hooks';
@@ -17,6 +20,10 @@ import {
   REALM_ROOM_LABEL_KEY,
   fetchRealmState,
   realmClaimBounty,
+  realmExploreStart,
+  realmExploreEnter,
+  realmExploreChoose,
+  realmExploreExtract,
   realmClaimBuilding,
   realmClaimCraft,
   realmEnsureBounties,
@@ -52,11 +59,15 @@ const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n ||
  * Toda a verdade vem de `realm_state`; esta tela apenas renderiza o estado do servidor.
  * UI mobile-first: hierarquia enxuta, detalhes sempre em bottom sheet.
  */
-export function RealmPage({ telegramInitData, onBack, berries = 0 }: { telegramInitData: string; onBack: () => void; berries?: number }) {
+export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }: { telegramInitData: string; onBack: () => void; berries?: number; telegramId?: string }) {
   const t = useT();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('stronghold');
   const [oceanOpen, setOceanOpen] = useState(true);
+  const [islandIndex, setIslandIndex] = useState<number | null>(null);
+  const [oceanPosition, setOceanPosition] = useState<SeaPoint | undefined>();
+  const [islandBusy, setIslandBusy] = useState(false);
+  const [islandCombat, setIslandCombat] = useState<RealmExploreLog | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [notice, setNotice] = useState<string | null>(null);
   const [resourcesOpen, setResourcesOpen] = useState(false);
@@ -178,11 +189,28 @@ export function RealmPage({ telegramInitData, onBack, berries = 0 }: { telegramI
 
 
   // Sailing is client-only: load authoritative activities only after docking.
+  if (islandIndex !== null) {
+    const islandAction = async (fn: () => Promise<RealmState>) => {
+      setIslandBusy(true);
+      try { const next = await runAsync(fn); if (next?.lastNode?.rounds?.length) setIslandCombat(next.lastNode); return next; }
+      finally { setIslandBusy(false); }
+    };
+    return <>
+      <IslandExploration islandIndex={islandIndex} captainStyle={readCaptainStyle(telegramId)} data={data} loading={isLoading} error={error instanceof Error ? error.message : undefined} busy={islandBusy} notice={notice}
+        onStart={regionId => islandAction(() => realmExploreStart(telegramInitData, regionId))}
+        onEnter={node => data?.exploreRun ? islandAction(() => realmExploreEnter(telegramInitData, data.exploreRun?.id ?? '', node.id)) : Promise.resolve(null)}
+        onChoose={option => data?.exploreRun ? islandAction(() => realmExploreChoose(telegramInitData, data.exploreRun?.id ?? '', option)) : Promise.resolve(null)}
+        onExtract={() => data?.exploreRun ? islandAction(() => realmExploreExtract(telegramInitData, data.exploreRun?.id ?? '')) : Promise.resolve(data ?? null)}
+        onActivity={destination => { setTab(destination); setIslandIndex(null); if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
+        onReturn={() => { setOceanPosition(SEA_ISLANDS[islandIndex].dock); setIslandIndex(null); setOceanOpen(true); }} />
+      {islandCombat && <RealmBattleScene log={islandCombat} regionId={data?.exploreRun?.region_id ?? null} regionName={SEA_ISLANDS[islandIndex].name} heroes={myHeroes} heroId={duelHeroId} onPickHero={pickDuelHero} onClose={() => setIslandCombat(null)} />}
+    </>;
+  }
   if (oceanOpen) {
-    return <GrandLineOcean berries={data?.fc ?? berries} onBack={onBack} onDock={(destination) => {
+    return <GrandLineOcean berries={data?.fc ?? berries} initialPosition={oceanPosition} onBack={onBack} onDock={(destination, index) => {
       setTab(destination);
       setOceanOpen(false);
-      if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData));
+      setIslandIndex(index);
     }} />;
   }
 
@@ -257,7 +285,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0 }: { telegramI
         <div className="realm-hud-atmo" aria-hidden />
         <div className="relative px-3 pb-1.5 pt-2">
           <div className="flex items-center gap-2">
-            <button onClick={() => setOceanOpen(true)} className="realm-hud-back">← Oceano</button>
+            <button onClick={() => { const index = SEA_ISLANDS.findIndex(i => i.destination === tab); setIslandIndex(index < 0 ? 1 : index); }} className="realm-hud-back">← Ilha</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
               <h1 className="realm-hud-title truncate">Grand Line</h1>

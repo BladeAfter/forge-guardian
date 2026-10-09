@@ -9,6 +9,7 @@
 - Keep market analytics read-only in `MarketPulseView`; explicitly label illustrative data and never derive global sales or buyer identities from personal market history.
 - Scope community-pool theming to `seas-community` and semantic community tokens so all nested event views share presentation without changing game rules.
 - Keep Grand Line sailing and discoveries in a client-only canvas presentation with pointer-captured joystick input cleared on release, cancellation or focus loss; dock into existing Realm callbacks for authoritative progression and rewards so ocean movement cannot change the economy.
+- Keep island terrain and walking client-only in IslandExploration; render only server-available Realm nodes as rewarding encounters and extract through existing callbacks before boarding so physical exploration cannot mint rewards. Profile character selection is a per-player local cosmetic preference shared with island rendering, not a gameplay privilege.
 - Gate game API and deposit reconciliation with the server-owned reset state; reject pre-epoch blockchain transactions after a reset to prevent old financial activity from recreating balances.
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
