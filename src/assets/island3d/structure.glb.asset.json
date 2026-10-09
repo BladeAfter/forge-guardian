@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "f8cb3d41-79e1-4b0d-a40f-3eba90d6a364",
+  "asset_id": "7cb6d2ba-a247-462e-9909-2eaefb31d92a",
   "project_id": "a1010e38-3156-4844-b5b9-f707f0d57268",
-  "url": "/__l5e/assets-v1/f8cb3d41-79e1-4b0d-a40f-3eba90d6a364/island3d-structure.glb",
-  "r2_key": "a/v1/a1010e38-3156-4844-b5b9-f707f0d57268/f8cb3d41-79e1-4b0d-a40f-3eba90d6a364/island3d-structure.glb",
+  "url": "/__l5e/assets-v1/7cb6d2ba-a247-462e-9909-2eaefb31d92a/island3d-structure.glb",
+  "r2_key": "a/v1/a1010e38-3156-4844-b5b9-f707f0d57268/7cb6d2ba-a247-462e-9909-2eaefb31d92a/island3d-structure.glb",
   "original_filename": "island3d-structure.glb",
-  "size": 27988,
+  "size": 38108,
   "content_type": "model/gltf-binary",
-  "created_at": "2026-10-09T21:01:41Z"
+  "created_at": "2026-10-09T21:06:51Z"
 }

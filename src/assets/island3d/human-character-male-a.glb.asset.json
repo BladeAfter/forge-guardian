@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "b08fceb1-aa26-41f6-ba5f-6084e4814e18",
+  "asset_id": "e7a98590-d938-4d44-8d96-3e605196dce9",
   "project_id": "a1010e38-3156-4844-b5b9-f707f0d57268",
-  "url": "/__l5e/assets-v1/b08fceb1-aa26-41f6-ba5f-6084e4814e18/island3d-human-character-male-a.glb",
-  "r2_key": "a/v1/a1010e38-3156-4844-b5b9-f707f0d57268/b08fceb1-aa26-41f6-ba5f-6084e4814e18/island3d-human-character-male-a.glb",
+  "url": "/__l5e/assets-v1/e7a98590-d938-4d44-8d96-3e605196dce9/island3d-human-character-male-a.glb",
+  "r2_key": "a/v1/a1010e38-3156-4844-b5b9-f707f0d57268/e7a98590-d938-4d44-8d96-3e605196dce9/island3d-human-character-male-a.glb",
   "original_filename": "island3d-human-character-male-a.glb",
-  "size": 246916,
+  "size": 255212,
   "content_type": "model/gltf-binary",
-  "created_at": "2026-10-09T21:01:19Z"
+  "created_at": "2026-10-09T21:06:32Z"
 }
