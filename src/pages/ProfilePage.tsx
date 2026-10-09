@@ -9,6 +9,8 @@ import { useT } from '../LanguageContext';
 import{PlayerTag}from'../premiumTitles';
 import { AvatarWithBorder } from '../components/AvatarWithBorder';
 import { profileArt } from '../gameAssets';
+import { captainCharacters, readCaptainStyle, saveCaptainStyle, type CaptainStyle } from '../captainCharacter';
+import { OceanControl } from '../components/OceanControl';
 
 /** Reward icons come from mixed sources: only real URLs can be rendered as images. */
 const isImageUrl = (value?: string | null) => Boolean(value && (/^https?:\/\//.test(value) || value.startsWith('/') || value.startsWith('data:')));
@@ -83,6 +85,7 @@ function RewardRow({ item }: { item: RewardHistoryItem }) {
 export function ProfilePage({ game, profile, telegramInitData, backendEnabled, onOpenBattlePass }: ProfilePageProps) {
   const t = useT();
   const [copied, setCopied] = useState(false);
+  const [captainStyle, setCaptainStyle] = useState<CaptainStyle>(() => readCaptainStyle(profile?.telegramId));
   const [showAll, setShowAll] = useState(false);
   const enabled = Boolean(telegramInitData) && backendEnabled;
   const history = useRewardHistory(telegramInitData, enabled, showAll ? 50 : 5);
@@ -145,6 +148,11 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
         <div className="captain-streak"><CalendarDays size={18} /><div><span>Dias a bordo</span><strong>{game.loginStreak}<small> {game.loginStreak === 1 ? 'dia seguido' : 'dias seguidos'}</small></strong></div></div>
         <button type="button" onClick={onOpenBattlePass} className="captain-pass"><img src={profileArt.pass} alt="" width={60} height={60} loading="lazy" /><div><span>{t('profile.battlePass')}</span><strong>{seasonPass.isLoading ? '…' : passLabel}</strong><small className={passActive ? 'captain-status-active' : ''}>{passActive ? t('profile.active') : t('profile.inactive')}</small></div><ChevronRight size={18} /></button>
       </div>
+
+      <section className="captain-character-section" aria-label="Personagem do perfil">
+        <div className="captain-section-heading"><div><span>SEU PERSONAGEM</span><h2>Pirata de bordo</h2></div></div>
+        <div className="captain-character-options">{(['male', 'female'] as const).map(style => <OceanControl key={style} aria-label={style === 'male' ? 'Escolher pirata masculino' : 'Escolher pirata feminina'} aria-pressed={captainStyle === style} disabled={!profile?.telegramId} className={`captain-character-choice ${captainStyle === style ? 'is-selected' : ''}`} onClick={() => { if (!profile?.telegramId) return; saveCaptainStyle(profile.telegramId, style); setCaptainStyle(style); }}><img src={captainCharacters[style].image} alt={style === 'male' ? 'Pirata masculino' : 'Pirata feminina'} width={100} height={130} loading="lazy" />{captainStyle === style && <Check size={18} />}</OceanControl>)}</div>
+      </section>
 
       <section className="captain-journal">
         <div className="captain-section-heading"><div><span>ESPÓLIOS DA JORNADA</span><h2>Diário de conquistas</h2></div>{items.length > 0 && <button type="button" onClick={() => setShowAll(value => !value)} className="captain-text-action">{showAll ? t('profile.showLess') : t('profile.viewAll')}<ChevronRight size={14} /></button>}</div>
