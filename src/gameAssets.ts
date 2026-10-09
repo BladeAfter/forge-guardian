@@ -22,6 +22,9 @@ import pirateTonCompass from './assets/pirate-ton-compass.png';
 import recruitAdventurer from './assets/recruit-adventurer.jpg';
 import recruitCrew from './assets/recruit-crew.jpg';
 import recruitFleet from './assets/recruit-fleet.jpg';
+import pirateCaptainProfile from './assets/pirate-captain-profile.jpg';
+
+export const profileArt = { deck: pirateCaptainProfile, captain: pirateProfileIcon, pass: pirateSeasonPassIcon, treasure: pirateBerryStack };
 
 export const recruitmentArt = { harbor: pirateRecruitHarbor, contracts: { 1: recruitAdventurer, 5: recruitCrew, 10: recruitFleet } };
 export const balanceArt = { berries: pirateBerryStack, ton: pirateTonCompass };
