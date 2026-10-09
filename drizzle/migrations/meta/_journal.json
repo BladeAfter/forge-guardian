@@ -757,6 +757,13 @@
       "when": 1791572575980,
       "tag": "0107_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1791577769870,
+      "tag": "0108_grand_line_naval_system",
+      "breakpoints": true
     }
   ]
 }

@@ -9926,6 +9926,175 @@ export type Database = {
           },
         ]
       }
+      naval_battles: {
+        Row: {
+          attacker: string
+          defender: string
+          finished_at: string | null
+          id: string
+          loot: Json
+          started_at: string
+          status: string
+          winner: string | null
+        }
+        Insert: {
+          attacker: string
+          defender: string
+          finished_at?: string | null
+          id?: string
+          loot?: Json
+          started_at?: string
+          status?: string
+          winner?: string | null
+        }
+        Update: {
+          attacker?: string
+          defender?: string
+          finished_at?: string | null
+          id?: string
+          loot?: Json
+          started_at?: string
+          status?: string
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "naval_battles_attacker_fkey"
+            columns: ["attacker"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "naval_battles_defender_fkey"
+            columns: ["defender"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      naval_events: {
+        Row: {
+          actor: string
+          battle_id: string | null
+          created_at: string
+          damage: number
+          id: number
+          kind: string
+          target_x: number | null
+          target_y: number | null
+          x: number
+          y: number
+        }
+        Insert: {
+          actor: string
+          battle_id?: string | null
+          created_at?: string
+          damage?: number
+          id?: never
+          kind: string
+          target_x?: number | null
+          target_y?: number | null
+          x: number
+          y: number
+        }
+        Update: {
+          actor?: string
+          battle_id?: string | null
+          created_at?: string
+          damage?: number
+          id?: never
+          kind?: string
+          target_x?: number | null
+          target_y?: number | null
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "naval_events_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "naval_battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      naval_ships: {
+        Row: {
+          battle_id: string | null
+          cosmetics: Json
+          heading: number
+          hp: number
+          level: number
+          model: string
+          moved_at: string
+          protected_until: string
+          reputation: number
+          seen_at: string
+          shot_at: string | null
+          skill_at: string | null
+          skin: string
+          throttle: number
+          updated_at: string
+          user_id: string
+          x: number
+          xp: number
+          y: number
+        }
+        Insert: {
+          battle_id?: string | null
+          cosmetics?: Json
+          heading?: number
+          hp?: number
+          level?: number
+          model?: string
+          moved_at?: string
+          protected_until?: string
+          reputation?: number
+          seen_at?: string
+          shot_at?: string | null
+          skill_at?: string | null
+          skin?: string
+          throttle?: number
+          updated_at?: string
+          user_id: string
+          x?: number
+          xp?: number
+          y?: number
+        }
+        Update: {
+          battle_id?: string | null
+          cosmetics?: Json
+          heading?: number
+          hp?: number
+          level?: number
+          model?: string
+          moved_at?: string
+          protected_until?: string
+          reputation?: number
+          seen_at?: string
+          shot_at?: string | null
+          skill_at?: string | null
+          skin?: string
+          throttle?: number
+          updated_at?: string
+          user_id?: string
+          x?: number
+          xp?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "naval_ships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nft_breeding_history: {
         Row: {
           breed_number_a: number | null
@@ -25024,6 +25193,11 @@ export type Database = {
         Args: { p_display_name: string; p_hashtag: string }
         Returns: boolean
       }
+      naval_action: {
+        Args: { p_action: string; p_input?: Json; p_user: string }
+        Returns: Json
+      }
+      naval_state: { Args: { p_user: string }; Returns: Json }
       nft_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }
         Returns: Json
