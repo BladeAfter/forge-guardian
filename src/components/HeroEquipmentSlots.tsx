@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
 import { equipHeroItem, equipmentBonusLabel, fetchHeroEquipment, unequipHeroItem, type HeroEquipmentItem, type HeroEquipmentState } from '../heroEquipment';
+import { isHiddenVeteranItem } from '../retiredOfferPresentation';
 
 const RARITY: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
@@ -61,14 +62,15 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
   });
 
   const busy = equip.isPending || unequip.isPending;
-  const options = (slot: SlotKey) => (data?.available ?? []).filter((item) => item.slot === slot);
+  const options = (slot: SlotKey) => (data?.available ?? []).filter((item) => item.slot === slot && !isHiddenVeteranItem(item));
 
   return (
     <section className="mt-3">
       <p className="mb-2 text-[10px] font-black uppercase tracking-[.24em] text-amber-300">{t('heroes.equipment')}</p>
       <div className="grid grid-cols-3 gap-2">
         {SLOTS.map((slot) => {
-          const item = data?.equipped?.[slot.key] ?? null;
+          const equipped = data?.equipped?.[slot.key] ?? null;
+          const item = isHiddenVeteranItem(equipped) ? null : equipped;
           const accent = RARITY[String(item?.rarity)] ?? '#fbbf24';
           return (
             <button

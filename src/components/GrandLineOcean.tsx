@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves, Ship, Crosshair, Zap, Swords, Flag } from 'lucide-react';
 import { grandLineArt } from '../gameAssets';
 import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type NavalShip } from '../naval';
-import OceanWorld3D from './OceanWorld3D';
+import IllustratedOcean from './IllustratedOcean';
 import { useNavalOcean } from '../useNavalOcean';
 import NavalShipyard from './NavalShipyard';
 import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
@@ -59,7 +59,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const openYard=() => { resetJoystick();state.current.keys.clear();setYardOpen(true); };
 
   useEffect(() => {
-    // The R3F child owns rendering; this loop only updates navigation and HUD.
+    // Bitmap rendering is separate from authoritative navigation and HUD.
     let frame = 0; let previous = 0; let uiTime = 0;
 
     const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
@@ -68,6 +68,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
     const render = (time: number) => {
       const dt = Math.min((time - (previous || time)) / 1000, .05); previous = time;
+      if (document.hidden) { frame = requestAnimationFrame(render); return; }
       const s = state.current; const k = s.keys;
       const dx = yardRef.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
       const dy = yardRef.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
@@ -125,9 +126,9 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
   };
   return <section className="grand-line-ocean" aria-label="Grand Line — oceano navegável">
-    <OceanWorld3D pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
+    <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
     <header className="ocean-hud">
-      <OceanControl disabled={Boolean(battle) || network.busy} onClick={() => { if(network.data) void network.action('leave').then(ok => {if(ok) onBack();});else onBack(); }} title="Voltar ao porto" aria-label="Voltar ao porto"><ArrowLeft size={20} /></OceanControl>
+      <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title="Voltar ao porto" aria-label="Voltar ao porto"><ArrowLeft size={20} /></OceanControl>
       <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>GRAND LINE</h1></div>
       <div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{new Intl.NumberFormat('pt-BR').format(Math.floor(berries))}</b><span>BERRIES</span></div>
     </header>
