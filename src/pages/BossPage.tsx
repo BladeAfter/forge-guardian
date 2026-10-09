@@ -99,7 +99,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
     try{await onEquipHero(hero.id,selectedSlot);setIsHeroModalOpen(false);setSelectedSlot(null);}catch(error){console.error('Falha ao equipar herói',error);}finally{equipInFlight.current=false;}
   };
   const theme=globalBossTheme(global?.bossKey,global?.bossNumber);
-  const bossArt=bossNumberForArt(global?.bossNumber)===1?actionArenaArt.dragon:(globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon);
+  const bossArt=bossNumberForArt(global?.bossNumber)===1?actionArenaArt.kraken:(globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon);
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
   const telegramId = (()=>{try {const user=JSON.parse(new URLSearchParams(telegramInitData??'').get('user')??'null');return user?.id?String(user.id):undefined;}catch{return undefined;}})();
