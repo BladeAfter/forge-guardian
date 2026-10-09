@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Substituir ícones dos três contratos de recrutamento por imagens padronizadas, preservando preços e callbacks.
+
 - [ ] Excluir todos os bens NFT e suas cópias nos inventários, preservar saldos/pagamentos e bloquear novas entregas NFT.
 
 - [x] Trocar a marca exibida para Mythic Seas nos textos da interface, metadados, políticas, manifesto da carteira e mensagens das funções do bot; preservar URLs, pagamentos, hashtags e identificadores internos.
