@@ -10,6 +10,8 @@ import { IslandProp, IslandPirate, Dock } from './IslandModels';
 import { IslandPlayer } from './IslandPlayer';
 import { IslandHarbor } from './IslandHarbor';
 import { IllustratedIsland } from './IllustratedIsland';
+import { IslandMapCollisions } from './IslandMapCollisions';
+import { ISLAND_MAP } from '../../illustratedIslandWorld';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
@@ -31,9 +33,9 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     <Suspense fallback={<Loader />}>
       <IllustratedIsland islandIndex={islandIndex} />
       <Physics timeStep={1 / 60} gravity={[0, -19, 0]}>
-        <group visible={false}><IslandTerrain palette={palette} /></group><Dock palette={palette} />
+        <IslandMapCollisions islandIndex={islandIndex} /><Dock palette={palette} illustrated />
         <IslandHarbor harbor={harbor} palette={palette} />
-        <group visible={false}>
+        {false && <group visible={false}>
         <IslandProp model="flag" x={-1.4} z={43} y={1} scale={1.2} collider="none" />
         {palms.map((p, i) => <IslandProp key={`palm-${i}`} model={i % 3 ? 'palm' : 'palmStraight'} {...p} rotation={i * 1.3} collider="tree" wind />)}
         {[-1, 1].flatMap(side => Array.from({ length: 5 }, (_, i) => <IslandProp key={`rock-${side}-${i}`} model={i % 2 ? 'rock' : 'rockB'} x={side * (19 + i * 4)} z={8 - i * 7} scale={.6 + i * .12} rotation={i * 2} />))}
@@ -47,14 +49,14 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
         <IslandProp model="barrel" x={-18} z={13} scale={1.3} />
         <IslandProp model="crate" x={-23} z={15} scale={1.3} />
         <IslandProp model="cannon" x={-17} z={9} scale={1.3} rotation={1.3} />
-        </group>
+        </group>}
         {encounters.filter(e => e.kind !== 'ship' && e.kind !== 'secret').map(e => {
           const enemy = e.node && ['combat', 'elite', 'boss'].includes(e.node.node_type);
           const humanoid = enemy || e.kind === 'npc' || e.node?.node_type === 'event';
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
           return <group key={e.id} visible={e.kind !== 'activity'}><IslandProp model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} /></group>;
         })}
-        <IslandPlayer harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} />}</IslandPlayer>
+        <IslandPlayer harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <group scale={ISLAND_MAP.pirateScale}><IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} /></group>}</IslandPlayer>
         <IslandDust input={input} palette={palette} />
       </Physics>
     </Suspense>
@@ -66,7 +68,7 @@ function EncounterPirate({ encounter, palette, fighting }: { encounter: IslandEn
   const motion = useRef<IslandMotion>('idle'), speed = useRef(0), group = useRef<THREE.Group>(null);
   const enemy = Boolean(encounter.node && ['combat', 'elite', 'boss'].includes(encounter.node.node_type));
   useFrame(({ clock }) => { motion.current = fighting && Math.sin(clock.elapsedTime * 4) > 0 ? 'attack' : 'idle'; });
-  return <RigidBody type="fixed" colliders={false} position={[encounter.x, islandHeight(encounter.x, encounter.z), encounter.z]} scale={encounter.node?.node_type === 'boss' ? 1.6 : 1}><CapsuleCollider args={[.5, .3]} position={[0, .81, 0]} /><group ref={group} rotation-y={enemy ? Math.PI : -.5}><IslandPirate style={enemy ? 'male' : 'female'} motion={motion} speed={speed} palette={palette} /></group></RigidBody>;
+  return <RigidBody type="fixed" colliders={false} position={[encounter.x, ISLAND_MAP.floor, encounter.z]}><CapsuleCollider args={[.5, .3]} position={[0, .81, 0]} /><group ref={group} scale={ISLAND_MAP.pirateScale * (encounter.node?.node_type === 'boss' ? 1.3 : 1)} rotation-y={enemy ? Math.PI : -.5}><IslandPirate style={enemy ? 'male' : 'female'} motion={motion} speed={speed} palette={palette} /></group></RigidBody>;
 }
 
 function IslandDust({ input, palette }: { input: MutableRefObject<IslandInput>; palette: IslandPalette }) {

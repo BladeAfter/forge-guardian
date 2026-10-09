@@ -11,6 +11,7 @@ import { OceanControl } from './OceanControl';
 import { IslandJoystick } from './IslandJoystick';
 import { IslandScene, type IslandEncounter3D } from './island3d/IslandScene';
 import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain';
+import { clearEncounterPoint, ISLAND_MAP } from '../illustratedIslandWorld';
 
 type Props = {
   ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
@@ -32,7 +33,7 @@ export default function IslandExploration(props: Props) {
   const host = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null);
   const input = useRef(newIslandInput()), pending = useRef(false);
   const mapCameraReady = useRef(false);
-  if (!mapCameraReady.current) { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = 48; mapCameraReady.current = true; }
+  if (!mapCameraReady.current) { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; mapCameraReady.current = true; }
   const [palette, setPalette] = useState<IslandPalette | null>(null);
   const [telemetry, setTelemetry] = useState<IslandTelemetry>({ x: ISLAND_3D.spawn.x, y: 1, z: ISLAND_3D.spawn.z, speed: 0, motion: 'idle', phase: 'approaching', heading: Math.PI });
   const [talk, setTalk] = useState(false), [secret, setSecret] = useState(false);
@@ -47,7 +48,7 @@ export default function IslandExploration(props: Props) {
     { id: 'activity', x: -16, z: 17, name: island.destination === 'forge' ? 'Oficina Naval' : island.destination === 'bounties' ? 'Vigia dos contratos' : island.destination === 'ruins' ? 'Entrada das ruínas' : 'Posto da Frota', kind: 'activity' },
     { id: 'secret', x: 24, z: -10, name: 'Passagem escondida', kind: 'secret' },
     ...(activeRun ? (data?.exploreNodes ?? []).filter(n => !['locked', 'skipped'].includes(n.status)).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const })) : []),
-  ], [props.ship?.name, island.destination, activeRun?.id, data?.exploreNodes]);
+  ].map(e => e.kind === 'ship' ? e : { ...e, ...clearEncounterPoint(islandIndex, e) }), [props.ship?.name, island.destination, islandIndex, activeRun?.id, data?.exploreNodes]);
   const selected = encounters.filter(e => (!e.node || ['available', 'active'].includes(e.node.status)) && Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
   const locked = talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
   input.current.blocked = locked; input.current.sprint = sprinting;
@@ -119,7 +120,7 @@ export default function IslandExploration(props: Props) {
       <OceanControl aria-label="Esquivar" title="Esquivar" disabled={locked} onClick={() => { input.current.dodge = true; }}><RotateCcw size={20} /></OceanControl>
       <OceanControl aria-label="Golpe" title="Golpe" disabled={locked} onClick={() => { input.current.attack = true; }}><Swords size={20} /></OceanControl>
     </nav>
-    <nav className="island3d-camera" aria-label="Câmera"><OceanControl aria-label="Aproximar câmera" title="Aproximar câmera" onClick={() => { input.current.zoom = Math.max(18, input.current.zoom - 4); }}><Plus size={16} /></OceanControl><OceanControl aria-label="Afastar câmera" title="Afastar câmera" onClick={() => { input.current.zoom = Math.min(55, input.current.zoom + 4); }}><Minus size={16} /></OceanControl><OceanControl aria-label="Centralizar câmera" title="Centralizar câmera" onClick={() => { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = 48; }}><Compass size={16} /></OceanControl></nav>
+    <nav className="island3d-camera" aria-label="Câmera"><OceanControl aria-label="Aproximar câmera" title="Aproximar câmera" onClick={() => { input.current.zoom = Math.max(18, input.current.zoom - 4); }}><Plus size={16} /></OceanControl><OceanControl aria-label="Afastar câmera" title="Afastar câmera" onClick={() => { input.current.zoom = Math.min(55, input.current.zoom + 4); }}><Minus size={16} /></OceanControl><OceanControl aria-label="Centralizar câmera" title="Centralizar câmera" onClick={() => { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; }}><Compass size={16} /></OceanControl></nav>
     {selected && telemetry.phase === 'exploring' && !locked && selected.kind !== 'secret' && <div className="ocean-dock"><span>{selected.name}</span><OceanControl disabled={busy} onClick={() => void interact()}>{selected.kind === 'ship' ? <Anchor size={17} /> : <Compass size={17} />}{selected.kind === 'ship' ? 'Voltar ao mar' : selected.kind === 'node' ? selected.node?.node_type === 'treasure' ? 'Abrir baú' : 'Investigar' : selected.kind === 'npc' ? 'Conversar' : 'Entrar'}</OceanControl></div>}
     {talk && <div className="island-dialog" role="dialog" aria-label="Vigia do porto"><h2>Vigia do porto</h2><p>{activeRun ? 'Há rastros de piratas e objetos escondidos na ilha. Retorne ao seu navio para guardar o espólio.' : 'Posso preparar sua jornada além da praia.'}</p>{props.loading ? <p>Consultando o diário de bordo...</p> : props.error ? <p>{props.error}</p> : !activeRun && region && cost !== undefined && <OceanControl disabled={busy || Number(data?.fc ?? 0) < cost || Number(data?.profile?.stronghold_level ?? 0) < region.unlock_stronghold_level} onClick={async () => { if (pending.current) return; pending.current = true; try { if (await props.onStart(region.id)) setTalk(false); } finally { pending.current = false; } }}>Iniciar aventura · {cost.toLocaleString('pt-BR')} BERRIES</OceanControl>}<OceanControl onClick={() => setTalk(false)}>Continuar caminhando</OceanControl></div>}
     {activeRun?.pending && <div className="island-dialog" role="dialog" aria-label="Encontro da ilha"><h2>{labels[activeRun.pending.nodeType] ?? 'Encontro'}</h2>{activeRun.pending.options.map(option => <OceanControl key={option} disabled={busy} onClick={async () => { if (pending.current) return; pending.current = true; input.current.interact = true; try { const next = await props.onChoose(option); if (next && ['open','take'].includes(option)) setOpenChest(activeRun.pending?.nodeId ?? null); encounterResult(next, activeRun.pending?.nodeId); } finally { pending.current = false; } }}>{options[option] ?? option.replace(/_/g, ' ')}</OceanControl>)}</div>}

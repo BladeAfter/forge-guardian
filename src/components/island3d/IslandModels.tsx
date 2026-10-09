@@ -114,7 +114,7 @@ function PirateOutfit({ object, palette }: { object: THREE.Object3D; palette: Is
   return null;
 }
 
-export function Dock({ palette }: { palette: IslandPalette }) {
+export function Dock({ palette, illustrated = false }: { palette: IslandPalette; illustrated?: boolean }) {
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
     const ctx = canvas.getContext('2d');
@@ -129,8 +129,8 @@ export function Dock({ palette }: { palette: IslandPalette }) {
   }, [palette]);
   useEffect(() => () => texture.dispose(), [texture]);
   return <RigidBody type="fixed" colliders={false}>
-    <mesh position={[0, HARBOR.pier.top - .12, 41.5]} receiveShadow castShadow><boxGeometry args={[3.5, .24, 23]} /><meshStandardMaterial map={texture} roughness={.85} color={palette.sand} /></mesh>
+    <mesh visible={!illustrated} position={[0, HARBOR.pier.top - .12, 41.5]} receiveShadow castShadow><boxGeometry args={[3.5, .24, 23]} /><meshStandardMaterial map={texture} roughness={.85} color={palette.sand} /></mesh>
     <CuboidCollider args={[HARBOR.pier.halfWidth, .12, 11.5]} position={[0, HARBOR.pier.top - .12, 41.5]} />
-    {[31, 36, 41, 46, 52].flatMap(z => [-1.5, 1.5].map(x => <mesh key={`${x}-${z}`} position={[x, -1, z]} castShadow><cylinderGeometry args={[.15, .2, 4.5, 8]} /><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>))}
+    {!illustrated && [31, 36, 41, 46, 52].flatMap(z => [-1.5, 1.5].map(x => <mesh key={`${x}-${z}`} position={[x, -1, z]} castShadow><cylinderGeometry args={[.15, .2, 4.5, 8]} /><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>))}
   </RigidBody>;
 }
