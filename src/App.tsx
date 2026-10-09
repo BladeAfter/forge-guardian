@@ -16,7 +16,6 @@ import { WalletPage } from './pages/WalletPage';
 import { ProfilePage } from './pages/ProfilePage';
 import {ClanHall}from'./components/ClanHall';
 import {TonMinesEntryCard}from'./components/TonMinesEntryCard';
-import {PartnersModal}from'./components/PartnersModal';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
@@ -45,8 +44,8 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'calendar'|'season-pass'|'heroes'|'clan'|'realm';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market',calendar:'/calendar','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'season-pass'|'heroes'|'clan'|'realm';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm'};
 
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
@@ -571,16 +570,14 @@ function App() {
   };
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
-  const [partnersOpen,setPartnersOpen]=useState(false);
   const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [realmSoonOpen,setRealmSoonOpen]=useState(false);
   // MYTHREON REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
   const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
   useEffect(()=>{const i=window.setInterval(()=>setRealmNowTs(Date.now()),20000);return()=>window.clearInterval(i)},[]);
   const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8118569391;
-  const calendarOpen=activePage==='calendar',shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
-  const {data:playerInventory}=usePlayerInventory(telegramInitData,backendEnabled&&calendarOpen);
-  const setCalendarOpen=(open:boolean)=>open?openInternal('calendar'):closeInternal();const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
+  const shopOpen=activePage==='hero-shop',marketOpen=activePage==='market';
+  const setShopOpen=(open:boolean)=>open?openInternal('hero-shop'):closeInternal();
   const setPetsOpen=(open:boolean)=>open?openInternal('pets'):closeInternal();
   useEffect(()=>{if(!activePage)return;const back=window.Telegram?.WebApp?.BackButton;const handle=()=>closeInternal();back?.show();back?.onClick(handle);const previous=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{back?.offClick(handle);back?.hide();document.body.style.overflow=previous}},[activePage]);
 
@@ -971,10 +968,7 @@ function App() {
           <div className="flex w-full items-start justify-between">
             <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={mainScreenArt.pet} label="PET" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-              <button
-                onClick={()=>setPartnersOpen(true)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
-              >🤝 {t('partners.button')}</button>
+
               <button
                 onClick={()=>{setActivePage(null);navigateTo('missions')}}
                 className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/30 bg-black/40 px-2 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200 transition active:scale-95"
@@ -982,12 +976,7 @@ function App() {
             </div>
             <div className="flex w-[108px] flex-col items-center gap-2">
               <HomeFeature image={mainScreenArt.heroes} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
-              <button
-                onClick={()=>setCalendarOpen(true)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-amber-300/50 bg-black/60 px-2 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-amber-200 shadow-[0_0_18px_rgba(251,191,36,.18)] transition active:scale-95"
-              >
-                🗓 {t('calendar')}
-              </button>
+
 
               <button
                 onClick={()=>setPremiumOffersOpen(true)}
@@ -999,7 +988,6 @@ function App() {
 
 
 
-          {partnersOpen&&telegramInitData?<PartnersModal telegramInitData={telegramInitData} onClose={()=>setPartnersOpen(false)}/>:null}
           {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
@@ -1017,83 +1005,6 @@ function App() {
             />
           ) : null}
 
-
-          {calendarOpen ? (
-            <div className="fullscreen-page flex items-center justify-center p-4">
-              <div className="w-full max-w-[440px] rounded-[2rem] border border-amber-300/25 bg-[#090d15] p-4 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-amber-300">{t('dailyRewards')}</p>
-                    <h2 className="text-xl font-black text-white">{t('calendar30')}</h2>
-                  </div>
-                  <button onClick={() => setCalendarOpen(false)} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
-                </div>
-                {/* Official server day and next 21:00 rollover come from the backend only. */}
-                <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.03] px-3 py-2">
-                  <p className="text-[10px] font-black text-amber-200">DIA OFICIAL {calendarDashboard?.gameDayNumber??calendarDay}</p>
-                  <p className="text-[9px] uppercase tracking-[.18em] text-slate-400">PRÓXIMO DIA EM <b className="text-white">{nextResetCountdown(calendarDashboard?.nextResetAt,nowTick)}</b></p>
-                </div>
-
-                <div className="mt-4 grid grid-cols-5 gap-2">
-                  {Array.from({ length: 30 }, (_, index) => {
-                    const day = index + 1;
-                    const reward=calendarRewards.find(item=>item.day===day);
-                    // CLAIMED / AVAILABLE / LOCKED come from the server: only one day is ever AVAILABLE.
-                    const status = calendarDayStatus(calendarDashboard, day, calendarDay, Boolean(dailyReward?.claimed));
-                    const collected = status === 'CLAIMED';
-                    const current = status === 'AVAILABLE';
-                    const claiming = current && calendarClaimMutation.isPending;
-                    const chestIndex=reward?.itemCode==='epic_chest'||reward?.itemCode==='legendary_chest'?2:reward?.itemCode==='rare_chest'?1:0;
-                    return (
-                      <button
-                        key={day}
-                        onClick={() => collectCalendarDay(day)}
-                        disabled={!current || Boolean(collected)||calendarClaimMutation.isPending}
-                        className={`aspect-square rounded-xl border p-1 text-center transition ${collected ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-300' : current ? 'border-amber-300 bg-amber-400/15 text-amber-200 shadow-[0_0_15px_rgba(251,191,36,.2)]' : 'border-white/5 bg-white/[.03] text-slate-600'}`}
-                      >
-                        <span className="block text-[8px] font-black">DIA {day}</span>
-                        {reward?.type==='fc'?<img src={coin} alt="BERRIES" className="mx-auto h-5 w-5 object-contain"/>:reward?.type==='hero_chest'?<img src={chests[chestIndex]} alt="Baú" className="mx-auto h-5 w-5 object-contain"/>:<img src={`/assets/game/pet-eggs/${reward?.itemCode}.webp`} alt="Ovo" className="mx-auto h-5 w-5 object-contain"/>}
-                        <span className="block truncate text-[6px]">{collected?'OK':claiming?'...':!current?'🔒':reward?.type==='fc'?`${(reward.amountFc??0)/1000}K BERRIES`:reward?.type==='hero_chest'?'BAÚ':'OVO'}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-3 text-center text-[10px] text-slate-400">{t('selectDay')}</p>
-                {/* Stored rewards stay openable later: nothing is lost when the player closes the modal. */}
-                <section className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-3">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-300">MEU INVENTÁRIO</h3>
-                  {(playerInventory?.chests.length??0)+(playerInventory?.eggs.length??0)===0?(
-                    <p className="mt-2 text-[10px] text-slate-500">Nenhum baú ou ovo guardado.</p>
-                  ):(
-                    <ul className="mt-2 space-y-2">
-                      {playerInventory?.chests.map(chest=>(
-                        <li key={chest.id} className="flex items-center gap-2 rounded-xl border border-amber-300/20 bg-black/30 p-2">
-                          <img src={chests[chest.itemCode==='epic_chest'||chest.itemCode==='legendary_chest'?2:chest.itemCode==='rare_chest'?1:0]} alt="Baú" className="h-8 w-8 object-contain"/>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-white">{chest.name||CHEST_LABELS[chest.itemCode]||'Baú de Herói'}</p>
-                            <p className="text-[9px] text-slate-400">x{chest.quantity} · {chest.subtitle}</p>
-                          </div>
-                          <button type="button" disabled={calendarChestMutation.isPending} onClick={()=>openChest(chest.id)} className="rounded-lg bg-amber-400 px-3 py-2 text-[10px] font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'ABRINDO...':'ABRIR'}</button>
-                        </li>
-                      ))}
-                      {playerInventory?.eggs.map(egg=>(
-                        <li key={egg.id} className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/30 p-2">
-                          <img src={egg.image??`/assets/game/pet-eggs/${egg.slug}.webp`} alt={egg.name} className="h-8 w-8 object-contain"/>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-[11px] font-bold text-white">{egg.name}</p>
-                            <p className="text-[9px] text-slate-400">x{egg.quantity}</p>
-                          </div>
-                          <button type="button" onClick={()=>{setCalendarOpen(false);setPetsOpen(true)}} className="rounded-lg border border-amber-300/40 px-3 py-2 text-[10px] font-black text-amber-200">CHOCAR</button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              </div>
-            </div>
-          ) : null}
-
-          {calendarResult?<div className="fixed inset-0 z-[65] grid place-items-center bg-black/80 p-5"><div className="w-full max-w-sm rounded-3xl border border-amber-300/30 bg-[#090d15] p-6 text-center"><p className="text-[10px] tracking-[.25em] text-amber-300">RECOMPENSA COLETADA</p><h2 className="mt-2 text-2xl font-black">Dia {calendarResult.reward.day}</h2><p className="mt-3 text-lg text-amber-100">{calendarResult.reward.title}{calendarResult.reward.subtitle?` · ${calendarResult.reward.subtitle}`:''}</p>{calendarResult.reward.type==='fc'?<p className="mt-2 text-emerald-300">Novo saldo: {formatCurrency(calendarResult.balance)} BERRIES</p>:<p className="mt-2 text-slate-300">Item guardado no inventário.</p>}<div className="mt-5 grid grid-cols-2 gap-2">{calendarResult.reward.type==='pet_egg'?<button type="button" onClick={()=>{setCalendarResult(null);setCalendarOpen(false);setPetsOpen(true)}} className="rounded-xl bg-amber-400 py-3 font-black text-black">IR PARA PETS</button>:calendarResult.reward.type==='hero_chest'?<button type="button" disabled={!calendarResult.inventoryItemId||calendarChestMutation.isPending} onClick={()=>calendarResult.inventoryItemId&&openChest(calendarResult.inventoryItemId)} className="rounded-xl bg-amber-400 py-3 font-black text-black disabled:opacity-50">{calendarChestMutation.isPending?'ABRINDO...':'ABRIR AGORA'}</button>:<span/>}<button type="button" onClick={()=>setCalendarResult(null)} className="rounded-xl border border-white/15 py-3 font-bold">{calendarResult.reward.type==='fc'?'CONTINUAR':'GUARDAR'}</button></div></div></div>:null}
 
           {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">BAÚ ABERTO</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">NOVO HERÓI</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} · HP {chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">CONTINUAR</button></div></div>:null}
 
