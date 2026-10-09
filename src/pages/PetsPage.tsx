@@ -16,7 +16,6 @@ import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEgg
 import { PetBuff, petBuffIcon } from '../components/PetBuff';
 import { NftShopSection } from '../components/NftShopSection';
 import BreedingSection from '../components/BreedingSection';
-import ExpeditionsSection from '../components/ExpeditionsSection';
 import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { MythBalanceHint, MythPayButton } from '../components/MythPayButton';
 import { mythFeatureEnabled, mythPrice, formatMyth, type MythUtilityState } from '../mythUtility';
@@ -25,7 +24,7 @@ import { useT, useLanguage } from '../LanguageContext';
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 
-type Section = 'pets' | 'nft' | 'shop' | 'breeding' | 'expeditions';
+type Section = 'pets' | 'nft' | 'shop' | 'breeding';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
 const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
@@ -227,13 +226,6 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
     );
   }
 
-  if (section === 'expeditions') {
-    return (
-      <Shell onClose={onClose} section={section} onSection={setSection}>
-        <ExpeditionsSection initData={telegramInitData} />
-      </Shell>
-    );
-  }
 
   // 🐾⚔️ FAMILIAR HUNT now lives in the BOSS combat hub — Pets keeps management only.
 
@@ -599,9 +591,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
   const primary: [Section, string, React.ReactNode][] = [
     ['pets', 'PETS', <PawPrint key="pets" className="h-4 w-4" />],
   ];
-  const secondary: [Section, string, React.ReactNode, string][] = [
-    ['expeditions', 'EXPEDITIONS', <Map key="expeditions" className="h-3.5 w-3.5" />, 'sky'],
-  ];
+  const secondary: [Section, string, React.ReactNode, string][] = [];
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#05080e] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top,#122542_0%,#05080e_55%)]" />
