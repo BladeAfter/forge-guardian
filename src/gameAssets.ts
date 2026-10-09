@@ -1,4 +1,6 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
+import groundedCaptain from './assets/arena-grounded-captain.png';
+import groundedCaptainFemale from './assets/arena-grounded-captain-female.png';
 import seasonVoyageBanner from './assets/season-voyage-banner.jpg';
 import seasonChart from './assets/season-voyage/chart.asset.json';
 import seasonTimber from './assets/season-voyage/timber.asset.json';
@@ -97,7 +99,7 @@ export function mascotChestName(key: string) {
 
 export const duelArt = { deck: pirateDuelDeck };
 export const crewArt = { deck: crewSunriseDeck };
-export const actionArenaArt = { harbor: seasActionArena, dragon: seasStormDragon };
+export const actionArenaArt = { harbor: seasActionArena, dragon: seasStormDragon, captain: groundedCaptain, captainFemale: groundedCaptainFemale };
 
 /** Presentation only: persistent Realm and building IDs are unchanged. */
 export const realmArt = {

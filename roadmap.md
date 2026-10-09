@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Ajustar composição do chefe conforme referência: capitão com pés no chão, dragão proporcional à direita, cenário visível, tripulação vertical e ações circulares; manter regras oficiais.
+
 - [x] Gráfico do mercado refinado e compactado conforme referência: curva suave, preenchimento luminoso sutil, dias selecionáveis e moedas preservadas; conferência visual isolada sem cortes. Dados pessoais e exemplos explicitamente identificados preservados; sessão Telegram real não verificada.
 
 - [x] Perfil renovado conforme referência premium: cenário naval, título/avatar destacados, personagem grande com seleção vertical, diário ao lado e canais oficiais. Imagens, seleção, passe, links e ausência de cortes conferidos isoladamente; dados e callbacks preservados. Conferência dentro do Telegram depende de sessão assinada.
