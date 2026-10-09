@@ -4,11 +4,11 @@ import { RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { islandHeight, ISLAND_3D } from '../../island3dWorld';
 
-export type IslandPalette = Record<'sky' | 'water' | 'foam' | 'sand' | 'grass' | 'stone' | 'sun' | 'ink' | 'gold', string>;
+export type IslandPalette = Record<'sky' | 'water' | 'foam' | 'sand' | 'grass' | 'stone' | 'sun' | 'ink' | 'gold' | 'pirateRed', string>;
 export function readIslandPalette(element: HTMLElement): IslandPalette {
   const css = getComputedStyle(element);
   const value = (name: string) => css.getPropertyValue(`--island3d-${name}`).trim();
-  return { sky: value('sky'), water: value('water'), foam: value('foam'), sand: value('sand'), grass: value('grass'), stone: value('stone'), sun: value('sun'), ink: value('ink'), gold: value('gold') };
+  return { sky: value('sky'), water: value('water'), foam: value('foam'), sand: value('sand'), grass: value('grass'), stone: value('stone'), sun: value('sun'), ink: value('ink'), gold: value('gold'), pirateRed: value('pirate-red') };
 }
 
 export function IslandTerrain({ palette }: { palette: IslandPalette }) {

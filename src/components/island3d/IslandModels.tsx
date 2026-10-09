@@ -79,20 +79,37 @@ export function IslandPirate({ style, motion, speed, palette }: { style: 'male' 
     if (action) action.timeScale = ['walk', 'run', 'sprint', 'climb', 'descend'].includes(motion.current) ? Math.max(.45, speed.current / (name === 'walk' ? 2.3 : 5.6)) : 1;
     mixer.update(dt);
   });
-  return <group><primitive object={object} /><PirateBandana object={object} palette={palette} /></group>;
+  return <group><primitive object={object} /><PirateOutfit object={object} palette={palette} /></group>;
 }
 
-function PirateBandana({ object, palette }: { object: THREE.Object3D; palette: IslandPalette }) {
+function PirateOutfit({ object, palette }: { object: THREE.Object3D; palette: IslandPalette }) {
   useEffect(() => {
     const head = object.getObjectByName('head');
     if (!head) return;
-    // Original volumetric head/hair remains; pirate sash is a custom cosmetic accessory.
-    const box = new THREE.Box3().setFromObject(object), h = box.getSize(new THREE.Vector3()).y / object.scale.y;
-    const material = new THREE.MeshStandardMaterial({ color: palette.gold, roughness: .8 });
-    const band = new THREE.Mesh(new THREE.TorusGeometry(h * .12, h * .024, 6, 16), material);
-    band.rotation.x = Math.PI / 2; band.position.y = h * .045; band.castShadow = true;
-    head.add(band);
-    return () => { head.remove(band); band.geometry.dispose(); material.dispose(); };
+    const gear = new THREE.Group();
+    const materials = {
+      dark: new THREE.MeshStandardMaterial({ color: palette.ink, roughness: .82 }),
+      red: new THREE.MeshStandardMaterial({ color: palette.pirateRed, roughness: .9 }),
+      gold: new THREE.MeshStandardMaterial({ color: palette.gold, metalness: .4, roughness: .5 }),
+      ivory: new THREE.MeshStandardMaterial({ color: palette.foam, roughness: .8 }),
+    };
+    const add = (geometry: THREE.BufferGeometry, material: THREE.Material, position: [number, number, number], scale?: [number, number, number]) => {
+      const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...position); if (scale) mesh.scale.set(...scale); mesh.castShadow = true; gear.add(mesh); return mesh;
+    };
+    // Bone-attached tricorne, red hatband and ivory insignia keep every existing animation.
+    add(new THREE.CylinderGeometry(.23, .27, .09, 3), materials.dark, [0, .20, 0], [1, 1, .85]).rotation.y = Math.PI;
+    add(new THREE.SphereGeometry(.17, 12, 8), materials.dark, [0, .22, 0], [1, .7, .85]);
+    add(new THREE.CylinderGeometry(.173, .18, .035, 12), materials.red, [0, .19, 0]);
+    add(new THREE.SphereGeometry(.035, 8, 6), materials.ivory, [0, .23, .137], [1, 1, .35]);
+    for (const tilt of [-.65, .65]) { const bone = add(new THREE.CapsuleGeometry(.006, .07, 3, 6), materials.ivory, [0, .20, .145]); bone.rotation.z = tilt; }
+    // Cover the casual spectacles with a dark pirate eye patch and strap.
+    add(new THREE.SphereGeometry(.048, 10, 8), materials.dark, [-.083, .035, .155], [1, .8, .3]);
+    const strap = add(new THREE.TorusGeometry(.175, .009, 4, 20), materials.dark, [0, .04, 0], [1, .6, 1]); strap.rotation.x = Math.PI / 2;
+    head.add(gear);
+    const torso = object.getObjectByName('torso');
+    const sash = new THREE.Mesh(new THREE.BoxGeometry(.29, .05, .19), materials.red); sash.position.set(0, .05, 0); sash.rotation.z = -.15; torso?.add(sash);
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(.044, .04, .012), materials.gold); buckle.position.set(0, .05, .102); torso?.add(buckle);
+    return () => { head.remove(gear); torso?.remove(sash, buckle); gear.traverse(o => { if (o instanceof THREE.Mesh) o.geometry.dispose(); }); sash.geometry.dispose(); buckle.geometry.dispose(); Object.values(materials).forEach(m => m.dispose()); };
   }, [object, palette]);
   return null;
 }
