@@ -207,7 +207,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
     </>;
   }
   if (oceanOpen) {
-    return <GrandLineOcean berries={data?.fc ?? berries} initialPosition={oceanPosition} onBack={onBack} onDock={(destination, index) => {
+    return <GrandLineOcean initData={telegramInitData} berries={data?.fc ?? berries} initialPosition={oceanPosition} onBack={onBack} onDock={(destination, index) => {
       setTab(destination);
       setOceanOpen(false);
       setIslandIndex(index);
