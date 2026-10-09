@@ -7,3 +7,4 @@
 - Keep display branding separate from persistent identifiers, Telegram handles, mission hashtags and payment memos so rebranding cannot break sessions, rewards or transfers.
 - Keep profile artwork and styles in `gameAssets.ts` and semantic profile CSS tokens; preserve server-owned profile, pass and channel-reward callbacks when changing presentation.
 - Keep market analytics read-only in `MarketPulseView`; explicitly label illustrative data and never derive global sales or buyer identities from personal market history.
+- Scope community-pool theming to `seas-community` and semantic community tokens so all nested event views share presentation without changing game rules.

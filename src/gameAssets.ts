@@ -24,6 +24,9 @@ import recruitCrew from './assets/recruit-crew.jpg';
 import recruitFleet from './assets/recruit-fleet.jpg';
 import pirateCaptainProfile from './assets/pirate-captain-profile.jpg';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
+import pirateCommunityCove from './assets/pirate-community-cove.jpg';
+
+export const communityArt = { cove: pirateCommunityCove, treasure: pirateBerryStack };
 
 export const marketArt = { port: pirateMarketPort, chest: '/assets/game/chests/common-chest.png', hero: voyageHeroArt.deckblade, pet: piratePetIcon };
 
