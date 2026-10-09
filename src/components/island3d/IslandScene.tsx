@@ -12,7 +12,7 @@ import { IslandPlayer } from './IslandPlayer';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
-function Loader() { const { progress } = useProgress(); return <Html center><span className="island3d-loading">Préparation de l’île · {Math.round(progress)}%</span></Html>; }
+function Loader() { const { progress } = useProgress(); return <Html center><span className="island3d-loading">Preparando a ilha · {Math.round(progress)}%</span></Html>; }
 
 export function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
   const palms = useMemo(() => Array.from({ length: 24 }, (_, index) => {
