@@ -66,5 +66,5 @@ export function IslandWater({ palette }: { palette: IslandPalette }) {
     p.needsUpdate = true;
   });
   useEffect(() => () => { geometry.dispose(); normal.dispose(); }, [geometry, normal]);
-  return <mesh ref={mesh} geometry={geometry} position-y={ISLAND_3D.water} receiveShadow><meshStandardMaterial color={palette.water} normalMap={normal} normalScale={new THREE.Vector2(.6, .6)} roughness={.2} metalness={.35} /></mesh>;
+  return <mesh ref={mesh} geometry={geometry} position-y={ISLAND_3D.water} receiveShadow><meshStandardMaterial color={palette.water} normalMap={normal} normalScale={new THREE.Vector2(.6, .6)} roughness={.2} metalness={.35} transparent opacity={.9} /></mesh>;
 }
