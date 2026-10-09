@@ -82,6 +82,7 @@ function Mooring({ offset, harbor, palette }: { offset: number; harbor: MutableR
   }, []);
   const pierPoint = useMemo(() => new THREE.Vector3(1.6, 1.25, 49 + offset), [offset]);
   const shipPoint = useMemo(() => new THREE.Vector3(), []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   
   useFrame(() => {
     const h = harbor.current, m = mesh.current;
