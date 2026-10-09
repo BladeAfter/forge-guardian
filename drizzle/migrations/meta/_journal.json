@@ -778,6 +778,13 @@
       "when": 1791577975125,
       "tag": "0110_naval_authoritative_geometry",
       "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1791578054786,
+      "tag": "0111_naval_configured_loot_only",
+      "breakpoints": true
     }
   ]
 }
