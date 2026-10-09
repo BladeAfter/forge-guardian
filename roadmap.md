@@ -38,3 +38,5 @@
 - [x] Aplicar identidade visual pirata anime original em todo o jogo sem alterar sistemas ou fluxos.
 - [x] Trocar a apresentação de FC para BERRIES e aplicar uma moeda pirata original sem alterar a economia.
 - [x] Ocultar os cartões de NFT, breeding, roleta e eventos promocionais indicados, preservando os sistemas.
+
+- [x] Refazer a tela de duelos como Duelos do Convés: nova arte pirata, indicadores compactos, controles compartilhados e navegação em português; cabeçalho e botão de ingressos verificados isoladamente. Batalha real pelo Telegram não verificada.
