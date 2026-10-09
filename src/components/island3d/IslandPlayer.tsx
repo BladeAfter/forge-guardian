@@ -15,7 +15,7 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
     return c;
   }, [world]);
   useEffect(() => () => { world.removeCharacterController(controller); }, [world, controller]);
-  const state = useRef({ phase: 'approaching' as IslandTelemetry['phase'], waypoint: 0, vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0 });
+  const state = useRef({ phase: 'approaching' as IslandTelemetry['phase'], waypoint: 0, vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0, ray: new rapier.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 1 }) });
   const cameraTarget = useMemo(() => new THREE.Vector3(), []);
   const cameraLook = useMemo(() => new THREE.Vector3(), []);
   const cameraDirection = useMemo(() => new THREE.Vector3(), []);
@@ -41,7 +41,7 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
         if (s.waypoint < route.length - 1) s.waypoint++;
         else if (s.phase === 'landing') s.phase = 'exploring';
         else { s.returned = true; onReturn(); return; }
-      } else { dx = x / d; dz = z / d; targetSpeed = 2.2; }
+      } else { dx = x / d; dz = z / d; targetSpeed = 4.1; }
     } else if (!i.blocked) {
       const vector = cameraRelativeMotion(i.x, -i.y, i.yaw);
       dx = vector.x; dz = vector.z;
@@ -90,18 +90,26 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
       model.current.rotation.y = s.heading;
       model.current.rotation.z = motion.current === 'run' || motion.current === 'sprint' ? Math.sin(s.heading - i.yaw) * .035 : 0;
     }
-    cameraLook.set(p.x, p.y + 1.45, p.z);
+    if (model.current) model.current.getWorldPosition(cameraLook);
+    else cameraLook.set(p.x, p.y, p.z);
+    cameraLook.y += 1.45;
     cameraDirection.set(Math.sin(i.yaw) * Math.cos(i.pitch), Math.sin(i.pitch), Math.cos(i.yaw) * Math.cos(i.pitch));
     // Camera raycast uses physical scene colliders and ignores the player.
-    const ray = new rapier.Ray(cameraLook, cameraDirection);
-    const hit = world.castRay(ray, i.zoom, true, undefined, undefined, undefined, b);
-    const distance = camera instanceof THREE.OrthographicCamera ? 75 : hit ? Math.max(1.5, hit.timeOfImpact - .25) : i.zoom;
-    if (camera instanceof THREE.OrthographicCamera) { camera.zoom = Math.min(window.innerWidth, window.innerHeight) / i.zoom; camera.updateProjectionMatrix(); }
+    let distance = 75;
+    if (camera instanceof THREE.OrthographicCamera) {
+      const zoom = Math.min(window.innerWidth, window.innerHeight) / i.zoom;
+      if (camera.zoom !== zoom) { camera.zoom = zoom; camera.updateProjectionMatrix(); }
+    } else {
+      Object.assign(s.ray.origin, cameraLook);
+      Object.assign(s.ray.dir, cameraDirection);
+      const hit = world.castRay(s.ray, i.zoom, true, undefined, undefined, undefined, b);
+      distance = hit ? Math.max(1.5, hit.timeOfImpact - .25) : i.zoom;
+    }
     cameraTarget.copy(cameraLook).addScaledVector(cameraDirection, distance);
     if (!s.cameraStarted) { camera.position.copy(cameraTarget); s.cameraStarted = true; }
     else camera.position.lerp(cameraTarget, 1 - Math.exp(-8 * dt));
     camera.lookAt(cameraLook);
-    if (clock.elapsedTime - s.lastHud > .1) {
+    if (clock.elapsedTime - s.lastHud > .2) {
       s.lastHud = clock.elapsedTime;
       onTelemetry({ x: p.x, y: p.y, z: p.z, motion: motion.current, speed: speed.current, phase: s.phase, heading: s.heading });
     }

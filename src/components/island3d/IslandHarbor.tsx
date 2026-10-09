@@ -75,19 +75,24 @@ function HullShadow({ harbor, palette }: { harbor: MutableRefObject<HarborState>
 }
 function Mooring({ offset, harbor, palette }: { offset: number; harbor: MutableRefObject<HarborState>; palette: IslandPalette }) {
   const mesh = useRef<THREE.Mesh>(null);
-  const geometry = useMemo(() => new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(1, -.3, 0), new THREE.Vector3(2, 0, 0)]), 12, .035, 5), []);
-  const lastUpdate = useRef(-1);
+  const geometry = useMemo(() => {
+    const g = new THREE.CylinderGeometry(.035, .035, 1, 5);
+    g.rotateX(Math.PI / 2);
+    return g;
+  }, []);
+  const pierPoint = useMemo(() => new THREE.Vector3(1.6, 1.25, 49 + offset), [offset]);
+  const shipPoint = useMemo(() => new THREE.Vector3(), []);
   useEffect(() => () => geometry.dispose(), [geometry]);
+  
   useFrame(() => {
     const h = harbor.current, m = mesh.current;
     if (!m) return;
     m.visible = h.deployment > 0;
-    if (h.elapsed - lastUpdate.current < .1) return;
-    lastUpdate.current = h.elapsed;
-    // Update only the short rope strip; endpoints track ship heave and dock bollards.
-    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(1.6, 1.25, 49 + offset), new THREE.Vector3((1.6 + h.x - 2.8) / 2, 1.05, (49 + h.z) / 2 + offset), new THREE.Vector3(h.x - 2.8, h.y + 2.625, h.z + offset)]);
-    const next = new THREE.TubeGeometry(curve, 12, .035, 5);
-    m.geometry.dispose(); m.geometry = next;
+    if (!m.visible) return;
+    shipPoint.set(h.x - 2.8, h.y + 2.625, h.z + offset);
+    m.position.copy(pierPoint).add(shipPoint).multiplyScalar(.5);
+    m.lookAt(shipPoint);
+    m.scale.set(1, 1, pierPoint.distanceTo(shipPoint));
   });
   return <mesh ref={mesh} geometry={geometry} castShadow><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>;
 }

@@ -12,10 +12,13 @@ export function IslandMapCollisions({ islandIndex }: { islandIndex: number }) {
     }
     return { ...o, vertices };
   }), [islandIndex]);
-  return <>
-    <RigidBody type="fixed" colliders={false}><CuboidCollider args={[90, .2, 45]} position={[0, ISLAND_MAP.floor - .2, -15]} /></RigidBody>
-    {footprints.map(o => <RigidBody key={o.id} type="fixed" colliders={false} position={[o.x, ISLAND_MAP.floor, o.z]}>
-      <ConvexHullCollider args={[o.vertices]} />
-    </RigidBody>)}
-  </>;
+
+  return (
+    <RigidBody type="fixed" colliders={false}>
+      <CuboidCollider args={[90, .2, 45]} position={[0, ISLAND_MAP.floor - .2, -15]} />
+      {footprints.map(o => (
+        <ConvexHullCollider key={o.id} args={[o.vertices]} position={[o.x, ISLAND_MAP.floor, o.z]} />
+      ))}
+    </RigidBody>
+  );
 }

@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from 'react';
+import { memo, Suspense, useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import { Environment, Lightformer, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { Physics, RigidBody, CapsuleCollider } from '@react-three/rapier';
@@ -17,20 +17,20 @@ export type IslandEncounter3D = { id: string; x: number; z: number; name: string
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
 function Loader() { return <Html center><span className="island3d-loading">Preparando a ilha 3D…</span></Html>; }
 
-export function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
+export const IslandScene = memo(function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
   const harbor = useRef(newHarborState());
   return <>
     <color attach="background" args={[palette.sky]} /><fog attach="fog" args={[palette.sky, 65, 200]} />
     <ambientLight intensity={.55} />
     <hemisphereLight args={[palette.sky, palette.sand, .8]} />
-    <directionalLight position={[25, 40, 20]} intensity={2.2} color={palette.sun} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} shadow-camera-left={-50} shadow-camera-right={50} shadow-camera-top={50} shadow-camera-bottom={-50} shadow-bias={-.0008} />
+    <directionalLight position={[25, 40, 20]} intensity={2.2} color={palette.sun} />
     <Environment resolution={64} frames={1}><Lightformer intensity={2} position={[0, 20, 0]} rotation-x={-Math.PI / 2} scale={[60, 60, 1]} color={palette.sky} /><Lightformer intensity={1.4} position={[30, 10, 20]} scale={[30, 20, 1]} color={palette.sun} /></Environment>
     <Suspense fallback={<Loader />}>
       <IllustratedIsland islandIndex={islandIndex} />
       <Physics timeStep={1 / 60} gravity={[0, -19, 0]}>
         <IslandMapCollisions islandIndex={islandIndex} /><Dock palette={palette} illustrated />
         <IslandHarbor harbor={harbor} palette={palette} />
-        {encounters.filter(e => e.kind !== 'ship' && e.kind !== 'secret').map(e => {
+        {encounters.filter(e => e.kind !== 'ship' && e.kind !== 'secret' && e.kind !== 'activity').map(e => {
           const enemy = e.node && ['combat', 'elite', 'boss'].includes(e.node.node_type);
           const humanoid = enemy || e.kind === 'npc' || e.node?.node_type === 'event';
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
@@ -42,7 +42,7 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     </Suspense>
     {islandIndex === 3 && <pointLight position={[25, 8, -25]} intensity={10} color={palette.gold} distance={30} />}
   </>;
-}
+});
 
 function EncounterPirate({ encounter, palette, fighting }: { encounter: IslandEncounter3D; palette: IslandPalette; fighting: boolean }) {
   const motion = useRef<IslandMotion>('idle'), speed = useRef(0), group = useRef<THREE.Group>(null);
