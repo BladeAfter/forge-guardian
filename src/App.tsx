@@ -975,7 +975,7 @@ function App() {
               >📜 MISSIONS</button>
             </div>
             <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={mainScreenArt.heroes} label="HEROES" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
+              <HomeFeature image={mainScreenArt.heroes} label="TRIPULAÇÃO" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
 
 
               <button
