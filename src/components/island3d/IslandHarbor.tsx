@@ -44,8 +44,14 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
   });
   const length = HARBOR.gangway.end - HARBOR.gangway.start;
   return <>
-    <RigidBody ref={ship} type="kinematicPosition" colliders="trimesh" position={[HARBOR.approach.x, HARBOR.ship.y, HARBOR.approach.z]} scale={HARBOR.ship.scale}>
+    <RigidBody ref={ship} type="kinematicPosition" colliders={false} position={[HARBOR.approach.x, HARBOR.ship.y, HARBOR.approach.z]} scale={HARBOR.ship.scale}>
       <primitive object={object} />
+      <CuboidCollider args={[2.35, .1, 4.3]} position={[0, 2, 0]} />
+      <CuboidCollider args={[.1, .3, 4.3]} position={[2.3, 2.4, 0]} />
+      <CuboidCollider args={[.1, .3, 1.4]} position={[-2.3, 2.4, -2.9]} />
+      <CuboidCollider args={[.1, .3, 2.2]} position={[-2.3, 2.4, 2.1]} />
+      <CuboidCollider args={[2.3, .3, .1]} position={[0, 2.4, 4.3]} />
+      <CuboidCollider args={[2.3, .3, .1]} position={[0, 2.4, -4.3]} />
     </RigidBody>
     <group ref={reflectionGroup} scale={[HARBOR.ship.scale, -HARBOR.ship.scale, HARBOR.ship.scale]}><primitive object={reflection} /></group>
     <group ref={wake}>{[0, 1, 2].map(i => <mesh key={i} rotation-x={-Math.PI / 2}>
