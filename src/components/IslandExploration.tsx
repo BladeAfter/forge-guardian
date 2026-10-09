@@ -42,13 +42,13 @@ export default function IslandExploration(props: Props) {
   const activeRun = data?.exploreRun ?? null;
   const region = activeRun ? data?.regions.find(r => r.id === activeRun.region_id) : data?.regions[Math.min(islandIndex === 2 ? 1 : islandIndex === 3 ? 2 : 0, (data?.regions.length ?? 1) - 1)];
   const cost = data?.regionMeta.find(m => m.regionId === region?.id)?.stats.entryCost;
-  const encounters = useMemo<IslandEncounter3D[]>(() => [
+  const encounters = useMemo<IslandEncounter3D[]>(() => ([
     { id: 'ship', ...ISLAND_3D.dock, name: props.ship?.name ?? 'Seu navio', kind: 'ship' },
     { id: 'npc', x: 1.8, z: 27, name: 'Vigia do porto', kind: 'npc' },
     { id: 'activity', x: -16, z: 17, name: island.destination === 'forge' ? 'Oficina Naval' : island.destination === 'bounties' ? 'Vigia dos contratos' : island.destination === 'ruins' ? 'Entrada das ruínas' : 'Posto da Frota', kind: 'activity' },
     { id: 'secret', x: 24, z: -10, name: 'Passagem escondida', kind: 'secret' },
     ...(activeRun ? (data?.exploreNodes ?? []).filter(n => !['locked', 'skipped'].includes(n.status)).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const })) : []),
-  ].map(e => e.kind === 'ship' ? e : { ...e, ...clearEncounterPoint(islandIndex, e) }), [props.ship?.name, island.destination, islandIndex, activeRun?.id, data?.exploreNodes]);
+  ] satisfies IslandEncounter3D[]).map(e => e.kind === 'ship' ? e : { ...e, ...clearEncounterPoint(islandIndex, e) }), [props.ship?.name, island.destination, islandIndex, activeRun?.id, data?.exploreNodes]);
   const selected = encounters.filter(e => (!e.node || ['available', 'active'].includes(e.node.status)) && Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
   const locked = talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
   input.current.blocked = locked; input.current.sprint = sprinting;
