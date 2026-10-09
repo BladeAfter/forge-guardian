@@ -25197,6 +25197,7 @@ export type Database = {
         Args: { p_action: string; p_input?: Json; p_user: string }
         Returns: Json
       }
+      naval_ocean_land: { Args: { p_x: number; p_y: number }; Returns: boolean }
       naval_state: { Args: { p_user: string }; Returns: Json }
       nft_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }

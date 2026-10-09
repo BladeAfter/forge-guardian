@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Ampliar Grand Line para oceano contínuo sem bordas: limites removidos no cliente e na validação oficial, regiões determinísticas com colisão compartilhada e origem flutuante, horizonte 3D, navio GLB, esteira e balanço, aceleração/desaceleração local, zoom sem revelar o mapa todo e retorno às coordenadas da ilha visitada. Navegação além dos antigos limites, mudança de região, joystick e callback de atracação verificados em cena isolada; 161 testes passaram, compilação automática OK. Fluxo real autenticado no Telegram não verificado por falta de sessão Telegram assinada; novas regiões reutilizam as cinco aventuras oficiais, sem criar prêmios. Modelos/skins personalizados de oceano ainda precisam de paridade completa com o estaleiro; o navio 3D usa o GLB pirata existente.
+
 - [x] Corrigir porto 3D: navio na água ao lado do píer sem interseção; berço aprofundado, linha d'água, balanço, amarras, reflexo estilizado, ondas e passarela animada. Atracação, desembarque contínuo até a praia, conversa e retorno ao convés verificados em cena isolada; dez testes passaram, compilação automática OK. Fluxo autenticado no Telegram não verificado; regras e recompensas preservadas.
 
 - [ ] Substituir a exploração da ilha por mundo 3D contínuo: modelos animados, câmera third-person livre, colisões, porto, vegetação, cavernas e baús; preservar encontros e recompensas oficiais, sem trocar de tela no combate. Verificar renderização, movimento e retorno.
