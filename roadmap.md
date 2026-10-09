@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Limpar e compactar cards do passe, remover nível repetido e liberar rolagem até o final.
+- [x] Limpar e compactar cards do passe, remover fundo dos cards e nível repetido, destacar nome/quantidade e liberar rolagem por toque sobre as recompensas. Arraste sem abrir detalhes, chegada ao nível 30 e callback oficial de resgate conferidos isoladamente; compilação automática OK. Validação com conta real dentro do Telegram indisponível.
 
 - [x] Remover faixa clara do píer, dobrar tamanho dos piratas e aproximar câmera; substituir cenário físico antigo por piso nivelado e obstáculos traçados em cada mapa ilustrado. Dez testes passaram; desembarque, conversa, bloqueio na palmeira inclusive com salto/esquiva e retorno ao navio conferidos em cena isolada. Compilação automática OK. Sessão real do Telegram não disponível para validação completa.
 
