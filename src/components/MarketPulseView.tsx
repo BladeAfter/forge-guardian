@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { useId, useMemo, useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import { marketArt } from '../gameAssets';
 import { marketPriceLabel, type MarketMine } from '../market';
+import { OceanControl } from './OceanControl';
 
 type Entry = { id: string; name: string; image: string | null; amount: number; quantity: number; currency: 'FC' | 'TON'; date: string; person: string; purchase: boolean };
 const exampleEntries: Entry[] = [
@@ -17,6 +18,7 @@ export function MarketPulseView({ mine, maintenance = false }: { mine?: MarketMi
   const [currency, setCurrency] = useState<'FC' | 'TON'>('FC');
   const [expanded, setExpanded] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const chartId = useId().replace(/:/g, '');
   const entries = useMemo<Entry[]>(() => example ? exampleEntries : [
     ...(mine?.purchases ?? []).map(p => ({ id: p.id, name: p.name, image: p.image, amount: p.currency === 'TON' ? p.priceTon : p.priceFc, quantity: p.quantity ?? 1, currency: p.currency, date: p.createdAt, person: p.seller, purchase: true })),
     ...(mine?.listings ?? []).filter(l => l.status === 'sold' && l.soldAt).map(l => ({ id: l.id, name: l.name, image: l.image, amount: l.currency === 'TON' ? l.priceTon : l.priceFc, quantity: l.quantity ?? 1, currency: l.currency, date: l.soldAt ?? l.createdAt, person: '', purchase: false })),
@@ -31,7 +33,8 @@ export function MarketPulseView({ mine, maintenance = false }: { mine?: MarketMi
     const days = Math.floor((now - Date.parse(e.date)) / 86400000); return days === 6-i;
   }).reduce((sum,e) => sum + e.amount,0));
   const max = Math.max(...values,1);
-  const points = values.map((n,i) => `${12+i*46},${96-(n/max)*72}`).join(' ');
+  const chartY = (n: number) => 64 - (n / max) * 50;
+  const curve = values.reduce((path, value, i) => i === 0 ? `M12 ${chartY(value)}` : `${path} C${12+(i-1)*46+23} ${chartY(values[i-1])},${12+i*46-23} ${chartY(value)},${12+i*46} ${chartY(value)}`, '');
   const buys = entries.filter(e => e.purchase).length;
   const sales = entries.filter(e => !e.purchase).length;
   return <section className="market-pulse">
@@ -39,8 +42,12 @@ export function MarketPulseView({ mine, maintenance = false }: { mine?: MarketMi
     <div className="market-pulse-body">
       <div className="market-data-mode"><span>{example ? 'EXEMPLO ILUSTRATIVO · DADOS FICTÍCIOS' : 'SUAS NEGOCIAÇÕES CONFIRMADAS'}</span><label><input type="checkbox" checked={example} onChange={e => { setExample(e.target.checked); setSelectedDay(null); }} />Exemplo</label></div>
       <div className="market-overview market-overview-line"><strong>{ranking[0]?.name ?? 'Sem negociações'}</strong><span><b>{buys}</b> / {sales}</span><span><b>{format(filtered.reduce((sum,e) => sum+e.amount,0))}</b> {currency === 'FC' ? 'BERRIES' : 'TON'}</span></div>
-      <div className="market-section-title"><h3>Volume negociado</h3><div className="market-currency-switch">{(['FC','TON'] as const).map(c => <button key={c} type="button" aria-pressed={currency === c} onClick={() => { setCurrency(c); setSelectedDay(null); }}>{c === 'FC' ? 'BERRIES' : c}</button>)}</div></div>
-      <div className="market-chart"><div><span>Últimos 7 dias</span><strong>{selectedDay !== null ? `${format(values[selectedDay])} ${currency === 'FC' ? 'BERRIES' : 'TON'}` : 'Volume diário'}</strong></div><svg viewBox="0 0 300 112" role="img" aria-label="Gráfico de volume de negociações nos últimos sete dias"><path className="market-chart-grid" d="M12 24H288 M12 60H288 M12 96H288" /><polygon className="market-chart-fill" points={`12,104 ${points} 288,104`} /><polyline className="market-chart-line" points={points} />{values.map((v,i) => <circle key={i} cx={12+i*46} cy={96-(v/max)*72} r={selectedDay === i ? 5 : 3} className="market-chart-point" />)}</svg><div className="market-chart-days">{values.map((_,i) => <button key={i} type="button" aria-label={`Volume ${i === 6 ? 'hoje' : `${6-i} dias atrás`}`} aria-pressed={selectedDay === i} onClick={() => setSelectedDay(i)}>{i === 6 ? 'Hoje' : `-${6-i}d`}</button>)}</div></div>
+      <div className="market-chart">
+        <div className="market-chart-heading"><div><h3><TrendingUp size={14} />Volume negociado</h3><span>Últimos 7 dias</span></div><div className="market-currency-switch">{(['FC','TON'] as const).map(c => <OceanControl key={c} aria-pressed={currency === c} onClick={() => { setCurrency(c); setSelectedDay(null); }}>{c === 'FC' ? 'BERRIES' : c}</OceanControl>)}</div></div>
+        <div className="market-chart-reading"><strong>{format(selectedDay !== null ? values[selectedDay] : values.reduce((sum,v) => sum+v,0))}<small> {currency === 'FC' ? 'BERRIES' : 'TON'}</small></strong><span>{selectedDay !== null ? selectedDay === 6 ? 'Hoje' : `${6-selectedDay} dias atrás` : 'Total no período'}</span></div>
+        <svg viewBox="0 0 300 76" preserveAspectRatio="none" role="img" aria-label="Gráfico de volume de negociações nos últimos sete dias"><defs><linearGradient id={`${chartId}-fill`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" className="market-chart-gradient-top" /><stop offset="100%" className="market-chart-gradient-bottom" /></linearGradient></defs><path className="market-chart-grid" d="M12 14H288 M12 39H288 M12 64H288" />{values.map((_,i) => <path key={i} className="market-chart-grid-vertical" d={`M${12+i*46} 10V68`} />)}<path fill={`url(#${chartId}-fill)`} d={`${curve} L288 72 L12 72 Z`} />{selectedDay !== null && <path className="market-chart-cursor" d={`M${12+selectedDay*46} 8V72`} />}<path className="market-chart-glow" d={curve} vectorEffect="non-scaling-stroke" /><path className="market-chart-line" d={curve} vectorEffect="non-scaling-stroke" />{values.map((v,i) => <circle key={i} cx={12+i*46} cy={chartY(v)} r={selectedDay === i ? 3.5 : 2} className="market-chart-point" />)}</svg>
+        <div className="market-chart-days">{values.map((v,i) => <OceanControl key={i} aria-label={`Volume ${i === 6 ? 'hoje' : `${6-i} dias atrás`}`} aria-pressed={selectedDay === i} title={`${format(v)} ${currency === 'FC' ? 'BERRIES' : 'TON'}`} onClick={() => setSelectedDay(i)}>{i === 6 ? 'Hoje' : `-${6-i}d`}</OceanControl>)}</div>
+      </div>
       <div className="market-section-title"><h3>Itens mais negociados</h3><span>{currency === 'FC' ? 'BERRIES' : 'TON'}</span></div>
       {ranking.length ? <ol className="market-ranking">{ranking.map((row,i) => <li key={row.name}><span className="market-rank-number">0{i+1}</span>{row.image && <img src={row.image} alt="" width={30} height={30} loading="lazy" />}<strong>{row.name}</strong><span>{row.quantity} un.</span></li>)}</ol> : <p className="market-pulse-empty">Nenhuma negociação registrada nesta moeda.</p>}
       <div className="market-section-title"><h3>{example ? 'Últimas vendas · exemplo' : 'Seu histórico de compras e vendas'}</h3><button type="button" className="market-expand" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}>{expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}<span>{expanded ? 'Menos' : 'Tudo'}</span></button></div>
