@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Reduzir travamentos no desembarque e na caminhada, com câmera interpolada, cena leve e desembarque mais ágil; preservar mapa e colisões.
+- [x] Reduzir trabalho gráfico no desembarque e caminhada: câmera interpolada, cena memoizada sem sombras dinâmicas, cordas reutilizadas e colisores agrupados; desembarque mais ágil. Caminhada de ida/volta e desembarque conferidos isoladamente, 10 testes passaram. Fluidez no aparelho real via Telegram ainda não validada.
 
 - [x] Fazer o personagem da arena e seu retrato acompanharem o pirata selecionado, com cinco artes apoiadas no chão e composição portuária preservada. Troca visual, retrato correspondente, joystick e callbacks oficiais conferidos isoladamente; 27 testes passaram. Validação real no Telegram pendente.
 
