@@ -4373,12 +4373,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .action-player-hud { bottom:18px;left:120px;right:220px;flex-wrap:wrap; }.action-player-hud b{margin-left:0}.action-feedback{bottom:190px}
 @container(max-width:500px){.action-boss-hud{left:23%;right:12px;top:14px;padding:8px}.action-boss-title h2{font-size:16px;margin:2px 0 7px}.action-boss-title small{font-size:6px}.action-boss-title .ocean-control{min-width:26px;min-height:26px;padding:4px}.action-boss-title svg{width:13px;height:13px}.action-boss-meta{font-size:7px}.action-crew{left:8px;top:24%}.action-crew .ocean-control{width:35px;height:39px}.action-monster{width:55%;left:44%;height:38%;bottom:34%}.action-boss-ground{bottom:33%}.action-actor{width:25%;height:22%}.action-controls{transform:scale(.75);transform-origin:right bottom;right:10px;bottom:12px}.action-player-hud{left:88px;right:12px;bottom:143px;font-size:8px}.seas-action-arena .ocean-joystick{width:72px;height:72px}.action-mascot{top:78%;left:24%;width:13%}.action-mascot img{height:42px}.action-feedback{bottom:174px}}
 /* Keep compact controls within the arena even in a narrow, wide-screen panel. */
-.action-controls { width:min(420px,calc(100% - 115px)); }
-.action-crew { top:175px; }
+.action-controls { width:184px; }
+.action-crew { top:22%; }
 .action-mascot { top:73%; }
 .action-combo { max-width:145px; text-align:right; }
 .action-combo span { display:block; overflow-wrap:anywhere; }
-@media(max-width:360px) { .action-controls { width:calc(100% - 98px); } }
+@container(max-width:500px){.action-crew{top:116px;gap:4px}.action-crew .ocean-control{width:29px;height:30px}.action-player-hud{bottom:16px;left:90px;right:156px;gap:3px;font-size:7px}.action-mascot{top:72%;left:15%}.action-mascot span{font-size:6px}.action-controls{width:184px}.action-boss-life>span{background:hsl(var(--action-danger))}}
 
 /* Ship-deck crew presentation: no collection cards or administrative tabs. */
 :root { --crew-ink:210 68% 8%; --crew-text:180 70% 96%; --crew-gold:43 96% 68%; --crew-sea:176 65% 51%; --crew-red:358 69% 50%; --crew-line:185 49% 70%; --crew-shadow:210 80% 7%; }

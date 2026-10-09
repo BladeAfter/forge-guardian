@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Ajustar composição do chefe conforme referência: capitão com pés no chão, dragão proporcional à direita, cenário visível, tripulação vertical e ações circulares; manter regras oficiais.
+- [x] Arena ajustada à referência: novas artes IA de capitão/capitã apoiados no chão, dragão proporcional à direita, cenário visível, tripulação vertical e ações circulares. Ataque oficial, poderes bloqueados, joystick, esquiva, ranking e expansão conferidos isoladamente; equivalência exata e sessão Telegram real não verificadas.
 
 - [x] Gráfico do mercado refinado e compactado conforme referência: curva suave, preenchimento luminoso sutil, dias selecionáveis e moedas preservadas; conferência visual isolada sem cortes. Dados pessoais e exemplos explicitamente identificados preservados; sessão Telegram real não verificada.
 
