@@ -4,7 +4,7 @@ import { petDisplayRarity } from '../petLabels';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { toast } from 'sonner';
 import { ArrowLeftRight, X, Store, Swords, Tag, Info, ChevronDown, ChevronLeft, ChevronRight, ShoppingCart, RefreshCw, Wallet, Lock, Gem, Gavel } from 'lucide-react';
-import altarImage from '../assets/recruit-altar.jpg';
+import { RecruitCrewView } from './RecruitCrewView';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
@@ -299,8 +299,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
     <div className="fullscreen-page flex items-center justify-center p-3">
 
 
-      <div className="relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl">
-        <div className="flex items-center justify-between px-4 pt-4">
+      <div className={`${tab === 'recruit' ? 'crew-shop-shell' : ''} relative flex max-h-[92dvh] w-full max-w-[450px] flex-col overflow-hidden rounded-[2rem] border border-amber-300/25 bg-[#090d15] shadow-2xl`}>
+        <div className="crew-shop-header flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">MYTHREON</p>
             <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? t('market.tabMarket') : t('shop')}</h2>
@@ -310,70 +310,22 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             <span className="flex items-center gap-1 rounded-full border border-sky-300/30 bg-black/40 px-2.5 py-1 text-[10px] font-black text-sky-300">
               <Gem className="h-3 w-3" />{tonAmount(tonWalletBalance)} TON
             </span>
-            <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+            <button aria-label="Fechar loja" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
           </div>
         </div>
 
 
         <div className="mt-3 flex-1 overflow-y-auto px-4 pb-4">
           {tab === 'recruit' ? (
-            <div>
-
-              <div className="rounded-2xl border border-amber-300/20 bg-black/30 p-3 text-center">
-                <p className="text-[13px] font-black tracking-[0.06em] text-amber-300">{t('market.recruitTitle')}</p>
-                <p className="mt-0.5 text-[8px] uppercase tracking-[0.2em] text-slate-400">{t('market.recruitSubtitle')}</p>
-                <div className="mt-3 rounded-xl border border-white/10 bg-white/[.02] p-2">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">{t('market.summonOdds')}</p>
-                  <div className="mt-1.5 grid grid-cols-3 gap-x-1 gap-y-1.5 sm:grid-cols-6">
-                    {summonOdds.filter((entry) => entry.rarity !== 'ancestral').map((entry) => (
-                      <div key={entry.rarity} className="min-w-0 text-center">
-                        <p className="truncate text-[6.5px] font-bold uppercase leading-tight tracking-tight" style={{ color: RARITY_COLORS[entry.rarity] }}>{t(entry.rarity)}</p>
-                        <p className="text-[11px] font-black leading-tight text-white">{entry.chance}%</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative mt-3 overflow-hidden rounded-2xl border border-amber-300/20">
-                <img src={altarImage} alt={t('market.recruitTitle')} width={1024} height={768} loading="lazy" className="h-[190px] w-full object-cover" />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090d15] via-transparent to-transparent" />
-              </div>
-
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {([1, 5, 10] as const).map((count) => (
-                  <div key={count} className="flex flex-col gap-1.5">
-                    <button onClick={() => onRecruit(count, 'FC')} className="rounded-2xl border border-amber-300/25 bg-gradient-to-b from-white/[.06] to-black/40 px-1 py-3 text-center active:scale-95">
-                      <span className="block text-xl font-black text-white">{count}×</span>
-                      <span className="mt-0.5 block text-[8px] font-black text-amber-300">{formatCurrency(recruitPrice(count))} BERRIES</span>
-                    </button>
-                    {/* Extra payment option: MYTH (price + burn are decided by the backend). */}
-                    <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />
-                  </div>
-                ))}
-              </div>
-              <MythBalanceHint state={mythUtility.data} />
-
-
-              <div className="mt-3 flex items-start gap-2 rounded-2xl border border-sky-400/20 bg-sky-400/[.06] p-2.5">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-300" />
-                <p className="text-[9px] leading-relaxed text-slate-300">{t('market.recruitHint')}</p>
-              </div>
-
-              {shopResults.length ? (
-                <div className="mt-3">
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-slate-400">{t('latestHeroes')}</p>
-                  <div className="mt-1.5 grid grid-cols-5 gap-1.5">
-                    {shopResults.map((hero, index) => (
-                      <div key={`${hero.id}-${index}`} className="overflow-hidden rounded-lg border bg-black/50" style={{ borderColor: `${RARITY_COLORS[hero.rarity]}99` }}>
-                        <img src={hero.image} alt={hero.name} className="aspect-square w-full object-cover object-top" />
-                        <p className="truncate px-1 py-0.5 text-center text-[7px] font-bold" style={{ color: RARITY_COLORS[hero.rarity] }}>{t(hero.rarity)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
+            <RecruitCrewView
+              odds={summonOdds}
+              price={recruitPrice}
+              results={shopResults}
+              onRecruit={(count) => onRecruit(count, 'FC')}
+              rarityLabel={(rarity) => t(rarity)}
+              alternativePayment={(count) => <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />}
+              balanceHint={<MythBalanceHint state={mythUtility.data} />}
+            />
 
           ) : !marketAccess ? (
             <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
