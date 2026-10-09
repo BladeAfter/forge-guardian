@@ -1,18 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
-import { Anchor, Footprints, Swords, Compass } from 'lucide-react';
-import { captainCharacters, type CaptainStyle } from '../captainCharacter';
-import { grandLineArt, navalArt, islandArt, mascotChestArt, realmArt } from '../gameAssets';
-import { DEFAULT_SHIP, type NavalShip } from '../naval';
-import { drawNavalShip, navalPalette } from '../navalRendering';
-import { SEA_ISLANDS, seaDistance, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
-import { ISLAND_SIZE, ISLAND_SHIP, ISLAND_LANDING, walkIsland } from '../islandNavigation';
-import type { RealmExploreNode, RealmState } from '../realm';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Anchor, Footprints, Swords, Compass, ArrowUp, Wind, RotateCcw, Plus, Minus, X } from 'lucide-react';
+import type { CaptainStyle } from '../captainCharacter';
+import { grandLineArt } from '../gameAssets';
+import type { NavalShip } from '../naval';
+import { SEA_ISLANDS, type SeaDestination } from '../grandLineNavigation';
+import { newIslandInput, nodePosition3D, ISLAND_3D, type IslandTelemetry } from '../island3dWorld';
+import type { RealmExploreNode, RealmExploreLog, RealmState } from '../realm';
 import { OceanControl } from './OceanControl';
 import { IslandJoystick } from './IslandJoystick';
+import { IslandScene, type IslandEncounter3D } from './island3d/IslandScene';
+import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain';
 
 type Props = {
-  ship?: NavalShip;
-  islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
+  ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
   busy: boolean; notice?: string | null;
   onStart: (regionId: string) => Promise<RealmState | null>;
   onEnter: (node: RealmExploreNode) => Promise<RealmState | null>;
@@ -20,134 +21,107 @@ type Props = {
   onExtract: () => Promise<RealmState | null>;
   onActivity: (destination: SeaDestination) => void; onReturn: () => void;
 };
-type Encounter = { id: string; position: SeaPoint; name: string; art: string; node?: RealmExploreNode; kind: 'ship' | 'npc' | 'activity' | 'node' | 'secret' };
 const labels: Record<string, string> = { treasure: 'Baú escondido', gather: 'Suprimentos', combat: 'Pirata inimigo', elite: 'Capitão inimigo', boss: 'Chefe da ilha', event: 'Náufrago', trap: 'Areia remexida', shrine: 'Relíquia antiga', rest: 'Acampamento' };
-const options: Record<string, string> = { safe: 'Examinar com cuidado', force: 'Forçar passagem', help: 'Ajudar', fight: 'Lutar', flee: 'Recuar', open: 'Abrir', leave: 'Deixar', accept: 'Aceitar', decline: 'Recusar', investigate: 'Investigar', explore: 'Explorar', take: 'Recolher', ignore: 'Ignorar', pray: 'Investigar a relíquia', rest: 'Descansar' };
-function nodePosition(node: RealmExploreNode): SeaPoint {
-  const spots = [{ x: 970, y: 745 }, { x: 500, y: 755 }, { x: 775, y: 560 }, { x: 1050, y: 520 }, { x: 405, y: 455 }, { x: 1240, y: 255 }, { x: 760, y: 275 }];
-  const index = node.node_type === 'boss' ? 6 : node.node_type === 'elite' ? 5 : Math.abs(node.depth * 3 + node.lane) % 6;
-  return spots[index];
-}
-function nodeArt(node: RealmExploreNode) {
-  if (['treasure', 'trap'].includes(node.node_type)) return mascotChestArt[node.node_type === 'trap' ? 'rare' : 'common'];
-  if (['combat', 'elite', 'boss'].includes(node.node_type)) return node.node_type === 'boss' ? realmArt.foes.abyss : realmArt.party[0];
-  return node.node_type === 'event' ? realmArt.party[2] : node.node_type === 'gather' ? realmArt.supplies : realmArt.mystery;
-}
+const options: Record<string, string> = { safe: 'Examinar com cuidado', force: 'Forçar passagem', help: 'Ajudar', fight: 'Lutar', flee: 'Recuar', open: 'Abrir baú', leave: 'Deixar', accept: 'Aceitar', decline: 'Recusar', investigate: 'Investigar', explore: 'Explorar', take: 'Recolher', ignore: 'Ignorar', pray: 'Investigar a relíquia', rest: 'Descansar' };
+const motionLabels: Record<string, string> = { idle: 'Em terra', walk: 'Caminhando', run: 'Correndo', sprint: 'Sprint', jump: 'Pulando', fall: 'No ar', dodge: 'Esquivando', attack: 'Atacando', interact: 'Interagindo', swim: 'Nadando', climb: 'Subindo', descend: 'Descendo' };
 
-/** Physical presentation only: nodes, fees, encounters and rewards come from RealmState. */
+/** 3D movement is cosmetic; every rewarding encounter stays server-authoritative. */
 export default function IslandExploration(props: Props) {
-  const { islandIndex, captainStyle, data, busy, onReturn } = props;
-  const shipRef = useRef(props.ship);shipRef.current=props.ship;
+  const { islandIndex, captainStyle, data, busy } = props;
   const island = SEA_ISLANDS[islandIndex] ?? SEA_ISLANDS[1];
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const world = useRef({ position: { ...ISLAND_SHIP }, target: { ...ISLAND_LANDING }, direction: { x: 0, y: 0 }, keys: new Set<string>(), phase: 'landing', camera: { ...ISLAND_SHIP }, flip: false });
-  const [phase, setPhase] = useState('landing');
-  const [nearest, setNearest] = useState<string | null>(null);
-  const [talk, setTalk] = useState(false);
-  const [secret, setSecret] = useState(false);
-  const secretRef = useRef(false);
-  const pendingRef = useRef(false);
+  const host = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null);
+  const input = useRef(newIslandInput()), pending = useRef(false);
+  const [palette, setPalette] = useState<IslandPalette | null>(null);
+  const [telemetry, setTelemetry] = useState<IslandTelemetry>({ x: 0, y: 1, z: 43, speed: 0, motion: 'walk', phase: 'landing', heading: Math.PI });
+  const [talk, setTalk] = useState(false), [secret, setSecret] = useState(false);
+  const [log, setLog] = useState<RealmExploreLog | null>(null), [openChest, setOpenChest] = useState<string | null>(null), [fighting, setFighting] = useState<string | null>(null);
+  const [sprinting, setSprinting] = useState(false);
   const activeRun = data?.exploreRun ?? null;
-  const region = activeRun ? data?.regions.find(r => r.id === activeRun.region_id) : data?.regions[Math.min(islandIndex === 1 ? 0 : islandIndex === 2 ? 1 : islandIndex === 3 ? 2 : 0, (data?.regions.length ?? 1) - 1)];
-  const meta = data?.regionMeta.find(m => m.regionId === region?.id);
-  const cost = meta?.stats.entryCost;
-  const encounters: Encounter[] = [
-    { id: 'ship', position: ISLAND_SHIP, name: 'Seu navio', art: grandLineArt.ship, kind: 'ship' },
-    { id: 'npc', position: { x: 745, y: 680 }, name: 'Vigia do porto', art: realmArt.party[2], kind: 'npc' },
-    { id: 'activity', position: { x: 405, y: 450 }, name: island.destination === 'forge' ? 'Oficina Naval' : island.destination === 'bounties' ? 'Vigia dos contratos' : island.destination === 'ruins' ? 'Entrada das ruínas' : 'Posto da Frota', art: realmArt.party[1], kind: 'activity' },
-    { id: 'secret', position: { x: 1120, y: 540 }, name: 'Passagem entre as árvores', art: realmArt.mystery, kind: 'secret' },
-    ...(activeRun ? (data?.exploreNodes ?? []).filter(n => ['available', 'active'].includes(n.status)).map(node => ({ id: node.id, position: nodePosition(node), name: labels[node.node_type] ?? 'Descoberta', art: nodeArt(node), node, kind: 'node' as const })) : []),
+  const region = activeRun ? data?.regions.find(r => r.id === activeRun.region_id) : data?.regions[Math.min(islandIndex === 2 ? 1 : islandIndex === 3 ? 2 : 0, (data?.regions.length ?? 1) - 1)];
+  const cost = data?.regionMeta.find(m => m.regionId === region?.id)?.stats.entryCost;
+  const encounters: IslandEncounter3D[] = [
+    { id: 'ship', ...ISLAND_3D.dock, name: props.ship?.name ?? 'Seu navio', kind: 'ship' },
+    { id: 'npc', x: 1.8, z: 27, name: 'Vigia do porto', kind: 'npc' },
+    { id: 'activity', x: -16, z: 17, name: island.destination === 'forge' ? 'Oficina Naval' : island.destination === 'bounties' ? 'Vigia dos contratos' : island.destination === 'ruins' ? 'Entrada das ruínas' : 'Posto da Frota', kind: 'activity' },
+    { id: 'secret', x: 24, z: -10, name: 'Passagem escondida', kind: 'secret' },
+    ...(activeRun ? (data?.exploreNodes ?? []).filter(n => ['available', 'active'].includes(n.status)).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const })) : []),
   ];
-  const encounterRef = useRef(encounters); encounterRef.current = encounters;
-  const selected = encounters.find(e => e.id === nearest);
+  const selected = encounters.filter(e => Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
+  const locked = talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
+  input.current.blocked = locked; input.current.sprint = sprinting;
+  const report = useCallback((value: IslandTelemetry) => {
+    setTelemetry(value);
+    if (stage.current) { stage.current.dataset.pirateX = String(value.x); stage.current.dataset.pirateY = String(value.y); stage.current.dataset.pirateZ = String(value.z); stage.current.dataset.phase = value.phase; stage.current.dataset.motion = value.motion; }
+  }, []);
 
+  useEffect(() => { if (host.current) setPalette(readIslandPalette(host.current)); }, []);
   useEffect(() => {
-    const canvas = canvasRef.current, ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) return;
-    const background = new Image(); background.src = islandArt[islandIndex] ?? islandArt[1];
-    const pirate = new Image(); pirate.src = captainCharacters[captainStyle].image;
-    const fleet = new Image();fleet.src=navalArt.fleet;const navalColors=navalPalette(canvas);
-    const images = new Map<string, HTMLImageElement>();
-    const css = getComputedStyle(canvas);
-    const color = (token: string) => `hsl(${css.getPropertyValue(token).trim()})`;
-    const ink = color('--ocean-shadow'), foam = color('--ocean-foam'), gold = color('--ocean-gold');
-    const resize = () => { const r = canvas.getBoundingClientRect(); canvas.width = r.width * Math.min(devicePixelRatio, 2); canvas.height = r.height * Math.min(devicePixelRatio, 2); };
-    const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
-    const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'];
-    const down = (e: KeyboardEvent) => { if (keys.includes(e.key)) { e.preventDefault(); world.current.keys.add(e.key); } };
-    const up = (e: KeyboardEvent) => world.current.keys.delete(e.key);
-    const clear = () => { const s = world.current; s.keys.clear(); s.direction = { x: 0, y: 0 }; if (s.phase === 'exploring') s.target = { ...s.position }; };
-    window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', clear);
-    let frame = 0, last = 0, hudTime = 0;
-    const render = (time: number) => {
-      const dt = Math.min((time - (last || time)) / 1000, .05); last = time;
-      const s = world.current;
-      if (s.phase === 'exploring') {
-        const dx = s.direction.x || Number(s.keys.has('ArrowRight') || s.keys.has('d')) - Number(s.keys.has('ArrowLeft') || s.keys.has('a'));
-        const dy = s.direction.y || Number(s.keys.has('ArrowDown') || s.keys.has('s')) - Number(s.keys.has('ArrowUp') || s.keys.has('w'));
-        if (dx || dy) s.target = { x: s.position.x + dx * 100, y: s.position.y + dy * 100 };
-      }
-      const before = s.position; s.position = walkIsland(s.position, s.target, dt);
-      const moving = seaDistance(before, s.position) > .1;
-      if (moving && Math.abs(s.position.x - before.x) > .2) s.flip = s.position.x < before.x;
-      if (s.phase === 'landing' && seaDistance(s.position, ISLAND_LANDING) < 5) { s.phase = 'exploring'; setPhase('exploring'); }
-      if (s.phase === 'boarding' && seaDistance(s.position, ISLAND_SHIP) < 5) { s.phase = 'departed'; onReturn(); return; }
-      const w = canvas.clientWidth, h = canvas.clientHeight, scale = Math.max(.9, w / ISLAND_SIZE.width, h / ISLAND_SIZE.height);
-      s.camera.x += (s.position.x - s.camera.x) * Math.min(1, dt * 7); s.camera.y += (s.position.y - s.camera.y) * Math.min(1, dt * 7);
-      const cameraX = Math.min(ISLAND_SIZE.width - Math.min(w / scale / 2, 768), Math.max(Math.min(w / scale / 2, 768), s.camera.x));
-      const cameraY = Math.min(ISLAND_SIZE.height - Math.min(h / scale / 2, 512), Math.max(Math.min(h / scale / 2, 512), s.camera.y));
-      ctx.setTransform(canvas.width / w, 0, 0, canvas.height / h, 0, 0); ctx.fillStyle = ink; ctx.fillRect(0, 0, w, h);
-      ctx.save(); ctx.translate(w / 2, h / 2); ctx.scale(scale, scale); ctx.translate(-cameraX, -cameraY);
-      if (background.complete && background.naturalWidth) ctx.drawImage(background, 0, 0, 1536, 1024);
-      const visible = encounterRef.current.filter(e => e.kind === 'ship' || e.kind === 'activity' || e.kind === 'npc' || seaDistance(s.position, e.position) < (e.node?.node_type === 'trap' ? 100 : 360));
-      for (const e of visible.sort((a, b) => a.position.y - b.position.y)) {
-        if (e.kind === 'secret' && !secretRef.current && seaDistance(s.position, e.position) > 120) continue;
-        let image = images.get(e.art); if (!image) { image = new Image(); image.src = e.art; images.set(e.art, image); }
-        const size = e.kind === 'ship' ? 105 : e.node?.node_type === 'boss' ? 95 : e.kind === 'node' && ['treasure', 'trap'].includes(e.node?.node_type ?? '') ? 42 : 62;
-        if(e.kind==='ship') drawNavalShip(ctx,fleet,{...(shipRef.current ?? DEFAULT_SHIP),x:e.position.x,y:e.position.y-40,heading:0,throttle:0},navalColors,time,120);
-        else if (image.complete && image.naturalWidth) ctx.drawImage(image, e.position.x - size / 2, e.position.y - size, size, size);
-        if (seaDistance(s.position, e.position) < 100) { ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.strokeStyle = ink; ctx.lineWidth = 4; ctx.strokeText(e.name, e.position.x, e.position.y - size - 8); ctx.fillStyle = gold; ctx.fillText(e.name, e.position.x, e.position.y - size - 8); }
-      }
-      ctx.save(); ctx.translate(s.position.x, s.position.y); ctx.fillStyle = ink; ctx.globalAlpha = .3; ctx.beginPath(); ctx.ellipse(0, 0, 17, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-      if (s.flip) ctx.scale(-1, 1);
-      if (pirate.complete && pirate.naturalWidth) ctx.drawImage(pirate, -32, -78 + (moving && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? Math.sin(time / 90) * 2 : 0), 64, 80);
-      ctx.restore(); ctx.restore();
-      canvas.dataset.pirateX = s.position.x.toFixed(0); canvas.dataset.pirateY = s.position.y.toFixed(0); canvas.dataset.phase = s.phase;
-      canvas.dataset.cameraX = String(cameraX); canvas.dataset.cameraY = String(cameraY); canvas.dataset.scale = String(scale);
-      if (time - hudTime > 120) {
-        hudTime = time;
-        const near = encounterRef.current.filter(e => seaDistance(s.position, e.position) < 100).sort((a, b) => seaDistance(s.position, a.position) - seaDistance(s.position, b.position))[0];
-        setNearest(near?.id ?? null);
-        if (!secretRef.current && seaDistance(s.position, { x: 1120, y: 540 }) < 100) { secretRef.current = true; setSecret(true); }
-      }
-      frame = requestAnimationFrame(render);
+    const keys = new Set<string>();
+    const update = () => {
+      input.current.x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
+      input.current.y = Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'));
+      input.current.jump = keys.has('Space'); setSprinting(keys.has('ShiftLeft') || keys.has('ShiftRight'));
     };
-    frame = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', clear); };
-  }, [islandIndex, captainStyle, onReturn]);
-
+    const down = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest('input,textarea,select')) return;
+      if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight','KeyQ','KeyF'].includes(e.code)) {
+        e.preventDefault(); keys.add(e.code); if (!e.repeat && e.code === 'KeyQ') input.current.dodge = true; if (!e.repeat && e.code === 'KeyF') input.current.attack = true; update();
+      }
+    };
+    const up = (e: KeyboardEvent) => { keys.delete(e.code); update(); };
+    const clear = () => { keys.clear(); input.current.x = 0; input.current.y = 0; input.current.jump = false; input.current.dodge = false; input.current.attack = false; setSprinting(false); };
+    const visibility = () => { if (document.hidden) clear(); };
+    window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', clear); document.addEventListener('visibilitychange', visibility);
+    return () => { clear(); window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', clear); document.removeEventListener('visibilitychange', visibility); };
+  }, []);
+  useEffect(() => { if (Math.hypot(telemetry.x - 24, telemetry.z + 10) < 4) setSecret(true); }, [telemetry.x, telemetry.z]);
   const returnToSea = async () => {
-    if (pendingRef.current || busy) return;
-    pendingRef.current = true;
-    if (activeRun) { const next = await props.onExtract(); if (!next) { pendingRef.current = false; return; } }
-    const s = world.current; s.direction = { x: 0, y: 0 }; s.keys.clear(); s.target = { ...ISLAND_SHIP }; s.phase = 'boarding'; setPhase('boarding'); pendingRef.current = false;
+    if (pending.current || busy) return;
+    pending.current = true;
+    try { if (activeRun && !await props.onExtract()) return; input.current.x = 0; input.current.y = 0; input.current.boarding = true; }
+    finally { pending.current = false; }
+  };
+  const encounterResult = (next: RealmState | null, id?: string) => {
+    if (!next?.lastNode) return;
+    if (next.lastNode.rounds?.length && id) { setFighting(id); setLog(next.lastNode); input.current.attack = true; }
+    else if (next.lastNode.fc || next.lastNode.fragments || next.lastNode.materialQty) setLog(next.lastNode);
   };
   const interact = async () => {
-    if (!selected || busy || pendingRef.current) return;
+    if (!selected || pending.current || busy) return;
+    input.current.interact = true;
     if (selected.kind === 'ship') { await returnToSea(); return; }
     if (selected.kind === 'npc') { setTalk(true); return; }
     if (selected.kind === 'activity') { props.onActivity(island.destination); return; }
-    if (selected.node) { pendingRef.current = true; try { await props.onEnter(selected.node); } finally { pendingRef.current = false; } }
+    if (selected.node) {
+      pending.current = true;
+      try { const next = await props.onEnter(selected.node); if (next && selected.node.node_type === 'treasure' && !next.exploreRun?.pending) setOpenChest(selected.id); encounterResult(next, selected.id); }
+      finally { pending.current = false; }
+    }
   };
-  return <section className="island-exploration" aria-label={`Exploração de ${island.name}`}>
-    <canvas ref={canvasRef} role="img" aria-label={`Ilha explorável: ${island.name}`} onPointerDown={e => { if (world.current.phase !== 'exploring' || talk || activeRun?.pending) return; const rect = e.currentTarget.getBoundingClientRect(); const scale = Number(e.currentTarget.dataset.scale); world.current.target = { x: (e.clientX - rect.left - rect.width / 2) / scale + Number(e.currentTarget.dataset.cameraX), y: (e.clientY - rect.top - rect.height / 2) / scale + Number(e.currentTarget.dataset.cameraY) }; }} />
-    <header className="ocean-hud"><div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{island.name}</h1></div><div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{Math.floor(data?.fc ?? 0).toLocaleString('pt-BR')}</b></div></header>
-    <div className="ocean-instruments"><span><Footprints size={15} />{phase === 'landing' ? 'Desembarcando' : phase === 'boarding' ? 'Embarcando' : 'Em terra'}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
-    {(props.notice || props.error || secret) && <div className="island-notice" role="status">{props.notice || props.error || 'Passagem secreta descoberta entre as árvores.'}</div>}
-    <IslandJoystick disabled={phase !== 'exploring' || talk || Boolean(activeRun?.pending)} onDirection={point => { const s = world.current; s.direction = point; if (!point.x && !point.y && s.phase === 'exploring') s.target = { ...s.position }; }} />
-    {selected && phase === 'exploring' && !talk && !activeRun?.pending && selected.kind !== 'secret' && <div className="ocean-dock"><span>{selected.name}</span><OceanControl disabled={busy} onClick={() => void interact()}>{selected.kind === 'ship' ? <Anchor size={17} /> : <Compass size={17} />}{selected.kind === 'ship' ? 'Voltar ao mar' : selected.kind === 'node' ? selected.node?.node_type === 'treasure' ? 'Examinar baú' : 'Investigar' : selected.kind === 'npc' ? 'Conversar' : 'Entrar'}</OceanControl></div>}
-    {talk && <div className="island-dialog" role="dialog" aria-label="Vigia do porto"><h2>Vigia do porto</h2><p>{activeRun ? 'Há rastros de piratas e objetos escondidos pelos caminhos. Volte ao seu navio para recolher o espólio.' : 'Há uma trilha de aventura além da praia. Posso preparar a sua jornada.'}</p>{props.loading ? <p>Consultando o diário de bordo...</p> : props.error ? <p>{props.error}</p> : !activeRun && region && cost !== undefined && <OceanControl disabled={busy || Number(data?.fc ?? 0) < cost || Number(data?.profile?.stronghold_level ?? 0) < region.unlock_stronghold_level} onClick={async () => { if (pendingRef.current) return; pendingRef.current = true; try { const next = await props.onStart(region.id); if (next) setTalk(false); } finally { pendingRef.current = false; } }}>Iniciar aventura · {cost.toLocaleString('pt-BR')} BERRIES</OceanControl>}<OceanControl onClick={() => setTalk(false)}>Continuar caminhando</OceanControl></div>}
-    {activeRun?.pending && <div className="island-dialog" role="dialog" aria-label="Encontro da ilha"><h2>{labels[activeRun.pending.nodeType] ?? 'Encontro'}</h2>{activeRun.pending.options.map(option => <OceanControl key={option} disabled={busy} onClick={async () => { if (pendingRef.current) return; pendingRef.current = true; try { await props.onChoose(option); } finally { pendingRef.current = false; } }}>{options[option] ?? option.replace(/_/g, ' ')}</OceanControl>)}</div>}
+  const pointer = useRef<{ id: number; x: number; y: number } | null>(null);
+  return <section ref={host} className="island-exploration" aria-label={`Exploração 3D de ${island.name}`}>
+    <div ref={stage} className="island3d-stage" role="img" aria-label={`Ilha 3D explorável: ${island.name}`}
+      onPointerDown={e => { if (pointer.current) return; pointer.current = { id: e.pointerId, x: e.clientX, y: e.clientY }; e.currentTarget.setPointerCapture(e.pointerId); }}
+      onPointerMove={e => { const p = pointer.current; if (!p || p.id !== e.pointerId) return; input.current.yaw -= (e.clientX - p.x) * .006; input.current.pitch = Math.max(.06, Math.min(.95, input.current.pitch + (e.clientY - p.y) * .004)); p.x = e.clientX; p.y = e.clientY; }}
+      onPointerUp={() => { pointer.current = null; }} onPointerCancel={() => { pointer.current = null; }} onLostPointerCapture={() => { pointer.current = null; }}
+      onWheel={e => { input.current.zoom = Math.max(3, Math.min(13, input.current.zoom + e.deltaY * .01)); }}>
+      {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 5, 50], fov: 55, near: .1, far: 350 }} gl={{ antialias: true }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
+    </div>
+    <header className="ocean-hud"><div className="ocean-brand"><span>MYTHIC SEAS · GRAND LINE</span><h1>{island.name}</h1></div><div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{Math.floor(data?.fc ?? 0).toLocaleString('pt-BR')}</b></div></header>
+    <div className="ocean-instruments"><span><Footprints size={15} />{telemetry.phase === 'landing' ? 'Desembarcando' : telemetry.phase === 'boarding' ? 'Embarcando' : motionLabels[telemetry.motion]}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
+    {(props.notice || props.error) && <div className="island-notice" role="status">{props.notice || props.error}</div>}
+    <IslandJoystick disabled={telemetry.phase !== 'exploring' || locked} onDirection={point => { input.current.x = point.x; input.current.y = point.y; }} />
+    <nav className="island3d-actions" aria-label="Ações do pirata">
+      <OceanControl aria-label="Pular" title="Pular" disabled={locked} onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); input.current.jump = true; }} onPointerUp={() => { input.current.jump = false; }} onPointerCancel={() => { input.current.jump = false; }} onLostPointerCapture={() => { input.current.jump = false; }}><ArrowUp size={20} /></OceanControl>
+      <OceanControl aria-label="Sprint" title="Sprint" aria-pressed={sprinting} disabled={locked} onClick={() => setSprinting(v => !v)}><Wind size={20} /></OceanControl>
+      <OceanControl aria-label="Esquivar" title="Esquivar" disabled={locked} onClick={() => { input.current.dodge = true; }}><RotateCcw size={20} /></OceanControl>
+      <OceanControl aria-label="Golpe" title="Golpe" disabled={locked} onClick={() => { input.current.attack = true; }}><Swords size={20} /></OceanControl>
+    </nav>
+    <nav className="island3d-camera" aria-label="Câmera"><OceanControl aria-label="Aproximar câmera" title="Aproximar câmera" onClick={() => { input.current.zoom = Math.max(3, input.current.zoom - 1); }}><Plus size={16} /></OceanControl><OceanControl aria-label="Afastar câmera" title="Afastar câmera" onClick={() => { input.current.zoom = Math.min(13, input.current.zoom + 1); }}><Minus size={16} /></OceanControl><OceanControl aria-label="Centralizar câmera" title="Centralizar câmera" onClick={() => { input.current.yaw = telemetry.heading + Math.PI; input.current.pitch = .32; }}><Compass size={16} /></OceanControl></nav>
+    {selected && telemetry.phase === 'exploring' && !locked && selected.kind !== 'secret' && <div className="ocean-dock"><span>{selected.name}</span><OceanControl disabled={busy} onClick={() => void interact()}>{selected.kind === 'ship' ? <Anchor size={17} /> : <Compass size={17} />}{selected.kind === 'ship' ? 'Voltar ao mar' : selected.kind === 'node' ? selected.node?.node_type === 'treasure' ? 'Abrir baú' : 'Investigar' : selected.kind === 'npc' ? 'Conversar' : 'Entrar'}</OceanControl></div>}
+    {talk && <div className="island-dialog" role="dialog" aria-label="Vigia do porto"><h2>Vigia do porto</h2><p>{activeRun ? 'Há rastros de piratas e objetos escondidos na ilha. Retorne ao seu navio para guardar o espólio.' : 'Posso preparar sua jornada além da praia.'}</p>{props.loading ? <p>Consultando o diário de bordo...</p> : props.error ? <p>{props.error}</p> : !activeRun && region && cost !== undefined && <OceanControl disabled={busy || Number(data?.fc ?? 0) < cost || Number(data?.profile?.stronghold_level ?? 0) < region.unlock_stronghold_level} onClick={async () => { if (pending.current) return; pending.current = true; try { if (await props.onStart(region.id)) setTalk(false); } finally { pending.current = false; } }}>Iniciar aventura · {cost.toLocaleString('pt-BR')} BERRIES</OceanControl>}<OceanControl onClick={() => setTalk(false)}>Continuar caminhando</OceanControl></div>}
+    {activeRun?.pending && <div className="island-dialog" role="dialog" aria-label="Encontro da ilha"><h2>{labels[activeRun.pending.nodeType] ?? 'Encontro'}</h2>{activeRun.pending.options.map(option => <OceanControl key={option} disabled={busy} onClick={async () => { if (pending.current) return; pending.current = true; input.current.interact = true; try { const next = await props.onChoose(option); if (next && ['open','take'].includes(option)) setOpenChest(activeRun.pending?.nodeId ?? null); encounterResult(next, activeRun.pending?.nodeId); } finally { pending.current = false; } }}>{options[option] ?? option.replace(/_/g, ' ')}</OceanControl>)}</div>}
+    {log && <div className="island3d-log" role="status"><span>{log.rounds?.length ? `Encontro resolvido · ${log.rounds.length} rodadas · ${log.damage ?? 0} dano recebido` : `Espólio encontrado${log.fc ? ` · ${log.fc.toLocaleString('pt-BR')} BERRIES` : ''}${log.fragments ? ` · ${log.fragments} fragmentos` : ''}${log.materialQty ? ` · ${log.materialQty} materiais` : ''}`}</span><OceanControl aria-label="Continuar exploração" title="Continuar exploração" onClick={() => { setLog(null); setFighting(null); }}><X size={16} /></OceanControl></div>}
     <span className="ocean-coordinate">{secret ? 'PASSAGEM DESCOBERTA' : 'GRAND LINE · EM TERRA'}</span>
   </section>;
 }
