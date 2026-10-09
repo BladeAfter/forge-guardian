@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Renovar o Mercado com visão de negociações, gráfico, ranking e histórico, mantendo a manutenção e identificando exemplos.
+- [x] Renovar o Mercado com visão de negociações, gráfico, ranking e histórico, mantendo a manutenção e identificando exemplos; gráficos, moeda e expansão testados isoladamente, sem pagamentos.
 
 - [x] Refazer o Perfil como ficha de capitão Mythic Seas, preservando dados, passe e recompensas oficiais; arte e callback do passe verificados isoladamente, sem compras reais.
 
