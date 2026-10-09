@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Substituir a exploração da ilha por mundo 3D contínuo: modelos animados, câmera third-person livre, colisões, porto, vegetação, cavernas e baús; preservar encontros e recompensas oficiais, sem trocar de tela no combate. Verificar renderização, movimento e retorno.
+  - Base 3D implementada com Three.js/R3F/Rapier, modelos GLB CC0 com texturas incorporadas, terreno volumétrico, água animada, navio atracado/passarela, câmera orbital com zoom/colisão e personagens animados. Desembarque, corrida/sprint, diálogo e callback de embarque conferidos em cena isolada; renderização final sem exceções nem requisições falhas. 157 testes passaram; compilação automática sem erros.
+  - Pendente: acabamento AAA, modelos/animações de alta fidelidade, ajuste fino dos pés/IK, profundidade de campo, vegetação densa, reações físicas aos ataques e poderes oficiais. Combate é apresentação dos resultados existentes do servidor no mesmo cenário, não combate livre autoritativo; recompensas e aventuras autenticadas no Telegram ainda não verificadas. Ilha usa base low-poly, não qualidade console prometida.
+
 - [x] Excluir raridades Ancestral, NFT Exclusivo e Celestial de heróis e mascotes: catálogos e vínculos removidos, contagens restantes dessas raridades em zero; filtros e chances limpos, recriação bloqueada por triggers nas migrações 0112–0113, Admin Bot implantado. Proteção de pagamentos preservada; 24 testes passaram. Sessão Telegram real não verificada.
 
 - [x] Refazer Tripulação como convés vivo com arte IA, capitão, membros selecionáveis, câmera e ficha individual; remover Fusão, Inventário e filtros desta tela. Seleção, progresso de XP, detalhes, turnos e fechamento verificados isoladamente; 24 testes passaram. Equipamentos oficiais preservados.

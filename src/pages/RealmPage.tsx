@@ -69,7 +69,6 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
   const [oceanPosition, setOceanPosition] = useState<SeaPoint | undefined>();
   const [dockedShip,setDockedShip] = useState<NavalShip | undefined>();
   const [islandBusy, setIslandBusy] = useState(false);
-  const [islandCombat, setIslandCombat] = useState<RealmExploreLog | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [notice, setNotice] = useState<string | null>(null);
   const [resourcesOpen, setResourcesOpen] = useState(false);
@@ -194,7 +193,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
   if (islandIndex !== null) {
     const islandAction = async (fn: () => Promise<RealmState>) => {
       setIslandBusy(true);
-      try { const next = await runAsync(fn); if (next?.lastNode?.rounds?.length) setIslandCombat(next.lastNode); return next; }
+      try { return await runAsync(fn); }
       finally { setIslandBusy(false); }
     };
     return <>
@@ -205,7 +204,6 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
         onExtract={() => data?.exploreRun ? islandAction(() => realmExploreExtract(telegramInitData, data.exploreRun?.id ?? '')) : Promise.resolve(data ?? null)}
         onActivity={destination => { setTab(destination); setIslandIndex(null); if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
         onReturn={() => { setOceanPosition(SEA_ISLANDS[islandIndex].dock); setIslandIndex(null); setOceanOpen(true); }} />
-      {islandCombat && <RealmBattleScene log={islandCombat} regionId={data?.exploreRun?.region_id ?? null} regionName={SEA_ISLANDS[islandIndex].name} heroes={myHeroes} heroId={duelHeroId} onPickHero={pickDuelHero} onClose={() => setIslandCombat(null)} />}
     </>;
   }
   if (oceanOpen) {

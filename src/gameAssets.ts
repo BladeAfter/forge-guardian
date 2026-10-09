@@ -1,4 +1,26 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
+import islandMale from './assets/island3d/human-character-male-a.glb.asset.json';
+import islandFemale from './assets/island3d/human-character-female-a.glb.asset.json';
+import islandPalm from './assets/island3d/palm-detailed-bend.glb.asset.json';
+import islandPalmStraight from './assets/island3d/palm-detailed-straight.glb.asset.json';
+import islandRock from './assets/island3d/rocks-a.glb.asset.json';
+import islandRockB from './assets/island3d/rocks-b.glb.asset.json';
+import islandChest from './assets/island3d/chest.glb.asset.json';
+import islandShip from './assets/island3d/ship-pirate-medium.glb.asset.json';
+import islandStructure from './assets/island3d/structure.glb.asset.json';
+import islandGate from './assets/island3d/castle-gate.glb.asset.json';
+import islandWall from './assets/island3d/castle-wall.glb.asset.json';
+import islandBarrel from './assets/island3d/barrel.glb.asset.json';
+import islandCrate from './assets/island3d/crate.glb.asset.json';
+import islandCannon from './assets/island3d/cannon.glb.asset.json';
+import islandFlag from './assets/island3d/flag-pirate.glb.asset.json';
+
+export const islandModels = {
+  male: islandMale.url, female: islandFemale.url, palm: islandPalm.url, palmStraight: islandPalmStraight.url,
+  rock: islandRock.url, rockB: islandRockB.url, chest: islandChest.url, ship: islandShip.url,
+  structure: islandStructure.url, gate: islandGate.url, wall: islandWall.url, barrel: islandBarrel.url,
+  crate: islandCrate.url, cannon: islandCannon.url, flag: islandFlag.url,
+};
 import crewSunriseDeck from './assets/crew-sunrise-deck.jpg';
 import seasActionArena from './assets/seas-action-arena.jpg';
 import seasStormDragon from './assets/seas-storm-dragon.png';
