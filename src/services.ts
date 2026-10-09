@@ -224,7 +224,7 @@ export async function bindReferral(telegramInitData:string,inviterTelegramId:num
 }
 export type PetAction={action:'dashboard'}|{action:'activate';playerPetId:string}|{action:'evolve';playerPetId:string;idempotencyKey?:string;currency?:'FC'|'MYTH'}|{action:'feed';playerPetId:string;foodCode:string;quantity:number;idempotencyKey?:string}|{action:'hatch';eggId:string;idempotencyKey:string}|{action:'recover-hatch';idempotencyKey:string}|{action:'buy-egg';eggId:string;quantity:number;idempotencyKey:string;currency?:'FC'|'MYTH'}|{action:'buy-egg-balance';eggId:string;idempotencyKey:string}|{action:'buy-food';foodCode:string;quantity:number;idempotencyKey:string;currency?:'FC'|'MYTH'}|{action:'xp-transfer-preview';playerPetId:string}|{action:'xp-transfer';playerPetId:string;targetPlayerPetId:string;idempotencyKey:string};
 const PET_ERRORS:Record<string,string>={PET_NOT_OWNED:'Este pet não pertence a você.',PET_MAX_LEVEL:'Este pet já está no nível máximo.',PET_LEVEL_TOO_LOW:'Nível insuficiente para evoluir.',PET_FULLY_EVOLVED:'Este pet já alcançou a forma final.',NOT_ENOUGH_PET_FOOD:'Você não tem comida suficiente.',NOT_ENOUGH_PET_FRAGMENTS:'Fragmentos insuficientes para evoluir.',NOT_ENOUGH_FORGE_COINS:'BERRIES insuficientes.',FOOD_NOT_FOUND:'Comida indisponível.',FOOD_NOT_PURCHASABLE:'Esta comida não está à venda.',EGG_NOT_FOUND:'Ovo indisponível.',EGG_NOT_OWNED:"YOU DON'T OWN THIS EGG",EGG_ALREADY_OPENING:'EGG ALREADY OPENING',EGG_OPENING_FAILED:'EGG OPENING FAILED',EGG_RATES_INVALID:'EGG OPENING FAILED',EGG_NOT_PURCHASABLE:'Este ovo não pode ser comprado (evento exclusivo).',EGG_REQUIRES_TON:'Este ovo é vendido apenas em TON.',EGG_NOT_AVAILABLE_FOR_TON:'Este ovo não está disponível para compra em TON.',INSUFFICIENT_TON_BALANCE:'Saldo TON interno insuficiente.',DAILY_EGG_LIMIT_REACHED:'Limite diário deste ovo atingido.',PLAYER_EGG_LIMIT_REACHED:'Você atingiu o limite de compra deste ovo.',EGG_LIMIT_REACHED:'Você atingiu o limite de compra deste ovo.',PLAYER_NOT_FOUND:'Jogador não encontrado.',PET_LISTED_IN_MARKET:'Este pet está anunciado no mercado.',NFT_PET_ADMIN_ONLY:'Pets NFT só podem ser concedidos pelo administrador.',NFT_PET_IMMUTABLE:'Este pet NFT não pode ser alterado.',NFT_PET_NOT_TRANSFERABLE:'Este pet NFT não pode ser transferido.'};
-export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetActionResponse>{const response=await forgeFetch('pets',({initData:telegramInitData,...input}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor dos pets.');const payload=await response.json().catch(()=>null) as (PetActionResponse&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'';if(raw)console.error('[MYTHREON PETS]',input.action,raw);throw new Error(PET_ERRORS[raw]||raw||'Não foi possível carregar os pets.')}return payload}
+export async function petRequest(telegramInitData:string,input:PetAction={action:'dashboard'}):Promise<PetActionResponse>{const response=await forgeFetch('pets',({initData:telegramInitData,...input}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar o servidor dos pets.');const payload=await response.json().catch(()=>null) as (PetActionResponse&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'';if(raw)console.error('[Mythic Seas PETS]',input.action,raw);throw new Error(PET_ERRORS[raw]||raw||'Não foi possível carregar os pets.')}return payload}
 export type PvpAction={action:'dashboard'|'search'|'fusion'|'rarity-fusion'}|{action:'rarity-fuse';heroIds:string[];idempotencyKey:string}|{action:'fuse';mainHeroId:string;materialIds:string[];useFragments?:boolean;idempotencyKey?:string;feeCurrency?:'FC'|'MYTH'}|{action:'lock';heroId:string;locked:boolean}|{action:'equip';teamType:'attack'|'defense';slot:number;heroId:string}|{action:'remove';teamType:'attack'|'defense';slot:number}|{action:'battle';opponentId:string}|{action:'buy-tickets';quantity:number;idempotencyKey:string}|{action:'ads'}|{action:'ads-begin'}|{action:'ads-reward';viewId:string};
 export async function pvpRequest<T=PvpDashboard>(telegramInitData:string,input:PvpAction={action:'dashboard'}):Promise<T>{const response=await forgeFetch('pvp',({initData:telegramInitData,...input}));if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Arena.');const payload=await response.json().catch(()=>null)as(T&{error?:string})|null;if(!response.ok||!payload){const raw=payload?.error||'',limit=/DAILY_LIMIT_(\d+)/.exec(raw),friendly:Record<string,string>={ATTACK_TEAM_EMPTY:'Equipe de ataque vazia.',NO_PVP_TICKETS:'Você não possui tickets.',OPPONENT_UNAVAILABLE:'Adversário indisponível.',INVALID_DEFENSE_TEAM:'Equipe defensiva inválida.',BATTLE_ALREADY_STARTED:'A batalha já foi iniciada.',INSUFFICIENT_FC:'BERRIES insuficientes para esta compra.',INVALID_PACK:'Pacote de tickets indisponível.'};if(limit)throw new Error(Number(limit[1])>0?`Limite diário: você pode comprar apenas ${limit[1]} ticket(s) hoje.`:'Limite diário de compra de tickets atingido.');throw new Error(friendly[raw]||raw||'Não foi possível processar o PvP.')}return payload}
 /** Level/XP recycling: preview (recoverable XP, cost, eligible targets) resolved server-side. */
@@ -637,7 +637,7 @@ export async function markSpendingEventPopupSeen(initData:string):Promise<void>{
   try{await forgeFetch('spending-event',{initData,action:'popup-seen'})}catch{/* silent: cosmetic only */}
 }
 
-/* ---------------- Promotional campaign popup (MYTHREON GIVEAWAY) ---------------- */
+/* ---------------- Promotional campaign popup (Mythic Seas GIVEAWAY) ---------------- */
 export type CampaignPopup={show:boolean;campaignId?:string;groupUrl?:string;reason?:string};
 
 /**
@@ -876,7 +876,7 @@ export async function verifyNftHeroPurchases(telegramInitData:string):Promise<Nf
 }
 
 /**
- * MYTHREON ARSENAL — the player's full equipment collection (normal + NFT 1/1)
+ * Mythic Seas ARSENAL — the player's full equipment collection (normal + NFT 1/1)
  * and the primary store for NFT EXCLUSIVE EQUIPMENT. Every rule (supply 1/1,
  * weapon class, ownership, payment) is enforced server-side.
  */
@@ -1068,7 +1068,7 @@ export async function tacticalRequest<T>(telegramInitData:string,input:TacticalA
   const response=await forgeFetch('tactical',{initData:telegramInitData,...input});
   if(response.status===404)throw new Error('Backend indisponível: não foi possível contatar a Arena Tática.');
   const payload=await response.json().catch(()=>null) as (T&{error?:string})|null;
-  if(!response.ok||!payload){const raw=(payload as {error?:string}|null)?.error||'';if(raw)console.error('[MYTHREON TACTICAL]',input.action,raw);throw new Error(raw||'TACTICAL_ERROR')}
+  if(!response.ok||!payload){const raw=(payload as {error?:string}|null)?.error||'';if(raw)console.error('[Mythic Seas TACTICAL]',input.action,raw);throw new Error(raw||'TACTICAL_ERROR')}
   return payload;
 }
 export const fetchTacticalDashboard=(initData:string)=>tacticalRequest<import('./tactical').TacticalDashboard>(initData,{action:'dashboard'});

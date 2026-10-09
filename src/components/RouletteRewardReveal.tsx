@@ -127,7 +127,7 @@ export function RouletteRewardReveal({
       >
         {/* TITLE */}
         <div className={`text-center transition-all duration-700 ${shown ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'}`}>
-          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-amber-300/90">Mythreon</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-amber-300/90">Mythic Seas</p>
           <h2 className="mt-1 bg-gradient-to-b from-amber-100 via-amber-300 to-amber-500 bg-clip-text text-[30px] font-black uppercase leading-none tracking-[0.14em] text-transparent drop-shadow-[0_0_22px_rgba(251,191,36,0.45)]">
             You won
           </h2>

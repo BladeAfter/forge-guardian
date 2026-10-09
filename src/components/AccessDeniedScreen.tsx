@@ -26,7 +26,7 @@ const COPY: Record<string, Copy> = {
   en: {
     title: 'ACCESS DENIED',
     message: 'Multiple accounts detected on this device.',
-    sub: 'For security and fair play, Mythreon allows up to 3 accounts per device.',
+    sub: 'For security and fair play, Mythic Seas allows up to 3 accounts per device.',
     code: 'Security Code',
     fair: 'FAIR PLAY PROTECTION',
     cta: 'REQUEST REVIEW',
@@ -38,7 +38,7 @@ const COPY: Record<string, Copy> = {
   pt: {
     title: 'ACESSO NEGADO',
     message: 'Detectamos várias contas associadas a este dispositivo.',
-    sub: 'Por segurança e jogo justo, o Mythreon permite no máximo 3 contas por dispositivo.',
+    sub: 'Por segurança e jogo justo, o Mythic Seas permite no máximo 3 contas por dispositivo.',
     code: 'Código de Segurança',
     fair: 'PROTEÇÃO DE JOGO JUSTO',
     cta: 'SOLICITAR REVISÃO',
@@ -50,7 +50,7 @@ const COPY: Record<string, Copy> = {
   es: {
     title: 'ACCESO DENEGADO',
     message: 'Detectamos varias cuentas asociadas a este dispositivo.',
-    sub: 'Por seguridad y juego limpio, Mythreon permite hasta 3 cuentas por dispositivo.',
+    sub: 'Por seguridad y juego limpio, Mythic Seas permite hasta 3 cuentas por dispositivo.',
     code: 'Código de seguridad',
     fair: 'PROTECCIÓN DE JUEGO LIMPIO',
     cta: 'SOLICITAR REVISIÓN',
@@ -62,7 +62,7 @@ const COPY: Record<string, Copy> = {
   ru: {
     title: 'ДОСТУП ЗАПРЕЩЁН',
     message: 'На этом устройстве обнаружено несколько аккаунтов.',
-    sub: 'Для безопасности и честной игры Mythreon разрешает до 3 аккаунтов на устройство.',
+    sub: 'Для безопасности и честной игры Mythic Seas разрешает до 3 аккаунтов на устройство.',
     code: 'Код безопасности',
     fair: 'ЗАЩИТА ЧЕСТНОЙ ИГРЫ',
     cta: 'ЗАПРОСИТЬ ПРОВЕРКУ',
@@ -74,7 +74,7 @@ const COPY: Record<string, Copy> = {
   tr: {
     title: 'ERİŞİM REDDEDİLDİ',
     message: 'Bu cihazda birden fazla hesap tespit edildi.',
-    sub: 'Güvenlik ve adil oyun için Mythreon cihaz başına en fazla 3 hesaba izin verir.',
+    sub: 'Güvenlik ve adil oyun için Mythic Seas cihaz başına en fazla 3 hesaba izin verir.',
     code: 'Güvenlik Kodu',
     fair: 'ADİL OYUN KORUMASI',
     cta: 'İNCELEME TALEP ET',

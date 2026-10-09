@@ -47,7 +47,7 @@ const TABS: { id: Tab; labelKey: string; art: string }[] = [
 const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n || 0));
 
 /**
- * MYTHREON REALM — acesso antecipado (somente admins liberados no backend).
+ * Mythic Seas REALM — acesso antecipado (somente admins liberados no backend).
  * Toda a verdade vem de `realm_state`; esta tela apenas renderiza o estado do servidor.
  * UI mobile-first: hierarquia enxuta, detalhes sempre em bottom sheet.
  */
@@ -251,7 +251,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
             <button onClick={onBack} className="realm-hud-back">{t('realm.back')}</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
-              <h1 className="realm-hud-title truncate">MYTHREON REALM</h1>
+              <h1 className="realm-hud-title truncate">Mythic Seas REALM</h1>
             </div>
             <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
               <span className="realm-lv-cap">{t('realm.strongholdCap')}</span>

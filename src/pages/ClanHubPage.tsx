@@ -120,7 +120,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
       <Shell onClose={onClose}>
         <section className="rounded-[2rem] border border-amber-300/30 bg-gradient-to-br from-[#101d35] via-[#0a1220] to-black p-5 text-center">
           <Shield className="mx-auto h-12 w-12 text-amber-300" />
-          <p className="mt-2 text-[9px] font-bold uppercase tracking-[.35em] text-amber-300">MYTHREON</p>
+          <p className="mt-2 text-[9px] font-bold uppercase tracking-[.35em] text-amber-300">Mythic Seas</p>
           <h2 className="text-2xl font-black text-amber-100">{t('clan.title')}</h2>
           <p className="mt-1 text-xs text-slate-300">{t('clan.tagline')}</p>
           <div className="mt-4 grid gap-2">
@@ -397,7 +397,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
       <div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3">
         <header className="mb-3 flex items-center justify-between">
           <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft /></button>
-          <div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('clan.title')}</b></div>
+          <div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">Mythic Seas</p><b>{t('clan.title')}</b></div>
           <Shield className="text-amber-300" />
         </header>
         {children}

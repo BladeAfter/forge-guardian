@@ -4,7 +4,7 @@ export type LanguageCode = "pt" | "en" | "es" | "ru" | "tr";
 export type Translator = (key: string, vars?: Record<string, string | number>) => string;
 
 const en: Record<string, string> = {
-  starterTitle: "WELCOME TO MYTHREON",
+  starterTitle: "WELCOME TO Mythic Seas",
   starterSubtitle: "Your adventure begins now!",
   starterRewards: "STARTER REWARDS",
   starterEgg: "Common Egg",
@@ -93,7 +93,7 @@ const en: Record<string, string> = {
   openQr: "QR Code",
   qrError: "Unable to create QR Code.",
   linkCopied: "Link copied!",
-  inviteShareText: "Join me in MYTHREON!",
+  inviteShareText: "Join me in Mythic Seas!",
   totalInvites: "Total",
   totalCommissions: "BERRIES earned",
   today: "Today",
@@ -121,7 +121,7 @@ const en: Record<string, string> = {
   "building.royal-workshop": "Royal Workshop",
   "building.dragon-foundry": "Dragon Foundry",
   "mission.mission-1.title": "Open the game",
-  "mission.mission-1.desc": "Visit MYTHREON and keep your streak alive.",
+  "mission.mission-1.desc": "Visit Mythic Seas and keep your streak alive.",
   "mission.mission-2.title": "Collect production",
   "mission.mission-2.desc": "Collect your accumulated BERRIES.",
   "mission.mission-3.title": "Upgrade a building",
@@ -129,11 +129,11 @@ const en: Record<string, string> = {
   "mission.mission-4.title": "Fight the boss",
   "mission.mission-4.desc": "Send your heroes against the Ancient Dragon.",
   "mission.mission-5.title": "Invite a friend",
-  "mission.mission-5.desc": "Share MYTHREON with a friend.",
+  "mission.mission-5.desc": "Share Mythic Seas with a friend.",
 };
 
 const pt: Record<string, string> = {
-  starterTitle: "BEM-VINDO AO MYTHREON",
+  starterTitle: "BEM-VINDO AO Mythic Seas",
   starterSubtitle: "Sua aventura começa agora!",
   starterRewards: "RECOMPENSAS INICIAIS",
   starterEgg: "Ovo Comum",
@@ -222,7 +222,7 @@ const pt: Record<string, string> = {
   openQr: "QR Code",
   qrError: "Não foi possível criar o QR Code.",
   linkCopied: "Link copiado!",
-  inviteShareText: "Junte-se a mim no MYTHREON!",
+  inviteShareText: "Junte-se a mim no Mythic Seas!",
   totalInvites: "Total",
   totalCommissions: "BERRIES ganhos",
   today: "Hoje",
@@ -250,7 +250,7 @@ const pt: Record<string, string> = {
   "building.royal-workshop": "Oficina Real",
   "building.dragon-foundry": "Fundição do Dragão",
   "mission.mission-1.title": "Abrir o jogo",
-  "mission.mission-1.desc": "Entre no Mythreon hoje e mantenha sua sequência ativa.",
+  "mission.mission-1.desc": "Entre no Mythic Seas hoje e mantenha sua sequência ativa.",
   "mission.mission-2.title": "Coletar produção",
   "mission.mission-2.desc": "Colete suas BERRIES acumuladas.",
   "mission.mission-3.title": "Melhorar construção",
@@ -258,11 +258,11 @@ const pt: Record<string, string> = {
   "mission.mission-4.title": "Enfrentar o chefe",
   "mission.mission-4.desc": "Envie seus heróis contra o Dragão Ancestral.",
   "mission.mission-5.title": "Convidar um amigo",
-  "mission.mission-5.desc": "Compartilhe MYTHREON com um amigo.",
+  "mission.mission-5.desc": "Compartilhe Mythic Seas com um amigo.",
 };
 
 const es: Record<string, string> = {
-  starterTitle: "BIENVENIDO A MYTHREON",
+  starterTitle: "BIENVENIDO A Mythic Seas",
   starterSubtitle: "¡Tu aventura comienza ahora!",
   starterRewards: "RECOMPENSAS INICIALES",
   starterEgg: "Huevo Común",
@@ -349,7 +349,7 @@ const es: Record<string, string> = {
   openQr: "Código QR",
   qrError: "No se pudo crear el código QR.",
   linkCopied: "¡Enlace copiado!",
-  inviteShareText: "¡Únete a mí en MYTHREON!",
+  inviteShareText: "¡Únete a mí en Mythic Seas!",
   totalInvites: "Total",
   totalCommissions: "BERRIES ganados",
   today: "Hoy",
@@ -374,7 +374,7 @@ const es: Record<string, string> = {
 };
 
 const ru: Record<string, string> = {
-  starterTitle: "ДОБРО ПОЖАЛОВАТЬ В MYTHREON",
+  starterTitle: "ДОБРО ПОЖАЛОВАТЬ В Mythic Seas",
   starterSubtitle: "Ваше приключение начинается!",
   starterRewards: "НАЧАЛЬНЫЕ НАГРАДЫ",
   starterEgg: "Обычное яйцо",
@@ -461,7 +461,7 @@ const ru: Record<string, string> = {
   openQr: "QR-код",
   qrError: "Не удалось создать QR-код.",
   linkCopied: "Ссылка скопирована!",
-  inviteShareText: "Присоединяйтесь ко мне в MYTHREON!",
+  inviteShareText: "Присоединяйтесь ко мне в Mythic Seas!",
   totalInvites: "Всего",
   totalCommissions: "Заработано BERRIES",
   today: "Сегодня",
@@ -527,6 +527,6 @@ export const translateError = (language: LanguageCode, error: unknown): string =
     !/[{}();]|does not exist|violates|constraint|ambiguous|column reference|relation |syntax error|permission denied|null value|duplicate key|invalid input|"/i.test(raw)
   )
     return raw;
-  if (raw) console.error('[MYTHREON ERROR]', raw);
+  if (raw) console.error('[Mythic Seas ERROR]', raw);
   return translate(language, 'errors.generic');
 };

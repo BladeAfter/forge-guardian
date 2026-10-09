@@ -476,7 +476,7 @@ function Frame({ children, onClose, clan, cycle, bossKey }: { children: React.Re
           <div className="flex items-center gap-2">
             {clan ? <ClanCrest emblem={clan.emblem} size={28} /> : null}
             <div className="text-center">
-              <p className="text-[8px] tracking-[.28em] text-amber-300">{clan ? `[${clan.tag}] ${clan.name}` : 'MYTHREON'}</p>
+              <p className="text-[8px] tracking-[.28em] text-amber-300">{clan ? `[${clan.tag}] ${clan.name}` : 'Mythic Seas'}</p>
               <b className="text-[12px] tracking-[.14em] text-white">{t('clanBoss.title')}</b>
               {cycle ? <p className={`text-[8px] tracking-[.2em] ${theme.accent}`}>{t('clanBoss.cycle')} #{cycle}</p> : null}
             </div>

@@ -57,7 +57,7 @@ export function HeroesPage({ telegramInitData, onClose }: { telegramInitData: st
       <div className="forge-safe-page relative mx-auto min-h-full w-full max-w-[480px] overflow-x-hidden p-3 pb-10">
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[.28em] text-amber-300">MYTHREON</p>
+            <p className="text-[9px] uppercase tracking-[.28em] text-amber-300">Mythic Seas</p>
             <h1 className="truncate text-xl font-black">{t('heroes.title')}</h1>
           </div>
           <button onClick={onClose} aria-label={t('heroes.close')} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-amber-300/20 bg-black/60"><X /></button>

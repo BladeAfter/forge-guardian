@@ -1,5 +1,5 @@
 /**
- * ⚔️ MYTHREON VETERAN VAULT — premium pack for veteran players with a 45-day reward cycle.
+ * ⚔️ Mythic Seas VETERAN VAULT — premium pack for veteran players with a 45-day reward cycle.
  *
  * Display-only typing. Eligibility, price, cycle day, matured rewards, TON/MYTH credits, pool coverage
  * and completion are decided by the backend (`veteran_vault_*` RPCs) and tuned by the Admin Bot without
@@ -111,7 +111,7 @@ export function veteranCountdown(nextRewardAt: string | null | undefined, now = 
 const VETERAN_ERRORS: Record<string, string> = {
   VETERAN_VAULT_DISABLED: 'O Veteran Vault está indisponível neste momento.',
   VETERAN_VAULT_SALES_PAUSED: 'As vendas do Veteran Vault estão pausadas.',
-  VETERAN_VAULT_NOT_ELIGIBLE: 'O Veteran Vault é exclusivo para jogadores antigos do Mythreon.',
+  VETERAN_VAULT_NOT_ELIGIBLE: 'O Veteran Vault é exclusivo para jogadores antigos do Mythic Seas.',
   VETERAN_VAULT_ALREADY_PURCHASED: 'Você já possui o Veteran Vault desta temporada.',
   VETERAN_VAULT_SOLD_OUT: 'Reservas esgotadas: aguarde o novo financiamento do Veteran Reward Pool.',
   VETERAN_VAULT_NOT_ACTIVE: 'Você ainda não possui um ciclo Veteran ativo.',

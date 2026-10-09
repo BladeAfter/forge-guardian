@@ -50,7 +50,7 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
 
  // A payment made with the app closed is finished here, exactly once.
  const recovered=React.useRef(false);
- React.useEffect(()=>{if(recovered.current)return;recovered.current=true;reconcilePendingPassPurchases(telegramInitData).then(async verification=>{if(!activatedPass(verification))return;await invalidateAll();toast.success(t('pass.activated',{tier:passTierLabel(activatedPass(verification)?.tier)}))}).catch(error=>console.error('[MYTHREON PASS RECOVERY]',error))},[telegramInitData]);
+ React.useEffect(()=>{if(recovered.current)return;recovered.current=true;reconcilePendingPassPurchases(telegramInitData).then(async verification=>{if(!activatedPass(verification))return;await invalidateAll();toast.success(t('pass.activated',{tier:passTierLabel(activatedPass(verification)?.tier)}))}).catch(error=>console.error('[Mythic Seas PASS RECOVERY]',error))},[telegramInitData]);
  const claim=useMutation({mutationFn:(rewardId:string)=>seasonPassRequest(telegramInitData,'claim',{rewardId}),onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();toast.success(t('pass.rewardClaimed'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.claimFailed'))});
  const{data:myth}=useMythUtility(telegramInitData);
  // Alternative pass payment: burns MYTH from the available balance (TON flow untouched).
@@ -70,7 +70,7 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
   toast.message(t('pass.paymentSent'));
   for(let attempt=1;attempt<=8;attempt+=1){
    await new Promise(resolve=>window.setTimeout(resolve,attempt===1?6000:7000));
-   try{const verification=await verifyLockedPassRewards(telegramInitData);if(verification.completed.length)return{...outcome,status:'completed' as const};}catch(error){console.error('[MYTHREON PASS CHEST]',error)}
+   try{const verification=await verifyLockedPassRewards(telegramInitData);if(verification.completed.length)return{...outcome,status:'completed' as const};}catch(error){console.error('[Mythic Seas PASS CHEST]',error)}
   }
   return{...outcome,status:'pending' as const};
  },onSuccess:async outcome=>{await invalidateAll();if(outcome.status==='completed')toast.success(t('pass.unlockSuccess'));else toast.message(t('pass.paymentPendingActivation'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.unlockFailed'))});
@@ -137,7 +137,7 @@ function Reward({reward:r,pending,onClaim,onUnlock,unlocking}:{reward?:PassRewar
  </button>}
 
 
-function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">MYTHREON</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
+function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){const t=useT();return<div className="fullscreen-page text-white"><div className="forge-safe-page mx-auto min-h-full w-full max-w-[480px] p-3"><header className="flex items-center justify-between"><button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border border-amber-300/25 bg-black/50"><ArrowLeft/></button><div className="text-center"><p className="text-[9px] tracking-[.28em] text-amber-300">Mythic Seas</p><b>{t('pass.title')}</b></div><ScrollText className="text-amber-300"/></header>{children}</div></div>}
 function Pass({tier,owned,included=false,upgrade=false,price,bonus=0,pending,onBuy}:{tier:'adventurer'|'legendary';owned:boolean;included?:boolean;upgrade?:boolean;price:number;bonus?:number;pending:boolean;onBuy:()=>void;myth?:MythUtilityState|null}){const t=useT();const held=owned||included;return<div className={`rounded-2xl border p-3 text-center ${tier==='adventurer'?'border-emerald-400/30 bg-emerald-950/20':'border-violet-400/35 bg-violet-950/25'}`}><Star className={`mx-auto ${tier==='adventurer'?'text-emerald-300':'text-amber-300'}`}/><b className="mt-1 block text-xs">{tier==='adventurer'?`${t('pass.adventurerPassLine1')} ${t('pass.adventurerPassLine2')}`:`${t('pass.legendaryPassLine1')} ${t('pass.legendaryPassLine2')}`}</b><p className="text-lg font-black">{held?<span className="text-emerald-300">{included?t('pass.includedCheck'):t('pass.activeCheck')}</span>:`${formatTon(price)} TON`}</p>{bonus>0?<p className="mt-1 rounded-lg border border-amber-300/30 bg-amber-400/10 px-1 py-0.5 text-[8px] font-black text-amber-200">{t('pass.benefitXp',{percent:bonus})}</p>:null}<button disabled={held||pending} onClick={onBuy} className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-[9px] font-black text-black disabled:bg-emerald-500">{held?t('pass.acquired'):upgrade?t('pass.buyLegendary'):t('pass.buyPass')}</button></div>}
 
 /** Compact bottom sheet: every number shown here is produced by the backend. */

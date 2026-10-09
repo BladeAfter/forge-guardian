@@ -10,7 +10,7 @@ import {
 } from '../mythStaking';
 
 /**
- * MYTH STAKING — Mythreon Ecosystem Staking (internal, backend-controlled).
+ * MYTH STAKING — Mythic Seas Ecosystem Staking (internal, backend-controlled).
  *
  * Deliberately NOT presented as on-chain/TON validator staking: there is no smart contract yet.
  * The card only mirrors backend state; STAKED/REWARDS/APR, limits, locks and the ON/OFF switch are
@@ -46,7 +46,7 @@ export function MythStakingCard({ initData, enabled }: { initData: string | null
                 <span className="rounded-full border border-amber-400/50 bg-black/60 px-2 py-[2px] text-[8px] font-black uppercase tracking-[.14em] text-amber-200">Coming Soon</span>
               ) : null}
             </span>
-            <span className="block text-[10px] uppercase tracking-[.1em] text-fuchsia-300/90">Mythreon Ecosystem Staking</span>
+            <span className="block text-[10px] uppercase tracking-[.1em] text-fuchsia-300/90">Mythic Seas Ecosystem Staking</span>
             <span className="mt-1 flex items-center gap-3 text-[9px] font-black uppercase tracking-[.12em] text-slate-300">
               <span>{formatMyth(staked)} <span className="text-amber-300">staked</span></span>
               <span>APR <span className="text-emerald-300">{formatApr(apr)}</span></span>
@@ -102,7 +102,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
           <img src={mythToken} alt="" loading="lazy" width={64} height={64} className="h-10 w-10 object-contain" />
           <div className="flex-1">
             <p className="text-sm font-black uppercase tracking-[.16em] text-amber-100">MYTH Staking</p>
-            <p className="text-[10px] uppercase tracking-[.1em] text-fuchsia-300/90">Mythreon Ecosystem Staking</p>
+            <p className="text-[10px] uppercase tracking-[.1em] text-fuchsia-300/90">Mythic Seas Ecosystem Staking</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="rounded-full border border-white/15 bg-black/60 p-1 text-slate-300">
             <X className="h-4 w-4" />
@@ -111,7 +111,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
 
         {!active ? (
           <p className="mt-3 rounded-xl border border-amber-400/30 bg-black/50 p-3 text-xs leading-relaxed text-slate-300">
-            Staking is being prepared for a future Mythreon update.
+            Staking is being prepared for a future Mythic Seas update.
           </p>
         ) : null}
 

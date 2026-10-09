@@ -42,7 +42,7 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
         />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[11px] font-black uppercase tracking-[.14em] text-amber-100">{name}</span>
-          <span className="block text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token</span>
+          <span className="block text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythic Seas Token</span>
           {staked > 0 ? (
             <span className="block text-[9px] font-black uppercase tracking-[.14em] text-emerald-300">Staked {formatMyth(staked)} {symbol}</span>
           ) : null}
@@ -68,11 +68,11 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                 <img src={mythToken} alt="" loading="lazy" width={64} height={64} className="h-12 w-12 object-contain" />
                 <div>
                   <p className="text-sm font-black uppercase tracking-[.14em] text-amber-100">{name}</p>
-                  <p className="text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythreon Token · Mining & Staking</p>
+                  <p className="text-[10px] uppercase tracking-[.12em] text-indigo-300">Official Mythic Seas Token · Mining & Staking</p>
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-slate-300">
-                The official currency of Mythreon. Earn MYTH from NFT mining, buy it in the token sale and put it to work
+                The official currency of Mythic Seas. Earn MYTH from NFT mining, buy it in the token sale and put it to work
                 in staking. New utilities keep coming as the realm grows.
               </p>
 
@@ -108,7 +108,7 @@ export function MythTokenCard({ wallet }: { wallet?: MythWallet | null }) {
                   : `Stake ${formatMyth(feeThreshold)} ${symbol} for a fixed ${feeReduced}% TON withdrawal fee`}
               </p>
               <p className="text-center text-[9px] font-black uppercase tracking-[.16em] text-amber-300/80">
-                Mine · Stake · Rise — Powered by Mythreon
+                Mine · Stake · Rise — Powered by Mythic Seas
               </p>
 
 

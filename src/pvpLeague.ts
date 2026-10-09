@@ -1,5 +1,5 @@
 /**
- * MYTHREON :: PVP LEAGUE ARENA (main event slot).
+ * Mythic Seas :: PVP LEAGUE ARENA (main event slot).
  *
  * The backend (`pvp_league_dashboard`) owns the event score, ranking and prize
  * table. The client only renders it: it never sends score deltas.

@@ -104,7 +104,7 @@ export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: st
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-fuchsia-300/40 bg-forge-black/80 p-4 text-left shadow-card"
     >
-      <img src={packArt} alt="Mythreon 20 TON Mythic Pack" loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt="Mythic Seas 20 TON Mythic Pack" loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-fuchsia-200">
           <Zap className="h-3 w-3" /> ⚡ {t('mpp.badge')}

@@ -25,7 +25,7 @@ export const MYTH_SALE_MILESTONES: MythSaleMilestone[] = [
   { amount: 7_000_000, rewards: ['1 Exclusive Hero Chest', '1000 Universal Fragments', '30 PvP Tickets'] },
   { amount: 8_000_000, rewards: ['1 Exclusive Hero Chest', '1300 Universal Fragments', '35 PvP Tickets', 'NFT Weapon: Mythsong Staff'] },
   { amount: 9_000_000, rewards: ['1 Exclusive Pet Egg', '1600 Universal Fragments', '40 PvP Tickets'] },
-  { amount: 10_000_000, rewards: ['1 Exclusive Hero Chest', '2000 Universal Fragments', '50 PvP Tickets', 'NFT Weapon: Godshard of Mythreon'] },
+  { amount: 10_000_000, rewards: ['1 Exclusive Hero Chest', '2000 Universal Fragments', '50 PvP Tickets', 'NFT Weapon: Godshard of Mythic Seas'] },
 ];
 
 

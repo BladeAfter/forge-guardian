@@ -1,7 +1,7 @@
 import type { Dict, LocaleBundle } from './registry';
 
 /**
- * 🏰 MYTHREON REALM — every player-facing string of the Realm (Stronghold, Map,
+ * 🏰 Mythic Seas REALM — every player-facing string of the Realm (Stronghold, Map,
  * Forge, Ancient Ruins, Contracts, exploration and battles).
  *
  * Stored as tuples [en, pt, es, ru, tr] to keep the five languages side by side
@@ -19,7 +19,7 @@ const T: Record<string, [string, string, string, string, string]> = {
   'realm.strongholdCap': ['Stronghold', 'Fortaleza', 'Fortaleza', 'Крепость', 'Kale'],
   'realm.resources': ['Resources', 'Recursos', 'Recursos', 'Ресурсы', 'Kaynaklar'],
   'realm.resourcesTitle': ['Realm resources', 'Recursos do Realm', 'Recursos del Realm', 'Ресурсы королевства', 'Krallık kaynakları'],
-  'realm.loadFail': ['Could not open MYTHREON REALM.', 'Falha ao abrir o MYTHREON REALM.', 'No se pudo abrir el MYTHREON REALM.', 'Не удалось открыть MYTHREON REALM.', 'MYTHREON REALM açılamadı.'],
+  'realm.loadFail': ['Could not open Mythic Seas REALM.', 'Falha ao abrir o Mythic Seas REALM.', 'No se pudo abrir el Mythic Seas REALM.', 'Не удалось открыть Mythic Seas REALM.', 'Mythic Seas REALM açılamadı.'],
   'realm.close': ['Close', 'Fechar', 'Cerrar', 'Закрыть', 'Kapat'],
   'realm.continue': ['Continue', 'Continuar', 'Continuar', 'Продолжить', 'Devam'],
   'realm.difficulty': ['Difficulty', 'Dificuldade', 'Dificultad', 'Сложность', 'Zorluk'],
@@ -272,7 +272,7 @@ const T: Record<string, [string, string, string, string, string]> = {
   'realm.reward.youFell': ['YOU FELL', 'VOCÊ CAIU', 'CAÍSTE', 'ВЫ ПАЛИ', 'DÜŞTÜN'],
 
   // ── ERRORS ─────────────────────────────────────────────────────────────
-  'realm.err.REALM_LOCKED': ['MYTHREON REALM is still in early access.', 'O MYTHREON REALM ainda está em acesso antecipado.', 'MYTHREON REALM sigue en acceso anticipado.', 'MYTHREON REALM ещё в раннем доступе.', 'MYTHREON REALM hâlâ erken erişimde.'],
+  'realm.err.REALM_LOCKED': ['Mythic Seas REALM is still in early access.', 'O Mythic Seas REALM ainda está em acesso antecipado.', 'Mythic Seas REALM sigue en acceso anticipado.', 'Mythic Seas REALM ещё в раннем доступе.', 'Mythic Seas REALM hâlâ erken erişimde.'],
   'realm.err.REALM_BUILDING_BUSY': ['This building is already under construction.', 'Esta construção já está em obras.', 'Esta construcción ya está en obras.', 'Это здание уже строится.', 'Bu yapı zaten inşa hâlinde.'],
   'realm.err.REALM_BUILDING_MAX': ['Max level reached.', 'Nível máximo alcançado.', 'Nivel máximo alcanzado.', 'Достигнут максимальный уровень.', 'Maksimum seviyeye ulaşıldı.'],
   'realm.err.REALM_CASTLE_TOO_LOW': ['Upgrade the Castle before this building.', 'Suba o Castelo antes de evoluir esta construção.', 'Sube el Castillo antes de mejorar esta construcción.', 'Сначала улучшите замок.', 'Bu yapıdan önce Şato\'yu yükselt.'],
@@ -356,7 +356,7 @@ const T: Record<string, [string, string, string, string, string]> = {
   'realm.dungeon.extract': ['Extract', 'Extrair', 'Extraer', 'Выйти', 'Çık'],
   'realm.dungeon.loot': ['loot', 'loot', 'botín', 'добыча', 'ganimet'],
   'realm.dungeon.vit': ['vitality', 'vitalidade', 'vitalidad', 'жизнь', 'canlılık'],
-  'realm.err.generic': ['MYTHREON REALM failed.', 'Falha no MYTHREON REALM.', 'Fallo en MYTHREON REALM.', 'Ошибка MYTHREON REALM.', 'MYTHREON REALM hatası.'],
+  'realm.err.generic': ['Mythic Seas REALM failed.', 'Falha no Mythic Seas REALM.', 'Fallo en Mythic Seas REALM.', 'Ошибка Mythic Seas REALM.', 'Mythic Seas REALM hatası.'],
 };
 
 const pick = (index: number): Dict =>

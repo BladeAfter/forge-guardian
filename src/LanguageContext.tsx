@@ -44,7 +44,7 @@ const telegramLanguage = (): LanguageCode => {
 };
 
 /**
- * Single global source of truth for the MYTHREON interface language.
+ * Single global source of truth for the Mythic Seas interface language.
  *
  * Resolution order on boot: manual local choice -> stored suggestion ->
  * Telegram `language_code` -> English. Once the player picks a language

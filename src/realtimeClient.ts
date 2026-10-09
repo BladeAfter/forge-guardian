@@ -17,7 +17,7 @@ const client = createClient(supabaseUrl, supabaseAnonKey, {
 /**
  * ⚠️ Realtime is intentionally DISABLED.
  *
- * Mythreon players never hold a Supabase session: every read/write goes through
+ * Mythic Seas players never hold a Supabase session: every read/write goes through
  * the `game-api` Edge Function with the service role, and the game tables have no
  * client-side grants/policies on purpose (security hardening). Postgres-changes
  * subscriptions therefore can never deliver a payload — the socket only produced

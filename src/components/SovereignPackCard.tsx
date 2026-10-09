@@ -96,7 +96,7 @@ export function SovereignPackCard({ telegramInitData, popupMode = false, onPopup
     if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-amber-200/40 bg-forge-black/80 p-4 shadow-card">
-        <img src={packArt} alt="Mythreon Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={packArt} alt="Mythic Seas Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">
             <Crown className="h-3 w-3" /> {t('svp.title')}
@@ -131,7 +131,7 @@ export function SovereignPackCard({ telegramInitData, popupMode = false, onPopup
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-amber-300/60 bg-forge-black/80 p-4 text-left shadow-[0_0_28px_rgba(251,191,36,0.22)]"
     >
-      <img src={packArt} alt="Mythreon Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt="Mythic Seas Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">
           <Crown className="h-3 w-3" /> 👑 {t('svp.badge')}
@@ -182,7 +182,7 @@ export function SovereignPackCard({ telegramInitData, popupMode = false, onPopup
         </div>
 
         <div className="relative overflow-y-auto px-4 pb-4">
-          <img src={packArt} alt="Mythreon Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="mt-3 h-40 w-full rounded-2xl border border-amber-200/30 object-cover" />
+          <img src={packArt} alt="Mythic Seas Celestial Sovereign Pack" loading="lazy" width={1024} height={640} className="mt-3 h-40 w-full rounded-2xl border border-amber-200/30 object-cover" />
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-2xl border border-amber-200/25 bg-black/50 p-3">

@@ -1,5 +1,5 @@
 /**
- * MYTHREON :: SPENDING EVENT (independent tracking layer).
+ * Mythic Seas :: SPENDING EVENT (independent tracking layer).
  *
  * The backend (`get_spending_event_dashboard`) is the single source of truth for
  * spending points, ranking, totals and estimated rewards. The client only renders.

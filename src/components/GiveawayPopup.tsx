@@ -11,7 +11,7 @@ type Props = {
 type Prize = { medal: string; place: string; lines: string[] };
 
 /**
- * MYTHREON GIVEAWAY promotional popup. Purely informative: it NEVER grants any
+ * Mythic Seas GIVEAWAY promotional popup. Purely informative: it NEVER grants any
  * reward. Winners are picked separately. The "show once per campaign" rule is
  * fully owned by the backend (user_campaign_popup + campaign_id).
  */
@@ -43,7 +43,7 @@ export function GiveawayPopup({ onJoin, onClose }: Props) {
         </button>
 
         <div className="relative flex-1 overflow-y-auto px-4 pb-4 pt-4">
-          <p className="text-center text-[10px] font-black tracking-[0.42em] text-amber-200/80">MYTHREON</p>
+          <p className="text-center text-[10px] font-black tracking-[0.42em] text-amber-200/80">Mythic Seas</p>
           <h2 className="mt-1 text-center text-[22px] font-black leading-tight text-transparent [background:linear-gradient(180deg,#fff5cf,#f0b32a)] [-webkit-background-clip:text] [background-clip:text] drop-shadow-[0_2px_10px_rgba(240,179,42,.45)]">
             🎁 {t('giveaway.title')}
           </h2>

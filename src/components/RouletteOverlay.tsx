@@ -214,7 +214,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
         {/* HEADER (own) */}
         <div className="flex w-full items-start justify-between">
           <div className="min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">MYTHREON</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">Mythic Seas</p>
             <h1 className="truncate text-base font-black uppercase tracking-[0.14em] text-sky-100">
               Global Mystery Roulette
             </h1>

@@ -75,7 +75,7 @@ function OpenInTelegramGate() {
       <img src={backgrounds.loading} alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[#07090d]/90" />
       <main className="relative w-full max-w-sm text-center">
-        <img src={logo.icon} alt="MYTHREON" className="mx-auto h-24 w-24 object-contain" />
+        <img src={logo.icon} alt="Mythic Seas" className="mx-auto h-24 w-24 object-contain" />
         <a
           href={TELEGRAM_APP_LINK}
           className="mt-8 block w-full rounded-2xl border border-amber-300/50 bg-gradient-to-b from-amber-400 to-amber-600 px-6 py-4 text-base font-black uppercase tracking-[.12em] text-forge-black shadow-[0_14px_30px_rgba(0,0,0,.6)] transition active:scale-95"
@@ -188,13 +188,13 @@ function App() {
   /**
    * SPENDING EVENT: the automatic entry popup was REMOVED on purpose. The event,
    * its ranking, points and rewards stay untouched inside the EVENTS tab.
-   * The single automatic popup is now the MYTHREON GIVEAWAY campaign below.
+   * The single automatic popup is now the Mythic Seas GIVEAWAY campaign below.
    */
   const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
   const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
 
   /**
-   * MYTHREON GIVEAWAY popup. The backend decides visibility once per
+   * Mythic Seas GIVEAWAY popup. The backend decides visibility once per
    * (player, campaign_id), so it never reappears after a dismiss/join, on page
    * changes, refreshes or on another device. It never grants rewards.
    */
@@ -411,7 +411,7 @@ function App() {
     return () => { cancelled = true; };
   }, [telegramInitData]);
 
-  // Real boot progress: each resolved dependency advances the single Mythreon loading screen.
+  // Real boot progress: each resolved dependency advances the single Mythic Seas loading screen.
   const playerProfileReady = Boolean(playerProfile);
   const heroesReady = !backendEnabled || Boolean(heroCollection.data) || Boolean(heroCollection.error);
   useEffect(() => {
@@ -572,7 +572,7 @@ function App() {
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
   const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [realmSoonOpen,setRealmSoonOpen]=useState(false);
-  // MYTHREON REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
+  // Mythic Seas REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
   const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
   useEffect(()=>{const i=window.setInterval(()=>setRealmNowTs(Date.now()),20000);return()=>window.clearInterval(i)},[]);
   const realmUnlocked=realmNowTs>=Date.parse('2026-09-05T00:00:00Z')||telegramUser?.id===8118569391;
@@ -699,7 +699,7 @@ function App() {
       console.error('[BOOT ERROR] critical_bootstrap', bootstrapError);
       return (
         <div className="relative flex min-h-screen flex-col items-center justify-center gap-4 bg-[#03060f] px-6 text-center text-white">
-          <h1 className="text-xl font-black tracking-wide">Unable to load Mythreon</h1>
+          <h1 className="text-xl font-black tracking-wide">Unable to load Mythic Seas</h1>
           <p className="max-w-xs text-sm text-slate-300">{bootstrapError}</p>
           <button
             type="button"
@@ -868,7 +868,7 @@ function App() {
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
-  // MYTHREON REALM — acesso antecipado: o backend também valida (realm_access_allowed).
+  // Mythic Seas REALM — acesso antecipado: o backend também valida (realm_access_allowed).
   if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
 
 
@@ -878,7 +878,7 @@ function App() {
       {realmSoonOpen?<div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 px-6" onClick={()=>setRealmSoonOpen(false)}>
         <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/30 bg-gradient-to-b from-[#141021] to-[#07090d] p-5 text-center shadow-[0_20px_60px_rgba(0,0,0,.8)]" onClick={e=>e.stopPropagation()}>
           <img src="/assets/game/realm/realm-castle-entry.png" alt="" width={96} height={96} className="mx-auto h-24 w-24 object-contain" />
-          <h3 className="mt-3 text-lg font-black uppercase tracking-[.18em] text-amber-200">MYTHREON REALM</h3>
+          <h3 className="mt-3 text-lg font-black uppercase tracking-[.18em] text-amber-200">Mythic Seas REALM</h3>
           <p className="mt-2 text-sm text-slate-300">Em breve! Esta área ainda está em preparação e será liberada para todos os jogadores.</p>
           <button onClick={()=>setRealmSoonOpen(false)} className="mt-4 w-full rounded-xl border border-amber-300/40 bg-amber-500/20 py-2 text-sm font-black uppercase tracking-[.14em] text-amber-100">Entendi</button>
         </div>
@@ -1062,7 +1062,7 @@ function App() {
           ) : null}
 
           <div className="hidden">
-        <img src={logo.horizontal} alt="MYTHREON" className="main-game-logo relative z-10 mx-auto -mb-3 mt-0 h-auto w-full max-w-[280px] shrink-0 drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]" />
+        <img src={logo.horizontal} alt="Mythic Seas" className="main-game-logo relative z-10 mx-auto -mb-3 mt-0 h-auto w-full max-w-[280px] shrink-0 drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]" />
 
         <section className="village-main-panel mb-2 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="village-level-bar mx-auto flex w-full max-w-[390px] shrink-0 items-center justify-between rounded-xl border border-amber-300/30 bg-[#0a0d12]/90 px-4 py-2 shadow-card">

@@ -1,5 +1,5 @@
 /**
- * Shared types for the MYTHREON translation registry.
+ * Shared types for the Mythic Seas translation registry.
  *
  * Every namespace file (heroes, pets, pvp, ...) exports a `LocaleBundle`
  * containing the four supported languages. English is mandatory because it is

@@ -104,7 +104,7 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
     if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-amber-300/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={vaultArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={vaultArt} alt="Mythic Seas Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
             <Swords className="h-3 w-3" /> Veteran Vault
@@ -139,7 +139,7 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 text-left shadow-card"
       >
-        <img src={vaultArt} alt="Mythreon Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src={vaultArt} alt="Mythic Seas Veteran Vault" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
@@ -162,7 +162,7 @@ export function VeteranVaultV2Card({ telegramInitData, popupMode = false, onPopu
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
-                  <Swords className="h-3 w-3" /> Mythreon Veteran Vault
+                  <Swords className="h-3 w-3" /> Mythic Seas Veteran Vault
                 </p>
                 <h3 className="mt-1 text-lg font-semibold text-white">Pacote premium Veteran</h3>
                 <p className="text-[11px] text-slate-300">Uma compra por conta · itens exclusivos da linha Veteran</p>

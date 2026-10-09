@@ -1,7 +1,7 @@
 import type { Dict } from "./registry";
 
 /**
- * Turkish (tr-TR) translations for MYTHREON.
+ * Turkish (tr-TR) translations for Mythic Seas.
  *
  * Single merged override map: `locales/index.ts` builds the Turkish dictionary
  * from the English base and applies these keys on top, so any future English
@@ -382,7 +382,7 @@ export const tr: Dict = {
   "events.retry": "TEKRAR DENE",
   "events.separateNote": "Bu ödül havuzu, Haftalık Topluluk Havuzu'ndan tamamen ayrıdır.",
   "events.step1": "Referans bağlantını paylaş",
-  "events.step2": "Yeni oyuncular Mythreon'a katılsın",
+  "events.step2": "Yeni oyuncular Mythic Seas'a katılsın",
   "events.step3": "Geçerli referanslar etkinlik için sayılır",
   "events.step4": "Liderlik tablosunda tırman",
   "events.step5": "En iyi oyuncular ödül havuzunu paylaşır",
@@ -458,7 +458,7 @@ export const tr: Dict = {
   "fusion.unlockHero": "KİLİDİ AÇ",
   "fusion.unstable": "Birleştirme kararsızdı.",
   "gate.button": "TELEGRAM'DA AÇ",
-  "gate.title": "MYTHREON Telegram içerisinde çalışır",
+  "gate.title": "Mythic Seas Telegram içerisinde çalışır",
   "generated": "Üretildi",
   "heroEquipped": "Kahraman kuşanıldı!",
   "heroLevel": "Sv. 1",
@@ -549,7 +549,7 @@ export const tr: Dict = {
   "inventory.useInPets": "Bu yumurtayı Evcil Hayvanlar ekranında açın.",
   "inventory.viewFusion": "BİRLEŞTİRMEYİ GÖR",
   "invite": "Davet Et",
-  "inviteShareText": "MYTHREON'da bana katıl!",
+  "inviteShareText": "Mythic Seas'da bana katıl!",
   "invitedList": "Davetler",
   "invites": "davetler",
   "killReward": "Yenme ödülü",
@@ -698,7 +698,7 @@ export const tr: Dict = {
   "mining.totalRate": "TOPLAM ORAN",
   "mining.unavailable": "Mevcut Değil",
   "mining.unclaimed": "ALINMAMIŞ",
-  "mission.mission-1.desc": "MYTHREON'u ziyaret et ve serini devam ettir.",
+  "mission.mission-1.desc": "Mythic Seas'u ziyaret et ve serini devam ettir.",
   "mission.mission-1.title": "Oyunu aç",
   "mission.mission-2.desc": "Birikmiş BERRIES'lerini topla.",
   "mission.mission-2.title": "Üretimi topla",
@@ -706,7 +706,7 @@ export const tr: Dict = {
   "mission.mission-3.title": "Bir binayı yükselt",
   "mission.mission-4.desc": "Kahramanlarını Ancient Dragon'a karşı gönder.",
   "mission.mission-4.title": "Boss ile savaş",
-  "mission.mission-5.desc": "MYTHREON'u bir arkadaşınla paylaş.",
+  "mission.mission-5.desc": "Mythic Seas'u bir arkadaşınla paylaş.",
   "mission.mission-5.title": "Bir arkadaş davet et",
   "myLink": "Bağlantım",
   "nav.boss": "Boss",
@@ -1206,7 +1206,7 @@ export const tr: Dict = {
   "starterError": "Ödüller alınamadı. Lütfen tekrar dene.",
   "starterRewards": "BAŞLANGIÇ ÖDÜLLERİ",
   "starterSubtitle": "Maceran şimdi başlıyor!",
-  "starterTitle": "MYTHREON'A HOŞ GELDİN",
+  "starterTitle": "Mythic Seas'A HOŞ GELDİN",
   "syncingBackend": "SENKRONİZE EDİLİYOR...",
   "teamAttack": "Takım ATK",
   "teamHealth": "Takım HP",

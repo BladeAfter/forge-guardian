@@ -1,10 +1,10 @@
 import type { LocaleBundle } from './registry';
 
-/** MYTHREON ARSENAL (inventory sub-screen: equipment collection + NFT equipment store). */
+/** Mythic Seas ARSENAL (inventory sub-screen: equipment collection + NFT equipment store). */
 export const arsenal: LocaleBundle = {
   en: {
     'arsenal.button': 'ARSENAL',
-    'arsenal.title': 'MYTHREON ARSENAL',
+    'arsenal.title': 'Mythic Seas ARSENAL',
     'arsenal.back': 'INVENTORY',
     'arsenal.tab.mine': 'MY EQUIPMENT',
     'arsenal.tab.nft': 'NFT EXCLUSIVE',
@@ -30,7 +30,7 @@ export const arsenal: LocaleBundle = {
   },
   pt: {
     'arsenal.button': 'ARSENAL',
-    'arsenal.title': 'MYTHREON ARSENAL',
+    'arsenal.title': 'Mythic Seas ARSENAL',
     'arsenal.back': 'INVENTÁRIO',
     'arsenal.tab.mine': 'MEUS EQUIPAMENTOS',
     'arsenal.tab.nft': 'NFT EXCLUSIVE',
@@ -56,7 +56,7 @@ export const arsenal: LocaleBundle = {
   },
   es: {
     'arsenal.button': 'ARSENAL',
-    'arsenal.title': 'MYTHREON ARSENAL',
+    'arsenal.title': 'Mythic Seas ARSENAL',
     'arsenal.back': 'INVENTARIO',
     'arsenal.tab.mine': 'MI EQUIPO',
     'arsenal.tab.nft': 'NFT EXCLUSIVE',
@@ -82,7 +82,7 @@ export const arsenal: LocaleBundle = {
   },
   ru: {
     'arsenal.button': 'АРСЕНАЛ',
-    'arsenal.title': 'MYTHREON ARSENAL',
+    'arsenal.title': 'Mythic Seas ARSENAL',
     'arsenal.back': 'ИНВЕНТАРЬ',
     'arsenal.tab.mine': 'МОЁ СНАРЯЖЕНИЕ',
     'arsenal.tab.nft': 'NFT EXCLUSIVE',
@@ -108,7 +108,7 @@ export const arsenal: LocaleBundle = {
   },
   tr: {
     'arsenal.button': 'ARSENAL',
-    'arsenal.title': 'MYTHREON ARSENAL',
+    'arsenal.title': 'Mythic Seas ARSENAL',
     'arsenal.back': 'ENVANTER',
     'arsenal.tab.mine': 'EKİPMANLARIM',
     'arsenal.tab.nft': 'NFT EXCLUSIVE',

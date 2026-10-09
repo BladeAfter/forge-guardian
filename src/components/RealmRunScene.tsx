@@ -112,7 +112,7 @@ type Props = {
 };
 
 /**
- * 🌍 MYTHREON REALM — CINEMATIC EXPLORATION SCENE.
+ * 🌍 Mythic Seas REALM — CINEMATIC EXPLORATION SCENE.
  *
  * The old node-graph (circles + lines) is gone: every backend node is rendered as a real
  * place inside the painted region scenery (shrine, cave, campfire, chest, creature…). The

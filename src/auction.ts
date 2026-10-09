@@ -1,5 +1,5 @@
 /**
- * MYTHREON AUCTION — negociação 100% em TON interno.
+ * Mythic Seas AUCTION — negociação 100% em TON interno.
  * Não existe BERRIES, não existe seleção de moeda e nenhum lance abre TonConnect:
  * o jogador precisa ter TON no saldo interno (Wallet → DEPOSIT TON BALANCE) antes de dar lance.
  * Todas as regras (reserva, liberação ao ser superado, taxa, anti-snipe, encerramento)

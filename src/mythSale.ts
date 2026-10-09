@@ -1,5 +1,5 @@
 /**
- * MYTHREON :: MYTH TOKEN SALE (frontend contract only).
+ * Mythic Seas :: MYTH TOKEN SALE (frontend contract only).
  *
  * Every number here is produced by the backend (`get_myth_sale_dashboard` / `myth_sale_stats`).
  * The client never computes price, supply, availability or the payment method — it only renders

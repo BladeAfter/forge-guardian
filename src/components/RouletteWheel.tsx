@@ -49,7 +49,7 @@ export function RouletteWheel({
     >
       <img
         src={wheelArt}
-        alt="Mythreon Global Mystery Roulette"
+        alt="Mythic Seas Global Mystery Roulette"
         className="absolute inset-0 h-full w-full select-none object-contain drop-shadow-[0_0_48px_rgba(0,0,0,0.75)]"
         draggable={false}
       />

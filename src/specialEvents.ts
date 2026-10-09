@@ -1,6 +1,6 @@
 import { formatTon } from './economy';
 /**
- * MYTHREON :: Special Events (independent layer, never mixed with the weekly Community Pool).
+ * Mythic Seas :: Special Events (independent layer, never mixed with the weekly Community Pool).
  *
  * The backend (`get_special_events_dashboard`) is the only source of truth for
  * valid referrals, ranking and prize estimation. The client just renders it.

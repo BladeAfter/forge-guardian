@@ -59,7 +59,7 @@ export async function waitForPassActivation(
       last = await reconcilePendingPassPurchases(telegramInitData);
       if (activatedPass(last)) return last;
     } catch (error) {
-      console.error('[MYTHREON PASS PURCHASE]', error);
+      console.error('[Mythic Seas PASS PURCHASE]', error);
     }
   }
   return last;
