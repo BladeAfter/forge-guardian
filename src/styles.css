@@ -4003,3 +4003,13 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .seas-community-content .fixed { background: hsl(var(--community-ink) / .75) !important; }
 .seas-community-content .fixed > div { background: hsl(var(--community-surface)) !important; }
 .seas-community button:focus-visible { outline: 2px solid hsl(var(--community-coral)); outline-offset: 3px; }
+
+/* Mythic Seas loading title */
+.seas-title-wrap{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:.25rem;pointer-events:none;animation:seasTitleIn .9s ease-out both}
+.seas-title-kicker{font-size:10px;font-weight:800;letter-spacing:.35em;text-transform:uppercase;color:hsl(43 90% 78%);text-shadow:0 2px 6px hsl(220 60% 5%/.9)}
+.seas-title{margin:0;display:flex;flex-direction:column;align-items:center;line-height:.85;font-family:Georgia,'Times New Roman',serif;font-weight:900}
+.seas-title span{background:linear-gradient(180deg,hsl(48 100% 88%) 0%,hsl(43 95% 62%) 45%,hsl(30 85% 38%) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px hsl(25 70% 18%);filter:drop-shadow(0 3px 0 hsl(25 70% 14%)) drop-shadow(0 8px 18px hsl(220 70% 5%/.85)) drop-shadow(0 0 22px hsl(43 100% 60%/.35))}
+.seas-title-top{font-size:clamp(2.6rem,13vw,4.2rem);letter-spacing:.06em}
+.seas-title-bottom{font-size:clamp(3.4rem,18vw,5.6rem);letter-spacing:.14em}
+.seas-title-rule{margin-top:.35rem;width:min(62vw,240px);height:3px;border-radius:9999px;background:linear-gradient(90deg,transparent,hsl(43 95% 62%),hsl(8 80% 55%),hsl(43 95% 62%),transparent);box-shadow:0 0 12px hsl(43 100% 60%/.6)}
+@keyframes seasTitleIn{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
