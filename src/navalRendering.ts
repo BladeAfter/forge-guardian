@@ -12,10 +12,20 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
   const cosmetics = ship.cosmetics ?? DEFAULT_SHIP.cosmetics;
   const w = atlas.naturalWidth / 3, h = atlas.naturalHeight / 2;
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.heading);
+  // Waterline stays attached to the hull, including when stationary.
+  ctx.fillStyle = palette.ink; ctx.globalAlpha = .24;
+  ctx.beginPath(); ctx.ellipse(0, size * .06, size * .19, size * .43, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = palette.foam; ctx.globalAlpha = .5; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(0, size * .02, size * .22, size * .46, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
   if (ship.throttle > 0) {
     ctx.strokeStyle = cosmetics.trail === 'embers' ? palette.ember : cosmetics.trail === 'mist' ? palette.vitality : palette.foam;
     ctx.globalAlpha = .55; ctx.lineWidth = cosmetics.trail === 'mist' ? 8 : 3;
-    ctx.beginPath(); ctx.moveTo(-size*.12,size*.38); ctx.lineTo(-size*.27,size*.95); ctx.moveTo(size*.12,size*.38); ctx.lineTo(size*.27,size*.95); ctx.stroke(); ctx.globalAlpha = 1;
+    for (let i = 0; i < 6; i++) {
+      const phase = ((time / 700 + i / 6) % 1);
+      ctx.globalAlpha = (1 - phase) * .6;
+      ctx.beginPath(); ctx.ellipse(0, size * (.4 + phase * .85), size * (.13 + phase * .2), size * .06, 0, 0, Math.PI); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
   }
   ctx.filter = palette.filters[ship.skin] || 'none';
   if (atlas.complete && atlas.naturalWidth) { ctx.save();ctx.rotate(Math.PI);ctx.drawImage(atlas,(index%3)*w,Math.floor(index/3)*h,w,h,-size/2,-size/2,size,size);ctx.restore(); }

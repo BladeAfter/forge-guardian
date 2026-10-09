@@ -44,7 +44,7 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, onSai
       }
       const live = network.current;
       for (const ship of live?.others ?? []) drawNavalShip(ctx, fleet, ship, palette, time);
-      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y + Math.sin(time / 700) * 2, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, time, 170);
+      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, time, 170);
       ctx.restore();
       canvas.dataset.chunk = `${Math.floor(s.position.x / SEA_CHUNK)}:${Math.floor(s.position.y / SEA_CHUNK)}`;
     };

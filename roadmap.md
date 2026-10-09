@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Suavizar navio na Grand Line entre posições aprovadas, sem previsão de progresso; remover deslocamento vertical artificial e adicionar contato do casco/espuma animada. Onze testes passaram; joystick, frenagem e navegação compartilhada simulada conferidos no navegador. Sessão real do Telegram não disponível para confirmação.
+
 - [x] Arena ajustada à referência: novas artes IA de capitão/capitã apoiados no chão, dragão proporcional à direita, cenário visível, tripulação vertical e ações circulares. Ataque oficial, poderes bloqueados, joystick, esquiva, ranking e expansão conferidos isoladamente; equivalência exata e sessão Telegram real não verificadas.
 
 - [x] Gráfico do mercado refinado e compactado conforme referência: curva suave, preenchimento luminoso sutil, dias selecionáveis e moedas preservadas; conferência visual isolada sem cortes. Dados pessoais e exemplos explicitamente identificados preservados; sessão Telegram real não verificada.

@@ -7,6 +7,7 @@ import { useNavalOcean } from '../useNavalOcean';
 import NavalShipyard from './NavalShipyard';
 import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
+import { approachApprovedPose } from '../navalMotion';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
@@ -41,7 +42,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const [inspecting,setInspecting] = useState(false);
   const [throttle,setThrottle] = useState(1);
   const throttleRef = useRef(1); throttleRef.current=throttle;
-  const networkPosition = useRef('');
+  const networkPosition = useRef(false);
   const network = useNavalOcean(initData, () => {
     const s=state.current, k=s.keys;
     if(yardRef.current || document.hidden) return {dx:0,dy:0,throttle:0};
@@ -77,14 +78,20 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
       const live = currentNetwork.current;
       if (live) {
-        const stamp=`${live.ship.x}:${live.ship.y}`;
-        if(stamp!==networkPosition.current) { s.position={x:live.ship.x,y:live.ship.y};s.heading=live.ship.heading;networkPosition.current=stamp; }
-        s.moving=live.ship.throttle>0;
+        if (!networkPosition.current) {
+          s.position = { x: live.ship.x, y: live.ship.y }; s.heading = live.ship.heading;
+          s.camera = { ...s.position }; networkPosition.current = true;
+        }
+        const next = approachApprovedPose(s.position, s.heading, live.ship, dt);
+        s.moving = seaDistance(s.position, { x: live.ship.x, y: live.ship.y }) > .5;
+        s.position = next.position; s.heading = next.heading;
+        s.velocity = { x: 0, y: 0 };
       } else if (!yardRef.current) {
+        networkPosition.current = false;
         s.position = advanceSailing(s.position, s.target, s, dt, 122 * throttleRef.current);
         s.moving = Math.hypot(s.velocity.x, s.velocity.y) > .5;
       }
-      if (docking.current !== null && seaDistance(s.position, s.target) < (live ? 85 : 5)) {
+      if (docking.current !== null && seaDistance(live ? live.ship : s.position, s.target) < (live ? 85 : 5)) {
         const island = docking.current; docking.current = null; s.moving = false;
         if(live) { void network.action('leave').then(ok => { if(ok) dockCallback.current(island.destination,island.templateIndex,live.ship);else setDockingNow(false); }); }
         else dockCallback.current(island.destination, island.templateIndex, { ...DEFAULT_SHIP, x: s.position.x, y: s.position.y, heading: s.heading });
