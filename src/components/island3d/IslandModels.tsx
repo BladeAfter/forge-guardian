@@ -5,7 +5,7 @@ import { RigidBody, CuboidCollider, CylinderCollider } from '@react-three/rapier
 import { SkeletonUtils } from 'three-stdlib';
 import * as THREE from 'three';
 import { islandModels } from '../../gameAssets';
-import { islandHeight, type IslandMotion } from '../../island3dWorld';
+import { HARBOR, islandHeight, type IslandMotion } from '../../island3dWorld';
 import type { IslandPalette } from './IslandTerrain';
 
 export function IslandProp({ model, x, z, scale = 1, y, rotation = 0, collider = 'hull', wind = false, open = false }: { model: keyof typeof islandModels; x: number; z: number; scale?: number; y?: number; rotation?: number; collider?: 'hull' | 'trimesh' | 'tree' | 'none'; wind?: boolean; open?: boolean }) {
@@ -112,10 +112,8 @@ export function Dock({ palette }: { palette: IslandPalette }) {
   }, [palette]);
   useEffect(() => () => texture.dispose(), [texture]);
   return <RigidBody type="fixed" colliders={false}>
-    <mesh position={[0, .87, 38]} receiveShadow castShadow><boxGeometry args={[3.5, .24, 16]} /><meshStandardMaterial map={texture} roughness={.85} color={palette.sand} /></mesh>
-    <CuboidCollider args={[1.75, .12, 8]} position={[0, .87, 38]} />
-    {[31, 36, 41, 45].flatMap(z => [-1.5, 1.5].map(x => <mesh key={`${x}-${z}`} position={[x, -.25, z]} castShadow><cylinderGeometry args={[.15, .2, 3, 8]} /><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>))}
-    <mesh position={[2.6, 1.1, 43]} receiveShadow castShadow><boxGeometry args={[5.2, .2, 1.4]} /><meshStandardMaterial map={texture} /></mesh>
-    <CuboidCollider args={[2.6, .1, .7]} position={[2.6, 1.1, 43]} />
+    <mesh position={[0, HARBOR.pier.top - .12, 41.5]} receiveShadow castShadow><boxGeometry args={[3.5, .24, 23]} /><meshStandardMaterial map={texture} roughness={.85} color={palette.sand} /></mesh>
+    <CuboidCollider args={[HARBOR.pier.halfWidth, .12, 11.5]} position={[0, HARBOR.pier.top - .12, 41.5]} />
+    {[31, 36, 41, 46, 52].flatMap(z => [-1.5, 1.5].map(x => <mesh key={`${x}-${z}`} position={[x, -1, z]} castShadow><cylinderGeometry args={[.15, .2, 4.5, 8]} /><meshStandardMaterial color={palette.stone} roughness={1} /></mesh>))}
   </RigidBody>;
 }

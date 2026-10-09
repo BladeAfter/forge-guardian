@@ -2,20 +2,20 @@ import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
-import { cameraRelativeMotion, ISLAND_3D, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
+import { cameraRelativeMotion, HARBOR, ISLAND_3D, type HarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
 
-type Props = { input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
-export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) {
+type Props = { harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
+export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }: Props) {
   const body = useRef<RapierRigidBody>(null), model = useRef<THREE.Group>(null);
   const motion = useRef<IslandMotion>('walk'), speed = useRef(0);
   const { world, rapier } = useRapier();
   const controller = useMemo(() => {
-    const c = world.createCharacterController(.025);
+    const c = world.createCharacterController(.01);
     c.enableAutostep(.45, .3, true); c.enableSnapToGround(.3); c.setMaxSlopeClimbAngle(Math.PI / 3); c.setMinSlopeSlideAngle(Math.PI / 3);
     return c;
   }, [world]);
   useEffect(() => () => { world.removeCharacterController(controller); }, [world, controller]);
-  const state = useRef({ phase: 'landing' as IslandTelemetry['phase'], gangwayReached: false, vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0 });
+  const state = useRef({ phase: 'approaching' as IslandTelemetry['phase'], waypoint: 0, vy: 0, grounded: true, heading: Math.PI, action: 0, actionKind: 'idle' as IslandMotion, jumpHeld: false, returned: false, cameraStarted: false, lastHud: 0 });
   const cameraTarget = useMemo(() => new THREE.Vector3(), []);
   const cameraLook = useMemo(() => new THREE.Vector3(), []);
   const cameraDirection = useMemo(() => new THREE.Vector3(), []);
@@ -24,13 +24,21 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     const b = body.current;
     if (!b || state.current.returned) return;
     const dt = 1 / 60, s = state.current, i = input.current, p = b.translation();
-    if (i.boarding && s.phase !== 'boarding') { s.phase = 'boarding'; s.gangwayReached = false; }
+    const h = harbor.current;
+    if (s.phase === 'approaching' || s.phase === 'deploying') {
+      b.setNextKinematicTranslation({ x: h.x + ISLAND_3D.spawn.x - HARBOR.ship.x, y: h.y + 2.625 + .035, z: h.z + ISLAND_3D.spawn.z - HARBOR.ship.z });
+      motion.current = 'idle'; speed.current = 0;
+      s.phase = h.ready ? 'landing' : h.deployment > 0 ? 'deploying' : 'approaching';
+      return;
+    }
+    if (i.boarding && s.phase !== 'boarding') { s.phase = 'boarding'; s.waypoint = 0; }
     let dx = 0, dz = 0, targetSpeed = 0;
     if (s.phase === 'landing' || s.phase === 'boarding') {
-      const goal = !s.gangwayReached ? ISLAND_3D.gangway : s.phase === 'landing' ? ISLAND_3D.shore : ISLAND_3D.spawn;
+      const route = s.phase === 'landing' ? [{ x: 4.1, z: HARBOR.gangway.z }, ISLAND_3D.gangway, ISLAND_3D.shore] : [ISLAND_3D.gangway, { x: 4.1, z: HARBOR.gangway.z }, ISLAND_3D.spawn];
+      const goal = route[s.waypoint] ?? route[route.length - 1];
       const x = goal.x - p.x, z = goal.z - p.z, d = Math.hypot(x, z);
       if (d < .35) {
-        if (!s.gangwayReached) s.gangwayReached = true;
+        if (s.waypoint < route.length - 1) s.waypoint++;
         else if (s.phase === 'landing') s.phase = 'exploring';
         else { s.returned = true; onReturn(); return; }
       } else { dx = x / d; dz = z / d; targetSpeed = 2.2; }
@@ -60,7 +68,7 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     const collider = b.collider(0);
     if (!collider) return;
     const bounds = Math.hypot(p.x, p.z) > 55;
-    if (bounds) { dx = -p.x / Math.hypot(p.x, p.z); dz = -p.z / Math.hypot(p.x, p.z); speed.current = 2; }
+    if (bounds && s.phase === 'exploring') { dx = -p.x / Math.hypot(p.x, p.z); dz = -p.z / Math.hypot(p.x, p.z); speed.current = 2; }
     controller.computeColliderMovement(collider, { x: dx * speed.current * dt, y: s.vy * dt, z: dz * speed.current * dt }, undefined, undefined, c => c.parent()?.handle !== b.handle);
     const movement = controller.computedMovement();
     s.grounded = controller.computedGrounded();
@@ -97,7 +105,7 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
       onTelemetry({ x: p.x, y: p.y, z: p.z, motion: motion.current, speed: speed.current, phase: s.phase, heading: s.heading });
     }
   });
-  return <RigidBody ref={body} type="kinematicPosition" colliders={false} position={[ISLAND_3D.spawn.x, 1.4, ISLAND_3D.spawn.z]} enabledRotations={[false, false, false]}>
+  return <RigidBody ref={body} type="kinematicPosition" colliders={false} position={[HARBOR.approach.x + ISLAND_3D.spawn.x - HARBOR.ship.x, HARBOR.ship.deck + .035, HARBOR.approach.z + ISLAND_3D.spawn.z - HARBOR.ship.z]} enabledRotations={[false, false, false]}>
     <CapsuleCollider args={[.5, .3]} position={[0, .81, 0]} />
     <group ref={model}>{children(motion, speed)}</group>
   </RigidBody>;

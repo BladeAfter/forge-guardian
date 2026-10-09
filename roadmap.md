@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Corrigir porto 3D: navio na água ao lado do píer sem interseção; berço aprofundado, linha d'água, balanço, amarras, reflexo estilizado, ondas e passarela animada. Atracação, desembarque contínuo até a praia, conversa e retorno ao convés verificados em cena isolada; dez testes passaram, compilação automática OK. Fluxo autenticado no Telegram não verificado; regras e recompensas preservadas.
+
 - [ ] Substituir a exploração da ilha por mundo 3D contínuo: modelos animados, câmera third-person livre, colisões, porto, vegetação, cavernas e baús; preservar encontros e recompensas oficiais, sem trocar de tela no combate. Verificar renderização, movimento e retorno.
   - Base 3D implementada com Three.js/R3F/Rapier, modelos GLB CC0 com texturas incorporadas, terreno volumétrico, água animada, navio atracado/passarela, câmera orbital com zoom/colisão e personagens animados. Desembarque, corrida/sprint, diálogo e callback de embarque conferidos em cena isolada; renderização final sem exceções nem requisições falhas. 157 testes passaram; compilação automática sem erros.
   - Pendente: acabamento AAA, modelos/animações de alta fidelidade, ajuste fino dos pés/IK, profundidade de campo, vegetação densa, reações físicas aos ataques e poderes oficiais. Combate é apresentação dos resultados existentes do servidor no mesmo cenário, não combate livre autoritativo; recompensas e aventuras autenticadas no Telegram ainda não verificadas. Ilha usa base low-poly, não qualidade console prometida.

@@ -32,7 +32,7 @@ export default function IslandExploration(props: Props) {
   const host = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null);
   const input = useRef(newIslandInput()), pending = useRef(false);
   const [palette, setPalette] = useState<IslandPalette | null>(null);
-  const [telemetry, setTelemetry] = useState<IslandTelemetry>({ x: 0, y: 1, z: 43, speed: 0, motion: 'walk', phase: 'landing', heading: Math.PI });
+  const [telemetry, setTelemetry] = useState<IslandTelemetry>({ x: ISLAND_3D.spawn.x, y: 1, z: ISLAND_3D.spawn.z, speed: 0, motion: 'idle', phase: 'approaching', heading: Math.PI });
   const [talk, setTalk] = useState(false), [secret, setSecret] = useState(false);
   const [log, setLog] = useState<RealmExploreLog | null>(null), [openChest, setOpenChest] = useState<string | null>(null), [fighting, setFighting] = useState<string | null>(null);
   const [sprinting, setSprinting] = useState(false);
@@ -108,7 +108,7 @@ export default function IslandExploration(props: Props) {
       {palette && <Canvas shadows dpr={[1, 1.5]} camera={{ position: [0, 5, 50], fov: 55, near: .1, far: 350 }} gl={{ antialias: true }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
     </div>
     <header className="ocean-hud"><div className="ocean-brand"><span>MYTHIC SEAS · GRAND LINE</span><h1>{island.name}</h1></div><div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{Math.floor(data?.fc ?? 0).toLocaleString('pt-BR')}</b></div></header>
-    <div className="ocean-instruments"><span><Footprints size={15} />{telemetry.phase === 'landing' ? 'Desembarcando' : telemetry.phase === 'boarding' ? 'Embarcando' : motionLabels[telemetry.motion]}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
+    <div className="ocean-instruments"><span><Footprints size={15} />{telemetry.phase === 'approaching' ? 'Atracando' : telemetry.phase === 'deploying' ? 'Preparando passarela' : telemetry.phase === 'landing' ? 'Desembarcando' : telemetry.phase === 'boarding' ? 'Embarcando' : motionLabels[telemetry.motion]}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
     {(props.notice || props.error) && <div className="island-notice" role="status">{props.notice || props.error}</div>}
     <IslandJoystick disabled={telemetry.phase !== 'exploring' || locked} onDirection={point => { input.current.x = point.x; input.current.y = point.y; }} />
     <nav className="island3d-actions" aria-label="Ações do pirata">

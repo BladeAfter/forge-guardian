@@ -4,17 +4,19 @@ import { useFrame } from '@react-three/fiber';
 import { Physics, RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { islandModels } from '../../gameAssets';
-import { islandHeight, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
+import { islandHeight, newHarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
 import type { RealmExploreNode } from '../../realm';
 import { IslandTerrain, IslandWater, type IslandPalette } from './IslandTerrain';
 import { IslandProp, IslandPirate, Dock } from './IslandModels';
 import { IslandPlayer } from './IslandPlayer';
+import { IslandHarbor } from './IslandHarbor';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
 function Loader() { return <Html center><span className="island3d-loading">Preparando a ilha 3D…</span></Html>; }
 
 export function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
+  const harbor = useRef(newHarborState());
   const palms = useMemo(() => Array.from({ length: 24 }, (_, index) => {
     const angle = index * 2.399963;
     const radius = 12 + (index * 13 % 24);
@@ -30,7 +32,7 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     <Suspense fallback={<Loader />}>
       <Physics timeStep={1 / 60} gravity={[0, -19, 0]}>
         <IslandTerrain palette={palette} /><Dock palette={palette} />
-        <IslandProp model="ship" x={6} z={44} y={-1.65} scale={1.25} collider="trimesh" />
+        <IslandHarbor harbor={harbor} palette={palette} />
         <IslandProp model="flag" x={-1.4} z={43} y={1} scale={1.2} collider="none" />
         {palms.map((p, i) => <IslandProp key={`palm-${i}`} model={i % 3 ? 'palm' : 'palmStraight'} {...p} rotation={i * 1.3} collider="tree" wind />)}
         {[-1, 1].flatMap(side => Array.from({ length: 5 }, (_, i) => <IslandProp key={`rock-${side}-${i}`} model={i % 2 ? 'rock' : 'rockB'} x={side * (19 + i * 4)} z={8 - i * 7} scale={.6 + i * .12} rotation={i * 2} />))}
@@ -50,7 +52,7 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
           return <IslandProp key={e.id} model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} />;
         })}
-        <IslandPlayer input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} />}</IslandPlayer>
+        <IslandPlayer harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} />}</IslandPlayer>
         <IslandDust input={input} palette={palette} />
       </Physics>
     </Suspense>
