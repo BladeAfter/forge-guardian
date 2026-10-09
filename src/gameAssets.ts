@@ -1,4 +1,13 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
+import seasonVoyageBanner from './assets/season-voyage-banner.jpg';
+import seasonChart from './assets/season-voyage/chart.asset.json';
+import seasonTimber from './assets/season-voyage/timber.asset.json';
+import seasonSaber from './assets/season-voyage/saber.asset.json';
+import seasonTreasure from './assets/season-voyage/treasure.asset.json';
+import seasonEssence from './assets/season-voyage/essence.asset.json';
+import seasonProvisions from './assets/season-voyage/provisions.asset.json';
+
+export const seasonVoyageArt = { banner: seasonVoyageBanner, chart: seasonChart.url, timber: seasonTimber.url, saber: seasonSaber.url, treasure: seasonTreasure.url, essence: seasonEssence.url, provisions: seasonProvisions.url };
 import islandMale from './assets/island3d/human-character-male-a.glb.asset.json';
 import islandFemale from './assets/island3d/human-character-female-a.glb.asset.json';
 import islandPalm from './assets/island3d/palm-detailed-bend.glb.asset.json';

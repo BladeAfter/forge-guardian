@@ -26,7 +26,7 @@ export function IslandScene({ input, palette, captainStyle, encounters, openChes
     <color attach="background" args={[palette.sky]} /><fog attach="fog" args={[palette.sky, 65, 200]} />
     <ambientLight intensity={.55} />
     <hemisphereLight args={[palette.sky, palette.sand, .8]} />
-    <directionalLight position={[25, 40, 20]} intensity={2.2} color={palette.sun} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-camera-left={-50} shadow-camera-right={50} shadow-camera-top={50} shadow-camera-bottom={-50} shadow-bias={-.0008} />
+    <directionalLight position={[25, 40, 20]} intensity={2.2} color={palette.sun} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} shadow-camera-left={-50} shadow-camera-right={50} shadow-camera-top={50} shadow-camera-bottom={-50} shadow-bias={-.0008} />
     <Environment resolution={64} frames={1}><Lightformer intensity={2} position={[0, 20, 0]} rotation-x={-Math.PI / 2} scale={[60, 60, 1]} color={palette.sky} /><Lightformer intensity={1.4} position={[30, 10, 20]} scale={[30, 20, 1]} color={palette.sun} /></Environment>
     <Suspense fallback={<Loader />}>
       <IllustratedIsland islandIndex={islandIndex} />

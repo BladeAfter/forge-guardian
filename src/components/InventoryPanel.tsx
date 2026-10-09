@@ -9,6 +9,7 @@ import type { KeyChestOpenResult, LegendChestEquipment } from '../services';
 
 import { getInventoryItemVisual } from '../inventoryVisuals';
 import { ArsenalPanel } from './ArsenalPanel';
+import { isHiddenVeteranItem } from '../retiredOfferPresentation';
 
 import type { FragmentSummonResult, InventoryCategory, InventoryItem } from '../calendarRewards';
 import { useT } from '../LanguageContext';
@@ -90,7 +91,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
 
 
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => (data?.items ?? []).filter(item => !isHiddenVeteranItem(item)), [data?.items]);
   const visible = useMemo(() => (filter === 'all' ? items : items.filter((i) => i.category === filter)), [items, filter]);
 
   const invalidate = (keys: string[]) => Promise.all(keys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
