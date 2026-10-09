@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Varrer as telas ativas e substituir referências visuais e textos do jogo antigo, preservando identificadores e regras.
+
 - [x] Remover da interface packs, pop-ups promocionais, staking e acessos Tower/Familiar Hunt/Expeditions do jogo antigo; imports e renderizações removidos das telas, visual pirata preservado. Acesso real pelo Telegram não verificado.
 
 - [x] Executar reinício total: jogadores, heróis, pets, equipamentos, anúncios, leilões, clãs e registros financeiros com contagens verificadas em zero; catálogos preservados e processos automáticos pausados.
