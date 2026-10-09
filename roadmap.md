@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Limpar e compactar cards do passe, remover nível repetido e liberar rolagem até o final.
+
 - [x] Remover faixa clara do píer, dobrar tamanho dos piratas e aproximar câmera; substituir cenário físico antigo por piso nivelado e obstáculos traçados em cada mapa ilustrado. Dez testes passaram; desembarque, conversa, bloqueio na palmeira inclusive com salto/esquiva e retorno ao navio conferidos em cena isolada. Compilação automática OK. Sessão real do Telegram não disponível para validação completa.
 
 - [x] Suavizar navio na Grand Line entre posições aprovadas, sem previsão de progresso; remover deslocamento vertical artificial e adicionar contato do casco/espuma animada. Onze testes passaram; joystick, frenagem e navegação compartilhada simulada conferidos no navegador. Sessão real do Telegram não disponível para confirmação.
