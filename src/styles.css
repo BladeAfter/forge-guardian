@@ -3883,3 +3883,72 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .captain-channel-error { color: hsl(var(--profile-accent)); font-size: 11px; margin-top: 8px; }
 .captain-profile button:focus-visible { outline: 2px solid hsl(var(--profile-accent)); outline-offset: 3px; }
 @media (min-width: 600px) { .captain-cover { min-height: 310px; } }
+
+:root {
+  --market-surface: 207 48% 13%;
+  --market-surface-raised: 207 40% 18%;
+  --market-text: 195 35% 95%;
+  --market-muted: 203 23% 67%;
+  --market-line: 204 28% 30%;
+  --market-positive: 163 69% 60%;
+  --market-negative: 358 82% 70%;
+  --market-accent: 47 88% 61%;
+  --market-cover: linear-gradient(180deg, transparent 30%, hsl(var(--pirate-ink) / .95));
+}
+.market-port-shell { border-radius: 8px !important; background: hsl(var(--market-surface)) !important; border-color: hsl(var(--market-line)) !important; }
+.market-port-shell .crew-shop-header { padding-bottom: 8px; }
+.market-pulse { margin-bottom: 22px; color: hsl(var(--market-text)); }
+.market-port { position: relative; height: 180px; margin: 0 -16px; overflow: hidden; }
+.market-port > img { width: 100%; height: 100%; object-fit: cover; }
+.market-port::after { content: ''; position: absolute; inset: 0; background: var(--market-cover); }
+.market-port > div { position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1; }
+.market-port span { font-size: 9px; font-weight: 800; color: hsl(var(--market-accent)); }
+.market-port h2 { font-size: 27px; font-weight: 900; line-height: 1.2; margin-top: 4px; }
+.market-data-mode { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 14px 0; }
+.market-data-mode > span { font-size: 8px; font-weight: 800; color: hsl(var(--market-muted)); }
+.market-data-mode label { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+.market-data-mode input { accent-color: hsl(var(--market-positive)); width: 16px; height: 16px; }
+.market-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding-bottom: 14px; border-bottom: 1px solid hsl(var(--market-line)); }
+.market-overview > div { padding: 8px 10px 8px 0; }
+.market-overview > div:last-child { grid-column: 1 / -1; }
+.market-overview span { display: block; color: hsl(var(--market-muted)); font-size: 10px; }
+.market-overview strong { display: block; font-size: 15px; margin-top: 5px; overflow-wrap: anywhere; }
+.market-overview small { font-size: 10px; color: hsl(var(--market-muted)); }
+.market-section-title { margin: 18px 0 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.market-section-title h3 { font-size: 13px; font-weight: 800; }
+.market-section-title > span { font-size: 9px; color: hsl(var(--market-muted)); }
+.market-currency-switch { display: flex; border: 1px solid hsl(var(--market-line)); border-radius: 4px; overflow: hidden; }
+.market-currency-switch button { padding: 7px 8px; font-size: 9px; letter-spacing: 0; color: hsl(var(--market-muted)); }
+.market-currency-switch button[aria-pressed=true] { background: hsl(var(--market-surface-raised)); color: hsl(var(--market-positive)); }
+.market-chart { padding: 12px 12px 4px; border: 1px solid hsl(var(--market-line)); border-radius: 6px; }
+.market-chart > div:first-child { display: flex; justify-content: space-between; font-size: 10px; gap: 8px; }
+.market-chart > div:first-child span { color: hsl(var(--market-muted)); }
+.market-chart svg { width: 100%; height: 125px; margin-top: 10px; overflow: visible; }
+.market-chart-grid { fill: none; stroke: hsl(var(--market-line)); stroke-width: .5; stroke-dasharray: 3 3; }
+.market-chart-fill { fill: hsl(var(--market-positive) / .09); }
+.market-chart-line { fill: none; stroke: hsl(var(--market-positive)); stroke-width: 2; stroke-linejoin: round; }
+.market-chart-point { fill: hsl(var(--market-positive)); }
+.market-chart-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+.market-chart-days button { height: 30px; color: hsl(var(--market-muted)); font-size: 9px; letter-spacing: 0; }
+.market-chart-days button[aria-pressed=true] { color: hsl(var(--market-positive)); }
+.market-ranking li { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid hsl(var(--market-line)); }
+.market-rank-number { color: hsl(var(--market-accent)); font-size: 13px; font-weight: 800; }
+.market-ranking img { width: 40px; height: 40px; object-fit: contain; }
+.market-ranking strong { flex: 1; font-size: 11px; overflow-wrap: anywhere; }
+.market-ranking li > span:last-child { font-size: 10px; color: hsl(var(--market-muted)); flex-shrink: 0; }
+.market-expand { display: flex; align-items: center; gap: 4px; font-size: 10px; color: hsl(var(--market-accent)); min-height: 32px; }
+.market-activity li { display: flex; gap: 9px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid hsl(var(--market-line)); }
+.market-activity li > div { flex: 1; min-width: 0; }
+.market-activity p { font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.market-activity li > div > span { display: block; font-size: 9px; color: hsl(var(--market-muted)); margin-top: 4px; }
+.market-activity li > strong { font-size: 10px; max-width: 92px; text-align: right; overflow-wrap: anywhere; }
+.market-activity-buy { color: hsl(var(--market-positive)); }
+.market-activity-sell { color: hsl(var(--market-negative)); }
+.market-maintenance-strip { display: flex; align-items: center; gap: 10px; padding: 12px 0; color: hsl(var(--market-accent)); }
+.market-maintenance-strip > svg { flex-shrink: 0; }
+.market-maintenance-strip > div { flex: 1; }
+.market-maintenance-strip strong { font-size: 11px; }
+.market-maintenance-strip p { font-size: 10px; color: hsl(var(--market-muted)); line-height: 1.5; margin-top: 3px; }
+.market-maintenance-strip button { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; }
+.market-pulse-empty { font-size: 11px; padding: 14px 0; color: hsl(var(--market-muted)); }
+.market-pulse button:focus-visible { outline: 2px solid hsl(var(--market-accent)); outline-offset: 2px; }
