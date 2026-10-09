@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Expand, Flame, Hand, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
-import { actionArenaArt } from '../gameAssets';
+import { actionArenaArt, arenaCrewImage } from '../gameAssets';
 import { readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
 import type { CombatSlot } from '../combatSlots';
@@ -26,15 +26,17 @@ export function PirateActionArena(props: Props) {
   const position = useRef({ x: 31, y: 76 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [action, setAction] = useState<'idle' | 'strike' | 'dodge'>('idle');
-  const [selectedHero, setSelectedHero] = useState<string | null>(null);
+  const [selectedHero, setSelectedHero] = useState<string | null | undefined>(undefined);
   const [hits, setHits] = useState(0);
   const [flash, setFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
   const ratio = Math.max(0, Math.min(100, maxHp > 0 ? hp / maxHp * 100 : 0));
   const phase = ratio > 75 ? 1 : ratio > 50 ? 2 : ratio > 25 ? 3 : 4;
-  const selected = heroes.find(hero => hero.heroId === selectedHero);
-  const actor = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
+  const firstHero = [...heroes].sort((a, b) => a.slot - b.slot)[0];
+  const selected = selectedHero === null ? undefined : heroes.find(hero => hero.heroId === selectedHero) ?? firstHero;
+  const captain = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
+  const actor = selected ? arenaCrewImage(selected) : captain;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
   const telegraph = active && props.bossCountdown !== null && props.bossCountdown <= 2;
 
@@ -88,17 +90,17 @@ export function PirateActionArena(props: Props) {
       <div className="action-boss-meta"><span>{Math.ceil(hp).toLocaleString('pt-BR')} / {maxHp.toLocaleString('pt-BR')}</span></div>
     </header>
     <aside className="action-crew" aria-label="Tripulação">
-      <OceanControl className={!selectedHero ? 'action-crew-selected' : ''} onClick={() => setSelectedHero(null)} title="Capitão do perfil" aria-label="Capitão do perfil"><img src={actor} alt="Capitão" /></OceanControl>
+      <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title="Capitão do perfil" aria-label="Capitão do perfil"><img src={captain} alt="Capitão" /></OceanControl>
       {COMBAT_SLOTS.map(slot => { const hero = heroes.find(item => Number(item.slot) === slot); return <div key={slot}>
-        <OceanControl className={selectedHero === hero?.heroId ? 'action-crew-selected' : ''} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `Controlar ${hero.name}` : `Equipar tripulante ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}${hero.isAlive ? '' : ' · Nocauteado'}` : `Equipar tripulante ${slot}`}>
-          {hero ? <><img src={hero.image} alt={hero.name} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">KO</span>}</> : <span>+</span>}
+        <OceanControl className={hero && selected?.heroId === hero.heroId ? 'action-crew-selected' : ''} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `Controlar ${hero.name}` : `Equipar tripulante ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}${hero.isAlive ? '' : ' · Nocauteado'}` : `Equipar tripulante ${slot}`}>
+          {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">KO</span>}</> : <span>+</span>}
         </OceanControl>{hero && <OceanControl className="action-crew-edit" onClick={() => props.onEquip(slot)} aria-label={`Trocar tripulante ${slot}`} title="Trocar tripulante">↻</OceanControl>}
       </div>; })}
     </aside>
     <div className="action-boss-ground" aria-hidden="true" />
     <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
     {telegraph && <div className="action-telegraph" role="status"><span>GOLPE IMINENTE</span></div>}
-    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt="Pirata do perfil em postura de combate" width={1024} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
+    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected ? `${selected.name} em postura de combate` : 'Pirata do perfil em postura de combate'} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
     {flash && <div className="action-combo" role="status"><strong>{hits}</strong><span>GOLPE{hits > 1 ? 'S' : ''} CONFIRMADO{hits > 1 ? 'S' : ''}</span></div>}
     {hit && <div className="action-impact" aria-hidden="true" />}

@@ -1,6 +1,11 @@
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
 import groundedCaptain from './assets/arena-grounded-captain.png';
 import groundedCaptainFemale from './assets/arena-grounded-captain-female.png';
+import arenaDeckblade from './assets/arena-crew-deckblade.png';
+import arenaStarshot from './assets/arena-crew-starshot.png';
+import arenaAnchorward from './assets/arena-crew-anchorward.png';
+import arenaTempestcall from './assets/arena-crew-tempestcall.png';
+import arenaDawncaptain from './assets/arena-crew-dawncaptain.png';
 import krakenHarbor from './assets/kraken-harbor-arena.jpg';
 import krakenBoss from './assets/kraken-arena-boss.png';
 import seasonVoyageBanner from './assets/season-voyage-banner.jpg';
@@ -102,6 +107,23 @@ export function mascotChestName(key: string) {
 export const duelArt = { deck: pirateDuelDeck };
 export const crewArt = { deck: crewSunriseDeck };
 export const actionArenaArt = { harbor: krakenHarbor, kraken: krakenBoss, dragon: seasStormDragon, captain: groundedCaptain, captainFemale: groundedCaptainFemale };
+export const arenaCrewArt = { deckblade: arenaDeckblade, starshot: arenaStarshot, anchorward: arenaAnchorward, tempestcall: arenaTempestcall, dawncaptain: arenaDawncaptain };
+
+/** Match voyage identity to a grounded cosmetic pose, never arbitrary catalog art. */
+export function arenaCrewImage(hero: { image?: string; rarity: string }): string {
+  const image = hero.image ?? '';
+  const keys = Object.keys(arenaCrewArt) as Array<keyof typeof arenaCrewArt>;
+  const key = keys.find(candidate => image === voyageHeroArt[candidate] || image.includes(`/new-voyage/heroes/${candidate}.`));
+  if (key) return arenaCrewArt[key];
+  if (/\/(?:heroes(?:-[^/]*)?|hero-images)\//.test(image)) {
+    const filename = image.split('?')[0].split('/').pop() ?? image;
+    let hash = 0;
+    for (const char of filename) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    return arenaCrewArt[keys[hash % keys.length]];
+  }
+  const rarityRoles: Record<string, keyof typeof arenaCrewArt> = { common: 'deckblade', uncommon: 'starshot', rare: 'anchorward', epic: 'tempestcall', legendary: 'dawncaptain', mythic: 'dawncaptain' };
+  return arenaCrewArt[rarityRoles[hero.rarity.toLowerCase()] ?? 'deckblade'];
+}
 
 /** Presentation only: persistent Realm and building IDs are unchanged. */
 export const realmArt = {
