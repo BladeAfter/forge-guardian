@@ -25,7 +25,6 @@ export function RecruitCrewView({ odds, price, results, onRecruit, rarityLabel, 
           <span className="crew-eyebrow"><Compass size={13} /> PORTO DOS AVENTUREIROS</span>
           <h3 id="crew-title">Sua próxima<br />grande tripulação.</h3>
         </div>
-        <div className="crew-scene-footer"><Anchor size={14} /><span>RECRUTAMENTO DE HERÓIS</span><Flag size={14} /></div>
       </section>
 
       <section className="crew-odds" aria-label="Chances de recrutamento">
