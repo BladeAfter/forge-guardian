@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Excluir raridades Ancestral, NFT Exclusivo e Celestial de heróis e mascotes: bens, catálogos, fontes e filtros; bloquear recriação e verificar contagens sem mexer na proteção de pagamentos.
+
 - [x] Refazer Tripulação como convés vivo com arte IA, capitão, membros selecionáveis, câmera e ficha individual; remover Fusão, Inventário e filtros desta tela. Seleção, progresso de XP, detalhes, turnos e fechamento verificados isoladamente; 24 testes passaram. Equipamentos oficiais preservados.
   - Pendente: treino mostra progresso oficial, não concede XP por clique; Haki, frutas, energia e novos poderes indisponíveis. Bônus de funções dependem de regras oficiais; rótulos piratas são cosméticos. Ações reais de equipamento no Telegram não verificadas por falta de sessão assinada.
 
