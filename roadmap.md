@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Impedir que o pirata saia da ilha ou do píer e caia no mar; proteger caminhada, salto e esquiva e recuperar posições inválidas sem alterar navegação ou recompensas.
+
 - [x] Boas-vindas ilustradas no /start de @MythicSeasbot com botão de iniciar; webhook ativado e resposta autenticada conferida, chamadas sem segredo rejeitadas. Permissão nativa de mensagens solicitada uma vez por sessão; recibos com valor, carteira, data UTC, hash e Tonviewer. Aceitação e abertura reais ainda precisam de conferência no Telegram.
 
 - [x] Reduzir trabalho gráfico no desembarque e caminhada: câmera interpolada, cena memoizada sem sombras dinâmicas, cordas reutilizadas e colisores agrupados; desembarque mais ágil. Caminhada de ida/volta e desembarque conferidos isoladamente, 10 testes passaram. Fluidez no aparelho real via Telegram ainda não validada.
