@@ -3251,6 +3251,13 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'state');
     const key = String(body.idempotencyKey || '').slice(0, 80) || null;
 
+    if (action === 'naval') {
+      const navalAction = String(body.navalAction || 'state');
+      if (!['state','heartbeat','customize','attack','fire','skill','board','escape','repair','upgrade','leave'].includes(navalAction)) throw new Error('NAVAL_INVALID_INPUT');
+      const input = body.input && typeof body.input === 'object' && !Array.isArray(body.input) ? body.input : {};
+      for (const field of ['dx','dy','throttle']) if (input[field] !== undefined && (typeof input[field] !== 'number' || !Number.isFinite(input[field]))) throw new Error('NAVAL_INVALID_INPUT');
+      return rpc(db, 'naval_action', { p_user: uid, p_action: navalAction, p_input: input });
+    }
     if (action === 'state') return rpc(db, 'realm_state', { p_user: uid });
     if (action === 'upgrade-building') return rpc(db, 'realm_building_upgrade', { p_user: uid, p_type: String(body.buildingType || '') });
     if (action === 'claim-building') return rpc(db, 'realm_building_claim', { p_user: uid, p_type: String(body.buildingType || '') });

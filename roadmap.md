@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Sistema de navios: seis modelos e skins, customização física, presença de jogadores reais, combate naval autoritativo, abordagem, progressão e reparos com materiais.
+  - Seis modelos IA, seis estilos, bandeira/proa/decoração/esteira no canvas e estaleiro; presença por polling autenticado, manobra validada, canhões de bordo, habilidade, fuga, dano, XP, reparos e transferência atômica de BERRIES/materiais implementados. Onze testes passaram e estaleiro/navegação verificados isoladamente.
+  - Bloqueios: manutenção/reset ativo e zero jogadores impedem testes reais; percentual, origem e limites do saque de BERRIES/itens não definidos, PvP permanece desativado. Abordagem aplica dano naval validado, mas combate físico de personagens nos conveses ainda não implementado. Materiais de reparo padrão: 5 madeira e 3 ferro por nível, configuráveis.
+
 - [x] Criar desembarque animado, caminhada com joystick, cinco cenários de ilhas, personagem compartilhado com perfil, NPC físico, encontros baseados nos nós oficiais e embarque de retorno. Oito testes passaram; atracação, desembarque, caminhada, conversa e retorno verificados em cena isolada.
   - Recompensas e aventuras autenticadas no Telegram não verificadas durante a manutenção. Equipamentos, itens de mascotes e novas categorias de tesouro dependem de catálogos e regras oficiais ainda não existentes no Realm; nenhum prêmio foi inventado. Escolha visual masculina/feminina salva neste dispositivo; sincronização entre dispositivos não implementada.
 

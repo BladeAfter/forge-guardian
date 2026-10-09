@@ -41,6 +41,30 @@
 }
 
 .grand-line-ocean { position: fixed; inset: 0; z-index: 10000; width: 100%; height: 100dvh; overflow: hidden; background: hsl(var(--ocean-deep)); color: hsl(var(--ocean-foam)); isolation: isolate; }
+:root { --naval-filter-black: saturate(.7) brightness(.82); --naval-filter-inferno: sepia(.4) saturate(2.2) hue-rotate(320deg); --naval-filter-deep: hue-rotate(145deg) saturate(1.3); --naval-filter-storm: hue-rotate(175deg) saturate(.9) brightness(1.15); --naval-filter-reaper: grayscale(.85) brightness(.8); --naval-filter-king: sepia(.45) saturate(1.2) brightness(1.1); }
+.naval-sheet { position:absolute; inset:12% max(16px, calc((100% - 880px)/2)) 12%; z-index:5; overflow:auto; padding:20px; border:1px solid hsl(var(--ocean-line) / .5); border-radius:8px; background:hsl(var(--ocean-hud) / .97); box-shadow:0 20px 80px hsl(var(--ocean-shadow) / .6); }
+.naval-sheet header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.naval-sheet header span,.naval-sheet h3 { font-size:10px; color:hsl(var(--ocean-gold)); }
+.naval-sheet h2 { font-size:22px; font-weight:800; }
+.naval-yard-body { display:grid; grid-template-columns: minmax(180px, .8fr) minmax(0,1fr); gap:18px; margin-top:16px; }
+.naval-preview { display:flex; flex-direction:column; align-items:center; justify-content:center; border-bottom:1px solid hsl(var(--ocean-line) / .2); }
+.naval-preview canvas { width:100%; max-width:360px; height:auto; aspect-ratio:6/5; }
+.naval-preview b { font-size:17px; }.naval-preview span { font-size:11px; color:hsl(var(--ocean-line)); margin:8px 0 20px; }
+.naval-customization h3 { margin:12px 0 8px; }.naval-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.naval-options .ocean-control { font-size:11px; min-height:38px; padding:7px; white-space:normal; justify-content:flex-start; }
+.naval-options [aria-pressed=true] { border-color:hsl(var(--ocean-gold)); background:hsl(var(--pirate-sea) / .25); }
+.naval-skin i { width:10px; height:10px; flex-shrink:0; border-radius:50%; background:hsl(var(--ocean-line)); }.naval-skin-inferno i { background:hsl(var(--pirate-red)); }.naval-skin-deep i { background:hsl(var(--pirate-sea)); }.naval-skin-king i { background:hsl(var(--ocean-gold)); }.naval-skin-black i,.naval-skin-reaper i { background:hsl(var(--ocean-shadow)); border:1px solid hsl(var(--ocean-line)); }
+.naval-selects { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }.naval-selects label { font-size:10px; color:hsl(var(--ocean-line)); }
+.naval-selects select { display:block; width:100%; margin-top:5px; min-height:36px; padding:6px; border-radius:4px; border:1px solid hsl(var(--ocean-line) / .4); background:hsl(var(--ocean-shadow)); color:hsl(var(--ocean-foam)); font-size:12px; }
+.naval-customization p { font-size:11px; margin-top:12px; color:hsl(var(--ocean-line)); }
+.naval-stats { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-block:1px solid hsl(var(--ocean-line) / .25); padding:14px 0; margin:18px 0; gap:8px; }.naval-stats div { display:flex; flex-direction:column; gap:4px; }.naval-stats span { font-size:10px; color:hsl(var(--ocean-line)); }.naval-stats b { font-size:13px; }
+.naval-sheet footer { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }.naval-sheet footer span { margin-right:auto; font-size:10px; color:hsl(var(--ocean-line)); line-height:1.7; }
+.naval-controls { position:absolute; right:20px; bottom:calc(80px + var(--tg-safe-area-inset-bottom)); display:flex; align-items:flex-end; flex-direction:column; gap:8px; }.naval-throttle { background:hsl(var(--ocean-hud) / .85); padding:8px 10px; width:140px; border-radius:6px; font-size:10px; }.naval-throttle input { display:block; width:100%; accent-color:hsl(var(--ocean-gold)); margin-top:6px; }
+.naval-connection { position:absolute; top:calc(110px + var(--tg-safe-area-inset-top)); left:20px; max-width:calc(100% - 85px); font-size:10px; line-height:1.5; color:hsl(var(--ocean-foam)); text-shadow:0 2px 5px hsl(var(--ocean-shadow)); }
+.naval-enemy { position:absolute; left:50%; top:32%; transform:translateX(-50%); padding:16px; width:min(340px,calc(100% - 32px)); background:hsl(var(--ocean-hud) / .96); border:1px solid hsl(var(--ocean-line) / .5); border-radius:8px; }.naval-enemy h2 { color:hsl(var(--ocean-gold)); font-size:14px; }.naval-enemy p { font-size:12px; margin:8px 0; }.naval-enemy nav { display:flex; flex-wrap:wrap; gap:6px; }.naval-enemy small { display:block; margin-top:10px; font-size:10px; color:hsl(var(--ocean-line)); }
+.naval-battle-controls { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; max-width:190px; }.naval-battle-status { font-size:11px; color:hsl(var(--ocean-gold)); text-shadow:0 2px 5px hsl(var(--ocean-shadow)); }
+.naval-controls .ocean-control:disabled,.naval-sheet .ocean-control:disabled,.naval-enemy .ocean-control:disabled { opacity:.45; cursor:not-allowed; }
+@media(max-width:600px) { .naval-sheet { inset:9% 10px 3%; padding:14px; }.naval-yard-body { grid-template-columns:1fr; gap:8px; }.naval-preview canvas { max-width:230px; }.naval-stats { grid-template-columns:repeat(3,minmax(0,1fr)); }.naval-controls { right:12px; }.naval-connection { left:12px; }.naval-sheet h2 { font-size:19px; } }
 .grand-line-ocean canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
 .ocean-hud { position: absolute; top: calc(16px + var(--tg-safe-area-inset-top) + var(--tg-content-safe-area-inset-top)); left: 20px; right: 20px; display: flex; align-items: center; gap: 14px; pointer-events: none; }
 .ocean-control { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 42px; min-height: 42px; padding: 10px; border: 1px solid hsl(var(--ocean-line) / .38); border-radius: 6px; background: hsl(var(--ocean-hud) / .82); color: hsl(var(--ocean-foam)); box-shadow: 0 3px 12px hsl(var(--ocean-shadow) / .22); backdrop-filter: blur(8px); pointer-events: auto; letter-spacing: 0; font-size: 12px; touch-action: none; }
