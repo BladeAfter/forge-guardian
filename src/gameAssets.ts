@@ -17,8 +17,11 @@ import pirateHeroesIcon from './assets/home-icons/pirate-heroes.png';
 import pirateBerryCoin from './assets/pirate-berry-coin.png';
 import { voyageHeroArt } from './voyageArt';
 import pirateRecruitHarbor from './assets/pirate-recruit-harbor.jpg';
+import pirateBerryStack from './assets/pirate-berry-stack.png';
+import pirateTonCompass from './assets/pirate-ton-compass.png';
 
 export const recruitmentArt = { harbor: pirateRecruitHarbor };
+export const balanceArt = { berries: pirateBerryStack, ton: pirateTonCompass };
 
 const gameAsset = (path: string) => `/assets/game/${path}`;
 
