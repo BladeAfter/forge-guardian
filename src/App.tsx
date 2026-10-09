@@ -830,7 +830,7 @@ function App() {
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
   // Mythic Seas REALM — acesso antecipado: o backend também valida (realm_access_allowed).
-  if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} onBack={closeInternal}/>;
+  if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} berries={fcBalance} onBack={closeInternal}/>;
 
 
   return (

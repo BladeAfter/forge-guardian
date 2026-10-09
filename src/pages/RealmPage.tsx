@@ -52,7 +52,7 @@ const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n ||
  * Toda a verdade vem de `realm_state`; esta tela apenas renderiza o estado do servidor.
  * UI mobile-first: hierarquia enxuta, detalhes sempre em bottom sheet.
  */
-export function RealmPage({ telegramInitData, onBack }: { telegramInitData: string; onBack: () => void }) {
+export function RealmPage({ telegramInitData, onBack, berries = 0 }: { telegramInitData: string; onBack: () => void; berries?: number }) {
   const t = useT();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('stronghold');
@@ -69,7 +69,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const seenDuelRoom = useRef<string>('');
   const [ruinRegion, setRuinRegion] = useState<string | null>(null);
   /* Herói escolhido pelo jogador para os duelos do Realm (preferência local). */
-  const heroCollection = usePlayerHeroes(telegramInitData, Boolean(telegramInitData));
+  const heroCollection = usePlayerHeroes(telegramInitData, Boolean(telegramInitData) && !oceanOpen);
   const myHeroes = useMemo(() => heroCollection.data?.heroes ?? [], [heroCollection.data]);
   const [duelHeroId, setDuelHeroId] = useState<string | null>(() => {
     try { return window.localStorage.getItem('realm.duelHero'); } catch { return null; }
@@ -88,7 +88,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const { data, isLoading, error } = useQuery<RealmState>({
     queryKey: ['realm', telegramInitData],
     queryFn: () => fetchRealmState(telegramInitData),
-    enabled: Boolean(telegramInitData),
+    enabled: Boolean(telegramInitData) && !oceanOpen,
     refetchInterval: 30_000,
   });
 
@@ -177,6 +177,15 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   }, [balances]);
 
 
+  // Sailing is client-only: load authoritative activities only after docking.
+  if (oceanOpen) {
+    return <GrandLineOcean berries={data?.fc ?? berries} onBack={onBack} onDock={(destination) => {
+      setTab(destination);
+      setOceanOpen(false);
+      if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData));
+    }} />;
+  }
+
   if (isLoading) {
     return (
       <div className="fullscreen-page forge-safe-page seas-realm overflow-y-auto bg-[#05070f] p-4">
@@ -202,16 +211,6 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const forgeLevel = data.buildings.find((b) => b.building_type === 'forge')?.level ?? 0;
 
   const buildingType = data.buildingTypes.find((bt) => bt.id === buildingSheet) ?? null;
-
-  if (oceanOpen) {
-    return <GrandLineOcean berries={data.fc} onBack={onBack} onDock={(destination) => {
-      setTab(destination);
-      setOceanOpen(false);
-      if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData));
-    }} />;
-  }
-
-
 
   /* Run ativa nas Ruínas → modo dungeon fullscreen (esconde todo o chrome do Realm). */
   if (ruinRun && ruinRun.status === 'running' && dungeonOpen) {
