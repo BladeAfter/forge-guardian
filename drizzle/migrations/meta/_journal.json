@@ -750,6 +750,13 @@
       "when": 1791570777884,
       "tag": "0106_permit_retired_nft_unlock_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1791572575980,
+      "tag": "0107_migration",
+      "breakpoints": true
     }
   ]
 }
