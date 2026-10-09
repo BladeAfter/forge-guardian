@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { islandModels } from '../gameAssets';
-import { DEFAULT_SHIP, type NavalState } from '../naval';
+import { type NavalState } from '../naval';
 import { SEA_CHUNK, seaIslandsAround, type SeaIsland, type SeaPoint } from '../grandLineNavigation';
 import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain';
 
