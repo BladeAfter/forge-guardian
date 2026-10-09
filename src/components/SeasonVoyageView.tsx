@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft, X } from 'lucide-react';
 import type { PassReward, PassTier, SeasonPassDashboard } from '../seasonPass';
 import { formatTon } from '../economy';
-import { seasonVoyageArt, voyageHeroArt } from '../gameAssets';
+import { seasonVoyageArt } from '../gameAssets';
+import { voyageHeroArt } from '../voyageArt';
 import { isHiddenVeteranItem } from '../retiredOfferPresentation';
 import { OceanControl } from './OceanControl';
 

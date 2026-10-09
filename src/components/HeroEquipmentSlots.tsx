@@ -123,7 +123,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
               <button onClick={() => setOpen(null)} className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 text-white"><X size={14} /></button>
             </header>
 
-            {data?.equipped?.[open] ? (
+            {data?.equipped?.[open] && !isHiddenVeteranItem(data.equipped[open]) ? (
               <button
                 type="button"
                 disabled={busy}

@@ -17,6 +17,7 @@ import {
 import { encodeCommentPayload } from '../tonComment';
 import { useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
+import { isHiddenVeteranItem } from '../retiredOfferPresentation';
 
 const RARITY: Record<string, string> = {
   common: '#94a3b8', uncommon: '#34d399', rare: '#60a5fa', epic: '#c084fc',
@@ -208,13 +209,13 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
     },
   });
 
-  const items = arsenal.data?.items ?? [];
+  const items = useMemo(() => (arsenal.data?.items ?? []).filter(item => !isHiddenVeteranItem(item)), [arsenal.data?.items]);
   const visible = useMemo(() => {
     const scoped = tab === 'nft' ? items.filter((item) => item.isNft) : items;
     return slot === 'all' ? scoped : scoped.filter((item) => item.slot === slot);
   }, [items, slot, tab]);
   const shopItems = useMemo(() => {
-    const list = shop.data?.items ?? [];
+    const list = (shop.data?.items ?? []).filter(item => !isHiddenVeteranItem(item));
     return slot === 'all' ? list : list.filter((item) => item.slot === slot);
   }, [shop.data, slot]);
   const total = shop.data?.totalSupply ?? shopItems.length;
