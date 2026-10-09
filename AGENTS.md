@@ -9,7 +9,7 @@
 - Isolate crew recruitment presentation in `RecruitCrewView`, passing prices, odds and payment callbacks from the existing shop so visual changes cannot change purchase rules.
 - Normalize legacy creature image URLs through `voyageArtReplacement` at the game API response boundary; only artwork fields may change, preserving server-owned gameplay and ownership.
 - Keep display branding separate from persistent identifiers, Telegram handles, mission hashtags and payment memos so rebranding cannot break sessions, rewards or transfers.
-- Keep profile artwork and styles in `gameAssets.ts` and semantic profile CSS tokens; preserve server-owned profile, pass and channel-reward callbacks when changing presentation.
+- Keep profile artwork and styles in `gameAssets.ts` and semantic profile CSS tokens, using container-responsive character/journal layouts so the Telegram panel stays readable; preserve server-owned profile, pass and channel-reward callbacks when changing presentation.
 - Keep market analytics read-only in `MarketPulseView`; explicitly label illustrative data and never derive global sales or buyer identities from personal market history.
 - Scope community-pool theming to `seas-community` and semantic community tokens so all nested event views share presentation without changing game rules.
 - Keep Grand Line sailing in a lightweight illustrated bitmap canvas with a ship-relative camera and bounded deterministic region streaming shared with the service-only naval collision function; clear pointer-captured joystick input on release, cancellation or focus loss and dock into existing Realm callbacks so continuous navigation cannot change progression or rewards. Closing the view must not depend on heartbeat latency or settle a battle.
