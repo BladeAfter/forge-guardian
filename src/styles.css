@@ -71,6 +71,22 @@
 .ocean-discovery span { color: hsl(var(--ocean-gold)); font-size: 9px; font-weight: 800; }
 .ocean-discovery p { margin-top: 4px; font-size: 12px; line-height: 1.5; }
 .ocean-coordinate { position: absolute; bottom: calc(10px + var(--tg-safe-area-inset-bottom)); left: 20px; font-size: 8px; color: hsl(var(--ocean-foam) / .7); text-shadow: 0 2px 4px hsl(var(--ocean-shadow)); }
+.island-exploration { position: fixed; inset: 0; z-index: 10000; height: 100dvh; overflow: hidden; background: hsl(var(--ocean-shadow)); color: hsl(var(--ocean-foam)); }
+.island-exploration canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.island-exploration .ocean-brand { min-width: 0; }
+.island-exploration .ocean-brand h1 { font-size: 20px; overflow-wrap: anywhere; }
+.island-dialog { position: absolute; left: 50%; bottom: calc(158px + var(--tg-safe-area-inset-bottom)); transform: translateX(-50%); width: min(390px, calc(100% - 32px)); display: flex; flex-wrap: wrap; gap: 10px; padding: 18px; border-radius: 8px; background: hsl(var(--ocean-hud) / .96); border: 1px solid hsl(var(--ocean-line) / .5); box-shadow: 0 10px 32px hsl(var(--ocean-shadow) / .4); }
+.island-dialog h2, .island-dialog p { width: 100%; }
+.island-dialog h2 { color: hsl(var(--ocean-gold)); font-size: 16px; font-weight: 800; }
+.island-dialog p { font-size: 13px; line-height: 1.6; }
+.island-dialog .ocean-control { white-space: normal; }
+.island-notice { position: absolute; top: calc(115px + var(--tg-safe-area-inset-top)); left: 50%; transform: translateX(-50%); width: min(400px, calc(100% - 32px)); padding: 10px 14px; background: hsl(var(--ocean-hud) / .9); border-left: 2px solid hsl(var(--ocean-gold)); font-size: 12px; }
+.captain-character-section { padding: 20px; border-bottom: 1px solid hsl(var(--ocean-line) / .2); }
+.captain-character-options { display: flex; gap: 12px; }
+.captain-character-choice { position: relative; width: 132px; height: 156px; }
+.captain-character-choice img { width: 100px; height: 130px; object-fit: contain; }
+.captain-character-choice.is-selected { border-color: hsl(var(--ocean-gold)); }
+.captain-character-choice svg { position: absolute; top: 8px; right: 8px; color: hsl(var(--ocean-gold)); }
 .seas-trading-tabs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-bottom: 14px; border-bottom: 1px solid hsl(var(--ocean-line) / .3); padding-bottom: 10px; }
 .seas-trading-tabs .seas-trading-tab { min-height: 48px; font-size: 11px; font-weight: 800; box-shadow: none; white-space: normal; text-align: left; }
 .seas-trading-tabs .seas-trading-tab-active { color: hsl(var(--ocean-gold)); border-color: hsl(var(--ocean-gold) / .7); background: hsl(var(--pirate-sea) / .25); }

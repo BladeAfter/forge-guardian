@@ -4,8 +4,8 @@ import { grandLineArt } from '../gameAssets';
 import { SEA_ISLANDS, SEA_SIZE, sailToward, seaClickTarget, seaDistance, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
 
-type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination) => void };
-export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
+type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number) => void; initialPosition?: SeaPoint };
+export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 } }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const joystickKnob = useRef<HTMLSpanElement>(null);
   const joystickPointer = useRef<number | null>(null);
@@ -16,7 +16,10 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
     if (joystickKnob.current) joystickKnob.current.style.transform = 'translate(0px, 0px)';
     state.current.target = { ...state.current.position };
   };
-  const state = useRef({ position: { x: 1700, y: 1340 }, target: { x: 1700, y: 1340 }, heading: 0, camera: { x: 1700, y: 1340 }, scale: 0.7, keys: new Set<string>(), moving: false });
+  const state = useRef({ position: { ...initialPosition }, target: { ...initialPosition }, heading: 0, camera: { ...initialPosition }, scale: 0.7, keys: new Set<string>(), moving: false });
+  const docking = useRef<number | null>(null);
+  const dockCallback = useRef(onDock); dockCallback.current = onDock;
+  const [dockingNow, setDockingNow] = useState(false);
   const [wide, setWide] = useState(false);
   const wideRef = useRef(false);
   const [nearby, setNearby] = useState<number | null>(1);
@@ -57,6 +60,10 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
         const land = SEA_ISLANDS.some(i => seaDistance(next, i.center) < i.radius * .7);
         if (!land) s.position = next;
         else s.target = { ...s.position };
+      }
+      if (docking.current !== null && seaDistance(s.position, s.target) < 5) {
+        const index = docking.current; docking.current = null; s.moving = false;
+        dockCallback.current(SEA_ISLANDS[index].destination, index); return;
       }
       const width = canvas.clientWidth, height = canvas.clientHeight;
       s.scale = wideRef.current ? Math.min(width / SEA_SIZE.width, height / SEA_SIZE.height) * .96 : Math.max(.5, Math.min(.84, width / 1450));
@@ -107,6 +114,7 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
   }, []);
 
   const sail = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    if (docking.current !== null) return;
     const rect = event.currentTarget.getBoundingClientRect(); const s = state.current;
     s.target = seaClickTarget({ x: (event.clientX - rect.left - rect.width / 2) / s.scale + s.camera.x, y: (event.clientY - rect.top - rect.height / 2) / s.scale + s.camera.y });
   };
@@ -135,9 +143,9 @@ export default function GrandLineOcean({ berries, onBack, onDock }: Props) {
     <div className="ocean-compass" aria-label="Bússola"><span>N</span><Compass size={38} strokeWidth={1} /></div>
     <div className="ocean-view"><OceanControl title={wide ? 'Seguir navio' : 'Ver o arquipélago'} aria-label={wide ? 'Seguir navio' : 'Ver o arquipélago'} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? 'MAPA NA GARRAFA' : 'DESCOBERTA'}</span><p>{message}</p></div>}
-    {island && <div className="ocean-dock"><span>{island.name}</span><OceanControl onClick={() => onDock(island.destination)}><Anchor size={17} />{island.action}</OceanControl></div>}
+    {island && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = nearby; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? 'Atracando...' : 'Atracar no porto'}</OceanControl></div>}
     <nav className="ocean-helm" aria-label="Direção do navio">
-      <OceanControl className="ocean-joystick" title="Joystick do navio" aria-label="Joystick do navio"
+      <OceanControl className="ocean-joystick" title="Joystick do navio" aria-label="Joystick do navio" disabled={dockingNow}
         onPointerDown={event => { if (joystickPointer.current !== null) return; joystickPointer.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId); steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
