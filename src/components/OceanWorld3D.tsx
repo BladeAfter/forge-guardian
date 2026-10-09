@@ -52,7 +52,7 @@ function Scene({ pose, network, wide, palette, onSail, onSelect }: { pose: Mutab
   const normal = useMemo(() => {
     const data = new Uint8Array(64 * 64 * 4);
     for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) data.set([128 + Math.round(30 * Math.sin(x * .4 + y * .2)), 128 + Math.round(30 * Math.cos(y * .4)), 245, 255], (y * 64 + x) * 4);
-    const texture = new THREE.DataTexture(data, 64, 64); texture.wrapS = texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(180, 180); texture.needsUpdate = true; return texture;
+    const texture = new THREE.DataTexture(data, 64, 64); texture.wrapS = texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(90, 90); texture.needsUpdate = true; return texture;
   }, []);
   useEffect(() => () => normal.dispose(), [normal]);
   useFrame(({ camera, clock, gl }, rawDelta) => {

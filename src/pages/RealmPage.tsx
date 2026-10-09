@@ -203,7 +203,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
         onChoose={option => data?.exploreRun ? islandAction(() => realmExploreChoose(telegramInitData, data.exploreRun?.id ?? '', option)) : Promise.resolve(null)}
         onExtract={() => data?.exploreRun ? islandAction(() => realmExploreExtract(telegramInitData, data.exploreRun?.id ?? '')) : Promise.resolve(data ?? null)}
         onActivity={destination => { setTab(destination); setIslandIndex(null); if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-        onReturn={() => { setOceanPosition(SEA_ISLANDS[islandIndex].dock); setIslandIndex(null); setOceanOpen(true); }} />
+        onReturn={() => { setOceanPosition(dockedShip ? { x: dockedShip.x, y: dockedShip.y } : SEA_ISLANDS[islandIndex].dock); setIslandIndex(null); setOceanOpen(true); }} />
     </>;
   }
   if (oceanOpen) {
