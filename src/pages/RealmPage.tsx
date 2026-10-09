@@ -7,6 +7,7 @@ import RealmBattleScene from '../components/RealmBattleScene';
 import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
+import GrandLineOcean from '../components/GrandLineOcean';
 import { coin } from '../gameAssets';
 
 import { usePlayerHeroes } from '../hooks';
@@ -55,6 +56,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
   const t = useT();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('stronghold');
+  const [oceanOpen, setOceanOpen] = useState(true);
   const [now, setNow] = useState(() => Date.now());
   const [notice, setNotice] = useState<string | null>(null);
   const [resourcesOpen, setResourcesOpen] = useState(false);
@@ -201,6 +203,14 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
 
   const buildingType = data.buildingTypes.find((bt) => bt.id === buildingSheet) ?? null;
 
+  if (oceanOpen) {
+    return <GrandLineOcean berries={data.fc} onBack={onBack} onDock={(destination) => {
+      setTab(destination);
+      setOceanOpen(false);
+      if (destination === 'bounties') call(() => realmEnsureBounties(telegramInitData));
+    }} />;
+  }
+
 
 
   /* Run ativa nas Ruínas → modo dungeon fullscreen (esconde todo o chrome do Realm). */
@@ -248,7 +258,7 @@ export function RealmPage({ telegramInitData, onBack }: { telegramInitData: stri
         <div className="realm-hud-atmo" aria-hidden />
         <div className="relative px-3 pb-1.5 pt-2">
           <div className="flex items-center gap-2">
-            <button onClick={onBack} className="realm-hud-back">{t('realm.back')}</button>
+            <button onClick={() => setOceanOpen(true)} className="realm-hud-back">← Oceano</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
               <h1 className="realm-hud-title truncate">Mythic Seas REALM</h1>

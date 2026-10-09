@@ -25,6 +25,10 @@ import recruitFleet from './assets/recruit-fleet.jpg';
 import pirateCaptainProfile from './assets/pirate-captain-profile.jpg';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
+import grandLineOcean from './assets/grand-line-ocean.jpg';
+import grandLineShip from './assets/grand-line-ship.png';
+
+export const grandLineArt = { ocean: grandLineOcean, ship: grandLineShip, berry: pirateBerryCoin };
 
 export const communityArt = { cove: pirateCommunityCove, treasure: pirateBerryStack };
 

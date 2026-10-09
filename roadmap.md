@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Criar a primeira experiência navegável de GRAND LINE: oceano, cinco ilhas físicas, navios animados, garrafa com pista, passagem secreta e atracação nas atividades existentes; navegação, descoberta e callbacks verificados isoladamente. Sem novas recompensas ou batalhas navais; acesso real pelo Telegram não verificado.
+
 - [x] Renovar o tema completo da Pool Comunitária e suas abas sem alterar valores, regras ou ações; arte, paleta, seleção de Eventos e retorno verificados isoladamente.
 
 - [x] Renovar o Mercado com visão de negociações, gráfico, ranking e histórico, mantendo a manutenção e identificando exemplos; gráficos, moeda e expansão testados isoladamente, sem pagamentos.
