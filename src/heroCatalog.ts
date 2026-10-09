@@ -9,8 +9,13 @@ export type ShopHero = {
   image: string;
 };
 
-const asset = (path: string) => `/assets/game/heroes/${path}`;
-const shop = (name: string) => asset(`shop/${name}.webp`);
+const shop = (name: string) => {
+  const rarity = name.split('-')[0];
+  return rarity === 'common' ? voyageHeroArt.deckblade
+    : rarity === 'uncommon' ? voyageHeroArt.starshot
+    : rarity === 'rare' ? voyageHeroArt.anchorward
+    : rarity === 'epic' ? voyageHeroArt.tempestcall : voyageHeroArt.dawncaptain;
+};
 
 export const HERO_CATALOG: ShopHero[] = [
   { id: 'common-1', name: 'Espadachim da Forja', rarity: 'common', image: voyageHeroArt.deckblade },

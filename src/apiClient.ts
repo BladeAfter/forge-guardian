@@ -1,4 +1,5 @@
 import { supabaseAnonKey, supabaseUrl } from './supabaseEnv';
+import { replaceLegacyCreatureArt } from './voyageArtReplacement';
 
 export type ForgeResponse = { ok: boolean; status: number; json: () => Promise<unknown> };
 
@@ -140,7 +141,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
     });
     let payload: unknown = null;
     try {
-      payload = text ? JSON.parse(text) : null;
+      payload = text ? replaceLegacyCreatureArt(JSON.parse(text)) : null;
     } catch {
       payload = null;
     }
