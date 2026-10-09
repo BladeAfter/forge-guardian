@@ -823,21 +823,12 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .forge-golden-tile:active .home-feature-label{color:#fef3c7;text-shadow:0 0 14px rgba(251,191,36,.85)}
 .forge-golden-tile:focus-visible{outline:2px solid rgba(253,224,71,.8);outline-offset:2px}
 
-/* Clan Hall — compact hanging plaque fixed to the entrance below the central door. */
-.clan-hall{position:absolute;z-index:24;left:50%;top:clamp(178px,calc(50dvh + 34px),430px);display:flex;align-items:center;justify-content:center;gap:6px;width:clamp(132px,37vw,164px);margin:0;padding:5px 8px;border:2px solid hsl(var(--pirate-ink));border-radius:4px;background:radial-gradient(ellipse at 50% 40%,hsl(var(--pirate-parchment)) 0 55%,hsl(43 55% 72%) 100%);box-shadow:0 0 0 2px hsl(var(--pirate-wood)),3px 4px 0 hsl(var(--pirate-ink)/.8);cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transform:translateX(-50%) rotate(-.4deg);transition:transform .18s ease,filter .25s ease}
-.clan-hall::before{content:'';position:absolute;bottom:100%;left:50%;width:2px;height:9px;background:hsl(var(--pirate-ink));box-shadow:-43px 3px 0 hsl(var(--pirate-ink)),43px 3px 0 hsl(var(--pirate-ink));transform:translateX(-50%);pointer-events:none}
-.clan-hall:active{transform:translateX(-50%) rotate(0) scale(.96)}
-.clan-hall:hover{filter:brightness(1.05)}
-.clan-hall-crest-icon{height:30px;width:30px;flex-shrink:0;color:hsl(var(--pirate-ink))}
-.clan-hall-sign{display:flex;min-width:0}
-.clan-hall-sign-text{display:flex;flex-direction:column;gap:2px;line-height:1.2;min-width:0}
-.clan-hall-sign-text b{color:hsl(var(--pirate-ink));font-size:14px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:none}
-.clan-hall-sign-text i{font-style:normal;color:hsl(var(--pirate-parchment));background:hsl(var(--pirate-red));font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.clan-hall-sign{position:relative;z-index:2;display:inline-flex;align-items:center;gap:5px;margin-top:-2px;max-width:100%;padding:2px 7px;border:1px solid rgba(198,157,74,.75);border-radius:4px;background:linear-gradient(#2a1a0e,#160d06);box-shadow:0 4px 10px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,214,140,.18)}
-.clan-hall-sign-text{display:block;min-width:0;text-align:center}
-.clan-hall-sign-text b{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#f5cf7e;text-shadow:0 1px 2px #000}
-.clan-hall-sign-text i{display:block;font-style:normal;font-size:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#a58a5f}
-@media (max-width:380px){.clan-hall{width:132px}}
+/* Match the centered, cover-scaled village artwork; only the building receives taps. */
+.clan-scene-hit-layer{position:fixed;inset-block:0;left:50%;width:min(100%,480px);transform:translateX(-50%);z-index:24;pointer-events:none;overflow:hidden}
+.clan-scene-hit-art{position:absolute;left:50%;top:50%;width:max(100%,calc(100dvh * 768 / 1376));aspect-ratio:768 / 1376;transform:translate(-50%,-50%);pointer-events:none}
+.clan-hall{position:absolute;left:35%;top:28%;width:49%;height:29%;margin:0;padding:0;border:0;background:transparent;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;clip-path:polygon(50% 0,100% 38%,100% 100%,0 100%,0 38%)}
+.clan-hall:focus-visible{outline:3px solid hsl(var(--pirate-gold));outline-offset:-4px;background:hsl(var(--pirate-gold)/.08)}
+.clan-hall:active{background:hsl(var(--pirate-gold)/.06)}
 
 /* Spending Event entry highlight: light fade + scale (250ms), nothing heavy. */
 @keyframes spendingPopupIn {
