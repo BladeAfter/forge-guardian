@@ -21,14 +21,10 @@ import {PlayerHeader}from'./components/PlayerHeader';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
-import {StarterPackPopup}from'./components/StarterPackPopup';
-import {GiveawayPopup}from'./components/GiveawayPopup';
-import {PremiumOffersPopups}from'./components/PremiumOffersPopups';
-import {PremiumOffersModal}from'./components/PremiumOffersModal';
 import { backgrounds, characters, chests, coin, logo, mainScreenArt, navigationIcons } from './gameAssets';
 import { isDemoMode, isProduction, TELEGRAM_APP_LINK } from './config';
 import { getTelegramStartParam, getTelegramUser, validateTelegramSession, waitForTelegramInitData, type TelegramUser } from './telegram';
-import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, campaignPopupRequest, markCampaignPopup, starterPackStatusRequest,claimStarterPackRequest, unequipCombatHeroOnServer } from './services';
+import { attackBossOnServer, bindReferral, bossRequest, buildLocalGameState, claimCalendarDay, equipCombatHeroOnServer, fetchHeroShopConfig, markNotificationsRead, openCalendarChest, recruitHeroesOnServer, saveDemoState, unequipCombatHeroOnServer } from './services';
 import { type LanguageCode } from './i18n';
 import { useLanguage } from './LanguageContext';
 import { PassXpToasts } from './PassXpToasts';
@@ -191,40 +187,6 @@ function App() {
    * The single automatic popup is now the Mythic Seas GIVEAWAY campaign below.
    */
   const [poolInitialTab,setPoolInitialTab]=useState<'weekly'|'events'|'spending'>('weekly');
-  const homeQuiet=bootDone&&Boolean(game)&&tab==='village'&&!activePage&&!settingsOpen&&!notificationsOpen&&!calendarResult&&!chestResult&&shopResults.length===0;
-
-  /**
-   * Mythic Seas GIVEAWAY popup. The backend decides visibility once per
-   * (player, campaign_id), so it never reappears after a dismiss/join, on page
-   * changes, refreshes or on another device. It never grants rewards.
-   */
-  const [giveawayClosed,setGiveawayClosed]=useState(false);
-  const {data:giveawayCampaign,isFetched:giveawayChecked}=useQuery({
-    queryKey:['campaign-popup',telegramInitData],
-    enabled:backendEnabled&&homeQuiet&&!giveawayClosed,
-    queryFn:()=>campaignPopupRequest(telegramInitData??''),
-    staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
-  });
-  const showGiveaway=Boolean(homeQuiet&&!giveawayClosed&&giveawayCampaign?.show);
-  useEffect(()=>{
-    if(!showGiveaway||!giveawayCampaign?.campaignId)return;
-    void markCampaignPopup(telegramInitData??'',giveawayCampaign.campaignId,'shown');
-  },[showGiveaway,giveawayCampaign?.campaignId,telegramInitData]);
-
-  /**
-   * Starter Pack: the backend decides who is eligible (accounts created on/after
-   * 2026-08-13, UTC-3) and whether it was already claimed. Delivery is atomic and
-   * idempotent server-side, so retries can never duplicate rewards.
-   */
-  const {data:starterPackStatus,isFetched:starterPackChecked,refetch:refetchStarterPack}=useQuery({
-    queryKey:['starter-pack',telegramInitData],
-    enabled:backendEnabled&&homeQuiet,
-    queryFn:()=>starterPackStatusRequest(telegramInitData??''),
-    staleTime:Infinity,gcTime:Infinity,retry:0,refetchOnWindowFocus:false,refetchOnMount:false,
-  });
-  const [starterPackClosed,setStarterPackClosed]=useState(false);
-  const showStarterPack=Boolean(homeQuiet&&!starterPackClosed&&starterPackStatus?.show&&!starterPackStatus?.claimed);
-
   const {data:officialProfile,isLoading:profileLoading,error:profileError,refetch:refetchProfile}=useTelegramProfile(telegramInitData,backendEnabled);
   const playerProfile:TelegramPlayerProfile|null=officialProfile??(telegramUser?{telegramId:String(telegramUser.id),firstName:telegramUser.first_name,lastName:telegramUser.last_name??null,username:telegramUser.username??null,photoUrl:telegramUser.photo_url??null}:null);
   useEffect(()=>{if(profileError)console.error('[telegram-profile] Falha ao carregar perfil',profileError)},[profileError]);
@@ -570,7 +532,6 @@ function App() {
   };
   const openInternal=(page:InternalPage)=>{const method=activePage?'replaceState':'pushState';setActivePage(page);window.history[method]({},'',internalPaths[page]);window.scrollTo(0,0)};
   const closeInternal=()=>{setActivePage(null);if(internalFromPath())window.history.back();else window.history.replaceState({},'','/village');window.scrollTo(0,0)};
-  const [premiumOffersOpen,setPremiumOffersOpen]=useState(false);
   const [realmSoonOpen,setRealmSoonOpen]=useState(false);
   // Mythic Seas REALM — liberação automática para todos: 04/09/2026 21:00 (São Paulo) = 00:00 UTC de 05/09.
   const [realmNowTs,setRealmNowTs]=useState(()=>Date.now());
@@ -883,33 +844,6 @@ function App() {
           <button onClick={()=>setRealmSoonOpen(false)} className="mt-4 w-full rounded-xl border border-amber-300/40 bg-amber-500/20 py-2 text-sm font-black uppercase tracking-[.14em] text-amber-100">Entendi</button>
         </div>
       </div>:null}
-      {showStarterPack?<StarterPackPopup
-        onClaim={async()=>{
-          await claimStarterPackRequest(telegramInitData??'');
-          await Promise.all([
-            refetchGame(),
-            refetchStarterPack(),
-            queryClient.invalidateQueries({queryKey:['player-inventory']}),
-            queryClient.invalidateQueries({queryKey:['pet-dashboard']}),
-          ]);
-        }}
-        onDone={()=>setStarterPackClosed(true)}
-      />:null}
-      {showGiveaway?<GiveawayPopup
-        onClose={()=>{setGiveawayClosed(true);void markCampaignPopup(telegramInitData??'',giveawayCampaign?.campaignId??'','dismiss')}}
-        onJoin={()=>{
-          const url=giveawayCampaign?.groupUrl??'https://t.me/+sy4Y6cd7cuIyNmEx';
-          setGiveawayClosed(true);
-          void markCampaignPopup(telegramInitData??'',giveawayCampaign?.campaignId??'','join');
-          const webApp=window.Telegram?.WebApp;
-          if(webApp?.openTelegramLink)webApp.openTelegramLink(url);
-          else window.open(url,'_blank','noopener,noreferrer');
-        }}
-      />:null}
-      {telegramInitData?<PremiumOffersPopups
-        telegramInitData={telegramInitData}
-        active={Boolean(homeQuiet&&starterPackChecked&&giveawayChecked&&!showStarterPack&&!showGiveaway)}
-      />:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
       <div className={`fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-b ${tab === 'village' ? 'from-[#06101f]/20 via-transparent to-[#07090d]/90' : 'from-[#06101f]/55 via-[#07090d]/72 to-[#07090d]/95'}`} />
       <div className={`telegram-safe-body relative mx-auto flex min-h-screen max-w-[480px] flex-col px-3 pt-3 shadow-[0_0_80px_rgba(0,0,0,.95)] ${tab === 'village' ? 'h-[100dvh] overflow-hidden' : ''}`}>
@@ -978,7 +912,6 @@ function App() {
 
 
 
-          {premiumOffersOpen&&telegramInitData?<PremiumOffersModal telegramInitData={telegramInitData} onClose={()=>setPremiumOffersOpen(false)}/>:null}
 
 
           {shopOpen||marketOpen ? (
