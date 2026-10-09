@@ -27,8 +27,9 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
     const h = harbor.current;
     ship.current?.setNextKinematicTranslation({ x: h.x, y: h.y, z: h.z });
     const length = HARBOR.gangway.end - HARBOR.gangway.start;
-    bridge.current?.setNextKinematicTranslation({ x: (HARBOR.gangway.start + HARBOR.gangway.end) / 2, y: HARBOR.pier.top - .1 + (1 - h.deployment) * length / 2, z: HARBOR.gangway.z });
-    bridge.current?.setNextKinematicRotation(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, (1 - h.deployment) * Math.PI / 2)));
+    const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, (1 - h.deployment) * Math.PI / 2));
+    bridge.current?.setTranslation({ x: (HARBOR.gangway.start + HARBOR.gangway.end) / 2, y: HARBOR.pier.top - .1 + (1 - h.deployment) * length / 2, z: HARBOR.gangway.z }, true);
+    bridge.current?.setRotation(rotation, true);
   });
   useFrame(() => {
     const h = harbor.current;
@@ -58,7 +59,7 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
       <ringGeometry args={[1, 1.025, 48]} /><meshBasicMaterial color={palette.foam} transparent opacity={.2} depthWrite={false} />
     </mesh>)}</group>
     <HullShadow harbor={harbor} palette={palette} />
-    <RigidBody ref={bridge} type="kinematicPosition" colliders={false} position={[(HARBOR.gangway.start + HARBOR.gangway.end) / 2, 2.2, HARBOR.gangway.z]}>
+    <RigidBody ref={bridge} type="fixed" colliders={false} position={[(HARBOR.gangway.start + HARBOR.gangway.end) / 2, 2.2, HARBOR.gangway.z]}>
       <CuboidCollider args={[length / 2, .1, HARBOR.gangway.width / 2]} />
       <mesh receiveShadow castShadow><boxGeometry args={[length, .2, HARBOR.gangway.width]} /><meshStandardMaterial color={palette.sand} roughness={.86} /></mesh>
       {Array.from({ length: 9 }, (_, i) => <mesh key={i} position={[-length / 2 + .15 + i * .29, .105, 0]} receiveShadow><boxGeometry args={[.018, .015, HARBOR.gangway.width]} /><meshStandardMaterial color={palette.stone} /></mesh>)}
