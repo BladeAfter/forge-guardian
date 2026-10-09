@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Ampliar Grand Line para oceano contínuo sem bordas: regiões determinísticas carregadas ao navegar, horizonte 3D, aceleração e desaceleração, ilhas graduais e preservação das regras oficiais. Verificar travessia dos antigos limites, controle e atracação.
+
 - [x] Corrigir porto 3D: navio na água ao lado do píer sem interseção; berço aprofundado, linha d'água, balanço, amarras, reflexo estilizado, ondas e passarela animada. Atracação, desembarque contínuo até a praia, conversa e retorno ao convés verificados em cena isolada; dez testes passaram, compilação automática OK. Fluxo autenticado no Telegram não verificado; regras e recompensas preservadas.
 
 - [ ] Substituir a exploração da ilha por mundo 3D contínuo: modelos animados, câmera third-person livre, colisões, porto, vegetação, cavernas e baús; preservar encontros e recompensas oficiais, sem trocar de tela no combate. Verificar renderização, movimento e retorno.
