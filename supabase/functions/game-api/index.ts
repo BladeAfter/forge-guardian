@@ -3402,6 +3402,10 @@ Deno.serve(async (req) => {
   try {
     const db = serviceClient();
     // BAN gate: a banned account reaches NO feature at all (including `device`), so the
+    const reset = await db.from('game_settings').select('value').eq('key', 'game_reset_in_progress').maybeSingle();
+    if (reset.error) throw new Error('Não foi possível verificar a disponibilidade do jogo.');
+    if (reset.data?.value === true) return json({ error: 'Mythic Seas está preparando um novo início.', code: 'GAME_RESET' }, 503);
+    // Existing account gates remain authoritative after the reset.
     // ban applied in the admin bot is real and the client shows the BANNED card.
     {
       const ban = await db

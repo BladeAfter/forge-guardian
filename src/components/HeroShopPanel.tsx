@@ -304,7 +304,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         <div className="crew-shop-header flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">Mythic Seas</p>
-            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? t('market.tabMarket') : t('shop')}</h2>
+            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? 'Bazar do Porto' : t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} BERRIES</span>
