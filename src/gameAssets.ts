@@ -16,6 +16,9 @@ import piratePetIcon from './assets/home-icons/pirate-pet.png';
 import pirateHeroesIcon from './assets/home-icons/pirate-heroes.png';
 import pirateBerryCoin from './assets/pirate-berry-coin.png';
 import { voyageHeroArt } from './voyageArt';
+import pirateRecruitHarbor from './assets/pirate-recruit-harbor.jpg';
+
+export const recruitmentArt = { harbor: pirateRecruitHarbor };
 
 const gameAsset = (path: string) => `/assets/game/${path}`;
 
