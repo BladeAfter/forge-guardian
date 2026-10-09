@@ -688,7 +688,10 @@ async function verifyPendingDeposits(db: Db, user: TelegramUser) {
     return { checked: 0, confirmed: [], credits: [], alreadyCredited: [], pending: [], summary };
   }
 
-  const transactions = await fetchHotWalletIncoming(hotWallet);
+  const epoch = await db.from('game_settings').select('value').eq('key', 'game_reset_epoch').maybeSingle();
+  if (epoch.error) throw new Error('Não foi possível verificar o início da nova temporada.');
+  const epochSeconds = epoch.data?.value ? Date.parse(String(epoch.data.value)) / 1000 : 0;
+  const transactions = (await fetchHotWalletIncoming(hotWallet)).filter(tx => !epochSeconds || Number(tx?.now ?? 0) >= epochSeconds);
   const used = new Set<string>();
   const confirmed: string[] = [];
   const stillPending: string[] = [];
