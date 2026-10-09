@@ -42,7 +42,8 @@ export function IslandPlayer({ input, onTelemetry, onReturn, children }: Props) 
     }
     const swimming = p.y < .5 && Math.hypot(p.x / 1.07, p.z) > 41 && Math.abs(p.x) > 2;
     if (swimming) targetSpeed = Math.min(targetSpeed, 2.3);
-    if (i.attack && !i.blocked && s.action <= 0) { s.action = .75; s.actionKind = 'attack'; }
+    // Official encounter responses can request an attack while the encounter HUD locks movement.
+    if (i.attack && s.action <= 0) { s.action = .75; s.actionKind = 'attack'; }
     if (i.interact && s.action <= 0) { s.action = .8; s.actionKind = 'interact'; }
     if (i.dodge && !i.blocked && s.action <= 0 && s.grounded) { s.action = .55; s.actionKind = 'dodge'; }
     i.attack = false; i.interact = false; i.dodge = false;

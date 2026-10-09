@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from 'react';
-import { Environment, Lightformer, Html, useProgress } from '@react-three/drei';
+import { Environment, Lightformer, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { Physics } from '@react-three/rapier';
+import { Physics, RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { islandModels } from '../../gameAssets';
 import { islandHeight, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
@@ -12,7 +12,7 @@ import { IslandPlayer } from './IslandPlayer';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
-function Loader() { const { progress } = useProgress(); return <Html center><span className="island3d-loading">Preparando a ilha · {Math.round(progress)}%</span></Html>; }
+function Loader() { return <Html center><span className="island3d-loading">Preparando a ilha 3D…</span></Html>; }
 
 export function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
   const palms = useMemo(() => Array.from({ length: 24 }, (_, index) => {
@@ -62,7 +62,7 @@ function EncounterPirate({ encounter, palette, fighting }: { encounter: IslandEn
   const motion = useRef<IslandMotion>('idle'), speed = useRef(0), group = useRef<THREE.Group>(null);
   const enemy = Boolean(encounter.node && ['combat', 'elite', 'boss'].includes(encounter.node.node_type));
   useFrame(({ clock }) => { motion.current = fighting && Math.sin(clock.elapsedTime * 4) > 0 ? 'attack' : 'idle'; });
-  return <group ref={group} position={[encounter.x, islandHeight(encounter.x, encounter.z), encounter.z]} rotation-y={enemy ? Math.PI : -.5} scale={encounter.node?.node_type === 'boss' ? 1.6 : 1}><IslandPirate style={enemy ? 'male' : 'female'} motion={motion} speed={speed} palette={palette} /></group>;
+  return <RigidBody type="fixed" colliders={false} position={[encounter.x, islandHeight(encounter.x, encounter.z), encounter.z]} scale={encounter.node?.node_type === 'boss' ? 1.6 : 1}><CapsuleCollider args={[.5, .3]} position={[0, .81, 0]} /><group ref={group} rotation-y={enemy ? Math.PI : -.5}><IslandPirate style={enemy ? 'male' : 'female'} motion={motion} speed={speed} palette={palette} /></group></RigidBody>;
 }
 
 function IslandDust({ input, palette }: { input: MutableRefObject<IslandInput>; palette: IslandPalette }) {

@@ -23,7 +23,7 @@ export function IslandProp({ model, x, z, scale = 1, y, rotation = 0, collider =
     if (wind && group.current) group.current.rotation.z = Math.sin(clock.elapsedTime * .8 + x) * .012;
     if (lid.current && model === 'chest') lid.current.rotation.x += ((open ? -1.2 : 0) - lid.current.rotation.x) * (1 - Math.exp(-5 * dt));
   });
-  const view = <group ref={group}><primitive object={object} /></group>;
+  const view = <group ref={group}><primitive object={object} />{model === 'chest' && open && <group position={[0, .65, 0]}>{[-.2, 0, .2].map((x, i) => <mesh key={i} position={[x, i * .025, 0]} rotation-x={Math.PI / 2} castShadow><cylinderGeometry args={[.18, .18, .06, 16]} /><meshStandardMaterial color="#efb847" metalness={.7} roughness={.25} /></mesh>)}<pointLight color="#efb847" intensity={2} distance={3} /></group>}</group>;
   const position: [number, number, number] = [x, y ?? islandHeight(x, z), z];
   if (collider === 'none') return <group position={position} rotation-y={rotation} scale={scale}>{view}</group>;
   return <RigidBody type="fixed" colliders={collider === 'tree' ? false : collider} position={position} rotation={[0, rotation, 0]} scale={scale}>
