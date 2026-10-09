@@ -8,7 +8,7 @@ import NavalShipyard from './NavalShipyard';
 import { SEA_ISLANDS, SEA_SIZE, sailToward, seaClickTarget, seaDistance, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
 
-type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number) => void; initialPosition?: SeaPoint; initData?: string };
+type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const joystickKnob = useRef<HTMLSpanElement>(null);
@@ -95,7 +95,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       }
       if (docking.current !== null && seaDistance(s.position, s.target) < (live ? 85 : 5)) {
         const index = docking.current; docking.current = null; s.moving = false;
-        if(live) { void network.action('leave').then(ok => { if(ok) dockCallback.current(SEA_ISLANDS[index].destination,index);else setDockingNow(false); }); }
+        if(live) { void network.action('leave').then(ok => { if(ok) dockCallback.current(SEA_ISLANDS[index].destination,index,live.ship);else setDockingNow(false); }); }
         else dockCallback.current(SEA_ISLANDS[index].destination, index);
         frame=requestAnimationFrame(render);return;
       }
@@ -178,6 +178,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     </header>
     <div className="ocean-instruments"><span><Waves size={15} /> {speed} nós</span><span className="ocean-hull" title="Casco de navegação">CASCO {ownShip.hp}/{shipMaxHp(ownShip)}</span><span>Nv. {ownShip.level}</span></div>
     <div className="naval-connection" role="status">{network.error || (network.data ? `${network.data.others.length} capitães à vista` : initData ? 'Conectando ao oceano compartilhado…' : 'Navegação local · oceano compartilhado indisponível')}</div>
+    {network.data?.battle?.status==='won' && <div className="ocean-discovery" role="status"><span>{network.data.battle.winner===ownShip.user_id ? 'VITÓRIA NAVAL' : 'NAVIO DERROTADO'}</span><p>{network.data.battle.winner===ownShip.user_id ? `${network.data.battle.loot.berries ?? 0} BERRIES · ${Object.values(network.data.battle.loot.items ?? {}).reduce((sum,n)=>sum+n,0)} materiais recuperados` : 'Retorne ao estaleiro para reparar o casco.'}</p></div>}
     <div className="naval-controls"><OceanControl title="Estaleiro" aria-label="Estaleiro" onClick={openYard}><Ship size={20}/></OceanControl><label className="naval-throttle">Velocidade · {Math.round(throttle*100)}%<input aria-label="Velocidade do navio" type="range" min="0" max="100" value={throttle*100} onChange={e => setThrottle(Number(e.target.value)/100)}/></label>
       {battle && <><span className="naval-battle-status">GUERRA NAVAL</span><div className="naval-battle-controls"><OceanControl disabled={network.busy} aria-label="Disparar canhões" title="Disparar canhões" onClick={() => fireAction('fire')}><Crosshair size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Salva especial" title="Salva especial" onClick={() => fireAction('skill')}><Zap size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Abordar navio" title="Abordar navio" onClick={() => fireAction('board')}><Swords size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Tentar fugir" title="Tentar fugir" onClick={() => fireAction('escape')}><Flag size={22}/></OceanControl></div></>}
     </div>

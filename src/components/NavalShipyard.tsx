@@ -12,7 +12,7 @@ export default function NavalShipyard({ ship, state, busy, onSave, onAction, onC
   useEffect(() => {
     const el = canvas.current, ctx = el?.getContext('2d'); if (!el || !ctx) return;
     const image = new Image(); let alive = true;
-    image.onload = () => { if (!alive) return; ctx.clearRect(0,0,360,300); drawNavalShip(ctx,image,{ ...draft,x:180,y:150,heading:Math.PI,hp:stats.hull,throttle:1 },navalPalette(el),0,230); };
+    image.onload = () => { if (!alive) return; ctx.clearRect(0,0,360,300); drawNavalShip(ctx,image,{ ...draft,x:180,y:150,heading:0,hp:stats.hull,throttle:1 },navalPalette(el),0,230); };
     image.src = navalArt.fleet; return () => { alive = false; };
   }, [draft, stats.hull]);
   const cosmetic = (key: keyof ShipCosmetics, value: string) => setDraft(s => ({ ...s,cosmetics:{...s.cosmetics,[key]:value} }));

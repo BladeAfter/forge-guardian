@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Anchor, Footprints, Swords, Compass } from 'lucide-react';
 import { captainCharacters, type CaptainStyle } from '../captainCharacter';
-import { grandLineArt, islandArt, mascotChestArt, realmArt } from '../gameAssets';
+import { grandLineArt, navalArt, islandArt, mascotChestArt, realmArt } from '../gameAssets';
+import { DEFAULT_SHIP, type NavalShip } from '../naval';
+import { drawNavalShip, navalPalette } from '../navalRendering';
 import { SEA_ISLANDS, seaDistance, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { ISLAND_SIZE, ISLAND_SHIP, ISLAND_LANDING, walkIsland } from '../islandNavigation';
 import type { RealmExploreNode, RealmState } from '../realm';
@@ -9,6 +11,7 @@ import { OceanControl } from './OceanControl';
 import { IslandJoystick } from './IslandJoystick';
 
 type Props = {
+  ship?: NavalShip;
   islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
   busy: boolean; notice?: string | null;
   onStart: (regionId: string) => Promise<RealmState | null>;
@@ -34,6 +37,7 @@ function nodeArt(node: RealmExploreNode) {
 /** Physical presentation only: nodes, fees, encounters and rewards come from RealmState. */
 export default function IslandExploration(props: Props) {
   const { islandIndex, captainStyle, data, busy, onReturn } = props;
+  const shipRef = useRef(props.ship);shipRef.current=props.ship;
   const island = SEA_ISLANDS[islandIndex] ?? SEA_ISLANDS[1];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const world = useRef({ position: { ...ISLAND_SHIP }, target: { ...ISLAND_LANDING }, direction: { x: 0, y: 0 }, keys: new Set<string>(), phase: 'landing', camera: { ...ISLAND_SHIP }, flip: false });
@@ -62,6 +66,7 @@ export default function IslandExploration(props: Props) {
     if (!canvas || !ctx) return;
     const background = new Image(); background.src = islandArt[islandIndex] ?? islandArt[1];
     const pirate = new Image(); pirate.src = captainCharacters[captainStyle].image;
+    const fleet = new Image();fleet.src=navalArt.fleet;const navalColors=navalPalette(canvas);
     const images = new Map<string, HTMLImageElement>();
     const css = getComputedStyle(canvas);
     const color = (token: string) => `hsl(${css.getPropertyValue(token).trim()})`;
@@ -99,7 +104,8 @@ export default function IslandExploration(props: Props) {
         if (e.kind === 'secret' && !secretRef.current && seaDistance(s.position, e.position) > 120) continue;
         let image = images.get(e.art); if (!image) { image = new Image(); image.src = e.art; images.set(e.art, image); }
         const size = e.kind === 'ship' ? 105 : e.node?.node_type === 'boss' ? 95 : e.kind === 'node' && ['treasure', 'trap'].includes(e.node?.node_type ?? '') ? 42 : 62;
-        if (image.complete && image.naturalWidth) ctx.drawImage(image, e.position.x - size / 2, e.position.y - size, size, size);
+        if(e.kind==='ship') drawNavalShip(ctx,fleet,{...(shipRef.current ?? DEFAULT_SHIP),x:e.position.x,y:e.position.y-40,heading:0,throttle:0},navalColors,time,120);
+        else if (image.complete && image.naturalWidth) ctx.drawImage(image, e.position.x - size / 2, e.position.y - size, size, size);
         if (seaDistance(s.position, e.position) < 100) { ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.strokeStyle = ink; ctx.lineWidth = 4; ctx.strokeText(e.name, e.position.x, e.position.y - size - 8); ctx.fillStyle = gold; ctx.fillText(e.name, e.position.x, e.position.y - size - 8); }
       }
       ctx.save(); ctx.translate(s.position.x, s.position.y); ctx.fillStyle = ink; ctx.globalAlpha = .3; ctx.beginPath(); ctx.ellipse(0, 0, 17, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;

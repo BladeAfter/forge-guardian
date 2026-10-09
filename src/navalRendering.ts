@@ -18,7 +18,7 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
     ctx.beginPath(); ctx.moveTo(-size*.12,size*.38); ctx.lineTo(-size*.27,size*.95); ctx.moveTo(size*.12,size*.38); ctx.lineTo(size*.27,size*.95); ctx.stroke(); ctx.globalAlpha = 1;
   }
   ctx.filter = palette.filters[ship.skin] || 'none';
-  if (atlas.complete && atlas.naturalWidth) ctx.drawImage(atlas,(index%3)*w,Math.floor(index/3)*h,w,h,-size/2,-size/2,size,size);
+  if (atlas.complete && atlas.naturalWidth) { ctx.save();ctx.rotate(Math.PI);ctx.drawImage(atlas,(index%3)*w,Math.floor(index/3)*h,w,h,-size/2,-size/2,size,size);ctx.restore(); }
   ctx.filter = 'none';
   ctx.fillStyle = ship.skin === 'inferno' ? palette.ember : ship.skin === 'king' ? palette.gold : palette.vitality;
   ctx.beginPath(); ctx.moveTo(8,-size*.42); ctx.lineTo(33,-size*.38 + Math.sin(time/350)*3); ctx.lineTo(8,-size*.31); ctx.closePath(); ctx.fill();

@@ -8,6 +8,7 @@ import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
 import StrongholdScene from '../components/StrongholdScene';
 import GrandLineOcean from '../components/GrandLineOcean';
+import type { NavalShip } from '../naval';
 import IslandExploration from '../components/IslandExploration';
 import { readCaptainStyle } from '../captainCharacter';
 import { SEA_ISLANDS, type SeaPoint } from '../grandLineNavigation';
@@ -66,6 +67,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
   const [oceanOpen, setOceanOpen] = useState(true);
   const [islandIndex, setIslandIndex] = useState<number | null>(null);
   const [oceanPosition, setOceanPosition] = useState<SeaPoint | undefined>();
+  const [dockedShip,setDockedShip] = useState<NavalShip | undefined>();
   const [islandBusy, setIslandBusy] = useState(false);
   const [islandCombat, setIslandCombat] = useState<RealmExploreLog | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -196,7 +198,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
       finally { setIslandBusy(false); }
     };
     return <>
-      <IslandExploration islandIndex={islandIndex} captainStyle={readCaptainStyle(telegramId)} data={data} loading={isLoading} error={error instanceof Error ? error.message : undefined} busy={islandBusy} notice={notice}
+      <IslandExploration ship={dockedShip} islandIndex={islandIndex} captainStyle={readCaptainStyle(telegramId)} data={data} loading={isLoading} error={error instanceof Error ? error.message : undefined} busy={islandBusy} notice={notice}
         onStart={regionId => islandAction(() => realmExploreStart(telegramInitData, regionId))}
         onEnter={node => data?.exploreRun ? islandAction(() => realmExploreEnter(telegramInitData, data.exploreRun?.id ?? '', node.id)) : Promise.resolve(null)}
         onChoose={option => data?.exploreRun ? islandAction(() => realmExploreChoose(telegramInitData, data.exploreRun?.id ?? '', option)) : Promise.resolve(null)}
@@ -207,7 +209,8 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
     </>;
   }
   if (oceanOpen) {
-    return <GrandLineOcean initData={telegramInitData} berries={data?.fc ?? berries} initialPosition={oceanPosition} onBack={onBack} onDock={(destination, index) => {
+    return <GrandLineOcean initData={telegramInitData} berries={data?.fc ?? berries} initialPosition={oceanPosition} onBack={onBack} onDock={(destination, index, ship) => {
+      setDockedShip(ship);
       setTab(destination);
       setOceanOpen(false);
       setIslandIndex(index);
