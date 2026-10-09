@@ -4138,3 +4138,32 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .seas-realm .forge-stage-firelight { opacity: .22; }
 .seas-realm .forge-stage-cold .forge-stage-bg { filter: saturate(.65) brightness(.7); }
 .seas-battle-backdrop { background-size: cover; background-position: center; }
+
+
+/* Mascot containers share the nautical palette; server egg identifiers are retained. */
+:root { --mascot-surface: var(--pirate-ocean); --mascot-text: var(--ocean-foam); --mascot-muted: var(--ocean-line); --mascot-border: var(--pirate-gold); --mascot-shadow: var(--pirate-ink); }
+.mascot-chest-card { --mascot-accent: var(--mascot-border); display:flex; flex-direction:column; min-width:0; padding:14px 10px 10px; border:1px solid hsl(var(--mascot-accent) / .5); border-radius:8px; background:hsl(var(--mascot-surface) / .8); color:hsl(var(--mascot-text)); box-shadow:inset 0 1px 0 hsl(var(--mascot-muted) / .15); text-align:center; }
+.mascot-tier-common { --mascot-accent: var(--mascot-muted); }
+.mascot-tier-rare { --mascot-accent: var(--ocean-vitality); }
+.mascot-tier-epic { --mascot-accent: var(--pirate-red); }
+.mascot-tier-mythic { --mascot-accent: var(--ocean-line); }
+.mascot-chest-card > img { width:100%; height:140px; object-fit:contain; filter:drop-shadow(0 8px 8px hsl(var(--mascot-shadow) / .6)); }
+.mascot-chest-card h3 { min-height:36px; margin:8px 0 4px; font-size:13px; line-height:18px; font-weight:900; overflow-wrap:break-word; letter-spacing:0; }
+.mascot-chest-price { font-size:12px; font-weight:800; color:hsl(var(--pirate-gold)); }
+.mascot-chest-rates { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 8px; margin:10px 0; font-size:9px; line-height:14px; color:hsl(var(--mascot-muted)); }
+.mascot-chest-rates b { color:hsl(var(--mascot-text)); }
+.mascot-chest-owned { font-size:10px; color:hsl(var(--mascot-muted)); margin-top:auto; margin-bottom:8px; }
+.mascot-chest-card .ocean-control { width:100%; font-size:10px; font-weight:800; min-height:40px; }
+.mascot-chest-card .ocean-control:disabled { opacity:.45; cursor:not-allowed; }
+.mascot-chest-overlay { background:hsl(var(--pirate-ink)); color:hsl(var(--ocean-foam)); }
+.mascot-chest-overlay .pet-egg-shell { width:min(72%,340px); aspect-ratio:1; }
+.mascot-chest-base { clip-path:inset(43% 0 0); }
+.mascot-chest-lid { position:absolute; inset:0; clip-path:inset(0 0 57%); transform-origin:50% 43%; }
+.mascot-chest-light { position:absolute; left:13%; right:13%; top:43%; height:3px; background:hsl(var(--ocean-gold)); box-shadow:0 0 24px 8px hsl(var(--ocean-gold) / .7); opacity:0; }
+.mascot-chest-overlay.phase-cracking .mascot-chest-lid { animation:mascotLidOpen 2.6s ease-in-out forwards; }
+.mascot-chest-overlay.phase-cracking .mascot-chest-light { animation:textReveal .8s forwards; }
+.mascot-chest-overlay .pet-reveal-creature h1 { font-size:32px; line-height:1.1; letter-spacing:0; max-width:100%; overflow-wrap:anywhere; }
+.mascot-chest-overlay .pet-reveal-rarity,.mascot-chest-overlay .pet-reveal-kicker { letter-spacing:0; }
+.mascot-chest-overlay .pet-reveal-actions .ocean-control { background:hsl(var(--ocean-hud)); color:hsl(var(--ocean-foam)); border-radius:6px; }
+@keyframes mascotLidOpen { 0% { transform:none; } 60%,100% { transform:translateY(-38px) rotate(-12deg); } }
+@media(prefers-reduced-motion:reduce) { .mascot-chest-overlay .mascot-chest-lid { animation:none; } }

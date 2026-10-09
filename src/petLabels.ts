@@ -24,10 +24,10 @@ export const PET_BUFF_LABELS: Record<string, string> = {
   reward_percent: 'Recompensas gerais',
   random_reward_percent: 'Recompensas surpresa',
   drop_chance_percent: 'Chance de itens raros',
-  egg_luck_percent: 'Sorte em ovos',
+  egg_luck_percent: 'Sorte em baús',
   hero_xp_percent: 'XP dos heróis',
   account_xp_percent: 'XP da conta',
-  pet_xp_percent: 'XP dos pets',
+  pet_xp_percent: 'XP dos mascotes',
   revive_speed_percent: 'Velocidade de reanimação',
 };
 
@@ -50,10 +50,10 @@ export const PET_BUFF_SHORT_LABELS: Record<string, string> = {
   reward_percent: 'Recompensas',
   random_reward_percent: 'Rec. surpresa',
   drop_chance_percent: 'Itens raros',
-  egg_luck_percent: 'Sorte em ovos',
+  egg_luck_percent: 'Sorte em baús',
   hero_xp_percent: 'XP heróis',
   account_xp_percent: 'XP conta',
-  pet_xp_percent: 'XP pets',
+  pet_xp_percent: 'XP mascotes',
   revive_speed_percent: 'Vel. Revive',
 };
 

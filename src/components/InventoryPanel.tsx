@@ -274,7 +274,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 </div>
                 <ItemArt item={selected} size="modal" />
                 <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
-                <p className="text-[10px] text-slate-400">{selected.description}</p>
+                <p className="text-[10px] text-slate-400">{selected.category === 'eggs' || selected.itemType.includes('egg') ? 'Baú Misterioso de mascotes' : selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
                 {(selected.itemType === 'key_chest' || selected.action === 'open-key-chest') && selected.instanceId ? (
                   <div className="mt-3 space-y-2">

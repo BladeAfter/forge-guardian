@@ -81,28 +81,28 @@ const MOD_TOKENS: Record<string, Mod> = {
 /** [singular, plural] per language. */
 const NOUNS: Record<LanguageCode, Record<Noun, [string, string]>> = {
   pt: {
-    chest: ['BAÚ', 'BAÚS'], key: ['CHAVE', 'CHAVES'], egg: ['OVO', 'OVOS'],
-    fragment: ['FRAGMENTO', 'FRAGMENTOS'], food: ['RAÇÃO DE PET', 'RAÇÃO DE PET'],
-    ticket: ['TICKET', 'TICKETS'], hero: ['HERÓI', 'HERÓIS'], pet: ['PET', 'PETS'],
+    chest: ['BAÚ', 'BAÚS'], key: ['CHAVE', 'CHAVES'], egg: ['BAÚ MISTERIOSO', 'BAÚS MISTERIOSOS'],
+    fragment: ['FRAGMENTO', 'FRAGMENTOS'], food: ['RAÇÃO DE MASCOTE', 'RAÇÃO DE MASCOTE'],
+    ticket: ['TICKET', 'TICKETS'], hero: ['HERÓI', 'HERÓIS'], pet: ['MASCOTE', 'MASCOTES'],
     equipment: ['EQUIPAMENTO', 'EQUIPAMENTOS'], pack: ['PACOTE', 'PACOTES'], myth: ['MYTH', 'MYTH'],
     armor: ['ARMADURA', 'ARMADURAS'], ring: ['ANEL', 'ANÉIS'], weapon: ['ARMA', 'ARMAS'], skin: ['SKIN', 'SKINS'],
   },
   en: {
-    chest: ['CHEST', 'CHESTS'], key: ['KEY', 'KEYS'], egg: ['EGG', 'EGGS'],
+    chest: ['CHEST', 'CHESTS'], key: ['KEY', 'KEYS'], egg: ['MYSTERY CHEST', 'MYSTERY CHESTS'],
     fragment: ['FRAGMENT', 'FRAGMENTS'], food: ['PET FOOD', 'PET FOOD'],
-    ticket: ['TICKET', 'TICKETS'], hero: ['HERO', 'HEROES'], pet: ['PET', 'PETS'],
+    ticket: ['TICKET', 'TICKETS'], hero: ['HERO', 'HEROES'], pet: ['MASCOTE', 'MASCOTES'],
     equipment: ['EQUIPMENT', 'EQUIPMENT'], pack: ['PACK', 'PACKS'], myth: ['MYTH', 'MYTH'],
     armor: ['ARMOR', 'ARMOR'], ring: ['RING', 'RINGS'], weapon: ['WEAPON', 'WEAPONS'], skin: ['SKIN', 'SKINS'],
   },
   es: {
-    chest: ['COFRE', 'COFRES'], key: ['LLAVE', 'LLAVES'], egg: ['HUEVO', 'HUEVOS'],
+    chest: ['COFRE', 'COFRES'], key: ['LLAVE', 'LLAVES'], egg: ['COFRE MISTERIOSO', 'COFRES MISTERIOSOS'],
     fragment: ['FRAGMENTO', 'FRAGMENTOS'], food: ['COMIDA DE MASCOTA', 'COMIDA DE MASCOTA'],
     ticket: ['TICKET', 'TICKETS'], hero: ['HÉROE', 'HÉROES'], pet: ['MASCOTA', 'MASCOTAS'],
     equipment: ['EQUIPO', 'EQUIPOS'], pack: ['PAQUETE', 'PAQUETES'], myth: ['MYTH', 'MYTH'],
     armor: ['ARMADURA', 'ARMADURAS'], ring: ['ANILLO', 'ANILLOS'], weapon: ['ARMA', 'ARMAS'], skin: ['SKIN', 'SKINS'],
   },
   ru: {
-    chest: ['СУНДУК', 'СУНДУКИ'], key: ['КЛЮЧ', 'КЛЮЧИ'], egg: ['ЯЙЦО', 'ЯЙЦА'],
+    chest: ['СУНДУК', 'СУНДУКИ'], key: ['КЛЮЧ', 'КЛЮЧИ'], egg: ['ТАИНСТВЕННЫЙ СУНДУК', 'ТАИНСТВЕННЫЕ СУНДУКИ'],
     fragment: ['ФРАГМЕНТ', 'ФРАГМЕНТЫ'], food: ['КОРМ ДЛЯ ПИТОМЦА', 'КОРМ ДЛЯ ПИТОМЦА'],
     ticket: ['ТИКЕТ', 'ТИКЕТЫ'], hero: ['ГЕРОЙ', 'ГЕРОИ'], pet: ['ПИТОМЕЦ', 'ПИТОМЦЫ'],
     equipment: ['СНАРЯЖЕНИЕ', 'СНАРЯЖЕНИЕ'], pack: ['НАБОР', 'НАБОРЫ'], myth: ['MYTH', 'MYTH'],
@@ -124,7 +124,7 @@ const MODS: Record<LanguageCode, Record<Mod, string>> = {
     premium: 'PREMIUM', exclusive: 'EXCLUSIVO', universal: 'UNIVERSAL', celestial: 'CELESTIAL',
     eternity: 'DA ETERNIDADE', void: 'DO VAZIO', nft: 'NFT', pvp: 'PVP', dragon: 'DE DRAGÃO',
     veteran: 'VETERAN', mystery: 'MISTERIOSO', of_equipment: 'DE EQUIPAMENTO', of_hero: 'DE HERÓI',
-    of_pet: 'DE PET', of_evolution: 'DE EVOLUÇÃO', of_resources: 'DE RECURSOS',
+    of_pet: 'DE MASCOTE', of_evolution: 'DE EVOLUÇÃO', of_resources: 'DE RECURSOS',
   },
   en: {
     common: 'COMMON', uncommon: 'UNCOMMON', rare: 'RARE', epic: 'EPIC', legendary: 'LEGENDARY',
@@ -226,7 +226,7 @@ function parse(name: string): Parsed | null {
     return null;
   }
   if (!noun) return null;
-  // "RAÇÃO DE PET" / "COMIDA DE PET": the pet qualifier is already inside the noun.
+  // "RAÇÃO DE MASCOTE" / "COMIDA DE PET": the pet qualifier is already inside the noun.
   const cleaned = noun === 'food' ? mods.filter(mod => mod !== 'of_pet') : mods;
   return { count, suffix, noun, mods: Array.from(new Set(cleaned)), tail };
 }
@@ -241,7 +241,7 @@ const titleCase = (value: string) =>
 export function localizeItemName(name: string | null | undefined, language: LanguageCode): string {
   const original = String(name ?? '');
   if (!original.trim()) return original;
-  if (language === 'pt') return original;
+  if (language === 'pt' && !/\b(ovos?|eggs?|pets?)\b/i.test(original)) return original;
   const parsed = parse(original);
   if (!parsed) return original;
 

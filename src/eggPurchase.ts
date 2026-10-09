@@ -89,10 +89,10 @@ export const eggPurchaseStatusLabel = (status: string): string =>
 
 /** The exact message for the "já paguei" recovery button, derived from the reconciled state. */
 export function eggRecoveryMessage(verification: EggPurchaseVerification): { tone: 'success' | 'info'; text: string } {
-  if (verification.completed.length) return { tone: 'success', text: 'Pagamento confirmado! Abrindo seu ovo...' };
+  if (verification.completed.length) return { tone: 'success', text: 'Pagamento confirmado! Abrindo seu baú...' };
   if (verification.alreadyDelivered.length) return { tone: 'info', text: 'Compra já concluída.' };
   if (verification.pending.length) return { tone: 'info', text: 'Pagamento ainda não localizado na blockchain. Tente novamente em instantes.' };
-  return { tone: 'info', text: 'Nenhuma compra de ovo pendente.' };
+  return { tone: 'info', text: 'Nenhuma compra de baú pendente.' };
 }
 
 /**

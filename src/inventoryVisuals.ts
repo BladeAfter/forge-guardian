@@ -8,6 +8,7 @@
  * or duplicated, and resolution is done by STABLE keys (item code / item type),
  * never by the translated display name.
  */
+import { mascotChestImage } from './gameAssets';
 import { PET_FOOD_ICONS } from './petLabels';
 import type { InventoryItem } from './calendarRewards';
 
@@ -54,7 +55,7 @@ const BY_CODE: Record<string, string> = {
 };
 
 /** Pet egg art (same files served by `pet_eggs.image_url`), keyed by slug. */
-const EGG_ART = (slug: string) => `/assets/game/pet-eggs/${slug}.webp`;
+const EGG_ART = mascotChestImage;
 const EGG_SLUGS = ['common-egg', 'rare-egg', 'epic-egg', 'dragon-egg', 'mythic-egg', 'ancestral-egg'];
 
 const isImageUrl = (value?: string | null) =>
@@ -74,7 +75,7 @@ export type InventoryVisual = {
 
 /** Category emoji used only when no official asset exists for the item. */
 const CATEGORY_GLYPH: Record<string, string> = {
-  chests: '🎁', fragments: '💎', eggs: '🥚', food: '🍖', equipment: '🛡️', keys: '🗝️', other: '📦',
+  chests: '🎁', fragments: '💎', eggs: '🧰', food: '🍖', equipment: '🛡️', keys: '🗝️', other: '📦',
 };
 
 export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {
@@ -82,6 +83,8 @@ export function getInventoryItemVisual(item: InventoryItem): InventoryVisual {
   const type = String(item.itemType ?? '').toLowerCase();
   const rarityToken = rarityFromCode(code) ?? rarityFromCode(type);
   const rarity = item.rarity ?? (rarityToken && rarityToken in CHEST_BY_RARITY && !['improved', 'special'].includes(rarityToken) ? rarityToken : null);
+
+  if (type.includes('egg') || item.category === 'eggs') return { image: mascotChestImage(code + ' ' + (item.image ?? '')), glyph: null, rarity };
 
   // Food keeps the very same emoji icon key used by Pets → Food.
   if (type === 'food') {

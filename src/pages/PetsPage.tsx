@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { formatTon } from '../economy';
-import { Check, ChevronUp, Crown, Egg, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
+import { Check, ChevronUp, Crown, Archive, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
 import { usePetDashboard, useMythUtility } from '../hooks';
@@ -20,6 +20,9 @@ import { PetXpTransferModal } from '../components/PetXpTransferModal';
 import { MythBalanceHint, MythPayButton } from '../components/MythPayButton';
 import { mythFeatureEnabled, mythPrice, formatMyth, type MythUtilityState } from '../mythUtility';
 import { useT, useLanguage } from '../LanguageContext';
+import { mascotChestImage, mascotChestName, mascotChestArt } from '../gameAssets';
+import { MascotChestCard } from '../components/MascotChestCard';
+import { OceanControl } from '../components/OceanControl';
 
 
 type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
@@ -27,7 +30,7 @@ type Tab = 'pets' | 'eggs' | 'food' | 'evolution' | 'catalog';
 type Section = 'pets' | 'nft' | 'shop' | 'breeding';
 
 const TAB_KEYS: Record<Tab, string> = { pets: 'pets.tabPets', eggs: 'pets.tabEggs', food: 'pets.tabFood', evolution: 'pets.tabEvolution', catalog: 'pets.tabCatalog' };
-const TAB_FALLBACK: Record<Tab, string> = { pets: 'PETS', eggs: 'EGGS', food: 'FOOD', evolution: 'EVOLUTION', catalog: 'CATALOG' };
+const TAB_FALLBACK: Record<Tab, string> = { pets: 'MASCOTES', eggs: 'BAÚS', food: 'COMIDAS', evolution: 'EVOLUÇÃO', catalog: 'CATÁLOGO' };
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'ancestral', 'exclusive', 'nft_exclusive'];
 // Egg names come from the database and may carry decorative emojis that render as
 // tofu boxes inside the Telegram webview: strip them and keep the plain label.
@@ -100,7 +103,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
       if (dashboard) await sync(dashboard);
       setReveal({
         result: { ...hatched.result, rarity: String(hatched.result.rarity).toLowerCase() as PetRarity },
-        eggImage: egg.image,
+        eggImage: mascotChestImage(egg.slug),
         pet: dashboard?.playerPets.find((pet) => pet.id === hatched.result?.playerPetId)
           ?? dashboard?.playerPets.find((pet) => pet.petId === hatched.result?.petId),
       });
@@ -135,8 +138,8 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         const hatched = dashboard.playerPets.find((pet) => pet.id === payload.result?.playerPetId)
           ?? dashboard.playerPets.find((pet) => pet.petId === payload.result?.petId);
         const eggImage = ((variables?.action === 'hatch' || variables?.action === 'buy-egg-balance')
-          ? dashboard.eggs.find((egg) => egg.id === variables.eggId)?.image : null)
-          || '/assets/game/pet-eggs/common-egg.webp';
+          ? mascotChestImage(dashboard.eggs.find((egg) => egg.id === variables.eggId)?.slug ?? '') : null)
+          || mascotChestArt.common;
         setEggTarget(null);
         setReveal({ result: { ...payload.result, rarity: String(payload.result.rarity).toLowerCase() as PetRarity }, eggImage, pet: hatched });
         return;
@@ -163,7 +166,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
       if (variables?.action === 'buy-food' || variables?.action === 'buy-egg') {
         const name = variables.action === 'buy-food'
           ? dashboard.foods.find((food) => food.code === variables.foodCode)?.name
-          : dashboard.eggs.find((egg) => egg.id === variables.eggId)?.name;
+          : mascotChestName(dashboard.eggs.find((egg) => egg.id === variables.eggId)?.slug ?? '');
         toast.success(name
           ? t('pets.purchaseSuccessItem', { name, quantity: variables.quantity })
           : t('pets.purchaseSuccess'));
@@ -312,7 +315,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
         ) : (
           <div className="grid min-h-48 place-items-center text-center">
             <div>
-              <Egg className="mx-auto h-14 w-14 text-slate-600" />
+              <Archive className="mx-auto h-14 w-14 text-slate-600" />
               <h2 className="mt-2 text-xl font-black">{t('pets.noActivePet')}</h2>
               <p className="text-xs text-slate-400">{t('pets.chooseCompanion')}</p>
             </div>
@@ -359,64 +362,12 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
               {t('pets.availableBalance', { balance: fmt(data.balance) })}
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {data.eggs.map((egg) => {
-                const owned = egg.quantity > 0;
-                const ton = !egg.priceFc && !!egg.priceTon;
-                const locked = !egg.isPurchasable || (!egg.priceFc && !egg.priceTon);
-                 const cosmic = egg.slug === 'mythic-egg';
-                 const label = cleanEggName(egg.name);
-                 const labelParts = label.split(' ');
-                 const labelHead = labelParts.slice(0, -1).join(' ');
-                 const labelTail = labelParts[labelParts.length - 1] ?? label;
-                 return (
-                   <div key={egg.id} className={`flex min-w-0 flex-col rounded-2xl border p-3 text-center ${cosmic ? 'egg-card-cosmic border-violet-300/40' : 'border-amber-300/20 bg-black/55'}`}>
-                     <img src={egg.image} alt={label} loading="lazy" className={`mx-auto h-24 w-24 max-w-full object-contain ${cosmic ? 'egg-image-cosmic' : ''}`} />
-                     <h3 className="mt-1 break-words text-xs font-black leading-tight">
-                       {cosmic && labelHead ? (
-                         <>
-                           <span className="text-white">{labelHead} </span>
-                           <span className="egg-name-mythic">{labelTail.toUpperCase()}</span>
-                         </>
-                       ) : cosmic ? (
-                         <span className="egg-name-mythic">{labelTail.toUpperCase()}</span>
-                       ) : label}
-                     </h3>
-                     {/* Price is rendered exactly once here; the buy button may repeat it. */}
-                     <p className="text-[9px] font-bold uppercase text-amber-200">
-                       {formatEggPrice(egg)}
-                     </p>
-                     {/* Rates ascend from the weakest rarity to the strongest (LEGENDARY then MYTHIC). */}
-                     <div className="mt-1 flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5">
-                       {sortedRates(egg.rarityRates).map(([key, value], index) => (
-                         <span key={key} className="flex items-center gap-1">
-                           {index > 0 && <span className="text-[8px] text-slate-500">•</span>}
-                           <span style={{ color: rarityColor[String(key).toLowerCase()] }} className="whitespace-nowrap text-[8px] font-bold">
-                             {petRarityLabel(key)} {value}%
-                           </span>
-                         </span>
-                       ))}
-                     </div>
-                    <p className="mt-1 text-[9px] text-slate-400">{t('pets.youOwn', { quantity: egg.quantity })}</p>
-                    <div className="mt-auto">
-                      {owned ? (
-                        <Action
-                          text={t('pets.openEgg')}
-                          disabled={pending||openingRef.current}
-                          onClick={() => {if(openingRef.current)return;openingRef.current=true;mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() })}}
-                        />
-                      ) : locked ? (
-                        <Action text={egg.availabilityLabel || t('pets.exclusiveEvent')} disabled onClick={() => undefined} />
-                      ) : (
-                        <Action
-                          text={t('pets.buy', { price: formatEggPrice(egg) })}
-                          disabled={pending || tonPurchase.isPending}
-                          onClick={() => setEggTarget(egg)}
-                        />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              {data.eggs.map((egg) => (
+                <MascotChestCard key={egg.id} egg={egg} pending={pending || tonPurchase.isPending || openingRef.current}
+                  onBuy={() => setEggTarget(egg)}
+                  onOpen={() => { if (openingRef.current) return; openingRef.current = true; mutation.mutate({ action: 'hatch', eggId: egg.id, idempotencyKey: crypto.randomUUID() }); }}
+                />
+              ))}
             </div>
             {eggTarget && (
               <BuyEggModal
@@ -524,7 +475,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
                   )}
 
                   {pet.discovered && pet.sources && pet.sources.length > 0 && (
-                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">{t('pets.obtainedFrom', { sources: pet.sources.join(', ') })}</p>
+                    <p className="mt-1 text-[8px] leading-relaxed text-slate-500">{t('pets.obtainedFrom', { sources: pet.sources.map((source) => /egg|ovo/i.test(source) ? mascotChestName(source) : source).join(', ') })}</p>
                   )}
                 </div>
               );
@@ -589,7 +540,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
   const t = useT();
   const primary: [Section, string, React.ReactNode][] = [
-    ['pets', 'PETS', <PawPrint key="pets" className="h-4 w-4" />],
+    ['pets', 'MASCOTES', <PawPrint key="pets" className="h-4 w-4" />],
   ];
   const secondary: [Section, string, React.ReactNode, string][] = [];
   return (
@@ -666,7 +617,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
               </div>
             </div>
           ) : (
-            <h1 className="mt-1 text-xl font-black tracking-wide">PETS</h1>
+            <h1 className="mt-1 text-xl font-black tracking-wide">MASCOTES</h1>
           )}
         </header>
         {children}
@@ -1200,12 +1151,12 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[.25em] text-amber-300">{t('pets.buyEggTitle')}</p>
-            <h2 className={`break-words text-lg font-black leading-tight ${egg.slug === 'mythic-egg' ? 'egg-name-mythic' : ''}`}>{cleanEggName(egg.name)}</h2>
+            <h2 className="break-words text-lg font-black leading-tight">{mascotChestName(egg.slug)}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+          <OceanControl type="button" onClick={onClose} aria-label={t('pets.close')} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></OceanControl>
         </header>
 
-        <img src={egg.image} alt={cleanEggName(egg.name)} className="mx-auto h-28 w-28 max-w-full object-contain" />
+        <img src={mascotChestImage(egg.slug)} alt={mascotChestName(egg.slug)} width={1024} height={1024} className="mx-auto h-36 w-36 max-w-full object-contain" />
 
         <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
           {sortedRates(egg.rarityRates).map(([key, value]) => (
@@ -1247,7 +1198,7 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
 
         {/* Premium eggs: internal TON balance is offered alongside the wallet payment. */}
         {isTon && (
-          <button
+          <OceanControl
             type="button"
             disabled={pending || !canUseTonBalance}
             onClick={onBuyTonBalance}
@@ -1257,12 +1208,12 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
             {canUseTonBalance
               ? t('pets.payWithTonBalance', { price: `${formatTon(tonPrice)} TON` })
               : t('pets.insufficientTonBalance')}
-          </button>
+          </OceanControl>
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">{t('pets.cancel')}</button>
-          <button
+          <OceanControl type="button" onClick={onClose} className="rounded-xl border border-white/15 bg-white/5 py-2 text-[9px] font-black uppercase text-slate-200">{t('pets.cancel')}</OceanControl>
+          <OceanControl
             type="button"
             disabled={pending || (!isTon && (missing || unit <= 0))}
             onClick={() => (isTon ? onBuyTon() : onBuyFc(quantity))}
@@ -1270,7 +1221,7 @@ function BuyEggModal({ egg, balance, tonBalance, pending, onClose, onBuyFc, onBu
           >
             <ShoppingCart className="h-3 w-3" />
             {isTon ? t('pets.payWithTon') : missing ? t('pets.insufficientBalance') : t('common.buy')}
-          </button>
+          </OceanControl>
         </div>
       </div>
     </div>

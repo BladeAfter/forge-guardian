@@ -14,7 +14,7 @@ import{useT,useLanguage}from'../LanguageContext';
 import{useItemName}from'../itemNames';
 import{formatTon}from'../economy';
 import{useSeasonPass}from'../hooks';
-import{coin,mainScreenArt}from'../gameAssets';
+import{mascotChestImage,coin,mainScreenArt}from'../gameAssets';
 import{type PassReward,type PassTier,type PassLevelPurchaseConfig,type SeasonPassDashboard}from'../seasonPass';
 import mythicEggAsset from'../assets/season-1-mythic-egg-transparent.webp.asset.json';
 import {voyagePetArt} from'../voyageArt';
@@ -24,7 +24,7 @@ const art:Record<string,string>={fc:coin,myth:'/assets/game/coins/myth-token.png
 const equipArt:Record<string,string>={weapon:'/assets/game/equipment/axe-legendary.png',armor:'/assets/game/equipment/armor-legendary.png',ring:'/assets/game/equipment/ring-legendary.png',common:'/assets/game/equipment/axe-common.png',uncommon:'/assets/game/equipment/axe-uncommon.png',rare:'/assets/game/equipment/axe-rare.png',epic:'/assets/game/equipment/axe-epic.png',legendary:'/assets/game/equipment/axe-legendary.png'};
 // Mystery rewards never reveal the art: the silhouette below is what the player sees before claiming.
 const silhouette:Record<string,string>={'season-1-aldren':'/assets/game/heroes/season-1-aldren.png','season-1-mythic-egg':voyagePetArt.abysscoil,hero_random:'/assets/game/heroes/legendary-dragon-knight.png'};
-const rewardImage=(r:PassReward)=>r.imageUrl||(r.code?equipArt[r.code]&&(r.type==='equipment'||r.type==='nft_equipment')?equipArt[r.code]:art[r.code]:undefined)||art[r.type]||art.fragments;
+const rewardImage=(r:PassReward)=>/egg/.test(r.type+' '+(r.code??''))?mascotChestImage(r.code??r.type):r.imageUrl||(r.code?equipArt[r.code]&&(r.type==='equipment'||r.type==='nft_equipment')?equipArt[r.code]:art[r.code]:undefined)||art[r.type]||art.fragments;
 
 
 export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramInitData:string;onClose:()=>void;onMissions:()=>void}){
