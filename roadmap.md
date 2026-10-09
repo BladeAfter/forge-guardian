@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Refazer Tripulação como convés vivo com capitão, membros selecionáveis, câmera e ficha individual; remover Fusão, Inventário e filtros desta tela, preservando dados e equipamentos oficiais. Funções com bônus, Haki, frutas e novos poderes dependem de regras oficiais e não serão inventados.
+
 - [x] Refazer a apresentação da arena do chefe global com duas artes IA, capitão do perfil, mascote físico, tripulação lateral, joystick, golpe animado, esquiva visual, fases visuais e controles compactos. Corrigidos cortes dos controles e sobreposição do mascote na inspeção visual; 24 testes passaram e fluxo isolado conferido no navegador. Dano, recompensas, equipe e tempos oficiais preservados.
   - Pendente: Haki, frutas, energia, ultimate, combos com dano e esquiva real não existem nas regras oficiais; poderes permanecem bloqueados, movimento/esquiva/fases são cosméticos. Combate real no Telegram não verificado por falta de sessão Telegram assinada.
 
