@@ -25,7 +25,7 @@ import recruitFleet from './assets/recruit-fleet.jpg';
 import pirateCaptainProfile from './assets/pirate-captain-profile.jpg';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
 
-export const marketArt = { port: pirateMarketPort, chest: recruitFleet, hero: voyageHeroArt.deckblade, pet: piratePetIcon };
+export const marketArt = { port: pirateMarketPort, chest: '/assets/game/chests/common-chest.png', hero: voyageHeroArt.deckblade, pet: piratePetIcon };
 
 export const profileArt = { deck: pirateCaptainProfile, captain: pirateProfileIcon, pass: pirateSeasonPassIcon, treasure: pirateBerryStack };
 
