@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Boas-vindas ilustradas no /start de @MythicSeasbot com botão de iniciar; webhook ativado e resposta autenticada conferida, chamadas sem segredo rejeitadas. Permissão nativa de mensagens solicitada uma vez por sessão; recibos com valor, carteira, data UTC, hash e Tonviewer. Aceitação e abertura reais ainda precisam de conferência no Telegram.
+
 - [x] Reduzir trabalho gráfico no desembarque e caminhada: câmera interpolada, cena memoizada sem sombras dinâmicas, cordas reutilizadas e colisores agrupados; desembarque mais ágil. Caminhada de ida/volta e desembarque conferidos isoladamente, 10 testes passaram. Fluidez no aparelho real via Telegram ainda não validada.
 
 - [x] Fazer o personagem da arena e seu retrato acompanharem o pirata selecionado, com cinco artes apoiadas no chão e composição portuária preservada. Troca visual, retrato correspondente, joystick e callbacks oficiais conferidos isoladamente; 27 testes passaram. Validação real no Telegram pendente.

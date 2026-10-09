@@ -5,6 +5,7 @@ export type TelegramUser = {
   last_name?: string;
   username?: string;
   photo_url?: string;
+  allows_write_to_pm?: boolean;
 };
 
 export type TelegramWebApp = {
@@ -12,6 +13,7 @@ export type TelegramWebApp = {
   initDataUnsafe?: { user?: TelegramUser; start_param?: string };
   ready: () => void;
   expand: () => void;
+  requestWriteAccess?: (callback?: (allowed: boolean) => void) => void;
   openTelegramLink?: (url:string) => void;
   launchParams?: {startParam?:string};
   BackButton?:{show:()=>void;hide:()=>void;onClick:(callback:()=>void)=>void;offClick:(callback:()=>void)=>void};
@@ -53,6 +55,14 @@ export const initializeTelegram = () => {
   return webApp ?? null;
 };
 
+let writeAccessRequested = false;
+export const requestTelegramMessages = (webApp: TelegramWebApp) => {
+  if (writeAccessRequested || !webApp.initData || !webApp.requestWriteAccess || getTelegramUser(webApp)?.allows_write_to_pm) return;
+  writeAccessRequested = true;
+  try { webApp.requestWriteAccess(() => { /* Respect refusal; no repeat this session. */ }); }
+  catch { /* Older clients may not support the native prompt. */ }
+};
+
 /**
  * Telegram injects initData asynchronously on some clients, so we poll briefly
  * instead of deciding "no session" on the very first render.
@@ -61,7 +71,7 @@ export const waitForTelegramInitData = async (timeoutMs = 4000): Promise<Telegra
   const started = Date.now();
   let webApp = initializeTelegram();
   while (Date.now() - started < timeoutMs) {
-    if (webApp?.initData) return webApp;
+    if (webApp?.initData) { requestTelegramMessages(webApp); return webApp; }
     await new Promise((resolve) => setTimeout(resolve, 150));
     webApp = window.Telegram?.WebApp ?? webApp;
   }
