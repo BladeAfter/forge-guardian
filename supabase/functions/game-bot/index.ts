@@ -1,5 +1,7 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { welcomeReply } from './format.ts';
+import { deliverFirstTutorial } from './tutorial.ts';
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function webhookSecret(token: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mythic-seas-game-webhook:${token}`));
@@ -20,6 +22,30 @@ Deno.serve(async req => {
   try {
     const body = await req.text();
     if (body.length > 65536) return json({ error: 'payload_too_large' }, 413);
-    return json(welcomeReply(JSON.parse(body)) ?? { ok: true });
-  } catch { return json({ error: 'invalid_update' }, 400); }
+    let update;
+    try { update = JSON.parse(body); } catch { return json({ error: 'invalid_update' }, 400); }
+    const reply = welcomeReply(update);
+    if (!reply) return json({ ok: true });
+    const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!url || !key) return json({ error: 'configuration_missing' }, 503);
+    const db = createClient(url, key);
+    const handled = await deliverFirstTutorial(reply, update.update_id, {
+      claim: async (chatId, updateId) => {
+        const { error } = await db.from('game_bot_tutorial_deliveries').insert({ chat_id: chatId, update_id: updateId });
+        if (error?.code === '23505') return false;
+        if (error) throw new Error('tutorial_claim_failed');
+        return true;
+      },
+      finish: async (chatId, status, messageId) => {
+        const { error } = await db.from('game_bot_tutorial_deliveries').update({ status, message_id: messageId ?? null }).eq('chat_id', chatId);
+        if (error) throw new Error('tutorial_status_failed');
+      },
+    }, async payload => {
+      const response = await fetch(`https://api.telegram.org/bot${token}/sendVideo`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(15000),
+      });
+      return await response.json();
+    });
+    return json(handled ? { ok: true } : reply);
+  } catch { return json({ error: 'tutorial_unavailable' }, 503); }
 });
