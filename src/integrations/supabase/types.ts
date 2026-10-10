@@ -6515,6 +6515,30 @@ export type Database = {
           },
         ]
       }
+      game_bot_tutorial_deliveries: {
+        Row: {
+          chat_id: number
+          created_at: string
+          message_id: number | null
+          status: string
+          update_id: number
+        }
+        Insert: {
+          chat_id: number
+          created_at?: string
+          message_id?: number | null
+          status?: string
+          update_id: number
+        }
+        Update: {
+          chat_id?: number
+          created_at?: string
+          message_id?: number | null
+          status?: string
+          update_id?: number
+        }
+        Relationships: []
+      }
       game_missions: {
         Row: {
           code: string
