@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Liberar testes antes do lançamento exclusivamente ao administrador 8490010993 autenticado pelo Telegram e alinhar autorização do bot administrativo.
+- [x] Liberar testes antes do lançamento exclusivamente ao administrador 8490010993 autenticado pelo Telegram; configuração administrativa confirmada, funções implantadas e oito testes passaram. Outros IDs continuam bloqueados e acesso móvel permanece obrigatório.
+- [ ] Confirmar entrada antecipada e menu administrativo com a sessão real de 8490010993 no Telegram; depende da interação do administrador.
 
 - [x] Selecionar tutorial pelo idioma informado pelo Telegram; 42 versões traduzidas e português original, incluindo russo e inglês. Quadros dos passos e duração/áudio conferidos; trilha original sem narração, captura do jogo preservada em português. Idioma sem vídeo não consome envio nem recebe vídeo diferente.
 - [ ] Conferir recebimento privado no Telegram com jogador real; depende de /start real. Cobertura ainda não inclui todos os idiomas existentes.
