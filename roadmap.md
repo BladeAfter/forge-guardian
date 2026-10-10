@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Substituir bússola por minimapa náutico graduado com ilhas, portos, direção do navio e jogadores do servidor. Ampliação/redução e joystick conferidos isoladamente; 13 testes passaram. Confirmação com jogadores reais no Telegram indisponível.
+
 - [x] Remover emendas quadradas com água própria e bordas espelhadas; reduzir ilhas e suavizar suas margens sem mudar colisões/atracação. Treze testes passaram; cena isolada e seleção de dois jogadores simulados conferidas, assim como envio/parada do joystick. Mundo aberto e jogadores reais retornados pelo servidor preservados; confirmação multijogador no Telegram requer sessões reais.
 
 - [ ] Navegação Telegram: proteção contra gestos nativos, envio urgente sem adiamento por novos toques, retomada de conexão e retenção da posição aprovada implementados; 15 testes e arraste/soltura com respostas simuladas passaram. Bloqueios: atualizar a versão publicada e verificar com sessão Telegram real; causa no aparelho ainda não confirmada.
