@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Search } from 'lucide-react';
@@ -20,6 +21,8 @@ const fmtTon = (value: number) => `${Number(value ?? 0).toFixed(2)} TON`;
  * the breed counter (owned by the NFT instance) and the block reason for each unit.
  */
 export default function BreedingSection({ initData }: { initData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [selected, setSelected] = useState<string | null>(null);
@@ -125,7 +128,7 @@ export default function BreedingSection({ initData }: { initData: string }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="@username / 8118569391"
+              placeholder={localizeText("@username / 8118569391")}
               className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-[11px] outline-none"
             />
             <button type="button" disabled={search.isPending} onClick={() => search.mutate()} className="grid h-9 w-10 place-items-center rounded-xl bg-amber-400 text-black">

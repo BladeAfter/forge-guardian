@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Expand, Flame, Hand, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
 import { actionArenaArt, arenaCrewImage } from '../gameAssets';
@@ -19,6 +20,8 @@ type Props = {
 
 /** Physical movement and effects are cosmetic; only the official attack callback changes combat. */
 export function PirateActionArena(props: Props) {
+  const localizeText = useLocalizedText();
+
   const { name, hp, maxHp, heroes, pet, hit, attacking, active, cooldown, onAttack } = props;
   const stage = useRef<HTMLDivElement>(null);
   const inFlight = useRef(false);
@@ -79,40 +82,40 @@ export function PirateActionArena(props: Props) {
     };
     window.addEventListener('keydown', handle); return () => window.removeEventListener('keydown', handle);
   }, [strike, animate]);
-  return <div ref={stage} className={`seas-action-arena action-phase-${phase} action-${action} ${hit ? 'action-boss-hit' : ''} ${expanded ? 'action-expanded' : ''}`} aria-label="Arena de combate pirata">
-    <img className="action-world" src={actionArenaArt.harbor} width={1536} height={1376} alt="Arena portuária da Grand Line, navio pirata e oceano" />
+  return <div ref={stage} className={`seas-action-arena action-phase-${phase} action-${action} ${hit ? 'action-boss-hit' : ''} ${expanded ? 'action-expanded' : ''}`} aria-label={localizeText("Arena de combate pirata")}>
+    <img className="action-world" src={actionArenaArt.harbor} width={1536} height={1376} alt={localizeText("Arena portuária da Grand Line, navio pirata e oceano")} />
     <div className="action-atmosphere" aria-hidden="true" />
     <div className="action-wind" aria-hidden="true"><i /><i /><i /></div>
     <header className="action-boss-hud">
       <img className="action-boss-emblem" src={props.image} alt="" width={64} height={64} />
-      <div className="action-boss-title"><div><small>CHEFE GLOBAL</small><h2>{name}</h2></div><OceanControl onClick={props.onRanking} title="Ranking" aria-label="Ranking"><Trophy size={18} /></OceanControl><OceanControl onClick={() => setExpanded(value => !value)} title={expanded ? 'Reduzir arena' : 'Expandir arena'} aria-label={expanded ? 'Reduzir arena' : 'Expandir arena'}>{expanded ? <X size={18} /> : <Expand size={18} />}</OceanControl></div>
-      <div className="action-boss-life" role="progressbar" aria-label="Vida do chefe" aria-valuenow={Math.ceil(hp)} aria-valuemax={maxHp} aria-valuemin={0}><span style={{ width: `${ratio}%` }} />{[25,50,75].map(value => <i key={value} style={{ left: `${value}%` }} />)}</div>
+      <div className="action-boss-title"><div><small>{localizeText("CHEFE GLOBAL")}</small><h2>{name}</h2></div><OceanControl onClick={props.onRanking} title={localizeText("Ranking")} aria-label={localizeText("Ranking")}><Trophy size={18} /></OceanControl><OceanControl onClick={() => setExpanded(value => !value)} title={expanded ? localizeText("Reduzir arena") : localizeText("Expandir arena")} aria-label={expanded ? localizeText("Reduzir arena") : localizeText("Expandir arena")}>{expanded ? <X size={18} /> : <Expand size={18} />}</OceanControl></div>
+      <div className="action-boss-life" role="progressbar" aria-label={localizeText("Vida do chefe")} aria-valuenow={Math.ceil(hp)} aria-valuemax={maxHp} aria-valuemin={0}><span style={{ width: `${ratio}%` }} />{[25,50,75].map(value => <i key={value} style={{ left: `${value}%` }} />)}</div>
       <div className="action-boss-meta"><span>{Math.ceil(hp).toLocaleString('pt-BR')} / {maxHp.toLocaleString('pt-BR')}</span></div>
     </header>
-    <aside className="action-crew" aria-label="Tripulação">
-      <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title="Capitão do perfil" aria-label="Capitão do perfil"><img src={captain} alt="Capitão" /></OceanControl>
+    <aside className="action-crew" aria-label={localizeText("Tripulação")}>
+      <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title={localizeText("Capitão do perfil")} aria-label={localizeText("Capitão do perfil")}><img src={captain} alt={localizeText("Capitão")} /></OceanControl>
       {COMBAT_SLOTS.map(slot => { const hero = heroes.find(item => Number(item.slot) === slot); return <div key={slot}>
         <OceanControl className={hero && selected?.heroId === hero.heroId ? 'action-crew-selected' : ''} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `Controlar ${hero.name}` : `Equipar tripulante ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}${hero.isAlive ? '' : ' · Nocauteado'}` : `Equipar tripulante ${slot}`}>
-          {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">KO</span>}</> : <span>+</span>}
-        </OceanControl>{hero && <OceanControl className="action-crew-edit" onClick={() => props.onEquip(slot)} aria-label={`Trocar tripulante ${slot}`} title="Trocar tripulante">↻</OceanControl>}
+          {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">{localizeText("KO")}</span>}</> : <span>+</span>}
+        </OceanControl>{hero && <OceanControl className="action-crew-edit" onClick={() => props.onEquip(slot)} aria-label={`Trocar tripulante ${slot}`} title={localizeText("Trocar tripulante")}>↻</OceanControl>}
       </div>; })}
     </aside>
     <div className="action-boss-ground" aria-hidden="true" />
     <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
-    {telegraph && <div className="action-telegraph" role="status"><span>GOLPE IMINENTE</span></div>}
-    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected ? `${selected.name} em postura de combate` : 'Pirata do perfil em postura de combate'} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
+    {telegraph && <div className="action-telegraph" role="status"><span>{localizeText("GOLPE IMINENTE")}</span></div>}
+    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected ? `${selected.name} em postura de combate` : localizeText("Pirata do perfil em postura de combate")} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
-    {flash && <div className="action-combo" role="status"><strong>{hits}</strong><span>GOLPE{hits > 1 ? 'S' : ''} CONFIRMADO{hits > 1 ? 'S' : ''}</span></div>}
+    {flash && <div className="action-combo" role="status"><strong>{hits}</strong><span>{localizeText("GOLPE")}{hits > 1 ? 'S' : ''} {localizeText("CONFIRMADO")}{hits > 1 ? 'S' : ''}</span></div>}
     {hit && <div className="action-impact" aria-hidden="true" />}
-    {props.swap && <div className="action-announcement" role="status">{props.swap === 'defeated' ? 'CHEFE DERROTADO' : 'CICLO ENCERRADO'}<small>Novo adversário no horizonte</small></div>}
+    {props.swap && <div className="action-announcement" role="status">{props.swap === 'defeated' ? localizeText("CHEFE DERROTADO") : localizeText("CICLO ENCERRADO")}<small>{localizeText("Novo adversário no horizonte")}</small></div>}
     {error && <p className="action-feedback" role="alert">{error}</p>}
-    {!active && <p className="action-feedback">{props.status === 'defeated' ? 'Chefe derrotado' : 'Aguardando próximo chefe'}</p>}
+    {!active && <p className="action-feedback">{props.status === 'defeated' ? localizeText("Chefe derrotado") : localizeText("Aguardando próximo chefe")}</p>}
     <div className="action-player-hud"><Swords size={13}/><span>{props.damage.toLocaleString('pt-BR')} dano</span><span>#{props.rank ?? '—'}</span><b>{props.reward.toLocaleString('pt-BR')} BERRIES</b></div>
     <IslandJoystick onDirection={value => { direction.current = value; }} disabled={false} />
-    <nav className="action-controls" aria-label="Ações de combate">
-      <OceanControl className="action-basic" disabled={!ready} onClick={() => void strike()} aria-label="Ataque básico" title="Ataque básico"><Hand />{(attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>
+    <nav className="action-controls" aria-label={localizeText("Ações de combate")}>
+      <OceanControl className="action-basic" disabled={!ready} onClick={() => void strike()} aria-label={localizeText("Ataque básico")} title={localizeText("Ataque básico")}><Hand />{(attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>
       {([{key:'Q',name:'Armamento',Icon:Shield},{key:'E',name:'Poder da fruta',Icon:Flame},{key:'R',name:'Conquistador',Icon:Zap},{key:'F',name:'Ultimate',Icon:Sparkles}]).map(({key,name:label,Icon}) => <OceanControl key={key} disabled aria-label={`${label} indisponível`} title={`${label} · Ainda não disponível nas regras de combate`}><Icon/><LockKeyhole className="action-lock"/></OceanControl>)}
-      <OceanControl onClick={() => animate('dodge')} aria-label="Esquiva visual" title="Esquiva visual · Não altera o dano oficial"><Wind/></OceanControl>
+      <OceanControl onClick={() => animate('dodge')} aria-label={localizeText("Esquiva visual")} title={localizeText("Esquiva visual · Não altera o dano oficial")}><Wind/></OceanControl>
     </nav>
   </div>;
 }

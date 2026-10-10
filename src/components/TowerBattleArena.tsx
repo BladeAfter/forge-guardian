@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Swords, Zap } from 'lucide-react';
 import type { PvpHero } from '../pvp';
@@ -31,6 +32,8 @@ type Fighter = { heroId: string; name: string; imageUrl: string; rarity: string;
 const compact = (value: number) => Math.floor(Math.max(0, value)).toLocaleString();
 
 export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; onContinue: () => void }) {
+  const localizeText = useLocalizedText();
+
   const theme = towerBossTheme(battle.boss.bossKey);
   const events = useMemo(() => battle.battleLog.filter(e => Number.isFinite(e?.damage)), [battle]);
   const baseHeroes = useMemo<Fighter[]>(
@@ -148,7 +151,7 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                   <div className="relative">
                     <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover object-top" />
                     {hit ? <span key={hit.key} className="absolute inset-x-0 top-1 animate-fade-in text-center text-[11px] font-black text-rose-300">-{hit.damage}</span> : null}
-                    {dead ? <span className="absolute inset-0 grid place-items-center bg-black/60 text-[7px] font-black tracking-widest text-rose-300">KO</span> : null}
+                    {dead ? <span className="absolute inset-0 grid place-items-center bg-black/60 text-[7px] font-black tracking-widest text-rose-300">{localizeText("KO")}</span> : null}
                   </div>
                   <p className="truncate px-1 pt-0.5 text-[7px] font-bold text-slate-200">{h.name}</p>
                   <div className="mx-1 mb-1 mt-0.5 h-1 overflow-hidden rounded-full bg-white/10">
@@ -222,7 +225,7 @@ export function TowerBattleArena({ battle, onContinue }: { battle: TowerBattle; 
                     </div>
                     <div className="mt-2 grid grid-cols-3 gap-1.5 text-center text-[10px]">
                       <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">ATK</p><p className="font-bold text-rose-300">+{gear.bonusAttack ?? 0}</p></div>
-                      <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">DEF</p><p className="font-bold text-sky-300">+{gear.bonusDefense ?? 0}</p></div>
+                      <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">{localizeText("DEF")}</p><p className="font-bold text-sky-300">+{gear.bonusDefense ?? 0}</p></div>
                       <div className="rounded-lg bg-black/60 p-1.5"><p className="text-slate-500">HP</p><p className="font-bold text-emerald-300">+{gear.bonusHp ?? 0}</p></div>
                     </div>
                     <p className="mt-2 text-center text-[9px] uppercase tracking-[.18em] text-slate-500">{t('tower.savedInInventory', { floor: gear.floor ?? battle.floor })}</p>

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { REALM_ROOM_LABEL_KEY, type RealmRuinRoom, type RealmRuinRun, type RealmState } from '../realm';
 import { useT } from '../LanguageContext';
@@ -84,6 +85,8 @@ export default function RealmDungeonScene({
   onExtract: () => Promise<RealmState | null>;
   onLeave: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const [phase, setPhase] = useState<Phase>('intro');
   const [flash, setFlash] = useState<string | null>(null);
@@ -145,7 +148,7 @@ export default function RealmDungeonScene({
 
       {/* HUD */}
       <header className="dungeon-hud">
-        <button onClick={onLeave} className="dungeon-hud-exit">‹ Sair</button>
+        <button onClick={onLeave} className="dungeon-hud-exit">{localizeText("‹ Sair")}</button>
         <div className="dungeon-hud-mid">
           <b className="dungeon-hud-region">{regionName}</b>
           <div className="dungeon-depth">

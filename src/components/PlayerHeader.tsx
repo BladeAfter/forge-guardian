@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { balanceArt } from '../gameAssets';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
@@ -21,6 +22,8 @@ const AVATAR_BORDERS: Record<string, string> = {
 };
 
 export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | null }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const [failed, setFailed] = useState(false);
   const name = profile ? getDisplayName(profile) : t('profile.player');
@@ -40,7 +43,7 @@ export function PlayerAvatar({ profile }: { profile: TelegramPlayerProfile | nul
   );
   if (!borderUrl) return inner;
   return (
-    <div className="player-avatar-frame" title="Exclusive Avatar Border">
+    <div className="player-avatar-frame" title={localizeText("Exclusive Avatar Border")}>
       {inner}
       <img src={borderUrl} alt="" loading="lazy" className="player-avatar-frame-ring" />
     </div>
@@ -57,6 +60,8 @@ export function PlayerIdentity({
   loading?: boolean;
   onRetry?: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const titles = usePremiumTitles();
   const title = profile
@@ -74,7 +79,7 @@ export function PlayerIdentity({
             </p>
 
 
-            <p className="player-tgid truncate text-[9px] leading-tight text-slate-400">ID: {profile.telegramId}</p>
+            <p className="player-tgid truncate text-[9px] leading-tight text-slate-400">{localizeText("ID:")}{profile.telegramId}</p>
           </>
         ) : (
           <>

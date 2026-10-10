@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
@@ -62,6 +63,8 @@ const PET_RARITY_STYLE: Record<PetRarity, { borderClass: string; glowClass: stri
 const fmt = (value: number) => Math.round(value).toLocaleString('pt-BR');
 
 export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInitData: string; onClose: () => void; onWallet?: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
@@ -281,8 +284,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
                 {activeIsCelestial ? (
                   <span className="forge-celestial-tag mt-1 inline-flex items-center gap-1 rounded-full border border-cyan-100/80 bg-gradient-to-r from-cyan-100/20 to-amber-200/20 px-2 py-0.5 text-[7px] font-black tracking-[.16em] text-cyan-50">
                     <Crown className="h-2.5 w-2.5" />
-                    CELESTIAL
-                  </span>
+                    {localizeText("CELESTIAL")}</span>
                 ) : null}
                 <p style={{ color: rarityColor[petDisplayRarity(active)] }} className="text-xs font-bold uppercase">
                   {t('pets.rarityLevel', { rarity: petDisplayRarityLabel(active), level: active.level, max: active.maxLevel })}
@@ -538,6 +540,8 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
 }
 
 function Shell({ children, onClose, section, onSection }: { children: React.ReactNode; onClose: () => void; section?: Section; onSection?: (value: Section) => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const primary: [Section, string, React.ReactNode][] = [
     ['pets', 'MASCOTES', <PawPrint key="pets" className="h-4 w-4" />],
@@ -617,7 +621,7 @@ function Shell({ children, onClose, section, onSection }: { children: React.Reac
               </div>
             </div>
           ) : (
-            <h1 className="mt-1 text-xl font-black tracking-wide">MASCOTES</h1>
+            <h1 className="mt-1 text-xl font-black tracking-wide">{localizeText("MASCOTES")}</h1>
           )}
         </header>
         {children}
@@ -759,6 +763,8 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed, 
 }
 
 function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; foods: PetFood[]; pending: boolean; onClose: () => void; onFeed: (foodCode: string, quantity: number) => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const available = foods.filter((food) => food.quantity > 0);
   const [selected, setSelected] = useState(available[0]?.code ?? '');
@@ -796,7 +802,7 @@ function FeedModal({ pet, foods, pending, onClose, onFeed }: { pet: PlayerPet; f
                   <span className="text-xl leading-none">{PET_FOOD_ICONS[item.icon] ?? '🍖'}</span>
                   <span className="min-w-0">
                     <b className="block truncate text-[10px]">{item.name}</b>
-                    <span className="block text-[9px] text-emerald-300">+{fmt(item.xpValue)} XP · {item.quantity}x</span>
+                    <span className="block text-[9px] text-emerald-300">+{fmt(item.xpValue)} {localizeText("XP ·")}{item.quantity}x</span>
                   </span>
                 </button>
               ))}
@@ -884,6 +890,8 @@ function Action({ text, onClick, disabled }: { text: string; onClick: () => void
  * backend and is visible exclusively to the master admin through the admin bot.
  */
 function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitData: string; onGoToShop?: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
@@ -903,14 +911,14 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
   });
 
   if (isLoading) return <p className="py-24 text-center text-sm text-amber-200">...</p>;
-  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : 'Erro'}</p>;
+  if (error) return <p className="py-24 text-center text-sm text-rose-300">{error instanceof Error ? error.message : localizeText("Erro")}</p>;
 
   const items = data?.items ?? [];
   if (items.length === 0) {
     return (
       <section className="forge-nft-card mt-2 overflow-hidden rounded-[1.8rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-6 text-center">
         <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
-        <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">💎 NFT EXCLUSIVE</p>
+        <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
         <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">{t('nft.noPetYet')}</p>
         <p className="mx-auto mt-1 max-w-[260px] text-[11px] text-slate-400">{t('nft.goBuyHint')}</p>
         {onGoToShop ? (
@@ -943,7 +951,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
           <section key={item.positionId} className="forge-nft-card relative overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
             <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
             <div className="relative flex items-center justify-between gap-2">
-              <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 NFT EXCLUSIVE</p>
+              <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
               <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{data?.totalSupply ?? 10}</p>
             </div>
             <div className="relative mt-2 flex items-center gap-3">
@@ -951,7 +959,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
               <div className="min-w-0">
                 <h3 className="truncate text-lg font-black text-white">{item.name.toUpperCase()}</h3>
                 <p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-300/90">
-                  {petRarityLabel(item.rarity as PetRarity)} • LEVEL {item.level}
+                  {petRarityLabel(item.rarity as PetRarity)} {localizeText("• LEVEL")}{item.level}
                 </p>
               </div>
             </div>
@@ -972,7 +980,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
                 onClick={() => claim.mutate(item.positionId)}
                 className={`relative mt-3 w-full rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[.12em] ${canClaim ? 'bg-gradient-to-b from-amber-300 to-orange-500 text-black' : 'bg-white/5 text-slate-500'}`}
               >
-                {available > 0 ? `CLAIM ${formatTon(available)} TON` : 'NOTHING TO CLAIM'}
+                {available > 0 ? `CLAIM ${formatTon(available)} TON` : localizeText("NOTHING TO CLAIM")}
               </button>
             ) : null}
           </section>
@@ -983,15 +991,18 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
 }
 
 function NftPetTag({ serial, className = '' }: { serial?: string | number | null; className?: string }) {
+  const localizeText = useLocalizedText();
+
   return (
     <span className={`forge-nft-tag inline-flex items-center gap-1 rounded-full border border-amber-200/80 bg-[#120c04] px-2 py-1 text-[7px] font-black tracking-[.16em] text-amber-200 ${className}`}>
-      NFT EXCLUSIVE
-      {serial ? <b className="text-amber-100">#{String(serial).padStart(3, '0')}</b> : null}
+      {localizeText("NFT EXCLUSIVE")}{serial ? <b className="text-amber-100">#{String(serial).padStart(3, '0')}</b> : null}
     </span>
   );
 }
 
 function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet: PlayerPet; bonuses?: Record<string, number> | null; onFeed: () => void; onActivate?: () => void; onDetails?: () => void; pending: boolean }) {
+  const localizeText = useLocalizedText();
+
   const primaryValue = pet.isActive && bonuses && pet.primaryBuffKey && bonuses[pet.primaryBuffKey] != null
     ? Number(bonuses[pet.primaryBuffKey])
     : pet.primaryBuffValue;
@@ -1030,8 +1041,7 @@ function PetCard({ pet, bonuses, onFeed, onActivate, onDetails, pending }: { pet
         {/* NFT EXCLUSIVE / VETERAN replace the normal rarity badge — never both. */}
         {pet.isSubNft ? (
           <span className="inline-flex items-center gap-1 rounded-full border border-sky-300/70 bg-[#04121c] px-2 py-1 text-[7px] font-black tracking-[.16em] text-sky-200">
-            SUB-NFT
-            {pet.subNft?.serial ? <b className="text-sky-100">#{String(pet.subNft.serial).padStart(3, '0')}</b> : null}
+            {localizeText("SUB-NFT")}{pet.subNft?.serial ? <b className="text-sky-100">#{String(pet.subNft.serial).padStart(3, '0')}</b> : null}
           </span>
         ) : isNft ? (
           <NftPetTag serial={serial} />

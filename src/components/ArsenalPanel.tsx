@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -50,6 +51,8 @@ function SlotFilters({ value, onChange }: { value: SlotFilter; onChange: (slot: 
 }
 
 function ItemCard({ item }: { item: ArsenalItem }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const accent = RARITY[String(item.rarity)] ?? '#94a3b8';
   return (
@@ -59,7 +62,7 @@ function ItemCard({ item }: { item: ArsenalItem }) {
     >
       {item.isNft ? (
         <div className="mb-1 flex items-center justify-between">
-          <span className="nft-hero-badge text-[7px]">💎 NFT EXCLUSIVE</span>
+          <span className="nft-hero-badge text-[7px]">{localizeText("💎 NFT EXCLUSIVE")}</span>
           {item.serial ? <span className="text-[8px] font-black text-amber-100">#{String(item.serial).padStart(3, '0')}</span> : null}
         </div>
       ) : null}
@@ -72,9 +75,9 @@ function ItemCard({ item }: { item: ArsenalItem }) {
         <div className="min-w-0 flex-1">
           <p className={`truncate text-[11px] font-black uppercase ${item.isNft ? 'nft-hero-name' : 'text-white'}`}>{item.name}</p>
           <p className="text-[8px] font-black uppercase tracking-[.12em]" style={{ color: accent }}>
-            {item.isNft ? 'NFT EXCLUSIVE' : (item.rarity ? t(`rarity.${item.rarity}`) : '')} · {SLOT_GLYPH[item.slot]} {t(`arsenal.slot.${item.slot}`)}
+            {item.isNft ? localizeText("NFT EXCLUSIVE") : (item.rarity ? t(`rarity.${item.rarity}`) : '')} · {SLOT_GLYPH[item.slot]} {t(`arsenal.slot.${item.slot}`)}
           </p>
-          <p className="text-[9px] font-bold text-emerald-300">ATK +{item.bonusAttack} · DEF +{item.bonusDefense} · HP +{item.bonusHp}</p>
+          <p className="text-[9px] font-bold text-emerald-300">{localizeText("ATK +")}{item.bonusAttack} {localizeText("· DEF +")}{item.bonusDefense} {localizeText("· HP +")}{item.bonusHp}</p>
           <p className="text-[8px] font-black uppercase tracking-[.1em] text-slate-400">
             {item.slot === 'weapon' && item.heroClass ? t('arsenal.classOnly', { class: item.heroClass.toUpperCase() }) : t('arsenal.anyClass')}
           </p>
@@ -90,13 +93,15 @@ function ItemCard({ item }: { item: ArsenalItem }) {
 }
 
 function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; total: number; onBuy: () => void; disabled: boolean }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const sold = item.status === 'SOLD_OUT';
   return (
     <section className={`forge-nft-card relative overflow-hidden rounded-[1.6rem] border bg-gradient-to-b from-amber-950/40 to-black/85 p-3 ${sold ? 'border-white/10 opacity-70' : 'border-amber-200/60'}`}>
       {!sold ? <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden /> : null}
       <div className="relative flex items-start justify-between gap-2">
-        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 NFT EXCLUSIVE</p>
+        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
         <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{total}</p>
       </div>
       <div className="relative mt-2 flex items-center gap-3">
@@ -106,8 +111,7 @@ function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; to
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-black text-white">{item.name.toUpperCase()}</h3>
           <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">
-            {SLOT_GLYPH[item.slot]} {t(`arsenal.slot.${item.slot}`)} · Supply 1/1
-          </p>
+            {SLOT_GLYPH[item.slot]} {t(`arsenal.slot.${item.slot}`)} {localizeText("· Supply 1/1")}</p>
           <p className="text-[9px] font-black uppercase tracking-[.12em] text-slate-300">
             {item.slot === 'weapon' && item.heroClass ? t('arsenal.classOnly', { class: item.heroClass.toUpperCase() }) : t('arsenal.anyClass')}
           </p>
@@ -122,17 +126,16 @@ function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; to
           <p className="text-[13px] font-black text-amber-100">{formatTon(item.priceTon)} <span className="text-[8px] text-amber-300/80">TON</span></p>
         </div>
         <div className="rounded-xl border border-amber-200/20 bg-black/45 px-1 py-2">
-          <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">POWER</p>
+          <p className="text-[7px] uppercase tracking-[.14em] text-slate-400">{localizeText("POWER")}</p>
           <p className="text-[13px] font-black text-emerald-300">{item.power}</p>
         </div>
       </div>
       <p className="relative mt-2 text-center text-[9px] font-bold text-slate-300">
-        ATK +{item.bonusAttack} · DEF +{item.bonusDefense} · HP +{item.bonusHp}
+        {localizeText("ATK +")}{item.bonusAttack} {localizeText("· DEF +")}{item.bonusDefense} {localizeText("· HP +")}{item.bonusHp}
       </p>
       {Number(item.mythPerDay ?? 0) > 0 ? (
         <p className="relative mt-1 text-center text-[9px] font-black uppercase tracking-[.14em] text-violet-200">
-          ⛏ {Math.round(Number(item.mythPerDay))} MYTH / DAY
-        </p>
+          ⛏ {Math.round(Number(item.mythPerDay))} {localizeText("MYTH / DAY")}</p>
       ) : null}
       <button
         type="button"
@@ -152,6 +155,8 @@ function ShopCard({ item, total, onBuy, disabled }: { item: NftEquipShopItem; to
  * store. Equipping still happens in the hero details slots.
  */
 export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: string; onBack: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('mine');
@@ -299,7 +304,7 @@ export function ArsenalPanel({ telegramInitData, onBack }: { telegramInitData: s
             <p className="text-[10px] uppercase tracking-[.14em] text-slate-400">NFT #{String(target.serial).padStart(2, '0')}/{total} • 1/1</p>
             <div className="mt-3 space-y-1 rounded-2xl border border-amber-200/20 bg-black/50 p-3 text-[11px] text-slate-300">
               <p className="flex justify-between"><span>{t('nft.price')}</span><span className="font-black text-amber-100">{formatTon(target.priceTon)} TON</span></p>
-              <p className="flex justify-between"><span>ATK / DEF / HP</span><span className="font-black text-emerald-300">+{target.bonusAttack} / +{target.bonusDefense} / +{target.bonusHp}</span></p>
+              <p className="flex justify-between"><span>{localizeText("ATK / DEF / HP")}</span><span className="font-black text-emerald-300">+{target.bonusAttack} / +{target.bonusDefense} / +{target.bonusHp}</span></p>
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(shop.data?.balanceTon ?? 0)} TON</span></p>
               {target.slot === 'weapon' && target.heroClass ? (
                 <p className="pt-1 text-[9px] font-black uppercase tracking-[.12em] text-amber-300">{t('arsenal.classOnly', { class: target.heroClass.toUpperCase() })}</p>

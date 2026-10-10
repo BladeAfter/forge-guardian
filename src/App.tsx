@@ -1,3 +1,4 @@
+import { useLocalizedText } from './LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -66,6 +67,8 @@ function StatusScreen({ title, message, details }: { title: string; message: str
 }
 
 function OpenInTelegramGate() {
+  const localizeText = useLocalizedText();
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-forge-black px-6 text-white">
       <img src={backgrounds.loading} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -76,8 +79,7 @@ function OpenInTelegramGate() {
           href={TELEGRAM_APP_LINK}
           className="mt-8 block w-full rounded-2xl border border-amber-300/50 bg-gradient-to-b from-amber-400 to-amber-600 px-6 py-4 text-base font-black uppercase tracking-[.12em] text-forge-black shadow-[0_14px_30px_rgba(0,0,0,.6)] transition active:scale-95"
         >
-          Abrir no Telegram
-        </a>
+          {localizeText("Abrir no Telegram")}</a>
       </main>
     </div>
   );
@@ -91,6 +93,8 @@ function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;s
 /** In-memory only: resets on every real app launch (Mini App reopen). */
 
 function App() {
+  const localizeText = useLocalizedText();
+
   const [tab, setTab] = useState<TabKey>(tabFromPath);
   // Global language: single source of truth (backend-persisted per player).
   const { language: languageCode, setLanguage, applyRemoteLanguage, t, tError } = useLanguage();
@@ -618,7 +622,7 @@ function App() {
   // Admin-only diagnostics screen (Telegram id checked against the super admin).
   if (window.location.pathname === '/admin/diagnostics' && !telegramBooting) {
     if (telegramUser?.id !== 8490010993) {
-      return <StatusScreen title="Acesso restrito" message="Esta área é exclusiva do administrador." />;
+      return <StatusScreen title={localizeText("Acesso restrito")} message="Esta área é exclusiva do administrador." />;
     }
     return (
       <DiagnosticsPage
@@ -660,15 +664,14 @@ function App() {
       console.error('[BOOT ERROR] critical_bootstrap', bootstrapError);
       return (
         <div className="relative flex min-h-screen flex-col items-center justify-center gap-4 bg-[#03060f] px-6 text-center text-white">
-          <h1 className="text-xl font-black tracking-wide">Unable to load Mythic Seas</h1>
+          <h1 className="text-xl font-black tracking-wide">{localizeText("Unable to load Mythic Seas")}</h1>
           <p className="max-w-xs text-sm text-slate-300">{bootstrapError}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
             className="rounded-full border border-sky-300/50 bg-sky-500/20 px-6 py-3 text-sm font-black uppercase tracking-[.18em] text-sky-100"
           >
-            Try again
-          </button>
+            {localizeText("Try again")}</button>
         </div>
       );
     }
@@ -839,9 +842,9 @@ function App() {
       {realmSoonOpen?<div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 px-6" onClick={()=>setRealmSoonOpen(false)}>
         <div className="w-full max-w-[320px] rounded-2xl border border-amber-300/30 bg-gradient-to-b from-[#141021] to-[#07090d] p-5 text-center shadow-[0_20px_60px_rgba(0,0,0,.8)]" onClick={e=>e.stopPropagation()}>
           <img src="/assets/game/realm/realm-castle-entry.png" alt="" width={96} height={96} className="mx-auto h-24 w-24 object-contain" />
-          <h3 className="mt-3 text-lg font-black uppercase tracking-[.18em] text-amber-200">Mythic Seas REALM</h3>
-          <p className="mt-2 text-sm text-slate-300">Em breve! Esta área ainda está em preparação e será liberada para todos os jogadores.</p>
-          <button onClick={()=>setRealmSoonOpen(false)} className="mt-4 w-full rounded-xl border border-amber-300/40 bg-amber-500/20 py-2 text-sm font-black uppercase tracking-[.14em] text-amber-100">Entendi</button>
+          <h3 className="mt-3 text-lg font-black uppercase tracking-[.18em] text-amber-200">{localizeText("Mythic Seas REALM")}</h3>
+          <p className="mt-2 text-sm text-slate-300">{localizeText("Em breve! Esta área ainda está em preparação e será liberada para todos os jogadores.")}</p>
+          <button onClick={()=>setRealmSoonOpen(false)} className="mt-4 w-full rounded-xl border border-amber-300/40 bg-amber-500/20 py-2 text-sm font-black uppercase tracking-[.14em] text-amber-100">{localizeText("Entendi")}</button>
         </div>
       </div>:null}
       <div className="fixed inset-y-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgrounds.village})` }} />
@@ -929,7 +932,7 @@ function App() {
           ) : null}
 
 
-          {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">BAÚ ABERTO</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">NOVO HERÓI</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} · HP {chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">CONTINUAR</button></div></div>:null}
+          {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">{localizeText("BAÚ ABERTO")}</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">{localizeText("NOVO HERÓI")}</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} {localizeText("· HP")}{chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">{localizeText("CONTINUAR")}</button></div></div>:null}
 
           {settingsOpen ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -998,25 +1001,25 @@ function App() {
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400">{lang.productionPerHour}</p>
-              <p className="text-base font-bold text-emerald-400">+{formatCurrency(totalProduction)} BERRIES/h</p>
+              <p className="text-base font-bold text-emerald-400">+{formatCurrency(totalProduction)} {localizeText("BERRIES/h")}</p>
             </div>
-            <img src={mainScreenArt.productionAnvil} alt="Produção" className="h-9 w-9 object-contain" />
+            <img src={mainScreenArt.productionAnvil} alt={localizeText("Produção")} className="h-9 w-9 object-contain" />
           </div>
           <div className="village-stage relative -mx-3 min-h-[145px] flex-1 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#07090d]/90" />
-            <img src={mainScreenArt.forgeTower} alt="Forja principal" className="village-forge absolute bottom-0 left-1/2 h-[325px] w-[325px] -translate-x-1/2 scale-x-110 object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,.85)]" />
+            <img src={mainScreenArt.forgeTower} alt={localizeText("Forja principal")} className="village-forge absolute bottom-0 left-1/2 h-[325px] w-[325px] -translate-x-1/2 scale-x-110 object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,.85)]" />
             <div className="village-furnace-glow pointer-events-none absolute bottom-[-12px] left-1/2 z-10 h-28 w-36 -translate-x-1/2 rounded-full" />
             <button onClick={() => upgradeBuilding('iron-mine')} title={`Melhorar Mina de Ferro: ${formatCurrency(game.buildings[0]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[3%] top-[27%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
-              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Mina de ferro</p>
-              <p className="text-[10px] text-slate-400">Nv. {game.buildings[0]?.level}</p>
+              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Mina de ferro")}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[0]?.level}</p>
             </button>
             <button onClick={() => upgradeBuilding('coal-mine')} title={`Melhorar Mina de Carvão: ${formatCurrency(game.buildings[1]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[2%] top-[56%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
-              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Mina de carvão</p>
-              <p className="text-[10px] text-slate-400">Nv. {game.buildings[1]?.level}</p>
+              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Mina de carvão")}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[1]?.level}</p>
             </button>
             <button onClick={() => upgradeBuilding('royal-workshop')} title={`Melhorar Oficina: ${formatCurrency(game.buildings[3]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute right-[2%] top-[43%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
-              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">Oficina</p>
-              <p className="text-[10px] text-slate-400">Nv. {game.buildings[3]?.level}</p>
+              <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Oficina")}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[3]?.level}</p>
             </button>
           </div>
           <div className="village-collect shrink-0 overflow-hidden rounded-2xl border border-amber-300/30 bg-[#090c12]/92 text-center shadow-[0_12px_28px_rgba(0,0,0,.45)]">
@@ -1037,7 +1040,7 @@ function App() {
             <div className="flex items-center justify-center gap-2 bg-black/45 px-2 py-1.5 text-xs text-slate-300">
               <span>🔥 {loginStreak} {lang.loginStreak.toLowerCase()}</span>
               <span className="text-slate-600">•</span>
-              <span>{formatCurrency(storageCapacity)} BERRIES max.</span>
+              <span>{formatCurrency(storageCapacity)} {localizeText("BERRIES max.")}</span>
             </div>
           </div>
         </section>
@@ -1053,7 +1056,7 @@ function App() {
                   <span key={index} className={`h-2 flex-1 rounded-full ${index < loginStreak ? 'bg-amber-400' : 'bg-white/10'}`} />
                 ))}
               </div>
-              <p className="relative mt-2 text-[11px] text-slate-400">Continue entrando todos os dias</p>
+              <p className="relative mt-2 text-[11px] text-slate-400">{localizeText("Continue entrando todos os dias")}</p>
             </div>
           </section>
         ) : null}

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -17,6 +18,8 @@ import { TOWER_KEYS } from '../tower';
  * instantânea; caso contrário o TON Connect abre e a chave só chega após confirmação on-chain.
  */
 export function RareKeyShop({ initData, keyChances }: { initData: string; keyChances?: Record<string, number> }) {
+  const localizeText = useLocalizedText();
+
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
   const { data: shop } = useTowerKeyShop(initData || null, Boolean(initData));
@@ -91,9 +94,9 @@ export function RareKeyShop({ initData, keyChances }: { initData: string; keyCha
   return (
     <>
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[9px] uppercase tracking-[.28em] text-slate-500">Chaves raras</p>
+        <p className="text-[9px] uppercase tracking-[.28em] text-slate-500">{localizeText("Chaves raras")}</p>
         <p className={`text-[9px] font-black uppercase tracking-[.16em] ${shop?.limitReached ? 'text-rose-300' : 'text-amber-200'}`}>
-          {shop?.limitReached ? 'Limite atingido' : `Compras ${used} / ${limit}`}
+          {shop?.limitReached ? localizeText("Limite atingido") : `Compras ${used} / ${limit}`}
         </p>
       </div>
       <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -112,7 +115,7 @@ export function RareKeyShop({ initData, keyChances }: { initData: string; keyCha
               <img src={key.image} alt={key.name} loading="lazy" width={512} height={512} className={`mx-auto h-9 w-9 object-contain ${chance > 0 ? '' : 'opacity-60'}`} />
               <p className="mt-1 truncate text-[8px] font-black uppercase tracking-[.06em]" style={{ color: key.color }}>{key.name}</p>
               <p className="text-[8px] text-slate-400">{chance > 0 ? `${chance}%` : '—'}</p>
-              <p className="text-[8px] text-slate-300">Possui: <span className="font-bold text-white">{owned}</span></p>
+              <p className="text-[8px] text-slate-300">{localizeText("Possui:")}<span className="font-bold text-white">{owned}</span></p>
               <div className="mt-1 flex items-center justify-between gap-1">
                 <span className="text-[8px] font-bold text-slate-200">{price} TON</span>
                 <button
@@ -136,30 +139,29 @@ export function RareKeyShop({ initData, keyChances }: { initData: string; keyCha
         })}
       </div>
       <p className="mt-1.5 text-center text-[8px] text-slate-500">
-        {shop?.passRequired ? 'Compra de chaves exige o Passe de 5 TON ou 20 TON' : 'Saldo interno de TON • TON Connect disponível'}
+        {shop?.passRequired ? localizeText("Compra de chaves exige o Passe de 5 TON ou 20 TON") : localizeText("Saldo interno de TON • TON Connect disponível")}
       </p>
 
       {selected && selectedMeta ? (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-[280px] rounded-3xl border bg-forge-black/95 p-4 text-center shadow-card" style={{ borderColor: `${selectedMeta.color}66` }}>
             <div className="flex items-start justify-between">
-              <p className="text-[9px] uppercase tracking-[.24em] text-slate-400">Comprar chave</p>
-              <button type="button" aria-label="Fechar" onClick={() => setConfirmKey(null)} className="rounded-full bg-white/10 p-1 text-slate-200">
+              <p className="text-[9px] uppercase tracking-[.24em] text-slate-400">{localizeText("Comprar chave")}</p>
+              <button type="button" aria-label={localizeText("Fechar")} onClick={() => setConfirmKey(null)} className="rounded-full bg-white/10 p-1 text-slate-200">
                 <X className="h-3 w-3" />
               </button>
             </div>
             <img src={selectedMeta.image} alt={selectedMeta.name} width={512} height={512} className="mx-auto mt-2 h-16 w-16 object-contain" />
             <p className="mt-1 text-sm font-black uppercase tracking-[.06em]" style={{ color: selectedMeta.color }}>{selectedMeta.name}</p>
             <div className="mt-3 space-y-1 text-[10px] text-slate-300">
-              <div className="flex justify-between"><span className="text-slate-500">Preço</span><span className="font-bold text-white">{selected.priceTon} TON</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Saldo TON</span><span className="font-bold text-amber-200">{(shop?.availableTon ?? 0).toFixed(4)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Compras</span><span className="font-bold text-white">{used} / {limit}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Pagamento</span><span className="font-bold text-slate-200">{(shop?.availableTon ?? 0) >= selected.priceTon ? 'Saldo interno' : 'TON Connect'}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{localizeText("Preço")}</span><span className="font-bold text-white">{selected.priceTon} TON</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{localizeText("Saldo TON")}</span><span className="font-bold text-amber-200">{(shop?.availableTon ?? 0).toFixed(4)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{localizeText("Compras")}</span><span className="font-bold text-white">{used} / {limit}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{localizeText("Pagamento")}</span><span className="font-bold text-slate-200">{(shop?.availableTon ?? 0) >= selected.priceTon ? localizeText("Saldo interno") : localizeText("TON Connect")}</span></div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setConfirmKey(null)} className="rounded-2xl border border-white/15 bg-black/60 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-slate-300">
-                Cancelar
-              </button>
+                {localizeText("Cancelar")}</button>
               <button
                 type="button"
                 disabled={buy.isPending || blocked}
@@ -167,7 +169,7 @@ export function RareKeyShop({ initData, keyChances }: { initData: string; keyCha
                 className="rounded-2xl py-2 text-[10px] font-black uppercase tracking-[.12em] text-black disabled:opacity-40"
                 style={{ backgroundColor: selectedMeta.color }}
               >
-                {buy.isPending ? '...' : 'Comprar'}
+                {buy.isPending ? '...' : localizeText("Comprar")}
               </button>
             </div>
           </div>

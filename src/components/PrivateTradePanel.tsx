@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -61,6 +62,8 @@ const itemArt = (image: string | null, code: string, itemType: string, category:
  * Risk/anti-multiaccount data stays on the server (admin only).
  */
 export function PrivateTradePanel({ telegramInitData }: Props) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const enabled = Boolean(telegramInitData);
@@ -394,8 +397,8 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
                           {String(row.rarity)}
                         </span>
                       )}
-                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">Lv {row.level}</span>}
-                      {row.veteran && <span className="rounded bg-amber-400/20 px-1 text-[8px] font-black uppercase text-amber-200">VETERAN</span>}
+                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">{localizeText("Lv")}{row.level}</span>}
+                      {row.veteran && <span className="rounded bg-amber-400/20 px-1 text-[8px] font-black uppercase text-amber-200">{localizeText("VETERAN")}</span>}
                       {row.nft && !row.veteran && <span className="rounded bg-fuchsia-400/20 px-1 text-[8px] font-black uppercase text-fuchsia-200">NFT</span>}
                     </span>
                   </span>

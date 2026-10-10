@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -25,6 +26,8 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
   popupMode?: boolean;
   onPopupClose?: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
   const { data: state } = useFounderPack(telegramInitData, Boolean(telegramInitData));
@@ -114,20 +117,19 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 text-left shadow-card"
       >
-        <img src={founderArt} alt="Mythic Seas Founder Pack" loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src={founderArt} alt={localizeText("Mythic Seas Founder Pack")} loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
-              <Crown className="h-3 w-3" /> Founder Pack
-            </p>
-            <h3 className="mt-1 truncate text-base font-semibold text-white">Pacote de Fundador</h3>
+              <Crown className="h-3 w-3" /> {localizeText("Founder Pack")}</p>
+            <h3 className="mt-1 truncate text-base font-semibold text-white">{localizeText("Pacote de Fundador")}</h3>
             <p className="text-[11px] text-slate-300">
-              {state.requireNewAccount ? 'Somente contas novas' : 'Disponível para todos'} · {countdown === '--' ? 'oferta ativa' : `encerra em ${countdown}`}
+              {state.requireNewAccount ? localizeText("Somente contas novas") : localizeText("Disponível para todos")} · {countdown === '--' ? localizeText("oferta ativa") : `encerra em ${countdown}`}
             </p>
           </div>
           <div className="shrink-0 rounded-2xl bg-amber-400/20 px-3 py-2 text-center">
             <p className="text-sm font-bold text-amber-200">{formatTon(state.priceTon)} TON</p>
-            <p className="text-[10px] uppercase tracking-widest text-amber-100/80">Ver pacote</p>
+            <p className="text-[10px] uppercase tracking-widest text-amber-100/80">{localizeText("Ver pacote")}</p>
           </div>
         </div>
       </button>
@@ -139,16 +141,15 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-300">
-                  <Sparkles className="h-3 w-3" /> Oferta única
-                </p>
-                <h3 className="text-lg font-semibold text-white">Mythic Seas Founder Pack</h3>
+                  <Sparkles className="h-3 w-3" /> {localizeText("Oferta única")}</p>
+                <h3 className="text-lg font-semibold text-white">{localizeText("Mythic Seas Founder Pack")}</h3>
               </div>
-              <button onClick={close} className="rounded-full bg-white/5 p-2 text-slate-300" aria-label="Fechar">
+              <button onClick={close} className="rounded-full bg-white/5 p-2 text-slate-300" aria-label={localizeText("Fechar")}>
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <img src={founderArt} alt="Recompensas do Founder Pack" loading="lazy" width={1024} height={640} className="mt-3 h-32 w-full rounded-2xl object-cover" />
+            <img src={founderArt} alt={localizeText("Recompensas do Founder Pack")} loading="lazy" width={1024} height={640} className="mt-3 h-32 w-full rounded-2xl object-cover" />
 
             <div className="mt-3 grid grid-cols-1 gap-2">
               {rewards.map(reward => (
@@ -163,16 +164,16 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
             </div>
 
             <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-[11px] text-slate-300">
-              <p className="flex items-center gap-1 text-slate-200"><ShieldCheck className="h-3 w-3 text-emerald-300" /> Uma compra por conta · entrega automática</p>
+              <p className="flex items-center gap-1 text-slate-200"><ShieldCheck className="h-3 w-3 text-emerald-300" /> {localizeText("Uma compra por conta · entrega automática")}</p>
               <p className="mt-1">
                 {state.requireNewAccount
                   ? `Janela de contas novas: ${state.eligibilityDays} dias`
-                  : 'Disponível para todos os jogadores'}
+                  : localizeText("Disponível para todos os jogadores")}
                 {countdown === '--' ? '' : ` · encerra em ${countdown}`}
               </p>
-              <p className="mt-1 text-amber-200">Herói, pet e arma Founder mineram MYTH (sem TON mining) e não recebem o bônus do Veteran Vault.</p>
-              <p className="mt-1 flex items-center gap-1"><Wallet className="h-3 w-3 text-sky-300" /> Saldo interno: {formatTon(state.availableTon)} TON</p>
-              {state.testMode ? <p className="mt-1 text-amber-300">Modo administrador: visível para testes.</p> : null}
+              <p className="mt-1 text-amber-200">{localizeText("Herói, pet e arma Founder mineram MYTH (sem TON mining) e não recebem o bônus do Veteran Vault.")}</p>
+              <p className="mt-1 flex items-center gap-1"><Wallet className="h-3 w-3 text-sky-300" /> {localizeText("Saldo interno:")}{formatTon(state.availableTon)} TON</p>
+              {state.testMode ? <p className="mt-1 text-amber-300">{localizeText("Modo administrador: visível para testes.")}</p> : null}
             </div>
 
             <button
@@ -183,7 +184,7 @@ export function FounderPackCard({ telegramInitData, popupMode = false, onPopupCl
               {buy.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />}
               {state.eligible
                 ? `Comprar por ${formatTon(state.priceTon)} TON ${payWithInternal ? '(saldo interno)' : '(TonConnect)'}`
-                : 'Fora da janela de elegibilidade'}
+                : localizeText("Fora da janela de elegibilidade")}
             </button>
           </div>
         </div>

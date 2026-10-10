@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { DuelsHeader } from '../components/DuelsHeader';
 import { OceanControl } from '../components/OceanControl';
 import{useEffect,useRef,useState}from'react';
@@ -20,6 +21,8 @@ type Team='attack'|'defense';type View='teams'|'history'|'ranking';
 const color:Record<string,string>={common:'#94a3b8',uncommon:'#34d399',rare:'#60a5fa',epic:'#c084fc',legendary:'#fbbf24',mythic:'#f472b6',ancestral:'#f97316',nft_exclusive:'#22d3ee', celestial: '#fde68a',};
 
 export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onClose:()=>void}){
+  const localizeText = useLocalizedText();
+
  const t=useT(),{tError}=useLanguage(),q=useQueryClient(),pets=usePetDashboard(telegramInitData,true),{data,isLoading,isFetching,error,refetch}=usePvpDashboard(telegramInitData,true),[view,setView]=useState<View>('teams'),[team,setTeam]=useState<Team>('attack'),[slot,setSlot]=useState<number|null>(null),[chosen,setChosen]=useState<PvpOpponent|null>(null),[arena,setArena]=useState<{battle:PvpBattleResult;opponent:PvpOpponent}|null>(null),[shop,setShop]=useState(false);
  useEffect(()=>{console.log('[PVP] start')},[]);
  useEffect(()=>{if(data)console.log('[PVP] profile + teams loaded',{attack:data.attackTeam.length,defense:data.defenseTeam.length,tickets:data.tickets})},[data]);
@@ -57,7 +60,7 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
    <OceanControl type="button" disabled={search.isPending||data.attackTeam.length===0||attackInvalid} onClick={()=>search.mutate()} className="duels-search"><Search className="mr-2 inline h-4 w-4"/>{search.isPending?t('pvp.searching'):t('pvp.searchPlayers')}</OceanControl>
    <div className="mt-3 space-y-3">{opponents.data.map(o=><Opponent key={o.userId} opponent={o} selected={chosen?.userId===o.userId} onSelect={()=>setChosen(o)} onFight={()=>{if(attackInvalid){toast.error(t('pvp.teamNeedsFix'));return}fight.mutate(o)}} pending={fight.isPending} tickets={data.tickets} onBuyTickets={()=>setShop(true)} t={t}/>)}</div>
   </>}
-  {view==='history'&&<div className="mt-5 space-y-2">{data.history.length?data.history.map(h=><div key={h.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3"><div><b>{h.opponentName}{h.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">AI</span>:null}</b><p className="text-[9px] text-slate-400">{new Date(h.createdAt).toLocaleString()} · {h.turns} turnos</p></div><div className="text-right"><b className={h.result==='win'?'text-emerald-300':'text-rose-300'}>{h.result==='win'?t('pvp.win'):t('pvp.lose')}</b><p className="text-[9px]">{h.trophyChange>0?'+':''}{h.trophyChange} 🏆</p></div></div>):<Center text={t('pvp.noBattles')}/>}</div>}
+  {view==='history'&&<div className="mt-5 space-y-2">{data.history.length?data.history.map(h=><div key={h.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3"><div><b>{h.opponentName}{h.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">{localizeText("AI")}</span>:null}</b><p className="text-[9px] text-slate-400">{new Date(h.createdAt).toLocaleString()} · {h.turns} turnos</p></div><div className="text-right"><b className={h.result==='win'?'text-emerald-300':'text-rose-300'}>{h.result==='win'?t('pvp.win'):t('pvp.lose')}</b><p className="text-[9px]">{h.trophyChange>0?'+':''}{h.trophyChange} 🏆</p></div></div>):<Center text={t('pvp.noBattles')}/>}</div>}
   {view==='ranking'&&<div className="mt-5 space-y-2">{data.ranking.map(r=><div key={r.id} className="grid grid-cols-[35px_38px_1fr_auto] items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-2"><b className="text-center text-amber-300">#{r.position}</b><Avatar src={r.avatarUrl} name={r.name}/><div className="min-w-0"><b className="block truncate text-xs">{r.name}</b><PlayerTag userId={r.id} username={r.username} className="text-[9px] text-amber-200/80"/><p className="truncate text-[9px] text-slate-400">{r.league} · {t('pvp.wins',{count:r.wins})}</p></div><b className="text-xs">{r.trophies} 🏆</b></div>)}</div>}
   {slot!==null&&<HeroSelector slot={slot} heroes={data.ownedHeroes} current={current} other={team==='attack'?data.defenseTeam:data.attackTeam} otherTeam={team==='attack'?'DEFENSE':'ATTACK'} pending={equip.isPending||removeSlot.isPending} onClose={()=>setSlot(null)} onEquip={(heroId,moved)=>equip.mutate({heroId,targetSlot:slot,moved})} onRemove={()=>removeSlot.mutate(slot)} t={t}/>}
   {shop&&<TicketSheet tickets={data.tickets} shop={data.ticketShop} ads={data.adsShop} initData={telegramInitData} onRewarded={refresh} pending={buy.isPending} onClose={()=>setShop(false)} onBuy={qty=>buy.mutate(qty)} t={t}/>}
@@ -66,7 +69,9 @@ export function PvpPage({telegramInitData,onClose}:{telegramInitData:string;onCl
  </Shell>
 }
 
-function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>void}){return<OceanControl type="button" onClick={onClick} className={`relative min-h-28 overflow-hidden rounded-xl border bg-black/70 ${hero?.isNft?'nft-hero-card':''}`} style={{borderColor:hero?(hero.isNft?undefined:color[hero.rarity]):'#475569'}}>{hero?<>{hero.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span>{hero.nftSerial?<span className="nft-hero-serial">#{String(hero.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={hero.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[8px] font-bold ${hero.isNft?'nft-hero-name':''}`}>{hero.name}</p>{hero.isNft?<p className="nft-hero-rarity px-1 text-[6px] font-black tracking-widest">EXCLUSIVE</p>:null}<p className="text-[7px]">ATK {hero.finalAtk}</p><p className="pb-1 text-[7px]">HP {hero.finalHp}</p></>:<span className="text-xl text-slate-500">＋</span>}</OceanControl>}
+function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>void}){
+  const localizeText = useLocalizedText();
+return<OceanControl type="button" onClick={onClick} className={`relative min-h-28 overflow-hidden rounded-xl border bg-black/70 ${hero?.isNft?'nft-hero-card':''}`} style={{borderColor:hero?(hero.isNft?undefined:color[hero.rarity]):'#475569'}}>{hero?<>{hero.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">{localizeText("💎 NFT")}</span>{hero.nftSerial?<span className="nft-hero-serial">#{String(hero.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={hero.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[8px] font-bold ${hero.isNft?'nft-hero-name':''}`}>{hero.name}</p>{hero.isNft?<p className="nft-hero-rarity px-1 text-[6px] font-black tracking-widest">{localizeText("EXCLUSIVE")}</p>:null}<p className="text-[7px]">ATK {hero.finalAtk}</p><p className="pb-1 text-[7px]">HP {hero.finalHp}</p></>:<span className="text-xl text-slate-500">＋</span>}</OceanControl>}
 /**
  * PvP hero selection sheet.
  * Interaction contract (battle rules, stats and Power math untouched):
@@ -78,6 +83,8 @@ function HeroSlot({slot,hero,onClick}:{slot:number;hero?:PvpHero;onClick:()=>voi
  */
 const RARITIES=['common','uncommon','rare','epic','legendary','mythic','ancestral','nft_exclusive'] as const;
 function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEquip,onRemove,t}:{slot:number;heroes:PvpHero[];current:PvpHero[];other:PvpHero[];otherTeam:'ATTACK'|'DEFENSE';pending:boolean;onClose:()=>void;onEquip:(id:string,moved?:boolean)=>void;onRemove:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+  const localizeText = useLocalizedText();
+
  const equipped=current.find(x=>Number(x.slot)===slot)||null;
  const [rarity,setRarity]=useState<string>('all');
  const [sort,setSort]=useState<'default'|'high'|'low'>('default');
@@ -98,7 +105,7 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
     <b className="truncate text-[12px]">{t('pvp.selectHeroSlot',{slot})}</b>
     <div className="flex shrink-0 items-center gap-2">
      {equipped?<OceanControl type="button" disabled={pending} onClick={onRemove} className="rounded-full border border-rose-400/45 bg-rose-500/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[.12em] text-rose-200 disabled:opacity-50">{t('pvp.sel.remove')}</OceanControl>:null}
-     <OceanControl type="button" onClick={onClose} aria-label="close"><X className="h-4 w-4"/></OceanControl>
+     <OceanControl type="button" onClick={onClose} aria-label={localizeText("close")}><X className="h-4 w-4"/></OceanControl>
     </div>
    </div>
    <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -113,7 +120,7 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
      ?<div className="flex min-w-[140px] flex-1 items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2.5 py-1">
        <Search className="h-3 w-3 text-slate-400"/>
        <input autoFocus value={term} onChange={e=>setTerm(e.target.value)} placeholder={t('pvp.sel.search')} className="w-full bg-transparent text-[10px] text-slate-100 outline-none placeholder:text-slate-500"/>
-       <OceanControl type="button" onClick={()=>{setSearchOpen(false);setTerm('')}} aria-label="close search"><X className="h-3 w-3 text-slate-400"/></OceanControl>
+       <OceanControl type="button" onClick={()=>{setSearchOpen(false);setTerm('')}} aria-label={localizeText("close search")}><X className="h-3 w-3 text-slate-400"/></OceanControl>
       </div>
      :<OceanControl type="button" onClick={()=>setSearchOpen(true)} className={`${chip} border-white/15 bg-white/5 text-slate-200`} aria-label="search"><Search className="h-3 w-3"/></OceanControl>}
    </div>
@@ -137,15 +144,15 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
     };
     return <div key={h.heroId} className={`relative overflow-hidden rounded-xl border bg-black/70 ${hard?'opacity-40':''} ${h.isNft?'nft-hero-card':''}`} style={{borderColor:inSlot?'#fbbf24':(h.isNft?undefined:color[h.rarity])}}>
      <OceanControl type="button" disabled={hard||pending} onClick={act} className="block w-full text-left disabled:cursor-not-allowed">
-      {h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">💎 NFT EXCLUSIVE</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}
+      {h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">{localizeText("💎 NFT EXCLUSIVE")}</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}
       <img src={h.imageUrl} alt={h.name} className="aspect-square w-full object-cover object-top"/>
       {inSlot?<span className="absolute left-1 top-1 rounded-full bg-amber-400 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.1em] text-black">✓ {t('pvp.sel.equipped')}</span>:null}
       {!inSlot&&reason?<span className="absolute left-1 top-1 rounded-full bg-black/80 px-1.5 py-[1px] text-[7px] font-black uppercase tracking-[.08em] text-slate-200">{reason}</span>:null}
       <div className="p-2 text-left">
        <b className={`block truncate text-[9px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</b>
-       {h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}
+       {h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">{localizeText("NFT EXCLUSIVE ·")}{t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}
        <p className="text-[8px] text-slate-400">{h.archetype}</p>
-       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} · HP {h.finalHp}</p>
+       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} {localizeText("· HP")}{h.finalHp}</p>
        <p className="text-[9px] font-black text-amber-200">{t('boss.power')} {h.power}</p>
        {inSlot?<p className="text-[7px] font-bold uppercase tracking-[.08em] text-rose-300">{t('pvp.sel.tapToRemove')}</p>:null}
       </div>
@@ -159,8 +166,12 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
 }
 
 
-function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){return<div className="seas-duels"><div className="forge-safe-page duels-page"><header className="duels-header"><div><span>MYTHIC SEAS</span><h1>Duelos</h1></div><OceanControl onClick={onClose} aria-label="Voltar ao porto" title="Voltar ao porto"><X size={18}/></OceanControl></header>{children}</div></div>}
-function Opponent({opponent:o,selected,onSelect,onFight,pending,tickets,onBuyTickets,t}:{opponent:PvpOpponent;selected:boolean;onSelect:()=>void;onFight:()=>void;pending:boolean;tickets:number;onBuyTickets:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){const noTickets=tickets<1;return<div onClick={onSelect} className={`rounded-2xl border bg-black/60 p-3 ${selected?'border-amber-300':'border-white/10'}`}><div className="flex items-center gap-3"><Avatar src={o.avatarUrl} name={o.avatarLetter??o.name} color={o.avatarColor}/><div className="flex-1"><b className="block truncate">{o.name}{o.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">AI</span>:null}</b><PlayerTag userId={o.userId} username={o.username} className="text-[9px] text-amber-200/80"/><p className="text-[9px] text-slate-400">{o.league} · {t('pvp.trophies',{count:o.trophies})} · {t('pvp.wins',{count:o.wins})}</p></div><b className="text-xs text-amber-200">⚔ {o.teamPower}</b></div><div className="mt-3 grid grid-cols-5 gap-1">{o.defenseTeam.map(h=><div key={h.heroId} className={`relative overflow-hidden rounded-lg border bg-black ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:color[h.rarity]}}>{h.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">💎 NFT</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={h.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[7px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</p><p className="px-1 pb-1 text-[6px]">A {h.finalAtk} · H {h.finalHp}</p></div>)}</div>{selected&&(noTickets?<div className="mt-3"><p className="text-center text-[10px] font-black uppercase tracking-[.18em] text-rose-300">{t('pvp.noTickets')}</p><OceanControl type="button" onClick={e=>{e.stopPropagation();onBuyTickets()}} className="mt-2 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 text-[11px] font-black text-black">{t('pvp.buyTickets')}</OceanControl></div>:<OceanControl type="button" disabled={pending} onClick={e=>{e.stopPropagation();onFight()}} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-400 to-red-700 py-3 font-black text-white disabled:grayscale disabled:opacity-40">{pending?t('pvp.starting'):t('pvp.battle1Ticket')}</OceanControl>)}</div>}
+function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){
+  const localizeText = useLocalizedText();
+return<div className="seas-duels"><div className="forge-safe-page duels-page"><header className="duels-header"><div><span>MYTHIC SEAS</span><h1>{localizeText("Duelos")}</h1></div><OceanControl onClick={onClose} aria-label={localizeText("Voltar ao porto")} title={localizeText("Voltar ao porto")}><X size={18}/></OceanControl></header>{children}</div></div>}
+function Opponent({opponent:o,selected,onSelect,onFight,pending,tickets,onBuyTickets,t}:{opponent:PvpOpponent;selected:boolean;onSelect:()=>void;onFight:()=>void;pending:boolean;tickets:number;onBuyTickets:()=>void;t:(k:string,v?:Record<string,string|number>)=>string}){
+  const localizeText = useLocalizedText();
+const noTickets=tickets<1;return<div onClick={onSelect} className={`rounded-2xl border bg-black/60 p-3 ${selected?'border-amber-300':'border-white/10'}`}><div className="flex items-center gap-3"><Avatar src={o.avatarUrl} name={o.avatarLetter??o.name} color={o.avatarColor}/><div className="flex-1"><b className="block truncate">{o.name}{o.isBot?<span className="ml-1 rounded bg-sky-500/20 px-1 py-[1px] align-middle text-[8px] font-black uppercase tracking-widest text-sky-300">{localizeText("AI")}</span>:null}</b><PlayerTag userId={o.userId} username={o.username} className="text-[9px] text-amber-200/80"/><p className="text-[9px] text-slate-400">{o.league} · {t('pvp.trophies',{count:o.trophies})} · {t('pvp.wins',{count:o.wins})}</p></div><b className="text-xs text-amber-200">⚔ {o.teamPower}</b></div><div className="mt-3 grid grid-cols-5 gap-1">{o.defenseTeam.map(h=><div key={h.heroId} className={`relative overflow-hidden rounded-lg border bg-black ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:color[h.rarity]}}>{h.isNft?<div className="nft-hero-head"><span className="nft-hero-badge">{localizeText("💎 NFT")}</span>{h.nftSerial?<span className="nft-hero-serial">#{String(h.nftSerial).padStart(3,'0')}</span>:null}</div>:null}<img src={h.imageUrl} className="aspect-square w-full object-cover object-top"/><p className={`truncate px-1 text-[7px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</p><p className="px-1 pb-1 text-[6px]">A {h.finalAtk} · H {h.finalHp}</p></div>)}</div>{selected&&(noTickets?<div className="mt-3"><p className="text-center text-[10px] font-black uppercase tracking-[.18em] text-rose-300">{t('pvp.noTickets')}</p><OceanControl type="button" onClick={e=>{e.stopPropagation();onBuyTickets()}} className="mt-2 w-full rounded-xl bg-gradient-to-b from-amber-300 to-orange-500 py-3 text-[11px] font-black text-black">{t('pvp.buyTickets')}</OceanControl></div>:<OceanControl type="button" disabled={pending} onClick={e=>{e.stopPropagation();onFight()}} className="mt-3 w-full rounded-xl bg-gradient-to-b from-rose-400 to-red-700 py-3 font-black text-white disabled:grayscale disabled:opacity-40">{pending?t('pvp.starting'):t('pvp.battle1Ticket')}</OceanControl>)}</div>}
 /**
  * Rewarded-ad block: the click only OPENS the ad (server-registered view). The ticket is
  * credited exclusively after AdsGram reports a valid completion and the backend confirms it.

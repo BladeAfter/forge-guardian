@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -29,6 +30,8 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
   popupMode?: boolean;
   onPopupClose?: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
@@ -101,7 +104,7 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
     if (popupMode) return null;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-amber-300/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={packArt} alt="Mythic Seas Legendary Adventurer Pack" loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={packArt} alt={localizeText("Mythic Seas Legendary Adventurer Pack")} loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">
             <Shield className="h-3 w-3" /> {t('ap.title')}
@@ -112,16 +115,16 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
           </div>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl bg-white/5 p-2">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">Bônus TON</p>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("Bônus TON")}</p>
               <p className="text-sm font-semibold text-amber-200">+{formatTon(state.ownerBonusPercent)}%</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-2">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">Itens</p>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("Itens")}</p>
               <p className="text-sm font-semibold text-slate-200">{state.items.length}</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-2">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">Mineração</p>
-              <p className="text-sm font-semibold text-amber-200">{state.miningRevealPending ? '???' : 'REVELADA'}</p>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("Mineração")}</p>
+              <p className="text-sm font-semibold text-amber-200">{state.miningRevealPending ? '???' : localizeText("REVELADA")}</p>
             </div>
           </div>
           {state.miningRevealPending ? <p className="mt-2 text-[10px] text-slate-400">{t('ap.revealNote')}</p> : null}
@@ -137,7 +140,7 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-amber-300/40 bg-forge-black/80 p-4 text-left shadow-card"
     >
-      <img src={packArt} alt="Mythic Seas Legendary Adventurer Pack" loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt={localizeText("Mythic Seas Legendary Adventurer Pack")} loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-200">
           <Shield className="h-3 w-3" /> 🏆 {t('ap.title')}
@@ -183,7 +186,7 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
             <h2 className="text-lg font-black leading-tight text-white drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]">{t('ap.title')}</h2>
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{t('ap.cap')}</p>
           </div>
-          <button onClick={close} aria-label="Fechar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-black/60">
+          <button onClick={close} aria-label={localizeText("Fechar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-black/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -206,8 +209,7 @@ export function LegendaryAdventurerPackCard({ telegramInitData, popupMode = fals
 
           <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
             <p className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-200">
-              <Sparkles className="h-3 w-3" /> + BONUS
-            </p>
+              <Sparkles className="h-3 w-3" /> {localizeText("+ BONUS")}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-slate-200">{secondary.join(' · ')}</p>
           </div>
 

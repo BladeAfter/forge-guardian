@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { Crown, Shield, Swords, Trophy, Users, X } from 'lucide-react';
 import { useT } from '../LanguageContext';
@@ -75,6 +76,8 @@ export function ClanLeaderSummary({ stats }: { stats: ClanAdminStats }) {
 export function ClanRequestCard({ request, busy, onAccept, onReject }: {
   request: ClanJoinRequest; busy: boolean; onAccept: () => void; onReject: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   return (
     <article className="rounded-2xl border border-amber-300/25 bg-gradient-to-br from-[#131f36] via-[#0a1220] to-black p-3 shadow-[0_0_18px_rgba(0,0,0,.5)]">
@@ -85,7 +88,7 @@ export function ClanRequestCard({ request, busy, onAccept, onReject }: {
           : <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-[10px]">{request.name.slice(0, 2)}</span>}
         <div className="min-w-0 flex-1">
           <b className="block truncate text-xs text-amber-100"><PlayerTag username={request.username} fallback={request.name}/></b>
-          <span className="text-[9px] text-slate-400">Lv. {request.accountLevel ?? 1}</span>
+          <span className="text-[9px] text-slate-400">{localizeText("Lv.")}{request.accountLevel ?? 1}</span>
         </div>
         <Activity lastActive={request.lastActive} online={request.online} />
       </div>
@@ -110,6 +113,8 @@ export function ClanMembersList({ members, stats, canManage, myRole, busy, onAct
   busy: boolean;
   onAction: (action: 'promote' | 'demote' | 'kick' | 'transfer', userId: string) => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const [filter, setFilter] = useState<Filter>('all');
   const [sort, setSort] = useState<Sort>('powerHigh');
@@ -206,7 +211,7 @@ export function ClanMembersList({ members, stats, canManage, myRole, busy, onAct
                 : <span className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-xs">{detail.name.slice(0, 2)}</span>}
               <div className="min-w-0">
                 <b className="block truncate text-sm text-amber-100"><PlayerTag username={detail.username} fallback={detail.name}/></b>
-                <span className="text-[9px] text-slate-400">{t(`clan.role.${detail.role}`)} · Lv. {detail.accountLevel ?? 1}</span>
+                <span className="text-[9px] text-slate-400">{t(`clan.role.${detail.role}`)} {localizeText("· Lv.")}{detail.accountLevel ?? 1}</span>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">

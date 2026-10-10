@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { REWARD_CATEGORIES, type RewardCategory, type RewardCategoryId } from './RouletteRewardKit';
 import wheelArt from '../assets/roulette/wheel-ref.png';
 
@@ -37,6 +38,8 @@ export function RouletteWheel({
   durationMs?: number;
   onSelect: (category: RewardCategory) => void;
 }) {
+  const localizeText = useLocalizedText();
+
   return (
     <div
       className="absolute inset-0 will-change-transform"
@@ -49,7 +52,7 @@ export function RouletteWheel({
     >
       <img
         src={wheelArt}
-        alt="Mythic Seas Global Mystery Roulette"
+        alt={localizeText("Mythic Seas Global Mystery Roulette")}
         className="absolute inset-0 h-full w-full select-none object-contain drop-shadow-[0_0_48px_rgba(0,0,0,0.75)]"
         draggable={false}
       />

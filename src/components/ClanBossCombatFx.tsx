@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../LanguageContext';
 
@@ -57,6 +58,8 @@ export function useCombatFx() {
 
 /** Small floating damage / status numbers stacked over the boss art. */
 export function FloatingDamage({ events }: { events: CombatEvent[] }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   return (
     <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
@@ -68,7 +71,7 @@ export function FloatingDamage({ events }: { events: CombatEvent[] }) {
             <b className="cb-float-text text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,.8)]">{event.label ?? 'REVIVED'}</b>
           ) : (
             <div className="text-center">
-              {event.critical ? <p className="cb-float-crit">CRIT!</p> : null}
+              {event.critical ? <p className="cb-float-crit">{localizeText("CRIT!")}</p> : null}
               <b className={event.kind === 'BOSS_ATTACK' ? 'cb-float-boss' : event.critical ? 'cb-float-crit-value' : 'cb-float-player'}>
                 -{event.label ?? formatCompact(event.damage ?? 0)}
               </b>

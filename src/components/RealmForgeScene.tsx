@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useState } from 'react';
 import {
   realmSecondsLeft,
@@ -70,6 +71,8 @@ export default function RealmForgeScene({
   onUpgradeForge: () => void;
   onOpenResources: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const [filter, setFilter] = useState<Filter>('all');
   const [lockedOpen, setLockedOpen] = useState(false);
@@ -159,7 +162,7 @@ export default function RealmForgeScene({
         <div className="forge-stage-top">
           <span className="forge-crest">⚒</span>
           <div className="min-w-0">
-            <b className="forge-title">{t('realm.forge.title')} <span className="forge-lv">Lv.{forgeLevel}</span></b>
+            <b className="forge-title">{t('realm.forge.title')} <span className="forge-lv">{localizeText("Lv.")}{forgeLevel}</span></b>
             <p className="forge-sub">{FORGE_TITLE(forgeLevel, t)}</p>
           </div>
           <button type="button" onClick={onUpgradeForge} className="forge-upgrade">
@@ -316,7 +319,7 @@ export default function RealmForgeScene({
                 <button key={r.id} type="button" onClick={() => setSheet(r.id)} className="forge-mini forge-mini-locked">
                   <img src={outputImage(r)} alt="" loading="lazy" />
                   <span>{r.name}</span>
-                  <i>🔒 Lv.{r.min_forge_level}</i>
+                  <i>{localizeText("🔒 Lv.")}{r.min_forge_level}</i>
                 </button>
               ))}
             </div>

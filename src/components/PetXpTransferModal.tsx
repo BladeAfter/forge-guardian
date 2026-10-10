@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, RefreshCw, Sparkles, X } from 'lucide-react';
@@ -21,6 +22,8 @@ export function PetXpTransferModal({
   telegramInitData: string;
   onClose: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [targetId, setTargetId] = useState<string | null>(null);
@@ -76,7 +79,7 @@ export function PetXpTransferModal({
               <div className="min-w-0 text-[10px]">
                 <b className="block truncate text-sm uppercase">{pet.name}</b>
                 <p className="text-slate-400">
-                  {t('common.levelShort') === 'common.levelShort' ? 'Lv.' : t('common.levelShort')} {data.level} → 1
+                  {t('common.levelShort') === 'common.levelShort' ? localizeText("Lv.") : t('common.levelShort')} {data.level} → 1
                 </p>
                 <p className="text-emerald-300">{t('pets.recoverableXp')}: <b>{fmt(data.totalXp)} XP</b></p>
                 <p className={notEnoughFc ? 'text-rose-300' : 'text-amber-200'}>
@@ -158,6 +161,8 @@ export function PetXpTransferModal({
 }
 
 function TargetCard({ target, totalXp, selected, onSelect }: { target: PetXpTransferTarget; totalXp: number; selected: boolean; onSelect: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   return (
     <button
@@ -169,7 +174,7 @@ function TargetCard({ target, totalXp, selected, onSelect }: { target: PetXpTran
         {target.image ? <img src={target.image} alt={target.name} className="h-10 w-10 shrink-0 object-contain" /> : null}
         <div className="min-w-0">
           <b className="block truncate text-[11px] uppercase">{target.name}</b>
-          <p className="text-[9px] text-slate-400">Lv.{target.level}</p>
+          <p className="text-[9px] text-slate-400">{localizeText("Lv.")}{target.level}</p>
         </div>
       </div>
       <p className="mt-1 text-[9px] text-slate-400">{t('pets.currentXpLabel')}: {fmt(target.xp)}</p>

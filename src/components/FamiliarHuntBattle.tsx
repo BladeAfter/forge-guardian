@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronsRight, Cloud, Flame, Heart, Leaf, Moon, Orbit, Shield, Skull, Snowflake,
@@ -32,6 +33,8 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
   onFinished: () => void;
   onExit?: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const petMax = useMemo(() => result.team.map((pet) => Math.max(1, pet.maxHp)), [result.runId]);
   const enemyMax = useMemo(() => result.enemies.map((enemy) => Math.max(1, enemy.maxHp)), [result.runId]);
 
@@ -194,7 +197,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
       <header className="relative z-10 flex flex-none items-center justify-between px-4 pt-[max(env(safe-area-inset-top),0.75rem)]">
         <div className="min-w-0">
           <p className="truncate text-[10px] font-black uppercase tracking-[.24em] text-amber-200/90">{missionName || 'FAMILIAR HUNT'}</p>
-          <p className="text-[9px] font-bold uppercase tracking-[.2em] text-slate-500">RODADA {round}</p>
+          <p className="text-[9px] font-bold uppercase tracking-[.2em] text-slate-500">{localizeText("RODADA")}{round}</p>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -202,8 +205,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
             onClick={() => setAuto((value) => !value)}
             className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] transition active:scale-95 ${auto ? 'border-emerald-300/60 bg-emerald-300/15 text-emerald-200' : 'border-white/15 bg-black/50 text-slate-400'}`}
           >
-            AUTO
-          </button>
+            {localizeText("AUTO")}</button>
           <button
             type="button"
             onClick={() => setSpeed((value) => (value === 1 ? 2 : 1))}
@@ -216,8 +218,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
             onClick={() => void finish()}
             className="flex items-center gap-1 rounded-full border border-amber-300/45 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95"
           >
-            <ChevronsRight className="h-3 w-3" /> SKIP
-          </button>
+            <ChevronsRight className="h-3 w-3" /> {localizeText("SKIP")}</button>
           {onExit ? (
             <button type="button" onClick={onExit} className="grid h-6 w-6 place-items-center rounded-full border border-white/15 bg-black/50 text-slate-400">
               <X className="h-3 w-3" />
@@ -299,7 +300,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
                     <Shield className="h-2.5 w-2.5" />
                   </span>
                 ) : null}
-                {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
+                {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">{localizeText("KO")}</p> : null}
               </div>
             );
           })}
@@ -312,7 +313,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
         {phase === 'pets' && kit && activePet ? (
           <>
             <p className="mb-1.5 text-center text-[8px] font-black uppercase tracking-[.24em] text-slate-500">
-              HABILIDADES DE <span className="text-amber-200">{activePet.name}</span>
+              {localizeText("HABILIDADES DE")}<span className="text-amber-200">{activePet.name}</span>
             </p>
             <div className="grid grid-cols-3 gap-2">
               {kit.abilities.map((ability) => {
@@ -338,7 +339,7 @@ export function FamiliarHuntBattle({ result, missionName, onFinished, onExit }: 
         ) : (
           <div className="grid h-[78px] place-items-center">
             <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-500">
-              {phase === 'enemy' ? 'INIMIGOS ATACANDO...' : 'BATALHA ENCERRADA'}
+              {phase === 'enemy' ? localizeText("INIMIGOS ATACANDO...") : localizeText("BATALHA ENCERRADA")}
             </p>
           </div>
         )}

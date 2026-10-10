@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { ShieldCheck, Trophy } from 'lucide-react';
 import { AvatarWithBorder } from '../components/AvatarWithBorder';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -25,6 +26,8 @@ const normalizeRarity=(value?:string):HeroRarity=>{const map:Record<string,HeroR
 const compact=(value:number)=>Math.floor(value).toLocaleString();
 
 export function BossPage({game,lang,languageCode,combat,collection,collectionLoading,collectionError,syncing,backendOfficial,isEquipping,telegramInitData,onEquipHero,onRemoveHero,onAttack,isAttacking,onOpenSeasonPass,onWallet,onClaimReward}:Props){
+  const localizeText = useLocalizedText();
+
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
@@ -112,8 +115,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       reward={Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} status={combat?.status}
       swap={swap} onAttack={onAttack} onEquip={openHeroSelector} onRanking={()=>setIsRankingOpen(true)} />
     <div className="action-service-strip">
-      {global?.lastReward?<span>Último tesouro: {compact(global.lastReward.rewardFc)} BERRIES</span>:null}
-      {global&&global.minimumDamage>0?<span>Dano mínimo: {compact(global.minimumDamage)}</span>:null}
+      {global?.lastReward?<span>{localizeText("Último tesouro:")}{compact(global.lastReward.rewardFc)} BERRIES</span>:null}
+      {global&&global.minimumDamage>0?<span>{localizeText("Dano mínimo:")}{compact(global.minimumDamage)}</span>:null}
       {auto?<><span>{t('boss.autoAtk')} · {auto.active?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</span>
         <OceanControl disabled={autoBusy||!telegramInitData} onClick={async()=>{
           if(!auto.eligible){onOpenSeasonPass?.();return;}if(!telegramInitData)return;setAutoBusy(true);
@@ -145,7 +148,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       :collectionLoading&&!owned.length?<p className="py-8 text-center text-xs text-slate-400">{t('boss.loadingHeroes')}</p>
       :!owned.length?<p className="py-8 text-center text-xs text-slate-400">{t('boss.noHeroesOwned')}</p>
       :!visibleOwned.length?<p className="py-8 text-center text-xs text-slate-400">{t('boss.noHeroesRarity')}</p>
-      :<div className="mt-3 grid max-h-[52vh] grid-cols-3 gap-2 overflow-y-auto">{visibleOwned.map(h=>{const equipped=heroes.find(item=>item.heroId===h.id);const equippedHere=equipped&&Number(equipped.slot)===selectedSlot;return <button type="button" disabled={isEquipping} key={h.id} onClick={()=>handleSelectHero(h)} className={`relative overflow-hidden rounded-xl border bg-black text-left disabled:opacity-40 ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:(equippedHere?'#fbbf24':RARITY_COLORS[h.rarity])}}>{h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">💎 NFT EXCLUSIVE</span></div>:null}<img src={h.image||HERO_CATALOG.find(x=>x.id===h.heroKey)?.image} alt={h.name} className="aspect-square w-full object-cover object-top"/><div className="p-1.5"><p className={`truncate text-[9px] font-bold ${h.isNft?'nft-hero-name':''}`}>{h.name}</p>{h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">NFT EXCLUSIVE · {t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:RARITY_COLORS[h.rarity]}}>{t(h.rarity)} · {t('levelShort')}{h.level}</p>}{h.finalAtk?<p className="text-[8px] text-slate-300">ATK {h.finalAtk.toLocaleString()}</p>:null}{h.finalHp?<p className="text-[8px] text-slate-300">HP {h.finalHp.toLocaleString()}</p>:null}{h.power?<p className="text-[8px] text-amber-200">{t('boss.power')} {h.power.toLocaleString()}</p>:null}{equipped?<p className="text-[8px] text-amber-300">{equippedHere?t('boss.inThisSlot'):`${t('equippedInSlot')} ${Number(equipped.slot)}`}</p>:null}</div></button>})}</div>}
+      :<div className="mt-3 grid max-h-[52vh] grid-cols-3 gap-2 overflow-y-auto">{visibleOwned.map(h=>{const equipped=heroes.find(item=>item.heroId===h.id);const equippedHere=equipped&&Number(equipped.slot)===selectedSlot;return <button type="button" disabled={isEquipping} key={h.id} onClick={()=>handleSelectHero(h)} className={`relative overflow-hidden rounded-xl border bg-black text-left disabled:opacity-40 ${h.isNft?'nft-hero-card':''}`} style={{borderColor:h.isNft?undefined:(equippedHere?'#fbbf24':RARITY_COLORS[h.rarity])}}>{h.isNft?<div className="nft-hero-head nft-hero-head--lg"><span className="nft-hero-badge nft-hero-badge--lg">{localizeText("💎 NFT EXCLUSIVE")}</span></div>:null}<img src={h.image||HERO_CATALOG.find(x=>x.id===h.heroKey)?.image} alt={h.name} className="aspect-square w-full object-cover object-top"/><div className="p-1.5"><p className={`truncate text-[9px] font-bold ${h.isNft?'nft-hero-name':''}`}>{h.name}</p>{h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">{localizeText("NFT EXCLUSIVE ·")}{t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:RARITY_COLORS[h.rarity]}}>{t(h.rarity)} · {t('levelShort')}{h.level}</p>}{h.finalAtk?<p className="text-[8px] text-slate-300">ATK {h.finalAtk.toLocaleString()}</p>:null}{h.finalHp?<p className="text-[8px] text-slate-300">HP {h.finalHp.toLocaleString()}</p>:null}{h.power?<p className="text-[8px] text-amber-200">{t('boss.power')} {h.power.toLocaleString()}</p>:null}{equipped?<p className="text-[8px] text-amber-300">{equippedHere?t('boss.inThisSlot'):`${t('equippedInSlot')} ${Number(equipped.slot)}`}</p>:null}</div></button>})}</div>}
     </div></div>}
   </section>;
 }

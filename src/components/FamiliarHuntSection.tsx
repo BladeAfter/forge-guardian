@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -57,6 +58,8 @@ const lootOptionLine = (option: LootLine | LootLine[] | null | undefined) =>
  * Stage, payment, fight and loot are all decided server-side.
  */
 export default function FamiliarHuntSection({ initData, onWallet }: { initData: string; onWallet?: () => void }) {
+  const localizeText = useLocalizedText();
+
   const client = useQueryClient();
   const [tonUI] = useTonConnectUI();
   const [team, setTeam] = useState<string[]>([]);
@@ -154,11 +157,11 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
     return (
       <div className="fixed inset-0 z-[140] flex flex-col justify-center gap-4 overflow-y-auto bg-[#03060d]/98 px-4 py-[max(env(safe-area-inset-top),1.25rem)] backdrop-blur-sm">
         <div className={`relative overflow-hidden rounded-[26px] border p-6 text-center ${result.victory ? 'border-amber-300/50 bg-gradient-to-b from-amber-500/15 to-black/80' : 'border-rose-400/40 bg-gradient-to-b from-rose-900/30 to-black/80'}`}>
-          <p className="text-[9px] font-black uppercase tracking-[.3em] text-slate-400">STAGE {result.stage} · {result.stageName}</p>
+          <p className="text-[9px] font-black uppercase tracking-[.3em] text-slate-400">{localizeText("STAGE")}{result.stage} · {result.stageName}</p>
           <h3 className={`mt-1 text-3xl font-black uppercase tracking-[.08em] ${result.victory ? 'text-amber-200' : 'text-rose-300'}`}>
-            {result.victory ? 'VITÓRIA' : 'DERROTA'}
+            {result.victory ? localizeText("VITÓRIA") : localizeText("DERROTA")}
           </h3>
-          {result.lootTier ? <p className="mt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300/90">LOOT · {result.lootTier}</p> : null}
+          {result.lootTier ? <p className="mt-1 text-[10px] font-black uppercase tracking-[.2em] text-amber-300/90">{localizeText("LOOT ·")}{result.lootTier}</p> : null}
           <div className="mt-5 grid grid-cols-3 gap-2">
             <Stat label="DANO" value={fmt(result.totalDamage)} />
             <Stat label="RODADAS" value={String(result.rounds)} />
@@ -174,11 +177,11 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
             </ul>
           ) : (
             <p className="mt-5 text-[11px] text-slate-400">
-              {result.victory ? 'Nenhuma recompensa nesta caçada.' : 'Derrota: você permanece nesta fase. Tente novamente.'}
+              {result.victory ? localizeText("Nenhuma recompensa nesta caçada.") : localizeText("Derrota: você permanece nesta fase. Tente novamente.")}
             </p>
           )}
           {result.victory ? (
-            <p className="mt-4 text-[10px] font-black uppercase tracking-[.18em] text-emerald-300">STAGE {result.stage + 1} LIBERADO</p>
+            <p className="mt-4 text-[10px] font-black uppercase tracking-[.18em] text-emerald-300">{localizeText("STAGE")}{result.stage + 1} {localizeText("LIBERADO")}</p>
           ) : null}
         </div>
         <button
@@ -186,8 +189,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
           onClick={() => { setPhase('lobby'); setResult(null); refreshAll(); }}
           className="w-full rounded-2xl border border-white/15 bg-white/[.04] py-3.5 text-[11px] font-black uppercase tracking-[.18em] text-slate-200 transition active:scale-95"
         >
-          VOLTAR À CAÇADA
-        </button>
+          {localizeText("VOLTAR À CAÇADA")}</button>
       </div>
     );
   }
@@ -197,9 +199,9 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
       {/* ── header: only the current stage ───────────────── */}
       <header className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black uppercase tracking-[.16em] text-amber-200 drop-shadow-[0_0_16px_rgba(251,191,36,.45)]">FAMILIAR HUNT</h2>
+          <h2 className="text-lg font-black uppercase tracking-[.16em] text-amber-200 drop-shadow-[0_0_16px_rgba(251,191,36,.45)]">{localizeText("FAMILIAR HUNT")}</h2>
           <p className="text-[10px] font-bold tracking-wide text-slate-500">
-            STAGE {stage.stage} · recorde {data.progress.highestStageCompleted}
+            {localizeText("STAGE")}{stage.stage} {localizeText("· recorde")}{data.progress.highestStageCompleted}
           </p>
         </div>
         <button
@@ -207,14 +209,12 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
           onClick={() => setHistory(true)}
           className="flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[.03] px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-slate-300"
         >
-          <History className="h-3 w-3" /> HISTORY
-        </button>
+          <History className="h-3 w-3" /> {localizeText("HISTORY")}</button>
       </header>
 
       {!data.enabled ? (
         <p className="rounded-2xl border border-amber-300/30 bg-amber-500/10 px-3 py-2.5 text-center text-[11px] font-bold text-amber-200">
-          A Familiar Hunt está temporariamente desativada.
-        </p>
+          {localizeText("A Familiar Hunt está temporariamente desativada.")}</p>
       ) : null}
 
       {feedback ? (
@@ -230,12 +230,11 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
         <div className="relative px-4 pb-4 pt-3.5">
           <div className="flex items-center justify-center gap-2">
             <span className="rounded-full border border-amber-300/50 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.18em] text-amber-200">
-              STAGE {stage.stage}
+              {localizeText("STAGE")}{stage.stage}
             </span>
             {stage.isBoss ? (
               <span className="flex items-center gap-1 rounded-full border border-fuchsia-300/50 bg-black/60 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.16em] text-fuchsia-200">
-                <Crown className="h-3 w-3" /> BOSS
-              </span>
+                <Crown className="h-3 w-3" /> {localizeText("BOSS")}</span>
             ) : null}
           </div>
           <p className="mt-1.5 text-center text-[13px] font-black uppercase tracking-[.1em] text-rose-100">{stage.name}</p>
@@ -276,11 +275,11 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
 
           <div className="mt-4 grid grid-cols-2 gap-2.5">
             <div className="rounded-2xl border border-sky-300/20 bg-black/60 py-2.5 text-center">
-              <p className="text-[8px] font-black uppercase tracking-[.2em] text-sky-400/80">SUA EQUIPE</p>
+              <p className="text-[8px] font-black uppercase tracking-[.2em] text-sky-400/80">{localizeText("SUA EQUIPE")}</p>
               <p className={`text-[16px] font-black ${teamPower >= stage.recommendedPower ? 'text-emerald-300' : 'text-amber-200'}`}>{fmt(teamPower)}</p>
             </div>
             <div className="rounded-2xl border border-amber-300/20 bg-black/60 py-2.5 text-center">
-              <p className="text-[8px] font-black uppercase tracking-[.2em] text-amber-400/80">RECOMENDADO</p>
+              <p className="text-[8px] font-black uppercase tracking-[.2em] text-amber-400/80">{localizeText("RECOMENDADO")}</p>
               <p className="text-[16px] font-black text-slate-100">{fmt(stage.recommendedPower)}</p>
             </div>
           </div>
@@ -290,8 +289,8 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
       {/* ── entry ────────────────────────────────────────── */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-400">ENTRADA</p>
-          <p className="text-[9px] font-bold text-slate-500">{fmt(data.balances.fc)} BERRIES · {fmtTon(data.balances.ton)} TON</p>
+          <p className="text-[9px] font-black uppercase tracking-[.24em] text-slate-400">{localizeText("ENTRADA")}</p>
+          <p className="text-[9px] font-bold text-slate-500">{fmt(data.balances.fc)} {localizeText("BERRIES ·")}{fmtTon(data.balances.ton)} TON</p>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -314,12 +313,12 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
             <span className="flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-[.1em] text-sky-100">
               <Sparkles className="h-3.5 w-3.5" /> {fmtTon(data.entry.ton)} TON
             </span>
-            <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[.14em] text-sky-300/70">PREMIUM · BERRIES + ÉPICO</span>
+            <span className="mt-0.5 block text-[8px] font-bold uppercase tracking-[.14em] text-sky-300/70">{localizeText("PREMIUM · BERRIES + ÉPICO")}</span>
           </button>
         </div>
         {busy ? (
           <p className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {waitingChain ? 'Confirmando pagamento na blockchain...' : 'Preparando a caçada...'}
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> {waitingChain ? localizeText("Confirmando pagamento na blockchain...") : localizeText("Preparando a caçada...")}
           </p>
         ) : null}
         {data.balances.ton < data.entry.ton ? (
@@ -328,17 +327,16 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
             onClick={() => onWallet?.()}
             className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[.02] py-2 text-[9px] font-black uppercase tracking-[.14em] text-slate-400"
           >
-            <Wallet className="h-3 w-3" /> DEPOSITAR TON INTERNO
-          </button>
+            <Wallet className="h-3 w-3" /> {localizeText("DEPOSITAR TON INTERNO")}</button>
         ) : null}
       </section>
 
       {/* ── possible rewards (compact) ───────────────────── */}
       <section className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/50 px-3.5 py-3">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">RECOMPENSAS POSSÍVEIS</p>
+          <p className="text-[9px] font-black uppercase tracking-[.2em] text-slate-400">{localizeText("RECOMPENSAS POSSÍVEIS")}</p>
           <p className="mt-0.5 text-[10px] font-bold text-slate-300">
-            <span className="text-sky-300">Rare</span> · <span className="text-fuchsia-300">Epic</span> · <span className="text-amber-300">Legendary</span>
+            <span className="text-sky-300">{localizeText("Rare")}</span> · <span className="text-fuchsia-300">{localizeText("Epic")}</span> · <span className="text-amber-300">{localizeText("Legendary")}</span>
           </p>
         </div>
         <button
@@ -346,8 +344,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
           onClick={() => setDrops(true)}
           className="flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[.12em] text-amber-200"
         >
-          <Percent className="h-3 w-3" /> VER DROPS
-        </button>
+          <Percent className="h-3 w-3" /> {localizeText("VER DROPS")}</button>
       </section>
 
       <button
@@ -355,7 +352,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
         onClick={() => setPicker(true)}
         className="w-full rounded-2xl border border-sky-300/30 bg-sky-300/[.05] py-2.5 text-[10px] font-black uppercase tracking-[.16em] text-sky-200 transition active:scale-95"
       >
-        EQUIPE {team.length}/3
+        {localizeText("EQUIPE")}{team.length}/3
       </button>
 
       {picker ? (
@@ -372,18 +369,18 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
       {drops ? <DropRatesModal fc={data.dropRates.fc} ton={data.dropRates.ton} entryFc={data.entry.fc} entryTon={data.entry.ton} onClose={() => setDrops(false)} /> : null}
 
       {history ? (
-        <Sheet title="HISTÓRICO" onClose={() => setHistory(false)}>
+        <Sheet title={localizeText("HISTÓRICO")} onClose={() => setHistory(false)}>
           {data.history.length ? (
             <ul className="space-y-1.5">
               {data.history.map((row) => (
                 <li key={row.id} className="flex items-center justify-between rounded-xl border border-white/8 bg-white/[.02] px-3 py-2 text-[10px] font-bold">
-                  <span className="text-slate-300">STAGE {row.stage}</span>
+                  <span className="text-slate-300">{localizeText("STAGE")}{row.stage}</span>
                   <span className="text-slate-500">{row.currency === 'fc' ? `${fmt(row.amount)} BERRIES` : `${fmtTon(row.amount)} TON`}</span>
-                  <span className={row.victory ? 'text-emerald-300' : 'text-rose-300'}>{row.victory ? 'VITÓRIA' : 'DERROTA'}</span>
+                  <span className={row.victory ? 'text-emerald-300' : 'text-rose-300'}>{row.victory ? localizeText("VITÓRIA") : localizeText("DERROTA")}</span>
                 </li>
               ))}
             </ul>
-          ) : <p className="text-center text-[11px] text-slate-500">Nenhuma caçada ainda.</p>}
+          ) : <p className="text-center text-[11px] text-slate-500">{localizeText("Nenhuma caçada ainda.")}</p>}
         </Sheet>
       ) : null}
     </div>
@@ -417,11 +414,13 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
 function DropRatesModal({ fc, ton, entryFc, entryTon, onClose }: {
   fc: FamiliarHuntLootTier[]; ton: FamiliarHuntLootTier[]; entryFc: number; entryTon: number; onClose: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const [tab, setTab] = useState<'fc' | 'ton'>('fc');
   const tiers = tab === 'fc' ? fc : ton;
   const total = tiers.reduce((sum, tier) => sum + Number(tier.weight || 0), 0) || 1;
   return (
-    <Sheet title="TAXAS DE DROP" onClose={onClose}>
+    <Sheet title={localizeText("TAXAS DE DROP")} onClose={onClose}>
       <div className="mb-3 grid grid-cols-2 gap-2">
         {(['fc', 'ton'] as const).map((value) => (
           <button
@@ -435,9 +434,9 @@ function DropRatesModal({ fc, ton, entryFc, entryTon, onClose }: {
         ))}
       </div>
       {tab === 'fc' ? (
-        <p className="mb-2 text-[10px] font-bold text-amber-200/80">Entrada em BERRIES nunca devolve BERRIES — apenas itens.</p>
+        <p className="mb-2 text-[10px] font-bold text-amber-200/80">{localizeText("Entrada em BERRIES nunca devolve BERRIES — apenas itens.")}</p>
       ) : (
-        <p className="mb-2 text-[10px] font-bold text-sky-200/80">Loot premium: BERRIES, baús, equipamentos épicos e lendários.</p>
+        <p className="mb-2 text-[10px] font-bold text-sky-200/80">{localizeText("Loot premium: BERRIES, baús, equipamentos épicos e lendários.")}</p>
       )}
       <ul className="space-y-2">
         {tiers.map((tier) => (
@@ -459,6 +458,8 @@ function DropRatesModal({ fc, ton, entryFc, entryTon, onClose }: {
 }
 
 function TeamPicker({ pets, team, onToggle, onClose }: { pets: FamiliarHuntPet[]; team: string[]; onToggle: (pet: FamiliarHuntPet) => void; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   return (
     <Sheet title={`EQUIPE · ${team.length}/3`} onClose={onClose}>
       <div className="grid grid-cols-3 gap-2">
@@ -473,7 +474,7 @@ function TeamPicker({ pets, team, onToggle, onClose }: { pets: FamiliarHuntPet[]
             >
               {pet.image ? <img src={pet.image} alt={pet.name} loading="lazy" className="mx-auto h-14 object-contain" /> : null}
               <p className="mt-1 truncate text-[9px] font-black uppercase text-slate-200">{pet.name}</p>
-              <p className="text-[8px] text-slate-500">Nv {pet.level} · {fmt(pet.power)}</p>
+              <p className="text-[8px] text-slate-500">{localizeText("Nv")}{pet.level} · {fmt(pet.power)}</p>
             </button>
           );
         })}

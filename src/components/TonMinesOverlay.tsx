@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -62,6 +63,8 @@ type BuyPhase = 'idle' | 'processing' | 'wallet' | 'error';
  * assinado pelo payment intent. Nunca há pagamento misto.
  */
 export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [tonUI] = useTonConnectUI();
@@ -288,7 +291,7 @@ export function TonMinesOverlay({ telegramInitData, onClose }: { telegramInitDat
                 <span className="block text-[9px]" style={{ color: 'rgba(203,213,225,.7)' }}>{t('tonStaking.subtitle')}</span>
               </span>
             </span>
-            <span className="text-[10px] font-black" style={{ color: '#7dd3fc' }}>ABRIR ›</span>
+            <span className="text-[10px] font-black" style={{ color: '#7dd3fc' }}>{localizeText("ABRIR ›")}</span>
           </button>
         </section>
 

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import React from'react';
 import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
@@ -66,7 +67,9 @@ return <>
   {buyOpen&&data.levelPurchase?<BuyLevelSheet cfg={data.levelPurchase} level={data.player.level} levels={data.season.levels} xpIntoLevel={data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel} xpPerLevel={data.season.xpPerLevel} pending={buyLevels.isPending} onBuy={(n,currency='FC')=>buyLevels.mutate({levels:n,currency})} onClose={()=>setBuyOpen(false)}/>:null}
  </>;
 }
-function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){return <div className="fullscreen-page seas-season"><header className="season-topbar"><OceanControl onClick={onClose} aria-label="Voltar ao porto"><ArrowLeft/></OceanControl><div><span>MYTHIC SEAS</span><b>PASSE DE TEMPORADA</b></div></header><div className="season-inner">{children}</div></div>}
+function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){
+  const localizeText = useLocalizedText();
+return <div className="fullscreen-page seas-season"><header className="season-topbar"><OceanControl onClick={onClose} aria-label={localizeText("Voltar ao porto")}><ArrowLeft/></OceanControl><div><span>MYTHIC SEAS</span><b>{localizeText("PASSE DE TEMPORADA")}</b></div></header><div className="season-inner">{children}</div></div>}
 
 /** Compact bottom sheet: every number shown here is produced by the backend. */
 function BuyLevelSheet({cfg,level,levels,xpIntoLevel,xpPerLevel,pending,onBuy,onClose}:{cfg:PassLevelPurchaseConfig;level:number;levels:number;xpIntoLevel:number;xpPerLevel:number;pending:boolean;onBuy:(levels:number,currency?:'FC')=>void;onClose:()=>void}){

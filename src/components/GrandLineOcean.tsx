@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves, Ship, Crosshair, Zap, Swords, Flag } from 'lucide-react';
 import { grandLineArt } from '../gameAssets';
@@ -13,6 +14,8 @@ import NavalMiniMap from './NavalMiniMap';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
+  const localizeText = useLocalizedText();
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const joystickKnob = useRef<HTMLSpanElement>(null);
   const joystickPointer = useRef<number | null>(null);
@@ -140,27 +143,27 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     if (distance < 6) state.current.target = { ...state.current.position };
     if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
   };
-  return <section className="grand-line-ocean" aria-label="Grand Line — oceano navegável">
+  return <section className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
     <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
     <header className="ocean-hud">
-      <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title="Voltar ao porto" aria-label="Voltar ao porto"><ArrowLeft size={20} /></OceanControl>
-      <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>GRAND LINE</h1></div>
+      <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title={localizeText("Voltar ao porto")} aria-label={localizeText("Voltar ao porto")}><ArrowLeft size={20} /></OceanControl>
+      <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{localizeText("GRAND LINE")}</h1></div>
       <div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{new Intl.NumberFormat('pt-BR').format(Math.floor(berries))}</b><span>BERRIES</span></div>
     </header>
-    <div className="ocean-instruments"><span><Waves size={15} /> {speed} nós</span><span className="ocean-hull" title="Casco de navegação">CASCO {ownShip.hp}/{shipMaxHp(ownShip)}</span><span>Nv. {ownShip.level}</span></div>
+    <div className="ocean-instruments"><span><Waves size={15} /> {speed} {localizeText("nós")}</span><span className="ocean-hull" title={localizeText("Casco de navegação")}>{localizeText("CASCO")}{ownShip.hp}/{shipMaxHp(ownShip)}</span><span>{localizeText("Nv.")}{ownShip.level}</span></div>
     <div className="naval-connection" role="status">{network.error || (network.data ? `${network.data.others.length} capitães à vista` : initData ? 'Conectando ao oceano compartilhado…' : 'Navegação local · oceano compartilhado indisponível')}</div>
-    {network.data?.battle?.status==='won' && <div className="ocean-discovery" role="status"><span>{network.data.battle.winner===ownShip.user_id ? 'VITÓRIA NAVAL' : 'NAVIO DERROTADO'}</span><p>{network.data.battle.winner===ownShip.user_id ? `${network.data.battle.loot.berries ?? 0} BERRIES · ${Object.values(network.data.battle.loot.items ?? {}).reduce((sum,n)=>sum+n,0)} materiais recuperados` : 'Retorne ao estaleiro para reparar o casco.'}</p></div>}
-    <div className="naval-controls"><OceanControl title="Estaleiro" aria-label="Estaleiro" onClick={openYard}><Ship size={20}/></OceanControl><label className="naval-throttle">Velocidade · {Math.round(throttle*100)}%<input aria-label="Velocidade do navio" type="range" min="0" max="100" value={throttle*100} onChange={e => setThrottle(Number(e.target.value)/100)}/></label>
-      {battle && <><span className="naval-battle-status">GUERRA NAVAL</span><div className="naval-battle-controls"><OceanControl disabled={network.busy} aria-label="Disparar canhões" title="Disparar canhões" onClick={() => fireAction('fire')}><Crosshair size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Salva especial" title="Salva especial" onClick={() => fireAction('skill')}><Zap size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Abordar navio" title="Abordar navio" onClick={() => fireAction('board')}><Swords size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label="Tentar fugir" title="Tentar fugir" onClick={() => fireAction('escape')}><Flag size={22}/></OceanControl></div></>}
+    {network.data?.battle?.status==='won' && <div className="ocean-discovery" role="status"><span>{network.data.battle.winner===ownShip.user_id ? localizeText("VITÓRIA NAVAL") : localizeText("NAVIO DERROTADO")}</span><p>{network.data.battle.winner===ownShip.user_id ? `${network.data.battle.loot.berries ?? 0} BERRIES · ${Object.values(network.data.battle.loot.items ?? {}).reduce((sum,n)=>sum+n,0)} materiais recuperados` : localizeText("Retorne ao estaleiro para reparar o casco.")}</p></div>}
+    <div className="naval-controls"><OceanControl title={localizeText("Estaleiro")} aria-label={localizeText("Estaleiro")} onClick={openYard}><Ship size={20}/></OceanControl><label className="naval-throttle">{localizeText("Velocidade ·")}{Math.round(throttle*100)}%<input aria-label={localizeText("Velocidade do navio")} type="range" min="0" max="100" value={throttle*100} onChange={e => setThrottle(Number(e.target.value)/100)}/></label>
+      {battle && <><span className="naval-battle-status">{localizeText("GUERRA NAVAL")}</span><div className="naval-battle-controls"><OceanControl disabled={network.busy} aria-label={localizeText("Disparar canhões")} title={localizeText("Disparar canhões")} onClick={() => fireAction('fire')}><Crosshair size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Salva especial")} title={localizeText("Salva especial")} onClick={() => fireAction('skill')}><Zap size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Abordar navio")} title={localizeText("Abordar navio")} onClick={() => fireAction('board')}><Swords size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Tentar fugir")} title={localizeText("Tentar fugir")} onClick={() => fireAction('escape')}><Flag size={22}/></OceanControl></div></>}
     </div>
-    {enemy && <div className="naval-enemy" role="dialog" aria-label="Navio inimigo"><h2>NAVIO INIMIGO</h2><p>{enemy.name} · Nv. {enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>Vida {enemy.hp}/{shipMaxHp(enemy)} · Canhões {shipStats(enemy).cannons}<br/>Defesa {shipStats(enemy).defense} · Tripulação {shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>Atacar</OceanControl><OceanControl onClick={()=>setInspecting(true)}>Inspecionar</OceanControl><OceanControl onClick={()=>setSelected(null)}>Ignorar</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>Saque e guerra naval aguardam definição das regras.</small>}</div>}
+    {enemy && <div className="naval-enemy" role="dialog" aria-label={localizeText("Navio inimigo")}><h2>{localizeText("NAVIO INIMIGO")}</h2><p>{enemy.name} {localizeText("· Nv.")}{enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>{localizeText("Vida")}{enemy.hp}/{shipMaxHp(enemy)} {localizeText("· Canhões")}{shipStats(enemy).cannons}<br/>{localizeText("Defesa")}{shipStats(enemy).defense} {localizeText("· Tripulação")}{shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>{localizeText("Atacar")}</OceanControl><OceanControl onClick={()=>setInspecting(true)}>{localizeText("Inspecionar")}</OceanControl><OceanControl onClick={()=>setSelected(null)}>{localizeText("Ignorar")}</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>{localizeText("Saque e guerra naval aguardam definição das regras.")}</small>}</div>}
     {yardOpen && <NavalShipyard ship={ownShip} state={network.data} busy={network.busy} onClose={()=>setYardOpen(false)} onSave={async input => {if(await network.action('customize',input))setYardOpen(false);}} onAction={async action => {await network.action(action);}}/>}
     <NavalMiniMap pose={state} network={currentNetwork} />
-    <div className="ocean-view"><OceanControl title={wide ? 'Seguir navio' : 'Ampliar visão do horizonte'} aria-label={wide ? 'Seguir navio' : 'Ampliar visão do horizonte'} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
-    {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? 'MAPA NA GARRAFA' : 'DESCOBERTA'}</span><p>{message}</p></div>}
-    {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? 'Atracando...' : 'Atracar no porto'}</OceanControl></div>}
-    <nav className="ocean-helm" aria-label="Direção do navio">
-      <OceanControl className="ocean-joystick" title="Joystick do navio" aria-label="Joystick do navio" disabled={dockingNow}
+    <div className="ocean-view"><OceanControl title={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} aria-label={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
+    {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? localizeText("MAPA NA GARRAFA") : localizeText("DESCOBERTA")}</span><p>{message}</p></div>}
+    {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? localizeText("Atracando...") : localizeText("Atracar no porto")}</OceanControl></div>}
+    <nav className="ocean-helm" aria-label={localizeText("Direção do navio")}>
+      <OceanControl className="ocean-joystick" title={localizeText("Joystick do navio")} aria-label={localizeText("Joystick do navio")} disabled={dockingNow}
         onPointerDown={event => { if (joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
@@ -170,6 +173,6 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         <span ref={joystickKnob} className="ocean-joystick-knob" aria-hidden="true"><Compass size={24} strokeWidth={1.5} /></span>
       </OceanControl>
     </nav>
-    <span className="ocean-coordinate">MAR ABERTO · {secretFound ? 'PASSAGEM DESCOBERTA' : bottleFound ? 'MAPA ENCONTRADO' : 'VENTO LESTE'}</span>
+    <span className="ocean-coordinate">{localizeText("MAR ABERTO ·")}{secretFound ? localizeText("PASSAGEM DESCOBERTA") : bottleFound ? 'MAPA ENCONTRADO' : 'VENTO LESTE'}</span>
   </section>;
 }

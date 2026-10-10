@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { Loader2, Sparkle, Wallet } from 'lucide-react';
 import { rewardCategory, type RewardCategoryId } from './RouletteRewardKit';
@@ -79,6 +80,8 @@ export function RouletteRewardReveal({
   onClaim: () => void;
   onSpinAgain: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const category = rewardCategory(reward.categoryId);
   const aura = AURA[reward.categoryId];
   const [shown, setShown] = useState(false);
@@ -129,9 +132,8 @@ export function RouletteRewardReveal({
         <div className={`text-center transition-all duration-700 ${shown ? 'translate-y-0 opacity-100' : '-translate-y-3 opacity-0'}`}>
           <p className="text-[10px] font-black uppercase tracking-[0.5em] text-amber-300/90">Mythic Seas</p>
           <h2 className="mt-1 bg-gradient-to-b from-amber-100 via-amber-300 to-amber-500 bg-clip-text text-[30px] font-black uppercase leading-none tracking-[0.14em] text-transparent drop-shadow-[0_0_22px_rgba(251,191,36,0.45)]">
-            You won
-          </h2>
-          <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.32em] text-sky-200/70">Global Mystery Roulette</p>
+            {localizeText("You won")}</h2>
+          <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.32em] text-sky-200/70">{localizeText("Global Mystery Roulette")}</p>
         </div>
 
         {/* CENTER PEDESTAL */}
@@ -179,8 +181,7 @@ export function RouletteRewardReveal({
             onClick={onClaim}
             className="w-full rounded-2xl border border-amber-200/50 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 py-4 text-[14px] font-black uppercase tracking-[0.2em] text-[#1b1204] shadow-[0_10px_30px_rgba(251,191,36,0.35)] active:scale-[0.99]"
           >
-            Resgatar recompensa
-          </button>
+            {localizeText("Resgatar recompensa")}</button>
           <button
             type="button"
             onClick={onSpinAgain}
@@ -188,7 +189,7 @@ export function RouletteRewardReveal({
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-sky-300/35 bg-sky-500/10 py-3.5 text-[12px] font-black uppercase tracking-[0.18em] text-sky-100 disabled:opacity-40"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : usesWallet ? <Wallet className="h-4 w-4" /> : <Sparkle className="h-4 w-4" />}
-            Girar de novo • {cost} TON
+            {localizeText("Girar de novo •")}{cost} TON
           </button>
         </div>
       </div>

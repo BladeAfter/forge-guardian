@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   realmClaimExpedition,
@@ -68,6 +69,8 @@ type Props = {
  * cinematic exploration scene (real places, party walking, fog of war, camera pan).
  */
 export default function RealmExplorationMap({ data, initData, now, level, busy, call, run }: Props) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const regions = data.regions;
   const [selected, setSelected] = useState<string | null>(null);
@@ -219,7 +222,7 @@ export default function RealmExplorationMap({ data, initData, now, level, busy, 
           <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-5" onClick={() => setConfirm(null)}>
             <div className="w-full max-w-xs space-y-3 rounded-3xl border border-amber-300/30 bg-[#080b14] p-4" onClick={(e) => e.stopPropagation()}>
               <b className="block text-center text-[12px] font-black uppercase tracking-[.14em] text-amber-100">
-                {region.name} — Depth {meta.depth}
+                {region.name} {localizeText("— Depth")}{meta.depth}
               </b>
               <div className="space-y-1 text-[10px] text-slate-300">
                 <div className="flex justify-between"><span className="text-slate-500">{t('realm.map.entry')}</span><b className={affordable ? 'text-amber-200' : 'text-rose-300'}>{fmt(meta.stats.entryCost)} BERRIES</b></div>

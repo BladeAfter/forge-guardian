@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../../LanguageContext';
 import { memo, Suspense, useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import { Environment, Lightformer, Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
@@ -15,7 +16,9 @@ import { ISLAND_MAP } from '../../illustratedIslandWorld';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
-function Loader() { return <Html center><span className="island3d-loading">Preparando a ilha 3D…</span></Html>; }
+function Loader() {
+  const localizeText = useLocalizedText();
+ return <Html center><span className="island3d-loading">{localizeText("Preparando a ilha 3D…")}</span></Html>; }
 
 export const IslandScene = memo(function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
   const harbor = useRef(newHarborState());

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
@@ -25,6 +26,8 @@ type SlotKey = (typeof SLOTS)[number]['key'];
  * component only renders the server state it receives back.
  */
 export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { telegramInitData: string; heroId: string; onState?: (state: HeroEquipmentState) => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<SlotKey | null>(null);
@@ -93,7 +96,7 @@ export function HeroEquipmentSlots({ telegramInitData, heroId, onState }: { tele
                 <>
                   <p className={`mt-1 truncate text-[8px] font-black uppercase ${item.isNft ? 'nft-hero-name' : 'text-white'}`}>{item.name}</p>
                   <p className="text-[7px] font-black uppercase tracking-[.1em]" style={{ color: accent }}>
-                    {item.isNft ? '💎 NFT EXCLUSIVE' : `${item.rarity ? t(`rarity.${item.rarity}`) : ''} · ${t('common.levelShort')} ${item.level}`}
+                    {item.isNft ? localizeText("💎 NFT EXCLUSIVE") : `${item.rarity ? t(`rarity.${item.rarity}`) : ''} · ${t('common.levelShort')} ${item.level}`}
                   </p>
                   <p className="text-[7px] font-black text-emerald-300">{equipmentBonusLabel(item)}</p>
                 </>

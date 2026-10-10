@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { forgeAuthProbe, forgeBackendUrl, forgeFetch, forgeHealth, type ForgeAuthProbe, type ForgeHealth } from '../apiClient';
 
@@ -24,6 +25,8 @@ export function DiagnosticsPage({
   telegramId: number | null;
   onClose: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const [health, setHealth] = useState<ForgeHealth | null>(null);
   const [probes, setProbes] = useState<Probe[]>([]);
   const [running, setRunning] = useState(false);
@@ -55,75 +58,74 @@ export function DiagnosticsPage({
   return (
     <div className="forge-safe-page min-h-screen bg-forge-black px-4 pb-16 text-white">
       <header className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-black uppercase tracking-wide text-amber-300">Diagnóstico</h1>
+        <h1 className="text-lg font-black uppercase tracking-wide text-amber-300">{localizeText("Diagnóstico")}</h1>
         <button onClick={onClose} className="rounded-lg border border-white/15 px-3 py-1 text-xs uppercase">
-          Fechar
-        </button>
+          {localizeText("Fechar")}</button>
       </header>
 
       <section className="mb-4 space-y-2 rounded-xl border border-white/10 bg-white/5 p-3 text-sm">
         <div className="flex items-center justify-between">
-          <span>Frontend</span>
+          <span>{localizeText("Frontend")}</span>
           <Badge ok label="online" />
         </div>
         <div className="flex items-center justify-between">
-          <span>Backend</span>
+          <span>{localizeText("Backend")}</span>
           <Badge ok={health?.backend === 'online'} label={health?.backend ?? '...'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>Banco de dados</span>
+          <span>{localizeText("Banco de dados")}</span>
           <Badge ok={health?.database === 'online'} label={health?.database ?? '...'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>Telegram initData</span>
+          <span>{localizeText("Telegram initData")}</span>
           <Badge ok={Boolean(telegramInitData)} label={telegramInitData ? 'ok' : 'falha'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>Telegram SDK</span>
+          <span>{localizeText("Telegram SDK")}</span>
           <Badge ok={Boolean(window.Telegram?.WebApp)} label={window.Telegram?.WebApp ? 'ok' : 'fail'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>initData length</span>
+          <span>{localizeText("initData length")}</span>
           <span className="font-mono text-xs text-white/70">{telegramInitData.length}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Validação initData</span>
+          <span>{localizeText("Validação initData")}</span>
           <Badge ok={Boolean(auth?.ok)} label={auth ? (auth.ok ? 'pass' : 'fail') : '...'} />
         </div>
         {auth && !auth.ok ? (
           <div className="flex items-center justify-between gap-2">
-            <span>Motivo</span>
+            <span>{localizeText("Motivo")}</span>
             <span className="max-w-[55vw] truncate font-mono text-[10px] text-red-300">{auth.reason ?? auth.error}</span>
           </div>
         ) : null}
         <div className="flex items-center justify-between">
-          <span>Bot do jogo</span>
+          <span>{localizeText("Bot do jogo")}</span>
           <span className="font-mono text-xs text-white/70">
             {health?.game_bot_username ? `@${health.game_bot_username}` : (health?.telegram_auth ?? '—')}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Token do jogo</span>
+          <span>{localizeText("Token do jogo")}</span>
           <Badge ok={health?.telegram_auth === 'configured'} label={health?.game_bot_token_source ?? '...'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>Token admin separado</span>
+          <span>{localizeText("Token admin separado")}</span>
           <Badge ok={Boolean(health?.admin_bot_token_separated)} label={health?.admin_bot_token_separated ? 'sim' : 'não'} />
         </div>
         <div className="flex items-center justify-between">
-          <span>Janela auth_date</span>
+          <span>{localizeText("Janela auth_date")}</span>
           <span className="font-mono text-xs text-white/70">{health?.telegram_auth_max_age_seconds ?? '—'}s</span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Telegram ID</span>
+          <span>{localizeText("Telegram ID")}</span>
           <span className="font-mono text-xs text-white/70">{telegramId ?? '—'}</span>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <span>API URL</span>
+          <span>{localizeText("API URL")}</span>
           <span className="truncate font-mono text-[10px] text-white/60">{forgeBackendUrl || 'não configurada'}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span>Environment</span>
+          <span>{localizeText("Environment")}</span>
           <span className="font-mono text-xs text-white/70">{import.meta.env.PROD ? 'production' : 'development'}</span>
         </div>
       </section>
@@ -136,7 +138,7 @@ export function DiagnosticsPage({
               key={feature}
               className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm"
             >
-              <span className="uppercase tracking-wide">{feature} API</span>
+              <span className="uppercase tracking-wide">{feature} {localizeText("API")}</span>
               <div className="flex items-center gap-2">
                 {probe?.error ? <span className="max-w-[45vw] truncate text-[10px] text-red-300">{probe.error}</span> : null}
                 <Badge ok={Boolean(probe?.ok)} label={probe ? `HTTP ${probe.status}` : '...'} />
@@ -151,7 +153,7 @@ export function DiagnosticsPage({
         disabled={running}
         className="mt-5 w-full rounded-xl bg-amber-500 py-3 text-sm font-black uppercase text-black disabled:opacity-50"
       >
-        {running ? 'Testando...' : 'Testar novamente'}
+        {running ? localizeText("Testando...") : localizeText("Testar novamente")}
       </button>
     </div>
   );
