@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Acrescentar trecho ilustrado dos controles de batalha naval aos 43 tutoriais: 57,27 s com áudio, mídia registrada e bot atualizado; 13 testes passaram, URLs PT/EN/RU disponíveis. Aviso traduzido distingue ilustração de gameplay; traduções do novo trecho sem revisão humana, conferência de movimento por amostragem.
+- [ ] Substituir ilustração por gravação real de batalha naval; bloqueio: PvP desativado, nenhuma batalha registrada e gravação autenticada do Telegram indisponível.
+
 - [x] Remover acessos MYTH de carteira, compra, passe, recrutamento, mineração, doações e rendimentos; manter TON/BERRIES e histórico financeiro.
 - [ ] Concluir traduções sem exceção: 698 textos aplicados em 92 telas e 161 lacunas espanhol/russo preenchidas; faltam turco, textos dinâmicos, mensagens e demais literais. Bloqueio: créditos de IA esgotados.
 - [x] Executar testes gerais: 216 testes passaram; acesso público conferido com zero abas antes da autorização.
