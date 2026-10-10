@@ -22,3 +22,15 @@ export function tutorialCaption(language: string): string {
   };
   return `${copy[language] ?? '🏴‍☠️ Mythic Seas · Grand Line'}\n\n#MythicSeasbot`;
 }
+export function tutorialUnavailable(language: string): string {
+  const copy: Record<string, string> = {
+    ru: 'Обучающий ролик на вашем языке пока недоступен.',
+    pt: 'O tutorial no seu idioma ainda não está disponível.',
+    en: 'The tutorial in your language is not available yet.',
+    es: 'El tutorial en tu idioma aún no está disponible.',
+    fr: 'Le tutoriel dans votre langue n’est pas encore disponible.',
+    de: 'Das Tutorial in deiner Sprache ist noch nicht verfügbar.',
+    uk: 'Навчальне відео вашою мовою поки недоступне.',
+  };
+  return `🏴‍☠️ Mythic Seas\n\n${copy[language] ?? copy.en}`;
+}

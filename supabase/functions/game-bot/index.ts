@@ -3,7 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { welcomeReply } from './format.ts';
 import { deliverFirstTutorial } from './tutorial.ts';
 import { launchInviter } from '../_shared/launch.ts';
-import { languageFromUpdate, tutorialForLanguage } from './tutorialLanguages.ts';
+import { languageFromUpdate, tutorialForLanguage, tutorialUnavailable } from './tutorialLanguages.ts';
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function webhookSecret(token: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mythic-seas-game-webhook:${token}`));
@@ -53,7 +53,7 @@ Deno.serve(async req => {
       return await response.json();
     }, language);
     if (!tutorialForLanguage(language)) return json({ method: 'sendMessage', chat_id: reply.chat_id,
-      text: '🏴‍☠️ Mythic Seas\n\nYour language’s tutorial is not available yet. No other-language video has been sent.', reply_markup: reply.reply_markup });
+      text: tutorialUnavailable(language), reply_markup: reply.reply_markup });
     return json(handled ? { ok: true } : reply);
   } catch { return json({ error: 'tutorial_unavailable' }, 503); }
 });
