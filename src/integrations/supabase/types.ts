@@ -15671,6 +15671,8 @@ export type Database = {
           seed: number
           started_at: string
           status: string
+          treasure_map_found_at: string | null
+          treasure_map_used_node: string | null
           user_id: string
         }
         Insert: {
@@ -15692,6 +15694,8 @@ export type Database = {
           seed?: number
           started_at?: string
           status?: string
+          treasure_map_found_at?: string | null
+          treasure_map_used_node?: string | null
           user_id: string
         }
         Update: {
@@ -15713,6 +15717,8 @@ export type Database = {
           seed?: number
           started_at?: string
           status?: string
+          treasure_map_found_at?: string | null
+          treasure_map_used_node?: string | null
           user_id?: string
         }
         Relationships: []

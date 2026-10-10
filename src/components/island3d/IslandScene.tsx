@@ -13,8 +13,9 @@ import { IslandHarbor } from './IslandHarbor';
 import { IllustratedIsland } from './IllustratedIsland';
 import { IslandMapCollisions } from './IslandMapCollisions';
 import { ISLAND_MAP } from '../../illustratedIslandWorld';
+import { TreasureMarker } from './TreasureMarker';
 
-export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'node'; node?: RealmExploreNode };
+export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'clue' | 'node'; node?: RealmExploreNode; revealed?: boolean };
 type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
 function Loader() {
   const localizeText = useLocalizedText();
@@ -34,6 +35,7 @@ export const IslandScene = memo(function IslandScene({ input, palette, captainSt
         <IslandMapCollisions islandIndex={islandIndex} /><Dock palette={palette} illustrated />
         <IslandHarbor harbor={harbor} palette={palette} />
         {encounters.filter(e => e.kind !== 'ship' && e.kind !== 'secret' && e.kind !== 'activity').map(e => {
+          if (e.kind === 'clue' || (e.node?.node_type === 'treasure' && !e.revealed)) return <TreasureMarker key={e.id} x={e.x} z={e.z} palette={palette} clue={e.kind === 'clue'} />;
           const enemy = e.node && ['combat', 'elite', 'boss'].includes(e.node.node_type);
           const humanoid = enemy || e.kind === 'npc' || e.node?.node_type === 'event';
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;

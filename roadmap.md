@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Tesouro enterrado: mostrar X antes de Abrir e revelar baú somente após confirmação oficial; exigir mapa encontrado na navegação/caminhada, com posse e validação no servidor.
+- [x] Tesouro enterrado: X no chão e baú após Abrir; pista garantida na ilha concede um mapa por aventura, consumido atomicamente no servidor para um tesouro. Caminhada/coleta/abertura conferidas em cena isolada com respostas simuladas; 21 testes passaram, compilação OK, RPCs exclusivos do servidor e auto sem bypass. Prêmios existentes preservados; não foram criados achados aleatórios no mar.
+- [ ] Conferir pista → mapa → X → baú com jogador real; bloqueio: sessão móvel autenticada do Telegram indisponível. O tutorial em vídeo ainda mostra a apresentação anterior.
 
 - [x] Acrescentar trecho ilustrado dos controles de batalha naval aos 43 tutoriais: 57,27 s com áudio, mídia registrada e bot atualizado; 13 testes passaram, URLs PT/EN/RU disponíveis. Aviso traduzido distingue ilustração de gameplay; traduções do novo trecho sem revisão humana, conferência de movimento por amostragem.
 - [ ] Substituir ilustração por gravação real de batalha naval; bloqueio: PvP desativado, nenhuma batalha registrada e gravação autenticada do Telegram indisponível.

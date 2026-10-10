@@ -841,6 +841,20 @@
       "when": 1791593448971,
       "tag": "0119_launch_waitlist_and_verified_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1791598271569,
+      "tag": "0120_island_treasure_map_gate",
+      "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1791598711410,
+      "tag": "0121_restrict_treasure_auto_rpc",
+      "breakpoints": true
     }
   ]
 }
