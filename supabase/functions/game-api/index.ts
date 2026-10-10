@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
+import { confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
 
 type TelegramUser = {
   id: number;
@@ -55,12 +56,12 @@ export async function telegramIsChatMember(chatId: string, telegramUserId: numbe
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, user_id: telegramUserId }),
     });
-    const payload = await response.json().catch(() => null) as { ok?: boolean; result?: { status?: string } } | null;
+    const payload = await response.json().catch(() => null) as { ok?: boolean; result?: { status?: string; is_member?: boolean } } | null;
     if (!payload?.ok) {
       console.error('[PARTNER VALIDATION] getChatMember failed', response.status, JSON.stringify(payload));
       return false;
     }
-    return ['creator', 'administrator', 'member', 'restricted'].includes(String(payload.result?.status || ''));
+    return response.ok && confirmedTelegramMember(payload.result);
   } catch (error) {
     console.error('[PARTNER VALIDATION] getChatMember error', error);
     return false;
@@ -181,8 +182,7 @@ async function botUsername(token: string): Promise<string | null> {
 }
 
 /**
- * Official channel rewards are keyed by Telegram ID only — no getChatMember,
- * no chat_id and no membership validation is performed anywhere.
+ * Official rewards require fresh membership confirmation for the authenticated Telegram ID.
  */
 
 
@@ -2413,7 +2413,10 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action !== 'verify') throw new Error('Ação inválida.');
     const key = String(body.channelKey || '');
     if (!['news', 'community', 'payments'].includes(key)) throw new Error('CHANNEL_NOT_AVAILABLE');
-    const result = await rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key }) as Record<string, unknown>;
+    const { data: config, error } = await db.from('channel_reward_config').select('chat_ref').eq('channel_key', key).eq('enabled', true).maybeSingle();
+    if (error) throw new Error('CHANNEL_NOT_AVAILABLE');
+    const result = await verifyOfficialChannel(config?.chat_ref ?? null, user.id, telegramIsChatMember,
+      () => rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true })) as Record<string, unknown>;
     console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, status: result?.status, creditedFc: result?.creditedFc });
     return result;
   },

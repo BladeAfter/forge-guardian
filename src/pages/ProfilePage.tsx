@@ -11,6 +11,7 @@ import { AvatarWithBorder } from '../components/AvatarWithBorder';
 import { profileArt, profileChannelArt } from '../gameAssets';
 import { captainCharacters, readCaptainStyle, saveCaptainStyle, type CaptainStyle } from '../captainCharacter';
 import { OceanControl } from '../components/OceanControl';
+import { officialChannelLinks } from '../officialChannels';
 
 /** Reward icons come from mixed sources: only real URLs can be rendered as images. */
 const isImageUrl = (value?: string | null) => Boolean(value && (/^https?:\/\//.test(value) || value.startsWith('/') || value.startsWith('data:')));
@@ -162,16 +163,18 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
 
       <section className="captain-signals">
         <div className="captain-section-heading"><div><span><Anchor size={17} />RÁDIO DO NAVIO</span><h2>{t('profile.officialChannels')}</h2></div></div>
-        {channels.isLoading ? <p className="captain-muted">{t('profile.loadingChannels')}</p> : <div className="captain-channel-list">{(channels.data?.channels ?? []).filter(channel => channel.enabled).map((channel: ChannelReward) => {
+        {channels.isLoading && <p className="captain-muted">{t('profile.loadingChannels')}</p>}
+        {channels.isError && <p className="captain-channel-error" role="status">Não foi possível consultar as recompensas. <OceanControl className="captain-text-action" onClick={() => void channels.refetch()}>Tentar novamente</OceanControl></p>}
+        <div className="captain-channel-list">{officialChannelLinks(channels.data?.channels).map((channel: ChannelReward) => {
           const channelImage = profileChannelArt[channel.key] ?? profileChannelArt.news;
           const pending = verify.isPending && verify.variables === channel.key;
           const failed = channelError?.key === channel.key;
           return <article className="captain-channel" key={channel.key}>
-            <div className="captain-channel-info"><img className="captain-channel-art" src={channelImage} alt="" width={48} height={48} loading="lazy" /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : `+${formatFc(channel.rewardFc)}`}</span></div>
-            {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><OceanControl type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></OceanControl></div> : <div className="captain-channel-actions"><OceanControl type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></OceanControl><OceanControl type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</OceanControl></div>}
+            <div className="captain-channel-info"><img className="captain-channel-art" src={channelImage} alt="" width={48} height={48} loading="lazy" /><div><h3>{channel.title}</h3><p>{channel.subtitle}</p></div><span>{channel.claimed ? <Check size={18} aria-label={t('profile.claimed')} /> : channel.enabled && channel.rewardFc > 0 ? `+${formatFc(channel.rewardFc)} BERRIES` : null}</span></div>
+            {channel.claimed ? <div className="captain-channel-actions"><span className="captain-status-active">{t('profile.rewardClaimed', { amount: formatFc(channel.rewardReceived || channel.rewardFc) })}</span><OceanControl type="button" className="captain-text-action" onClick={() => openTelegramLink(channel.url)}>{t('profile.openChannel')}<ChevronRight size={14} /></OceanControl></div> : <div className="captain-channel-actions"><OceanControl type="button" className="captain-channel-join" onClick={() => { setJoined(state => ({ ...state, [channel.key]: true })); openTelegramLink(channel.url); }}>{t('profile.join')}<ChevronRight size={14} /></OceanControl><OceanControl type="button" className={`captain-channel-verify ${joined[channel.key] ? 'is-joined' : ''}`} disabled={pending || !enabled || !channel.enabled || !channel.verifiable || channels.isError} onClick={() => verify.mutate(channel.key)}>{pending && <Loader2 size={14} className="animate-spin" />}{pending ? t('profile.verifying') : t('profile.verify')}</OceanControl></div>}
             {failed && <p className="captain-channel-error">{channelError?.message}</p>}
           </article>;
-        })}</div>}
+        })}</div>
       </section>
       </div>
     </section>
