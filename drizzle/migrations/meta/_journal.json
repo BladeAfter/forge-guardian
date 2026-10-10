@@ -834,6 +834,13 @@
       "when": 1791593172757,
       "tag": "0118_require_official_channel_membership",
       "breakpoints": true
+    },
+    {
+      "idx": 119,
+      "version": "7",
+      "when": 1791593448971,
+      "tag": "0119_launch_waitlist_and_verified_invites",
+      "breakpoints": true
     }
   ]
 }
