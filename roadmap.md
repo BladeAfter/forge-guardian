@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Traduzir tutorial e selecionar vídeo pelo idioma informado pelo Telegram, incluindo russo; manter envio único e separar idiomas ainda sem mídia pronta.
+- [x] Selecionar tutorial pelo idioma informado pelo Telegram; 42 versões traduzidas e português original, incluindo russo e inglês. Quadros dos passos e duração/áudio conferidos; trilha original sem narração, captura do jogo preservada em português. Idioma sem vídeo não consome envio nem recebe vídeo diferente.
+- [ ] Conferir recebimento privado no Telegram com jogador real; depende de /start real. Cobertura ainda não inclui todos os idiomas existentes.
 
 - [x] Preparar lançamento em 12/10/2026 às 18h UTC: espera em inglês, relógio do servidor, chat, convite único por Telegram ID e ranking de chegadas verificadas; jogo carregado somente após liberação e autenticação móvel. Servidor confirmou 423 antes do lançamento e 403 para desktop; acessos antigos também bloqueados. Convites não pagam recompensas durante espera.
 - [ ] Conferir fluxo real convite → /start → Mini App móvel → ranking com jogador no Telegram; requer interação real. Restrição móvel usa sinais de plataforma e aparelho, não atestado inviolável de hardware; falsificação deliberada desses sinais não pode ser excluída pela API do Telegram.

@@ -8,7 +8,7 @@ export function tutorialLanguage(value: unknown): string {
 export function tutorialForLanguage(value: unknown): { language: string; video: string } | null {
   const language = tutorialLanguage(value);
   const video = language === 'pt' ? TUTORIAL_VIDEO : LOCALIZED_TUTORIAL_VIDEOS[language];
-  return video ? { language, video } : null;
+  return video ? { language, video: video.startsWith('/') ? `https://mythicseas.lovable.app${video}` : video } : null;
 }
 export function languageFromUpdate(update: unknown): string {
   if (!update || typeof update !== 'object') return 'en';
