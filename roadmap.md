@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Restaurar acessos aos canais oficiais e conferir participação real antes do pagamento da recompensa.
+- [x] Restaurar três acessos oficiais mesmo sem dados de recompensas; links e imagens conferidos. Resgate exige confirmação atual do Telegram, incluindo is_member para restritos, e rotina privada rejeita confirmação ausente. Nove testes passaram; bot administrador nos três canais e função implantada.
+- [ ] Conferir entrada e resgate com jogador real no Telegram; depende de sessão e participação reais, sem pagamentos de teste.
 
 - [x] Tutorial publicado e fixado no @MythicSeasChat e @MythicSeasNews, ambos confirmados pelo Telegram. Envio único por jogador configurado no /start e implantado; quatro testes passaram e webhook autenticado conferido.
 - [ ] Confirmar recebimento privado do tutorial no primeiro /start com jogador real; depende de interação do jogador no Telegram.
