@@ -8,7 +8,7 @@ import { buildTelegramShareUrl } from '../referrals';
 import { launchSeconds, sampleLaunchClock, type LaunchClock } from '../launchClock';
 
 const Game = lazy(() => import('../App'));
-type Board = { launchAt: string; serverNow: string; released: boolean; referralLink?: string; invites?: number; position?: number; ranking?: Array<{ position: number; name: string; invites: number; isYou: boolean }> };
+type Board = { launchAt: string; serverNow: string; released: boolean; canEnter?: boolean; referralLink?: string; invites?: number; position?: number; ranking?: Array<{ position: number; name: string; invites: number; isYou: boolean }> };
 export function LaunchGate() {
   const [board, setBoard] = useState<Board | null>(null);
   const [clock, setClock] = useState<LaunchClock | null>(null);
@@ -31,7 +31,7 @@ export function LaunchGate() {
       const data = await result.json() as Board;
       setClock(sampleLaunchClock(data.launchAt, data.serverNow, performance.now()));
       setBoard(data);
-      setAccess(data.released === true ? 'released' : 'mobile');
+      setAccess(data.canEnter === true || data.released === true ? 'released' : 'mobile');
     } catch { setAccess('offline'); }
     finally { busy.current = false; }
   }, []);

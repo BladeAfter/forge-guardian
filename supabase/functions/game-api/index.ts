@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
 import { confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
-import { launchStatus, launchInviter, mobileTelegramClient } from '../_shared/launch.ts';
+import { launchStatus, launchAccess, launchInviter, mobileTelegramClient } from '../_shared/launch.ts';
 
 type TelegramUser = {
   id: number;
@@ -3418,8 +3418,8 @@ Deno.serve(async (req) => {
   }
 
   if (!mobileTelegramClient(body.platform, req.headers.get('user-agent') ?? '')) return json({ error: 'Open on Telegram mobile.', code: 'MOBILE_TELEGRAM_REQUIRED' }, 403);
-  const launch = launchStatus();
-  if (feature !== 'launch' && !launch.released) return json({ ...launch, error: 'The adventure launches soon.', code: 'GAME_NOT_LAUNCHED' }, 423);
+  const launch = launchAccess(user.id);
+  if (feature !== 'launch' && !launch.canEnter) return json({ ...launch, error: 'The adventure launches soon.', code: 'GAME_NOT_LAUNCHED' }, 423);
 
   try {
     const db = serviceClient();
@@ -3461,7 +3461,7 @@ Deno.serve(async (req) => {
       const inviter = launchInviter(new URLSearchParams(initData).get('start_param'));
       await rpc(db, 'register_launch_player', { p_telegram_id: user.id, p_name: user.first_name ?? 'Captain', p_inviter: inviter, p_verified: true });
       const board = await rpc(db, 'launch_referral_board', { p_telegram_id: user.id });
-      return json({ ...launchStatus(), ...board, referralLink: `https://t.me/MythicSeasbot?start=ref_${user.id}` });
+      return json({ ...board, ...launchAccess(user.id), referralLink: `https://t.me/MythicSeasbot?start=ref_${user.id}` });
     }
     if (!handler) return json({ error: 'Unknown feature' }, 404);
     // Preserve the existing referral relationship after launch without prelaunch rewards.
