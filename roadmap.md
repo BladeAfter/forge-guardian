@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Proteger margens da ilha e píer com varredura de movimento e recuperação da última posição segura; caminhada, salto/esquiva na borda e embarque conferidos em cena isolada, 17 testes passaram. Navegação e recompensas preservadas; falta confirmação no Telegram real.
+
 - [x] Boas-vindas ilustradas no /start de @MythicSeasbot com botão de iniciar; webhook ativado e resposta autenticada conferida, chamadas sem segredo rejeitadas. Permissão nativa de mensagens solicitada uma vez por sessão; recibos com valor, carteira, data UTC, hash e Tonviewer. Aceitação e abertura reais ainda precisam de conferência no Telegram.
 
 - [x] Reduzir trabalho gráfico no desembarque e caminhada: câmera interpolada, cena memoizada sem sombras dinâmicas, cordas reutilizadas e colisores agrupados; desembarque mais ágil. Caminhada de ida/volta e desembarque conferidos isoladamente, 10 testes passaram. Fluidez no aparelho real via Telegram ainda não validada.

@@ -3,9 +3,10 @@ import { useFrame } from '@react-three/fiber';
 import { CapsuleCollider, RigidBody, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 import { cameraRelativeMotion, HARBOR, ISLAND_3D, type HarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
+import { ISLAND_MAP, islandWalkable, safeIslandStep } from '../../illustratedIslandWorld';
 
-type Props = { harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
-export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }: Props) {
+type Props = { islandIndex: number; harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
+export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn, children }: Props) {
   const body = useRef<RapierRigidBody>(null), model = useRef<THREE.Group>(null);
   const motion = useRef<IslandMotion>('walk'), speed = useRef(0);
   const { world, rapier } = useRapier();
@@ -19,6 +20,7 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
   const cameraTarget = useMemo(() => new THREE.Vector3(), []);
   const cameraLook = useMemo(() => new THREE.Vector3(), []);
   const cameraDirection = useMemo(() => new THREE.Vector3(), []);
+  const lastSafe = useRef({ ...ISLAND_3D.shore, y: ISLAND_MAP.floor + .035 });
 
   useBeforePhysicsStep(() => {
     const b = body.current;
@@ -32,6 +34,11 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
       return;
     }
     if (i.boarding && s.phase !== 'boarding') { s.phase = 'boarding'; s.waypoint = 0; }
+    if (s.phase === 'exploring' && (!islandWalkable(islandIndex, p) || !Number.isFinite(p.y) || p.y < ISLAND_MAP.floor - .2)) {
+      b.setTranslation(lastSafe.current, true); b.setNextKinematicTranslation(lastSafe.current);
+      s.vy = 0; s.grounded = true; s.action = 0; speed.current = 0; motion.current = 'idle';
+      return;
+    }
     let dx = 0, dz = 0, targetSpeed = 0;
     if (s.phase === 'landing' || s.phase === 'boarding') {
       const route = s.phase === 'landing' ? [{ x: 4.1, z: HARBOR.gangway.z }, ISLAND_3D.gangway, ISLAND_3D.shore] : [ISLAND_3D.gangway, { x: 4.1, z: HARBOR.gangway.z }, ISLAND_3D.spawn];
@@ -48,12 +55,10 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
       const magnitude = Math.min(1, Math.hypot(i.x, i.y));
       targetSpeed = magnitude * (i.sprint ? 6.5 : magnitude < .7 ? 2.3 : 4.1);
     }
-    const swimming = p.y < .5 && Math.hypot(p.x / 1.07, p.z) > 41 && Math.abs(p.x) > 2;
-    if (swimming) targetSpeed = Math.min(targetSpeed, 2.3);
     // Official encounter responses can request an attack while the encounter HUD locks movement.
     if (i.attack && s.action <= 0) { s.action = .75; s.actionKind = 'attack'; }
     if (i.interact && s.action <= 0) { s.action = .8; s.actionKind = 'interact'; }
-    if (i.dodge && !i.blocked && s.action <= 0 && s.grounded) { s.action = .55; s.actionKind = 'dodge'; }
+    if (i.dodge && s.phase === 'exploring' && !i.blocked && s.action <= 0 && s.grounded) { s.action = .55; s.actionKind = 'dodge'; }
     i.attack = false; i.interact = false; i.dodge = false;
     if (s.action > 0) {
       s.action -= dt;
@@ -62,24 +67,28 @@ export function IslandPlayer({ harbor, input, onTelemetry, onReturn, children }:
     }
     speed.current += (targetSpeed - speed.current) * (1 - Math.exp(-16 * dt));
     if (targetSpeed === 0 && speed.current < .08) speed.current = 0;
-    if (i.jump && !s.jumpHeld && s.grounded && !i.blocked && !swimming) { s.vy = 6.5; s.grounded = false; }
+    if (i.jump && s.phase === 'exploring' && !s.jumpHeld && s.grounded && !i.blocked) { s.vy = 6.5; s.grounded = false; }
     s.jumpHeld = i.jump;
-    s.vy = swimming ? Math.max(-1, Math.min(1, (.18 - p.y) * 5)) : Math.max(-18, s.vy - 19 * dt);
+    s.vy = Math.max(-18, s.vy - 19 * dt);
     const collider = b.collider(0);
     if (!collider) return;
-    const bounds = Math.hypot(p.x, p.z) > 55;
-    if (bounds && s.phase === 'exploring') { dx = -p.x / Math.hypot(p.x, p.z); dz = -p.z / Math.hypot(p.x, p.z); speed.current = 2; }
-    controller.computeColliderMovement(collider, { x: dx * speed.current * dt, y: s.vy * dt, z: dz * speed.current * dt }, undefined, undefined, c => c.parent()?.handle !== b.handle);
+    const automatic = s.phase === 'landing' || s.phase === 'boarding';
+    const desired = safeIslandStep(islandIndex, p, { x: p.x + dx * speed.current * dt, z: p.z + dz * speed.current * dt }, automatic);
+    controller.computeColliderMovement(collider, { x: desired.x - p.x, y: s.vy * dt, z: desired.z - p.z }, undefined, undefined, c => c.parent()?.handle !== b.handle);
     const movement = controller.computedMovement();
     s.grounded = controller.computedGrounded();
     if (s.grounded && s.vy < 0) s.vy = 0;
-    b.setNextKinematicTranslation({ x: p.x + movement.x, y: p.y + movement.y, z: p.z + movement.z });
+    const safe = safeIslandStep(islandIndex, p, { x: p.x + movement.x, z: p.z + movement.z }, automatic);
+    movement.x = safe.x - p.x; movement.z = safe.z - p.z;
+    const next = { ...safe, y: p.y + movement.y };
+    b.setNextKinematicTranslation(next);
+    if (s.phase === 'exploring' && s.grounded && next.y >= ISLAND_MAP.floor - .1) lastSafe.current = next;
     if (Math.hypot(movement.x, movement.z) > .001) {
       const target = Math.atan2(dx, dz);
       s.heading += Math.atan2(Math.sin(target - s.heading), Math.cos(target - s.heading)) * (1 - Math.exp(-14 * dt));
     }
     const actualSpeed = Math.hypot(movement.x, movement.z) / dt;
-    motion.current = s.action > 0 ? s.actionKind : swimming ? 'swim' : !s.grounded ? s.vy > 0 ? 'jump' : 'fall' : actualSpeed < .1 ? 'idle' : movement.y > .018 ? 'climb' : movement.y < -.018 ? 'descend' : actualSpeed > 5 ? 'sprint' : actualSpeed > 2.6 ? 'run' : 'walk';
+    motion.current = s.action > 0 ? s.actionKind : !s.grounded ? s.vy > 0 ? 'jump' : 'fall' : actualSpeed < .1 ? 'idle' : movement.y > .018 ? 'climb' : movement.y < -.018 ? 'descend' : actualSpeed > 5 ? 'sprint' : actualSpeed > 2.6 ? 'run' : 'walk';
     speed.current = actualSpeed;
   });
 

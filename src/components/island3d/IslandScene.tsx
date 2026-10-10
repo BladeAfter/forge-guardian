@@ -36,7 +36,7 @@ export const IslandScene = memo(function IslandScene({ input, palette, captainSt
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
           return <group key={e.id} visible={e.kind !== 'activity'}><IslandProp model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} y={ISLAND_MAP.floor} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} /></group>;
         })}
-        <IslandPlayer harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <group scale={ISLAND_MAP.pirateScale}><IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} /></group>}</IslandPlayer>
+        <IslandPlayer islandIndex={islandIndex} harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <group scale={ISLAND_MAP.pirateScale}><IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} /></group>}</IslandPlayer>
         <IslandDust input={input} palette={palette} />
       </Physics>
     </Suspense>

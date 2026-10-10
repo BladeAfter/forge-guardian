@@ -1,5 +1,46 @@
 /** Footprints traced in normalized coordinates of the actual illustrated maps. */
+import { HARBOR, ISLAND_3D } from './island3dWorld';
+
 export const ISLAND_MAP = { width: 180, depth: 120, floor: .99, pirateScale: 2, cameraSpan: 36 };
+type WalkPoint = { x: number; z: number };
+const coast: WalkPoint[] = [
+  { x: -72, z: -58 }, { x: 72, z: -58 }, { x: 78, z: 15 },
+  { x: 69, z: 26 }, { x: 18, z: 28 }, { x: 0, z: 29.5 },
+  { x: -18, z: 28 }, { x: -69, z: 25 }, { x: -78, z: 10 },
+];
+const portCoast = [...coast.slice(0, 8), { x: -40, z: -8 }, { x: -50, z: -23 }, { x: -74, z: -36 }];
+export function islandWalkable(index: number, { x, z }: WalkPoint, boarding = false) {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return false;
+  const polygon = index === 1 ? portCoast : coast;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i], b = polygon[j];
+    if ((a.z > z) !== (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x) inside = !inside;
+  }
+  const pier = Math.abs(x) <= HARBOR.pier.halfWidth - .35 && z >= ISLAND_3D.shore.z && z <= HARBOR.pier.end - .35;
+  const bridge = boarding && x >= 1.3 && x <= HARBOR.ship.x && Math.abs(z - HARBOR.gangway.z) <= HARBOR.gangway.width / 2 - .35;
+  const deck = boarding && Math.abs(x - HARBOR.ship.x) <= 2 && Math.abs(z - HARBOR.ship.z) <= 3.9;
+  return inside || pier || bridge || deck;
+}
+/** Sweep airborne moves too; slide along edges rather than crossing water. */
+export function safeIslandStep(index: number, from: WalkPoint, to: WalkPoint, boarding = false): WalkPoint {
+  if (!islandWalkable(index, from, boarding)) return { ...ISLAND_3D.shore };
+  const sweep = (goal: WalkPoint) => {
+    if (!Number.isFinite(goal.x) || !Number.isFinite(goal.z)) return from;
+    const steps = Math.max(1, Math.ceil(Math.hypot(goal.x - from.x, goal.z - from.z) / .15));
+    let safe = from;
+    for (let step = 1; step <= steps; step++) {
+      const t = step / steps, next = { x: from.x + (goal.x - from.x) * t, z: from.z + (goal.z - from.z) * t };
+      if (!islandWalkable(index, next, boarding)) break;
+      safe = next;
+    }
+    return safe;
+  };
+  const direct = sweep(to);
+  if (direct.x === to.x && direct.z === to.z) return direct;
+  const slideX = sweep({ x: to.x, z: from.z }), slideZ = sweep({ x: from.x, z: to.z });
+  return [direct, slideX, slideZ].sort((a, b) => Math.hypot(a.x - to.x, a.z - to.z) - Math.hypot(b.x - to.x, b.z - to.z))[0];
+}
 type Footprint = { id: string; u: number; v: number; rx: number; rz: number };
 const port: Footprint[] = [
   { id: 'port-village', u: .22, v: .35, rx: .16, rz: .16 },
