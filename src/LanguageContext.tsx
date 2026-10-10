@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { forgeFetch } from './apiClient';
 import { translate, translateError, type LanguageCode, type Translator } from './i18n';
 import { LANGUAGE_CODES, LANGUAGE_LABELS, normalizeLanguage } from './locales/registry';
+import { localizeLiteral } from './literalLocalization';
 
 const STORAGE_KEY = 'mythreon-language';
 const LEGACY_STORAGE_KEY = 'forge-village-language';
@@ -150,6 +151,12 @@ export function useLanguage(): LanguageContextValue {
 /** Convenience hook: `const t = useT();` */
 export function useT(): Translator {
   return useLanguage().t;
+}
+
+/** Localizes legacy presentation copy without changing game identifiers or actions. */
+export function useLocalizedText(): (text: string) => string {
+  const { language } = useLanguage();
+  return useCallback((text: string) => localizeLiteral(language, text), [language]);
 }
 
 export { LANGUAGE_CODES, LANGUAGE_LABELS };
