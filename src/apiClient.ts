@@ -137,7 +137,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
         // Raw, unmodified Telegram initData. Never encoded/decoded before validation.
         'X-Telegram-Init-Data': initData,
       },
-      body: JSON.stringify({ ...body, platform: window.Telegram?.WebApp?.platform }),
+      body: JSON.stringify({ ...body, platform: typeof window === 'undefined' ? undefined : window.Telegram?.WebApp?.platform }),
     });
     let payload: unknown = null;
     try {
