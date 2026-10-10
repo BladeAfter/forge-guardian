@@ -130,6 +130,8 @@ export type RealmExploreLoot = {
 
 export type RealmExploreRun = {
   id: string;
+  treasure_map_found_at?: string | null;
+  treasure_map_used_node?: string | null;
   region_id: string;
   hp: number;
   depth: number;
@@ -262,6 +264,7 @@ export type RealmState = {
 
 
 const REALM_ERRORS: Record<string, string> = {
+  REALM_TREASURE_MAP_REQUIRED: 'Mapa de tesouro necessário.',
   REALM_LOCKED: 'A Grand Line ainda está em acesso antecipado.',
   REALM_BUILDING_BUSY: 'Esta construção já está em obras.',
   REALM_BUILDING_MAX: 'Nível máximo alcançado.',
