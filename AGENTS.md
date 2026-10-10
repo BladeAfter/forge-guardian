@@ -10,7 +10,7 @@
 - Isolate crew recruitment presentation in `RecruitCrewView`, passing prices, odds and payment callbacks from the existing shop so visual changes cannot change purchase rules.
 - Normalize legacy creature image URLs through `voyageArtReplacement` at the game API response boundary; only artwork fields may change, preserving server-owned gameplay and ownership.
 - Keep display branding separate from persistent identifiers, Telegram handles, mission hashtags and payment memos so rebranding cannot break sessions, rewards or transfers.
-- Keep profile artwork and styles in `gameAssets.ts` and semantic profile CSS tokens, using container-responsive character/journal layouts so the Telegram panel stays readable; preserve server-owned profile, pass and channel-reward callbacks when changing presentation.
+- Keep profile art in gameAssets and semantic profile CSS; container-responsive character/journal layouts keep Telegram readable. Preserve server-owned profile, pass and channel-reward callbacks.
 - Keep MarketPulseView read-only; label illustrative data, never infer global sales from personal history.
 - Scope community-pool theming to `seas-community` and semantic community tokens so all nested event views share presentation without changing game rules.
 - Keep Grand Line in a lightweight bitmap canvas with ship-relative camera and deterministic streaming shared with service-only collision. Use mirrored water-only art and cached feathered islands; cosmetic sizes never move official docks/collisions. Show only real players. NavalMiniMap is read-only, north-up and shares approved poses/art; zoom never steers. Clear joystick on release/cancel/focus loss; dock through Realm callbacks. Closing never waits for heartbeat or settles combat.
@@ -22,7 +22,7 @@
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
 - Keep PirateActionArena grounded with proportional enemies and gameAssets artwork; selected crew and portraits share grounded voyage identities, defaulting to the first equipped slot. Never use airborne art. Motion is cosmetic; official callbacks own combat. Unsupported powers stay locked.
-- Present mascot egg catalogs as mysterious chests through `gameAssets.ts` and `MascotChestCard`; keep egg IDs, purchase actions, odds and settlement unchanged so the nautical theme cannot alter the economy.
-- Isolate season-pass presentation in SeasonVoyageView with shared artwork and semantic season tokens; keep official reward titles in details and all prices, claims and delivered reward types server-owned so nautical images cannot promise nonexistent ship or treasure-map utility.
+- Present egg catalogs as mysterious chests via gameAssets and MascotChestCard; preserve egg IDs, purchases, odds and settlement so theming cannot alter the economy.
+- Keep season-pass presentation in SeasonVoyageView with shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types so art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
 - Translate legacy literals through LanguageContext and static locale catalogs; never mutate DOM text or translate persistent IDs.
