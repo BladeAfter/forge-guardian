@@ -83,6 +83,7 @@ import profileChannelPayments from './assets/profile-channel-payments.png';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
 import grandLineOcean from './assets/grand-line-ocean.jpg';
+import grandLineWater from './assets/grand-line-water.jpg';
 import grandLineShip from './assets/grand-line-ship.png';
 import mascotChestCommon from './assets/mascot-chest-common.png';
 import mascotChestRare from './assets/mascot-chest-rare.png';
@@ -139,7 +140,7 @@ export const realmArt = {
   tabs: { stronghold: pirateVillageIcon, map: pirateRealmIcon, forge: pirateHeroShopIcon, ruins: pirateBossIcon, bounties: pirateInviteIcon },
 };
 
-export const grandLineArt = { ocean: grandLineOcean, ship: grandLineShip, berry: pirateBerryCoin };
+export const grandLineArt = { ocean: grandLineOcean, water: grandLineWater, ship: grandLineShip, berry: pirateBerryCoin };
 export const navalArt = { fleet: navalFleet };
 export const islandArt = [islandJungle, islandPort, islandVolcano, islandIce, islandPirates];
 
