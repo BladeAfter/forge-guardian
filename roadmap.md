@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Remover emendas quadradas do oceano e reduzir visualmente as ilhas, preservando mundo contínuo, atracação e presença de jogadores reais.
+
 - [ ] Navegação Telegram: proteção contra gestos nativos, envio urgente sem adiamento por novos toques, retomada de conexão e retenção da posição aprovada implementados; 15 testes e arraste/soltura com respostas simuladas passaram. Bloqueios: atualizar a versão publicada e verificar com sessão Telegram real; causa no aparelho ainda não confirmada.
 
 - [x] Proteger margens da ilha e píer com varredura de movimento e recuperação da última posição segura; caminhada, salto/esquiva na borda e embarque conferidos em cena isolada, 17 testes passaram. Navegação e recompensas preservadas; falta confirmação no Telegram real.
