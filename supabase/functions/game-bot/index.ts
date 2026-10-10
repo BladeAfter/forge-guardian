@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { welcomeReply } from './format.ts';
 import { deliverFirstTutorial } from './tutorial.ts';
 import { launchInviter } from '../_shared/launch.ts';
+import { languageFromUpdate, tutorialForLanguage } from './tutorialLanguages.ts';
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function webhookSecret(token: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mythic-seas-game-webhook:${token}`));
@@ -27,6 +28,7 @@ Deno.serve(async req => {
     try { update = JSON.parse(body); } catch { return json({ error: 'invalid_update' }, 400); }
     const reply = welcomeReply(update);
     if (!reply) return json({ ok: true });
+    const language = languageFromUpdate(update);
     const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!url || !key) return json({ error: 'configuration_missing' }, 503);
     const db = createClient(url, key);
@@ -49,7 +51,9 @@ Deno.serve(async req => {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: AbortSignal.timeout(15000),
       });
       return await response.json();
-    });
+    }, language);
+    if (!tutorialForLanguage(language)) return json({ method: 'sendMessage', chat_id: reply.chat_id,
+      text: '🏴‍☠️ Mythic Seas\n\nYour language’s tutorial is not available yet. No other-language video has been sent.', reply_markup: reply.reply_markup });
     return json(handled ? { ok: true } : reply);
   } catch { return json({ error: 'tutorial_unavailable' }, 503); }
 });

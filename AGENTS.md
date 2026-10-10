@@ -1,7 +1,7 @@
 # Architecture Rules
 
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
-- Validate bot secrets; tutorials once, hold uncertain sends. Consent once; respect refusal. Channel rewards require fresh Telegram membership and service-only atomic claims.
+- Validate bot secrets; tutorials once by sender language, missing media never consumes claims, uncertain sends held. Consent once; respect refusal. Channel rewards need fresh membership and private atomic claims.
 
 - Keep pirate artwork in gameAssets and semantic CSS; theming never changes gameplay.
 - Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.
