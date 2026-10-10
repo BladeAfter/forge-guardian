@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Enriquecer a pequena bússola da Grand Line com minimapa náutico, posição/direção do navio, ilhas próximas e jogadores retornados pelo servidor.
+- [x] Substituir bússola por minimapa náutico graduado com ilhas, portos, direção do navio e jogadores do servidor. Ampliação/redução e joystick conferidos isoladamente; 13 testes passaram. Confirmação com jogadores reais no Telegram indisponível.
 
 - [x] Remover emendas quadradas com água própria e bordas espelhadas; reduzir ilhas e suavizar suas margens sem mudar colisões/atracação. Treze testes passaram; cena isolada e seleção de dois jogadores simulados conferidas, assim como envio/parada do joystick. Mundo aberto e jogadores reais retornados pelo servidor preservados; confirmação multijogador no Telegram requer sessões reais.
 
