@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Coins, Gem, Loader2, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -47,10 +48,11 @@ const stamp = (iso: string) =>
 
 /** Only assets actually contributed are rendered — never "0 BERRIES" or "0 MYTH". */
 function AssetLine({ fc, myth, dense = false }: { fc: number; myth: number; dense?: boolean }) {
+  const localizeText = useLocalizedText();
+
   const parts: React.ReactNode[] = [];
   if (fc > 0) parts.push(<span key="fc" className="inline-flex items-center gap-0.5 text-amber-200"><Coins className="h-3 w-3" />{short(fc)} BERRIES</span>);
-  if (myth > 0) parts.push(<span key="myth" className="inline-flex items-center gap-0.5 text-violet-200"><Gem className="h-3 w-3" />{short(myth)} MYTH</span>);
-  if (!parts.length) return <span className={`${dense ? 'text-[9px]' : 'text-[10px]'} text-slate-600`}>sem doações</span>;
+  if (!parts.length) return <span className={`${dense ? 'text-[9px]' : 'text-[10px]'} text-slate-600`}>{localizeText("sem doações")}</span>;
   return (
     <span className={`inline-flex flex-wrap items-center gap-x-1.5 ${dense ? 'text-[9px]' : 'text-[10px]'} font-bold`}>
       {parts.map((p, i) => (
@@ -66,8 +68,7 @@ function MyCard({ label, totals, highlight }: { label: string; totals: Totals; h
       <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
       <div className="mt-0.5 space-y-0.5 leading-tight">
         {totals.fc > 0 ? <div className="text-[11px] font-black text-amber-200">{short(totals.fc)} BERRIES</div> : null}
-        {totals.myth > 0 ? <div className="text-[11px] font-black text-violet-200">{short(totals.myth)} MYTH</div> : null}
-        {totals.fc <= 0 && totals.myth <= 0 ? <div className="text-[11px] font-black text-slate-600">—</div> : null}
+        {totals.fc <= 0 ? <div className="text-[11px] font-black text-slate-600">—</div> : null}
         {totals.points > 0 ? <div className="text-[8px] font-bold text-slate-500">{full(totals.points)} pts</div> : null}
       </div>
     </div>
@@ -75,6 +76,8 @@ function MyCard({ label, totals, highlight }: { label: string; totals: Totals; h
 }
 
 export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { telegramInitData: string; refreshKey?: number }) {
+  const localizeText = useLocalizedText();
+
   const [period, setPeriod] = useState<Period>('today');
   const [sort, setSort] = useState<SortKey>('points');
   const [data, setData] = useState<Summary | null>(null);
@@ -115,7 +118,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
     setDetailBusy(true);
     try {
       const res = await clanRequest<{ entries: Entry[] }>(telegramInitData, { action: 'contribution-history', userId, limit: 50 });
-      setEntries(res.entries ?? []);
+      setEntries((res.entries ?? []).filter(entry => entry.asset.toUpperCase() !== 'MYTH'));
     } catch (error) {
       toast.error(clanErrorMessage(error));
     } finally {
@@ -149,8 +152,8 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
 
       {/* SORT — assets are never summed together */}
       <div className="flex items-center gap-1.5">
-        <span className="text-[8px] uppercase tracking-widest text-slate-500">Ordenar</span>
-        {([['points', 'PTS'], ['fc', 'BERRIES'], ['myth', 'MYTH']] as [SortKey, string][]).map(([k, label]) => (
+        <span className="text-[8px] uppercase tracking-widest text-slate-500">{localizeText("Ordenar")}</span>
+        {([['points', 'PTS'], ['fc', 'BERRIES']] as [SortKey, string][]).map(([k, label]) => (
           <button key={k} onClick={() => setSort(k)}
             className={`rounded-full border px-2 py-0.5 text-[9px] font-black transition ${
               sort === k ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/45 text-slate-400'}`}>
@@ -173,13 +176,13 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
               </span>
               <span className="shrink-0 text-right">
                 <span className="block text-[10px] font-black text-amber-300">{full(m.points)} pts</span>
-                {m.donationCount > 0 ? <span className="block text-[8px] text-slate-500">{m.donationCount} doações</span> : null}
+                {m.donationCount > 0 ? <span className="block text-[8px] text-slate-500">{m.donationCount} {localizeText("doações")}</span> : null}
               </span>
             </button>
           ))}
         </div>
       ) : (
-        <p className="py-2 text-center text-[10px] text-slate-500">Nenhuma contribuição registrada neste período.</p>
+        <p className="py-2 text-center text-[10px] text-slate-500">{localizeText("Nenhuma contribuição registrada neste período.")}</p>
       )}
 
       {/* DETAIL MODAL — full values, three periods, real ledger history */}
@@ -188,8 +191,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
           <div className="w-full max-w-sm rounded-2xl border border-amber-400/30 bg-gradient-to-b from-[#111d33] to-black p-3 shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                <Shield className="h-3.5 w-3.5" />Detalhes da contribuição
-              </span>
+                <Shield className="h-3.5 w-3.5" />{localizeText("Detalhes da contribuição ")}</span>
               <button onClick={() => { setDetail(null); setEntries(null); }} className="rounded-lg bg-white/10 p-1 text-slate-300"><X className="h-3.5 w-3.5" /></button>
             </div>
             <p className="mb-2 truncate text-sm font-black text-slate-100">@{detail.username}</p>
@@ -199,9 +201,8 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                 <div key={label} className="rounded-xl bg-black/45 px-2 py-1.5">
                   <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] font-bold">
-                    {t.fc > 0 ? <span className="text-amber-200">BERRIES: {full(t.fc)}</span> : null}
-                    {t.myth > 0 ? <span className="text-violet-200">MYTH: {full(t.myth)}</span> : null}
-                    {t.fc <= 0 && t.myth <= 0 ? <span className="text-slate-600">sem doações</span> : null}
+                    {t.fc > 0 ? <span className="text-amber-200">{localizeText("BERRIES: ")}{full(t.fc)}</span> : null}
+                    {t.fc <= 0 ? <span className="text-slate-600">{localizeText("sem doações")}</span> : null}
                     {t.points > 0 ? <span className="text-slate-400">{full(t.points)} pts</span> : null}
                   </div>
                 </div>
@@ -211,7 +212,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
             {entries === null ? (
               <button disabled={detailBusy} onClick={() => void loadEntries(detail.userId)}
                 className="mt-2 w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-700 py-2 text-[10px] font-black uppercase tracking-widest text-black disabled:opacity-40">
-                {detailBusy ? 'Carregando…' : 'Ver histórico'}
+                {detailBusy ? localizeText("Carregando…") : localizeText("Ver histórico")}
               </button>
             ) : (
               <div className="mt-2 max-h-52 space-y-1 overflow-y-auto">
@@ -222,7 +223,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                       {e.amount > 0 ? '+' : ''}{full(e.amount)} {e.asset === 'FC' ? 'BERRIES' : e.asset}
                     </span>
                   </div>
-                )) : <p className="py-2 text-center text-[10px] text-slate-500">Sem doações registradas.</p>}
+                )) : <p className="py-2 text-center text-[10px] text-slate-500">{localizeText("Sem doações registradas.")}</p>}
               </div>
             )}
           </div>

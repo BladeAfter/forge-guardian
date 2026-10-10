@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
@@ -23,6 +24,8 @@ import { formatMiningAmount, miningRateLines, miningSymbol } from '../miningCurr
  * sold twice and a double tap can never create two owners.
  */
 export function NftHeroShopSection({ telegramInitData }: { telegramInitData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [target, setTarget] = useState<NftHeroShopItem | null>(null);
@@ -93,9 +96,9 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
     <div className="mt-1 pb-4">
       <section className="forge-nft-card relative overflow-hidden rounded-[1.8rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/40 to-black/85 p-4 text-center">
         <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
-        <p className="relative text-[10px] font-black uppercase tracking-[.28em] text-amber-200">💎 NFT EXCLUSIVE HEROES</p>
-        <p className="relative mt-1 text-2xl font-black text-amber-100">{total} Total NFTs</p>
-        <p className="relative text-[9px] uppercase tracking-[.22em] text-slate-400">Limited Supply • 1/1 each</p>
+        <p className="relative text-[10px] font-black uppercase tracking-[.28em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE HEROES")}</p>
+        <p className="relative mt-1 text-2xl font-black text-amber-100">{total} {localizeText("Total NFTs")}</p>
+        <p className="relative text-[9px] uppercase tracking-[.22em] text-slate-400">{localizeText("Limited Supply • 1/1 each")}</p>
         <div className="relative mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-amber-200/20 bg-black/45 px-2 py-2">
             <p className="text-[7px] uppercase tracking-[.16em] text-slate-400">{t('nft.available')}</p>
@@ -118,7 +121,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
             >
               {!sold ? <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden /> : null}
               <div className="relative flex items-start justify-between gap-2">
-                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 NFT EXCLUSIVE</p>
+                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
                 <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{total}</p>
               </div>
               <div className="relative mt-2 flex items-center gap-3">
@@ -127,7 +130,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
                 ) : null}
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-base font-black text-white">{item.name.toUpperCase()}</h3>
-                  <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">Supply 1/1 • Tier {formatTon(item.tierTon)} TON</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">{localizeText("Supply 1/1 • Tier")}{formatTon(item.tierTon)} TON</p>
                   <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[8px] font-black tracking-[.16em] ${sold ? 'border-white/15 bg-white/5 text-slate-400' : 'border-emerald-300/50 bg-emerald-500/15 text-emerald-200'}`}>
                     {sold ? (item.ownedByMe ? t('nft.ownedByYou') : t('nft.soldOut')) : t('nft.availableTag')}
                   </span>
@@ -175,13 +178,12 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
               ))}
               <p className="flex justify-between"><span>{t('nft.internalBalance')}</span><span className="font-black text-amber-100">{formatTon(data?.balanceTon ?? 0)} TON</span></p>
               <p className="pt-1 text-[9px] text-slate-500">
-                {Number(data?.balanceTon ?? 0) >= target.priceTon ? 'Será debitado do seu saldo TON interno.' : 'Pagamento via carteira TON conectada.'}
+                {Number(data?.balanceTon ?? 0) >= target.priceTon ? localizeText("Será debitado do seu saldo TON interno.") : localizeText("Pagamento via carteira TON conectada.")}
               </p>
             </div>
             <div className="mt-3 flex gap-2">
               <button type="button" disabled={purchase.isPending} onClick={() => setTarget(null)} className="w-1/3 rounded-xl bg-white/5 px-3 py-2.5 text-[11px] font-black uppercase text-slate-300">
-                Cancel
-              </button>
+                {localizeText("Cancel")}</button>
               <button
                 type="button"
                 disabled={purchase.isPending}
@@ -204,6 +206,8 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
  * stays in the HEROES mining bar — here we only show what each NFT produces.
  */
 export function NftHeroCollectionSection({ telegramInitData }: { telegramInitData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const { data, isLoading, error } = useQuery({
     queryKey: ['nft-heroes-mine'],
@@ -220,9 +224,9 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
   if (!items.length) {
     return (
       <div className="py-16 text-center">
-        <p className="text-[11px] font-black uppercase tracking-[.24em] text-amber-200">💎 NFT EXCLUSIVE</p>
-        <p className="mt-2 text-[11px] text-slate-400">Você ainda não possui heróis NFT EXCLUSIVE.</p>
-        <p className="mt-1 text-[10px] text-slate-500">Adquira o seu na aba 🛒 BUY NFT — supply 1/1 e rendimento diário em TON.</p>
+        <p className="text-[11px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
+        <p className="mt-2 text-[11px] text-slate-400">{localizeText(" Você ainda não possui heróis NFT EXCLUSIVE.")}</p>
+        <p className="mt-1 text-[10px] text-slate-500">{localizeText("Adquira o seu na aba 🛒 BUY NFT — supply 1/1 e rendimento diário em TON. ")}</p>
       </div>
     );
   }
@@ -230,23 +234,23 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
   return (
     <div className="mt-1 space-y-3 pb-4">
       <section className="rounded-[1.6rem] border border-amber-200/40 bg-gradient-to-b from-amber-950/40 to-black/80 p-3 text-center">
-        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">💎 MY NFT HEROES</p>
+        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 MY NFT HEROES ")}</p>
         <p className="mt-1 text-xl font-black text-amber-100">{items.length} / {data?.totalSupply ?? 10}</p>
-        {totalDaily > 0 ? <p className="text-[9px] uppercase tracking-[.18em] text-emerald-300">{formatTon(totalDaily)} TON / dia via mineração</p> : null}
+        {totalDaily > 0 ? <p className="text-[9px] uppercase tracking-[.18em] text-emerald-300">{formatTon(totalDaily)} {localizeText("TON / dia via mineração")}</p> : null}
       </section>
 
       {items.map((item) => (
         <section key={item.nftId} className="relative overflow-hidden rounded-[1.6rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-3">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-200">💎 NFT EXCLUSIVE</p>
+            <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
             <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}</p>
           </div>
           <div className="mt-2 flex items-center gap-3">
             {item.image ? <img src={item.image} alt={item.name} className="h-20 w-20 shrink-0 rounded-xl object-cover drop-shadow-[0_0_18px_rgba(251,191,36,.45)]" /> : null}
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-base font-black text-white">{item.name.toUpperCase()}</h3>
-              <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">Lv {item.level} • {item.stars}★</p>
-              <p className="text-[10px] text-slate-400">ATK {item.atk} • HP {item.hp}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[.14em] text-amber-300/90">{localizeText("Lv")}{item.level} • {item.stars}★</p>
+              <p className="text-[10px] text-slate-400">ATK {item.atk} {localizeText("• HP")}{item.hp}</p>
             </div>
           </div>
           {/* Effective yield rule: hide the mining block (and its footnote) for 0-yield NFTs.
@@ -265,7 +269,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
               </div>
             ) : null}
           </div>
-          {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? <p className="mt-2 text-center text-[9px] text-slate-500">Rendimento acumulado e coleta na barra de mineração da aba HEROES.</p> : null}
+          {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? <p className="mt-2 text-center text-[9px] text-slate-500">{localizeText("Rendimento acumulado e coleta na barra de mineração da aba HEROES. ")}</p> : null}
         </section>
       ))}
     </div>

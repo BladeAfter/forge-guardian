@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import seasLogo from '../assets/mythic-seas-logo.png';
 import { backgrounds } from '../gameAssets';
 
@@ -6,6 +7,8 @@ import { backgrounds } from '../gameAssets';
  * progress bar driven by the initialization stages (Telegram -> auth -> data).
  */
 export function MythreonLoadingScreen({ progress, note, fading }: { progress: number; note?: string | null; fading?: boolean }) {
+  const localizeText = useLocalizedText();
+
   const value = Math.max(0, Math.min(100, Math.round(progress)));
   return (
     <div
@@ -22,7 +25,7 @@ export function MythreonLoadingScreen({ progress, note, fading }: { progress: nu
         fetchPriority="high"
       />
       <div className="seas-title-wrap" style={{ top: `calc(env(safe-area-inset-top, 0px) + 4dvh)` }}>
-        <img src={seasLogo} alt="Mythic Seas — The Grand Adventure" width={1280} height={896} className="seas-logo" />
+        <img src={seasLogo} alt={localizeText("Mythic Seas — The Grand Adventure")} width={1280} height={896} className="seas-logo" />
       </div>
       <div
         className="absolute inset-x-0 flex flex-col items-center gap-2 px-8"

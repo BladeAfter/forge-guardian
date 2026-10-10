@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Coins, Gem, Loader2, Lock, LockOpen, Repeat, Sparkles, TrendingUp, X } from 'lucide-react';
@@ -41,6 +42,8 @@ function unlockLabel(unlockAt: string, t: Translator): string {
  * datas de liberação, rendimento acumulado, auto-staking das Minas e compound.
  */
 export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [planId, setPlanId] = useState<string | null>(null);
@@ -355,7 +358,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                       ? { border: '1px solid rgba(56,189,248,.6)', color: '#7dd3fc', background: 'rgba(56,189,248,.14)' }
                       : { border: '1px solid rgba(212,175,55,.22)', color: 'rgba(226,197,122,.8)' }}
                   >
-                    {percent === 0 ? 'OFF' : `${percent}%`}
+                    {percent === 0 ? localizeText("OFF") : `${percent}%`}
                   </button>
                 );
               })}
@@ -441,7 +444,7 @@ export function TonStakingOverlay({ telegramInitData, onClose }: { telegramInitD
                       ? { border: '1px solid rgba(52,211,153,.5)', color: '#6ee7b7' }
                       : { border: '1px solid rgba(212,175,55,.25)', color: 'rgba(226,197,122,.85)' }}
                   >
-                    <Repeat className="h-3 w-3" /> {position.autoCompound ? 'ON' : 'OFF'}
+                    <Repeat className="h-3 w-3" /> {position.autoCompound ? localizeText("ON") : localizeText("OFF")}
                   </button>
                   <button
                     type="button"

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, PlayCircle } from 'lucide-react';
@@ -36,6 +37,8 @@ const rewardText = (reward: ExpeditionReward, t: (key: string) => string) => {
  * The success roll, timers and rewards are all resolved server-side on claim.
  */
 export default function ExpeditionsSection({ initData }: { initData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [team, setTeam] = useState<string[]>([]);
@@ -151,7 +154,7 @@ export default function ExpeditionsSection({ initData }: { initData: string }) {
                 {pet.image ? <img src={pet.image} alt={pet.name} loading="lazy" className="mx-auto h-12 w-12 rounded-lg object-cover" /> : null}
                 <p className="mt-1 truncate text-[10px] font-black text-slate-100">{pet.name}</p>
                 <p className="text-[9px] text-slate-400">{t('expeditions.levelShort')} {pet.level} · {pet.power}</p>
-                {pet.isSubNft ? <p className="text-[8px] font-black uppercase text-violet-300">{pet.stage === 'ADULT' ? 'SUB-NFT' : t('expeditions.immature')}</p> : null}
+                {pet.isSubNft ? <p className="text-[8px] font-black uppercase text-violet-300">{pet.stage === 'ADULT' ? localizeText("SUB-NFT") : t('expeditions.immature')}</p> : null}
                 {pet.busy ? <p className="text-[8px] font-black uppercase text-rose-300">{t('expeditions.onExpedition')}</p> : null}
               </button>
             );

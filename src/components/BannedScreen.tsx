@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { Ban, ShieldX } from 'lucide-react';
 import bannedArt from '../assets/account-banned.jpg';
 
@@ -66,6 +67,8 @@ export default function BannedScreen({
   reason?: string | null;
   bannedAt?: string | null;
 }) {
+  const localizeText = useLocalizedText();
+
   const copy = COPY[language] ?? COPY.en;
   const date = bannedAt ? new Date(bannedAt) : null;
 
@@ -106,9 +109,9 @@ export default function BannedScreen({
 
           <div className="mt-4 rounded-2xl border border-white/10 bg-black/50 p-3">
             <p className="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">{copy.code}</p>
-            <p className="mt-1 font-mono text-sm font-black tracking-[.12em] text-amber-200">ACCOUNT_BANNED</p>
+            <p className="mt-1 font-mono text-sm font-black tracking-[.12em] text-amber-200">{localizeText("ACCOUNT_BANNED")}</p>
             {date ? (
-              <p className="mt-1 font-mono text-[11px] text-slate-400">{date.toISOString().slice(0, 16).replace('T', ' ')} UTC</p>
+              <p className="mt-1 font-mono text-[11px] text-slate-400">{date.toISOString().slice(0, 16).replace('T', ' ')} {localizeText("UTC")}</p>
             ) : null}
           </div>
 

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import{useEffect,useMemo,useState}from'react';
 import{X}from'lucide-react';
 import treasure from'../assets/spending-event-treasure.webp';
@@ -13,6 +14,8 @@ import{useT}from'../LanguageContext';
  * (config + once per day/event per user); this component only renders the payload.
  */
 export function SpendingEventPopup({data,onClose,onView}:{data:SpendingEventPopupData;onClose:()=>void;onView:()=>void}){
+  const localizeText = useLocalizedText();
+
   const t=useT();
   const[visible,setVisible]=useState(false);
   useEffect(()=>{const id=window.setTimeout(()=>setVisible(true),40);return()=>window.clearTimeout(id)},[]);
@@ -34,7 +37,7 @@ export function SpendingEventPopup({data,onClose,onView}:{data:SpendingEventPopu
 
         <img
           src={treasure}
-          alt="Spending Event"
+          alt={localizeText("Spending Event")}
           loading="lazy"
           width={816}
           height={816}
@@ -56,7 +59,7 @@ export function SpendingEventPopup({data,onClose,onView}:{data:SpendingEventPopu
         <div className="relative mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-white/10 bg-black/50 px-2 py-2">
             <p className="text-[7px] font-black uppercase tracking-[.2em] text-slate-400">{t('spending.yourScore')}</p>
-            <p className="mt-0.5 text-base font-black text-amber-200">{abbreviatePoints(points)}<span className="ml-1 text-[8px] text-amber-200/60">PTS</span></p>
+            <p className="mt-0.5 text-base font-black text-amber-200">{abbreviatePoints(points)}<span className="ml-1 text-[8px] text-amber-200/60">{localizeText("PTS")}</span></p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-black/50 px-2 py-2">
             <p className="text-[7px] font-black uppercase tracking-[.2em] text-slate-400">{t('spending.yourRankLabel')}</p>

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo } from 'react';
 import type { RealmBounty } from '../realm';
 import { useT } from '../LanguageContext';
@@ -40,6 +41,8 @@ function resetIn(now: number) {
 }
 
 function RewardChips({ b }: { b: RealmBounty }) {
+  const localizeText = useLocalizedText();
+
   const fc = b.reward.fc ?? 0;
   const frags = b.reward.fragments ?? 0;
   return (
@@ -53,8 +56,7 @@ function RewardChips({ b }: { b: RealmBounty }) {
       {frags > 0 && (
         <span className="bounty-chip bounty-chip--blue">
           <img src={FRAG_ICON} alt="" loading="lazy" className="h-4 w-4 object-contain" />
-          <b>{frags}</b> frag.
-        </span>
+          <b>{frags}</b> {localizeText("frag. ")}</span>
       )}
     </div>
   );

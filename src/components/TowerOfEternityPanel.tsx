@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -33,6 +34,8 @@ const normalizeRarity = (value?: string): HeroRarity => {
 };
 
 export function TowerOfEternityPanel({ balance, collection, collectionLoading, telegramInitData }: Props) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const q = useQueryClient();
   const initData = telegramInitData ?? '';
@@ -190,7 +193,7 @@ export function TowerOfEternityPanel({ balance, collection, collectionLoading, t
             onClick={() => setPayWith('myth')}
             className={`relative mt-2 min-h-10 w-full rounded-2xl border text-[10px] font-black uppercase tracking-wide ${payWith === 'myth' ? 'border-fuchsia-300/70 bg-fuchsia-400/20 text-fuchsia-100' : 'border-white/10 bg-black/50 text-slate-400'}`}
           >
-            🔥 {formatMyth(entryMyth)} MYTH {mythDiscountLabel(myth) ? `(${mythDiscountLabel(myth)})` : ''} · saldo {formatMyth(mythBalance)}
+            🔥 {formatMyth(entryMyth)} MYTH {mythDiscountLabel(myth) ? `(${mythDiscountLabel(myth)})` : ''} {localizeText(" · saldo")}{formatMyth(mythBalance)}
           </button>
         )}
         {payWith === 'ton' && tonBalance < entryTon ? (

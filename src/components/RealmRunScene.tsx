@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   REALM_NODE_DESC_KEY,
@@ -124,6 +125,8 @@ type Props = {
 export default function RealmRunScene({
   region, run, nodes, materials, busy, onEnter, onChoose, onExtract, onAuto, onAbandon, flash,
 }: Props) {
+  const localizeText = useLocalizedText();
+
   const depth = run.depth ?? 0;
   const finalDepth = run.final_depth ?? 5;
   const pending = run.pending ?? null;
@@ -333,7 +336,7 @@ export default function RealmRunScene({
         >
           <span className="realm-party-mark" aria-hidden />
           <span className="realm-party-shadow" aria-hidden />
-          <img src={PARTY_ART} alt="Sua equipe" loading="lazy" className="realm-party-art" />
+          <img src={PARTY_ART} alt={localizeText("Sua equipe")} loading="lazy" className="realm-party-art" />
         </div>
 
         {/* FOG OF WAR — o resto da região continua desconhecido */}

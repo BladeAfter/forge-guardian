@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronsRight, Flame, Swords, Zap } from 'lucide-react';
 import { useT } from '../LanguageContext';
@@ -91,6 +92,8 @@ type Props = {
  * the backend already resolved (no combat math, no rewards invented here).
  */
 export default function RealmBattleScene({ log, regionId, regionName, regionImage, duel = false, heroes = [], heroId = null, onPickHero, onClose }: Props) {
+  const localizeText = useLocalizedText();
+
   const rounds = useMemo(() => log.rounds ?? [], [log.rounds]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -249,7 +252,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           <button
             type="button" onClick={() => setAuto((v) => !v)}
             className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] transition active:scale-95 ${auto ? 'border-emerald-300/60 bg-emerald-300/15 text-emerald-200' : 'border-white/15 bg-black/50 text-slate-400'}`}
-          >AUTO</button>
+          >{localizeText("AUTO")}</button>
           <button
             type="button" onClick={() => setSpeed((v) => (v === 1 ? 2 : 1))}
             className="rounded-full border border-sky-300/40 bg-black/50 px-2.5 py-1 text-[8px] font-black uppercase tracking-[.14em] text-sky-200 transition active:scale-95"
@@ -263,7 +266,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
           <button
             type="button" onClick={finish}
             className="flex items-center gap-1 rounded-full border border-amber-300/45 bg-black/50 px-2 py-1 text-[8px] font-black uppercase tracking-[.14em] text-amber-200 transition active:scale-95"
-          ><ChevronsRight className="h-3 w-3" /> SKIP</button>
+          ><ChevronsRight className="h-3 w-3" /> {localizeText("SKIP")}</button>
         </div>
       </header>
 
@@ -319,7 +322,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
                   {index === 0 ? <span className="rb-shadow rb-shadow--hero" aria-hidden /> : null}
                   <p className={`relative truncate text-center font-black uppercase tracking-[.08em] text-slate-100 ${duel ? 'text-[10px]' : 'text-[8px]'}`}>{hero.name}</p>
                   <Bar value={hp} max={partyMax[index] ?? 1} tone="emerald" />
-                  {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">KO</p> : null}
+                  {dead ? <p className="text-center text-[8px] font-black uppercase tracking-[.2em] text-rose-400">{localizeText("KO")}</p> : null}
                 </div>
               );
             })}
@@ -342,8 +345,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               {Number(log.fragments) > 0 && (
                 <span className="bf-reward">
                   <img src={realmArt.supplies} alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
-                  <b>+{fmt(Number(log.fragments))}</b> frag.
-                </span>
+                  <b>+{fmt(Number(log.fragments))}</b> {localizeText("frag. ")}</span>
               )}
               {Number(log.damage) > 0 && <span className="bf-reward bf-reward--dmg">❤ <b>−{log.damage}</b> HP</span>}
             </div>
@@ -379,7 +381,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
       {/* ── HERO PICKER ──────────────────────────────────────────── */}
       {pickerOpen ? (
         <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/80 backdrop-blur-sm">
-          <button type="button" className="flex-1" aria-label="close" onClick={() => setPickerOpen(false)} />
+          <button type="button" className="flex-1" aria-label={localizeText("close")} onClick={() => setPickerOpen(false)} />
           <div className="rb-picker">
             <p className="text-center text-[10px] font-black uppercase tracking-[.22em] text-amber-200">{t('realm.battle.pickHero')}</p>
             <div className="mt-2 flex items-center gap-1.5">
@@ -420,7 +422,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
                     <img src={h.imageUrl} alt={h.name} loading="lazy" className="aspect-square w-full object-cover object-top" />
                     <div className="p-1.5">
                       <p className="truncate text-[9px] font-bold text-slate-100">{h.name}</p>
-                      <p className="text-[8px] font-bold" style={{ color: RARITY_COLORS[h.rarity] }}>Lv.{h.level} · {fmt(h.power)}</p>
+                      <p className="text-[8px] font-bold" style={{ color: RARITY_COLORS[h.rarity] }}>{localizeText("Lv.")}{h.level} · {fmt(h.power)}</p>
                     </div>
                   </button>
                 );

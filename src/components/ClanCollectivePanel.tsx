@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useState } from 'react';
 import { Castle, ChevronDown, Coins, Flame, Gem, Hammer, Loader2, Shield, ShoppingBag, Sparkles, Swords, Trophy, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -129,6 +130,8 @@ export function ClanCollectivePanel({
   pendingRequests?: number;
   onOpenWar?: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const [state, setState] = useState<HubState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -197,7 +200,7 @@ export function ClanCollectivePanel({
 
 
   if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>;
-  if (!state?.inClan) return <p className="py-8 text-center text-sm text-slate-400">Entre em um clã para acessar a progressão coletiva.</p>;
+  if (!state?.inClan) return <p className="py-8 text-center text-sm text-slate-400">{localizeText("Entre em um clã para acessar a progressão coletiva.")}</p>;
 
   const weekly = state.weekly;
   const raid = state.raid;
@@ -219,25 +222,24 @@ export function ClanCollectivePanel({
       onClick={() => void run({ action: 'raid-attack', clientKey: `${raid?.id ?? 'raid'}-${Date.now()}` }, 'Ataque desferido!')}
       className="w-full rounded-xl bg-gradient-to-r from-rose-600 to-red-700 py-2 text-[11px] font-black uppercase tracking-widest text-white disabled:opacity-40"
     >
-      <Swords className="mr-1 inline h-3.5 w-3.5" />{raid?.status === 'ACTIVE' ? 'Atacar Raid' : 'Raid encerrada'}
+      <Swords className="mr-1 inline h-3.5 w-3.5" />{raid?.status === 'ACTIVE' ? localizeText("Atacar Raid") : localizeText("Raid encerrada")}
     </button>
   );
 
 
   const fcLimit = don?.assets?.find((a) => a.asset === 'FC');
-  const mythLimit = don?.assets?.find((a) => a.asset === 'MYTH');
 
   const limitLine = (l: AssetLimit) => (
     <div key={l.asset} className="rounded-xl bg-black/40 px-2 py-1.5 text-[9px] leading-tight text-slate-400">
       <div className="flex items-center justify-between">
-        <span className="font-black uppercase tracking-wider text-slate-300">Hoje ({l.asset})</span>
+        <span className="font-black uppercase tracking-wider text-slate-300">{localizeText("Hoje (")}{l.asset})</span>
         <span className={l.reached ? 'font-black text-rose-300' : 'font-black text-emerald-300'}>
           {formatCurrency(l.today)} / {formatCurrency(l.max)}
         </span>
       </div>
       <div className="mt-0.5 flex items-center justify-between">
-        <span>Mín. por doação {formatCurrency(l.min)}</span>
-        {l.reached ? <span className="text-rose-300">LIMITE ATINGIDO · reset {resetIn}</span> : <span>Resta {formatCurrency(l.remaining)}</span>}
+        <span>{localizeText("Mín. por doação ")}{formatCurrency(l.min)}</span>
+        {l.reached ? <span className="text-rose-300">{localizeText("LIMITE ATINGIDO · reset ")}{resetIn}</span> : <span>{localizeText("Resta ")}{formatCurrency(l.remaining)}</span>}
       </div>
     </div>
   );
@@ -246,35 +248,30 @@ export function ClanCollectivePanel({
     <>
       <div className="mb-2 grid grid-cols-2 gap-2 text-center text-[11px]">
         <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-amber-300">{formatCurrency(state.treasury?.fc ?? 0)}</div><div className="text-[9px] text-slate-500">BERRIES</div></div>
-        <div className="rounded-xl bg-black/40 p-1.5"><div className="font-black text-violet-300">{formatCurrency(state.treasury?.myth ?? 0)}</div><div className="text-[9px] text-slate-500">MYTH</div></div>
       </div>
-      <div className="mb-2 space-y-1">{(don?.assets ?? []).map(limitLine)}</div>
+      <div className="mb-2 space-y-1">{(don?.assets ?? []).filter(a => a.asset !== 'MYTH').map(limitLine)}</div>
       <div className="flex gap-1.5">
         <input
           value={donation}
           onChange={(e) => setDonation(e.target.value.replace(/[^\d]/g, ''))}
-          placeholder="Quantidade"
+          placeholder={localizeText("Quantidade")}
           inputMode="numeric"
           className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none"
         />
         <button disabled={busy || !donation || fcLimit?.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'FC', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
-          className="rounded-xl bg-amber-500/20 px-2.5 text-[10px] font-black text-amber-200 disabled:opacity-40">DOAR BERRIES</button>
-        {mythLimit ? (
-          <button disabled={busy || !donation || mythLimit.reached} onClick={() => void run({ action: 'treasury-donate', asset: 'MYTH', amount: Number(donation) }, 'Doação registrada!').then(() => setDonation(''))}
-            className="rounded-xl bg-violet-500/20 px-2.5 text-[10px] font-black text-violet-200 disabled:opacity-40">MYTH</button>
-        ) : null}
+          className="rounded-xl bg-amber-500/20 px-2.5 text-[10px] font-black text-amber-200 disabled:opacity-40">{localizeText("DOAR BERRIES")}</button>
       </div>
       {don?.isLeader ? (
         <div className="mt-2 space-y-1">
-          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500">Limites de contribuição diária</div>
-          {(don.assets ?? []).map((l) => (
+          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500">{localizeText("Limites de contribuição diária")}</div>
+          {(don.assets ?? []).filter(a => a.asset !== 'MYTH').map((l) => (
             <div key={`cfg-${l.asset}`} className="flex items-center justify-between rounded-xl border border-amber-400/20 bg-black/40 px-2 py-1.5">
               <div className="text-[9px] text-slate-400">
-                <span className="font-black text-slate-200">{l.asset}</span> · mín {formatCurrency(l.min)} · máx {formatCurrency(l.max)}
-                <div className="text-[8px] text-slate-500">Teto global {formatCurrency(l.hardMax)}/dia</div>
+                <span className="font-black text-slate-200">{l.asset}</span> {localizeText("· mín ")}{formatCurrency(l.min)} {localizeText("· máx ")}{formatCurrency(l.max)}
+                <div className="text-[8px] text-slate-500">{localizeText("Teto global ")}{formatCurrency(l.hardMax)}/dia</div>
               </div>
               <button onClick={() => setEditLimit({ asset: l.asset, min: String(l.min), max: String(l.max), hardMax: l.hardMax })}
-                className="rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200">EDITAR</button>
+                className="rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200">{localizeText("EDITAR")}</button>
             </div>
           ))}
         </div>
@@ -289,11 +286,11 @@ export function ClanCollectivePanel({
       {(state.upgrades ?? []).map((u) => (
         <div key={u.code} className="flex items-center justify-between gap-2 rounded-xl bg-black/40 px-2 py-1.5">
           <div className="min-w-0">
-            <div className="truncate text-[11px] font-black text-slate-100">{u.label} <span className="text-amber-300">Nv {u.level}/{u.maxLevel}</span></div>
+            <div className="truncate text-[11px] font-black text-slate-100">{u.label} <span className="text-amber-300">{localizeText("Nv ")}{u.level}/{u.maxLevel}</span></div>
             <div className="truncate text-[9px] text-slate-500">{u.description}</div>
           </div>
           {u.level >= u.maxLevel ? (
-            <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[10px] font-black text-slate-400">NÍVEL MÁX</span>
+            <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[10px] font-black text-slate-400">{localizeText("NÍVEL MÁX")}</span>
           ) : canManageUpgrades ? (
             <button disabled={busy} onClick={() => setConfirmUpgrade(u)}
               className="shrink-0 rounded-lg bg-amber-500/20 px-2 py-1 text-[10px] font-black text-amber-200 disabled:opacity-40">
@@ -301,8 +298,7 @@ export function ClanCollectivePanel({
             </button>
           ) : (
             <span className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
-              Líder / Vice
-            </span>
+              {localizeText("Líder / Vice ")}</span>
           )}
         </div>
       ))}
@@ -312,15 +308,15 @@ export function ClanCollectivePanel({
   const upgradeConfirm = confirmUpgrade ? (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4" onClick={() => setConfirmUpgrade(null)}>
       <div className="w-full max-w-xs rounded-2xl border border-amber-500/30 bg-slate-950 p-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-center text-sm font-black uppercase tracking-widest text-amber-200">Evoluir {confirmUpgrade.label}?</h3>
+        <h3 className="text-center text-sm font-black uppercase tracking-widest text-amber-200">{localizeText("Evoluir ")}{confirmUpgrade.label}?</h3>
         <div className="mt-3 space-y-1 text-[11px] text-slate-300">
-          <div className="flex justify-between"><span className="text-slate-500">Atual</span><span className="font-bold">Nv {confirmUpgrade.level}</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Próximo</span><span className="font-bold text-amber-300">Nv {confirmUpgrade.level + 1}</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Custo</span><span className="font-bold">{formatCurrency(confirmUpgrade.nextCost)} BERRIES</span></div>
-          <div className="flex justify-between"><span className="text-slate-500">Tesouro do clã</span><span className="font-bold">{formatCurrency(state.treasury?.fc ?? 0)} BERRIES</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">{localizeText("Atual")}</span><span className="font-bold">{localizeText("Nv ")}{confirmUpgrade.level}</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">{localizeText("Próximo")}</span><span className="font-bold text-amber-300">{localizeText("Nv ")}{confirmUpgrade.level + 1}</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">{localizeText("Custo")}</span><span className="font-bold">{formatCurrency(confirmUpgrade.nextCost)} BERRIES</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">{localizeText("Tesouro do clã")}</span><span className="font-bold">{formatCurrency(state.treasury?.fc ?? 0)} BERRIES</span></div>
         </div>
         {(state.treasury?.fc ?? 0) < confirmUpgrade.nextCost ? (
-          <p className="mt-2 text-center text-[10px] font-black uppercase text-rose-300">Fundos do clã insuficientes</p>
+          <p className="mt-2 text-center text-[10px] font-black uppercase text-rose-300">{localizeText("Fundos do clã insuficientes")}</p>
         ) : null}
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
@@ -335,11 +331,9 @@ export function ClanCollectivePanel({
             }}
             className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-700 py-2 text-[10px] font-black uppercase tracking-widest text-black disabled:opacity-40"
           >
-            Confirmar
-          </button>
+            {localizeText("Confirmar ")}</button>
           <button onClick={() => setConfirmUpgrade(null)} className="rounded-xl bg-white/10 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300">
-            Cancelar
-          </button>
+            {localizeText("Cancelar ")}</button>
         </div>
       </div>
     </div>
@@ -352,7 +346,7 @@ export function ClanCollectivePanel({
         <div key={b.code} className="flex items-center justify-between gap-2 rounded-xl bg-black/40 px-2 py-1.5">
           <div className="min-w-0">
             <div className="truncate text-[11px] font-black text-slate-100">{b.label}</div>
-            <div className="text-[9px] text-slate-500">+{b.pct}% por {b.hours}h {b.activePct > 0 ? `• ativo +${b.activePct}%` : ''}</div>
+            <div className="text-[9px] text-slate-500">+{b.pct}{localizeText("% por ")}{b.hours}h {b.activePct > 0 ? `• ativo +${b.activePct}%` : ''}</div>
           </div>
           <button disabled={busy} onClick={() => void run({ action: 'buff-activate', code: b.code }, 'Buff ativado!')}
             className="shrink-0 rounded-lg bg-violet-500/20 px-2 py-1 text-[10px] font-black text-violet-200 disabled:opacity-40">
@@ -371,7 +365,7 @@ export function ClanCollectivePanel({
           <span className="shrink-0 font-bold text-amber-300">{formatCurrency(c.contribution)} pts</span>
         </div>
       ))}
-      {!(state.contributors ?? []).length ? <p className="text-[10px] text-slate-500">Sem contribuições nesta semana.</p> : null}
+      {!(state.contributors ?? []).length ? <p className="text-[10px] text-slate-500">{localizeText("Sem contribuições nesta semana.")}</p> : null}
     </div>
   );
 
@@ -399,7 +393,7 @@ export function ClanCollectivePanel({
           </div>
 
           {/* WEEKLY GOAL — compact */}
-          <Section icon={<Trophy className="h-3.5 w-3.5" />} title="Meta Semanal" right={<span className="text-[9px] font-bold text-slate-400">você: {formatCurrency(state.me?.contributionWeek ?? 0)}</span>}>
+          <Section icon={<Trophy className="h-3.5 w-3.5" />} title={localizeText("Meta Semanal")} right={<span className="text-[9px] font-bold text-slate-400">você: {formatCurrency(state.me?.contributionWeek ?? 0)}</span>}>
             {weekly ? (
               <>
                 <div className="mb-1 flex items-baseline justify-between text-[11px]">
@@ -421,18 +415,18 @@ export function ClanCollectivePanel({
                             : 'border-white/10 bg-black/40 text-slate-500'}`}
                       >
                         <div className="text-[11px]">{m.pct}%</div>
-                        <div className="truncate">{m.claimed ? 'OK' : m.unlocked ? 'RESGATAR' : formatCurrency(m.required)}</div>
+                        <div className="truncate">{m.claimed ? localizeText("OK") : m.unlocked ? 'RESGATAR' : formatCurrency(m.required)}</div>
                       </button>
                     );
                   })}
                 </div>
-                <p className="mt-1.5 text-[9px] text-slate-500">Mínimo {formatCurrency(weekly.minContribution)} pts para resgatar · Boss Pessoal: {(state.bossPoints ?? []).join('/')} pts</p>
+                <p className="mt-1.5 text-[9px] text-slate-500">{localizeText("Mínimo ")}{formatCurrency(weekly.minContribution)} {localizeText("pts para resgatar · Boss Pessoal: ")}{(state.bossPoints ?? []).join('/')} pts</p>
               </>
-            ) : <p className="text-xs text-slate-400">Ciclo semanal iniciando…</p>}
+            ) : <p className="text-xs text-slate-400">{localizeText("Ciclo semanal iniciando…")}</p>}
           </Section>
 
           {/* RAID — compact status + single action */}
-          <Section icon={<Flame className="h-3.5 w-3.5" />} title="Clan Raid" right={raid ? <span className="text-[9px] font-bold text-slate-400">{raid.attacksUsed}/{raid.attacksPerDay} hoje</span> : null}>
+          <Section icon={<Flame className="h-3.5 w-3.5" />} title={localizeText("Clan Raid")} right={raid ? <span className="text-[9px] font-bold text-slate-400">{raid.attacksUsed}/{raid.attacksPerDay} hoje</span> : null}>
             {raid ? (
               <>
                 <div className="mb-1 flex items-baseline justify-between text-[11px]">
@@ -442,19 +436,19 @@ export function ClanCollectivePanel({
                 <Bar value={pctOf(raid.currentHp, raid.maxHp)} tone="red" />
                 <div className="mt-2 flex gap-1.5">
                   <div className="flex-1">{attackButton}</div>
-                  <button onClick={() => setSub('raid')} className="rounded-xl border border-white/15 bg-black/50 px-2.5 text-[10px] font-black text-slate-300">DETALHES</button>
+                  <button onClick={() => setSub('raid')} className="rounded-xl border border-white/15 bg-black/50 px-2.5 text-[10px] font-black text-slate-300">{localizeText("DETALHES")}</button>
                 </div>
               </>
-            ) : <p className="text-xs text-slate-400">Nenhuma raid ativa.</p>}
+            ) : <p className="text-xs text-slate-400">{localizeText("Nenhuma raid ativa.")}</p>}
           </Section>
 
           {/* TREASURY SUMMARY */}
-          <Section icon={<Gem className="h-3.5 w-3.5" />} title="Tesouro" right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} coins</span>}>
+          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} coins</span>}>
             {donationRow}
           </Section>
 
           {/* TOP CONTRIBUTORS — top 5 */}
-          <Section icon={<Shield className="h-3.5 w-3.5" />} title="Top Contribuidores" right={<span className="text-[9px] text-slate-500">top 5</span>}>
+          <Section icon={<Shield className="h-3.5 w-3.5" />} title={localizeText("Top Contribuidores")} right={<span className="text-[9px] text-slate-500">top 5</span>}>
             {contributors(5)}
           </Section>
         </>
@@ -468,11 +462,11 @@ export function ClanCollectivePanel({
 
       {sub === 'treasury' ? (
         <>
-          <Section icon={<Gem className="h-3.5 w-3.5" />} title="Tesouro do Clã" right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} Clan Coins</span>}>
+          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro do Clã")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} Clan Coins</span>}>
             {donationRow}
-            <p className="mt-2 text-[9px] text-slate-500">O tesouro não pode ser sacado: financia construções e buffs coletivos.</p>
+            <p className="mt-2 text-[9px] text-slate-500">{localizeText("O tesouro não pode ser sacado: financia construções e buffs coletivos.")}</p>
           </Section>
-          <Collapsible icon={<Shield className="h-3.5 w-3.5" />} title="Histórico de Contribuição" defaultOpen>
+          <Collapsible icon={<Shield className="h-3.5 w-3.5" />} title={localizeText("Histórico de Contribuição")} defaultOpen>
             <ClanContributionHistory telegramInitData={telegramInitData} refreshKey={contribKey} />
           </Collapsible>
         </>
@@ -480,10 +474,10 @@ export function ClanCollectivePanel({
 
       {sub === 'upgrades' ? (
         <>
-          <Collapsible icon={<Hammer className="h-3.5 w-3.5" />} title="Construções" defaultOpen right={<span className="text-[9px] text-slate-500">{(state.upgrades ?? []).length}</span>}>
+          <Collapsible icon={<Hammer className="h-3.5 w-3.5" />} title={localizeText("Construções")} defaultOpen right={<span className="text-[9px] text-slate-500">{(state.upgrades ?? []).length}</span>}>
             {constructions}
           </Collapsible>
-          <Collapsible icon={<Sparkles className="h-3.5 w-3.5" />} title="Buffs de Guilda" right={<span className="text-[9px] text-slate-500">{(state.buffs ?? []).length}</span>}>
+          <Collapsible icon={<Sparkles className="h-3.5 w-3.5" />} title={localizeText("Buffs de Guilda")} right={<span className="text-[9px] text-slate-500">{(state.buffs ?? []).length}</span>}>
             {buffsList}
           </Collapsible>
         </>
@@ -495,13 +489,13 @@ export function ClanCollectivePanel({
       {sub === 'shop' ? (
         <Section
           icon={<ShoppingBag className="h-3.5 w-3.5" />}
-          title="Loja do Clã"
+          title={localizeText("Loja do Clã")}
           right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(shop?.coins ?? state.me?.coins ?? 0)} coins</span>}
         >
           {shop ? (
             <div className="mb-1.5 flex items-center justify-between rounded-lg bg-black/40 px-2 py-1 text-[9px] text-slate-400">
-              <span>Semana {shop.weeklyEarned}/{shop.weeklyCap} coins</span>
-              <span>Preços x{shop.priceMultiplier.toFixed(2)} · {shop.effectiveActive} ativos</span>
+              <span>{localizeText("Semana ")}{shop.weeklyEarned}/{shop.weeklyCap} coins</span>
+              <span>{localizeText("Preços x")}{shop.priceMultiplier.toFixed(2)} · {shop.effectiveActive} ativos</span>
             </div>
           ) : null}
           <div className="grid grid-cols-2 gap-1.5">
@@ -517,8 +511,8 @@ export function ClanCollectivePanel({
                   <div className="text-[10px] text-amber-300"><Coins className="mr-1 inline h-3 w-3" />{formatCurrency(s.price)}</div>
                   <div className="text-[9px] leading-tight text-slate-500">
                     {s.dailyLimit > 0 ? <div>hoje {s.boughtToday}/{s.dailyLimit}</div> : null}
-                    {s.weeklyLimit > 0 ? <div>você {s.boughtWeek}/{s.weeklyLimit}</div> : null}
-                    {s.clanStockTotal ? <div>clã {s.clanStock}/{s.clanStockTotal}</div> : null}
+                    {s.weeklyLimit > 0 ? <div>{localizeText("você ")}{s.boughtWeek}/{s.weeklyLimit}</div> : null}
+                    {s.clanStockTotal ? <div>{localizeText("clã ")}{s.clanStock}/{s.clanStockTotal}</div> : null}
                   </div>
                 </button>
               );
@@ -530,8 +524,7 @@ export function ClanCollectivePanel({
 
       {sub === 'hub' && onOpenWar ? (
         <button onClick={onOpenWar} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-400/30 bg-black/50 py-2 text-[10px] font-black uppercase tracking-widest text-rose-200">
-          <Castle className="h-3.5 w-3.5" />Abrir Guerra de Clãs
-          <Users className="h-3.5 w-3.5 opacity-40" />
+          <Castle className="h-3.5 w-3.5" />{localizeText("Abrir Guerra de Clãs ")}<Users className="h-3.5 w-3.5 opacity-40" />
         </button>
       ) : null}
 
@@ -539,20 +532,20 @@ export function ClanCollectivePanel({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setEditLimit(null)}>
           <div className="w-full max-w-xs rounded-2xl border border-amber-400/30 bg-slate-950 p-3" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 text-[11px] font-black uppercase tracking-widest text-amber-200">
-              Limites de contribuição · {editLimit.asset}
+              {localizeText("Limites de contribuição · ")}{editLimit.asset}
             </div>
-            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">Doação mínima</label>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">{localizeText("Doação mínima")}</label>
             <input value={editLimit.min} inputMode="numeric"
               onChange={(e) => setEditLimit({ ...editLimit, min: e.target.value.replace(/[^\d]/g, '') })}
               className="mb-2 w-full rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none" />
-            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">Máximo diário por membro</label>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-wider text-slate-500">{localizeText("Máximo diário por membro")}</label>
             <input value={editLimit.max} inputMode="numeric"
               onChange={(e) => setEditLimit({ ...editLimit, max: e.target.value.replace(/[^\d]/g, '') })}
               className="w-full rounded-xl border border-white/10 bg-black/50 px-2.5 py-1.5 text-xs text-white outline-none" />
-            <div className="mt-1 text-[9px] text-slate-500">Teto global: {formatCurrency(editLimit.hardMax)}/dia</div>
+            <div className="mt-1 text-[9px] text-slate-500">{localizeText("Teto global: ")}{formatCurrency(editLimit.hardMax)}/dia</div>
             <div className="mt-3 flex gap-2">
               <button onClick={() => setEditLimit(null)}
-                className="flex-1 rounded-xl bg-white/5 py-1.5 text-[10px] font-black text-slate-300">CANCELAR</button>
+                className="flex-1 rounded-xl bg-white/5 py-1.5 text-[10px] font-black text-slate-300">{localizeText("CANCELAR")}</button>
               <button disabled={busy}
                 onClick={() => {
                   const min = Number(editLimit.min);
@@ -564,7 +557,7 @@ export function ClanCollectivePanel({
                   setEditLimit(null);
                   void run({ action: 'contribution-limits-set', asset, min, max }, 'Limites atualizados!');
                 }}
-                className="flex-1 rounded-xl bg-amber-500/20 py-1.5 text-[10px] font-black text-amber-200 disabled:opacity-40">SALVAR</button>
+                className="flex-1 rounded-xl bg-amber-500/20 py-1.5 text-[10px] font-black text-amber-200 disabled:opacity-40">{localizeText("SALVAR")}</button>
             </div>
           </div>
         </div>

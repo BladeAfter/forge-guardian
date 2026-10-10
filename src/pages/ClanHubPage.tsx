@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, ArrowLeft, Castle, Flame, Hourglass, MessageSquare, Send, Shield, Swords, Target, Trophy, UserPlus, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,6 +20,8 @@ type Tab = 'hub' | 'members' | 'requests' | 'chat' | 'missions' | 'ranking' | 'b
  * top status open this component. Every rule is enforced by the backend.
  */
 export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error: loadError, refetch } = useClanDashboard(telegramInitData, true);
@@ -335,7 +338,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
           <div key={entry.id} className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/55 p-3">
             <b className="w-6 text-amber-300">#{index + 1}</b>
             <ClanCrest emblem={entry.emblem} size={28} />
-            <div className="min-w-0 flex-1"><b className="block truncate text-xs">{entry.name}</b><span className="text-[9px] text-slate-400">Lv. {entry.level}</span></div>
+            <div className="min-w-0 flex-1"><b className="block truncate text-xs">{entry.name}</b><span className="text-[9px] text-slate-400">{localizeText("Lv. ")}{entry.level}</span></div>
             <b className="text-[10px] text-cyan-300">{entry.power.toLocaleString()}</b>
           </div>
         )) : null}
@@ -358,13 +361,15 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
 }
 
 function ClanCard({ clan, onJoin, disabled }: { clan: ClanSummary; onJoin: () => void; disabled?: boolean }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/55 p-3">
       <ClanCrest emblem={clan.emblem} size={40} />
       <div className="min-w-0 flex-1">
         <b className="block truncate text-xs">{clan.name}</b>
-        <p className="text-[9px] text-slate-400">[{clan.tag}] · Lv. {clan.level} · {clan.members}/{clan.memberLimit}</p>
+        <p className="text-[9px] text-slate-400">[{clan.tag}{localizeText("] · Lv. ")}{clan.level} · {clan.members}/{clan.memberLimit}</p>
         <p className="text-[9px] text-cyan-300">{t('clan.power')}: {clan.power.toLocaleString()}</p>
       </div>
       <button disabled={disabled} onClick={onJoin} className="rounded-xl border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-[9px] font-black text-amber-200 disabled:opacity-40">{clan.joinType === 'approval' ? t('clan.requested') : t('clan.join')}</button>

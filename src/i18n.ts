@@ -1,4 +1,5 @@
 import { DICTIONARIES } from './locales';
+import { COMPLETED_TRANSLATIONS } from './locales/completion';
 
 export type LanguageCode = "pt" | "en" | "es" | "ru" | "tr";
 export type Translator = (key: string, vars?: Record<string, string | number>) => string;
@@ -490,11 +491,11 @@ const ru: Record<string, string> = {
  * namespaced dictionaries in `src/locales`. English is always the fallback.
  */
 export const UI_TRANSLATIONS: Record<LanguageCode, Record<string, string>> = {
-  pt: { ...pt, ...DICTIONARIES.pt },
-  en: { ...en, ...DICTIONARIES.en },
-  es: { ...es, ...DICTIONARIES.es },
-  ru: { ...ru, ...DICTIONARIES.ru },
-  tr: { ...en, ...DICTIONARIES.tr },
+  pt: { ...pt, ...DICTIONARIES.pt, ...COMPLETED_TRANSLATIONS.pt },
+  en: { ...en, ...DICTIONARIES.en, ...COMPLETED_TRANSLATIONS.en },
+  es: { ...es, ...DICTIONARIES.es, ...COMPLETED_TRANSLATIONS.es },
+  ru: { ...ru, ...DICTIONARIES.ru, ...COMPLETED_TRANSLATIONS.ru },
+  tr: { ...en, ...DICTIONARIES.tr, ...COMPLETED_TRANSLATIONS.tr },
 };
 
 /**

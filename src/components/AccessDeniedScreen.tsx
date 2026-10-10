@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { ShieldAlert, LifeBuoy, Loader2, CheckCircle2 } from 'lucide-react';
 import accessDeniedArt from '../assets/access-denied.jpg';
@@ -96,6 +97,8 @@ export default function AccessDeniedScreen({
   identity: DeviceIdentity | null;
   pendingReview?: boolean;
 }) {
+  const localizeText = useLocalizedText();
+
   const copy = COPY[language] ?? COPY.en;
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>(pendingReview ? 'sent' : 'idle');
 
@@ -136,7 +139,7 @@ export default function AccessDeniedScreen({
 
         <div className="mt-6 rounded-2xl border border-amber-300/20 bg-black/55 p-4 backdrop-blur-sm">
           <p className="text-[10px] font-black uppercase tracking-[.2em] text-slate-400">{copy.code}</p>
-          <p className="mt-1 font-mono text-sm font-black tracking-[.12em] text-amber-200">MULTI_ACCOUNT_LIMIT</p>
+          <p className="mt-1 font-mono text-sm font-black tracking-[.12em] text-amber-200">{localizeText("MULTI_ACCOUNT_LIMIT")}</p>
         </div>
 
         <p className="mt-4 text-[11px] leading-5 text-slate-500">{copy.keep}</p>

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import React from'react';
 import{useTonConnectUI,useTonWallet}from'@tonconnect/ui-react';
 import{useMutation,useQueryClient}from'@tanstack/react-query';
@@ -6,9 +7,6 @@ import {SeasonVoyageView} from '../components/SeasonVoyageView';
 import {OceanControl} from '../components/OceanControl';
 import{toast}from'sonner';
 import{seasonPassRequest,buySeasonPassLevels,buySeasonPassWithInternalTon,buyLockedPassReward,verifyLockedPassRewards}from'../services';
-import{useMythUtility}from'../hooks';
-import{MythPayButton,MythBalanceHint}from'../components/MythPayButton';
-import type{MythUtilityState}from'../mythUtility';
 import{sendTonPayment,type TonTransactionRequest}from'../tonPayment';
 
 import{purchaseBattlePass,waitForPassActivation,activatedPass,passTierLabel,reconcilePendingPassPurchases}from'../passPurchase';
@@ -41,11 +39,9 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  const recovered=React.useRef(false);
  React.useEffect(()=>{if(recovered.current)return;recovered.current=true;reconcilePendingPassPurchases(telegramInitData).then(async verification=>{if(!activatedPass(verification))return;await invalidateAll();toast.success(t('pass.activated',{tier:passTierLabel(activatedPass(verification)?.tier)}))}).catch(error=>console.error('[Mythic Seas PASS RECOVERY]',error))},[telegramInitData]);
  const claim=useMutation({mutationFn:(rewardId:string)=>seasonPassRequest(telegramInitData,'claim',{rewardId}),onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();toast.success(t('pass.rewardClaimed'))},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.claimFailed'))});
- const{data:myth}=useMythUtility(telegramInitData);
- // Alternative pass payment: burns MYTH from the available balance (TON flow untouched).
  const[buyOpen,setBuyOpen]=React.useState(false);
  // Level purchase: the client only sends how many levels; price/limits/new level come back from the server.
- const buyLevels=useMutation({mutationFn:({levels,currency}:{levels:number;currency:'FC'|'MYTH'})=>buySeasonPassLevels(telegramInitData,levels,currency) as Promise<SeasonPassDashboard>,onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();await q.invalidateQueries({queryKey:['myth-utility']});const p=dashboard.purchase;setBuyOpen(false);if(p&&p.levelsBought>1)toast.success(t('pass.levelsBoughtToast',{levels:p.levelsBought}));else if(p)toast.success(t('pass.levelUpToast',{from:p.levelBefore,to:p.levelAfter}));},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyLevelFailed'))});
+ const buyLevels=useMutation({mutationFn:({levels,currency}:{levels:number;currency:'FC'})=>buySeasonPassLevels(telegramInitData,levels,currency) as Promise<SeasonPassDashboard>,onSuccess:async dashboard=>{q.setQueryData(['season-pass',telegramInitData],dashboard);await invalidateAll();const p=dashboard.purchase;setBuyOpen(false);if(p&&p.levelsBought>1)toast.success(t('pass.levelsBoughtToast',{levels:p.levelsBought}));else if(p)toast.success(t('pass.levelUpToast',{from:p.levelBefore,to:p.levelAfter}));},onError:e=>toast.error(e instanceof Error?tError(e):t('pass.buyLevelFailed'))});
  /**
   * Locked reward unlock (fixed TON price). The backend decides the method:
   * internal TON balance pays instantly, otherwise it returns a TonConnect intent and the
@@ -68,13 +64,15 @@ export function SeasonPassPage({telegramInitData,onClose,onMissions}:{telegramIn
  if(error||stalled||!data)return<Shell onClose={onClose}><div className="py-24 text-center"><p>{t('pass.loadError')}</p><button onClick={()=>void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3">{t('pass.retryButton')}</button></div></Shell>;
 return <>
   <SeasonVoyageView data={data} onClose={onClose} onMissions={onMissions} onBuyLevel={()=>setBuyOpen(true)} onBuy={tier=>purchase.mutate(tier)} buying={purchase.isPending} onClaim={id=>claim.mutate(id)} claiming={claim.isPending} onUnlock={r=>unlockReward.mutate(r)} unlocking={unlockReward.isPending}/>
-  {buyOpen&&data.levelPurchase?<BuyLevelSheet cfg={data.levelPurchase} level={data.player.level} levels={data.season.levels} xpIntoLevel={data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel} xpPerLevel={data.season.xpPerLevel} pending={buyLevels.isPending} onBuy={(n,currency='FC')=>buyLevels.mutate({levels:n,currency})} myth={myth} onClose={()=>setBuyOpen(false)}/>:null}
+  {buyOpen&&data.levelPurchase?<BuyLevelSheet cfg={data.levelPurchase} level={data.player.level} levels={data.season.levels} xpIntoLevel={data.player.xpIntoLevel??data.player.xp%data.season.xpPerLevel} xpPerLevel={data.season.xpPerLevel} pending={buyLevels.isPending} onBuy={(n,currency='FC')=>buyLevels.mutate({levels:n,currency})} onClose={()=>setBuyOpen(false)}/>:null}
  </>;
 }
-function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){return <div className="fullscreen-page seas-season"><header className="season-topbar"><OceanControl onClick={onClose} aria-label="Voltar ao porto"><ArrowLeft/></OceanControl><div><span>MYTHIC SEAS</span><b>PASSE DE TEMPORADA</b></div></header><div className="season-inner">{children}</div></div>}
+function Shell({children,onClose}:{children:React.ReactNode;onClose:()=>void}){
+  const localizeText = useLocalizedText();
+return <div className="fullscreen-page seas-season"><header className="season-topbar"><OceanControl onClick={onClose} aria-label={localizeText("Voltar ao porto")}><ArrowLeft/></OceanControl><div><span>MYTHIC SEAS</span><b>{localizeText("PASSE DE TEMPORADA")}</b></div></header><div className="season-inner">{children}</div></div>}
 
 /** Compact bottom sheet: every number shown here is produced by the backend. */
-function BuyLevelSheet({cfg,level,levels,xpIntoLevel,xpPerLevel,pending,onBuy,onClose,myth}:{cfg:PassLevelPurchaseConfig;level:number;levels:number;xpIntoLevel:number;xpPerLevel:number;pending:boolean;onBuy:(levels:number,currency?:'FC'|'MYTH')=>void;onClose:()=>void;myth?:MythUtilityState|null}){
+function BuyLevelSheet({cfg,level,levels,xpIntoLevel,xpPerLevel,pending,onBuy,onClose}:{cfg:PassLevelPurchaseConfig;level:number;levels:number;xpIntoLevel:number;xpPerLevel:number;pending:boolean;onBuy:(levels:number,currency?:'FC')=>void;onClose:()=>void}){
  const t=useT();const packs=Object.keys(cfg.prices).map(Number).filter(n=>n>0).sort((a,b)=>a-b);
  const[sel,setSel]=React.useState(()=>packs.find(n=>n<=cfg.maxAvailable)??packs[0]??1);
  const price=Number(cfg.prices[String(sel)]??0),blocked=cfg.remainingToday<=0,tooMany=sel>cfg.maxAvailable,poor=price>cfg.balanceFc;
@@ -90,7 +88,6 @@ function BuyLevelSheet({cfg,level,levels,xpIntoLevel,xpPerLevel,pending,onBuy,on
    <div className="mt-3 flex items-center justify-between text-[10px] text-slate-300"><span>{t('pass.buyLevelsToday')}: <b className="text-amber-200">{cfg.boughtToday}/{cfg.dailyLimit}</b></span><span>{t('pass.cost')}: <b className="text-amber-200">{price.toLocaleString()} BERRIES</b></span></div>
    {cfg.maxAvailable<Math.max(...packs)?<p className="mt-2 text-center text-[10px] text-amber-200/80">{t('pass.maxAvailable',{levels:cfg.maxAvailable})}</p>:null}
    <button disabled={pending||blocked||tooMany||poor} onClick={()=>onBuy(sel)} className="mt-3 w-full rounded-xl bg-gradient-to-r from-amber-400 to-yellow-300 py-3 text-xs font-black text-black disabled:opacity-50">{blocked?t('pass.dailyLimitReached'):t('pass.buyLevelsAction',{levels:sel})}</button>
-   {!blocked&&!tooMany&&price>0?<div className="mt-2"><MythPayButton state={myth} feature="PASS_LEVELS" fc={price} disabled={pending} onPay={()=>onBuy(sel,'MYTH')}/><MythBalanceHint state={myth}/></div>:null}
    <p className="mt-2 text-center text-[9px] text-slate-400">{t('pass.levelPurchaseNote')}</p>
    <button onClick={onClose} className="mt-2 w-full rounded-xl border border-white/10 py-2 text-[10px] font-bold text-slate-300">{t('pass.close')}</button>
   </div>

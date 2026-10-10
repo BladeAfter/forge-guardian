@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RealmExplorationMap from '../components/RealmExplorationMap';
@@ -61,6 +62,8 @@ const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(Math.floor(n ||
  * UI mobile-first: hierarquia enxuta, detalhes sempre em bottom sheet.
  */
 export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }: { telegramInitData: string; onBack: () => void; berries?: number; telegramId?: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('stronghold');
@@ -286,14 +289,14 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
         <div className="realm-hud-atmo" aria-hidden />
         <div className="relative px-3 pb-1.5 pt-2">
           <div className="flex items-center gap-2">
-            <button onClick={() => { const index = SEA_ISLANDS.findIndex(i => i.destination === tab); setIslandIndex(index < 0 ? 1 : index); }} className="realm-hud-back">← Ilha</button>
+            <button onClick={() => { const index = SEA_ISLANDS.findIndex(i => i.destination === tab); setIslandIndex(index < 0 ? 1 : index); }} className="realm-hud-back">{localizeText("← Ilha")}</button>
             <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
-              <h1 className="realm-hud-title truncate">Grand Line</h1>
+              <h1 className="realm-hud-title truncate">{localizeText("Grand Line")}</h1>
             </div>
             <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
               <span className="realm-lv-cap">{t('realm.strongholdCap')}</span>
-              <b className="realm-lv-num">LV.{level}</b>
+              <b className="realm-lv-num">{localizeText("LV.")}{level}</b>
             </div>
           </div>
 
@@ -582,7 +585,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <b className="text-[13px] font-black uppercase tracking-[.1em] text-amber-100">{buildingType.name}</b>
-                    <span className="stronghold-seal">Lv.{lvl}</span>
+                    <span className="stronghold-seal">{localizeText("Lv.")}{lvl}</span>
                   </div>
                   <p className="mt-1 text-[9.5px] leading-snug text-slate-400">{buildingType.description}</p>
                   <p className="mt-1 text-[9px] font-bold uppercase tracking-[.14em] text-slate-500">{t('realm.build.maxInfo', { max: buildingType.max_level, time: realmTimer(buildingType.base_seconds) })}</p>
@@ -643,10 +646,12 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
 }
 
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+  const localizeText = useLocalizedText();
+
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-end" role="dialog">
-      <button aria-label="close" onClick={onClose} className="absolute inset-0 bg-black/70" />
+      <button aria-label={localizeText("close")} onClick={onClose} className="absolute inset-0 bg-black/70" />
       <div className="relative w-full rounded-t-3xl border-t border-white/10 bg-[#0a0d18] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="mb-3 flex items-center justify-between gap-2">
           <b className="text-[12px] font-black uppercase tracking-[.12em] text-amber-100">{title}</b>

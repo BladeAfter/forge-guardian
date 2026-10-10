@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
@@ -104,6 +105,8 @@ function UnitCard({
   hitAmount?: number;
   onClick: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const pct = Math.max(0, Math.min(100, Math.round((unit.hp / Math.max(1, unit.maxHp)) * 100)));
   const accent = RARITY[String(unit.rarity || '').toLowerCase()] || '#64748b';
   const ClassIcon = CLASS_ICONS[String(unit.class || '').toLowerCase()] ?? Star;
@@ -122,7 +125,7 @@ function UnitCard({
         {!unit.alive ? (
           <div className="tac-unit__ko">
             <Skull className="h-5 w-5 text-rose-300" />
-            <span>KO</span>
+            <span>{localizeText("KO")}</span>
           </div>
         ) : null}
         {selected ? <span className="tac-unit__reticle" /> : null}
@@ -151,6 +154,8 @@ function UnitCard({
  * server — this screen never simulates anything.
  */
 export function TacticalBattleScreen({ initData, matchId, onExit }: { initData: string; matchId: string; onExit: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const { tError } = useLanguage();
   const [skillKey, setSkillKey] = useState<string>('basic_attack');
@@ -252,7 +257,7 @@ export function TacticalBattleScreen({ initData, matchId, onExit }: { initData: 
                 <Clock className="h-3 w-3" /> {data.secondsLeft}s
               </span>
             ) : null}
-            <button type="button" onClick={onExit} aria-label="close" className="tac-chip">
+            <button type="button" onClick={onExit} aria-label={localizeText("close")} className="tac-chip">
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -384,7 +389,7 @@ export function TacticalBattleScreen({ initData, matchId, onExit }: { initData: 
           <div className="tac-panel max-h-[70dvh] w-full overflow-y-auto p-3" onClick={(event) => event.stopPropagation()}>
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[10px] font-black uppercase tracking-[.2em] text-amber-200">{t('tactical.log')}</p>
-              <button type="button" onClick={() => setLogOpen(false)} aria-label="close" className="tac-chip">
+              <button type="button" onClick={() => setLogOpen(false)} aria-label={localizeText("close")} className="tac-chip">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>

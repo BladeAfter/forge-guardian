@@ -1,5 +1,10 @@
 # Roadmap
 
+- [x] Remover acessos MYTH de carteira, compra, passe, recrutamento, mineração, doações e rendimentos; manter TON/BERRIES e histórico financeiro.
+- [ ] Concluir traduções sem exceção: 698 textos aplicados em 92 telas e 161 lacunas espanhol/russo preenchidas; faltam turco, textos dinâmicos, mensagens e demais literais. Bloqueio: créditos de IA esgotados.
+- [x] Executar testes gerais: 216 testes passaram; acesso público conferido com zero abas antes da autorização.
+- [ ] Conferir todas as abas autenticadas e os idiomas no jogo real; bloqueio: sessão móvel Telegram real do administrador.
+
 - [x] Liberar testes antes do lançamento exclusivamente ao administrador 8490010993 autenticado pelo Telegram; configuração administrativa confirmada, funções implantadas e oito testes passaram. Outros IDs continuam bloqueados e acesso móvel permanece obrigatório.
 - [ ] Confirmar entrada antecipada e menu administrativo com a sessão real de 8490010993 no Telegram; depende da interação do administrador.
 

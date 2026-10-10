@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
@@ -33,6 +34,8 @@ const log = (message: string, extra?: unknown) => {
  * o dia — a oferta continua listada em OFERTAS PREMIUM.
  */
 export function PremiumOffersPopups({ telegramInitData, active = true }: { telegramInitData: string; active?: boolean }) {
+  const localizeText = useLocalizedText();
+
   const client = useQueryClient();
   const [offer, setOffer] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -106,7 +109,7 @@ export function PremiumOffersPopups({ telegramInitData, active = true }: { teleg
     <button
       type="button"
       onClick={close}
-      aria-label="Fechar oferta"
+      aria-label={localizeText("Fechar oferta")}
       className="fixed right-4 z-[300] grid h-11 w-11 place-items-center rounded-full border border-amber-200/70 bg-forge-black text-amber-100 shadow-card active:scale-95"
       style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
     >

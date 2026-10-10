@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -21,6 +22,8 @@ const resetLabel = (iso: string) => {
  * The server is the single authority for the value, the daily limit and the reset.
  */
 export function RewardsModal({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -82,7 +85,7 @@ export function RewardsModal({ telegramInitData, onClose }: { telegramInitData: 
               <p className="text-[9px] uppercase tracking-[0.2em] text-amber-300/70">{t('adRewards.subtitle')}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="close" className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/50 text-slate-300">
+          <button type="button" onClick={onClose} aria-label={localizeText("close")} className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/50 text-slate-300">
             <X className="h-4 w-4" />
           </button>
         </header>

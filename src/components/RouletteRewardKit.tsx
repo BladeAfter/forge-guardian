@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import iconMyth from '../assets/roulette/icon-myth.png';
 import iconChest from '../assets/roulette/icon-chest.png';
 import iconGear from '../assets/roulette/icon-gear.png';
@@ -121,11 +122,12 @@ export function RewardMedallion({
 
 /** Compact single-line "POSSIBLE REWARDS" caption — the wheel is the protagonist. */
 export function PossibleRewards({ onSelect }: { onSelect: (category: RewardCategory) => void }) {
+  const localizeText = useLocalizedText();
+
   return (
     <div className="w-full">
       <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
-        Possible rewards
-      </p>
+        {localizeText("Possible rewards ")}</p>
       <div className="mt-1 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
         {REWARD_CATEGORIES.map((category, index) => (
           <span key={category.id} className="flex items-center gap-1.5">
@@ -153,6 +155,8 @@ export function RewardPreviewPopup({
   category: RewardCategory;
   onClose: () => void;
 }) {
+  const localizeText = useLocalizedText();
+
   return (
     <div
       className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 px-6"
@@ -175,8 +179,7 @@ export function RewardPreviewPopup({
           onClick={onClose}
           className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300"
         >
-          Fechar
-        </button>
+          {localizeText("Fechar ")}</button>
       </div>
     </div>
   );

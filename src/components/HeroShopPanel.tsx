@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { petDisplayRarity } from '../petLabels';
@@ -9,8 +10,7 @@ import { MarketPulseView } from './MarketPulseView';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus, useMythUtility } from '../hooks';
-import { MythBalanceHint, MythPayButton } from './MythPayButton';
+import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
 import {
   buyMarketListing,
   cancelMarketListing,
@@ -51,6 +51,8 @@ const tonAmount = (value: number) => Number(value ?? 0).toLocaleString('en-US', 
  * the listing and the buyer pays from the connected wallet.
  */
 export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, summonOdds, recruitPrice, shopResults, onRecruit, onClose, mode = 'recruit' }: Props) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [tonUI] = useTonConnectUI();
@@ -58,8 +60,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
-  // MYTH is offered as an EXTRA recruitment payment when the backend enables it.
-  const mythUtility = useMythUtility(telegramInitData, mode === 'recruit');
   // Tapping a listing opens the read-only premium preview (real backend attributes).
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
@@ -304,14 +304,14 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
         <div className="crew-shop-header flex items-center justify-between px-4 pt-4">
           <div>
             <p className="text-[9px] uppercase tracking-[0.3em] text-amber-300">Mythic Seas</p>
-            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? 'Bazar do Porto' : t('shop')}</h2>
+            <h2 className="text-lg font-black leading-tight text-white">{tab === 'market' ? localizeText("Bazar do Porto") : t('shop')}</h2>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-amber-300/25 bg-black/40 px-2.5 py-1 text-[10px] font-black text-amber-300">{formatCurrency(fcBalance)} BERRIES</span>
             <span className="flex items-center gap-1 rounded-full border border-sky-300/30 bg-black/40 px-2.5 py-1 text-[10px] font-black text-sky-300">
               <Gem className="h-3 w-3" />{tonAmount(tonWalletBalance)} TON
             </span>
-            <button aria-label="Fechar loja" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
+            <button aria-label={localizeText("Fechar loja")} onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5"><X className="h-4 w-4" /></button>
           </div>
         </div>
 
@@ -324,8 +324,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
               results={shopResults}
               onRecruit={(count) => onRecruit(count, 'FC')}
               rarityLabel={(rarity) => t(rarity)}
-              alternativePayment={(count) => <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />}
-              balanceHint={<MythBalanceHint state={mythUtility.data} />}
             />
 
           ) : !marketAccess ? (
@@ -337,7 +335,7 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
             <div>
               <MarketPulseView mine={mine.data} />
               {/* MARKET ↔ AUCTION switch. The auction is a separate trading floor: internal TON only. */}
-              <div className="seas-trading-tabs" role="tablist" aria-label="Negociações do porto">
+              <div className="seas-trading-tabs" role="tablist" aria-label={localizeText("Negociações do porto")}>
                 {([['market', 'Bazar do Porto'], ['auction', 'Pregão dos Piratas']] as const).map(([key, label]) => (
                   <OceanControl
                     key={key}
@@ -364,8 +362,8 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
 
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="seas-trading-title">Bazar do Porto</p>
-                  <p className="seas-trading-subtitle">Tesouros da tripulação · BERRIES e TON</p>
+                  <p className="seas-trading-title">{localizeText("Bazar do Porto")}</p>
+                  <p className="seas-trading-subtitle">{localizeText("Tesouros da tripulação · BERRIES e TON")}</p>
                 </div>
                 <button
                   onClick={() => setMarketTab(marketTab === 'mine' ? 'browse' : 'mine')}
@@ -473,17 +471,17 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                             <button type="button" onClick={() => setDetailsId(listing.id)} className="min-w-0 flex-1 text-left">
                               <p className="truncate text-[11px] font-black" style={{ color: rarityColor(listing.rarity) }}>{listing.name}</p>
                               <p className="truncate text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                                {t(listing.rarity)} · Lv. {listing.level}
+                                {t(listing.rarity)} {localizeText(" · Lv.")}{listing.level}
                               </p>
                               {listing.itemType === 'hero' ? (
-                                <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} · HP {formatCurrency(listing.hp)}</p>
+                                <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} {localizeText(" · HP")}{formatCurrency(listing.hp)}</p>
                               ) : null}
                               <p className="truncate text-[7px] uppercase tracking-[0.14em] text-slate-500">
                                 {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.itemLabel')}
                                 {Number(listing.quantity ?? 1) > 1 ? ` · x${listing.quantity}` : ''}
                               </p>
                               <p className="truncate text-[8px] text-slate-500">{t('market.seller')} <span className="text-slate-300">{listing.seller}</span></p>
-                              <p className="mt-0.5 flex items-center gap-1 text-[7px] font-black uppercase tracking-[0.14em] text-amber-300/80"><Info className="h-2.5 w-2.5" />Ver atributos</p>
+                              <p className="mt-0.5 flex items-center gap-1 text-[7px] font-black uppercase tracking-[0.14em] text-amber-300/80"><Info className="h-2.5 w-2.5" />{localizeText("Ver atributos")}</p>
                             </button>
                             <div className="flex w-[86px] shrink-0 flex-col items-end gap-1">
                               <p className={`text-right text-[11px] font-black leading-tight ${listing.currency === 'TON' ? 'text-sky-300' : 'text-amber-300'}`}>{marketPriceLabel(listing)}</p>

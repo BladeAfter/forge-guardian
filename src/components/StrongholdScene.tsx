@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { type RealmBuilding, type RealmBuildingType } from '../realm';
 import { useT } from '../LanguageContext';
@@ -47,6 +48,8 @@ export default function StrongholdScene({
   now: number;
   onOpen: (id: string) => void;
 }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const box = useRef<HTMLDivElement | null>(null);
   const [cam, setCam] = useState({ x: 0, y: 0, z: 1 });
@@ -198,7 +201,7 @@ export default function StrongholdScene({
 
                 {/* placa discreta, integrada à cena */}
                 <span className={`sh-name ${focused ? 'sh-name-on' : ''}`}>
-                  <b>{t(SHORT_KEY[bt.id] ?? '') || bt.name} <em>Lv.{lvl}</em></b>
+                  <b>{t(SHORT_KEY[bt.id] ?? '') || bt.name} <em>{localizeText("Lv.")}{lvl}</em></b>
                 </span>
               </button>
             );
@@ -212,7 +215,7 @@ export default function StrongholdScene({
 
         <div className="stronghold-hud pointer-events-none absolute left-3 top-3">
           <span className="stronghold-crest">⚜</span>
-          <span>{t('realm.strongholdCap')} <b className="text-amber-100">Lv.{level}</b></span>
+          <span>{t('realm.strongholdCap')} <b className="text-amber-100">{localizeText("Lv.")}{level}</b></span>
         </div>
         <button
           onClick={() => { setCam({ x: 0, y: 0, z: 1 }); setFocus(null); }}

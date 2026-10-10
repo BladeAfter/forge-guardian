@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -79,6 +80,8 @@ function FusionHeroCard({
 }
 
 export function HeroRarityFusion({ telegramInitData, data, active = true }: { telegramInitData: string; data: RarityFusionDashboard; active?: boolean }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
@@ -265,7 +268,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
             <>{t('fusion.selectN', { count: required })}</>
           )}
         </p>
-        <p className="text-[9px] text-fuchsia-200/80">MYTH disponível: {fmt(mythAvailable)}</p>
+        <p className="text-[9px] text-fuchsia-200/80">{localizeText("MYTH disponível:")}{fmt(mythAvailable)}</p>
         <button
           disabled={!complete || notEnoughFc || !fusionEnabled || phase === 'fusing'}
           onClick={() => setConfirming(true)}
@@ -378,7 +381,7 @@ export function HeroRarityFusion({ telegramInitData, data, active = true }: { te
                 <p className="text-lg font-black text-amber-200">{t('fusion.universalFragments', { count: fmt(result.fragments) })}</p>
               </>
             )}
-            <p className="mt-2 text-[10px] text-fuchsia-200/80">MYTH restante: {fmt(Number(result.mythBalance ?? result.dashboard?.mythAvailable ?? 0))}</p>
+            <p className="mt-2 text-[10px] text-fuchsia-200/80">{localizeText("MYTH restante:")}{fmt(Number(result.mythBalance ?? result.dashboard?.mythAvailable ?? 0))}</p>
             <button onClick={() => { setPhase('idle'); setResult(null); }} className="mt-3 min-h-[44px] w-full rounded-xl border border-amber-300/50 bg-amber-300/20 text-[11px] font-black uppercase text-amber-100">
               {t('common.continue')}
             </button>

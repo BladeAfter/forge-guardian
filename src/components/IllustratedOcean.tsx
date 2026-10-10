@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
 import { grandLineArt, navalArt } from '../gameAssets';
 import { SEA_CHUNK, SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
@@ -11,6 +12,8 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, onSai
   pose: MutableRefObject<Pose>; network: MutableRefObject<NavalState | null>; wide: MutableRefObject<boolean>;
   canvasRef: RefObject<HTMLCanvasElement>; onSail: (point: SeaPoint) => void; onSelect: (id: string) => void;
 }) {
+  const localizeText = useLocalizedText();
+
   useEffect(() => {
     const canvas = canvasRef.current, ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !ctx) return;
@@ -52,7 +55,7 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, onSai
     frame = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); ocean.onload = null; };
   }, [canvasRef, network, pose, wide]);
-  return <canvas ref={canvasRef} role="img" aria-label="Oceano da Grand Line" data-renderer="illustrated-2d" onClick={event => {
+  return <canvas ref={canvasRef} role="img" aria-label={localizeText("Oceano da Grand Line")} data-renderer="illustrated-2d" onClick={event => {
     const canvas = event.currentTarget, rect = canvas.getBoundingClientRect(), s = pose.current;
     const point = { x: s.camera.x + (event.clientX - rect.left - rect.width / 2) / s.scale, y: s.camera.y + (event.clientY - rect.top - rect.height * .58) / s.scale };
     const other = network.current?.others.find(ship => Math.hypot(ship.x - point.x, ship.y - point.y) < 100);

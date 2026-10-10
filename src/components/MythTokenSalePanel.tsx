@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -18,6 +19,8 @@ import { abbreviateMyth, mythCostTon, mythFull, mythIntentCountdown, type MythSa
  * The supply is reserved by the server during the TonConnect checkout, so no oversell is possible.
  */
 export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: string }) {
+  const localizeText = useLocalizedText();
+
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
   const { data, isLoading, error, refetch } = useMythSale(telegramInitData, true);
@@ -88,8 +91,8 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
   if (isLoading) return <div className="space-y-3 pt-6">{[1, 2, 3].map(x => <div key={x} className="h-28 animate-pulse rounded-3xl bg-white/5" />)}</div>;
   if (error || !data || !stats) return (
     <div className="py-20 text-center">
-      <p className="text-rose-300">Unable to load the MYTH sale.</p>
-      <button onClick={() => void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3 text-xs font-black">RETRY</button>
+      <p className="text-rose-300">{localizeText("Unable to load the MYTH sale.")}</p>
+      <button onClick={() => void refetch()} className="mt-4 rounded-xl border border-amber-300/30 px-5 py-3 text-xs font-black">{localizeText("RETRY")}</button>
     </div>
   );
 
@@ -100,7 +103,7 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[.35em] text-amber-300">{stats.name}</p>
             <h2 className="text-3xl font-black text-amber-100">{abbreviateMyth(stats.effectiveSupply)} {stats.symbol}</h2>
-            <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">Total supply · {mythFull(stats.initialSupply)}</p>
+            <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">{localizeText("Total supply · ")}{mythFull(stats.initialSupply)}</p>
           </div>
           <Coins className="h-12 w-12 animate-pulse text-amber-300" />
         </div>
@@ -116,35 +119,35 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
 
         <div className="mt-4">
           <div className="flex justify-between text-[9px] uppercase tracking-[.2em] text-slate-400">
-            <span>Sold progress</span><b className="text-amber-200">{stats.soldPercent.toFixed(2)}%</b>
+            <span>{localizeText("Sold progress")}</span><b className="text-amber-200">{stats.soldPercent.toFixed(2)}%</b>
           </div>
           <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-white/10">
             <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-200 transition-all" style={{ width: `${Math.min(100, stats.soldPercent)}%` }} />
           </div>
-          {stats.reserved > 0 && <p className="mt-1 text-[9px] text-slate-500">{mythFull(stats.reserved)} {stats.symbol} reserved in open checkouts.</p>}
+          {stats.reserved > 0 && <p className="mt-1 text-[9px] text-slate-500">{mythFull(stats.reserved)} {stats.symbol} {localizeText("reserved in open checkouts.")}</p>}
         </div>
       </section>
 
       <section className="mt-3 rounded-3xl border border-rose-400/30 bg-gradient-to-br from-rose-950/40 to-black p-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2"><Flame className="h-5 w-5 text-rose-300" /><b className="text-xs font-black uppercase tracking-[.2em] text-rose-200">Burn</b></div>
+          <div className="flex items-center gap-2"><Flame className="h-5 w-5 text-rose-300" /><b className="text-xs font-black uppercase tracking-[.2em] text-rose-200">{localizeText("Burn")}</b></div>
           <b className="text-lg font-black text-rose-200">{stats.burnedPercent.toFixed(2)}%</b>
         </div>
-        <p className="mt-1 text-[10px] text-slate-400">{mythFull(stats.burned)} {stats.symbol} permanently removed from the supply.</p>
+        <p className="mt-1 text-[10px] text-slate-400">{mythFull(stats.burned)} {stats.symbol} {localizeText("permanently removed from the supply.")}</p>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full bg-gradient-to-r from-rose-600 to-orange-300" style={{ width: `${Math.min(100, stats.burnedPercent)}%` }} /></div>
       </section>
 
       {intent && !countdown.expired ? (
         <section className="mt-3 rounded-3xl border border-cyan-300/35 bg-black/60 p-4">
-          <b className="text-xs font-black uppercase tracking-[.2em] text-cyan-200">Checkout open</b>
-          <p className="mt-1 text-[11px] text-slate-300">{mythFull(intent.mythAmount)} {stats.symbol} for {formatTon(intent.amountTon)} TON — supply reserved for {countdown.minutes}m {String(countdown.seconds).padStart(2, '0')}s.</p>
-          <button onClick={() => void reconcile()} className="mt-3 w-full rounded-xl border border-cyan-300/35 bg-cyan-500/10 py-3 text-[11px] font-black uppercase tracking-[.2em] text-cyan-100">I already paid — verify now</button>
+          <b className="text-xs font-black uppercase tracking-[.2em] text-cyan-200">{localizeText("Checkout open")}</b>
+          <p className="mt-1 text-[11px] text-slate-300">{mythFull(intent.mythAmount)} {stats.symbol} for {formatTon(intent.amountTon)} {localizeText("TON — supply reserved for ")}{countdown.minutes}m {String(countdown.seconds).padStart(2, '0')}s.</p>
+          <button onClick={() => void reconcile()} className="mt-3 w-full rounded-xl border border-cyan-300/35 bg-cyan-500/10 py-3 text-[11px] font-black uppercase tracking-[.2em] text-cyan-100">{localizeText("I already paid — verify now")}</button>
         </section>
       ) : null}
 
       <section className="mt-3 rounded-3xl border border-white/10 bg-black/60 p-4">
-        <b className="text-xs font-black uppercase tracking-[.2em] text-amber-200">Buy {stats.symbol}</b>
-        {!saleActive && <p className="mt-2 rounded-xl border border-amber-300/20 bg-amber-950/30 p-3 text-[11px] text-amber-200">The sale is currently {stats.saleStatus}. Purchases are disabled.</p>}
+        <b className="text-xs font-black uppercase tracking-[.2em] text-amber-200">{localizeText("Buy ")}{stats.symbol}</b>
+        {!saleActive && <p className="mt-2 rounded-xl border border-amber-300/20 bg-amber-950/30 p-3 text-[11px] text-amber-200">{localizeText("The sale is currently ")}{stats.saleStatus}{localizeText(". Purchases are disabled.")}</p>}
         <input
           value={amountText}
           onChange={e => setAmountText(e.target.value.replace(/[^\d]/g, ''))}
@@ -160,16 +163,16 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
           ))}
         </div>
         <div className="mt-3 flex items-center justify-between text-[11px]">
-          <span className="text-slate-400">Cost</span><b className="text-amber-200">{formatTon(cost)} TON</b>
+          <span className="text-slate-400">{localizeText("Cost")}</span><b className="text-amber-200">{formatTon(cost)} TON</b>
         </div>
         <div className="mt-1 flex items-center justify-between text-[11px]">
-          <span className="text-slate-400">Internal TON balance</span><b className={payWithInternal ? 'text-emerald-300' : 'text-slate-300'}>{formatTon(internalTon)} TON</b>
+          <span className="text-slate-400">{localizeText("Internal TON balance")}</span><b className={payWithInternal ? 'text-emerald-300' : 'text-slate-300'}>{formatTon(internalTon)} TON</b>
         </div>
         <p className="mt-2 flex items-start gap-1.5 text-[10px] text-slate-400">
           {payWithInternal ? <Wallet className="mt-[1px] h-3.5 w-3.5 shrink-0 text-emerald-300" /> : <ShieldCheck className="mt-[1px] h-3.5 w-3.5 shrink-0 text-cyan-300" />}
           {payWithInternal
-            ? 'Paying 100% with your internal TON balance — instant credit.'
-            : 'Internal balance does not cover the full amount: the whole payment is charged to your external TON wallet.'}
+            ? localizeText("Paying 100% with your internal TON balance — instant credit.")
+            : localizeText("Internal balance does not cover the full amount: the whole payment is charged to your external TON wallet.")}
         </p>
         <button
           disabled={!saleActive || buy.isPending || amount < stats.minPurchase || amount > stats.available}
@@ -178,7 +181,7 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
         >
           {buy.isPending ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : payWithInternal ? 'Buy with internal TON' : 'Buy with TON wallet'}
         </button>
-        {amount > stats.available && <p className="mt-2 text-[10px] text-rose-300">Only {mythFull(stats.available)} {stats.symbol} available right now.</p>}
+        {amount > stats.available && <p className="mt-2 text-[10px] text-rose-300">{localizeText("Only ")}{mythFull(stats.available)} {stats.symbol} {localizeText("available right now.")}</p>}
       </section>
 
       <History data={data} />
@@ -197,18 +200,20 @@ function Cell({ label, value, tone }: { label: string; value: string; tone?: 'ro
 }
 
 function History({ data }: { data: MythSaleDashboard }) {
+  const localizeText = useLocalizedText();
+
   const symbol = data.stats.symbol;
   return (
     <>
       {data.purchases.length > 0 && (
         <section className="mt-4">
-          <h3 className="mb-2 text-[10px] font-black uppercase tracking-[.2em] text-amber-200">Your purchases</h3>
+          <h3 className="mb-2 text-[10px] font-black uppercase tracking-[.2em] text-amber-200">{localizeText("Your purchases")}</h3>
           <div className="space-y-2">
             {data.purchases.map(row => (
               <div key={row.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/55 p-3">
                 <div>
                   <b className="text-xs text-white">{mythFull(row.mythAmount)} {symbol}</b>
-                  <p className="text-[9px] text-slate-400">{row.method === 'INTERNAL' ? 'Internal TON' : 'TON wallet'} · {new Date(row.createdAt).toLocaleDateString()}</p>
+                  <p className="text-[9px] text-slate-400">{row.method === 'INTERNAL' ? localizeText("Internal TON") : localizeText("TON wallet")} · {new Date(row.createdAt).toLocaleDateString()}</p>
                 </div>
                 <b className="text-[11px] text-cyan-300">{formatTon(row.amountTon)} TON</b>
               </div>
@@ -218,7 +223,7 @@ function History({ data }: { data: MythSaleDashboard }) {
       )}
       {data.burns.length > 0 && (
         <section className="mt-4">
-          <h3 className="mb-2 text-[10px] font-black uppercase tracking-[.2em] text-rose-200">Burn history</h3>
+          <h3 className="mb-2 text-[10px] font-black uppercase tracking-[.2em] text-rose-200">{localizeText("Burn history")}</h3>
           <div className="space-y-2">
             {data.burns.map(row => (
               <div key={row.id} className="flex items-center justify-between rounded-2xl border border-rose-400/20 bg-black/55 p-3">

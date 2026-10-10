@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { grandLineArt } from '../gameAssets';
 import { SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
@@ -12,6 +13,8 @@ export default function NavalMiniMap({ pose, network }: {
   pose: MutableRefObject<{ position: SeaPoint; heading: number }>;
   network: MutableRefObject<NavalState | null>;
 }) {
+  const localizeText = useLocalizedText();
+
   const ref = useRef<HTMLCanvasElement>(null);
   const [expanded, setExpanded] = useState(false);
   useEffect(() => {
@@ -68,11 +71,11 @@ export default function NavalMiniMap({ pose, network }: {
     draw();const timer=window.setInterval(draw,200);
     return () => { window.clearInterval(timer);atlas.onload=null; };
   }, [pose, network, expanded]);
-  return <aside className={`naval-minimap ${expanded ? 'naval-minimap-expanded' : ''}`} aria-label="Carta náutica local">
-    <OceanControl className="naval-minimap-toggle" onClick={() => setExpanded(value=>!value)} aria-label={expanded?'Reduzir carta náutica':'Ampliar carta náutica'} aria-expanded={expanded} title={expanded?'Reduzir carta náutica':'Ampliar carta náutica'}>
-      <canvas ref={ref} width={256} height={256} role="img" aria-label="Mapa das ilhas e navios próximos" />
+  return <aside className={`naval-minimap ${expanded ? 'naval-minimap-expanded' : ''}`} aria-label={localizeText("Carta náutica local")}>
+    <OceanControl className="naval-minimap-toggle" onClick={() => setExpanded(value=>!value)} aria-label={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")} aria-expanded={expanded} title={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")}>
+      <canvas ref={ref} width={256} height={256} role="img" aria-label={localizeText("Mapa das ilhas e navios próximos")} />
       <span className="naval-map-n">N</span><span className="naval-map-e">L</span><span className="naval-map-s">S</span><span className="naval-map-w">O</span>
     </OceanControl>
-    <span className="naval-map-caption">GRAND LINE</span>
+    <span className="naval-map-caption">{localizeText("GRAND LINE")}</span>
   </aside>;
 }

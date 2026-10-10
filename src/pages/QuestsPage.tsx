@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -28,6 +29,8 @@ const QUEST_ART: Record<string, string> = {
 const questArt = (quest: DailyQuest) => QUEST_ART[quest.icon ?? ''] ?? missionIcons[0];
 
 export function QuestsPage({ telegramInitData, dashboard, loading, error }: QuestsPageProps) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const { tError } = useLanguage();
   const queryClient = useQueryClient();
@@ -106,7 +109,7 @@ export function QuestsPage({ telegramInitData, dashboard, loading, error }: Ques
 
         {/* 5/5 bonus: the chest and its odds are resolved server-side; CLAIM only unlocks at 5/5. */}
         <div className={`mt-3 flex items-center gap-3 rounded-2xl border p-3 ${chestUnlocked && !chestClaimed ? 'border-amber-300/60 bg-amber-400/10' : 'border-white/10 bg-white/[.03]'}`}>
-          <img src={chests[0]} alt="Daily quest chest" className="h-11 w-11 object-contain" />
+          <img src={chests[0]} alt={localizeText("Daily quest chest")} className="h-11 w-11 object-contain" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-black uppercase tracking-[0.16em] text-amber-200">{t('quests.chestTitle')}</p>
             <p className="text-[10px] text-slate-400">

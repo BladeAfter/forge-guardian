@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -13,6 +14,8 @@ import { formatCurrency } from '../utils';
  * in-game profile name is never used as proof.
  */
 export function NameMissionCard({ telegramInitData }: { telegramInitData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [howTo, setHowTo] = useState(false);
@@ -105,7 +108,7 @@ export function NameMissionCard({ telegramInitData }: { telegramInitData: string
           <div className="w-full max-w-[360px] rounded-3xl border border-sky-300/30 bg-gradient-to-b from-[#0d1626] to-black p-4">
             <header className="flex items-center justify-between">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">{t('nameMission.stepsTitle')}</p>
-              <button type="button" onClick={() => setHowTo(false)} aria-label="close" className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300">
+              <button type="button" onClick={() => setHowTo(false)} aria-label={localizeText("close")} className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300">
                 <X className="h-3.5 w-3.5" />
               </button>
             </header>

@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import type { GameState, LanguageStrings } from '../types';
 import { Sparkles } from 'lucide-react';
 import { formatCurrency } from '../utils';
@@ -13,6 +14,8 @@ type VillagePageProps = {
 };
 
 export function VillagePage({ game, onUpgrade, lang, telegramInitData }: VillagePageProps) {
+  const localizeText = useLocalizedText();
+
   return (
     <section className="space-y-4">
 
@@ -34,7 +37,7 @@ export function VillagePage({ game, onUpgrade, lang, telegramInitData }: Village
                   <h4 className="text-sm font-semibold">{building.name}</h4>
                   <p className="text-[12px] text-slate-400">{lang.levelLabel}: {building.level}</p>
                 </div>
-                <div className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">{building.productionPerHour} BERRIES/h</div>
+                <div className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-200">{building.productionPerHour} {localizeText("BERRIES/h")}</div>
               </div>
               <div className="relative mt-3 flex flex-col gap-2 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
                 <span>{lang.storage}: {formatCurrency(building.storage)} BERRIES</span>

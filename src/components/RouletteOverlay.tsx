@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -78,6 +79,8 @@ const rewardTitle = (result: RewardLike) => {
 
 
 export function RouletteOverlay({ telegramInitData, onClose }: Props) {
+  const localizeText = useLocalizedText();
+
   const queryClient = useQueryClient();
   const [tonUI] = useTonConnectUI();
   const [spinning, setSpinning] = useState(false);
@@ -216,13 +219,12 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           <div className="min-w-0">
             <p className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">Mythic Seas</p>
             <h1 className="truncate text-base font-black uppercase tracking-[0.14em] text-sky-100">
-              Global Mystery Roulette
-            </h1>
+              {localizeText("Global Mystery Roulette ")}</h1>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={localizeText("Fechar")}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-300/30 bg-black/50 text-amber-200"
           >
             <X className="h-4 w-4" />
@@ -248,7 +250,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
         {/* SPIN AREA — minimal */}
         <div className="mt-3 w-full">
           <p className="mb-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-            Balance: <span className="text-sky-200">{balanceLabel}</span>
+            {localizeText("Balance: ")}<span className="text-sky-200">{balanceLabel}</span>
           </p>
           <button
             type="button"
@@ -257,7 +259,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-400 to-amber-300 py-3 text-[13px] font-black uppercase tracking-[0.16em] text-[#1b1204] disabled:opacity-50"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : usesWallet ? <Wallet className="h-4 w-4" /> : <Sparkle className="h-4 w-4" />}
-            {blocked ? 'INDISPONÍVEL' : busy ? 'GIRANDO...' : `SPIN • ${cost} TON`}
+            {blocked ? localizeText("INDISPONÍVEL") : busy ? 'GIRANDO...' : `SPIN • ${cost} TON`}
           </button>
           {history.length ? (
             (() => {
@@ -266,7 +268,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
                 <div className="mt-2 flex items-center justify-center gap-1.5">
                   <RewardMedallion category={last} size={20} onClick={() => setPreview(last)} />
                   <span className={`truncate text-[9px] font-black uppercase tracking-[0.14em] ${last.text}`}>
-                    Último: {rewardTitle(history[0])}
+                    {localizeText("Último: ")}{rewardTitle(history[0])}
                   </span>
                 </div>
               );
@@ -296,14 +298,14 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
       {confirmOpen ? (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 px-6">
           <div className="w-full max-w-[280px] rounded-2xl border border-amber-300/30 bg-[#080c16] p-4 text-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">Spin roulette?</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">{localizeText("Spin roulette?")}</p>
             <div className="mt-3 space-y-1 text-[11px]">
               <div className="flex items-center justify-between text-slate-400">
-                <span className="uppercase tracking-[0.12em]">Cost</span>
+                <span className="uppercase tracking-[0.12em]">{localizeText("Cost")}</span>
                 <span className="font-black text-sky-100">💎 {cost} TON</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span className="uppercase tracking-[0.12em]">Balance</span>
+                <span className="uppercase tracking-[0.12em]">{localizeText("Balance")}</span>
                 <span className="font-black text-sky-100">💎 {balanceLabel}</span>
               </div>
             </div>
@@ -313,15 +315,13 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
                 onClick={() => setConfirmOpen(false)}
                 className="flex-1 rounded-xl border border-white/10 bg-white/5 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-300"
               >
-                Cancel
-              </button>
+                {localizeText("Cancel")}</button>
               <button
                 type="button"
                 onClick={() => { setConfirmOpen(false); void spin(); }}
                 className="flex-1 rounded-xl bg-gradient-to-r from-amber-400 to-amber-300 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#1b1204]"
               >
-                Confirm
-              </button>
+                {localizeText("Confirm")}</button>
             </div>
           </div>
         </div>

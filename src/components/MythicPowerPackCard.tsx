@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -21,6 +22,8 @@ const int = (value: number) => Math.round(Number(value || 0)).toLocaleString('pt
  * TonConnect caso contrário — nunca combinado. Nenhum valor é calculado no cliente.
  */
 export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: string }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const client = useQueryClient();
   const [tonConnectUI] = useTonConnectUI();
@@ -104,7 +107,7 @@ export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: st
       onClick={() => setOpen(true)}
       className="relative w-full overflow-hidden rounded-3xl border border-fuchsia-300/40 bg-forge-black/80 p-4 text-left shadow-card"
     >
-      <img src={packArt} alt="Mythic Seas 20 TON Mythic Pack" loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+      <img src={packArt} alt={localizeText("Mythic Seas 20 TON Mythic Pack")} loading="lazy" width={1024} height={1024} className="absolute inset-0 h-full w-full object-cover opacity-40" />
       <div className="relative">
         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-fuchsia-200">
           <Zap className="h-3 w-3" /> ⚡ {t('mpp.badge')}
@@ -141,7 +144,7 @@ export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: st
             <h2 className="text-lg font-black leading-tight text-white drop-shadow-[0_0_12px_rgba(217,70,239,0.4)]">{t('mpp.title')}</h2>
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{t('mpp.unlimited')}</p>
           </div>
-          <button onClick={() => { setOpen(false); setConfirming(false); }} aria-label="Fechar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-black/60">
+          <button onClick={() => { setOpen(false); setConfirming(false); }} aria-label={localizeText("Fechar")} className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-black/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -154,8 +157,7 @@ export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: st
 
           <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
             <p className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.18em] text-fuchsia-200">
-              <Sparkles className="h-3 w-3" /> REWARDS
-            </p>
+              <Sparkles className="h-3 w-3" /> {localizeText("REWARDS ")}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-slate-200">{rewards.join(' · ')}</p>
           </div>
 

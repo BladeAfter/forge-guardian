@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -37,6 +38,8 @@ const initialsOf = (name: string) =>
  * the destination is fetched on GO so the link stays server-side.
  */
 export function PartnersModal({ telegramInitData, onClose }: { telegramInitData: string; onClose: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<string | null>(null);
@@ -101,7 +104,7 @@ export function PartnersModal({ telegramInitData, onClose }: { telegramInitData:
           </div>
           <button
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={localizeText("Fechar")}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition active:scale-90"
           >
             <X className="h-3.5 w-3.5" />

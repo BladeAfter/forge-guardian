@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { memo, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -78,6 +79,8 @@ const ItemSlot = memo(function ItemSlot({ item, onSelect }: { item: InventoryIte
 });
 
 export function InventoryPanel({ telegramInitData, active, onViewFusion }: { telegramInitData: string; active: boolean; onViewFusion?: () => void }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const itemName = useItemName();
   const queryClient = useQueryClient();
@@ -275,7 +278,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 </div>
                 <ItemArt item={selected} size="modal" />
                 <p className="text-[11px] text-slate-300">{t('inventory.quantity')}: <b className="text-white">{selected.quantity}</b></p>
-                <p className="text-[10px] text-slate-400">{selected.category === 'eggs' || selected.itemType.includes('egg') ? 'Baú Misterioso de mascotes' : selected.description}</p>
+                <p className="text-[10px] text-slate-400">{selected.category === 'eggs' || selected.itemType.includes('egg') ? localizeText("Baú Misterioso de mascotes") : selected.description}</p>
                 {selected.rarity ? <p className="mt-1 text-[10px] font-black uppercase" style={{ color: RARITY_BORDER[selected.rarity] ?? '#94a3b8' }}>{selected.rarity}</p> : null}
                 {(selected.itemType === 'key_chest' || selected.action === 'open-key-chest') && selected.instanceId ? (
                   <div className="mt-3 space-y-2">
@@ -409,7 +412,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                       {selected.slot} · {selected.kind}
                       {selected.heroClass ? ` · ${selected.heroClass}` : ''}
                     </p>
-                    <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> · DEF <b className="text-white">+{selected.bonusDefense ?? 0}</b> · HP <b className="text-white">+{selected.bonusHp ?? 0}</b></p>
+                    <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> {localizeText("· DEF ")}<b className="text-white">+{selected.bonusDefense ?? 0}</b> {localizeText("· HP ")}<b className="text-white">+{selected.bonusHp ?? 0}</b></p>
                     <p className={selected.equipped ? 'font-black uppercase tracking-[.12em] text-amber-300' : 'font-black uppercase tracking-[.12em] text-emerald-300'}>
                       {selected.equipped ? `🔒 EQUIPPED${selected.equippedHeroName ? ` · ${selected.equippedHeroName}` : ''}` : selected.listed ? '🔒 LISTED' : 'AVAILABLE'}
                     </p>
@@ -469,15 +472,15 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
         ? createPortal(
             <div className="fixed inset-0 z-[130] grid place-items-center bg-black/85 p-4" onClick={() => setLegendReward(null)}>
               <div className="w-full max-w-[300px] rounded-2xl border border-amber-300/40 bg-[#080c14] p-4 text-center" onClick={(event) => event.stopPropagation()}>
-                <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-300/80">BAÚ LENDÁRIO</p>
+                <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-300/80">{localizeText("BAÚ LENDÁRIO")}</p>
                 {legendReward.imageUrl ? (
                   <img src={legendReward.imageUrl} alt={legendReward.name} className="mx-auto my-3 h-28 w-28 animate-[pulse_1.2s_ease-in-out_2] rounded-xl border border-amber-300/40 object-contain" />
                 ) : null}
                 <p className="text-[10px] font-black uppercase tracking-[.2em]" style={{ color: RARITY_BORDER[legendReward.rarity] ?? '#fbbf24' }}>{legendReward.rarity}</p>
                 <b className="block text-sm font-black text-amber-200">{legendReward.name}</b>
                 <p className="mt-1 text-[10px] uppercase tracking-[.12em] text-slate-400">{legendReward.slot}{legendReward.kind ? ` · ${legendReward.kind}` : ''}</p>
-                <p className="mt-1 text-[10px] text-slate-300">ATK +{legendReward.bonusAttack ?? 0} · DEF +{legendReward.bonusDefense ?? 0} · HP +{legendReward.bonusHp ?? 0}</p>
-                <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">⚔ ARSENAL</p>
+                <p className="mt-1 text-[10px] text-slate-300">{localizeText("ATK +")}{legendReward.bonusAttack ?? 0} {localizeText("· DEF +")}{legendReward.bonusDefense ?? 0} {localizeText("· HP +")}{legendReward.bonusHp ?? 0}</p>
+                <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">{localizeText("⚔ ARSENAL")}</p>
                 <button onClick={() => setLegendReward(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
                   {t('inventory.close')}
                 </button>
@@ -498,7 +501,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 ) : null}
                 <p className="text-[10px] font-black uppercase tracking-[.2em]" style={{ color: RARITY_BORDER[summoned.hero.rarity] ?? '#94a3b8' }}>{summoned.hero.rarity}</p>
                 <b className="block text-sm font-black text-amber-200">{summoned.hero.name}</b>
-                <p className="mt-1 text-[10px] text-slate-300">ATK {summoned.hero.finalAtk} · HP {summoned.hero.finalHp}</p>
+                <p className="mt-1 text-[10px] text-slate-300">ATK {summoned.hero.finalAtk} {localizeText("· HP ")}{summoned.hero.finalHp}</p>
                 <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">{t('inventory.addedToCollection')}</p>
                 <button onClick={() => setSummoned(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
                   {t('inventory.close')}

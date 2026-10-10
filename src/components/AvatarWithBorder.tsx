@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import avatarBorderMyth from '../assets/avatar-border-myth.png.asset.json';
 import avatarBorderFounder from '../assets/avatar-border-founder.png.asset.json';
@@ -29,6 +30,8 @@ export function AvatarWithBorder({
   size?: number;
   className?: string;
 }) {
+  const localizeText = useLocalizedText();
+
   const [failed, setFailed] = useState(false);
   useEffect(() => setFailed(false), [photoUrl]);
   const ring = avatarBorderUrl(border);
@@ -39,7 +42,7 @@ export function AvatarWithBorder({
     return <div className={`shrink-0 ${className}`} style={{ width: size, height: size }}>{inner}</div>;
   }
   return (
-    <div className={`relative grid shrink-0 place-items-center ${className}`} style={{ width: size, height: size }} title="Exclusive Avatar Border">
+    <div className={`relative grid shrink-0 place-items-center ${className}`} style={{ width: size, height: size }} title={localizeText("Exclusive Avatar Border")}>
       <div className="grid place-items-center" style={{ width: '72%', height: '72%' }}>{inner}</div>
       <img src={ring} alt="" loading="lazy" className="pointer-events-none absolute inset-0 h-full w-full object-contain" />
     </div>

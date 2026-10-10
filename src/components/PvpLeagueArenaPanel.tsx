@@ -1,3 +1,4 @@
+import { useLocalizedText } from '../LanguageContext';
 import { useState } from 'react';
 import { BookOpen, Clock3, Shield, Swords, Trophy, Users } from 'lucide-react';
 import { useT } from '../LanguageContext';
@@ -14,6 +15,8 @@ const estTon = (value: number) => `${formatTon(Math.round((Number(value) || 0) *
  * Fully read-only — the event score is written by the PvP engine on the server.
  */
 export function PvpLeagueArenaPanel({ data }: { data: PvpLeagueDashboard }) {
+  const localizeText = useLocalizedText();
+
   const t = useT();
   const [full, setFull] = useState(false);
   const [rules, setRules] = useState(false);
@@ -108,7 +111,7 @@ export function PvpLeagueArenaPanel({ data }: { data: PvpLeagueDashboard }) {
                 {r.score.toLocaleString()} {t('league.points')} · {r.wins}W
               </p>
             </div>
-            <b className={`text-[10px] ${r.rewardTon > 0 ? 'text-cyan-300' : 'text-slate-500'}`}>{r.rewardTon > 0 ? estTon(r.rewardTon) : '0 TON'}</b>
+            <b className={`text-[10px] ${r.rewardTon > 0 ? 'text-cyan-300' : 'text-slate-500'}`}>{r.rewardTon > 0 ? estTon(r.rewardTon) : localizeText("0 TON")}</b>
           </div>
         ))}
         {data.ranking.length > 10 && (
