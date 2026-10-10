@@ -13,7 +13,9 @@ export async function deliverFirstTutorial(reply: Reply, updateId: number, store
   if (!await store.claim(chatId, updateId)) return false;
   try {
     const result = await send({ chat_id: chatId, video: tutorial.video, supports_streaming: true,
-      caption: tutorialCaption(tutorial.language), reply_markup: reply.reply_markup });
+      caption: tutorialCaption(tutorial.language), reply_markup: { inline_keyboard: [[{
+        text: '▶ Mythic Seas', web_app: reply.reply_markup.inline_keyboard[0][0].web_app,
+      }]] } });
     await store.finish(chatId, result.ok ? 'sent' : 'failed', result.result?.message_id);
   } catch { await store.finish(chatId, 'review'); }
   return true;

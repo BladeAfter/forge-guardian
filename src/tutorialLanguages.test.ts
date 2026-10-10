@@ -14,6 +14,12 @@ describe('Telegram tutorial language', () => {
   it('defaults missing Telegram language to English', () => {
     expect(languageFromUpdate({ message: { from: {} } })).toBe('en');
   });
+  it('uses the Portuguese video for Brazilian and Portuguese Telegram locales', () => {
+    const original = tutorialForLanguage('pt');
+    expect(original?.video).toBeTruthy();
+    expect(tutorialForLanguage('pt-BR')).toEqual(original);
+    expect(tutorialForLanguage('pt-PT')).toEqual(original);
+  });
   it('never substitutes Portuguese or claims a missing-language delivery', async () => {
     const reply = welcomeReply({ update_id: 1, message: { text: '/start', chat: { id: 42, type: 'private' }, from: { id: 42 } } });
     if (!reply) throw new Error('Expected start');
