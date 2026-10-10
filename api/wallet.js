@@ -1,3 +1,4 @@
+import { legacyLaunchGate } from './telegram/launchGate.js';
 import { createHmac, timingSafeEqual, randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
@@ -18,6 +19,8 @@ function authenticate(initData) {
 const isUuid = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
 export default async function handler(req, res) {
+  if (legacyLaunchGate(req,res)) return;
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
   try {
     const user = authenticate(typeof req.body?.initData === 'string' ? req.body.initData : '');

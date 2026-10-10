@@ -2,6 +2,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { welcomeReply } from './format.ts';
 import { deliverFirstTutorial } from './tutorial.ts';
+import { launchInviter } from '../_shared/launch.ts';
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 async function webhookSecret(token: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mythic-seas-game-webhook:${token}`));
@@ -29,6 +30,9 @@ Deno.serve(async req => {
     const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!url || !key) return json({ error: 'configuration_missing' }, 503);
     const db = createClient(url, key);
+    const inviter = launchInviter(update.message?.text?.trim().split(/\s+/)[1]);
+    const registration = await db.rpc('register_launch_player', { p_telegram_id: reply.chat_id, p_name: update.message?.from?.first_name ?? 'Captain', p_inviter: inviter, p_verified: false });
+    if (registration.error) throw new Error('launch_registration_failed');
     const handled = await deliverFirstTutorial(reply, update.update_id, {
       claim: async (chatId, updateId) => {
         const { error } = await db.from('game_bot_tutorial_deliveries').insert({ chat_id: chatId, update_id: updateId });

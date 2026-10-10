@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { launchStatus } from '../_shared/launch.ts';
 
 /**
  * AdsGram server-side Reward URL.
@@ -19,6 +20,7 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   try {
+    if (!launchStatus().released) return json({ ok: false, error: 'GAME_NOT_LAUNCHED' }, 423);
     const url = new URL(req.url);
     // Fail closed: without a configured secret nobody can trigger a payout.
     const expected = String(Deno.env.get('ADSGRAM_REWARD_SECRET') || '').trim();

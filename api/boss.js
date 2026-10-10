@@ -1,3 +1,4 @@
+import { legacyLaunchGate } from './telegram/launchGate.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 
@@ -14,6 +15,8 @@ function telegramUser(initData) {
 }
 
 export default async function handler(req,res) {
+  if (legacyLaunchGate(req,res)) return;
+
   if (req.method !== 'POST') return res.status(405).json({error:'Method not allowed.'});
   try {
     const user = telegramUser(typeof req.body?.initData === 'string' ? req.body.initData : '');

@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
 import { confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
+import { launchStatus, launchInviter, mobileTelegramClient } from '../_shared/launch.ts';
 
 type TelegramUser = {
   id: number;
@@ -2061,8 +2062,7 @@ async function handleReferral(db: Db, user: TelegramUser, body: Record<string, a
   const limit = Math.min(20, Math.max(1, Number(body.limit) || 20));
   const dashboard = await rpc(db, 'get_referral_dashboard_v2', { p_telegram_id: user.id, p_level: level, p_offset: offset, p_limit: limit }) as Record<string, unknown>;
   const identity = await botIdentity();
-  const route = identity.appShortName ? `${identity.botUsername}/${identity.appShortName}` : identity.botUsername;
-  const link = `https://t.me/${route}?startapp=${user.id}`;
+  const link = `https://t.me/MythicSeasbot?start=ref_${user.id}`;
   return { ...dashboard, ...identity, telegramId: user.id, link, referralLink: link };
 }
 
@@ -3371,6 +3371,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const feature = new URL(req.url).pathname.split('/').filter(Boolean).pop() || '';
+  if (feature === 'launch-time') return new Response(JSON.stringify(launchStatus()), { headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
   // Public, secret-free diagnostics endpoint. No initData required.
   if (feature === 'health') {
     const report = await healthReport();
@@ -3385,6 +3386,7 @@ Deno.serve(async (req) => {
     const initData = readInitData(req, probeBody);
     try {
       const { user, authDate, ageSeconds } = await validateTelegramInitData(initData);
+      if (!mobileTelegramClient(probeBody.platform, req.headers.get('user-agent') ?? '')) return json({ ok: false, error: 'Open on Telegram mobile.', code: 'MOBILE_TELEGRAM_REQUIRED' }, 403);
       return json({ ok: true, telegramId: user.id, username: user.username ?? null, authDate, ageSeconds, botUsername: await botUsername(gameBotToken()) });
     } catch (error) {
       const reason = error instanceof TelegramAuthError ? error.reason : 'unknown';
@@ -3395,7 +3397,7 @@ Deno.serve(async (req) => {
   }
 
   const handler = handlers[feature];
-  if (!handler) return json({ error: `Recurso desconhecido: ${feature}` }, 404);
+  if (!handler && feature !== 'launch') return json({ error: `Recurso desconhecido: ${feature}` }, 404);
 
   let body: Record<string, any> = {};
   try {
@@ -3414,6 +3416,10 @@ Deno.serve(async (req) => {
     console.error('[TELEGRAM AUTH FAILED]', { feature, reason, initDataPresent: Boolean(initData), initDataLength: initData.length, authDate: new URLSearchParams(initData).get('auth_date') });
     return json({ error: message, reason, code: 'TELEGRAM_AUTH' }, 401);
   }
+
+  if (!mobileTelegramClient(body.platform, req.headers.get('user-agent') ?? '')) return json({ error: 'Open on Telegram mobile.', code: 'MOBILE_TELEGRAM_REQUIRED' }, 403);
+  const launch = launchStatus();
+  if (feature !== 'launch' && !launch.released) return json({ ...launch, error: 'The adventure launches soon.', code: 'GAME_NOT_LAUNCHED' }, 423);
 
   try {
     const db = serviceClient();
@@ -3450,6 +3456,25 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (feature === 'launch') {
+      // Only signed start_param or the secret-authenticated bot may attribute an inviter.
+      const inviter = launchInviter(new URLSearchParams(initData).get('start_param'));
+      await rpc(db, 'register_launch_player', { p_telegram_id: user.id, p_name: user.first_name ?? 'Captain', p_inviter: inviter, p_verified: true });
+      const board = await rpc(db, 'launch_referral_board', { p_telegram_id: user.id });
+      return json({ ...launchStatus(), ...board, referralLink: `https://t.me/MythicSeasbot?start=ref_${user.id}` });
+    }
+    if (!handler) return json({ error: 'Unknown feature' }, 404);
+    // Preserve the existing referral relationship after launch without prelaunch rewards.
+    const registration = await db.from('launch_registrations').select('inviter_telegram_id').eq('telegram_id', user.id).maybeSingle();
+    if (registration.error) throw new Error('Could not load launch registration.');
+    if (registration.data?.inviter_telegram_id) {
+      await rpc(db, 'touch_referral_player', { p_telegram_id: user.id, p_name: user.first_name ?? 'Captain', p_username: user.username ?? null, p_avatar: user.photo_url ?? null });
+      const inviterProfile = await db.from('launch_registrations').select('display_name').eq('telegram_id', registration.data.inviter_telegram_id).maybeSingle();
+      const existingInviter = await db.from('game_players').select('id').eq('telegram_id', registration.data.inviter_telegram_id).maybeSingle();
+      if (inviterProfile.error || existingInviter.error) throw new Error('Could not load inviter.');
+      if (!existingInviter.data) await rpc(db, 'touch_referral_player', { p_telegram_id: Number(registration.data.inviter_telegram_id), p_name: inviterProfile.data?.display_name ?? 'Captain', p_username: null, p_avatar: null });
+      await rpc(db, 'bind_referral', { p_telegram_id: user.id, p_inviter_telegram_id: Number(registration.data.inviter_telegram_id) });
+    }
     // Real activity only: every authenticated call refreshes last_seen_at, throttled server-side
     // to once per minute. The client never sends a timestamp.
     void db.rpc('touch_player_activity', { p_telegram_id: user.id });

@@ -32,7 +32,7 @@ export async function forgeAuthProbe(initData: string): Promise<ForgeAuthProbe> 
   const response = await fetchWithTimeout(`${functionsBase}/auth`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', apikey: supabaseAnonKey, 'X-Telegram-Init-Data': initData },
-    body: JSON.stringify({ initData }),
+    body: JSON.stringify({ initData, platform: window.Telegram?.WebApp?.platform }),
   });
   const payload = (await response.json().catch(() => null)) as ForgeAuthProbe | null;
   return payload ?? { ok: false, reason: 'offline', error: 'Backend indisponível.' };
@@ -137,7 +137,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
         // Raw, unmodified Telegram initData. Never encoded/decoded before validation.
         'X-Telegram-Init-Data': initData,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, platform: window.Telegram?.WebApp?.platform }),
     });
     let payload: unknown = null;
     try {

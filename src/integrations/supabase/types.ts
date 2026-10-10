@@ -8342,6 +8342,30 @@ export type Database = {
           },
         ]
       }
+      launch_registrations: {
+        Row: {
+          created_at: string
+          display_name: string
+          inviter_telegram_id: number | null
+          telegram_id: number
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          inviter_telegram_id?: number | null
+          telegram_id: number
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          inviter_telegram_id?: number | null
+          telegram_id?: number
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       market_item_ownership_history: {
         Row: {
           created_at: string
@@ -24942,6 +24966,7 @@ export type Database = {
         }
         Returns: Json
       }
+      launch_referral_board: { Args: { p_telegram_id: number }; Returns: Json }
       leave_clan: { Args: { p_telegram_id: number }; Returns: Json }
       list_premium_titles: { Args: never; Returns: Json }
       log_pet_transaction: {
@@ -26238,6 +26263,15 @@ export type Database = {
           p_buyer_id: string
           p_source_id: string
           p_source_type: string
+        }
+        Returns: Json
+      }
+      register_launch_player: {
+        Args: {
+          p_inviter?: number
+          p_name: string
+          p_telegram_id: number
+          p_verified?: boolean
         }
         Returns: Json
       }
