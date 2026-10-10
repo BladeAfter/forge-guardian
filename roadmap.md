@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Preparar lançamento em 12/10/2026 às 18h UTC: espera em inglês, relógio do servidor, chat, convite único e ranking real; bloquear jogo antes do horário e acesso fora do Telegram móvel.
+- [x] Preparar lançamento em 12/10/2026 às 18h UTC: espera em inglês, relógio do servidor, chat, convite único por Telegram ID e ranking de chegadas verificadas; jogo carregado somente após liberação e autenticação móvel. Servidor confirmou 423 antes do lançamento e 403 para desktop; acessos antigos também bloqueados. Convites não pagam recompensas durante espera.
+- [ ] Conferir fluxo real convite → /start → Mini App móvel → ranking com jogador no Telegram; requer interação real. Restrição móvel usa sinais de plataforma e aparelho, não atestado inviolável de hardware; falsificação deliberada desses sinais não pode ser excluída pela API do Telegram.
 
 - [x] Restaurar três acessos oficiais mesmo sem dados de recompensas; links e imagens conferidos. Resgate exige confirmação atual do Telegram, incluindo is_member para restritos, e rotina privada rejeita confirmação ausente. Nove testes passaram; bot administrador nos três canais e função implantada.
 - [ ] Conferir entrada e resgate com jogador real no Telegram; depende de sessão e participação reais, sem pagamentos de teste.

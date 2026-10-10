@@ -3371,7 +3371,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   const feature = new URL(req.url).pathname.split('/').filter(Boolean).pop() || '';
-  if (feature === 'launch-time') return json(launchStatus());
+  if (feature === 'launch-time') return new Response(JSON.stringify(launchStatus()), { headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
   // Public, secret-free diagnostics endpoint. No initData required.
   if (feature === 'health') {
     const report = await healthReport();
