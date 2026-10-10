@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Enviar tutorial uma vez por jogador no /start; publicar e fixar no Chat e News, verificando as mensagens reais.
+- [x] Tutorial publicado e fixado no @MythicSeasChat e @MythicSeasNews, ambos confirmados pelo Telegram. Envio único por jogador configurado no /start e implantado; quatro testes passaram e webhook autenticado conferido.
+- [ ] Confirmar recebimento privado do tutorial no primeiro /start com jogador real; depende de interação do jogador no Telegram.
 
 - [x] Substituir bússola por minimapa náutico graduado com ilhas, portos, direção do navio e jogadores do servidor. Ampliação/redução e joystick conferidos isoladamente; 13 testes passaram. Confirmação com jogadores reais no Telegram indisponível.
 
