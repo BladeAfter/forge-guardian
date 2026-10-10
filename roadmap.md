@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Restaurar acessos aos canais oficiais e conferir participação real antes do pagamento da recompensa.
+
 - [x] Tutorial publicado e fixado no @MythicSeasChat e @MythicSeasNews, ambos confirmados pelo Telegram. Envio único por jogador configurado no /start e implantado; quatro testes passaram e webhook autenticado conferido.
 - [ ] Confirmar recebimento privado do tutorial no primeiro /start com jogador real; depende de interação do jogador no Telegram.
 
