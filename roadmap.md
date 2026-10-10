@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Enviar tutorial v2 com trecho ilustrado de batalha naval ao chat e ao administrador pelo bot; fixar a nova publicação e excluir somente o tutorial antigo identificado no chat.
+- [x] Tutorial v2 com trecho ilustrado de batalha naval enviado ao @MythicSeasChat (mensagem 299) e ao administrador pelo @MythicSeasbot (mensagem 17); nova publicação fixada e tutorial antigo (mensagem 4) excluído, com confirmação do Telegram. Envio por idioma no /start preservado.
 
 - [x] Tesouro enterrado: X no chão e baú após Abrir; pista garantida na ilha concede um mapa por aventura, consumido atomicamente no servidor para um tesouro. Caminhada/coleta/abertura conferidas em cena isolada com respostas simuladas; 21 testes passaram, compilação OK, RPCs exclusivos do servidor e auto sem bypass. Prêmios existentes preservados; não foram criados achados aleatórios no mar.
 - [ ] Conferir pista → mapa → X → baú com jogador real; bloqueio: sessão móvel autenticada do Telegram indisponível. O tutorial em vídeo ainda mostra a apresentação anterior.
