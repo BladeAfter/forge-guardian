@@ -21,9 +21,14 @@ describe('Telegram tutorial language', () => {
     expect(tutorialForLanguage('pt-PT')).toEqual(original);
   });
   it('provides distinct public HTTPS Russian and English video URLs for Telegram', () => {
-    expect(tutorialForLanguage('ru')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-ru\.mp4$/);
-    expect(tutorialForLanguage('en')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-en\.mp4$/);
+    expect(tutorialForLanguage('ru')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-ru-v2-batalha-naval\.mp4$/);
+    expect(tutorialForLanguage('en')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-en-v2-batalha-naval\.mp4$/);
     expect(tutorialForLanguage('ru')?.video).not.toBe(tutorialForLanguage('en')?.video);
+  });
+  it('uses the naval tutorial revision for every existing supported language', () => {
+    for (const language of ['pt', 'am', 'ar', 'az', 'be', 'bg', 'bn', 'ca', 'cs', 'de', 'el', 'en', 'es', 'fa', 'fi', 'fil', 'fr', 'he', 'hi', 'hr', 'hu', 'id', 'it', 'ja', 'kk', 'ko', 'ms', 'nl', 'no', 'pl', 'ro', 'ru', 'sk', 'sr', 'sw', 'ta', 'th', 'tr', 'uk', 'ur', 'uz', 'vi', 'zh']) {
+      expect(tutorialForLanguage(language)?.video).toMatch(/-v2-batalha-naval\.mp4$/);
+    }
   });
   it('never substitutes Portuguese or claims a missing-language delivery', async () => {
     const reply = welcomeReply({ update_id: 1, message: { text: '/start', chat: { id: 42, type: 'private' }, from: { id: 42 } } });
