@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Revisar todas as abas para acompanhar o idioma selecionado; remover recursos MYTH da interface mantendo TON e BERRIES.
+- [ ] Executar testes gerais e conferir fluxo real do jogo; acesso real requer sessão Telegram do administrador.
+
 - [x] Liberar testes antes do lançamento exclusivamente ao administrador 8490010993 autenticado pelo Telegram; configuração administrativa confirmada, funções implantadas e oito testes passaram. Outros IDs continuam bloqueados e acesso móvel permanece obrigatório.
 - [ ] Confirmar entrada antecipada e menu administrativo com a sessão real de 8490010993 no Telegram; depende da interação do administrador.
 
