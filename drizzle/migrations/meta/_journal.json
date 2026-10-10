@@ -827,6 +827,13 @@
       "when": 1791592891992,
       "tag": "0117_game_bot_tutorial_delivery",
       "breakpoints": true
+    },
+    {
+      "idx": 118,
+      "version": "7",
+      "when": 1791593172757,
+      "tag": "0118_require_official_channel_membership",
+      "breakpoints": true
     }
   ]
 }
