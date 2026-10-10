@@ -14,27 +14,31 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
   const wake = useRef<(() => void) | null>(null);
   const apply = (next: NavalState) => { current.current = next; if(mounted.current) { setData(next);setError(''); } };
   useEffect(() => {
-    mounted.current = true; let cancelled = false, timer: ReturnType<typeof setTimeout>;
+    mounted.current = true; let cancelled = false, urgent = false, timer: ReturnType<typeof setTimeout>;
     const tick = async () => {
+      urgent = false;
       if(cancelled || !initData) return;
       if(!locked.current && !document.hidden) {
         locked.current = true;
          try { const next=await navalCall(initData,'heartbeat',pending.current.shift() ?? input.current()); if(!cancelled) apply(next); }
-        catch(e) { if(!cancelled) { current.current=null;setData(null);setError(e instanceof Error ? e.message : 'Oceano indisponível.'); } }
+         catch(e) { if(!cancelled) setError(e instanceof Error ? e.message : 'Oceano indisponível.'); }
         finally { locked.current = false; }
       }
        if(!cancelled) timer=setTimeout(tick,pending.current.length ? 100 : current.current ? 650 : 5000);
     };
-    wake.current = () => { if(!cancelled && !locked.current) { clearTimeout(timer); timer=setTimeout(tick,0); } };
+    wake.current = () => { if(!cancelled && !locked.current && !urgent) { urgent=true;clearTimeout(timer); timer=setTimeout(tick,0); } };
+    const resume = () => { if(!document.hidden) wake.current?.(); };
+    document.addEventListener('visibilitychange',resume);
+    window.addEventListener('online',resume);
     void tick();
-    return () => { cancelled=true;mounted.current=false;wake.current=null;pending.current=[];clearTimeout(timer); };
+    return () => { cancelled=true;mounted.current=false;wake.current=null;pending.current=[];clearTimeout(timer); document.removeEventListener('visibilitychange',resume);window.removeEventListener('online',resume); };
   }, [initData]);
   const action = async (name: string, payload: Record<string,unknown> = {}) => {
     if(!initData || locked.current) return false;
     locked.current=true;setBusy(true);
     try { apply(await navalCall(initData,name,payload));return true; }
     catch(e) { if(mounted.current) setError(e instanceof Error ? e.message : 'Ação indisponível.');return false; }
-    finally { locked.current=false;if(mounted.current) setBusy(false); }
+    finally { locked.current=false;if(mounted.current) { setBusy(false);wake.current?.(); } }
   };
    const steer = (next: NavalInput) => {
      if(!initData) return;
