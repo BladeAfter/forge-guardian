@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Enviar tutorial v2 com trecho ilustrado de batalha naval ao chat e ao administrador pelo bot; fixar a nova publicação e excluir somente o tutorial antigo identificado no chat.
+
 - [x] Tesouro enterrado: X no chão e baú após Abrir; pista garantida na ilha concede um mapa por aventura, consumido atomicamente no servidor para um tesouro. Caminhada/coleta/abertura conferidas em cena isolada com respostas simuladas; 21 testes passaram, compilação OK, RPCs exclusivos do servidor e auto sem bypass. Prêmios existentes preservados; não foram criados achados aleatórios no mar.
 - [ ] Conferir pista → mapa → X → baú com jogador real; bloqueio: sessão móvel autenticada do Telegram indisponível. O tutorial em vídeo ainda mostra a apresentação anterior.
 
