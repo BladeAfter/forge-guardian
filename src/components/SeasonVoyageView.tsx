@@ -5,6 +5,7 @@ import { formatTon } from '../economy';
 import { seasonVoyageArt } from '../gameAssets';
 import { voyageHeroArt } from '../voyageArt';
 import { isHiddenVeteranItem } from '../retiredOfferPresentation';
+import { isMythTokenReward } from '../tokenPresentation';
 import { OceanControl } from './OceanControl';
 
 /** Nautical artwork does not change the kind, amount or utility of official rewards. */
@@ -25,7 +26,7 @@ function rewardVisual(reward: PassReward) {
 type Props = { data: SeasonPassDashboard; onClose: () => void; onMissions: () => void; onBuyLevel: () => void; onBuy: (tier: PassTier) => void; buying: boolean; onClaim: (id: string) => void; claiming: boolean; onUnlock: (reward: PassReward) => void; unlocking: boolean };
 export function SeasonVoyageView({ data, onClose, onMissions, onBuyLevel, onBuy, buying, onClaim, claiming, onUnlock, unlocking }: Props) {
   const [focus, setFocus] = useState<PassReward | null>(null);
-  const rewards = useMemo(() => data.rewards.filter(r => !isHiddenVeteranItem(r)), [data.rewards]);
+  const rewards = useMemo(() => data.rewards.filter(r => !isHiddenVeteranItem(r) && !isMythTokenReward(r.type)), [data.rewards]);
   const levels = useMemo(() => {
     const grouped = new Map<number, Record<PassTier, PassReward[]>>();
     for (const reward of rewards) {

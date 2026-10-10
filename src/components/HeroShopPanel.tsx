@@ -9,8 +9,7 @@ import { MarketPulseView } from './MarketPulseView';
 import { useT } from '../LanguageContext';
 import { formatCurrency } from '../utils';
 import { RARITY_COLORS, type HeroRarity, type ShopHero } from '../heroCatalog';
-import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus, useMythUtility } from '../hooks';
-import { MythBalanceHint, MythPayButton } from './MythPayButton';
+import { useMarketBrowse, useMarketMine, useMarketQuote, useMarketRealtime, useMarketSellable, useMarketStatus } from '../hooks';
 import {
   buyMarketListing,
   cancelMarketListing,
@@ -58,8 +57,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
   // Access point only: the panel now opens either the Recruit view or the Player Market
   // view (moved to the Village). The market system itself is untouched.
   const tab: 'recruit' | 'market' = mode;
-  // MYTH is offered as an EXTRA recruitment payment when the backend enables it.
-  const mythUtility = useMythUtility(telegramInitData, mode === 'recruit');
   // Tapping a listing opens the read-only premium preview (real backend attributes).
   const [detailsId, setDetailsId] = useState<string | null>(null);
 
@@ -324,8 +321,6 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
               results={shopResults}
               onRecruit={(count) => onRecruit(count, 'FC')}
               rarityLabel={(rarity) => t(rarity)}
-              alternativePayment={(count) => <MythPayButton state={mythUtility.data} feature="HERO_RECRUIT" fc={recruitPrice(count)} onPay={() => onRecruit(count, 'MYTH')} />}
-              balanceHint={<MythBalanceHint state={mythUtility.data} />}
             />
 
           ) : !marketAccess ? (

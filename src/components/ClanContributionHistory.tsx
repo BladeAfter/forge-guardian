@@ -49,7 +49,6 @@ const stamp = (iso: string) =>
 function AssetLine({ fc, myth, dense = false }: { fc: number; myth: number; dense?: boolean }) {
   const parts: React.ReactNode[] = [];
   if (fc > 0) parts.push(<span key="fc" className="inline-flex items-center gap-0.5 text-amber-200"><Coins className="h-3 w-3" />{short(fc)} BERRIES</span>);
-  if (myth > 0) parts.push(<span key="myth" className="inline-flex items-center gap-0.5 text-violet-200"><Gem className="h-3 w-3" />{short(myth)} MYTH</span>);
   if (!parts.length) return <span className={`${dense ? 'text-[9px]' : 'text-[10px]'} text-slate-600`}>sem doações</span>;
   return (
     <span className={`inline-flex flex-wrap items-center gap-x-1.5 ${dense ? 'text-[9px]' : 'text-[10px]'} font-bold`}>
@@ -66,8 +65,7 @@ function MyCard({ label, totals, highlight }: { label: string; totals: Totals; h
       <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
       <div className="mt-0.5 space-y-0.5 leading-tight">
         {totals.fc > 0 ? <div className="text-[11px] font-black text-amber-200">{short(totals.fc)} BERRIES</div> : null}
-        {totals.myth > 0 ? <div className="text-[11px] font-black text-violet-200">{short(totals.myth)} MYTH</div> : null}
-        {totals.fc <= 0 && totals.myth <= 0 ? <div className="text-[11px] font-black text-slate-600">—</div> : null}
+        {totals.fc <= 0 ? <div className="text-[11px] font-black text-slate-600">—</div> : null}
         {totals.points > 0 ? <div className="text-[8px] font-bold text-slate-500">{full(totals.points)} pts</div> : null}
       </div>
     </div>
@@ -115,7 +113,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
     setDetailBusy(true);
     try {
       const res = await clanRequest<{ entries: Entry[] }>(telegramInitData, { action: 'contribution-history', userId, limit: 50 });
-      setEntries(res.entries ?? []);
+      setEntries((res.entries ?? []).filter(entry => entry.asset.toUpperCase() !== 'MYTH'));
     } catch (error) {
       toast.error(clanErrorMessage(error));
     } finally {
@@ -150,7 +148,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
       {/* SORT — assets are never summed together */}
       <div className="flex items-center gap-1.5">
         <span className="text-[8px] uppercase tracking-widest text-slate-500">Ordenar</span>
-        {([['points', 'PTS'], ['fc', 'BERRIES'], ['myth', 'MYTH']] as [SortKey, string][]).map(([k, label]) => (
+        {([['points', 'PTS'], ['fc', 'BERRIES']] as [SortKey, string][]).map(([k, label]) => (
           <button key={k} onClick={() => setSort(k)}
             className={`rounded-full border px-2 py-0.5 text-[9px] font-black transition ${
               sort === k ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/45 text-slate-400'}`}>
@@ -200,8 +198,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                   <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] font-bold">
                     {t.fc > 0 ? <span className="text-amber-200">BERRIES: {full(t.fc)}</span> : null}
-                    {t.myth > 0 ? <span className="text-violet-200">MYTH: {full(t.myth)}</span> : null}
-                    {t.fc <= 0 && t.myth <= 0 ? <span className="text-slate-600">sem doações</span> : null}
+                    {t.fc <= 0 ? <span className="text-slate-600">sem doações</span> : null}
                     {t.points > 0 ? <span className="text-slate-400">{full(t.points)} pts</span> : null}
                   </div>
                 </div>

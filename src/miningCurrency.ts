@@ -116,7 +116,6 @@ export function miningRateLines(
   const lines: Array<{ currency: MiningCurrency; amount: number }> = [];
   const myth = Number(mythPerDay ?? 0);
   const ton = Number(tonPerDay ?? 0);
-  if (myth > 0) lines.push({ currency: 'myth', amount: myth });
   if (ton > 0) lines.push({ currency: 'ton', amount: ton });
   return lines;
 }

@@ -14,7 +14,6 @@ import { PlayerTag } from '../premiumTitles';
 const GROUP_LABELS: Record<string, string> = {
   ton_direct_deposit: 'TON DIRECT DEPOSITS',
   ton_to_fc: 'TON → BERRIES',
-  myth_sale: 'MYTH PURCHASES',
   season_pass: 'SEASON PASS',
   packs: 'PACKS (FOUNDER / VETERAN)',
   nft_shop: 'NFT SHOP',
@@ -27,12 +26,12 @@ const GROUP_LABELS: Record<string, string> = {
 /** Compact reward tiers (presentation only — payouts follow the backend reward table). */
 type RewardTier = { label: string; medal: string; from: number; to: number; items: string[]; grand?: boolean; wide?: boolean; note?: string };
 const REWARD_TIERS: RewardTier[] = [
-  { label: '#1', medal: '🥇', from: 1, to: 1, grand: true, wide: true, items: ['Exclusive Hero Chest', 'Exclusive Pet Chest', '2 NFT Weapons', 'NFT Grand Prize', '150,000 MYTH', '100 Universal Fragments', '1 Celestial Chest'], note: 'GRAND PRIZE ≈ 100 TON · TON MINING ENABLED' },
-  { label: '#2', medal: '🥈', from: 2, to: 2, items: ['Exclusive Hero Chest', 'Mythic Egg', '1 NFT Weapon', '120,000 MYTH', '75 Universal Fragments', '1 Void Chest'] },
-  { label: '#3', medal: '🥉', from: 3, to: 3, items: ['Exclusive Pet Chest', 'Celestial Chest (mythic)', '1 NFT Weapon', '90,000 MYTH', '50 Universal Fragments', '1 Premium Equipment Chest'] },
-  { label: '#4 – #10', medal: '🏆', from: 4, to: 10, items: ['60,000 MYTH', '60 Universal Fragments', '1 Void Chest (legendary)', '1 Premium Equipment Chest', '10 PvP Tickets', '1 Mythic Egg Shard Pack'] },
-  { label: '#11 – #20', medal: '🎁', from: 11, to: 20, items: ['30,000 MYTH', '30 Universal Fragments', '1 Eternity Chest', '1 Equipment Chest', '5 PvP Tickets', '1 Pet Food / Hero XP Pack'] },
-  { label: '#21 – #50', medal: '✨', from: 21, to: 50, wide: true, items: ['10,000 MYTH', '10 Universal Fragments', '1 Random Chest', '3 PvP Tickets'] },
+  { label: '#1', medal: '🥇', from: 1, to: 1, grand: true, wide: true, items: ['Exclusive Hero Chest', 'Exclusive Pet Chest', '2 NFT Weapons', 'NFT Grand Prize', '100 Universal Fragments', '1 Celestial Chest'], note: 'GRAND PRIZE ≈ 100 TON · TON MINING ENABLED' },
+  { label: '#2', medal: '🥈', from: 2, to: 2, items: ['Exclusive Hero Chest', 'Mythic Egg', '1 NFT Weapon', '75 Universal Fragments', '1 Void Chest'] },
+  { label: '#3', medal: '🥉', from: 3, to: 3, items: ['Exclusive Pet Chest', 'Celestial Chest (mythic)', '1 NFT Weapon', '50 Universal Fragments', '1 Premium Equipment Chest'] },
+  { label: '#4 – #10', medal: '🏆', from: 4, to: 10, items: ['60 Universal Fragments', '1 Void Chest (legendary)', '1 Premium Equipment Chest', '10 PvP Tickets', '1 Mythic Egg Shard Pack'] },
+  { label: '#11 – #20', medal: '🎁', from: 11, to: 20, items: ['30 Universal Fragments', '1 Eternity Chest', '1 Equipment Chest', '5 PvP Tickets', '1 Pet Food / Hero XP Pack'] },
+  { label: '#21 – #50', medal: '✨', from: 21, to: 50, wide: true, items: ['10 Universal Fragments', '1 Random Chest', '3 PvP Tickets'] },
 ];
 
 
@@ -59,8 +58,8 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
   const player = data.player;
   const totals = data.totals;
   const ranking = Array.isArray(data.ranking) ? data.ranking : [];
-  const rewards = Array.isArray(data.rewards) ? data.rewards : [];
-  const breakdown = Array.isArray(data.breakdown) ? data.breakdown : [];
+  const rewards = Array.isArray(data.rewards) ? data.rewards.filter(row => !/\bMYTH\b/i.test(row.label)) : [];
+  const breakdown = Array.isArray(data.breakdown) ? data.breakdown.filter(row => row.sourceGroup !== 'myth_sale') : [];
   const finished = event?.status === 'finished' || clock.ended;
   const myRow = ranking.find(r => r.position === player.position) ?? null;
   const breakdownTotal = breakdown.reduce((sum, row) => sum + Number(row.points || 0), 0);
@@ -200,7 +199,6 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
           <h3 className="bg-gradient-to-b from-amber-100 to-amber-400 bg-clip-text text-lg font-black tracking-[.06em] text-transparent">CLIMB THE LEADERBOARD</h3>
           <p className="mx-auto mt-1 max-w-[16rem] text-[10px] leading-4 text-slate-300">Every eligible deposit, purchase and BERRIES sink adds points instantly.</p>
           {onGoToWallet && <button onClick={onGoToWallet} className="mt-3 w-full rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-200 py-3.5 text-xs font-black uppercase tracking-[.24em] text-black shadow-[0_0_25px_rgba(245,158,11,.35)]"><Wallet className="mr-1 inline h-4 w-4" />DEPOSIT TON</button>}
-          {onGoToSale && <button onClick={onGoToSale} className="mt-2 w-full rounded-2xl border border-amber-300/35 bg-black/50 py-3 text-[11px] font-black uppercase tracking-[.24em] text-amber-200"><Coins className="mr-1 inline h-3.5 w-3.5" />MYTH SALE</button>}
         </div>
       </section>
 
@@ -209,7 +207,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
         <b className="text-[10px] font-black uppercase tracking-[.24em] text-amber-200"><Users className="mr-1 inline h-3.5 w-3.5" />EVENT RULES</b>
         <ul className="mt-2 space-y-1 text-[10px] leading-4 text-slate-400">
           <li>· Duration: 14 days — the backend clock is the only authority</li>
-          <li>· Score sources: TON deposits, TON → BERRIES, MYTH purchases, Season Pass, packs, NFT shop, marketplace, auction wins and every eligible BERRIES sink</li>
+          <li>· Score sources: TON deposits, TON → BERRIES, Season Pass, packs, NFT shop, marketplace, auction wins and every eligible BERRIES sink</li>
           <li>· Converting TON to BERRIES scores once; spending that BERRIES later scores again as a new sink</li>
           <li>· Rewards, mining, pool payouts and admin grants never score points</li>
           <li>· When the event ends the ranking is locked and rewards are paid by final rank</li>

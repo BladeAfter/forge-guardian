@@ -14,8 +14,7 @@ import { eggPurchaseStatusLabel, eggRecoveryMessage, formatEggPrice, hatchedPurc
 import { PetEggOpeningOverlay, type EggRevealResult } from '../components/PetEggOpeningOverlay';
 import type { PetDashboard } from '../pets';
 import type { PetRarity } from '../petRules';
-import { useMythWallet, useMythRealtime, usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
-import { MythTokenCard } from '../components/MythTokenCard';
+import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
@@ -49,10 +48,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const { data: summary } = useWalletSummary(telegramInitData, backendEnabled);
   const { data: tonWallet } = useTonWallet(telegramInitData, backendEnabled);
   const { data: pets } = usePetDashboard(telegramInitData, backendEnabled);
-  // Decorative MYTH balance (read-only; no economy attached).
-  const { data: myth } = useMythWallet(telegramInitData, backendEnabled);
-  // Balances, staking and token settings stream live, keeping the card and the fee in sync.
-  useMythRealtime(backendEnabled);
   const balance = summary?.balanceFc ?? tonWallet?.balanceFc ?? game.balance;
   const availableTon = tonWallet?.availableTon ?? 0;
   // Depósito usado para atingir o mínimo fica travado: nunca entra no saque (servidor decide).
@@ -311,8 +306,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
         </Panel>
       </div>
 
-      {/* MYTH Token: decorative only — tapping it opens an informative popup, never a purchase/swap/withdraw flow. */}
-      <MythTokenCard wallet={myth} />
 
 
 

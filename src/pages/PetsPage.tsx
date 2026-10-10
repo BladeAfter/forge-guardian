@@ -5,7 +5,7 @@ import { formatTon } from '../economy';
 import { Check, ChevronUp, Crown, Archive, Info, Map, Minus, PawPrint, Plus, ShoppingCart, Sparkles, Star, Wallet, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { petVisualFormKey, petVisualStage } from '../petVisual';
-import { usePetDashboard, useMythUtility } from '../hooks';
+import { usePetDashboard } from '../hooks';
 import { claimNftPosition, fetchMyNftRewards, petRequest } from '../services';
 import { formatEggPrice, hatchedPurchase, purchasePremiumEgg, waitForEggPurchase } from '../eggPurchase';
 import type { PetActionResponse, PetDashboard, PetEgg, PetEvolveResult, PetFood, PlayerPet } from '../pets';
@@ -67,7 +67,7 @@ export function PetsPage({ telegramInitData, onClose, onWallet }: { telegramInit
   const queryClient = useQueryClient();
   const { data, isLoading, error } = usePetDashboard(telegramInitData, true);
   // MYTH is an alternative payment method for food/eggs/evolution: BERRIES keeps working untouched.
-  const { data: myth } = useMythUtility(telegramInitData);
+  const myth = undefined;
   // Main section selector shown in the header: PETS | NFT EXCLUSIVE.
   const [section, setSection] = useState<Section>('pets');
   const [tab, setTab] = useState<Tab>('pets');
@@ -733,9 +733,7 @@ function EvolutionRow({ pet, balance, universal = 0, pending, onEvolve, onFeed, 
               <b className={pet.fragments + universal >= next.fragmentCost ? 'text-emerald-300' : 'text-rose-300'}>{next.fragmentCost} {t('pets.fragments')}</b>
               {' · '}
               <span className="text-violet-300">{t('pets.newBuffChance', { percent: next.newBuffChance })}</span>
-              {mythFeatureEnabled(myth, 'PET_UPGRADE') && mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost }) !== null && (
-                <>{' · '}<span className="text-fuchsia-300">{formatMyth(mythPrice(myth, 'PET_UPGRADE', { fc: next.fcCost })!)} MYTH</span></>
-              )}
+
             </p>
           ) : (
             <p className="mt-1 text-[9px] text-amber-200">{t('pets.finalForm')}</p>

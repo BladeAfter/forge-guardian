@@ -208,12 +208,6 @@ export function ItemDetailsModal({ telegramInitData, source, id, onClose, onBuy,
             <EntryList title="Habilidades" icon={Swords} entries={[...(item.skills ?? []), ...(item.activeSkill ? [item.activeSkill] : [])] as unknown[]} />
             <EntryList title="Passivas" icon={Shield} entries={(item.passives ?? []) as unknown[]} />
 
-            {Number(item.miningMyth ?? 0) > 0 ? (
-              <section className="rounded-2xl border border-cyan-300/25 bg-cyan-400/[.07] px-3 py-2">
-                <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-cyan-200"><Pickaxe className="h-3.5 w-3.5" />Mineração MYTH</p>
-                <p className="mt-0.5 text-[13px] font-black text-cyan-100">{Number(item.miningMyth).toLocaleString('pt-BR', { maximumFractionDigits: 4 })} MYTH / dia</p>
-              </section>
-            ) : null}
 
             {item.nft ? (
               <section className="rounded-2xl border border-white/10 bg-white/[.03] px-3 py-2">
