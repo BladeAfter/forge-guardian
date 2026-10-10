@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Tesouro enterrado: mostrar X antes de Abrir e revelar baú somente após confirmação oficial; exigir mapa encontrado na navegação/caminhada, com posse e validação no servidor.
+
 - [x] Acrescentar trecho ilustrado dos controles de batalha naval aos 43 tutoriais: 57,27 s com áudio, mídia registrada e bot atualizado; 13 testes passaram, URLs PT/EN/RU disponíveis. Aviso traduzido distingue ilustração de gameplay; traduções do novo trecho sem revisão humana, conferência de movimento por amostragem.
 - [ ] Substituir ilustração por gravação real de batalha naval; bloqueio: PvP desativado, nenhuma batalha registrada e gravação autenticada do Telegram indisponível.
 
