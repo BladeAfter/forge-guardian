@@ -114,18 +114,18 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
     const claimable = vault.claimable;
     return (
       <div className="relative w-full overflow-hidden rounded-3xl border border-cyan-300/30 bg-forge-black/80 p-4 shadow-card">
-        <img src={veteranArt} alt={localizeText("Mythic Seas Veteran Vault")} loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={veteranArt} alt={localizeText("Mythic Seas Veteran Vault ")} loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-25" />
         <div className="relative">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                <Swords className="h-3 w-3" /> {localizeText("Veteran Vault")}</p>
+                <Swords className="h-3 w-3" /> {localizeText("Veteran Vault ")}</p>
               <h3 className="mt-1 text-base font-semibold text-white">
                 {vault.completed ? localizeText("Vault concluído") : `Dia ${vault.day} / ${vault.cycleDays}`}
               </h3>
             </div>
             <div className="shrink-0 rounded-2xl bg-cyan-400/15 px-3 py-2 text-right">
-              <p className="text-[10px] uppercase tracking-widest text-cyan-100/80">{localizeText("Próxima recompensa")}</p>
+              <p className="text-[10px] uppercase tracking-widest text-cyan-100/80">{localizeText("Próxima recompensa ")}</p>
               <p className="text-sm font-bold text-cyan-100">{claimable?.nextRewardAt ? veteranCountdown(claimable.nextRewardAt) : '—'}</p>
             </div>
           </div>
@@ -136,7 +136,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
 
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl bg-white/5 p-2">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("TON real")}</p>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("TON real ")}</p>
               <p className="text-sm font-semibold text-cyan-200">{formatTon(vault.tonEarned)}</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-2">
@@ -144,12 +144,12 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
               <p className="text-sm font-semibold text-amber-200">{Math.round(vault.mythEarned).toLocaleString('pt-BR')}</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-2">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("Valor ref.")}</p>
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">{localizeText("Valor ref. ")}</p>
               <p className="text-sm font-semibold text-slate-200">{formatTon(vault.referenceValueTon)} TON</p>
             </div>
           </div>
           <p className="mt-2 text-[10px] text-slate-400">
-            {localizeText("Valor de referência estimado dos itens — não é saldo sacável. TON real e MYTH aparecem separados acima.")}</p>
+            {localizeText(" Valor de referência estimado dos itens — não é saldo sacável. TON real e MYTH aparecem separados acima. ")}</p>
 
           <button
             onClick={() => claim.mutate()}
@@ -172,12 +172,12 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
         onClick={() => setOpen(true)}
         className="relative w-full overflow-hidden rounded-3xl border border-cyan-300/40 bg-forge-black/80 text-left shadow-card"
       >
-        <img src={veteranArt} alt={localizeText("Mythic Seas Veteran Vault")} loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+        <img src={veteranArt} alt={localizeText("Mythic Seas Veteran Vault ")} loading="lazy" width={1024} height={640} className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="relative flex items-center justify-between gap-3 p-4">
           <div className="min-w-0">
             <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-300">
-              <Swords className="h-3 w-3" /> {localizeText("Veteran Vault")}</p>
-            <h3 className="mt-1 truncate text-base font-semibold text-white">{localizeText("Cofre do Veterano")}</h3>
+              <Swords className="h-3 w-3" /> {localizeText("Veteran Vault ")}</p>
+            <h3 className="mt-1 truncate text-base font-semibold text-white">{localizeText(" Cofre do Veterano ")}</h3>
             <p className="text-[11px] text-slate-300">{localizeText("Exclusivo para veteranos · jornada de")}{state.cycleDays} dias</p>
           </div>
           <div className="shrink-0 rounded-2xl bg-cyan-400/20 px-3 py-2 text-center">
@@ -193,9 +193,9 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                  <Swords className="h-3 w-3" /> {localizeText("Mythic Seas Veteran Vault")}</p>
+                  <Swords className="h-3 w-3" /> {localizeText("Mythic Seas Veteran Vault ")}</p>
                 <h3 className="mt-1 text-lg font-semibold text-white">{localizeText("Jornada de")}{state.cycleDays} dias</h3>
-                <p className="text-[11px] text-slate-300">{localizeText("Exclusivo para jogadores antigos · uma compra por conta")}</p>
+                <p className="text-[11px] text-slate-300">{localizeText("Exclusivo para jogadores antigos · uma compra por conta ")}</p>
               </div>
               <button onClick={() => setOpen(false)} className="rounded-full bg-white/10 p-2 text-slate-300"><X className="h-4 w-4" /></button>
             </div>
@@ -214,9 +214,9 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
 
             <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-400/5 p-3">
               <p className="text-[11px] text-slate-300">
-                {localizeText("Durante os")}{state.cycleDays} {localizeText("dias você acumula recompensas diárias em MYTH, marcos semanais e marcos em TON real pagos pelo Veteran Reward Pool. Recompensas vencidas ficam guardadas: não é preciso entrar todo dia.")}</p>
+                {localizeText("Durante os")}{state.cycleDays} {localizeText("dias você acumula recompensas diárias em MYTH, marcos semanais e marcos em TON real pagos pelo Veteran Reward Pool. Recompensas vencidas ficam guardadas: não é preciso entrar todo dia. ")}</p>
               <p className="mt-2 text-[10px] text-slate-400">
-                {localizeText("Valor total de referência estimado:")}{formatTon(state.targetReferenceTon)} {localizeText("TON equivalentes em itens, benefícios, MYTH e TON. Trata-se de valor de referência, não de retorno garantido.")}</p>
+                {localizeText("Valor total de referência estimado:")}{formatTon(state.targetReferenceTon)} {localizeText("TON equivalentes em itens, benefícios, MYTH e TON. Trata-se de valor de referência, não de retorno garantido. ")}</p>
             </div>
 
             <div className="mt-3 flex items-center gap-2 rounded-2xl bg-white/5 px-3 py-2 text-[11px] text-slate-300">
@@ -236,7 +236,7 @@ export function VeteranVaultCard({ telegramInitData }: { telegramInitData: strin
             </button>
             {!state.eligible && !state.soldOut ? (
               <p className="mt-2 text-center text-[11px] text-slate-400">
-                {localizeText("Disponível para contas com")}{state.minAccountAgeDays}{localizeText("+ dias ou criadas antes do lançamento da oferta.")}</p>
+                {localizeText("Disponível para contas com")}{state.minAccountAgeDays}{localizeText("+ dias ou criadas antes do lançamento da oferta. ")}</p>
             ) : null}
           </div>
         </div>

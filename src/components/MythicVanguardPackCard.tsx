@@ -223,7 +223,7 @@ export function MythicVanguardPackCard({ telegramInitData, popupMode = false, on
 
           <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
             <p className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.18em] text-rose-200">
-              <Flame className="h-3 w-3" /> {localizeText("+ BONUS")}</p>
+              <Flame className="h-3 w-3" /> {localizeText("+ BONUS ")}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-slate-200">{secondary.join(' · ')}</p>
           </div>
 

@@ -219,7 +219,7 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
                     <p className="text-[8px] uppercase tracking-[0.1em] text-slate-500">
                       {t('auction.seller')}: {item.seller} · {item.bidCount} {t('auction.bids')}
                     </p>
-                    {item.dailyYield > 0 ? (
+                    {item.dailyYield > 0 && mining.currency === 'ton' ? (
                       <p className="mt-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-emerald-300">{t('auction.dailyMining')}: {formatMiningAmount(effectiveDailyMining(item.dailyYield, mining), mining.currency)} {miningSymbol(mining.currency)}</p>
                     ) : null}
                     <div className="mt-1.5 rounded-lg border border-sky-300/20 bg-sky-500/[.07] px-2 py-1">
@@ -380,7 +380,7 @@ export function AuctionPanel({ telegramInitData, onOpenWallet }: Props) {
                 <p className="text-[9px] font-black uppercase tracking-[0.14em] text-rose-200">{t('auction.insufficientTitle')}</p>
                 <p className="mt-0.5 text-[8px] text-slate-300">{t('auction.noFc')}</p>
                 <p className="mt-1 text-[8px] uppercase tracking-[0.12em] text-slate-400">
-                  {t('auction.required')}: {auctionTon(bidNumber)} {localizeText("TON ·")}{t('auction.available')}: {auctionTon(availableTon)} TON
+                  {t('auction.required')}: {auctionTon(bidNumber)} {localizeText("TON · ")}{t('auction.available')}: {auctionTon(availableTon)} TON
                 </p>
                 {onOpenWallet ? (
                   <button onClick={onOpenWallet} className="mt-2 w-full rounded-lg border border-sky-300/50 py-1.5 text-[9px] font-black uppercase tracking-[0.12em] text-sky-200">

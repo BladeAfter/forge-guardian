@@ -191,7 +191,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
           <div className="w-full max-w-sm rounded-2xl border border-amber-400/30 bg-gradient-to-b from-[#111d33] to-black p-3 shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300">
-                <Shield className="h-3.5 w-3.5" />{localizeText("Detalhes da contribuição")}</span>
+                <Shield className="h-3.5 w-3.5" />{localizeText("Detalhes da contribuição ")}</span>
               <button onClick={() => { setDetail(null); setEntries(null); }} className="rounded-lg bg-white/10 p-1 text-slate-300"><X className="h-3.5 w-3.5" /></button>
             </div>
             <p className="mb-2 truncate text-sm font-black text-slate-100">@{detail.username}</p>
@@ -201,7 +201,7 @@ export function ClanContributionHistory({ telegramInitData, refreshKey = 0 }: { 
                 <div key={label} className="rounded-xl bg-black/45 px-2 py-1.5">
                   <div className="text-[8px] uppercase tracking-widest text-slate-500">{label}</div>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-[11px] font-bold">
-                    {t.fc > 0 ? <span className="text-amber-200">{localizeText("BERRIES:")}{full(t.fc)}</span> : null}
+                    {t.fc > 0 ? <span className="text-amber-200">{localizeText("BERRIES: ")}{full(t.fc)}</span> : null}
                     {t.fc <= 0 ? <span className="text-slate-600">{localizeText("sem doações")}</span> : null}
                     {t.points > 0 ? <span className="text-slate-400">{full(t.points)} pts</span> : null}
                   </div>

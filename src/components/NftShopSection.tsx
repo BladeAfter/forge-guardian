@@ -117,7 +117,7 @@ export function NftShopSection({ telegramInitData }: { telegramInitData: string 
             >
               {!sold ? <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden /> : null}
               <div className="relative flex items-start justify-between gap-2">
-                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
+                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
                 <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{total}</p>
               </div>
               <div className="relative mt-2 flex items-center gap-3">

@@ -345,7 +345,7 @@ export default function RealmBattleScene({ log, regionId, regionName, regionImag
               {Number(log.fragments) > 0 && (
                 <span className="bf-reward">
                   <img src={realmArt.supplies} alt="" loading="lazy" className="h-3.5 w-3.5 object-contain" />
-                  <b>+{fmt(Number(log.fragments))}</b> {localizeText("frag.")}</span>
+                  <b>+{fmt(Number(log.fragments))}</b> {localizeText("frag. ")}</span>
               )}
               {Number(log.damage) > 0 && <span className="bf-reward bf-reward--dmg">❤ <b>−{log.damage}</b> HP</span>}
             </div>

@@ -88,7 +88,7 @@ export function ClanRequestCard({ request, busy, onAccept, onReject }: {
           : <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-[10px]">{request.name.slice(0, 2)}</span>}
         <div className="min-w-0 flex-1">
           <b className="block truncate text-xs text-amber-100"><PlayerTag username={request.username} fallback={request.name}/></b>
-          <span className="text-[9px] text-slate-400">{localizeText("Lv.")}{request.accountLevel ?? 1}</span>
+          <span className="text-[9px] text-slate-400">{localizeText("Lv. ")}{request.accountLevel ?? 1}</span>
         </div>
         <Activity lastActive={request.lastActive} online={request.online} />
       </div>
@@ -211,7 +211,7 @@ export function ClanMembersList({ members, stats, canManage, myRole, busy, onAct
                 : <span className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-xs">{detail.name.slice(0, 2)}</span>}
               <div className="min-w-0">
                 <b className="block truncate text-sm text-amber-100"><PlayerTag username={detail.username} fallback={detail.name}/></b>
-                <span className="text-[9px] text-slate-400">{t(`clan.role.${detail.role}`)} {localizeText("· Lv.")}{detail.accountLevel ?? 1}</span>
+                <span className="text-[9px] text-slate-400">{t(`clan.role.${detail.role}`)} {localizeText(" · Lv.")}{detail.accountLevel ?? 1}</span>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">

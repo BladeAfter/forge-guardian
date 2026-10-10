@@ -149,7 +149,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                   <h2 className="text-xl font-black uppercase leading-tight text-rose-100 drop-shadow">{raid.name}</h2>
                 </div>
                 <div className="absolute right-2 top-2 rounded-full border border-amber-300/40 bg-black/70 px-2.5 py-1 text-[9px] font-black text-amber-200">
-                  {localizeText("DIA")}{raid.day} / {raid.deadlineDays}
+                  {localizeText("DIA ")}{raid.day} / {raid.deadlineDays}
                 </div>
               </div>
 
@@ -167,7 +167,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                 </div>
                 <div className="mt-1 flex justify-between text-[9px] text-slate-500">
                   <span>{hpPct.toFixed(1)}{localizeText("% restante")}</span>
-                  <span>{localizeText("MORTE LIBERA: DIA")}{raid.minKillDays}</span>
+                  <span>{localizeText("MORTE LIBERA: DIA ")}{raid.minKillDays}</span>
                 </div>
 
                 {/* Daily health gate progress: cumulative unlocked damage for the current phase */}
@@ -185,7 +185,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                     />
                   </div>
                   <p className="mt-1 text-[9px] text-slate-500">
-                    {localizeText("Liberado hoje:")}{formatCurrency(raid.allowedDamage)} {localizeText("· resta")}{formatCurrency(Math.max(0, raid.remainingAllowed))}
+                    {localizeText("Liberado hoje: ")}{formatCurrency(raid.allowedDamage)} {localizeText("· resta ")}{formatCurrency(Math.max(0, raid.remainingAllowed))}
                   </p>
                 </div>
 
@@ -199,7 +199,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
 
                 {raid.catchupPct > 0 ? (
                   <p className="mt-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-center text-[10px] font-black text-emerald-200">
-                    CATCH-UP ATIVO · +{raid.catchupPct}{localizeText("% de dano na raid")}</p>
+                    CATCH-UP ATIVO · +{raid.catchupPct}{localizeText("% de dano na raid ")}</p>
                 ) : null}
 
                 {raid.status === 'ACTIVE' ? (
@@ -207,9 +207,9 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                     {raid.killProtected || raid.hpGateReached ? (
                       <div className="mt-2.5 rounded-xl border border-sky-400/40 bg-sky-500/10 px-2.5 py-2 text-center">
                         <p className="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-sky-200">
-                          <ShieldCheck className="h-3.5 w-3.5" />{localizeText("Raid protegida")}</p>
+                          <ShieldCheck className="h-3.5 w-3.5" />{localizeText("Raid protegida ")}</p>
                         <p className="mt-0.5 text-[9px] text-slate-400">
-                          {localizeText("Dano contabilizado no ranking · HP protegido até a próxima liberação")}{raid.killProtected ? ` · morte libera no DIA ${raid.minKillDays} (${countdown(raid.killUnlockAt)})` : ''}
+                          {localizeText("Dano contabilizado no ranking · HP protegido até a próxima liberação ")}{raid.killProtected ? ` · morte libera no DIA ${raid.minKillDays} (${countdown(raid.killUnlockAt)})` : ''}
                         </p>
                       </div>
                     ) : null}
@@ -230,7 +230,7 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                     </p>
                     {raid.clearedInHours ? (
                       <p className="mt-1 text-[10px] text-slate-400">
-                        {localizeText("Tempo:")}{Math.floor(raid.clearedInHours / 24)}d {Math.round(raid.clearedInHours % 24)}h
+                        {localizeText("Tempo: ")}{Math.floor(raid.clearedInHours / 24)}d {Math.round(raid.clearedInHours % 24)}h
                       </p>
                     ) : null}
                   </div>
@@ -267,12 +267,12 @@ export function ClanRaidScreen({ telegramInitData, onClose }: { telegramInitData
                 {!raid.ranking.length ? <p className="py-3 text-center text-[10px] text-slate-500">{localizeText("Nenhum ataque registrado ainda.")}</p> : null}
               </div>
               <p className="mt-2 flex items-center gap-1 text-[9px] text-slate-500">
-                <Users className="h-3 w-3" />{raid.participants} {localizeText("participantes ·")}<Shield className="h-3 w-3" />{localizeText("DEF")}{formatCurrency(raid.def)}
+                <Users className="h-3 w-3" />{raid.participants} {localizeText("participantes · ")}<Shield className="h-3 w-3" />{localizeText("DEF ")}{formatCurrency(raid.def)}
               </p>
             </section>
 
             <p className="pb-8 text-center text-[9px] leading-relaxed text-slate-600">
-              {localizeText("HP calculado pela força real do clã · morte libera no DIA")}{raid.minKillDays} {localizeText("· prazo de")}{raid.deadlineDays} {localizeText("dias ·")}{' '}{raid.phases} {localizeText("fases de")}{Math.round(100 / raid.phases)}{localizeText("% liberadas por dia.")}</p>
+              {localizeText("HP calculado pela força real do clã · morte libera no DIA ")}{raid.minKillDays} {localizeText("· prazo de ")}{raid.deadlineDays} {localizeText("dias · ")}{' '}{raid.phases} {localizeText("fases de ")}{Math.round(100 / raid.phases)}{localizeText("% liberadas por dia. ")}</p>
           </div>
         )}
       </div>

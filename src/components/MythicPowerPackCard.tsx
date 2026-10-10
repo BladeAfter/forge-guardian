@@ -157,7 +157,7 @@ export function MythicPowerPackCard({ telegramInitData }: { telegramInitData: st
 
           <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
             <p className="flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.18em] text-fuchsia-200">
-              <Sparkles className="h-3 w-3" /> {localizeText("REWARDS")}</p>
+              <Sparkles className="h-3 w-3" /> {localizeText("REWARDS ")}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-slate-200">{rewards.join(' · ')}</p>
           </div>
 

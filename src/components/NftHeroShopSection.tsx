@@ -121,7 +121,7 @@ export function NftHeroShopSection({ telegramInitData }: { telegramInitData: str
             >
               {!sold ? <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden /> : null}
               <div className="relative flex items-start justify-between gap-2">
-                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
+                <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
                 <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{total}</p>
               </div>
               <div className="relative mt-2 flex items-center gap-3">
@@ -224,9 +224,9 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
   if (!items.length) {
     return (
       <div className="py-16 text-center">
-        <p className="text-[11px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
-        <p className="mt-2 text-[11px] text-slate-400">{localizeText("Você ainda não possui heróis NFT EXCLUSIVE.")}</p>
-        <p className="mt-1 text-[10px] text-slate-500">{localizeText("Adquira o seu na aba 🛒 BUY NFT — supply 1/1 e rendimento diário em TON.")}</p>
+        <p className="text-[11px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
+        <p className="mt-2 text-[11px] text-slate-400">{localizeText(" Você ainda não possui heróis NFT EXCLUSIVE.")}</p>
+        <p className="mt-1 text-[10px] text-slate-500">{localizeText("Adquira o seu na aba 🛒 BUY NFT — supply 1/1 e rendimento diário em TON. ")}</p>
       </div>
     );
   }
@@ -234,7 +234,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
   return (
     <div className="mt-1 space-y-3 pb-4">
       <section className="rounded-[1.6rem] border border-amber-200/40 bg-gradient-to-b from-amber-950/40 to-black/80 p-3 text-center">
-        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 MY NFT HEROES")}</p>
+        <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 MY NFT HEROES ")}</p>
         <p className="mt-1 text-xl font-black text-amber-100">{items.length} / {data?.totalSupply ?? 10}</p>
         {totalDaily > 0 ? <p className="text-[9px] uppercase tracking-[.18em] text-emerald-300">{formatTon(totalDaily)} {localizeText("TON / dia via mineração")}</p> : null}
       </section>
@@ -242,7 +242,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
       {items.map((item) => (
         <section key={item.nftId} className="relative overflow-hidden rounded-[1.6rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-3">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
+            <p className="text-[9px] font-black uppercase tracking-[.24em] text-amber-200">{localizeText(" 💎 NFT EXCLUSIVE")}</p>
             <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}</p>
           </div>
           <div className="mt-2 flex items-center gap-3">
@@ -269,7 +269,7 @@ export function NftHeroCollectionSection({ telegramInitData }: { telegramInitDat
               </div>
             ) : null}
           </div>
-          {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? <p className="mt-2 text-center text-[9px] text-slate-500">{localizeText("Rendimento acumulado e coleta na barra de mineração da aba HEROES.")}</p> : null}
+          {miningRateLines(item.dailyYieldTon, item.dailyYieldMyth).length ? <p className="mt-2 text-center text-[9px] text-slate-500">{localizeText("Rendimento acumulado e coleta na barra de mineração da aba HEROES. ")}</p> : null}
         </section>
       ))}
     </div>

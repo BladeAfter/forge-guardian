@@ -115,8 +115,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       reward={Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} status={combat?.status}
       swap={swap} onAttack={onAttack} onEquip={openHeroSelector} onRanking={()=>setIsRankingOpen(true)} />
     <div className="action-service-strip">
-      {global?.lastReward?<span>{localizeText("Último tesouro:")}{compact(global.lastReward.rewardFc)} BERRIES</span>:null}
-      {global&&global.minimumDamage>0?<span>{localizeText("Dano mínimo:")}{compact(global.minimumDamage)}</span>:null}
+      {global?.lastReward?<span>{localizeText("Último tesouro: ")}{compact(global.lastReward.rewardFc)} BERRIES</span>:null}
+      {global&&global.minimumDamage>0?<span>{localizeText("Dano mínimo: ")}{compact(global.minimumDamage)}</span>:null}
       {auto?<><span>{t('boss.autoAtk')} · {auto.active?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</span>
         <OceanControl disabled={autoBusy||!telegramInitData} onClick={async()=>{
           if(!auto.eligible){onOpenSeasonPass?.();return;}if(!telegramInitData)return;setAutoBusy(true);

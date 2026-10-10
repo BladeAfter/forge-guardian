@@ -397,7 +397,7 @@ export function PrivateTradePanel({ telegramInitData }: Props) {
                           {String(row.rarity)}
                         </span>
                       )}
-                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">{localizeText("Lv")}{row.level}</span>}
+                      {typeof row.level === 'number' && <span className="text-[9px] text-slate-500">{localizeText("Lv ")}{row.level}</span>}
                       {row.veteran && <span className="rounded bg-amber-400/20 px-1 text-[8px] font-black uppercase text-amber-200">{localizeText("VETERAN")}</span>}
                       {row.nft && !row.veteran && <span className="rounded bg-fuchsia-400/20 px-1 text-[8px] font-black uppercase text-fuchsia-200">NFT</span>}
                     </span>

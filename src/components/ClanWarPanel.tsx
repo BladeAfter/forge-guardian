@@ -122,10 +122,10 @@ export function ClanWarPanel({ telegramInitData }: { telegramInitData: string })
                 <div className="space-y-2">
                   {war.status === 'preparation' ? (
                     <div className="rounded-2xl border border-amber-300/30 bg-amber-500/10 p-3 text-[9px] font-bold uppercase tracking-[.12em] text-amber-200">
-                      {localizeText("Fase de preparação — ataques liberam quando a batalha começar")}{war.preparationEndsAt ? ` (${new Date(war.preparationEndsAt).toLocaleString()})` : ''}{localizeText(". Monte sua defesa agora.")}</div>
+                      {localizeText("Fase de preparação — ataques liberam quando a batalha começar")}{war.preparationEndsAt ? ` (${new Date(war.preparationEndsAt).toLocaleString()})` : ''}{localizeText(". Monte sua defesa agora. ")}</div>
                   ) : war.status === 'battle' && (war.me?.attacksLeft ?? 0) <= 0 ? (
                     <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-3 text-[9px] font-bold uppercase tracking-[.12em] text-rose-200">
-                      {localizeText("Você já usou todos os seus ataques nesta guerra.")}</div>
+                      {localizeText("Você já usou todos os seus ataques nesta guerra. ")}</div>
                   ) : null}
                   {war.sectors.map((sector) => (
 

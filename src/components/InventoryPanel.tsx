@@ -412,7 +412,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                       {selected.slot} · {selected.kind}
                       {selected.heroClass ? ` · ${selected.heroClass}` : ''}
                     </p>
-                    <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> {localizeText("· DEF")}<b className="text-white">+{selected.bonusDefense ?? 0}</b> {localizeText("· HP")}<b className="text-white">+{selected.bonusHp ?? 0}</b></p>
+                    <p>ATK <b className="text-white">+{selected.bonusAttack ?? 0}</b> {localizeText("· DEF ")}<b className="text-white">+{selected.bonusDefense ?? 0}</b> {localizeText("· HP ")}<b className="text-white">+{selected.bonusHp ?? 0}</b></p>
                     <p className={selected.equipped ? 'font-black uppercase tracking-[.12em] text-amber-300' : 'font-black uppercase tracking-[.12em] text-emerald-300'}>
                       {selected.equipped ? `🔒 EQUIPPED${selected.equippedHeroName ? ` · ${selected.equippedHeroName}` : ''}` : selected.listed ? '🔒 LISTED' : 'AVAILABLE'}
                     </p>
@@ -501,7 +501,7 @@ export function InventoryPanel({ telegramInitData, active, onViewFusion }: { tel
                 ) : null}
                 <p className="text-[10px] font-black uppercase tracking-[.2em]" style={{ color: RARITY_BORDER[summoned.hero.rarity] ?? '#94a3b8' }}>{summoned.hero.rarity}</p>
                 <b className="block text-sm font-black text-amber-200">{summoned.hero.name}</b>
-                <p className="mt-1 text-[10px] text-slate-300">ATK {summoned.hero.finalAtk} {localizeText("· HP")}{summoned.hero.finalHp}</p>
+                <p className="mt-1 text-[10px] text-slate-300">ATK {summoned.hero.finalAtk} {localizeText("· HP ")}{summoned.hero.finalHp}</p>
                 <p className="mt-2 text-[9px] font-black uppercase tracking-[.16em] text-emerald-300">{t('inventory.addedToCollection')}</p>
                 <button onClick={() => setSummoned(null)} className="mt-3 min-h-[36px] w-full rounded-xl border border-white/12 bg-black/50 text-[10px] font-black uppercase tracking-[.14em] text-slate-300">
                   {t('inventory.close')}

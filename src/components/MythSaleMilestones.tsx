@@ -26,15 +26,15 @@ export function MythSaleMilestones({ telegramInitData }: { telegramInitData: str
     <section className="mt-6 space-y-3 pb-10">
       <div className="rounded-3xl border border-amber-300/35 bg-gradient-to-br from-[#241703] via-[#0a1020] to-black p-4">
         <h3 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[.28em] text-amber-200">
-          <Gift className="h-4 w-4" />{localizeText("Milestone Rewards")}</h3>
+          <Gift className="h-4 w-4" />{localizeText("Milestone Rewards ")}</h3>
         <p className="mt-1 text-[10px] text-slate-400">
-          {unlocked}/{MYTH_SALE_MILESTONES.length} {localizeText("unlocked ·")}{mythFull(bought)} {localizeText("MYTH purchased")}</p>
+          {unlocked}/{MYTH_SALE_MILESTONES.length} {localizeText("unlocked · ")}{mythFull(bought)} {localizeText("MYTH purchased ")}</p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
           <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-200" style={{ width: `${progress}%` }} />
         </div>
         {next && (
           <p className="mt-2 text-[10px] text-amber-200/80">
-            <Sparkles className="mr-1 inline h-3 w-3" />{localizeText("Next: buy")}{abbreviateMyth(next.amount)} MYTH
+            <Sparkles className="mr-1 inline h-3 w-3" />{localizeText("Next: buy ")}{abbreviateMyth(next.amount)} MYTH
           </p>
         )}
       </div>
@@ -52,8 +52,8 @@ export function MythSaleMilestones({ telegramInitData }: { telegramInitData: str
                 {done ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : isNext ? <Star className="h-5 w-5 text-amber-300" /> : <Lock className="h-5 w-5 text-slate-500" />}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-black uppercase tracking-[.3em] text-slate-400">{localizeText("Milestone")}{index + 1}</p>
-                <b className="block text-lg font-black text-white">{localizeText("BUY")}{mythFull(milestone.amount)} MYTH</b>
+                <p className="text-[9px] font-black uppercase tracking-[.3em] text-slate-400">{localizeText("Milestone ")}{index + 1}</p>
+                <b className="block text-lg font-black text-white">{localizeText("BUY ")}{mythFull(milestone.amount)} MYTH</b>
                 <ul className="mt-2 space-y-1">
                   {milestone.rewards.map(reward => (
                     <li key={reward} className="flex items-center gap-2 text-[11px] text-slate-300">

@@ -918,7 +918,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
     return (
       <section className="forge-nft-card mt-2 overflow-hidden rounded-[1.8rem] border border-amber-200/50 bg-gradient-to-b from-amber-950/35 to-black/85 p-6 text-center">
         <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
-        <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
+        <p className="text-[11px] font-black uppercase tracking-[.3em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE ")}</p>
         <p className="mx-auto mt-4 max-w-[260px] text-sm text-slate-300">{t('nft.noPetYet')}</p>
         <p className="mx-auto mt-1 max-w-[260px] text-[11px] text-slate-400">{t('nft.goBuyHint')}</p>
         {onGoToShop ? (
@@ -951,7 +951,7 @@ function NftExclusiveSection({ telegramInitData, onGoToShop }: { telegramInitDat
           <section key={item.positionId} className="forge-nft-card relative overflow-hidden rounded-[1.6rem] border border-amber-200/60 bg-gradient-to-b from-amber-950/40 to-black/85 p-3">
             <div className="forge-nft-sparkles pointer-events-none absolute inset-0" aria-hidden />
             <div className="relative flex items-center justify-between gap-2">
-              <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE")}</p>
+              <p className="text-[9px] font-black uppercase tracking-[.26em] text-amber-200">{localizeText("💎 NFT EXCLUSIVE ")}</p>
               <p className="text-[10px] font-black text-amber-100">NFT #{String(item.serial).padStart(2, '0')}/{data?.totalSupply ?? 10}</p>
             </div>
             <div className="relative mt-2 flex items-center gap-3">

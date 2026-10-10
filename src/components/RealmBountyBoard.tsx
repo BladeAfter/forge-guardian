@@ -56,7 +56,7 @@ function RewardChips({ b }: { b: RealmBounty }) {
       {frags > 0 && (
         <span className="bounty-chip bounty-chip--blue">
           <img src={FRAG_ICON} alt="" loading="lazy" className="h-4 w-4 object-contain" />
-          <b>{frags}</b> {localizeText("frag.")}</span>
+          <b>{frags}</b> {localizeText("frag. ")}</span>
       )}
     </div>
   );

@@ -103,7 +103,7 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[.35em] text-amber-300">{stats.name}</p>
             <h2 className="text-3xl font-black text-amber-100">{abbreviateMyth(stats.effectiveSupply)} {stats.symbol}</h2>
-            <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">{localizeText("Total supply ·")}{mythFull(stats.initialSupply)}</p>
+            <p className="text-[9px] uppercase tracking-[.2em] text-slate-400">{localizeText("Total supply · ")}{mythFull(stats.initialSupply)}</p>
           </div>
           <Coins className="h-12 w-12 animate-pulse text-amber-300" />
         </div>
@@ -140,14 +140,14 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
       {intent && !countdown.expired ? (
         <section className="mt-3 rounded-3xl border border-cyan-300/35 bg-black/60 p-4">
           <b className="text-xs font-black uppercase tracking-[.2em] text-cyan-200">{localizeText("Checkout open")}</b>
-          <p className="mt-1 text-[11px] text-slate-300">{mythFull(intent.mythAmount)} {stats.symbol} for {formatTon(intent.amountTon)} {localizeText("TON — supply reserved for")}{countdown.minutes}m {String(countdown.seconds).padStart(2, '0')}s.</p>
+          <p className="mt-1 text-[11px] text-slate-300">{mythFull(intent.mythAmount)} {stats.symbol} for {formatTon(intent.amountTon)} {localizeText("TON — supply reserved for ")}{countdown.minutes}m {String(countdown.seconds).padStart(2, '0')}s.</p>
           <button onClick={() => void reconcile()} className="mt-3 w-full rounded-xl border border-cyan-300/35 bg-cyan-500/10 py-3 text-[11px] font-black uppercase tracking-[.2em] text-cyan-100">{localizeText("I already paid — verify now")}</button>
         </section>
       ) : null}
 
       <section className="mt-3 rounded-3xl border border-white/10 bg-black/60 p-4">
-        <b className="text-xs font-black uppercase tracking-[.2em] text-amber-200">{localizeText("Buy")}{stats.symbol}</b>
-        {!saleActive && <p className="mt-2 rounded-xl border border-amber-300/20 bg-amber-950/30 p-3 text-[11px] text-amber-200">{localizeText("The sale is currently")}{stats.saleStatus}{localizeText(". Purchases are disabled.")}</p>}
+        <b className="text-xs font-black uppercase tracking-[.2em] text-amber-200">{localizeText("Buy ")}{stats.symbol}</b>
+        {!saleActive && <p className="mt-2 rounded-xl border border-amber-300/20 bg-amber-950/30 p-3 text-[11px] text-amber-200">{localizeText("The sale is currently ")}{stats.saleStatus}{localizeText(". Purchases are disabled.")}</p>}
         <input
           value={amountText}
           onChange={e => setAmountText(e.target.value.replace(/[^\d]/g, ''))}
@@ -181,7 +181,7 @@ export function MythTokenSalePanel({ telegramInitData }: { telegramInitData: str
         >
           {buy.isPending ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : payWithInternal ? 'Buy with internal TON' : 'Buy with TON wallet'}
         </button>
-        {amount > stats.available && <p className="mt-2 text-[10px] text-rose-300">{localizeText("Only")}{mythFull(stats.available)} {stats.symbol} {localizeText("available right now.")}</p>}
+        {amount > stats.available && <p className="mt-2 text-[10px] text-rose-300">{localizeText("Only ")}{mythFull(stats.available)} {stats.symbol} {localizeText("available right now.")}</p>}
       </section>
 
       <History data={data} />

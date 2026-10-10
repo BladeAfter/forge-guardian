@@ -135,7 +135,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
     <section className="captain-profile">
       <header className="captain-cover">
         <img className="captain-deck" src={profileArt.deck} alt={localizeText("Convés de um navio nas águas de Mythic Seas")} width={1280} height={768} />
-        <div className="captain-cover-title"><span><Compass size={25} strokeWidth={1.3} />MYTHIC SEAS</span><h1>{localizeText("Ficha de")}<em>{localizeText("capitão")}</em></h1><i aria-hidden="true" /></div>
+        <div className="captain-cover-title"><span><Compass size={25} strokeWidth={1.3} />MYTHIC SEAS</span><h1>{localizeText("Ficha de ")}<em>{localizeText("capitão")}</em></h1><i aria-hidden="true" /></div>
         <div className="captain-identity">
           <div className="captain-portrait">
             {profile?.photoUrl ? <AvatarWithBorder photoUrl={profile.photoUrl} border={profile.avatarBorder} fallback={getInitials(name)} size={80} /> : <img src={profileArt.captain} alt="" width={80} height={80} />}
@@ -145,7 +145,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       </header>
 
       <div className="captain-content">
-      <div className="captain-registry"><span>{localizeText("REGISTRO DE NAVEGANTE")}</span><div><span>{localizeText("ID")}{profile?.telegramId ?? '—'}</span><OceanControl onClick={copyId} disabled={!profile?.telegramId} title={t('profile.copyIdAria')} aria-label={t('profile.copyIdAria')} className="captain-copy">{copied ? <Check size={15} /> : <Copy size={15} />}</OceanControl></div></div>
+      <div className="captain-registry"><span>{localizeText("REGISTRO DE NAVEGANTE")}</span><div><span>{localizeText("ID ")}{profile?.telegramId ?? '—'}</span><OceanControl onClick={copyId} disabled={!profile?.telegramId} title={t('profile.copyIdAria')} aria-label={t('profile.copyIdAria')} className="captain-copy">{copied ? <Check size={15} /> : <Copy size={15} />}</OceanControl></div></div>
 
       <div className="captain-log">
         <div className="captain-streak"><CalendarDays size={18} /><div><span>{localizeText("Dias a bordo")}</span><strong>{game.loginStreak}<small> {game.loginStreak === 1 ? localizeText("dia seguido") : localizeText("dias seguidos")}</small></strong></div></div>
@@ -167,7 +167,7 @@ export function ProfilePage({ game, profile, telegramInitData, backendEnabled, o
       <section className="captain-signals">
         <div className="captain-section-heading"><div><span><Anchor size={17} />{localizeText("RÁDIO DO NAVIO")}</span><h2>{t('profile.officialChannels')}</h2></div></div>
         {channels.isLoading && <p className="captain-muted">{t('profile.loadingChannels')}</p>}
-        {channels.isError && <p className="captain-channel-error" role="status">{localizeText("Não foi possível consultar as recompensas.")}<OceanControl className="captain-text-action" onClick={() => void channels.refetch()}>{localizeText("Tentar novamente")}</OceanControl></p>}
+        {channels.isError && <p className="captain-channel-error" role="status">{localizeText("Não foi possível consultar as recompensas. ")}<OceanControl className="captain-text-action" onClick={() => void channels.refetch()}>{localizeText("Tentar novamente")}</OceanControl></p>}
         <div className="captain-channel-list">{officialChannelLinks(channels.data?.channels).map((channel: ChannelReward) => {
           const channelImage = profileChannelArt[channel.key] ?? profileChannelArt.news;
           const pending = verify.isPending && verify.variables === channel.key;

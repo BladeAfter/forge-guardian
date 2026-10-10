@@ -314,7 +314,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
       <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
         <p className="text-[9px] uppercase tracking-[.22em] text-sky-300">{t('wallet.conversion')}</p>
-        <p className="mt-1 text-[10px] text-slate-300">{localizeText("1 TON =")}{FC_PER_TON.toLocaleString('pt-BR')} {localizeText("BERRIES —")}{t('wallet.oneWayNote')}</p>
+        <p className="mt-1 text-[10px] text-slate-300">{localizeText("1 TON = ")}{FC_PER_TON.toLocaleString('pt-BR')} {localizeText("BERRIES — ")}{t('wallet.oneWayNote')}</p>
       </div>
 
 
@@ -412,7 +412,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
       <Panel title={t('wallet.history')} icon={<Clock3 />}>
         <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${itemName(cleanTonLabel(item.label)).toUpperCase()} · ${formatTon(Number(item.amountTon ?? 0))} TON` : cleanTonLabel(item.label)}</p>
-          {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">{t('wallet.historyGross')}: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} {localizeText("TON ·")}{t('wallet.historyFee', { percent: Number(item.feePercent ?? 0) })}: {formatTon(Number(item.feeTon ?? 0))} {localizeText("TON ·")}{t('wallet.historyReceived')}: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
+          {item.type === 'withdrawal' ? <p className="mt-0.5 text-[8px] leading-relaxed text-slate-400">{t('wallet.historyGross')}: {formatTon(Number(item.grossTon ?? item.amountTon ?? 0))} {localizeText("TON · ")}{t('wallet.historyFee', { percent: Number(item.feePercent ?? 0) })}: {formatTon(Number(item.feeTon ?? 0))} {localizeText("TON · ")}{t('wallet.historyReceived')}: <strong className="text-emerald-300">{formatTon(Number(item.netTon ?? item.amountTon ?? 0))} TON</strong></p> : null}
           <p className="text-[8px] text-slate-500">{new Date(item.createdAt).toLocaleString('pt-BR')}</p></div><span className="text-[8px] uppercase text-slate-300">{item.type === 'egg_order' ? eggPurchaseStatusLabel(item.status) : statusLabel(item.status, t)}</span></div>) : <p className="py-5 text-center text-[10px] text-slate-500">{t('wallet.noMovement')}</p>}</div>
       </Panel>
 

@@ -79,7 +79,7 @@ function OpenInTelegramGate() {
           href={TELEGRAM_APP_LINK}
           className="mt-8 block w-full rounded-2xl border border-amber-300/50 bg-gradient-to-b from-amber-400 to-amber-600 px-6 py-4 text-base font-black uppercase tracking-[.12em] text-forge-black shadow-[0_14px_30px_rgba(0,0,0,.6)] transition active:scale-95"
         >
-          {localizeText("Abrir no Telegram")}</a>
+          {localizeText("Abrir no Telegram ")}</a>
       </main>
     </div>
   );
@@ -671,7 +671,7 @@ function App() {
             onClick={() => window.location.reload()}
             className="rounded-full border border-sky-300/50 bg-sky-500/20 px-6 py-3 text-sm font-black uppercase tracking-[.18em] text-sky-100"
           >
-            {localizeText("Try again")}</button>
+            {localizeText("Try again ")}</button>
         </div>
       );
     }
@@ -932,7 +932,7 @@ function App() {
           ) : null}
 
 
-          {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">{localizeText("BAÚ ABERTO")}</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">{localizeText("NOVO HERÓI")}</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} {localizeText("· HP")}{chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">{localizeText("CONTINUAR")}</button></div></div>:null}
+          {chestResult?<div className="fixed inset-0 z-[70] grid place-items-center bg-black/85 p-5"><div className="w-full max-w-sm rounded-3xl border p-6 text-center" style={{borderColor:`${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}55`,background:`radial-gradient(circle at 50% 0%, ${RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}22, #090d15 65%)`}}><p className="text-[10px] tracking-[.3em] text-amber-300">{localizeText("BAÚ ABERTO")}</p><img src={chestResult.hero.image} alt={chestResult.hero.name} className="mx-auto mt-3 h-40 w-40 rounded-2xl object-contain"/><h2 className="mt-3 text-2xl font-black text-white">{chestResult.hero.name}</h2><p className="mt-1 text-[11px] font-black tracking-[.2em]" style={{color:RARITY_COLORS[chestResult.hero.rarity as keyof typeof RARITY_COLORS]??'#fbbf24'}}>{chestResult.hero.rarity.toUpperCase()}</p><p className="mt-1 text-[10px] tracking-[.2em] text-emerald-300">{localizeText("NOVO HERÓI")}</p><p className="mt-2 text-[11px] text-slate-400">ATK {chestResult.hero.baseAtk} {localizeText("· HP ")}{chestResult.hero.baseHp}</p><button type="button" onClick={()=>setChestResult(null)} className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-black text-black">{localizeText("CONTINUAR")}</button></div></div>:null}
 
           {settingsOpen ? (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
@@ -1011,15 +1011,15 @@ function App() {
             <div className="village-furnace-glow pointer-events-none absolute bottom-[-12px] left-1/2 z-10 h-28 w-36 -translate-x-1/2 rounded-full" />
             <button onClick={() => upgradeBuilding('iron-mine')} title={`Melhorar Mina de Ferro: ${formatCurrency(game.buildings[0]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[3%] top-[27%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Mina de ferro")}</p>
-              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[0]?.level}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv. ")}{game.buildings[0]?.level}</p>
             </button>
             <button onClick={() => upgradeBuilding('coal-mine')} title={`Melhorar Mina de Carvão: ${formatCurrency(game.buildings[1]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute left-[2%] top-[56%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Mina de carvão")}</p>
-              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[1]?.level}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv. ")}{game.buildings[1]?.level}</p>
             </button>
             <button onClick={() => upgradeBuilding('royal-workshop')} title={`Melhorar Oficina: ${formatCurrency(game.buildings[3]?.upgradeCost ?? 0)} BERRIES`} className="building-upgrade-button absolute right-[2%] top-[43%] z-20 rounded-lg border border-amber-300/40 bg-[#0a0b0e]/95 px-3 py-2 text-center shadow-lg transition active:scale-95">
               <p className="whitespace-nowrap text-[10px] font-bold uppercase text-amber-100">{localizeText("Oficina")}</p>
-              <p className="text-[10px] text-slate-400">{localizeText("Nv.")}{game.buildings[3]?.level}</p>
+              <p className="text-[10px] text-slate-400">{localizeText("Nv. ")}{game.buildings[3]?.level}</p>
             </button>
           </div>
           <div className="village-collect shrink-0 overflow-hidden rounded-2xl border border-amber-300/30 bg-[#090c12]/92 text-center shadow-[0_12px_28px_rgba(0,0,0,.45)]">

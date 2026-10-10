@@ -152,7 +152,7 @@ function HeroSelector({slot,heroes,current,other,otherTeam,pending,onClose,onEqu
        <b className={`block truncate text-[9px] ${h.isNft?'nft-hero-name':''}`}>{h.name}</b>
        {h.isNft?<p className="nft-hero-rarity text-[8px] font-black tracking-widest">{localizeText("NFT EXCLUSIVE ·")}{t('levelShort')}{h.level}</p>:<p className="text-[8px]" style={{color:color[h.rarity]}}>{h.rarity} · {t('levelShort')}{h.level}</p>}
        <p className="text-[8px] text-slate-400">{h.archetype}</p>
-       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} {localizeText("· HP")}{h.finalHp}</p>
+       <p className="text-[8px] text-slate-300">ATK {h.finalAtk} {localizeText(" · HP")}{h.finalHp}</p>
        <p className="text-[9px] font-black text-amber-200">{t('boss.power')} {h.power}</p>
        {inSlot?<p className="text-[7px] font-bold uppercase tracking-[.08em] text-rose-300">{t('pvp.sel.tapToRemove')}</p>:null}
       </div>

@@ -127,7 +127,7 @@ export function PossibleRewards({ onSelect }: { onSelect: (category: RewardCateg
   return (
     <div className="w-full">
       <p className="text-center text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">
-        {localizeText("Possible rewards")}</p>
+        {localizeText("Possible rewards ")}</p>
       <div className="mt-1 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
         {REWARD_CATEGORIES.map((category, index) => (
           <span key={category.id} className="flex items-center gap-1.5">
@@ -179,7 +179,7 @@ export function RewardPreviewPopup({
           onClick={onClose}
           className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300"
         >
-          {localizeText("Fechar")}</button>
+          {localizeText("Fechar ")}</button>
       </div>
     </div>
   );

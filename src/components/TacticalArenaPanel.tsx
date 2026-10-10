@@ -88,7 +88,7 @@ function HeroPicker({
                 <img src={hero.imageUrl} alt={hero.name} className="aspect-square w-full object-cover object-top" />
                 <p className="truncate px-1 pt-1 text-[9px] font-bold">{hero.name}</p>
                 <p className="px-1 text-[8px] uppercase tracking-[.1em] text-amber-200/80">{hero.class}</p>
-                <p className="px-1 pb-1 text-[8px] text-slate-400">{localizeText("Lv.")}{hero.level} · {Number(hero.power || 0).toLocaleString()}</p>
+                <p className="px-1 pb-1 text-[8px] text-slate-400">{localizeText("Lv. ")}{hero.level} · {Number(hero.power || 0).toLocaleString()}</p>
                 {otherSlot ? <span className="absolute right-1 top-1 rounded bg-black/80 px-1 text-[7px] font-black text-amber-200">S{otherSlot.slot}</span> : null}
                 {dupe ? <span className="absolute inset-x-1 bottom-1 rounded bg-rose-500/80 text-center text-[7px] font-black text-black">{localizeText("DUP")}</span> : null}
               </button>
@@ -323,7 +323,7 @@ export function TacticalArenaPanel({ initData }: { initData: string }) {
                     {skill.class} · {skill.type}
                   </p>
                   <p className="text-[8px] text-slate-400">
-                    {skill.multiplier ? `x${Number(skill.multiplier).toFixed(2)} · ` : ''}{localizeText("CD")}{skill.cooldown}
+                    {skill.multiplier ? `x${Number(skill.multiplier).toFixed(2)} · ` : ''}{localizeText("CD ")}{skill.cooldown}
                   </p>
                   {locked ? <p className="text-[8px] font-black text-rose-300">{t('tactical.classLocked')}</p> : null}
                 </button>

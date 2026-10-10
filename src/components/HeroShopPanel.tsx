@@ -471,10 +471,10 @@ export function HeroShopPanel({ telegramInitData, fcBalance, tonBalance = 0, sum
                             <button type="button" onClick={() => setDetailsId(listing.id)} className="min-w-0 flex-1 text-left">
                               <p className="truncate text-[11px] font-black" style={{ color: rarityColor(listing.rarity) }}>{listing.name}</p>
                               <p className="truncate text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                                {t(listing.rarity)} {localizeText("· Lv.")}{listing.level}
+                                {t(listing.rarity)} {localizeText(" · Lv.")}{listing.level}
                               </p>
                               {listing.itemType === 'hero' ? (
-                                <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} {localizeText("· HP")}{formatCurrency(listing.hp)}</p>
+                                <p className="truncate text-[8px] text-slate-300">ATK {formatCurrency(listing.atk)} {localizeText(" · HP")}{formatCurrency(listing.hp)}</p>
                               ) : null}
                               <p className="truncate text-[7px] uppercase tracking-[0.14em] text-slate-500">
                                 {listing.itemType === 'hero' ? t('market.heroes') : listing.itemType === 'pet' ? t('market.pets') : t('market.itemLabel')}

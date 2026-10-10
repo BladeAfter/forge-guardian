@@ -52,7 +52,7 @@ export function MythStakingCard({ initData, enabled }: { initData: string | null
             <span className="block text-[10px] uppercase tracking-[.1em] text-fuchsia-300/90">{localizeText("Mythic Seas Ecosystem Staking")}</span>
             <span className="mt-1 flex items-center gap-3 text-[9px] font-black uppercase tracking-[.12em] text-slate-300">
               <span>{formatMyth(staked)} <span className="text-amber-300">staked</span></span>
-              <span>{localizeText("APR")}<span className="text-emerald-300">{formatApr(apr)}</span></span>
+              <span>{localizeText("APR ")}<span className="text-emerald-300">{formatApr(apr)}</span></span>
             </span>
           </span>
           <span className="shrink-0 rounded-xl border border-amber-400/50 bg-amber-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[.16em] text-amber-200">
@@ -116,7 +116,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
 
         {!active ? (
           <p className="mt-3 rounded-xl border border-amber-400/30 bg-black/50 p-3 text-xs leading-relaxed text-slate-300">
-            {localizeText("Staking is being prepared for a future Mythic Seas update.")}</p>
+            {localizeText("Staking is being prepared for a future Mythic Seas update. ")}</p>
         ) : null}
 
         <div className="mt-3 grid grid-cols-2 gap-2 text-center">
@@ -166,7 +166,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
               })}
             </div>
             <p className="text-[10px] text-slate-400">
-              {localizeText("Stake")}{formatMyth(value)} {localizeText("MYTH · APR")}{formatApr(plan?.aprPercent)} {localizeText("· Lock")}{plan?.lockDays ? `${plan.lockDays} days` : localizeText("Flexible")}
+              {localizeText("Stake ")}{formatMyth(value)} {localizeText("MYTH · APR ")}{formatApr(plan?.aprPercent)} {localizeText("· Lock ")}{plan?.lockDays ? `${plan.lockDays} days` : localizeText("Flexible")}
             </p>
             <button
               type="button"
@@ -174,7 +174,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
               onClick={() => run.mutate({ kind: 'stake' })}
               className="w-full rounded-xl border border-amber-400/50 bg-amber-400/15 py-2 text-[11px] font-black uppercase tracking-[.16em] text-amber-100 disabled:opacity-40"
             >
-              {localizeText("Confirm Stake")}</button>
+              {localizeText("Confirm Stake ")}</button>
           </div>
         ) : null}
 
@@ -185,7 +185,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
             onClick={() => run.mutate({ kind: 'claim' })}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/10 py-2 text-[11px] font-black uppercase tracking-[.16em] text-emerald-200 disabled:opacity-40"
           >
-            <Sparkles className="h-4 w-4" /> {localizeText("Claim Rewards")}</button>
+            <Sparkles className="h-4 w-4" /> {localizeText("Claim Rewards ")}</button>
         ) : null}
 
         {data?.positions?.length ? (
@@ -207,7 +207,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
                     onClick={() => run.mutate({ kind: 'unstake', positionId: position.id })}
                     className="rounded-lg border border-white/20 bg-black/60 px-2 py-1 text-[9px] font-black uppercase tracking-[.12em] text-slate-200 disabled:opacity-40"
                   >
-                    {localizeText("Unstake")}</button>
+                    {localizeText("Unstake ")}</button>
                 </div>
               </div>
             ))}
@@ -216,7 +216,7 @@ function MythStakingModal({ initData, data, onClose }: { initData: string | null
 
         {feedback ? <p className="mt-3 text-center text-[10px] font-bold text-amber-200">{feedback}</p> : null}
         <p className="mt-3 text-center text-[8px] uppercase tracking-[.16em] text-slate-500">
-          {localizeText("Internal MYTH staking · MYTH → MYTH · No new supply")}</p>
+          {localizeText("Internal MYTH staking · MYTH → MYTH · No new supply ")}</p>
       </div>
     </div>
   );

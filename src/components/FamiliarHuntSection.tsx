@@ -201,7 +201,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
         <div>
           <h2 className="text-lg font-black uppercase tracking-[.16em] text-amber-200 drop-shadow-[0_0_16px_rgba(251,191,36,.45)]">{localizeText("FAMILIAR HUNT")}</h2>
           <p className="text-[10px] font-bold tracking-wide text-slate-500">
-            {localizeText("STAGE")}{stage.stage} {localizeText("· recorde")}{data.progress.highestStageCompleted}
+            {localizeText("STAGE")}{stage.stage} {localizeText(" · recorde")}{data.progress.highestStageCompleted}
           </p>
         </div>
         <button
@@ -214,7 +214,7 @@ export default function FamiliarHuntSection({ initData, onWallet }: { initData: 
 
       {!data.enabled ? (
         <p className="rounded-2xl border border-amber-300/30 bg-amber-500/10 px-3 py-2.5 text-center text-[11px] font-bold text-amber-200">
-          {localizeText("A Familiar Hunt está temporariamente desativada.")}</p>
+          {localizeText(" A Familiar Hunt está temporariamente desativada.")}</p>
       ) : null}
 
       {feedback ? (

@@ -60,7 +60,7 @@ export function DiagnosticsPage({
       <header className="mb-4 flex items-center justify-between">
         <h1 className="text-lg font-black uppercase tracking-wide text-amber-300">{localizeText("Diagnóstico")}</h1>
         <button onClick={onClose} className="rounded-lg border border-white/15 px-3 py-1 text-xs uppercase">
-          {localizeText("Fechar")}</button>
+          {localizeText("Fechar ")}</button>
       </header>
 
       <section className="mb-4 space-y-2 rounded-xl border border-white/10 bg-white/5 p-3 text-sm">

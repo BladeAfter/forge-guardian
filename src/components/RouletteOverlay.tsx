@@ -219,7 +219,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
           <div className="min-w-0">
             <p className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">Mythic Seas</p>
             <h1 className="truncate text-base font-black uppercase tracking-[0.14em] text-sky-100">
-              {localizeText("Global Mystery Roulette")}</h1>
+              {localizeText("Global Mystery Roulette ")}</h1>
           </div>
           <button
             type="button"
@@ -250,7 +250,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
         {/* SPIN AREA — minimal */}
         <div className="mt-3 w-full">
           <p className="mb-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-            {localizeText("Balance:")}<span className="text-sky-200">{balanceLabel}</span>
+            {localizeText("Balance: ")}<span className="text-sky-200">{balanceLabel}</span>
           </p>
           <button
             type="button"
@@ -268,7 +268,7 @@ export function RouletteOverlay({ telegramInitData, onClose }: Props) {
                 <div className="mt-2 flex items-center justify-center gap-1.5">
                   <RewardMedallion category={last} size={20} onClick={() => setPreview(last)} />
                   <span className={`truncate text-[9px] font-black uppercase tracking-[0.14em] ${last.text}`}>
-                    {localizeText("Último:")}{rewardTitle(history[0])}
+                    {localizeText("Último: ")}{rewardTitle(history[0])}
                   </span>
                 </div>
               );

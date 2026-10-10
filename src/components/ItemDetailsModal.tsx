@@ -199,7 +199,7 @@ export function ItemDetailsModal({ telegramInitData, source, id, onClose, onBuy,
 
             {item.primaryBuffKey ? (
               <div className="rounded-2xl border border-fuchsia-300/25 bg-fuchsia-400/[.07] px-3 py-2">
-                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-fuchsia-200">{localizeText("Buff principal")}</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.16em] text-fuchsia-200">{localizeText(" Buff principal")}</p>
                 <p className="text-[12px] font-black text-slate-100">
                   {petBuffShortLabel(item.primaryBuffKey) || item.primaryBuffKey.replace(/_/g, ' ')}
                   {item.primaryBuffValue !== null && item.primaryBuffValue !== undefined ? ` +${Number(item.primaryBuffValue).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%` : ''}
