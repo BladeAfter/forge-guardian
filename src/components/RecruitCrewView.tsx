@@ -11,8 +11,8 @@ type Props = {
   results: ShopHero[];
   onRecruit: (count: 1 | 5 | 10) => void;
   rarityLabel: (rarity: HeroRarity) => string;
-  alternativePayment: (count: 1 | 5 | 10) => ReactNode;
-  balanceHint: ReactNode;
+  alternativePayment?: (count: 1 | 5 | 10) => ReactNode;
+  balanceHint?: ReactNode;
 };
 
 /** Pirate presentation of the existing recruitment operation; never rolls or grants heroes. */
@@ -53,7 +53,7 @@ export function RecruitCrewView({ odds, price, results, onRecruit, rarityLabel, 
                 <span className="crew-contract-price">{formatCurrency(price(count))}<small>BERRIES</small></span>
                 <span className="crew-contract-action">{localizeText("RECRUTAR")}</span>
               </button>
-              {alternativePayment(count)}
+              {alternativePayment?.(count)}
             </div>
           ))}
         </div>

@@ -24,4 +24,5 @@
 - Keep PirateActionArena grounded with proportional enemies and gameAssets artwork; selected crew and portraits share grounded voyage identities, defaulting to the first equipped slot. Never use airborne art. Motion is cosmetic; official callbacks own combat. Unsupported powers stay locked.
 - Present mascot egg catalogs as mysterious chests through `gameAssets.ts` and `MascotChestCard`; keep egg IDs, purchase actions, odds and settlement unchanged so the nautical theme cannot alter the economy.
 - Isolate season-pass presentation in SeasonVoyageView with shared artwork and semantic season tokens; keep official reward titles in details and all prices, claims and delivered reward types server-owned so nautical images cannot promise nonexistent ship or treasure-map utility.
-- Hide retired offers without deleting settlement/ownership to preserve replay safety.
+- Keep retired token/offer presentation separate from settlement and ownership for replay safety.
+- Translate legacy literals through LanguageContext and static locale catalogs; never mutate DOM text or translate persistent IDs.
