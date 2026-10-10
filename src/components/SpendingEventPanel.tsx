@@ -59,7 +59,7 @@ export function SpendingEventPanel({ telegramInitData, onGoToSale, onGoToWallet 
   const totals = data.totals;
   const ranking = Array.isArray(data.ranking) ? data.ranking : [];
   const rewards = Array.isArray(data.rewards) ? data.rewards.filter(row => !/\bMYTH\b/i.test(row.label)) : [];
-  const breakdown = Array.isArray(data.breakdown) ? data.breakdown.filter(row => row.sourceGroup !== 'myth_sale') : [];
+  const breakdown = Array.isArray(data.breakdown) ? data.breakdown.filter(row => row.group !== 'myth_sale') : [];
   const finished = event?.status === 'finished' || clock.ended;
   const myRow = ranking.find(r => r.position === player.position) ?? null;
   const breakdownTotal = breakdown.reduce((sum, row) => sum + Number(row.points || 0), 0);
