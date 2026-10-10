@@ -10,6 +10,7 @@ export type TelegramUser = {
 
 export type TelegramWebApp = {
   initData: string;
+  platform?: string;
   initDataUnsafe?: { user?: TelegramUser; start_param?: string };
   ready: () => void;
   expand: () => void;
