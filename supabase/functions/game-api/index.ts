@@ -2062,8 +2062,7 @@ async function handleReferral(db: Db, user: TelegramUser, body: Record<string, a
   const limit = Math.min(20, Math.max(1, Number(body.limit) || 20));
   const dashboard = await rpc(db, 'get_referral_dashboard_v2', { p_telegram_id: user.id, p_level: level, p_offset: offset, p_limit: limit }) as Record<string, unknown>;
   const identity = await botIdentity();
-  const route = identity.appShortName ? `${identity.botUsername}/${identity.appShortName}` : identity.botUsername;
-  const link = `https://t.me/${route}?startapp=${user.id}`;
+  const link = `https://t.me/MythicSeasbot?start=ref_${user.id}`;
   return { ...dashboard, ...identity, telegramId: user.id, link, referralLink: link };
 }
 
@@ -3470,7 +3469,10 @@ Deno.serve(async (req) => {
     if (registration.error) throw new Error('Could not load launch registration.');
     if (registration.data?.inviter_telegram_id) {
       await rpc(db, 'touch_referral_player', { p_telegram_id: user.id, p_name: user.first_name ?? 'Captain', p_username: user.username ?? null, p_avatar: user.photo_url ?? null });
-      await rpc(db, 'touch_referral_player', { p_telegram_id: Number(registration.data.inviter_telegram_id), p_name: 'Captain', p_username: null, p_avatar: null });
+      const inviterProfile = await db.from('launch_registrations').select('display_name').eq('telegram_id', registration.data.inviter_telegram_id).maybeSingle();
+      const existingInviter = await db.from('game_players').select('id').eq('telegram_id', registration.data.inviter_telegram_id).maybeSingle();
+      if (inviterProfile.error || existingInviter.error) throw new Error('Could not load inviter.');
+      if (!existingInviter.data) await rpc(db, 'touch_referral_player', { p_telegram_id: Number(registration.data.inviter_telegram_id), p_name: inviterProfile.data?.display_name ?? 'Captain', p_username: null, p_avatar: null });
       await rpc(db, 'bind_referral', { p_telegram_id: user.id, p_inviter_telegram_id: Number(registration.data.inviter_telegram_id) });
     }
     // Real activity only: every authenticated call refreshes last_seen_at, throttled server-side
