@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest';
+import { languageFromUpdate, tutorialLanguage, tutorialForLanguage } from '../supabase/functions/game-bot/tutorialLanguages';
+import { deliverFirstTutorial } from '../supabase/functions/game-bot/tutorial';
+import { welcomeReply } from '../supabase/functions/game-bot/format';
+describe('Telegram tutorial language', () => {
+  it('detects Russian from Telegram sender', () => {
+    expect(languageFromUpdate({ message: { from: { language_code: 'ru-RU' } } })).toBe('ru');
+  });
+  it('normalizes regional codes and aliases', () => {
+    expect(tutorialLanguage('pt-BR')).toBe('pt');
+    expect(tutorialLanguage('zh_CN')).toBe('zh');
+    expect(tutorialLanguage('iw')).toBe('he');
+  });
+  it('defaults missing Telegram language to English', () => {
+    expect(languageFromUpdate({ message: { from: {} } })).toBe('en');
+  });
+  it('uses the Portuguese video for Brazilian and Portuguese Telegram locales', () => {
+    const original = tutorialForLanguage('pt');
+    expect(original?.video).toBeTruthy();
+    expect(tutorialForLanguage('pt-BR')).toEqual(original);
+    expect(tutorialForLanguage('pt-PT')).toEqual(original);
+  });
+  it('provides distinct public HTTPS Russian and English video URLs for Telegram', () => {
+    expect(tutorialForLanguage('ru')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-ru\.mp4$/);
+    expect(tutorialForLanguage('en')?.video).toMatch(/^https:\/\/mythicseas\.lovable\.app\/.*tutorial-en\.mp4$/);
+    expect(tutorialForLanguage('ru')?.video).not.toBe(tutorialForLanguage('en')?.video);
+  });
+  it('never substitutes Portuguese or claims a missing-language delivery', async () => {
+    const reply = welcomeReply({ update_id: 1, message: { text: '/start', chat: { id: 42, type: 'private' }, from: { id: 42 } } });
+    if (!reply) throw new Error('Expected start');
+    let claims = 0, sends = 0;
+    expect(tutorialForLanguage('zz')).toBeNull();
+    expect(await deliverFirstTutorial(reply, 1, { claim: async () => { claims++; return true; }, finish: async () => {} }, async () => { sends++; return { ok: true }; }, 'zz')).toBe(false);
+    expect(claims).toBe(0);
+    expect(sends).toBe(0);
+  });
+});
