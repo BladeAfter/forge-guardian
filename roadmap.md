@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Corrigir a navegação do navio com joystick no Mini App Telegram, verificando o caminho autenticado sem prever posições ou alterar recompensas.
+
 - [x] Proteger margens da ilha e píer com varredura de movimento e recuperação da última posição segura; caminhada, salto/esquiva na borda e embarque conferidos em cena isolada, 17 testes passaram. Navegação e recompensas preservadas; falta confirmação no Telegram real.
 
 - [x] Boas-vindas ilustradas no /start de @MythicSeasbot com botão de iniciar; webhook ativado e resposta autenticada conferida, chamadas sem segredo rejeitadas. Permissão nativa de mensagens solicitada uma vez por sessão; recibos com valor, carteira, data UTC, hash e Tonviewer. Aceitação e abertura reais ainda precisam de conferência no Telegram.
