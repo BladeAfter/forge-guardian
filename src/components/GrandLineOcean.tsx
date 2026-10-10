@@ -9,6 +9,7 @@ import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, type Sea
 import { OceanControl } from './OceanControl';
 import { approachApprovedPose } from '../navalMotion';
 import { captureTelegramGameGestures } from '../telegram';
+import NavalMiniMap from './NavalMiniMap';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
@@ -154,7 +155,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     </div>
     {enemy && <div className="naval-enemy" role="dialog" aria-label="Navio inimigo"><h2>NAVIO INIMIGO</h2><p>{enemy.name} · Nv. {enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>Vida {enemy.hp}/{shipMaxHp(enemy)} · Canhões {shipStats(enemy).cannons}<br/>Defesa {shipStats(enemy).defense} · Tripulação {shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>Atacar</OceanControl><OceanControl onClick={()=>setInspecting(true)}>Inspecionar</OceanControl><OceanControl onClick={()=>setSelected(null)}>Ignorar</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>Saque e guerra naval aguardam definição das regras.</small>}</div>}
     {yardOpen && <NavalShipyard ship={ownShip} state={network.data} busy={network.busy} onClose={()=>setYardOpen(false)} onSave={async input => {if(await network.action('customize',input))setYardOpen(false);}} onAction={async action => {await network.action(action);}}/>}
-    <div className="ocean-compass" aria-label="Bússola"><span>N</span><Compass size={38} strokeWidth={1} /></div>
+    <NavalMiniMap pose={state} network={currentNetwork} />
     <div className="ocean-view"><OceanControl title={wide ? 'Seguir navio' : 'Ampliar visão do horizonte'} aria-label={wide ? 'Seguir navio' : 'Ampliar visão do horizonte'} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? 'MAPA NA GARRAFA' : 'DESCOBERTA'}</span><p>{message}</p></div>}
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? 'Atracando...' : 'Atracar no porto'}</OceanControl></div>}
