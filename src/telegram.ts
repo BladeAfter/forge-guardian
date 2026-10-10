@@ -13,6 +13,9 @@ export type TelegramWebApp = {
   initDataUnsafe?: { user?: TelegramUser; start_param?: string };
   ready: () => void;
   expand: () => void;
+  isVerticalSwipesEnabled?: boolean;
+  disableVerticalSwipes?: () => void;
+  enableVerticalSwipes?: () => void;
   requestWriteAccess?: (callback?: (allowed: boolean) => void) => void;
   openTelegramLink?: (url:string) => void;
   launchParams?: {startParam?:string};
@@ -53,6 +56,14 @@ export const initializeTelegram = () => {
   webApp?.ready();
   webApp?.expand();
   return webApp ?? null;
+};
+
+/** Restore the native sheet gestures when leaving gameplay. */
+export const captureTelegramGameGestures = (webApp: TelegramWebApp | undefined) => {
+  if (!webApp?.disableVerticalSwipes || !webApp.enableVerticalSwipes) return () => {};
+  const restore = webApp.isVerticalSwipesEnabled !== false;
+  try { webApp.disableVerticalSwipes(); } catch { return () => {}; }
+  return () => { if (restore) { try { webApp.enableVerticalSwipes?.(); } catch { /* Older clients. */ } } };
 };
 
 let writeAccessRequested = false;

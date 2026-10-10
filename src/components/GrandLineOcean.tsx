@@ -8,6 +8,7 @@ import NavalShipyard from './NavalShipyard';
 import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
 import { approachApprovedPose } from '../navalMotion';
+import { captureTelegramGameGestures } from '../telegram';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
@@ -60,6 +61,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const fireAction=(action:string) => void network.action(action);
   const openYard=() => { resetJoystick();state.current.keys.clear();setYardOpen(true); };
 
+  useEffect(() => captureTelegramGameGestures(window.Telegram?.WebApp), []);
+
   useEffect(() => {
     // Bitmap rendering is separate from authoritative navigation and HUD.
     let frame = 0; let previous = 0; let uiTime = 0;
@@ -67,7 +70,9 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
+    const visibility = () => { if (document.hidden) clear(); };
     window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
+    document.addEventListener('visibilitychange', visibility);
     const render = (time: number) => {
       const dt = Math.min((time - (previous || time)) / 1000, .05); previous = time;
       if (document.hidden) { frame = requestAnimationFrame(render); return; }
@@ -87,7 +92,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         s.moving = seaDistance(s.position, { x: live.ship.x, y: live.ship.y }) > .5;
         s.position = next.position; s.heading = next.heading;
         s.velocity = { x: 0, y: 0 };
-      } else if (!yardRef.current) {
+      } else if (!yardRef.current && !initData) {
         networkPosition.current = false;
         s.position = advanceSailing(s.position, s.target, s, dt, 122 * throttleRef.current);
         s.moving = Math.hypot(s.velocity.x, s.velocity.y) > .5;
@@ -112,8 +117,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('keydown',keydown); window.removeEventListener('keyup',keyup); window.removeEventListener('blur',clear); };
-  }, []);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('keydown',keydown); window.removeEventListener('keyup',keyup); window.removeEventListener('blur',clear); document.removeEventListener('visibilitychange',visibility); };
+  }, [initData]);
 
   const sail = (point: SeaPoint) => {
     if (docking.current !== null) return;
@@ -155,7 +160,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? 'Atracando...' : 'Atracar no porto'}</OceanControl></div>}
     <nav className="ocean-helm" aria-label="Direção do navio">
       <OceanControl className="ocean-joystick" title="Joystick do navio" aria-label="Joystick do navio" disabled={dockingNow}
-        onPointerDown={event => { if (joystickPointer.current !== null) return; joystickPointer.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId); steer(event); }}
+        onPointerDown={event => { if (joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
         onPointerCancel={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}

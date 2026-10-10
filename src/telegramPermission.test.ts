@@ -17,4 +17,20 @@ describe('Telegram message consent', () => {
     requestTelegramMessages({ initData: 'test', ready: vi.fn(), expand: vi.fn() });
     expect(request).not.toHaveBeenCalled();
   });
+  it('captures native swipes during gameplay and restores them on exit', async () => {
+    const { captureTelegramGameGestures } = await import('./telegram');
+    const disableVerticalSwipes = vi.fn(), enableVerticalSwipes = vi.fn();
+    const cleanup = captureTelegramGameGestures({ initData: 'test', ready: vi.fn(), expand: vi.fn(), disableVerticalSwipes, enableVerticalSwipes });
+    expect(disableVerticalSwipes).toHaveBeenCalledOnce();
+    expect(enableVerticalSwipes).not.toHaveBeenCalled();
+    cleanup();
+    expect(enableVerticalSwipes).toHaveBeenCalledOnce();
+  });
+  it('preserves disabled swipes and tolerates old clients', async () => {
+    const { captureTelegramGameGestures } = await import('./telegram');
+    const enableVerticalSwipes = vi.fn();
+    captureTelegramGameGestures({ initData: 'test', ready: vi.fn(), expand: vi.fn(), isVerticalSwipesEnabled: false, disableVerticalSwipes: vi.fn(), enableVerticalSwipes })();
+    expect(enableVerticalSwipes).not.toHaveBeenCalled();
+    expect(() => captureTelegramGameGestures(undefined)()).not.toThrow();
+  });
 });
