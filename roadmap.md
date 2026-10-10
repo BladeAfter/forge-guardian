@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Tutorial publicado e fixado no @MythicSeasChat e @MythicSeasNews, ambos confirmados pelo Telegram. Envio único por jogador configurado no /start e implantado; quatro testes passaram e webhook autenticado conferido.
+- [ ] Confirmar recebimento privado do tutorial no primeiro /start com jogador real; depende de interação do jogador no Telegram.
+
 - [x] Substituir bússola por minimapa náutico graduado com ilhas, portos, direção do navio e jogadores do servidor. Ampliação/redução e joystick conferidos isoladamente; 13 testes passaram. Confirmação com jogadores reais no Telegram indisponível.
 
 - [x] Remover emendas quadradas com água própria e bordas espelhadas; reduzir ilhas e suavizar suas margens sem mudar colisões/atracação. Treze testes passaram; cena isolada e seleção de dois jogadores simulados conferidas, assim como envio/parada do joystick. Mundo aberto e jogadores reais retornados pelo servidor preservados; confirmação multijogador no Telegram requer sessões reais.

@@ -1,7 +1,7 @@
 # Architecture Rules
 
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
-- Validate game-bot webhook secrets and reply inline to private starts; native message consent is requested once per session, honoring refusal without affecting gameplay.
+- Validate bot webhook secrets; claim first starts atomically to send tutorials once. Hold ambiguous sends. Reply inline later. Request message consent once; respect refusal.
 
 - Keep the pirate presentation centralized in semantic CSS tokens and `gameAssets.ts`; gameplay logic and page structure must remain theme-independent.
 - Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.
