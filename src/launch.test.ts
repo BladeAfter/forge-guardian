@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LAUNCH_AT, launchInviter, launchStatus, mobileTelegramClient } from '../supabase/functions/_shared/launch';
+import { LAUNCH_AT, launchAccess, launchInviter, launchStatus, mobileTelegramClient } from '../supabase/functions/_shared/launch';
 import { launchSeconds, sampleLaunchClock } from './launchClock';
 describe('launch access rules', () => {
+  it('allows only verified admin 8490010993 before launch without public release', () => {
+    const now = Date.parse('2026-10-10T01:27:00Z');
+    expect(launchAccess(8490010993, now)).toMatchObject({ canEnter: true, released: false });
+    for (const id of [8118569391, 8490010992, 42, 0]) expect(launchAccess(id, now).canEnter).toBe(false);
+    expect(launchStatus(now).released).toBe(false);
+  });
   it('releases only at October 12 18:00 UTC', () => {
     expect(LAUNCH_AT).toBe('2026-10-12T18:00:00Z');
     expect(launchStatus(Date.parse(LAUNCH_AT) - 1).released).toBe(false);

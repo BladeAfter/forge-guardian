@@ -18,7 +18,7 @@
 - Keep islands client-only in React Three Fiber: interpolated orthographic follow camera, memoized scene without shadow passes, reusable ropes and batched hidden Rapier footprints aligned to each bitmap. Preserve level floor and collider-only pier. Replay official Realm results and extract before boarding so cosmetic movement cannot mint rewards. Profile gender is cosmetic.
 - Share harbor waypoints and Rapier docking; sweep character steps against bitmap coastlines and pier/boarding bounds, restoring invalid poses to last safe ground so jumps/dodges cannot enter water or change sailing/rewards.
 - Gate game API and reconciliation by server reset; reject pre-epoch transactions to avoid resurrected balances.
-- Gate player actions by server launch time and lazy-mount game after mobile Telegram auth; device signals are not attestation. Bind first inviter atomically from bot or signed data, rank verified arrivals, never pay prelaunch rewards.
+- Gate launch server-side; only signed super-admin bypasses it. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
 - Keep PirateActionArena grounded with proportional enemies and gameAssets artwork; selected crew and portraits share grounded voyage identities, defaulting to the first equipped slot. Never use airborne art. Motion is cosmetic; official callbacks own combat. Unsupported powers stay locked.
