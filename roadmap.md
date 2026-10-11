@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Grand Fleet: seis emblemas IA distintos por símbolo persistido e quatro opções de cor como amostras; escolhas, custo e regras preservados.
+
 - [x] Kraken: pirata/retrato fixos removidos; seis espaços reais no cliente, serviço e banco. Observação não consome golpe manual; contra-ataque/recuperação e automático preservados. Rotação aceita ciclo expirado. Migrações 0126–0128 aplicadas e game-api implantada; transação revertida validou seis membros, dano, contra-ataque, espera e rejeição do sétimo; 32 testes passaram. Cena isolada confirmou seis seleções, cinco ataques, barra e reação; compilação OK.
 - [ ] Confirmar seis tripulantes e golpes no Telegram físico; bloqueio: aparelho/sessão Telegram real indisponível e frontend ainda não publicado.
 
