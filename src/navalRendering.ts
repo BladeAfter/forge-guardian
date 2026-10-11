@@ -1,6 +1,7 @@
 import { DEFAULT_SHIP, SHIP_MODELS, shipMaxHp, type NavalShip } from './naval';
 import { fleetShipArt } from './gameAssets';
 import { oceanImage } from './oceanPresentation';
+import { customizedFleetImage } from './shipCustomization';
 
 /** Only the server-selected class determines fleet appearance, never a locally viewed card. */
 export function fleetAppearanceUrl(ship: NavalShip): string | undefined {
@@ -8,11 +9,11 @@ export function fleetAppearanceUrl(ship: NavalShip): string | undefined {
   return key && Object.prototype.hasOwnProperty.call(fleetShipArt.classes, key) ? fleetShipArt.classes[key] : undefined;
 }
 
-export type NavalPalette = { foam: string; gold: string; ink: string; vitality: string; ember: string; filters: Record<string, string> };
+export type NavalPalette = { foam: string; gold: string; ink: string; vitality: string; ember: string; filters: Record<string, string>; colors?: Record<string, string> };
 export function navalPalette(element: Element): NavalPalette {
   const css = getComputedStyle(element);
   const color = (token: string) => `hsl(${css.getPropertyValue(token).trim()})`;
-  return { foam: color('--ocean-foam'), gold: color('--ocean-gold'), ink: color('--ocean-shadow'), vitality: color('--ocean-vitality'), ember: color('--pirate-red'), filters: Object.fromEntries(['black','inferno','deep','storm','reaper','king'].map(k => [k, css.getPropertyValue(`--naval-filter-${k}`).trim() || 'none'])) };
+  return { foam: color('--ocean-foam'), gold: color('--ocean-gold'), ink: color('--ocean-shadow'), vitality: color('--ocean-vitality'), ember: color('--pirate-red'), colors: Object.fromEntries(['red','blue','green','gold','black','white'].map(k => [k, color(`--ship-color-${k}`)])), filters: Object.fromEntries(['black','inferno','deep','storm','reaper','king'].map(k => [k, css.getPropertyValue(`--naval-filter-${k}`).trim() || 'none'])) };
 }
 export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, ship: NavalShip, palette: NavalPalette, time: number, sizeOverride?: number, wakeCount = 6) {
   const index = Math.max(0, SHIP_MODELS.findIndex(m => m.id === ship.model));
@@ -37,18 +38,18 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
     }
     ctx.globalAlpha = 1;
   }
-  // Fleet art already carries the chosen class colors, sails and figurehead.
+  // Recolors are cached outside the frame loop; class silhouette and stats remain unchanged.
   if (fleetImage?.complete && fleetImage.naturalWidth) {
-    ctx.save(); ctx.rotate(Math.PI / 2); ctx.drawImage(fleetImage, -size/2, -size/2, size, size); ctx.restore();
+    ctx.save(); ctx.rotate(Math.PI / 2); ctx.drawImage(customizedFleetImage(fleetImage, cosmetics, palette.colors), -size/2, -size/2, size, size); ctx.restore();
   } else {
     ctx.filter = palette.filters[ship.skin] || 'none';
     if (atlas.complete && atlas.naturalWidth) { ctx.save();ctx.rotate(Math.PI);ctx.drawImage(atlas,(index%3)*w,Math.floor(index/3)*h,w,h,-size/2,-size/2,size,size);ctx.restore(); }
   }
   ctx.filter = 'none';
-  if (!fleetUrl) {
-  ctx.fillStyle = ship.skin === 'inferno' ? palette.ember : ship.skin === 'king' ? palette.gold : palette.vitality;
+  if (!fleetUrl || cosmetics.flagColor) {
+  ctx.fillStyle = palette.colors?.[cosmetics.flagColor ?? ''] ?? (ship.skin === 'inferno' ? palette.ember : ship.skin === 'king' ? palette.gold : palette.vitality);
   ctx.beginPath(); ctx.moveTo(8,-size*.42); ctx.lineTo(33,-size*.38 + Math.sin(time/350)*3); ctx.lineTo(8,-size*.31); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = palette.ink; ctx.font = `bold ${Math.max(9,size*.06)}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText(cosmetics.flag === 'sun' ? '☀' : cosmetics.flag === 'moon' ? '☾' : '☠',18,-size*.35);
+  ctx.fillStyle = cosmetics.flagColor === 'black' || cosmetics.flagColor === 'blue' ? palette.foam : palette.ink; ctx.font = `bold ${Math.max(9,size*.06)}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText(cosmetics.flag === 'sun' ? '☀' : cosmetics.flag === 'moon' ? '☾' : '☠',18,-size*.35);
   if (cosmetics.prow !== 'none') { ctx.strokeStyle = cosmetics.prow === 'lion' ? palette.gold : palette.foam; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0,-size*.4); ctx.lineTo(0,-size*.51); ctx.lineTo(cosmetics.prow === 'lion' ? 7 : 0,-size*.45); ctx.stroke(); }
   if (cosmetics.decoration !== 'none') { ctx.strokeStyle = cosmetics.decoration === 'gold' ? palette.gold : palette.foam; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0,size*.27,size*.12,0,Math.PI); ctx.stroke(); }
   }
