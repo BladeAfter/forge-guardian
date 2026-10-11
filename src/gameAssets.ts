@@ -1,7 +1,17 @@
 import grandFleetDeck from './assets/grand-fleet-deck.jpg';
 import { pirateHeroImage } from './pirateHeroArt';
 import grandFleetEmblem from './assets/grand-fleet-emblem.png';
-export const grandFleetArt = { deck: grandFleetDeck, emblem: grandFleetEmblem };
+import fleetDragon from './assets/fleet-emblems/dragon.png';
+import fleetSword from './assets/fleet-emblems/sword.png';
+import fleetWolf from './assets/fleet-emblems/wolf.png';
+import fleetCrown from './assets/fleet-emblems/crown.png';
+import fleetFlame from './assets/fleet-emblems/flame.png';
+import fleetSkull from './assets/fleet-emblems/skull.png';
+export const grandFleetArt = { deck: grandFleetDeck, emblem: grandFleetEmblem, symbols: { dragon: fleetDragon, sword: fleetSword, wolf: fleetWolf, crown: fleetCrown, flame: fleetFlame, skull: fleetSkull } };
+export function fleetEmblemImage(symbol?: string): string {
+  const key = Object.keys(grandFleetArt.symbols).find(key => key === symbol) as keyof typeof grandFleetArt.symbols | undefined;
+  return grandFleetArt.symbols[key ?? 'dragon'];
+}
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
 import groundedCaptain from './assets/arena-grounded-captain.png';
 import groundedCaptainFemale from './assets/arena-grounded-captain-female.png';

@@ -1,0 +1,10 @@
+.fleet-crest[data-background] {
+  border-radius: 50%;
+  background: hsl(var(--fleet-emblem-field));
+  padding: 3px;
+}
+.fleet-crest[data-background="navy"], .fleet-emblem-swatch[data-background="navy"] { --fleet-emblem-field: var(--fleet-ink); }
+.fleet-crest[data-background="purple"], .fleet-emblem-swatch[data-background="purple"] { --fleet-emblem-field: var(--fleet-emblem-violet); }
+.fleet-crest[data-background="crimson"], .fleet-emblem-swatch[data-background="crimson"] { --fleet-emblem-field: var(--fleet-accent); }
+.fleet-crest[data-background="emerald"], .fleet-emblem-swatch[data-background="emerald"] { --fleet-emblem-field: var(--fleet-emblem-green); }
+.fleet-emblem-swatch { display: block; width: 26px; height: 26px; border-radius: 50%; background: hsl(var(--fleet-emblem-field)); border: 2px solid hsl(var(--fleet-gold)); }

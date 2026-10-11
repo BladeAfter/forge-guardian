@@ -1,4 +1,5 @@
-import { grandFleetArt } from '../gameAssets';
+import { fleetEmblemImage } from '../gameAssets';
+import './FleetEmblems.css';
 import { Plus, Shield } from 'lucide-react';
 import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
@@ -6,8 +7,9 @@ import { useT } from '../LanguageContext';
 
 
 /** Cosmetic pirate flag; existing emblem identifiers and membership stay unchanged. */
-export function ClanCrest({ size = 44, initials }: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
-  return <span className="fleet-crest" style={{ width: size, height: size }} aria-hidden><img src={grandFleetArt.emblem} width={1024} height={1024} loading="lazy" alt="" />{initials && size >= 34 ? <b>{initials.slice(0,5)}</b> : null}</span>;
+export function ClanCrest({ emblem, size = 44, initials }: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
+  const background = ['navy', 'purple', 'crimson', 'emerald'].includes(emblem?.background ?? '') ? emblem?.background : 'navy';
+  return <span className="fleet-crest" data-background={background} style={{ width: size, height: size }} aria-hidden><img src={fleetEmblemImage(emblem?.symbol)} width={512} height={512} loading="lazy" alt="" />{initials && size >= 34 ? <b>{initials.slice(0,5)}</b> : null}</span>;
 }
 
 /**
