@@ -1,6 +1,9 @@
 import type { LanguageCode } from './registry';
 
 const copy: Record<string, [string, string, string, string, string]> = {
+  'Fleet Coins': ['Moedas da frota', 'Fleet Coins', 'Monedas de flota', 'Монеты флотилии', 'Filo paraları'],
+  'magic wood': ['Madeira mágica', 'Magic wood', 'Madera mágica', 'Магическая древесина', 'Büyülü ahşap'],
+  'iron ore': ['Minério de ferro', 'Iron ore', 'Mineral de hierro', 'Железная руда', 'Demir cevheri'],
   'Entre em uma frota para acessar a progressão coletiva.': ['Entre em uma frota para acessar a progressão coletiva.', 'Join a fleet to access collective progression.', 'Únete a una flota para acceder al progreso colectivo.', 'Вступите во флотилию для общего прогресса.', 'Ortak ilerleme için bir filoya katıl.'],
   'Não foi possível carregar a Grand Fleet.': ['Não foi possível carregar a Grand Fleet.', 'Unable to load Grand Fleet.', 'No se pudo cargar Grand Fleet.', 'Не удалось загрузить Grand Fleet.', 'Grand Fleet yüklenemedi.'],
   'Grand Fleet Raid': ['Ataque da Grand Fleet', 'Grand Fleet Raid', 'Incursión de Grand Fleet', 'Рейд Grand Fleet', 'Grand Fleet Baskını'],

@@ -211,7 +211,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         <div><span>{t('clan.level')}</span><b>{clan.level}</b></div>
       </section>
       <div className="fleet-progress"><span>{t('clan.xp')} · {formatCurrency(clan.xp)} / {formatCurrency(clan.xpNeeded)}</span><progress max={Math.max(1,clan.xpNeeded)} value={clan.xp} /></div>
-      {data.leaderBonus ? <section className="fleet-bonus"><div><span>{t('fleet.leaderBonus')}</span><b>+{data.leaderBonus.rate * 100}%</b></div><p>{t('fleet.bonusDescription')}</p><small>{t('fleet.bonusExclusions')}</small>{data.role === 'leader' ? <><strong>{t('fleet.received')}: {formatCurrency(data.leaderBonus.berries)} BERRIES</strong><dl className="fleet-material-receipts">{Object.entries(data.leaderBonus.materials).map(([material, amount]) => <div key={material}><dt>{material.replace(/_/g, ' ')}</dt><dd>+{formatCurrency(amount)}</dd></div>)}</dl></> : null}</section> : null}
+      {data.leaderBonus ? <section className="fleet-bonus"><div><span>{t('fleet.leaderBonus')}</span><b>+{data.leaderBonus.rate * 100}%</b></div><p>{t('fleet.bonusDescription')}</p><small>{t('fleet.bonusExclusions')}</small>{data.role === 'leader' ? <><strong>{t('fleet.received')}: {formatCurrency(data.leaderBonus.berries)} BERRIES</strong><dl className="fleet-material-receipts">{Object.entries(data.leaderBonus.materials).map(([material, amount]) => <div key={material}><dt>{localizeText(material.replace(/_/g, ' '))}</dt><dd>+{formatCurrency(amount)}</dd></div>)}</dl></> : null}</section> : null}
 
 
 
