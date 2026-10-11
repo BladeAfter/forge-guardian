@@ -14,19 +14,34 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
   const wake = useRef<(() => void) | null>(null);
   const apply = (next: NavalState) => { current.current = next; if(mounted.current) { setData(next);setError(''); } };
   useEffect(() => {
-    mounted.current = true; let cancelled = false, urgent = false, timer: ReturnType<typeof setTimeout>;
+    mounted.current = true; let cancelled = false, scheduled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = (delay: number) => {
+      if (cancelled) return;
+      clearTimeout(timer);
+      scheduled = true;
+      timer = setTimeout(tick, delay);
+    };
     const tick = async () => {
-      urgent = false;
+      scheduled = false;
       if(cancelled || !initData) return;
+      const started = performance.now();
       if(!locked.current && !document.hidden) {
         locked.current = true;
          try { const next=await navalCall(initData,'heartbeat',pending.current.shift() ?? input.current()); if(!cancelled) apply(next); }
          catch(e) { if(!cancelled) setError(e instanceof Error ? e.message : 'Oceano indisponível.'); }
         finally { locked.current = false; }
       }
-       if(!cancelled) timer=setTimeout(tick,pending.current.length ? 100 : current.current ? 650 : 5000);
+      // A gesture arriving during a request must run as soon as it finishes.
+      // Count the round trip inside the cadence, rather than adding it on top.
+      if(!cancelled) schedule(pending.current.length ? 0 : Math.max(0, (current.current ? 650 : 5000) - (performance.now() - started)));
     };
-    wake.current = () => { if(!cancelled && !locked.current && !urgent) { urgent=true;clearTimeout(timer); timer=setTimeout(tick,0); } };
+    wake.current = () => {
+      if(cancelled || locked.current) return;
+      // Do not let successive drag events keep postponing an urgent send.
+      if (scheduled) clearTimeout(timer);
+      if (!scheduled || timer !== undefined) { schedule(0); }
+    };
     const resume = () => { if(!document.hidden) wake.current?.(); };
     document.addEventListener('visibilitychange',resume);
     window.addEventListener('online',resume);
