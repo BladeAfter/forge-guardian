@@ -2195,11 +2195,12 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'dashboard');
     if (action === 'dashboard') {
       // Anti-abuse state (join cooldown + clan boss lock) rides along so the UI can show real counters.
-      const [dash, antiAbuse] = await Promise.all([
+      const [dash, antiAbuse, leaderBonus] = await Promise.all([
         rpc(db, 'get_clan_dashboard', { p_telegram_id: user.id }),
         rpc(db, 'clan_anti_abuse_state', { p_telegram_id: user.id }).catch(() => null),
+        rpc(db, 'grand_fleet_bonus_state', { p_telegram_id: user.id }),
       ]);
-      return { ...(dash as Record<string, unknown>), antiAbuse };
+      return { ...(dash as Record<string, unknown>), antiAbuse, leaderBonus };
     }
     if (action === 'search') return rpc(db, 'search_clans', { p_telegram_id: user.id, p_query: String(body.query || '').slice(0, 40) });
     if (action === 'create') {
