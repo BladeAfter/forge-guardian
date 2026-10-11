@@ -129,8 +129,8 @@ export function PirateActionArena(props: Props) {
       <div className="action-boss-life" role="progressbar" aria-label={localizeText("Vida do chefe")} aria-valuenow={Math.ceil(hp)} aria-valuemax={maxHp} aria-valuemin={0}><span style={{ width: `${ratio}%` }} />{[25,50,75].map(value => <i key={value} style={{ left: `${value}%` }} />)}</div>
       <div className="action-boss-meta"><span>{Math.ceil(hp).toLocaleString('pt-BR')} / {maxHp.toLocaleString('pt-BR')}</span></div>
     </header>
-    <aside className="action-crew" aria-label={localizeText("Tripulação")}>
       <OceanControl className="action-crew-manage" onClick={() => props.onEquip(COMBAT_SLOTS.find(slot => !heroes.some(hero => Number(hero.slot) === slot)) ?? COMBAT_SLOTS[0])} aria-label={t('selectHero')} title={t('selectHero')}><Users /></OceanControl>
+    <aside className="action-crew" aria-label={localizeText("Tripulação")}>
       <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title={localizeText("Capitão do perfil")} aria-label={localizeText("Capitão do perfil")}><img src={captain} alt={localizeText("Capitão")} /></OceanControl>
       {COMBAT_SLOTS.map(slot => { const hero = heroes.find(item => Number(item.slot) === slot); return <div key={slot}>
         <OceanControl className={hero ? (selected?.heroId === hero.heroId ? 'action-crew-selected' : '') : 'action-crew-empty'} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `${hero.name} · ${t('slot')} ${slot}` : `${t('selectHero')} · ${t('slot')} ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}` : `${t('selectHero')} · ${t('slot')} ${slot}`}>

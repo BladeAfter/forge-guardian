@@ -4409,7 +4409,8 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
  .action-boss-title { gap:3px; }.action-boss-title h2 { font-size:15px; }.action-boss-title small { font-size:6px; }
  .action-boss-title .ocean-control { min-width:23px; min-height:23px; padding:3px; }.action-boss-title svg { width:13px; height:13px; }
  .action-boss-meta { font-size:7px; }.action-boss-life { height:7px; }
- .action-crew { left:8px; top:22%; gap:5px; }.action-crew .ocean-control { width:44px; height:44px; }.action-crew .action-crew-edit { width:24px; height:24px; right:-10px; }
+ .seas-action-arena { min-height:540px; }
+ .action-crew { left:8px; top:24%; gap:5px; }.action-crew .ocean-control { width:44px; height:44px; }.action-crew .action-crew-edit { width:24px; height:24px; right:-10px; }
  .action-actor { width:27%; height:25%; }.action-monster { width:57%; height:43%; left:42%; bottom:31%; }
  .action-controls { transform:scale(.65); transform-origin:right bottom; bottom:14px; right:10px; }
  .seas-action-arena .ocean-helm { left:10px; bottom:16px; }.seas-action-arena .ocean-joystick { width:76px; height:76px; }
@@ -4468,3 +4469,5 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .boss-crew-backdrop { position:fixed; inset:0; z-index:10030; display:flex; align-items:flex-end; justify-content:center; background:hsl(var(--action-shadow)/.85); padding:12px; }.boss-crew-sheet { width:min(100%,480px); max-height:85dvh; overflow-y:auto; background:hsl(var(--action-ink)); color:hsl(var(--action-text)); padding:16px; border:1px solid hsl(var(--action-energy)/.4); border-radius:8px; padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
 @media(min-width:700px) { .invite-cover { height:320px; }.invite-cover-title h1 { font-size:36px; } }
 @media(max-width:360px) { .invite-content { padding-inline:14px; }.invite-routes>div { padding:0 8px; }.invite-link-actions .ocean-control { font-size:10px; gap:5px; } }
+
+.seas-action-arena>.action-crew-manage { position:absolute; left:8px; top:18px; z-index:6; width:44px; height:44px; padding:8px; }

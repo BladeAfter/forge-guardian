@@ -26,4 +26,4 @@
 - Keep season-pass presentation in SeasonVoyageView with shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types so art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
-- Keep referrals in ReferralDeckView; server links, rates and earnings prevent visual changes altering commissions.
+- Keep referrals in ReferralDeckView; preserve server links, rates and earnings.
