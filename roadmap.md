@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Analisar bônus dos mascotes: catálogo atual com 68 habilitados, 31 chaves passivas e 8 campos de habilidade; consumidores oficiais conferidos. Relatório entregue com efeitos propostos de detecção, pistas e dano pirata/naval aleatório, sem ativação ou alterações econômicas; percentuais e distribuição são propostas de balanceamento, não regras existentes.
+
 - [x] Configurar cálculo contínuo TON para navios com débito de compra confirmado, valor pago ÷ 40/dia; gratuito/concessões excluídos. Migração 0139 e exibição traduzida; oito testes passaram e cena isolada confirmou taxa, ROI contínuo, exclusão do gratuito e saldo intacto. Acúmulo começa na ativação/aquisição, sem retroatividade; nenhum crédito ou worker ativado.
 - [ ] Liberar ganhos de mineração naval para saldo/saque e verificar no Telegram real; bloqueios: financiamento comprovado e fluxo de liberação auditado indisponíveis, sem navio pago real nem sessão Telegram assinada para teste. Acúmulo permanece identificado como pendente de financiamento.
 
