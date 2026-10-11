@@ -9,6 +9,14 @@ export const SEA_ISLANDS: { name: string; center: SeaPoint; dock: SeaPoint; radi
   { name: 'Selva dos Segredos', center: { x: 680, y: 1500 }, dock: { x: 1080, y: 1500 }, radius: 370, destination: 'ruins', action: 'Entrar na caverna' },
 ];
 export const seaDistance = (a: SeaPoint, b: SeaPoint) => Math.hypot(a.x - b.x, a.y - b.y);
+/** Tap input only: the server still owns steps, speed and coast collisions.
+ * Its heartbeat caps elapsed time at two seconds, so approach conservatively. */
+export function seaDestinationInput(position: SeaPoint, target: SeaPoint, throttle: number, speed: number) {
+  const distance = seaDistance(position, target);
+  if (distance <= 5) return { dx: 0, dy: 0, throttle: 0 };
+  return { dx: (target.x - position.x) / distance, dy: (target.y - position.y) / distance,
+    throttle: Math.min(throttle, distance / (Math.max(1, speed) * 2)) };
+}
 export function sailToward(position: SeaPoint, target: SeaPoint, elapsed: number, speed = 240): SeaPoint {
   const distance = seaDistance(position, target);
   if (distance < 1) return { ...position };

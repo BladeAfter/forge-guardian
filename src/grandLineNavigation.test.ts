@@ -1,7 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { SEA_ISLANDS, SEA_CHUNK, seaIslandsAround, seaRegion, advanceSailing, sailToward, seaClickTarget, seaDistance } from './grandLineNavigation';
+import { SEA_ISLANDS, SEA_CHUNK, seaIslandsAround, seaRegion, advanceSailing, sailToward, seaClickTarget, seaDistance, seaDestinationInput } from './grandLineNavigation';
 
 describe('Grand Line navigation', () => {
+  it('approaches a tapped destination without overshooting at the server time cap', () => {
+    const target = { x: 2000, y: 1400 };
+    let position = { x: 1994, y: 1400 };
+    const input = seaDestinationInput(position, target, 1, 122);
+    expect(input.throttle).toBeLessThan(1);
+    position = { x: position.x + input.dx * input.throttle * 122 * 2, y: position.y };
+    expect(position.x).toBeLessThanOrEqual(target.x);
+    expect(seaDestinationInput(position, target, 1, 122)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+    expect(seaDestinationInput({ x: 1000, y: 1400 }, target, .5, 122).throttle).toBe(.5);
+  });
   it('moves visibly toward a destination without overshooting', () => {
     expect(sailToward({ x: 100, y: 100 }, { x: 400, y: 100 }, 1)).toEqual({ x: 340, y: 100 });
     expect(sailToward({ x: 100, y: 100 }, { x: 110, y: 100 }, 1)).toEqual({ x: 110, y: 100 });

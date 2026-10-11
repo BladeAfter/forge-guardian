@@ -6,7 +6,7 @@ import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type Naval
 import IllustratedOcean from './IllustratedOcean';
 import { useNavalOcean } from '../useNavalOcean';
 import NavalShipyard from './NavalShipyard';
-import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
+import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, seaDestinationInput, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
 import { OceanControl } from './OceanControl';
 import { approachApprovedPose } from '../navalMotion';
 import { captureTelegramGameGestures } from '../telegram';
@@ -58,8 +58,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const dx=Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
-    const distance=seaDistance(s.position,s.target);
-    return {dx:distance>5 ? (s.target.x-s.position.x)/distance : 0,dy:distance>5 ? (s.target.y-s.position.y)/distance : 0,throttle:throttleRef.current};
+    const ship = network.current.current?.ship;
+    return seaDestinationInput(ship ?? s.position, s.target, throttleRef.current, shipStats(ship ?? DEFAULT_SHIP).speed);
   });
   const currentNetwork = network.current;
   const oceanChests = useOceanChests(initData);
