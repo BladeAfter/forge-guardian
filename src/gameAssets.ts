@@ -106,6 +106,17 @@ import mascotChestRare from './assets/mascot-chest-rare.png';
 import mascotChestEpic from './assets/mascot-chest-epic.png';
 import mascotChestLegendary from './assets/mascot-chest-legendary.png';
 import mascotChestMythic from './assets/mascot-chest-mythic.png';
+import oceanFloatingChest from './assets/ocean-floating-chest.png';
+import oceanFloatingChestRare from './assets/ocean-floating-chest-rare.png';
+import oceanFloatingChestLegendary from './assets/ocean-floating-chest-legendary.png';
+
+export const oceanChestArt = { common: oceanFloatingChest, rare: oceanFloatingChestRare, legendary: oceanFloatingChestLegendary };
+/** Ocean-region cosmetics never imply different reward odds. */
+export function oceanChestImage(rarity: string): string {
+  if (rarity === 'legendary' || rarity === 'mythic') return oceanChestArt.legendary;
+  if (rarity === 'rare' || rarity === 'epic') return oceanChestArt.rare;
+  return oceanChestArt.common;
+}
 
 export const mascotChestArt = { common: mascotChestCommon, rare: mascotChestRare, epic: mascotChestEpic, legendary: mascotChestLegendary, mythic: mascotChestMythic };
 

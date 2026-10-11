@@ -3,7 +3,7 @@ import type { LocaleBundle } from './registry';
 /** boss namespace translations. */
 export const boss: LocaleBundle = {
   en: {
-    'boss.topTen': 'Top 10 · equal split',
+    'boss.topRanked': 'Top {count} · equal split',
     'boss.remaining': 'Remaining participants · equal split',
     'boss.pendingTon': 'Payment under review',
     'boss.noPetActive': 'No active pet',
@@ -64,7 +64,7 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'Unable to update Auto ATK.',
   },
   pt: {
-    'boss.topTen': 'Top 10 · divisão igual',
+    'boss.topRanked': 'Top {count} · divisão igual',
     'boss.remaining': 'Demais participantes · divisão igual',
     'boss.pendingTon': 'Pagamento em análise',
     'boss.noPetActive': 'Nenhum pet ativo',
@@ -125,7 +125,7 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'Não foi possível atualizar o Auto ATK.',
   },
   es: {
-    'boss.topTen': 'Top 10 · reparto igual',
+    'boss.topRanked': 'Top {count} · reparto igual',
     'boss.remaining': 'Demás participantes · reparto igual',
     'boss.pendingTon': 'Pago en revisión',
     'boss.noPetActive': 'Ninguna mascota activa',
@@ -186,7 +186,7 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'No se pudo actualizar el Auto ATK.',
   },
   ru: {
-    'boss.topTen': 'Топ-10 · поровну',
+    'boss.topRanked': 'Топ-{count} · поровну',
     'boss.remaining': 'Остальные участники · поровну',
     'boss.pendingTon': 'Выплата на проверке',
     'boss.noPetActive': 'Нет активного питомца',

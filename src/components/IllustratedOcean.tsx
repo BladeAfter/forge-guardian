@@ -1,6 +1,6 @@
 import { useLocalizedText } from '../LanguageContext';
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
-import { grandLineArt, navalArt, mascotChestImage } from '../gameAssets';
+import { grandLineArt, navalArt, oceanChestImage } from '../gameAssets';
 import type { OceanChestState } from '../oceanChests';
 import { SEA_CHUNK, SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
 import { DEFAULT_SHIP, type NavalState, type NavalShip } from '../naval';
@@ -76,10 +76,11 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
       }
       for (const chest of chests?.current?.chests ?? []) {
         if (Date.parse(chest.expiresAt)<=Date.now() || Math.abs(chest.x-s.camera.x)>w/scale || Math.abs(chest.y-s.camera.y)>h/scale) continue;
-        const image=oceanImage(mascotChestImage(chest.rarity));
+        const image=oceanImage(oceanChestImage(chest.rarity));
         ctx.save(); ctx.translate(chest.x,chest.y); ctx.strokeStyle=palette.gold; ctx.lineWidth=2; ctx.globalAlpha=.55+Math.sin(time/500)*.15;
         ctx.beginPath();ctx.ellipse(0,20,42,18,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
-        if(image.complete && image.naturalWidth)ctx.drawImage(image,-40,-42,80,80);
+        const bob = reducedMotion.matches ? 0 : Math.sin(time / 900 + chest.x) * 2;
+        if(image.complete && image.naturalWidth)ctx.drawImage(image,-40,-42+bob,80,80);
         ctx.restore();
       }
       const animationTime = reducedMotion.matches ? 0 : time;
