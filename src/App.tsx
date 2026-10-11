@@ -19,6 +19,7 @@ import {ClanHall}from'./components/ClanHall';
 import {TonMinesEntryCard}from'./components/TonMinesEntryCard';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
+import { PortSideMenus } from './components/PortSideMenus';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
@@ -85,9 +86,6 @@ function OpenInTelegramGate() {
   );
 }
 
-function HomeFeature({image,label,subtitle,onClick}:{image:string;label:string;subtitle?:string;onClick:()=>void}){
-  return <button type="button" onClick={onClick} className="home-feature forge-golden-tile group relative flex h-[112px] w-[108px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-300/35 bg-[#080c13]/90 px-2 shadow-[0_12px_28px_rgba(0,0,0,.58)] backdrop-blur-sm transition active:scale-95"><div className="absolute inset-0 bg-gradient-to-b from-sky-950/10 to-amber-950/20"/><img src={image} alt={label} loading="lazy" width={512} height={512} className="home-feature-image relative h-[68px] w-[68px] object-contain drop-shadow-[0_7px_10px_rgba(0,0,0,.7)] transition group-hover:scale-105"/><span className="home-feature-label relative mt-1 max-w-full text-center text-[9px] font-black uppercase leading-[1.05] tracking-[.06em] line-clamp-2 text-amber-200">{label}</span></button>;
-}
 
 
 /** In-memory only: resets on every real app launch (Mini App reopen). */
@@ -888,30 +886,13 @@ function App() {
 
 
 
-          <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.realm} label="GRAND LINE" subtitle={realmUnlocked?(telegramUser?.id===8490010993?'ACESSO ANTECIPADO':'DISPONÍVEL'):'EM BREVE'} onClick={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}/>
-            <HomeFeature image={mainScreenArt.pool} label="BAÚ DA FROTA" subtitle="COMUNIDADE" onClick={()=>{setPoolInitialTab('weekly');openInternal('pool')}}/>
-          </div>
-
-          <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.heroShop} label="TAVERNA" onClick={()=>setShopOpen(true)}/>
-            <HomeFeature image={mainScreenArt.seasonPass} label="DIÁRIO DE BORDO" subtitle="TEMPORADA" onClick={()=>openInternal('season-pass')}/>
-          </div>
-          <div className="flex w-full items-start justify-between">
-            <HomeFeature image={mainScreenArt.invite} label="RECRUTAR" onClick={()=>openInternal('invites')}/>
-            <HomeFeature image={mainScreenArt.pvp} label="DUELOS" onClick={()=>openInternal('pvp')}/>
-          </div>
-
-          <div className="flex w-full items-start justify-between">
-            <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={mainScreenArt.pet} label="MASCOTE" subtitle={petDashboard?.activePet?`${petDashboard.activePet.name} · Nv. ${petDashboard.activePet.level}`:'Nenhum ativo'} onClick={()=>openInternal('pets')}/>
-            </div>
-            <div className="flex w-[108px] flex-col items-center gap-2">
-              <HomeFeature image={mainScreenArt.heroes} label="TRIPULAÇÃO" subtitle="COLEÇÃO" onClick={()=>openInternal('heroes')}/>
-
-
-            </div>
-          </div>
+          <PortSideMenus
+            onRealm={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}
+            onPool={()=>{setPoolInitialTab('weekly');openInternal('pool')}}
+            onShop={()=>setShopOpen(true)} onPass={()=>openInternal('season-pass')}
+            onInvites={()=>openInternal('invites')} onPvp={()=>openInternal('pvp')}
+            onPets={()=>openInternal('pets')} onHeroes={()=>openInternal('heroes')}
+          />
 
 
 
