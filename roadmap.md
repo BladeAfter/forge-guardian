@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Personalização por navio comprado: cores, bandeira, decoração e rastro salvos no servidor e visíveis na Grand Line; bloquear navio gratuito e não possuído.
+
 - [x] Navios começam com 10 pontos; dois navios existentes receberam o crédito inicial uma única vez, preservando distribuições. Padrões de criação e incremento oficial de +5 por nível confirmados no servidor.
 
 - [x] Grand Line usa a arte da frota pelo class_id/active_class oficial, sem filtros legados sobre a classe escolhida; compras, atributos e navegação preservados. Sete testes passaram; três classes renderizadas em cena isolada, compilação OK.
