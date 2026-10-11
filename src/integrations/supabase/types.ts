@@ -10136,6 +10136,7 @@ export type Database = {
         Row: {
           acquired_at: string
           class_id: string
+          initial_points_granted: number
           level: number
           points: number
           price_paid: number
@@ -10151,6 +10152,7 @@ export type Database = {
         Insert: {
           acquired_at?: string
           class_id: string
+          initial_points_granted?: number
           level?: number
           points?: number
           price_paid?: number
@@ -10166,6 +10168,7 @@ export type Database = {
         Update: {
           acquired_at?: string
           class_id?: string
+          initial_points_granted?: number
           level?: number
           points?: number
           price_paid?: number

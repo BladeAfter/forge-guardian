@@ -3,7 +3,7 @@
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
 - Validate bot secrets; tutorials once by sender language, missing media never consumes claims, uncertain sends held. Consent once; respect refusal. Channel rewards need fresh membership and private atomic claims.
 
-- Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line renders fleetShipArt by server class_id/active_class, never the viewed card; legacy ships retain atlas art. PortSideMenus keeps official callbacks and house access.
+- Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line uses server class_id/active_class art, legacy atlas fallback. Fleet initial-grant markers prevent duplicate points; preserve allocations. PortSideMenus keeps callbacks and house access.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
 - CrewDeck uses grounded poses on the deck; roles are cosmetic, XP read-only, equipment server-owned; omit fusion/inventory and invented powers.
 - Align Clan Hall hotspot to centered-cover village geometry for accurate taps at every viewport; no separate card.
