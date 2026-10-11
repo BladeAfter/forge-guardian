@@ -2,7 +2,8 @@
 
 - [x] Gravação de combate naval simulado entregue: 27 s vertical 1080×1920 com áudio sintetizado sem narração; captura da UI real com respostas locais roteirizadas, tiros/vida/impactos sobrepostos e navios parados durante os disparos. Movimento e quadros revisados, zero chamadas externas e nenhum saldo alterado; PvP real permanece desativado.
 
-- [ ] Ativar combate naval real com 10% de BERRIES do derrotado, teto inicial conservador de 1.000 BERRIES, e materiais de melhoria já suportados (madeira e ferro), 5% limitado a 3 unidades por material; origem: derrotado. Não inventar utilidade naval para equipamentos/fragmentos. Simulação entregue separadamente.
+- [x] Combate naval ativado nas regras oficiais: 10% de BERRIES do derrotado, teto inicial conservador de 1.000, e madeira/ferro já usados em melhoria/reparo, 5% limitado a 3 unidades por material quando saldo >=20; origem: derrotado. Configuração lida e gate válido; RPCs continuam exclusivos do servidor e 5 testes navais passaram. Sem alteração direta de saldos.
+- [ ] Validar batalha real e saque no Telegram com dois jogadores autenticados; bloqueio: sessões Telegram reais indisponíveis. Equipamentos e fragmentos não incluídos, pois ainda não têm utilidade naval implementada.
 
 - [x] Tutorial v2 com trecho ilustrado de batalha naval enviado ao @MythicSeasChat (mensagem 299) e ao administrador pelo @MythicSeasbot (mensagem 17); nova publicação fixada e tutorial antigo (mensagem 4) excluído, com confirmação do Telegram. Envio por idioma no /start preservado.
 
