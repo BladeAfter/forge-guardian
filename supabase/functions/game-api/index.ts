@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
-import { confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
+import { checkOfficialMembership, confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
 import { launchStatus, launchAccess, launchInviter, mobileTelegramClient } from '../_shared/launch.ts';
 
 type TelegramUser = {
@@ -2416,7 +2416,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (!['news', 'community', 'payments'].includes(key)) throw new Error('CHANNEL_NOT_AVAILABLE');
     const { data: config, error } = await db.from('channel_reward_config').select('chat_ref').eq('channel_key', key).eq('enabled', true).maybeSingle();
     if (error) throw new Error('CHANNEL_NOT_AVAILABLE');
-    const result = await verifyOfficialChannel(config?.chat_ref ?? null, user.id, telegramIsChatMember,
+    const result = await verifyOfficialChannel(config?.chat_ref ?? null, user.id,
+      (chat, id) => checkOfficialMembership(key, chat, id, gameBotToken()),
       () => rpc(db, 'claim_channel_reward', { p_telegram_id: user.id, p_channel_key: key, p_membership_ok: true })) as Record<string, unknown>;
     console.log('[CHANNEL VERIFY]', { telegramId: user.id, channelKey: key, status: result?.status, creditedFc: result?.creditedFc });
     return result;
