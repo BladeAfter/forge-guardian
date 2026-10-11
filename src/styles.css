@@ -103,6 +103,13 @@
 .naval-customization p { font-size:11px; margin-top:12px; color:hsl(var(--ocean-line)); }
 .naval-stats { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); border-block:1px solid hsl(var(--ocean-line) / .25); padding:14px 0; margin:18px 0; gap:8px; }.naval-stats div { display:flex; flex-direction:column; gap:4px; }.naval-stats span { font-size:10px; color:hsl(var(--ocean-line)); }.naval-stats b { font-size:13px; }
 .naval-sheet footer { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }.naval-sheet footer span { margin-right:auto; font-size:10px; color:hsl(var(--ocean-line)); line-height:1.7; }
+.naval-workshop-supplies { display:flex; justify-content:center; gap:12px; border-bottom:1px solid hsl(var(--ocean-line) / .25); margin-bottom:14px; padding-bottom:14px; }
+.naval-workshop-supplies img { width:48px; height:48px; object-fit:contain; }
+.naval-material-balances { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; margin-right:auto; }
+.naval-material-balances > span { flex-basis:100%; }
+.naval-material-balance { display:flex; align-items:center; gap:6px; }
+.naval-material-balance img { width:40px; height:40px; object-fit:contain; }
+.naval-material-balance b { color:hsl(var(--ocean-foam)); font-size:13px; }
 .naval-controls { position:absolute; right:20px; bottom:calc(80px + var(--tg-safe-area-inset-bottom)); display:flex; align-items:flex-end; flex-direction:column; gap:8px; }.naval-throttle { background:hsl(var(--ocean-hud) / .85); padding:8px 10px; width:140px; border-radius:6px; font-size:10px; }.naval-throttle input { display:block; width:100%; accent-color:hsl(var(--ocean-gold)); margin-top:6px; }
 .naval-connection { position:absolute; top:calc(110px + var(--tg-safe-area-inset-top)); left:20px; max-width:calc(100% - 85px); font-size:10px; line-height:1.5; color:hsl(var(--ocean-foam)); text-shadow:0 2px 5px hsl(var(--ocean-shadow)); }
 .naval-enemy { position:absolute; left:50%; top:32%; transform:translateX(-50%); padding:16px; width:min(340px,calc(100% - 32px)); background:hsl(var(--ocean-hud) / .96); border:1px solid hsl(var(--ocean-line) / .5); border-radius:8px; }.naval-enemy h2 { color:hsl(var(--ocean-gold)); font-size:14px; }.naval-enemy p { font-size:12px; margin:8px 0; }.naval-enemy nav { display:flex; flex-wrap:wrap; gap:6px; }.naval-enemy small { display:block; margin-top:10px; font-size:10px; color:hsl(var(--ocean-line)); }

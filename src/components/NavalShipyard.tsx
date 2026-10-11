@@ -5,6 +5,7 @@ import { navalArt } from '../gameAssets';
 import { SHIP_MODELS, SHIP_SKINS, shipStats, type NavalShip, type NavalState, type ShipCosmetics } from '../naval';
 import { drawNavalShip, navalPalette } from '../navalRendering';
 import { OceanControl } from './OceanControl';
+import { navalMaterialArt } from '../navalMaterialArt';
 
 export default function NavalShipyard({ ship, state, busy, onSave, onAction, onClose }: { ship: NavalShip; state: NavalState | null; busy: boolean; onSave: (input: Record<string, unknown>) => Promise<void>; onAction: (action: string) => Promise<void>; onClose: () => void }) {
   const localizeText = useLocalizedText();
@@ -32,6 +33,7 @@ export default function NavalShipyard({ ship, state, busy, onSave, onAction, onC
     {!state && <p role="status">{localizeText("Estaleiro compartilhado indisponível; alterações não serão salvas.")}</p>}
     </div></div>
     <div className="naval-stats">{[['Vida',`${ship.hp}/${stats.hull}`],['Canhões',stats.cannons],['Defesa',stats.defense],['Velocidade',`${stats.speed} m/s`],['Visão',`${stats.vision} m`],['Tripulação',stats.crew]].map(([label,value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}</div>
-    <footer><span>{localizeText("Madeira: ")}{state?.materials.magic_wood ?? 0} {localizeText("· Ferro: ")}{state?.materials.iron_ore ?? 0}<br/>{localizeText("Custo: ")}{(state?.rules.repairWood ?? 5)*ship.level} {localizeText("madeira + ")}{(state?.rules.repairIron ?? 3)*ship.level} ferro</span><OceanControl disabled={busy || !state || Boolean(ship.battle_id) || ship.hp>=stats.hull} onClick={() => void onAction('repair')}><Hammer size={16}/>{localizeText("Reparar")}</OceanControl><OceanControl disabled={busy || !state || Boolean(ship.battle_id) || ship.xp<ship.level*100} onClick={() => void onAction('upgrade')}><TrendingUp size={16}/>{localizeText("Melhorar (")}{ship.xp}/{ship.level*100} {localizeText("XP)")}</OceanControl></footer>
+    <div className="naval-workshop-supplies" aria-hidden="true">{Object.entries(navalMaterialArt).map(([key, image]) => <img key={key} src={image} alt="" loading="lazy" width={1024} height={1024}/>)}</div>
+    <footer><div className="naval-material-balances"><div className="naval-material-balance"><img src={navalMaterialArt.magic_wood} alt="" loading="lazy" width={1024} height={1024}/><span>{localizeText("Madeira: ")}<b>{state?.materials.magic_wood ?? 0}</b></span></div><div className="naval-material-balance"><img src={navalMaterialArt.iron_ore} alt="" loading="lazy" width={1024} height={1024}/><span>{localizeText("· Ferro: ")}<b>{state?.materials.iron_ore ?? 0}</b></span></div><span>{localizeText("Custo: ")}{(state?.rules.repairWood ?? 5)*ship.level} {localizeText("madeira + ")}{(state?.rules.repairIron ?? 3)*ship.level} ferro</span></div><OceanControl disabled={busy || !state || Boolean(ship.battle_id) || ship.hp>=stats.hull} onClick={() => void onAction('repair')}><Hammer size={16}/>{localizeText("Reparar")}</OceanControl><OceanControl disabled={busy || !state || Boolean(ship.battle_id) || ship.xp<ship.level*100} onClick={() => void onAction('upgrade')}><TrendingUp size={16}/>{localizeText("Melhorar (")}{ship.xp}/{ship.level*100} {localizeText("XP)")}</OceanControl></footer>
   </div>;
 }
