@@ -1,6 +1,6 @@
 import type { CombatHero } from './combat';
-export type CombatSlot=1|2|3|4|5;
-export const COMBAT_SLOTS:CombatSlot[]=[1,2,3,4,5];
+export type CombatSlot=1|2|3|4|5|6;
+export const COMBAT_SLOTS:CombatSlot[]=[1,2,3,4,5,6];
 export function mapCombatSlots(heroes:CombatHero[]){return COMBAT_SLOTS.map(slot=>({slot,hero:heroes.find(hero=>Number(hero.slot)===slot)??null}));}
 export function equipHeroInSlot(current:Array<{heroId:string;slot:CombatSlot}>,heroId:string,slot:CombatSlot){
   if(!COMBAT_SLOTS.includes(slot))throw new Error('INVALID_SLOT');

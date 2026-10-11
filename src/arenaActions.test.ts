@@ -21,7 +21,7 @@ describe('Kraken arena attack presentation', () => {
     expect(source).toContain('if (emptyTeam) { props.onEquip(COMBAT_SLOTS[0]); return; }');
     expect(source).toContain('onClick={() => void strike(next)}');
     expect(source).toContain('props.damage - previousDamage.current');
-    expect(source).toContain('props.bossLastAttackAt <= last');
+    expect(source).toContain('last && props.bossLastAttackAt <= last');
     expect(source).not.toContain('LockKeyhole');
   });
 });

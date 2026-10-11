@@ -3,7 +3,9 @@ import {COMBAT_SLOTS,equipHeroInSlot,mapCombatSlots,type CombatSlot} from './com
 import type {CombatHero} from './combat';
 const hero=(id:string,slot:CombatSlot):CombatHero=>({id:`state-${id}`,heroId:id,name:id,rarity:'common',slot,level:1,baseAtk:1.875,finalAtk:1.875,baseHp:100,maxHp:100,currentHp:100,isAlive:true,knockedOutAt:null,reviveAt:null});
 describe('combat slot selection',()=>{
-  it('uses slots 1 through 5',()=>expect(COMBAT_SLOTS).toEqual([1,2,3,4,5]));
+  it('uses six selectable crew slots',()=>expect(COMBAT_SLOTS).toEqual([1,2,3,4,5,6]));
+  it('equips the sixth crew member',()=>expect(equipHeroInSlot([],'sixth',6)).toEqual([{heroId:'sixth',slot:6}]));
+  it('rejects a seventh member',()=>expect(()=>equipHeroInSlot([],'extra',7 as CombatSlot)).toThrow('INVALID_SLOT'));
   it('equips in Slot 1',()=>expect(equipHeroInSlot([],'a',1)).toEqual([{heroId:'a',slot:1}]));
   it('keeps Slot 3 instead of collapsing it',()=>expect(equipHeroInSlot([],'a',3)).toEqual([{heroId:'a',slot:3}]));
   it('replaces the selected slot',()=>expect(equipHeroInSlot([{heroId:'old',slot:1}],'new',1)).toEqual([{heroId:'new',slot:1}]));

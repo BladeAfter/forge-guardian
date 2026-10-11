@@ -58,7 +58,11 @@ export const useGameState = (telegramInitData: string | null, enabled: boolean) 
 
 export const useBossCombat = (telegramInitData: string | null, enabled: boolean) => useQuery<BossCombat>({
   queryKey:['boss-combat',telegramInitData],queryFn:()=>bossRequest(telegramInitData ?? '','process'),enabled,
-  refetchInterval:8_000,refetchOnWindowFocus:true,staleTime:6_000,retry:1
+  refetchInterval:query=>{
+    const next=Date.parse(query.state.data?.bossNextAttackAt??'');
+    const server=Date.parse(query.state.data?.serverNow??'');
+    return Number.isFinite(next)&&Number.isFinite(server)&&next-server<=3000?1000:3000;
+  },refetchOnWindowFocus:true,staleTime:1_000,retry:1
 });
 
 /** Global boss ranking; only polled while the ranking sheet is open. */
