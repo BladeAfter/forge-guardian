@@ -1,6 +1,6 @@
 import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Expand, Flame, Hand, LockKeyhole, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
+import { Expand, Flame, Hand, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
 import { actionArenaArt, arenaCrewImage } from '../gameAssets';
 import { readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
@@ -9,11 +9,19 @@ import { COMBAT_SLOTS } from '../combatSlots';
 import { OceanControl } from './OceanControl';
 import { IslandJoystick } from './IslandJoystick';
 
+type AttackVariant = 'basic' | 'shield' | 'flame' | 'lightning' | 'star';
+const ATTACK_VARIANTS = [
+  { key: 'KeyQ', variant: 'shield', name: 'Ataque · Escudo', Icon: Shield },
+  { key: 'KeyE', variant: 'flame', name: 'Ataque · Chama', Icon: Flame },
+  { key: 'KeyR', variant: 'lightning', name: 'Ataque · Raio', Icon: Zap },
+  { key: 'KeyF', variant: 'star', name: 'Ataque · Estrela', Icon: Sparkles },
+] as const;
+
 type Props = {
   name: string; image: string; hp: number; maxHp: number; heroes: CombatHero[];
   pet: { name: string; image: string } | null; telegramId?: string; hit: boolean;
   attacking?: boolean; active: boolean; cooldown: number; bossCountdown: number | null;
-  damage: number; rank: number | null; reward: number; status?: string;
+  damage: number; rank: number | null; reward: number; status?: string; bossLastAttackAt?: string | null;
   swap: string | null; onAttack?: () => Promise<void> | void;
   onEquip: (slot: CombatSlot) => void; onRanking: () => void;
 };
@@ -30,7 +38,12 @@ export function PirateActionArena(props: Props) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [action, setAction] = useState<'idle' | 'strike' | 'dodge'>('idle');
   const [selectedHero, setSelectedHero] = useState<string | null | undefined>(undefined);
-  const [hits, setHits] = useState(0);
+  const [variant, setVariant] = useState<AttackVariant>('basic');
+  const [confirmedDamage, setConfirmedDamage] = useState(0);
+  const [counterattack, setCounterattack] = useState(false);
+  const previousDamage = useRef(props.damage);
+  const previousBossAttack = useRef(props.bossLastAttackAt);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [flash, setFlash] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -40,8 +53,28 @@ export function PirateActionArena(props: Props) {
   const selected = selectedHero === null ? undefined : heroes.find(hero => hero.heroId === selectedHero) ?? firstHero;
   const captain = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
   const actor = selected ? arenaCrewImage(selected) : captain;
+  const emptyTeam = heroes.length === 0;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
+  const canPress = emptyTeam ? active && !attacking : ready;
   const telegraph = active && props.bossCountdown !== null && props.bossCountdown <= 2;
+
+  useEffect(() => {
+    const delta = props.damage - previousDamage.current;
+    previousDamage.current = props.damage;
+    if (delta <= 0) return;
+    setConfirmedDamage(delta); setFlash(true);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(false), 1200);
+    return () => { if (flashTimer.current) clearTimeout(flashTimer.current); };
+  }, [props.damage]);
+  useEffect(() => {
+    const last = previousBossAttack.current;
+    previousBossAttack.current = props.bossLastAttackAt;
+    if (!last || !props.bossLastAttackAt || props.bossLastAttackAt <= last) return;
+    setCounterattack(true);
+    const timeout = setTimeout(() => setCounterattack(false), 900);
+    return () => clearTimeout(timeout);
+  }, [props.bossLastAttackAt]);
 
   useEffect(() => {
     let frame = 0; let previous = performance.now();
@@ -65,24 +98,26 @@ export function PirateActionArena(props: Props) {
     setAction(next);
     timer.current = setTimeout(() => setAction('idle'), 900);
   }, []);
-  const strike = useCallback(async () => {
+  const strike = useCallback(async (next: AttackVariant = 'basic') => {
+    if (emptyTeam) { props.onEquip(COMBAT_SLOTS[0]); return; }
     if (!ready || inFlight.current || !onAttack) return;
-    inFlight.current = true; setError(null);
+    inFlight.current = true; setError(null); setVariant(next); animate('strike');
     try {
-      await onAttack(); animate('strike'); setHits(count => count + 1); setFlash(true);
-      setTimeout(() => setFlash(false), 1200);
+      await onAttack();
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Não foi possível executar o golpe.'); }
     finally { inFlight.current = false; }
-  }, [ready, onAttack, animate]);
+  }, [ready, emptyTeam, props.onEquip, onAttack, animate]);
   useEffect(() => {
     const handle = (event: KeyboardEvent) => {
       if (event.repeat || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || document.querySelector('[role="dialog"]')) return;
       if (event.code === 'Space') { event.preventDefault(); void strike(); }
+      const ability = ATTACK_VARIANTS.find(item => item.key === event.code);
+      if (ability) { event.preventDefault(); void strike(ability.variant); }
       if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') animate('dodge');
     };
     window.addEventListener('keydown', handle); return () => window.removeEventListener('keydown', handle);
   }, [strike, animate]);
-  return <div ref={stage} className={`seas-action-arena action-phase-${phase} action-${action} ${hit ? 'action-boss-hit' : ''} ${expanded ? 'action-expanded' : ''}`} aria-label={localizeText("Arena de combate pirata")}>
+  return <div ref={stage} className={`seas-action-arena action-phase-${phase} action-${action} action-variant-${variant} ${counterattack ? 'action-counterattack' : ''} ${hit ? 'action-boss-hit' : ''} ${expanded ? 'action-expanded' : ''}`} aria-label={localizeText("Arena de combate pirata")}>
     <img className="action-world" src={actionArenaArt.harbor} width={1536} height={1376} alt={localizeText("Arena portuária da Grand Line, navio pirata e oceano")} />
     <div className="action-atmosphere" aria-hidden="true" />
     <div className="action-wind" aria-hidden="true"><i /><i /><i /></div>
@@ -103,18 +138,21 @@ export function PirateActionArena(props: Props) {
     <div className="action-boss-ground" aria-hidden="true" />
     <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
     {telegraph && <div className="action-telegraph" role="status"><span>{localizeText("GOLPE IMINENTE")}</span></div>}
+    {counterattack && <div className="action-enemy-strike" aria-hidden="true" />}
     <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected ? `${selected.name} em postura de combate` : localizeText("Pirata do perfil em postura de combate")} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
-    {flash && <div className="action-combo" role="status"><strong>{hits}</strong><span>{localizeText("GOLPE")}{hits > 1 ? 'S' : ''} {localizeText("CONFIRMADO")}{hits > 1 ? 'S' : ''}</span></div>}
+    {flash && <div className="action-combo" role="status"><strong>−{Math.ceil(confirmedDamage).toLocaleString()}</strong><span>{localizeText("Dano confirmado")}</span></div>}
     {hit && <div className="action-impact" aria-hidden="true" />}
     {props.swap && <div className="action-announcement" role="status">{props.swap === 'defeated' ? localizeText("CHEFE DERROTADO") : localizeText("CICLO ENCERRADO")}<small>{localizeText("Novo adversário no horizonte")}</small></div>}
     {error && <p className="action-feedback" role="alert">{error}</p>}
     {!active && <p className="action-feedback">{props.status === 'defeated' ? localizeText("Chefe derrotado") : localizeText("Aguardando próximo chefe")}</p>}
+    {active && emptyTeam && <p className="action-feedback">{localizeText("Equipe um tripulante para atacar.")}</p>}
+    {active && !emptyTeam && !heroes.some(hero => hero.isAlive) && <p className="action-feedback">{localizeText("Tripulação nocauteada. Aguardando recuperação.")}</p>}
     <div className="action-player-hud"><Swords size={13}/><span>{props.damage.toLocaleString('pt-BR')} dano</span><span>#{props.rank ?? '—'}</span><b>{props.reward.toLocaleString('pt-BR')} BERRIES</b></div>
     <IslandJoystick onDirection={value => { direction.current = value; }} disabled={false} />
     <nav className="action-controls" aria-label={localizeText("Ações de combate")}>
-      <OceanControl className="action-basic" disabled={!ready} onClick={() => void strike()} aria-label={localizeText("Ataque básico")} title={localizeText("Ataque básico")}><Hand />{(attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>
-      {([{key:'Q',name:'Armamento',Icon:Shield},{key:'E',name:'Poder da fruta',Icon:Flame},{key:'R',name:'Conquistador',Icon:Zap},{key:'F',name:'Ultimate',Icon:Sparkles}]).map(({key,name:label,Icon}) => <OceanControl key={key} disabled aria-label={`${label} indisponível`} title={`${label} · Ainda não disponível nas regras de combate`}><Icon/><LockKeyhole className="action-lock"/></OceanControl>)}
+      <OceanControl className="action-basic" disabled={!canPress} onClick={() => void strike()} aria-label={localizeText("Ataque básico")} title={localizeText("Ataque básico")}><Hand />{!emptyTeam && (attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>
+      {ATTACK_VARIANTS.map(({key,variant:next,name:label,Icon}) => <OceanControl key={key} disabled={!canPress} onClick={() => void strike(next)} aria-label={localizeText(label)} title={localizeText(label)}><Icon/>{!emptyTeam && (attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>)}
       <OceanControl onClick={() => animate('dodge')} aria-label={localizeText("Esquiva visual")} title={localizeText("Esquiva visual · Não altera o dano oficial")}><Wind/></OceanControl>
     </nav>
   </div>;

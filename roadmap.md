@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Kraken das Profundezas: cinco controles ligados ao ataque oficial compartilhado; equipe vazia abre seleção, espera usa relógio do servidor, dano exibido somente quando confirmado e contra-ataque acompanha o evento oficial. Trinta testes passaram; cinco cliques, HP e reação conferidos com respostas locais simuladas. Dano, espera e recompensas preservados.
+- [ ] Confirmar ataque/dano e contra-ataque do Kraken no Telegram real; bloqueio: sessão móvel autenticada indisponível.
+
 - [x] Navio atracado com arte náutica nova e sem renderização duplicada de modelo/reflexo; animações reutilizadas por modelo, câmera dimensionada pela cena e gestos do Telegram capturados na ilha. Desembarque e caminhada por toque conferidos em cena isolada, 21 testes passaram; confirmação no Telegram real permanece pendente.
 
 - [x] Joystick: fila enviada imediatamente após resposta pendente e latência incluída no intervalo; 11 testes passaram, toque/soltura conferidos com respostas simuladas e compilação OK. Posições oficiais, autenticação e regras preservadas.
