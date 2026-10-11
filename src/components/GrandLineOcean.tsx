@@ -80,12 +80,14 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const element = joystickHost.current;
     if (!element) return;
     // Prevent the Telegram sheet/scroll recognizer from stealing a held touch.
-    // Mouse/pen continue using captured pointer events, never both paths at once.
+    // Captured pointers own modern WebViews; native touch is a fallback only.
     const start = (event: TouchEvent) => {
       if (joystickTouch.current !== null || docking.current !== null) return;
       const touch = event.changedTouches[0];
       if (!touch) return;
-      event.preventDefault(); joystickTouch.current = touch.identifier;
+      event.preventDefault();
+      if (joystickPointer.current !== null) return;
+      joystickTouch.current = touch.identifier;
       touchSteer.current(touch.clientX, touch.clientY, element.getBoundingClientRect());
     };
     const move = (event: TouchEvent) => {
@@ -100,11 +102,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     };
     element.addEventListener('touchstart', start, { passive: false });
     element.addEventListener('touchmove', move, { passive: false });
-    element.addEventListener('touchend', end, { passive: false });
-    element.addEventListener('touchcancel', end, { passive: false });
+    window.addEventListener('touchend', end, { passive: false });
+    window.addEventListener('touchcancel', end, { passive: false });
     return () => {
       element.removeEventListener('touchstart', start); element.removeEventListener('touchmove', move);
-      element.removeEventListener('touchend', end); element.removeEventListener('touchcancel', end);
+      window.removeEventListener('touchend', end); window.removeEventListener('touchcancel', end);
     };
   }, [initData]);
 
@@ -180,6 +182,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   };
   const island = nearby;
   const steerAt = (clientX: number, clientY: number, rect: DOMRect) => {
+    autopilot.current = false;
     const x = clientX - rect.left - rect.width / 2;
     const y = clientY - rect.top - rect.height / 2;
     const radius = rect.width * .29;
@@ -193,7 +196,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   };
   touchSteer.current = steerAt;
   const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (event.pointerType === 'touch' || joystickPointer.current !== event.pointerId) return;
+    if (joystickTouch.current !== null || joystickPointer.current !== event.pointerId) return;
     steerAt(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
   };
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
@@ -206,7 +209,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     <div className="ocean-instruments"><span><Waves size={15} /> {speed} {localizeText("nós")}</span><span className="ocean-hull" title={localizeText("Casco de navegação")}>{localizeText("CASCO ")}{ownShip.hp}/{shipMaxHp(ownShip)}</span><span>{localizeText("Nv. ")}{ownShip.level}</span></div>
     <div className="naval-connection" role="status">{network.error || (network.data ? `${network.data.others.length} capitães à vista` : initData ? 'Conectando ao oceano compartilhado…' : 'Navegação local · oceano compartilhado indisponível')}</div>
     {network.data?.battle?.status==='won' && <div className="ocean-discovery" role="status"><span>{network.data.battle.winner===ownShip.user_id ? localizeText("VITÓRIA NAVAL") : localizeText("NAVIO DERROTADO")}</span><p>{network.data.battle.winner===ownShip.user_id ? `${network.data.battle.loot.berries ?? 0} BERRIES · ${Object.values(network.data.battle.loot.items ?? {}).reduce((sum,n)=>sum+n,0)} materiais recuperados` : localizeText("Retorne ao estaleiro para reparar o casco.")}</p></div>}
-    <div className="naval-controls"><label className="naval-throttle">{localizeText("Velocidade · ")}{Math.round(throttle*100)}%<input aria-label={localizeText("Velocidade do navio")} type="range" min="0" max="100" value={throttle*100} onChange={e => setThrottle(Number(e.target.value)/100)}/></label>
+    <div className="naval-controls"><label className="naval-throttle">{localizeText("Velocidade · ")}{Math.round(throttle*100)}%<input aria-label={localizeText("Velocidade do navio")} type="range" min="0" max="100" value={throttle*100} onChange={e => { const value = Number(e.target.value)/100; throttleRef.current = value; setThrottle(value); const vector = joystickVector.current; if (vector.x || vector.y) network.steer({ dx: vector.x, dy: vector.y, throttle: value }); }}/></label>
       {battle && <><span className="naval-battle-status">{localizeText("GUERRA NAVAL")}</span><div className="naval-battle-controls"><OceanControl disabled={network.busy} aria-label={localizeText("Disparar canhões")} title={localizeText("Disparar canhões")} onClick={() => fireAction('fire')}><Crosshair size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Salva especial")} title={localizeText("Salva especial")} onClick={() => fireAction('skill')}><Zap size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Abordar navio")} title={localizeText("Abordar navio")} onClick={() => fireAction('board')}><Swords size={22}/></OceanControl><OceanControl disabled={network.busy} aria-label={localizeText("Tentar fugir")} title={localizeText("Tentar fugir")} onClick={() => fireAction('escape')}><Flag size={22}/></OceanControl></div></>}
     </div>
     {enemy && <div className="naval-enemy" role="dialog" aria-label={localizeText("Navio inimigo")}><h2>{localizeText("NAVIO INIMIGO")}</h2><p>{enemy.name} {localizeText("· Nv. ")}{enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>{localizeText("Vida ")}{enemy.hp}/{shipMaxHp(enemy)} {localizeText("· Canhões ")}{shipStats(enemy).cannons}<br/>{localizeText("Defesa ")}{shipStats(enemy).defense} {localizeText("· Tripulação ")}{shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>{localizeText("Atacar")}</OceanControl><OceanControl onClick={()=>setInspecting(true)}>{localizeText("Inspecionar")}</OceanControl><OceanControl onClick={()=>setSelected(null)}>{localizeText("Ignorar")}</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>{localizeText("Saque e guerra naval aguardam definição das regras.")}</small>}</div>}
@@ -218,10 +221,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     <nav ref={joystickHost} className="ocean-helm" aria-label={localizeText("Direção do navio")}>
       <OceanControl className="ocean-joystick" title={localizeText("Joystick do navio")} aria-label={localizeText("Joystick do navio")} disabled={dockingNow}
         onContextMenu={event => event.preventDefault()}
-        onPointerDown={event => { if (event.pointerType === 'touch' || joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
+        onPointerDown={event => { if (docking.current !== null || joystickTouch.current !== null || joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
         onPointerCancel={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
+        onBlur={resetJoystick}
         onLostPointerCapture={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}>
         <span className="ocean-joystick-ring" aria-hidden="true" />
         <span ref={joystickKnob} className="ocean-joystick-knob" aria-hidden="true"><Compass size={24} strokeWidth={1.5} /></span>

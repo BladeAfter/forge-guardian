@@ -1,7 +1,7 @@
 # Architecture Rules
 
-- Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
-- Validate bot secrets; tutorials once by sender language; missing media keeps claims; hold uncertain sends; Consent once; honor refusal Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
+- Queue credited/paid notices via private triggers and atomic secret-authenticated claims; hold ambiguous sends for review. Never change balances or enable financial workers.
+- Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 
 - Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants/allocations and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
@@ -14,13 +14,13 @@
 - MarketPulseView is read-only; label illustrations, never infer global sales from personal history.
 - Community-pool and nested event theming use `seas-community` and semantic tokens; preserve game rules.
 - Keep Grand Line in a lightweight bitmap canvas with ship-relative camera and deterministic streaming shared with service-only collision. Use mirrored water-only art and cached feathered islands; cosmetic sizes never move official docks/collisions. Show only real players. NavalMiniMap is read-only, north-up and shares approved poses/art; zoom never steers. Clear joystick on release/cancel/focus loss; dock through Realm callbacks. Closing never waits for heartbeat or settles combat.
-- Keep naval poses/settlement behind Telegram-authenticated Realm RPCs; interpolate within ship speed without prediction. Hold via non-passive touch/captured pointer; retain poses offline; drain inputs with RTT-aware polling. Never delay urgent sends. Disable swipes only while sailing. Offline grants no rewards. Loot needs sources, rates, caps and materials; cosmetics never alter stats.
+- Naval poses/settlement require Telegram Realm RPCs; interpolate within speed, never predict. Deduplicate captured pointers/non-passive touch fallback; clear outside releases to avoid stuck inputs. Keep broadside masts upright. Retain offline poses; RTT-aware polling, urgent sends. Disable swipes only sailing. Offline grants no rewards. Loot needs sources/rates/caps/materials; cosmetics never alter stats.
 - Keep islands in R3F: bounded fixed-step Rapier in one frame driver, smoothed actor/camera, shared ropes and bitmap colliders prevent stalled-frame catch-up. Preserve floor, pier, gender, extraction and atomic maps. Ocean painting shares navigation loop; stable Telegram viewport and measured adaptive effects never change speed or approved poses.
 - Share harbor waypoints and Rapier docking; sweep character steps against bitmap coastlines and pier/boarding bounds, restoring invalid poses to last safe ground so jumps/dodges cannot enter water or change sailing/rewards.
 - Gate game API and reconciliation by server reset; reject pre-epoch transactions to avoid resurrected balances.
 - Gate launch server-side by signed admin/tester IDs; tester access never grants admin. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
-- Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
+- Scope PvP to `seas-duels` and `gameAssets.ts`; preserve server-owned teams, tickets and battle callbacks.
 - Kraken has six owned slots, no fixed captain. Observer settles enemy/revive events without consuming manual ticks; auto scheduler keeps its processor. Variants share official cooldown; confirmed damage only.
 - Egg catalogs use gameAssets/MascotChestCard mysterious chests; preserve egg IDs, purchases, odds and settlement.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
