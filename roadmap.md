@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Ajustar alinhamento da arte do navio e destravar direção sustentada da Grand Line; preservar poses e velocidade oficiais, conferir controles e soltura.
+- [x] Arte da frota com mastro vertical e proa espelhada; pointer touch capturado com fallback nativo sem disputa, soltura externa e velocidade atualizada ao segurar. Vinte testes passaram; cena isolada móvel/desktop confirmou movimento sustentado e parada com respostas simuladas, sem alterar bens reais.
+- [ ] Confirmar este ajuste de alinhamento/controle no Telegram físico; bloqueio: aparelho e sessão Telegram assinada indisponíveis, publicação não solicitada.
 
 - [x] Verificação reforçada: IDs fixos dos três canais, identidade retornada igual ao jogador assinado, bot administrador e consulta nova; falhas bloqueiam crédito. Sete testes passaram; Telegram real confirmou membro aceito e não-membro bloqueado, sem créditos. RPC permanece service-only e atômica; game-api implantada. Os dois pagamentos recentes correspondiam a status member no Telegram; saldos não alterados.
 
