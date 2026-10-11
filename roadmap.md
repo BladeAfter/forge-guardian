@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Restaurar água ilustrada anterior e conferir movimento sustentado do joystick, preservando poses oficiais.
+- [x] Água azul-profunda extraída da ilustração anterior, sem nova textura; cache e espelhamento preservados. Joystick touch não passivo separado de mouse/pen evita disputa com gestos do Telegram. Onze testes e cena isolada com toque Android sustentado/soltura passaram; poses oficiais preservadas.
+- [ ] Confirmar água e joystick no Telegram físico após publicação; bloqueio: sessão assinada/aparelho indisponíveis e publicação não solicitada.
 
 - [x] Melhorias navais consomem estoque real de madeira, pregos e corda via ledger atômico; cotação oficial por nível, bloqueio por falta de estoque. Migração 0132 aplicada; corda/pregos no catálogo de exploração sem conceder bens. Transação revertida conferiu débito/nível/bloqueio; UI isolada conferiu atualização e releitura; 14 testes passaram.
 - [ ] Confirmar melhoria naval no Telegram físico; bloqueio: sessão Telegram assinada/aparelho indisponíveis e publicação frontend não solicitada.
