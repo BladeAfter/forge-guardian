@@ -1,7 +1,8 @@
 # Roadmap
 
-- [ ] Complementar Grand Line com baús oceânicos compartilhados, sorteio seguro, reservas TON limitadas, administração protegida e integração visual; preservar sistemas existentes.
-- [ ] Testar concorrência, idempotência, orçamento, reconexão e persistência sem conceder bens de teste em produção.
+- [x] Grand Line complementada com baús compartilhados: geração segura, posições oficiais, coleta atômica única, inventário persistente, probabilidades anunciadas e histórico. Migrações 0133/0134 aplicadas; game-api/admin-bot implantados. Administração protegida via /ocean configura regiões, eventos, limites, tabelas e recuperação de materiais de equipamentos do oceano.
+- [x] Vinte e dois testes passaram; PostgreSQL isolado validou dois jogadores concorrentes, repetição, mascote/equipamento persistentes, recuperação única, orçamento e reconexão. Cena isolada confirmou aproximação, oito probabilidades, prêmio 0,001 TON em análise, diário e suspensão; nenhuma recompensa real concedida. Produção confirmou RPCs privadas e rejeição 401 sem Telegram.
+- [ ] Aprovar financiamento real e fluxo auditado de comprovação/registro de pagamento antes de ativar TON: verba inicial zero, nenhuma carteira/saldo/worker financeiro alterado; sem alternativa administrativa explícita, emissão suspensa. Validar ponta a ponta no Telegram físico e reinicialização real do backend; cena simulada e novas conexões SQL não substituem esses testes.
 
 - [x] Arte da frota com mastro vertical e proa espelhada; pointer touch capturado com fallback nativo sem disputa, soltura externa e velocidade atualizada ao segurar. Vinte testes passaram; cena isolada móvel/desktop confirmou movimento sustentado e parada com respostas simuladas, sem alterar bens reais.
 - [ ] Confirmar este ajuste de alinhamento/controle no Telegram físico; bloqueio: aparelho e sessão Telegram assinada indisponíveis, publicação não solicitada.
