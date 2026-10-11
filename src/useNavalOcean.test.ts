@@ -54,6 +54,22 @@ describe('mobile naval input scheduling', () => {
     expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual({ dx: 0, dy: 0, throttle: 0 });
     if (typeof cleanup === 'function') cleanup();
   });
+  it('refreshes a tap destination without retaining a stale held vector', async () => {
+    vi.mocked(navalCall).mockResolvedValue(state);
+    let direction = { dx: 0, dy: 0, throttle: 0 };
+    const network = useNavalOcean('signed-test', () => direction);
+    const cleanup = hooks.effects[0]?.();
+    await vi.advanceTimersByTimeAsync(1);
+    network.steer({ dx: 1, dy: 0, throttle: 1 });
+    direction = { dx: 0, dy: -1, throttle: 1 };
+    network.refresh();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual(direction);
+    direction = { dx: 0, dy: 0, throttle: 0 };
+    await vi.advanceTimersByTimeAsync(700);
+    expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual(direction);
+    if (typeof cleanup === 'function') cleanup();
+  });
   it.each(['attack', 'leave'])('preserves %s clicked during a heartbeat and sends it once', async name => {
     let resolve: ((value: NavalState) => void) | undefined;
     vi.mocked(navalCall).mockImplementationOnce(() => new Promise(done => { resolve = done; })).mockResolvedValue(state);

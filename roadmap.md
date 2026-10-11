@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Joystick naval substituído por toque no oceano; destino recalculado pela pose aprovada com aproximação/parada, sem alterar servidor, colisões ou ações. 28 testes passaram; cena isolada confirmou toque, troca de destino, chegada, parada por perda de foco, seleção de outro jogador e saída; compilação OK. Controles da ilha preservados.
+- [ ] Confirmar navegação por toque no Telegram real; bloqueio: aparelho e sessão Telegram assinada indisponíveis, teste do navegador usou respostas isoladas.
+
 - [x] Cliques de atacar/atracar aguardam heartbeat sem descarte nem repetição; desembarque preserva destino após perda de foco e usa pose confirmada. Dezenove testes passaram; cena isolada confirmou ataque e callback de desembarque com heartbeat retido, cada ação enviada uma vez. Regras, bens e coordenadas oficiais preservados.
 - [ ] Confirmar atacar/atracar com sessão Telegram real; bloqueio: sessão assinada e aparelho Telegram indisponíveis, teste visual usou respostas isoladas.
 

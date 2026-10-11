@@ -80,5 +80,11 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
      if(pending.current.length > 2) pending.current.splice(0,pending.current.length - 2);
      wake.current?.();
    };
-   return {data,current,error,busy,action,steer};
+   // Destination input is recalculated from the latest approved pose, never held.
+   const refresh = () => {
+     pending.current = [];
+     held.current = null;
+     wake.current?.();
+   };
+   return {data,current,error,busy,action,steer,refresh};
 }
