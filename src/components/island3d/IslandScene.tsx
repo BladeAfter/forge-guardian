@@ -16,14 +16,16 @@ import { ISLAND_MAP } from '../../illustratedIslandWorld';
 import { TreasureMarker } from './TreasureMarker';
 import { IslandFrameDriver } from './IslandFrameDriver';
 import { frameDelta, qualitySettings, type GameQuality } from '../../gamePerformance';
+import type { IslandPirateSession } from '../../islandCombat';
+import { IslandCombatActors } from './IslandCombatActors';
 
 export type IslandEncounter3D = { id: string; x: number; z: number; name: string; kind: 'ship' | 'npc' | 'activity' | 'secret' | 'clue' | 'node'; node?: RealmExploreNode; revealed?: boolean };
-type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
+type Props = { input: MutableRefObject<IslandInput>; palette: IslandPalette; captainStyle: 'male' | 'female'; encounters: IslandEncounter3D[]; openChest: string | null; fighting: string | null; combat?: IslandPirateSession | null; onTelemetry: (t: IslandTelemetry) => void; onReturn: () => void; islandIndex: number };
 function Loader() {
   const localizeText = useLocalizedText();
  return <Html center><span className="island3d-loading">{localizeText("Preparando a ilha 3D…")}</span></Html>; }
 
-export const IslandScene = memo(function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, onTelemetry, onReturn, islandIndex }: Props) {
+export const IslandScene = memo(function IslandScene({ input, palette, captainStyle, encounters, openChest, fighting, combat, onTelemetry, onReturn, islandIndex }: Props) {
   const harbor = useRef(newHarborState());
   const [quality, setQuality] = useState<GameQuality>('high');
   return <>
@@ -45,7 +47,8 @@ export const IslandScene = memo(function IslandScene({ input, palette, captainSt
           if (humanoid) return <EncounterPirate key={e.id} encounter={e} palette={palette} fighting={fighting === e.id} />;
           return <group key={e.id} visible={e.kind !== 'activity'}><IslandProp model={e.kind === 'activity' ? 'structure' : e.node?.node_type === 'gather' ? 'crate' : e.node?.node_type === 'rest' ? 'barrel' : 'chest'} x={e.x} z={e.z} y={ISLAND_MAP.floor} scale={e.kind === 'activity' ? 1.7 : 1} collider={e.kind === 'activity' ? 'trimesh' : 'hull'} open={openChest === e.id} /></group>;
         })}
-        <IslandPlayer islandIndex={islandIndex} harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <group scale={ISLAND_MAP.pirateScale}><IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} /></group>}</IslandPlayer>
+        <IslandCombatActors session={combat} palette={palette} />
+        <IslandPlayer approved={combat} islandIndex={islandIndex} harbor={harbor} input={input} onTelemetry={onTelemetry} onReturn={onReturn}>{(motion, speed) => <group scale={ISLAND_MAP.pirateScale}><IslandPirate style={captainStyle} motion={motion} speed={speed} palette={palette} /></group>}</IslandPlayer>
         <IslandDust input={input} palette={palette} count={qualitySettings[quality].particles} />
       </Physics>
     </Suspense>

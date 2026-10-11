@@ -8297,6 +8297,107 @@ export type Database = {
           },
         ]
       }
+      island_pirate_claims: {
+        Row: {
+          created_at: string
+          enemy_id: string
+          id: string
+          reward: Json
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enemy_id: string
+          id?: string
+          reward: Json
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enemy_id?: string
+          id?: string
+          reward?: Json
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "island_pirate_claims_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "island_pirate_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "island_pirate_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      island_pirate_config: {
+        Row: {
+          island_index: number
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          island_index: number
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          island_index?: number
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      island_pirate_sessions: {
+        Row: {
+          created_at: string
+          game_day: string
+          id: string
+          island_index: number
+          state: Json
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          game_day?: string
+          id?: string
+          island_index: number
+          state?: Json
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          game_day?: string
+          id?: string
+          island_index?: number
+          state?: Json
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "island_pirate_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       key_chest_catalog: {
         Row: {
           chest_code: string
@@ -25442,6 +25543,24 @@ export type Database = {
       }
       hero_xp_to_next: { Args: { p_level: number }; Returns: number }
       is_valid_ton_address: { Args: { p_address: string }; Returns: boolean }
+      island_pirate_begin: {
+        Args: { p_island: number; p_state: Json; p_user: string }
+        Returns: Json
+      }
+      island_pirate_commit: {
+        Args: {
+          p_session: string
+          p_state: Json
+          p_user: string
+          p_version: number
+        }
+        Returns: Json
+      }
+      island_pirate_guard: { Args: { p_user: string }; Returns: undefined }
+      island_pirate_open: {
+        Args: { p_enemy: string; p_session: string; p_user: string }
+        Returns: Json
+      }
       join_clan: {
         Args: { p_clan_id: string; p_telegram_id: number }
         Returns: Json

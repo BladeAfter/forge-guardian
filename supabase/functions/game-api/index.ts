@@ -3,6 +3,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { toFriendlyTonAddress } from '../_shared/tonAddress.ts';
 import { checkOfficialMembership, confirmedTelegramMember, verifyOfficialChannel } from './channelMembership.ts';
 import { launchStatus, launchAccess, launchInviter, mobileTelegramClient } from '../_shared/launch.ts';
+import { islandPirates } from './islandPirates.ts';
 
 type TelegramUser = {
   id: number;
@@ -3255,6 +3256,8 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
 
     const action = String(body.action || 'state');
     const key = String(body.idempotencyKey || '').slice(0, 80) || null;
+
+    if (action === 'island-pirates') return islandPirates(db, uid, body);
 
     if (action === 'ocean-chests') {
       const oceanAction = String(body.oceanAction || 'state');

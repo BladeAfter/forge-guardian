@@ -981,6 +981,13 @@
       "when": 1791760464182,
       "tag": "0139_paid_ship_continuous_ton_mining",
       "breakpoints": true
+    },
+    {
+      "idx": 140,
+      "version": "7",
+      "when": 1791761095482,
+      "tag": "0140_island_pirate_encounters",
+      "breakpoints": true
     }
   ]
 }

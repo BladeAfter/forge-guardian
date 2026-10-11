@@ -185,7 +185,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
       finally { setIslandBusy(false); }
     };
     return <>
-      <IslandExploration ship={dockedShip} islandIndex={islandIndex} captainStyle={readCaptainStyle(telegramId)} data={data} loading={isLoading} error={error instanceof Error ? error.message : undefined} busy={islandBusy} notice={notice}
+      <IslandExploration initData={telegramInitData} onBalance={balance => { qc.setQueryData<RealmState>(['realm', telegramInitData], previous => previous ? { ...previous, fc: balance } : previous); void qc.invalidateQueries({queryKey:['realm', telegramInitData]}); }} ship={dockedShip} islandIndex={islandIndex} captainStyle={readCaptainStyle(telegramId)} data={data} loading={isLoading} error={error instanceof Error ? error.message : undefined} busy={islandBusy} notice={notice}
         onStart={regionId => islandAction(() => realmExploreStart(telegramInitData, regionId))}
         onEnter={node => data?.exploreRun ? islandAction(() => realmExploreEnter(telegramInitData, data.exploreRun?.id ?? '', node.id)) : Promise.resolve(null)}
         onChoose={option => data?.exploreRun ? islandAction(() => realmExploreChoose(telegramInitData, data.exploreRun?.id ?? '', option)) : Promise.resolve(null)}
