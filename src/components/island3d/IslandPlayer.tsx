@@ -92,7 +92,7 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
     speed.current = actualSpeed;
   });
 
-  useFrame(({ camera, clock }, rawDelta) => {
+  useFrame(({ camera, clock, size }, rawDelta) => {
     const b = body.current; if (!b) return;
     const dt = Math.min(rawDelta, .05), s = state.current, i = input.current, p = b.translation();
     if (model.current) {
@@ -106,7 +106,7 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
     // Camera raycast uses physical scene colliders and ignores the player.
     let distance = 75;
     if (camera instanceof THREE.OrthographicCamera) {
-      const zoom = Math.min(window.innerWidth, window.innerHeight) / i.zoom;
+      const zoom = Math.min(size.width, size.height) / i.zoom;
       if (camera.zoom !== zoom) { camera.zoom = zoom; camera.updateProjectionMatrix(); }
     } else {
       Object.assign(s.ray.origin, cameraLook);

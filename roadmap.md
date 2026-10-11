@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Navio atracado com arte náutica nova e sem renderização duplicada de modelo/reflexo; animações reutilizadas por modelo, câmera dimensionada pela cena e gestos do Telegram capturados na ilha. Desembarque e caminhada por toque conferidos em cena isolada, 21 testes passaram; confirmação no Telegram real permanece pendente.
+
 - [x] Joystick: fila enviada imediatamente após resposta pendente e latência incluída no intervalo; 11 testes passaram, toque/soltura conferidos com respostas simuladas e compilação OK. Posições oficiais, autenticação e regras preservadas.
 - [ ] Confirmar joystick no Telegram real após publicar a atualização; bloqueio: sessão móvel Telegram indisponível e publicação não solicitada.
 
