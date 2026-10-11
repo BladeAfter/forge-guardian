@@ -7,7 +7,6 @@ import RealmDungeonScene, { duelLogFrom, FIGHT_ROOMS } from '../components/Realm
 import RealmBattleScene from '../components/RealmBattleScene';
 import type { RealmExploreLog } from '../realm';
 import RealmForgeScene from '../components/RealmForgeScene';
-import StrongholdScene from '../components/StrongholdScene';
 import GrandLineOcean from '../components/GrandLineOcean';
 import type { NavalShip } from '../naval';
 import IslandExploration from '../components/IslandExploration';
@@ -47,7 +46,6 @@ const REALM_CREST = realmArt.crest;
 type Tab = 'stronghold' | 'map' | 'forge' | 'ruins' | 'bounties';
 
 const TABS: { id: Tab; labelKey: string; art: string }[] = [
-  { id: 'stronghold', labelKey: 'realm.tab.stronghold', art: realmArt.tabs.stronghold },
   { id: 'map', labelKey: 'realm.tab.map', art: realmArt.tabs.map },
   { id: 'forge', labelKey: 'realm.tab.forge', art: realmArt.tabs.forge },
   { id: 'ruins', labelKey: 'realm.tab.ruins', art: realmArt.tabs.ruins },
@@ -66,7 +64,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
 
   const t = useT();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<Tab>('stronghold');
+  const [tab, setTab] = useState<Tab>('map');
   const [oceanOpen, setOceanOpen] = useState(true);
   const [islandIndex, setIslandIndex] = useState<number | null>(null);
   const [oceanPosition, setOceanPosition] = useState<SeaPoint | undefined>();
@@ -158,20 +156,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
     [materials],
   );
 
-  /* micro-animações do HUD: flash ao subir nível real e delta ao ganhar material */
-  const strongholdLevel = data?.profile?.stronghold_level ?? 1;
-  const [levelFlash, setLevelFlash] = useState(false);
-  const prevLevel = useRef<number | null>(null);
-  useEffect(() => {
-    if (prevLevel.current !== null && strongholdLevel > prevLevel.current) {
-      setLevelFlash(true);
-      const id = window.setTimeout(() => setLevelFlash(false), 1200);
-      prevLevel.current = strongholdLevel;
-      return () => window.clearTimeout(id);
-    }
-    prevLevel.current = strongholdLevel;
-  }, [strongholdLevel]);
-
+  /* micro-animações do HUD: delta ao ganhar material */
   const [resDelta, setResDelta] = useState<Record<string, number>>({});
   const prevBalances = useRef<Record<string, number> | null>(null);
   useEffect(() => {
@@ -294,10 +279,6 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
               <img src={REALM_CREST} alt="" loading="lazy" width={40} height={40} className="realm-crest" />
               <h1 className="realm-hud-title truncate">{localizeText("Grand Line")}</h1>
             </div>
-            <div className={`realm-lv-badge ${levelFlash ? 'realm-lv-flash' : ''}`}>
-              <span className="realm-lv-cap">{t('realm.strongholdCap')}</span>
-              <b className="realm-lv-num">{localizeText("LV.")}{level}</b>
-            </div>
           </div>
 
           {/* resource bar compacta */}
@@ -324,7 +305,7 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
               <button
                 key={item.id}
                 onClick={() => { setTab(item.id); if (item.id === 'bounties') call(() => realmEnsureBounties(telegramInitData)); }}
-                className={`realm-tab ${tab === item.id ? 'realm-tab-on' : ''}`}
+                 className={`realm-tab ${tab === item.id || (tab === 'stronghold' && item.id === 'map') ? 'realm-tab-on' : ''}`}
               >
                 <img src={item.art} alt="" loading="lazy" className="realm-tab-art" />
                 <span className="realm-tab-label">{t(item.labelKey)}</span>
@@ -341,20 +322,8 @@ export function RealmPage({ telegramInitData, onBack, berries = 0, telegramId }:
       )}
 
       <main className="px-4 pt-4">
-        {/* ---------- STRONGHOLD ---------- */}
-        {tab === 'stronghold' && (
-          <StrongholdScene
-            buildingTypes={data.buildingTypes}
-            buildings={data.buildings}
-            level={level}
-            now={now}
-            onOpen={setBuildingSheet}
-          />
-        )}
-
-
         {/* ---------- MAP / INTERACTIVE EXPLORATION ---------- */}
-        {tab === 'map' && (
+        {(tab === 'map' || tab === 'stronghold') && (
           <RealmExplorationMap
             data={data}
             initData={telegramInitData}
