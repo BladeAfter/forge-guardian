@@ -178,6 +178,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? localizeText("Atracando...") : localizeText("Atracar no porto")}</OceanControl></div>}
     <nav className="ocean-helm" aria-label={localizeText("Direção do navio")}>
       <OceanControl className="ocean-joystick" title={localizeText("Joystick do navio")} aria-label={localizeText("Joystick do navio")} disabled={dockingNow}
+        onContextMenu={event => event.preventDefault()}
         onPointerDown={event => { if (joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}

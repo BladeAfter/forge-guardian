@@ -40,4 +40,18 @@ describe('mobile naval input scheduling', () => {
     expect(navalCall).not.toHaveBeenCalled();
     if (typeof cleanup === 'function') cleanup();
   });
+  it('repeats a held direction without further pointer-move events and stops on release', async () => {
+    vi.mocked(navalCall).mockResolvedValue(state);
+    const network = useNavalOcean('signed-test', () => ({ dx: 0, dy: 0, throttle: 0 }));
+    const cleanup = hooks.effects[0]?.();
+    await vi.advanceTimersByTimeAsync(1);
+    network.steer({ dx: 1, dy: 0, throttle: 1 });
+    await vi.advanceTimersByTimeAsync(1250);
+    const moves = vi.mocked(navalCall).mock.calls.filter(call => (call[2] as { dx: number }).dx === 1);
+    expect(moves.length).toBeGreaterThanOrEqual(4);
+    network.steer({ dx: 0, dy: 0, throttle: 0 });
+    await vi.advanceTimersByTimeAsync(700);
+    expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual({ dx: 0, dy: 0, throttle: 0 });
+    if (typeof cleanup === 'function') cleanup();
+  });
 });
