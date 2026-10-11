@@ -54,7 +54,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
     setBusy(true); setMsg('');
     try {
       const res = await forgeFetch('realm', { initData: telegramInitData, action: 'fleet', fleetAction, input });
-      const body = await res.json().catch(() => null);
+      const body = (await res.json().catch(() => null)) as { code?: string; error?: string; data?: unknown } | null;
       if (!res.ok || !body || body.error) { const code = String(body?.code || body?.error || ''); setMsg(text(ERRORS[code] || 'Não foi possível concluir. Tente novamente.')); return false; }
       setState((body.data ?? body) as FleetState); if (success) { setMsg(text(success)); setFlash(x => x + 1); }
       return true;
