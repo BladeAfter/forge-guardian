@@ -1,7 +1,7 @@
 # Roadmap
 
-- [ ] Otimizar Grand Line existente: medir renderização/comandos antes e depois, compartilhar ciclo do radar, eliminar trabalho gráfico repetido, corrigir envio urgente/background e suavizar jogadores aprovados; preservar visual, velocidade, compras, colisões e ações.
-- [ ] Validar navegação otimizada por 5–10 minutos e no Telegram Android físico; aparelho/sessão Telegram assinada necessários para a confirmação real.
+- [x] Otimizar Grand Line existente: água cacheada, radar no ciclo único, HUD sem atualizações redundantes, prioridade de toque durante heartbeat, pausa oculta, interpolação de jogadores confirmados, qualidade por tempo bruto e controle horizontal sem sobreposição; 51 testes e compilação OK. Comparação isolada: 90,1% menos cópias de imagem e 45,7% menos atualizações React, sem ganho comprovado de FPS/CPU. Cinco minutos isolados: 49,4 FPS médios, p95 33,4 ms. Detalhes em naval-performance-report.md.
+- [ ] Confirmar desempenho, múltiplos jogadores e fluxo ponta a ponta no Telegram Android físico; bloqueio: aparelho e sessão Telegram assinada indisponíveis. Teste de cinco minutos e toque/velocidade/pausa/orientação foram somente isolados; não comprovam eliminação do lag real.
 
 - [x] Joystick naval substituído por toque no oceano; destino recalculado pela pose aprovada com aproximação/parada, sem alterar servidor, colisões ou ações. 28 testes passaram; cena isolada confirmou toque, troca de destino, chegada, parada por perda de foco, seleção de outro jogador e saída; compilação OK. Controles da ilha preservados.
 - [ ] Confirmar navegação por toque no Telegram real; bloqueio: aparelho e sessão Telegram assinada indisponíveis, teste do navegador usou respostas isoladas.
