@@ -25,7 +25,7 @@ export function useIslandPirates(initData:string|undefined,island:number,telemet
   return()=>{disposed=true;window.clearInterval(timer);attack.current=null;};
  },[initData,island]);
  const strike=useCallback(()=>{
-  const state=current.current?.state;if(!state||pending.current||attack.current||state.player.hp<=0)return;
+  const state=current.current?.state;if(!state||attack.current||state.player.hp<=0)return;
   const target=state.enemies.filter(e=>e.hp>0&&Math.hypot(e.x-state.player.x,e.z-state.player.z)<=4.1).sort((a,b)=>Math.hypot(a.x-state.player.x,a.z-state.player.z)-Math.hypot(b.x-state.player.x,b.z-state.player.z))[0];
   if(target)attack.current={attack:target.id,actionId:crypto.randomUUID()};
  },[]);

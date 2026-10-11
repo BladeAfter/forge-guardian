@@ -39,7 +39,7 @@ function CombatActor({ enemy, palette }: { enemy: IslandPirateEnemy; palette: Is
     <Html position={[enemy.x, 3.5, enemy.z]} center distanceFactor={65}><span className={`island-enemy-label ${enemy.boss ? 'island-enemy-label--rare' : ''}`}>{t(enemy.boss ? 'islandCombat.rareChest' : 'islandCombat.commonChest')}</span></Html>
   </group>;
   return <group ref={group} position={[enemy.x, ISLAND_MAP.floor, enemy.z]}>
-    <group rotation-y={enemy.heading} scale={ISLAND_MAP.pirateScale * (enemy.boss ? 1.25 : 1)}><IslandPirate style="male" motion={motion} speed={speed} palette={{ ...palette, gold: colors[enemy.variant] ?? palette.gold }} /></group>
+    <group rotation-y={enemy.heading} scale={ISLAND_MAP.pirateScale * (enemy.boss ? 1.25 : 1)}><IslandPirate style="male" motion={motion} speed={speed} palette={{ ...palette, pirateRed: colors[enemy.variant] ?? palette.pirateRed, gold: enemy.boss ? '#dab56c' : '#88917c' }} /></group>
     <mesh position-y={.025} rotation-x={-Math.PI / 2}><ringGeometry args={[enemy.boss ? 1.6 : 1.1, enemy.boss ? 1.85 : 1.3, 24]} /><meshBasicMaterial color={colors[enemy.variant]} transparent opacity={.8} /></mesh>
     {enemy.mode === 'warning' && <mesh position-y={.04} rotation-x={-Math.PI / 2}><ringGeometry args={[5.2, 5.75, 32]} /><meshBasicMaterial color="#fa665b" transparent opacity={.75} /></mesh>}
     <Html position={[0, enemy.boss ? 5.6 : 4.5, 0]} center distanceFactor={65}><div className={`island-enemy-label ${enemy.boss ? 'island-enemy-label--rare' : ''}`}><b>{t(enemy.nameKey)}</b><progress max={enemy.maxHp} value={enemy.hp} /><small>{enemy.hp}/{enemy.maxHp} {enemy.boss && t('islandCombat.phase', { phase: enemy.phase })}</small>{enemy.mode === 'warning' && <strong>{t('islandCombat.warning')}</strong>}</div></Html>
