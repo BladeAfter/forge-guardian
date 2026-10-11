@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Complementar Grand Line com baús oceânicos compartilhados, sorteio seguro, reservas TON limitadas, administração protegida e integração visual; preservar sistemas existentes.
+- [ ] Testar concorrência, idempotência, orçamento, reconexão e persistência sem conceder bens de teste em produção.
+
 - [x] Arte da frota com mastro vertical e proa espelhada; pointer touch capturado com fallback nativo sem disputa, soltura externa e velocidade atualizada ao segurar. Vinte testes passaram; cena isolada móvel/desktop confirmou movimento sustentado e parada com respostas simuladas, sem alterar bens reais.
 - [ ] Confirmar este ajuste de alinhamento/controle no Telegram físico; bloqueio: aparelho e sessão Telegram assinada indisponíveis, publicação não solicitada.
 
