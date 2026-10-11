@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Grand Line usa a arte da frota pelo class_id/active_class oficial, sem filtros legados sobre a classe escolhida; compras, atributos e navegação preservados. Sete testes passaram; três classes renderizadas em cena isolada, compilação OK.
+- [ ] Confirmar seleção de navio e retorno à Grand Line no Telegram real; bloqueio: sessão móvel assinada indisponível.
+
 - [x] Joystick mantém direção sem novos eventos de arraste; pedidos ativos a 300 ms com RTT incluído, soltura/cancelamento preservados e menu de toque longo bloqueado. Apresentação limitada à velocidade do navio para reduzir saltos, sem extrapolar poses. Onze testes passaram e cena isolada verificou movimento sustentado/soltura; água existente preservada.
 - [ ] Confirmar joystick e fluidez no Telegram físico após publicação; bloqueio: aparelho e sessão Telegram reais indisponíveis.
 

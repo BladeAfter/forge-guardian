@@ -10,7 +10,7 @@ export const SHIP_SKINS = [
   { id: 'storm', name: 'Tempestade' }, { id: 'reaper', name: 'Ceifador' }, { id: 'king', name: 'Rei dos Mares' },
 ] as const;
 export type ShipCosmetics = { flag: 'skull' | 'sun' | 'moon'; prow: 'lion' | 'blade' | 'none'; decoration: 'gold' | 'silver' | 'none'; trail: 'foam' | 'embers' | 'mist' };
-export type NavalShip = { user_id: string; name?: string; model: string; skin: string; cosmetics: ShipCosmetics; level: number; xp: number; reputation: number; hp: number; x: number; y: number; heading: number; throttle: number; battle_id: string | null };
+export type NavalShip = { user_id: string; name?: string; class_id?: string; active_class?: string; model: string; skin: string; cosmetics: ShipCosmetics; level: number; xp: number; reputation: number; hp: number; x: number; y: number; heading: number; throttle: number; battle_id: string | null };
 export type NavalEvent = { id: number; actor: string; kind: string; x: number; y: number; target_x: number; target_y: number; damage: number; created_at: string };
 export type NavalState = { ship: NavalShip; others: NavalShip[]; events: NavalEvent[]; battle: { id: string; status: string; attacker: string; defender: string; winner: string | null; loot: { berries?: number; items?: Record<string, number> } } | null; rules: { pvpEnabled: boolean; lootPercent: number; repairWood: number; repairIron: number }; materials: Record<string, number> };
 export const DEFAULT_SHIP: NavalShip = { user_id: '', model: 'small', skin: 'black', cosmetics: { flag: 'skull', prow: 'lion', decoration: 'gold', trail: 'foam' }, level: 1, xp: 0, reputation: 0, hp: 1000, x: 1700, y: 1340, heading: 0, throttle: 0, battle_id: null };
