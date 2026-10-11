@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Exigir participação atual no canal correto antes da recompensa; conferir caminhos alternativos e testes sem crédito real.
+
 - [x] Água azul-profunda extraída da ilustração anterior, sem nova textura; cache e espelhamento preservados. Joystick touch não passivo separado de mouse/pen evita disputa com gestos do Telegram. Onze testes e cena isolada com toque Android sustentado/soltura passaram; poses oficiais preservadas.
 - [ ] Confirmar água e joystick no Telegram físico após publicação; bloqueio: sessão assinada/aparelho indisponíveis e publicação não solicitada.
 
