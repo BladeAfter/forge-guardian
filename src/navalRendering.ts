@@ -40,7 +40,9 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
   }
   // Recolors are cached outside the frame loop; class silhouette and stats remain unchanged.
   if (fleetImage?.complete && fleetImage.naturalWidth) {
-    ctx.save(); ctx.rotate(Math.PI / 2); ctx.drawImage(customizedFleetImage(fleetImage, cosmetics, palette.colors), -size/2, -size/2, size, size); ctx.restore();
+    // Catalog broadside art keeps its mast upright; wake retains approved heading.
+    ctx.save(); ctx.rotate(-ship.heading); ctx.scale(Math.sin(ship.heading) > .01 ? -1 : 1, 1);
+    ctx.drawImage(customizedFleetImage(fleetImage, cosmetics, palette.colors), -size/2, -size/2, size, size); ctx.restore();
   } else {
     ctx.filter = palette.filters[ship.skin] || 'none';
     if (atlas.complete && atlas.naturalWidth) { ctx.save();ctx.rotate(Math.PI);ctx.drawImage(atlas,(index%3)*w,Math.floor(index/3)*h,w,h,-size/2,-size/2,size,size);ctx.restore(); }
