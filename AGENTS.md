@@ -1,7 +1,7 @@
 # Architecture Rules
 
-- Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
-- Validate bot secrets; tutorials once by sender language; missing media keeps claims; hold uncertain sends; Consent once; honor refusal Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
+- Queue credited/paid notices via private triggers and atomic secret-authenticated claims; hold ambiguous sends for review. Never change balances or enable financial workers.
+- Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 
 - Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants/allocations and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
@@ -20,7 +20,7 @@
 - Gate game API and reconciliation by server reset; reject pre-epoch transactions to avoid resurrected balances.
 - Gate launch server-side by signed admin/tester IDs; tester access never grants admin. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
-- Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
+- Scope PvP to `seas-duels` and `gameAssets.ts`; preserve server-owned teams, tickets and battle callbacks.
 - Kraken has six owned slots, no fixed captain. Observer settles enemy/revive events without consuming manual ticks; auto scheduler keeps its processor. Variants share official cooldown; confirmed damage only.
 - Egg catalogs use gameAssets/MascotChestCard mysterious chests; preserve egg IDs, purchases, odds and settlement.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
