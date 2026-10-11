@@ -1,6 +1,6 @@
 import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Expand, Flame, Hand, Shield, Sparkles, Swords, Trophy, Wind, X, Zap } from 'lucide-react';
+import { Expand, Flame, Hand, Shield, Sparkles, Swords, Trophy, Wind, X, Zap, UserPlus, Users } from 'lucide-react';
 import { actionArenaArt, arenaCrewImage } from '../gameAssets';
 import { readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
@@ -8,6 +8,7 @@ import type { CombatSlot } from '../combatSlots';
 import { COMBAT_SLOTS } from '../combatSlots';
 import { OceanControl } from './OceanControl';
 import { IslandJoystick } from './IslandJoystick';
+import { useLanguage } from '../LanguageContext';
 
 type AttackVariant = 'basic' | 'shield' | 'flame' | 'lightning' | 'star';
 const ATTACK_VARIANTS = [
@@ -29,6 +30,7 @@ type Props = {
 /** Physical movement and effects are cosmetic; only the official attack callback changes combat. */
 export function PirateActionArena(props: Props) {
   const localizeText = useLocalizedText();
+  const { t } = useLanguage();
 
   const { name, hp, maxHp, heroes, pet, hit, attacking, active, cooldown, onAttack } = props;
   const stage = useRef<HTMLDivElement>(null);
@@ -127,11 +129,12 @@ export function PirateActionArena(props: Props) {
       <div className="action-boss-life" role="progressbar" aria-label={localizeText("Vida do chefe")} aria-valuenow={Math.ceil(hp)} aria-valuemax={maxHp} aria-valuemin={0}><span style={{ width: `${ratio}%` }} />{[25,50,75].map(value => <i key={value} style={{ left: `${value}%` }} />)}</div>
       <div className="action-boss-meta"><span>{Math.ceil(hp).toLocaleString('pt-BR')} / {maxHp.toLocaleString('pt-BR')}</span></div>
     </header>
+      <OceanControl className="action-crew-manage" onClick={() => props.onEquip(COMBAT_SLOTS.find(slot => !heroes.some(hero => Number(hero.slot) === slot)) ?? COMBAT_SLOTS[0])} aria-label={t('selectHero')} title={t('selectHero')}><Users /></OceanControl>
     <aside className="action-crew" aria-label={localizeText("Tripulação")}>
       <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title={localizeText("Capitão do perfil")} aria-label={localizeText("Capitão do perfil")}><img src={captain} alt={localizeText("Capitão")} /></OceanControl>
       {COMBAT_SLOTS.map(slot => { const hero = heroes.find(item => Number(item.slot) === slot); return <div key={slot}>
-        <OceanControl className={hero && selected?.heroId === hero.heroId ? 'action-crew-selected' : ''} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `Controlar ${hero.name}` : `Equipar tripulante ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}${hero.isAlive ? '' : ' · Nocauteado'}` : `Equipar tripulante ${slot}`}>
-          {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">{localizeText("KO")}</span>}</> : <span>+</span>}
+        <OceanControl className={hero ? (selected?.heroId === hero.heroId ? 'action-crew-selected' : '') : 'action-crew-empty'} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `${hero.name} · ${t('slot')} ${slot}` : `${t('selectHero')} · ${t('slot')} ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}` : `${t('selectHero')} · ${t('slot')} ${slot}`}>
+          {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">{localizeText("KO")}</span>}</> : <><UserPlus /><small className="action-crew-slot">{slot}</small></>}
         </OceanControl>{hero && <OceanControl className="action-crew-edit" onClick={() => props.onEquip(slot)} aria-label={`Trocar tripulante ${slot}`} title={localizeText("Trocar tripulante")}>↻</OceanControl>}
       </div>; })}
     </aside>

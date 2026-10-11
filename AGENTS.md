@@ -3,7 +3,7 @@
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
 - Validate bot secrets; tutorials once by sender language, missing media never consumes claims, uncertain sends held. Consent once; respect refusal. Channel rewards need fresh membership and private atomic claims.
 
-- Keep pirate artwork in gameAssets and semantic CSS; theming never changes gameplay.
+- Keep pirate art in gameAssets and semantic CSS; theming never changes gameplay.
 - Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.
 - Keep crew management in CrewDeck with ship-scene selection and semantic crew tokens; map existing archetypes to cosmetic pirate roles, keep XP read-only and equipment server-owned, and omit fusion/inventory navigation so the redesign cannot invent progression or privileges.
 - Align the Clan Hall hotspot with the village background's centered cover geometry so building taps stay accurate across viewport sizes without a separate card.
@@ -25,4 +25,5 @@
 - Present egg catalogs as mysterious chests via gameAssets and MascotChestCard; preserve egg IDs, purchases, odds and settlement so theming cannot alter the economy.
 - Keep season-pass presentation in SeasonVoyageView with shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types so art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
-- Translate legacy literals through LanguageContext and static locale catalogs; never mutate DOM text or translate persistent IDs.
+- Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
+- Keep referrals in ReferralDeckView; preserve server links, rates and earnings.
