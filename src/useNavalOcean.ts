@@ -9,6 +9,12 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
   const current = useRef<NavalState | null>(null);
   const input = useRef(direction); input.current = direction;
   const locked = useRef(false);
+  const actionPending = useRef(false);
+  const idleWaiters = useRef<Array<() => void>>([]);
+  const release = () => {
+    locked.current = false;
+    idleWaiters.current.splice(0).forEach(resolve => resolve());
+  };
   const mounted = useRef(true);
   const pending = useRef<NavalInput[]>([]);
   const held = useRef<NavalInput | null>(null);
@@ -26,11 +32,11 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
       urgent = false;
       if(cancelled || !initData) return;
       const started = performance.now();
-      if(!locked.current && !document.hidden) {
+      if(!locked.current && !actionPending.current && !document.hidden) {
         locked.current = true;
           try { const next=await navalCall(initData,'heartbeat',pending.current.shift() ?? held.current ?? input.current()); if(!cancelled) apply(next); }
          catch(e) { if(!cancelled) setError(e instanceof Error ? e.message : 'Oceano indisponível.'); }
-        finally { locked.current = false; }
+        finally { release(); }
       }
       // A gesture arriving during a request must run as soon as it finishes.
       // Count the round trip inside the cadence, rather than adding it on top.
@@ -48,14 +54,18 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
     document.addEventListener('visibilitychange',resume);
     window.addEventListener('online',resume);
     void tick();
-    return () => { cancelled=true;mounted.current=false;wake.current=null;pending.current=[];held.current=null;clearTimeout(timer); document.removeEventListener('visibilitychange',resume);window.removeEventListener('online',resume); };
+    return () => { cancelled=true;mounted.current=false;wake.current=null;pending.current=[];held.current=null;idleWaiters.current.splice(0).forEach(resolve => resolve());clearTimeout(timer); document.removeEventListener('visibilitychange',resume);window.removeEventListener('online',resume); };
   }, [initData]);
   const action = async (name: string, payload: Record<string,unknown> = {}) => {
-    if(!initData || locked.current) return false;
-    locked.current=true;setBusy(true);
+    if(!initData || !mounted.current || actionPending.current) return false;
+    // Preserve one explicit click while a heartbeat finishes; never replay it.
+    actionPending.current=true;setBusy(true);
+    if(locked.current) await new Promise<void>(resolve => idleWaiters.current.push(resolve));
+    if(!mounted.current) { actionPending.current=false;return false; }
+    locked.current=true;
     try { apply(await navalCall(initData,name,payload));return true; }
     catch(e) { if(mounted.current) setError(e instanceof Error ? e.message : 'Ação indisponível.');return false; }
-    finally { locked.current=false;if(mounted.current) { setBusy(false);wake.current?.(); } }
+    finally { release();actionPending.current=false;if(mounted.current) { setBusy(false);wake.current?.(); } }
   };
    const steer = (next: NavalInput) => {
      if(!initData) return;

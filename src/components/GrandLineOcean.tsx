@@ -38,7 +38,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     network.steer({ dx: 0, dy: 0, throttle: 0 });
     autopilot.current = false;
     if (joystickKnob.current) joystickKnob.current.style.transform = 'translate(0px, 0px)';
-    state.current.target = { ...state.current.position };
+    state.current.target = { ...(docking.current?.dock ?? state.current.position) };
   };
   const state = useRef({ position: { ...initialPosition }, target: { ...initialPosition }, heading: 0, camera: { ...initialPosition }, scale: 0.7, keys: new Set<string>(), moving: false, velocity: { x: 0, y: 0 } });
   const docking = useRef<SeaIsland | null>(null);
@@ -121,7 +121,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     let frame = 0; let previous = 0; let uiTime = 0;
     const diagnose = frameDiagnostics('ocean');
 
-    const keydown = (e: KeyboardEvent) => { if (!chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
+    const keydown = (e: KeyboardEvent) => { if (!docking.current && !chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
     const visibility = () => {
@@ -158,7 +158,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       }
       if (docking.current !== null && seaDistance(live ? live.ship : s.position, s.target) < (live ? 85 : 5)) {
         const island = docking.current; docking.current = null; s.moving = false;
-        if(live) { void network.action('leave').then(ok => { if(ok) dockCallback.current(island.destination,island.templateIndex,live.ship);else setDockingNow(false); }); }
+        if(live) { resetJoystick(); void network.action('leave').then(ok => { if(ok) dockCallback.current(island.destination,island.templateIndex,currentNetwork.current?.ship ?? live.ship);else setDockingNow(false); }); }
         else dockCallback.current(island.destination, island.templateIndex, { ...DEFAULT_SHIP, x: s.position.x, y: s.position.y, heading: s.heading });
         frame=requestAnimationFrame(render);return;
       }
