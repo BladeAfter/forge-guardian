@@ -10340,8 +10340,10 @@ export type Database = {
           growth: number
           iron_base: number
           max_level: number
+          nails_base: number
           name: string
           per_level: number
+          rope_base: number
           sort: number
           stat: string
           ton_cost: number
@@ -10353,8 +10355,10 @@ export type Database = {
           growth?: number
           iron_base?: number
           max_level?: number
+          nails_base?: number
           name: string
           per_level: number
+          rope_base?: number
           sort: number
           stat: string
           ton_cost?: number
@@ -10366,8 +10370,10 @@ export type Database = {
           growth?: number
           iron_base?: number
           max_level?: number
+          nails_base?: number
           name?: string
           per_level?: number
+          rope_base?: number
           sort?: number
           stat?: string
           ton_cost?: number
@@ -25592,6 +25598,10 @@ export type Database = {
       naval_ocean_land: { Args: { p_x: number; p_y: number }; Returns: boolean }
       naval_stat: { Args: { p_stat: string; p_user: string }; Returns: number }
       naval_state: { Args: { p_user: string }; Returns: Json }
+      naval_upgrade_material_costs: {
+        Args: { p_category: string; p_level: number }
+        Returns: Json
+      }
       nft_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }
         Returns: Json

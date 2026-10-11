@@ -925,6 +925,13 @@
       "when": 1791743105753,
       "tag": "0131_purchased_ship_customization",
       "breakpoints": true
+    },
+    {
+      "idx": 132,
+      "version": "7",
+      "when": 1791743558573,
+      "tag": "0132_naval_real_material_upgrade_costs",
+      "breakpoints": true
     }
   ]
 }
