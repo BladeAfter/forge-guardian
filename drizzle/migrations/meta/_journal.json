@@ -974,6 +974,13 @@
       "when": 1791757492621,
       "tag": "0138_remove_withdrawal_purchase_requirements",
       "breakpoints": true
+    },
+    {
+      "idx": 139,
+      "version": "7",
+      "when": 1791760464182,
+      "tag": "0139_paid_ship_continuous_ton_mining",
+      "breakpoints": true
     }
   ]
 }
