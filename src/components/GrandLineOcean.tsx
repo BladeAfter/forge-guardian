@@ -23,7 +23,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const host = useRef<HTMLElement>(null);
   useGameViewport(host);
-  const drawRef = useRef<((time: number, delta: number) => void) | null>(null);
+  const drawRef = useRef<((time: number, delta: number, rawDelta?: number) => void) | null>(null);
+  const radarDrawRef = useRef<((time: number) => void) | null>(null);
   const autopilot = useRef(false);
   const stopNavigation = () => {
     network.steer({ dx: 0, dy: 0, throttle: 0 });
@@ -60,7 +61,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const dy=Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
     if (!autopilot.current && !docking.current) return {dx:0,dy:0,throttle:0};
-    const ship = approvedShip.current;
+    const ship = network.current.current?.ship ?? approvedShip.current;
     return seaDestinationInput(ship ?? s.position, s.target, throttleRef.current, shipStats(ship ?? DEFAULT_SHIP).speed);
   });
   const currentNetwork = network.current;
@@ -78,10 +79,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   useEffect(() => {
     // Bitmap rendering is separate from authoritative navigation and HUD.
     let frame = 0; let previous = 0; let uiTime = 0;
+    let hudSpeed = -1; let hudIsland: string | undefined;
     const diagnose = frameDiagnostics('ocean');
 
-    const keydown = (e: KeyboardEvent) => { if (!docking.current && !chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
-    const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
+    const keydown = (e: KeyboardEvent) => { if (!docking.current && !chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); if (!state.current.keys.has(e.key)) { state.current.keys.add(e.key); network.refresh(); } } };
+    const keyup = (e: KeyboardEvent) => { if (!state.current.keys.delete(e.key)) return; if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; network.refresh(); };
     const clear = () => { state.current.keys.clear(); stopNavigation(); };
     const visibility = () => {
       previous = 0; cancelAnimationFrame(frame); frame = 0;
@@ -122,9 +124,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         frame=requestAnimationFrame(render);return;
       }
       if (time - uiTime > 180) {
-        uiTime = time; setSpeed(live ? Math.round(8 * live.ship.throttle) : Math.round(Math.hypot(s.velocity.x, s.velocity.y) / 122 * 8));
+        uiTime = time;
+        const nextSpeed = live ? Math.round(8 * live.ship.throttle) : Math.round(Math.hypot(s.velocity.x, s.velocity.y) / 122 * 8);
+        if (nextSpeed !== hudSpeed) { hudSpeed = nextSpeed; setSpeed(nextSpeed); }
         const nextNearby = seaIslandsAround(s.position, 1).find(i => seaDistance(s.position, i.dock) < 190) ?? null;
-        setNearby(old => old?.id === nextNearby?.id ? old : nextNearby);
+        if (hudIsland !== nextNearby?.id) { hudIsland = nextNearby?.id; setNearby(nextNearby); }
         const canvas = canvasRef.current;
         if (!canvas) { frame=requestAnimationFrame(render);return; }
         canvas.dataset.shipX = s.position.x.toFixed(0); canvas.dataset.shipY = s.position.y.toFixed(0);
@@ -133,7 +137,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         if (!bottleFoundRef.current && seaDistance(s.position, {x:1850,y:1470}) < 80) { bottleFoundRef.current = true; setBottleFound(true); setMessage('Uma garrafa! “Na selva, procure a praia a leste da caverna.”'); }
         if (bottleFoundRef.current && !secretFoundRef.current && seaDistance(s.position, {x:1090,y:1450}) < 80) { secretFoundRef.current = true; setSecretFound(true); setMessage('Passagem secreta descoberta — Selva dos Segredos.'); }
       }
-      drawRef.current?.(time, dt);
+       drawRef.current?.(time, dt, rawDelta);
+       radarDrawRef.current?.(time);
       diagnose(rawDelta, performance.now() - started, 1 + (currentNetwork.current?.others.length ?? 0));
       frame = requestAnimationFrame(render);
     };
@@ -162,7 +167,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     </div>
     {enemy && <div className="naval-enemy" role="dialog" aria-label={localizeText("Navio inimigo")}><h2>{localizeText("NAVIO INIMIGO")}</h2><p>{enemy.name} {localizeText("· Nv. ")}{enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>{localizeText("Vida ")}{enemy.hp}/{shipMaxHp(enemy)} {localizeText("· Canhões ")}{shipStats(enemy).cannons}<br/>{localizeText("Defesa ")}{shipStats(enemy).defense} {localizeText("· Tripulação ")}{shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>{localizeText("Atacar")}</OceanControl><OceanControl onClick={()=>setInspecting(true)}>{localizeText("Inspecionar")}</OceanControl><OceanControl onClick={()=>setSelected(null)}>{localizeText("Ignorar")}</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>{localizeText("Saque e guerra naval aguardam definição das regras.")}</small>}</div>}
     {yardOpen && <NavalShipyard ship={ownShip} state={network.data} busy={network.busy} onClose={()=>setYardOpen(false)} onSave={async input => {if(await network.action('customize',input))setYardOpen(false);}} onAction={async action => {await network.action(action);}}/>}
-    <NavalMiniMap pose={state} network={currentNetwork} />
+    <NavalMiniMap pose={state} network={currentNetwork} drawRef={radarDrawRef} />
     <div className="ocean-view"><OceanControl title={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} aria-label={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? localizeText("MAPA NA GARRAFA") : localizeText("DESCOBERTA")}</span><p>{message}</p></div>}
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; stopNavigation(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? localizeText("Atracando...") : localizeText("Atracar no porto")}</OceanControl></div>}

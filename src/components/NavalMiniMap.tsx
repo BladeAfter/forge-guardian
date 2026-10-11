@@ -9,9 +9,10 @@ import { OceanControl } from './OceanControl';
 import './NavalMiniMap.css';
 
 /** Read-only local chart: no hidden treasure, invented players or navigation commands. */
-export default function NavalMiniMap({ pose, network }: {
+export default function NavalMiniMap({ pose, network, drawRef }: {
   pose: MutableRefObject<{ position: SeaPoint; heading: number }>;
   network: MutableRefObject<NavalState | null>;
+  drawRef?: MutableRefObject<((time: number) => void) | null>;
 }) {
   const localizeText = useLocalizedText();
 
@@ -68,9 +69,12 @@ export default function NavalMiniMap({ pose, network }: {
       canvas.dataset.heading = String(heading); canvas.dataset.range = String(range);
       canvas.dataset.players = String(network.current?.others.length ?? 0);
     };
-    draw();const timer=window.setInterval(draw,200);
-    return () => { window.clearInterval(timer);atlas.removeEventListener('load',prepare); };
-  }, [pose, network, expanded]);
+    let last = -Infinity;
+    const scheduled = (time: number) => { if (time - last >= 200) { last = time; draw(); } };
+    draw();
+    if (drawRef) drawRef.current = scheduled;
+    return () => { if (drawRef?.current === scheduled) drawRef.current = null; atlas.removeEventListener('load',prepare); };
+  }, [pose, network, expanded, drawRef]);
   return <aside className={`naval-minimap ${expanded ? 'naval-minimap-expanded' : ''}`} aria-label={localizeText("Carta náutica local")}>
     <OceanControl className="naval-minimap-toggle" onClick={() => setExpanded(value=>!value)} aria-label={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")} aria-expanded={expanded} title={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")}>
       <canvas ref={ref} width={256} height={256} role="img" aria-label={localizeText("Mapa das ilhas e navios próximos")} />

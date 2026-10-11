@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Otimizar Grand Line existente: medir renderização/comandos antes e depois, compartilhar ciclo do radar, eliminar trabalho gráfico repetido, corrigir envio urgente/background e suavizar jogadores aprovados; preservar visual, velocidade, compras, colisões e ações.
+- [ ] Validar navegação otimizada por 5–10 minutos e no Telegram Android físico; aparelho/sessão Telegram assinada necessários para a confirmação real.
+
 - [x] Joystick naval substituído por toque no oceano; destino recalculado pela pose aprovada com aproximação/parada, sem alterar servidor, colisões ou ações. 28 testes passaram; cena isolada confirmou toque, troca de destino, chegada, parada por perda de foco, seleção de outro jogador e saída; compilação OK. Controles da ilha preservados.
 - [ ] Confirmar navegação por toque no Telegram real; bloqueio: aparelho e sessão Telegram assinada indisponíveis, teste do navegador usou respostas isoladas.
 

@@ -12,15 +12,16 @@ export function useOceanChests(initData: string) {
     if (!initData) return;
     mounted.current=true; let timer: ReturnType<typeof setTimeout>; let cancelled=false;
     const tick=async () => {
+      if (cancelled || document.hidden) return;
       if (!cancelled && !document.hidden && !locked.current && !polling.current) {
         polling.current=true;const version=revision.current;
         try { const next=await oceanChestCall(initData);if(!cancelled && version===revision.current)apply(next); }
         catch { if(!cancelled && version===revision.current)setError('OCEAN_UNAVAILABLE'); }
         finally { polling.current=false; }
       }
-      if(!cancelled)timer=setTimeout(tick,5000);
+      if(!cancelled && !document.hidden)timer=setTimeout(tick,5000);
     };
-    const resume=() => { clearTimeout(timer);if(!cancelled)void tick(); };
+    const resume=() => { clearTimeout(timer);if(!cancelled && !document.hidden && !polling.current)void tick(); };
     window.addEventListener('online',resume);document.addEventListener('visibilitychange',resume);void tick();
     return () => { cancelled=true;mounted.current=false;clearTimeout(timer);window.removeEventListener('online',resume);document.removeEventListener('visibilitychange',resume); };
   },[initData]);

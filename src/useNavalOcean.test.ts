@@ -70,6 +70,37 @@ describe('mobile naval input scheduling', () => {
     expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual(direction);
     if (typeof cleanup === 'function') cleanup();
   });
+  it('sends the latest tap immediately after an in-flight idle heartbeat', async () => {
+    let resolve: ((value: NavalState) => void) | undefined;
+    let direction = { dx: 0, dy: 0, throttle: 0 };
+    vi.mocked(navalCall).mockImplementationOnce(() => new Promise(done => { resolve = done; })).mockResolvedValue(state);
+    const network = useNavalOcean('signed-test', () => direction);
+    const cleanup = hooks.effects[0]?.();
+    await vi.advanceTimersByTimeAsync(100);
+    direction = { dx: -1, dy: 0, throttle: .5 };
+    network.refresh(); network.refresh(); network.refresh();
+    resolve?.(state);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(navalCall).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual(direction);
+    if (typeof cleanup === 'function') cleanup();
+  });
+  it('removes background polling timers and resumes once when visible', async () => {
+    vi.mocked(navalCall).mockResolvedValue(state);
+    const network = useNavalOcean('signed-test', () => ({ dx: 0, dy: 0, throttle: 0 }));
+    const cleanup = hooks.effects[0]?.();
+    await vi.advanceTimersByTimeAsync(1);
+    const resume = vi.mocked(document.addEventListener).mock.calls.find(call => call[0] === 'visibilitychange')?.[1] as (() => void) | undefined;
+    Object.assign(document, { hidden: true }); resume?.();
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(navalCall).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+    Object.assign(document, { hidden: false }); resume?.(); resume?.(); network.refresh();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(navalCall).toHaveBeenCalledTimes(2);
+    if (typeof cleanup === 'function') cleanup();
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it.each(['attack', 'leave'])('preserves %s clicked during a heartbeat and sends it once', async name => {
     let resolve: ((value: NavalState) => void) | undefined;
     vi.mocked(navalCall).mockImplementationOnce(() => new Promise(done => { resolve = done; })).mockResolvedValue(state);

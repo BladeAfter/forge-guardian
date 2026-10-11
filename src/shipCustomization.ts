@@ -10,10 +10,13 @@ export const canCustomizeShip = (owned?: { canCustomize?: boolean }) => owned?.c
 export const shipCosmetics = (saved?: Partial<ShipCosmetics>): ShipCosmetics => ({ ...CUSTOMIZATION_DEFAULTS, ...saved });
 
 const recolored = new Map<string, HTMLCanvasElement>();
+const paletteKeys = new WeakMap<Record<string, string>, string>();
 /** Cache masked bitmap recolors once per appearance, keeping texture and silhouette intact. */
 export function customizedFleetImage(image: HTMLImageElement, cosmetics: ShipCosmetics, colors?: Record<string, string>): CanvasImageSource {
   if (!colors || !image.naturalWidth || ((!cosmetics.hullColor || cosmetics.hullColor === 'original') && (!cosmetics.sailColor || cosmetics.sailColor === 'original'))) return image;
-  const key = `${image.src}:${cosmetics.hullColor}:${cosmetics.sailColor}:${JSON.stringify(colors)}`;
+  let paletteKey = paletteKeys.get(colors);
+  if (!paletteKey) { paletteKey = JSON.stringify(colors); paletteKeys.set(colors, paletteKey); }
+  const key = `${image.src}:${cosmetics.hullColor}:${cosmetics.sailColor}:${paletteKey}`;
   const cached = recolored.get(key); if (cached) return cached;
   const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
   const ctx = canvas.getContext('2d', { willReadFrequently: true }); if (!ctx) return image;
