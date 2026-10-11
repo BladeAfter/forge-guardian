@@ -855,6 +855,20 @@
       "when": 1791598711410,
       "tag": "0121_restrict_treasure_auto_rpc",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1791683719599,
+      "tag": "0122_grand_fleet_leader_gameplay_bonus",
+      "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1791683826495,
+      "tag": "0123_grand_fleet_stable_reward_sources",
+      "breakpoints": true
     }
   ]
 }

@@ -7536,6 +7536,45 @@ export type Database = {
           },
         ]
       }
+      grand_fleet_bonus_ledger: {
+        Row: {
+          asset: string
+          bonus_amount: number
+          clan_id: string
+          created_at: string
+          id: string
+          leader_id: string
+          member_id: string
+          reward_amount: number
+          source_id: string
+          source_type: string
+        }
+        Insert: {
+          asset: string
+          bonus_amount: number
+          clan_id: string
+          created_at?: string
+          id?: string
+          leader_id: string
+          member_id: string
+          reward_amount: number
+          source_id: string
+          source_type: string
+        }
+        Update: {
+          asset?: string
+          bonus_amount?: number
+          clan_id?: string
+          created_at?: string
+          id?: string
+          leader_id?: string
+          member_id?: string
+          reward_amount?: number
+          source_id?: string
+          source_type?: string
+        }
+        Relationships: []
+      }
       hero_catalog: {
         Row: {
           available_from: string | null
@@ -24791,6 +24830,21 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      grand_fleet_bonus_amount: { Args: { p_amount: number }; Returns: number }
+      grand_fleet_bonus_state: {
+        Args: { p_telegram_id: number }
+        Returns: Json
+      }
+      grand_fleet_credit_bonus: {
+        Args: {
+          p_amount: number
+          p_asset: string
+          p_member: string
+          p_source: string
+          p_type: string
+        }
+        Returns: undefined
       }
       grant_clan_xp: {
         Args: { p_amount?: number; p_source: string; p_user_id: string }

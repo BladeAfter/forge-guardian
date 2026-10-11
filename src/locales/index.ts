@@ -60,7 +60,7 @@ export const DICTIONARIES: Record<LanguageCode, Dict> = {
   es: merge('es'),
   ru: merge('ru'),
   // Turkish: English base (technical fallback) fully overridden by tr.ts.
-  tr: { ...merge('en'), ...merge('tr'), ...trOverrides },
+  tr: { ...merge('en'), ...merge('tr'), ...trOverrides, ...clans.tr },
 };
 
 export type { Dict, LanguageCode, LocaleBundle } from './registry';
