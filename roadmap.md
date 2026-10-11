@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Configurar mineração contínua TON somente para navios com compra TON confirmada, taxa valor pago ÷ 40/dia; excluir gratuito, preservar saldos e não ativar workers.
+
 - [x] Aplicar três artes IA transparentes aos baús flutuantes e indicador de coleta; 26 testes passaram e seleção conferida em cena isolada. Chefe global: configuração e ciclo ativo confirmados top 5, mantendo 10 TON/200.000 BERRIES e histórico liquidado; texto acompanha quantidade oficial. Nenhum saldo/worker alterado; coleta/pagamento reais no Telegram não verificados.
 
 - [x] Remover painel, aba e selo Fleet Outpost da Grand Line; destino legado exibe exploração sem alterar coordenadas ou progresso. Onze testes passaram e compilação OK; cena isolada confirmou quatro abas e ausência do painel/selo. Retorno à ilha com fixture incompleta e sessão Telegram real não verificados.
