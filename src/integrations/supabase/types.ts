@@ -10108,8 +10108,144 @@ export type Database = {
           },
         ]
       }
+      naval_fleet_settings: {
+        Row: {
+          id: boolean
+          max_level: number
+          points_per_level: number
+          respec_enabled: boolean
+          xp_base: number
+        }
+        Insert: {
+          id?: boolean
+          max_level?: number
+          points_per_level?: number
+          respec_enabled?: boolean
+          xp_base?: number
+        }
+        Update: {
+          id?: boolean
+          max_level?: number
+          points_per_level?: number
+          respec_enabled?: boolean
+          xp_base?: number
+        }
+        Relationships: []
+      }
+      naval_owned_ships: {
+        Row: {
+          acquired_at: string
+          class_id: string
+          level: number
+          points: number
+          price_paid: number
+          pts_acc: number
+          pts_atk: number
+          pts_def: number
+          pts_hp: number
+          pts_spd: number
+          upgrades: Json
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          acquired_at?: string
+          class_id: string
+          level?: number
+          points?: number
+          price_paid?: number
+          pts_acc?: number
+          pts_atk?: number
+          pts_def?: number
+          pts_hp?: number
+          pts_spd?: number
+          upgrades?: Json
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          acquired_at?: string
+          class_id?: string
+          level?: number
+          points?: number
+          price_paid?: number
+          pts_acc?: number
+          pts_atk?: number
+          pts_def?: number
+          pts_hp?: number
+          pts_spd?: number
+          upgrades?: Json
+          user_id?: string
+          xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "naval_owned_ships_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "naval_ship_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "naval_owned_ships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "game_players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      naval_ship_classes: {
+        Row: {
+          base_acc: number
+          base_atk: number
+          base_def: number
+          base_hp: number
+          base_spd: number
+          enabled: boolean
+          id: string
+          name: string
+          price_ton: number
+          rarity: string
+          skill_bonus: number
+          sort: number
+          specialty: string
+        }
+        Insert: {
+          base_acc: number
+          base_atk: number
+          base_def: number
+          base_hp: number
+          base_spd: number
+          enabled?: boolean
+          id: string
+          name: string
+          price_ton?: number
+          rarity: string
+          skill_bonus?: number
+          sort: number
+          specialty: string
+        }
+        Update: {
+          base_acc?: number
+          base_atk?: number
+          base_def?: number
+          base_hp?: number
+          base_spd?: number
+          enabled?: boolean
+          id?: string
+          name?: string
+          price_ton?: number
+          rarity?: string
+          skill_bonus?: number
+          sort?: number
+          specialty?: string
+        }
+        Relationships: []
+      }
       naval_ships: {
         Row: {
+          active_class: string
           battle_id: string | null
           cosmetics: Json
           heading: number
@@ -10131,6 +10267,7 @@ export type Database = {
           y: number
         }
         Insert: {
+          active_class?: string
           battle_id?: string | null
           cosmetics?: Json
           heading?: number
@@ -10152,6 +10289,7 @@ export type Database = {
           y?: number
         }
         Update: {
+          active_class?: string
           battle_id?: string | null
           cosmetics?: Json
           heading?: number
@@ -10174,6 +10312,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "naval_ships_active_class_fkey"
+            columns: ["active_class"]
+            isOneToOne: false
+            referencedRelation: "naval_ship_classes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "naval_ships_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
@@ -10181,6 +10326,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      naval_upgrade_config: {
+        Row: {
+          berries_base: number
+          category: string
+          growth: number
+          iron_base: number
+          max_level: number
+          name: string
+          per_level: number
+          sort: number
+          stat: string
+          ton_cost: number
+          wood_base: number
+        }
+        Insert: {
+          berries_base?: number
+          category: string
+          growth?: number
+          iron_base?: number
+          max_level?: number
+          name: string
+          per_level: number
+          sort: number
+          stat: string
+          ton_cost?: number
+          wood_base?: number
+        }
+        Update: {
+          berries_base?: number
+          category?: string
+          growth?: number
+          iron_base?: number
+          max_level?: number
+          name?: string
+          per_level?: number
+          sort?: number
+          stat?: string
+          ton_cost?: number
+          wood_base?: number
+        }
+        Relationships: []
       }
       nft_breeding_history: {
         Row: {
@@ -25387,7 +25574,13 @@ export type Database = {
         Args: { p_action: string; p_input?: Json; p_user: string }
         Returns: Json
       }
+      naval_fleet: {
+        Args: { p_action: string; p_input?: Json; p_user: string }
+        Returns: Json
+      }
+      naval_fleet_view: { Args: { p_user: string }; Returns: Json }
       naval_ocean_land: { Args: { p_x: number; p_y: number }; Returns: boolean }
+      naval_stat: { Args: { p_stat: string; p_user: string }; Returns: number }
       naval_state: { Args: { p_user: string }; Returns: Json }
       nft_assign_unit: {
         Args: { p_nft_id: string; p_source?: string; p_user_id: string }

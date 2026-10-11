@@ -3262,6 +3262,20 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
       for (const field of ['dx','dy','throttle']) if (input[field] !== undefined && (typeof input[field] !== 'number' || !Number.isFinite(input[field]))) throw new Error('NAVAL_INVALID_INPUT');
       return rpc(db, 'naval_action', { p_user: uid, p_action: navalAction, p_input: input });
     }
+    if (action === 'fleet') {
+      const fleetAction = String(body.fleetAction || 'state');
+      if (!['state','buy','select','levelup','allocate','upgrade'].includes(fleetAction)) throw new Error('FLEET_INVALID_INPUT');
+      const raw = body.input && typeof body.input === 'object' && !Array.isArray(body.input) ? body.input : {};
+      const input: Record<string, unknown> = {};
+      if (raw.classId !== undefined) input.classId = String(raw.classId).slice(0, 40);
+      if (raw.category !== undefined) input.category = String(raw.category).slice(0, 40);
+      for (const f of ['atk','def','hp','spd','acc']) {
+        if (raw[f] === undefined) continue;
+        if (!Number.isInteger(raw[f]) || raw[f] < 0 || raw[f] > 10000) throw new Error('FLEET_INVALID_INPUT');
+        input[f] = raw[f];
+      }
+      return rpc(db, 'naval_fleet', { p_user: uid, p_action: fleetAction, p_input: input });
+    }
     if (action === 'state') return rpc(db, 'realm_state', { p_user: uid });
     if (action === 'upgrade-building') return rpc(db, 'realm_building_upgrade', { p_user: uid, p_type: String(body.buildingType || '') });
     if (action === 'claim-building') return rpc(db, 'realm_building_claim', { p_user: uid, p_type: String(body.buildingType || '') });

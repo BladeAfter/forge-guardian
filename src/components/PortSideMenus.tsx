@@ -1,4 +1,4 @@
-import { mainScreenArt } from '../gameAssets';
+import { mainScreenArt, fleetShipArt } from '../gameAssets';
 import { useLocalizedText } from '../LanguageContext';
 import { OceanControl } from './OceanControl';
 import './PortSideMenus.css';
@@ -19,7 +19,7 @@ export function PortSideMenus(props: PortSideMenusProps) {
       { image: mainScreenArt.pvp, label: 'DUELOS', action: props.onPvp },
     ],
     [
-      { image: mainScreenArt.pool, label: 'BAÚ DA FROTA', action: props.onPool },
+      { image: fleetShipArt.menu, label: 'NAVIO', action: props.onPool },
       { image: mainScreenArt.heroShop, label: 'TAVERNA', action: props.onShop },
       { image: mainScreenArt.pet, label: 'MASCOTE', action: props.onPets },
       { image: mainScreenArt.heroes, label: 'TRIPULAÇÃO', action: props.onHeroes },

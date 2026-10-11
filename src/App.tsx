@@ -20,6 +20,7 @@ import {TonMinesEntryCard}from'./components/TonMinesEntryCard';
 import {useClanDashboard}from'./hooks';
 import {PlayerHeader}from'./components/PlayerHeader';
 import { PortSideMenus } from './components/PortSideMenus';
+import { ShipFleetPage } from './components/ShipFleetPage';
 import {MythreonLoadingScreen}from'./components/MythreonLoadingScreen';
 import {HeroShopPanel}from'./components/HeroShopPanel';
 
@@ -42,8 +43,8 @@ import { toFriendlyTonAddress } from './tonAddress';
 
 const tabs: TabKey[] = ['village', 'missions', 'boss', 'wallet', 'profile'];
 const PENDING_INVITER_KEY='forge-village-pending-inviter';
-type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'season-pass'|'heroes'|'clan'|'realm';
-const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm'};
+type InternalPage='invites'|'pvp'|'pets'|'pool'|'hero-shop'|'market'|'season-pass'|'heroes'|'clan'|'realm'|'ship';
+const internalPaths:Record<InternalPage,string>={invites:'/invites',pvp:'/pvp',pets:'/pets',pool:'/pool','hero-shop':'/hero-shop',market:'/market','season-pass':'/season-pass',heroes:'/heroes',clan:'/clan',realm:'/realm',ship:'/ship'};
 
 const internalFromPath=():InternalPage|null=>(Object.entries(internalPaths).find(([,path])=>path===window.location.pathname)?.[0] as InternalPage|undefined)??null;
 
@@ -829,6 +830,7 @@ function App() {
   if(activePage==='season-pass'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><SeasonPassPage telegramInitData={telegramInitData} onClose={closeInternal} onMissions={()=>{setActivePage(null);navigateTo('missions')}}/></>;
   if(activePage==='heroes'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><HeroesPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
   if(activePage==='clan'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><ClanHubPage telegramInitData={telegramInitData} onClose={closeInternal}/></>;
+  if(activePage==='ship'&&telegramInitData)return <ShipFleetPage telegramInitData={telegramInitData} onClose={closeInternal} onFleetChest={()=>{setPoolInitialTab('weekly');setActivePage('pool');window.history.replaceState({},'',internalPaths.pool)}}/>;
   if(activePage==='pool'&&telegramInitData)return <><PassXpToasts telegramInitData={telegramInitData}/><HeroXpToasts/><CommunityPoolPage telegramInitData={telegramInitData} onClose={closeInternal} onInvite={()=>setActivePage('invites')} onWallet={()=>{closeInternal();setTab('wallet')}} initialTab={poolInitialTab}/></>;
   // Mythic Seas REALM — acesso antecipado: o backend também valida (realm_access_allowed).
   if(activePage==='realm'&&telegramInitData&&realmUnlocked)return <RealmPage telegramInitData={telegramInitData} berries={fcBalance} telegramId={playerProfile?.telegramId} onBack={closeInternal}/>;
@@ -888,7 +890,7 @@ function App() {
 
           <PortSideMenus
             onRealm={()=>{if(realmUnlocked)openInternal('realm');else setRealmSoonOpen(true)}}
-            onPool={()=>{setPoolInitialTab('weekly');openInternal('pool')}}
+            onPool={()=>openInternal('ship')}
             onShop={()=>setShopOpen(true)} onPass={()=>openInternal('season-pass')}
             onInvites={()=>openInternal('invites')} onPvp={()=>openInternal('pvp')}
             onPets={()=>openInternal('pets')} onHeroes={()=>openInternal('heroes')}
