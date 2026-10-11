@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Auditar todas as artes ativas de heróis e mascotes; substituir referências antigas e criar/aplicar materiais navais IA padronizados, preservando catálogos e regras oficiais.
+
 - [x] Cinco espaços oficiais com ícones de adicionar, toque ampliado e seleção acima da arena; convites renovados como convés Mythic Seas com faixas náuticas. Seleção dos cinco piratas e copiar/compartilhar conferidos com respostas locais, 24 testes passaram; equipe, links e comissões oficiais preservados.
 - [ ] Confirmar equipamento dos cinco piratas e convites no Telegram real; bloqueio: sessão Telegram assinada indisponível.
 
