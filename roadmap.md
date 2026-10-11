@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Identificar e remover a esfera azul atrás dos navios na Grand Line, preservando arte, tamanho, orientação, posições, controles e sincronização; conferir renderização própria/outros jogadores e navegação.
+
 - [x] Arena sem monstro antes de equipar; depois exibe só o chefe oficial por chave do ciclo, sem Kraken provisório. Contra-ataque limitado no servidor a 35% da vida máxima, preservando mitigação, KO posterior e recompensas; migração 0135 aplicada. 33 testes passaram; cena isolada confirmou seleção e troca de chefe, imagens carregadas e compilação OK. Fórmula oficial conferida sem modificar jogadores.
 - [ ] Confirmar seleção e contra-ataques com equipe real no Telegram; bloqueio: aparelho e sessão Telegram assinada indisponíveis, publicação frontend não solicitada.
 
