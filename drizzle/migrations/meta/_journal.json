@@ -904,6 +904,13 @@
       "when": 1791731255921,
       "tag": "0128_kraken_expired_cycle_status",
       "breakpoints": true
+    },
+    {
+      "idx": 129,
+      "version": "7",
+      "when": 1791733508053,
+      "tag": "0129_naval_fleet_system",
+      "breakpoints": true
     }
   ]
 }
