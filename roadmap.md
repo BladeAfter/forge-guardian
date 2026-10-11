@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Substituir joystick naval por toque no oceano; preservar movimento oficial, multiplayer, colisões, seleção de jogadores/baús e atracação; validar toque, troca de destino e parada.
+
 - [x] Cliques de atacar/atracar aguardam heartbeat sem descarte nem repetição; desembarque preserva destino após perda de foco e usa pose confirmada. Dezenove testes passaram; cena isolada confirmou ataque e callback de desembarque com heartbeat retido, cada ação enviada uma vez. Regras, bens e coordenadas oficiais preservados.
 - [ ] Confirmar atacar/atracar com sessão Telegram real; bloqueio: sessão assinada e aparelho Telegram indisponíveis, teste visual usou respostas isoladas.
 
