@@ -939,6 +939,13 @@
       "when": 1791751639375,
       "tag": "0133_shared_ocean_chests",
       "breakpoints": true
+    },
+    {
+      "idx": 134,
+      "version": "7",
+      "when": 1791751828443,
+      "tag": "0134_ocean_chest_request_hardening",
+      "breakpoints": true
     }
   ]
 }

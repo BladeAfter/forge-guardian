@@ -25963,6 +25963,10 @@ export type Database = {
         Args: { p_chest: string; p_user: string }
         Returns: Json
       }
+      ocean_chest_request: {
+        Args: { p_action?: string; p_id?: string; p_user: string }
+        Returns: Json
+      }
       ocean_chest_tick: { Args: { p_user: string }; Returns: string }
       ocean_chest_view: {
         Args: { p_emission?: string; p_user: string }
