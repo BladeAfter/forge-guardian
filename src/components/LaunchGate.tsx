@@ -51,7 +51,9 @@ export function LaunchGate() {
     return () => clearInterval(interval);
   }, [clock]);
   useEffect(() => { if (seconds === 0 && access === 'mobile') void sync(); }, [seconds, access, sync]);
-  if (access === 'released') return <Suspense fallback={<div className="launch-screen" />}><Game /></Suspense>;
+  // Editor preview hosts skip only the countdown presentation; the server still gates every game call.
+  const isEditorPreview = typeof window !== 'undefined' && /(^localhost$)|(\.lovableproject(-dev)?\.com$)|(^id-preview-[^.]*\.lovable\.app$)/.test(window.location.hostname);
+  if (access === 'released' || isEditorPreview) return <Suspense fallback={<div className="launch-screen" />}><Game /></Suspense>;
   const parts = seconds === null ? ['—', '—', '—', '—'] : [Math.floor(seconds / 86400), Math.floor(seconds / 3600) % 24, Math.floor(seconds / 60) % 60, seconds % 60].map(v => String(v).padStart(2, '0'));
   const open = (url: string) => { const app = window.Telegram?.WebApp; if (app?.openTelegramLink) app.openTelegramLink(url); else window.open(url, '_blank', 'noopener,noreferrer'); };
   return <main className="launch-screen" lang="en">
