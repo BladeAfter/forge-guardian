@@ -11,7 +11,7 @@
 - Resolve hero art by catalog key via pirateHeroArt across API, deck and arena, never by rarity; enforce catalog rarity on owned writes. Equipment art stays cosmetic.
 - Separate display branding from persistent IDs, Telegram handles, mission hashtags and payment memos; preserve sessions, rewards and transfers.
 - Profile uses gameAssets, semantic CSS and container-responsive character/journal layouts for Telegram; preserve server-owned profile, pass and channel-reward callbacks.
-- MarketPulseView: read only; label illustrations, never infer global sales from personal history.
+- MarketPulseView: read only; label art, never infer global sales from personal history.
 - Community-pool and nested event theming use `seas-community` and semantic tokens; preserve game rules.
 - Keep Grand Line in a lightweight bitmap canvas with ship-relative camera and deterministic streaming shared with service-only collision. Use mirrored water-only art and cached feathered islands; cosmetic sizes never move official docks/collisions. Show only real players. NavalMiniMap: read-only, north-up, approved poses/art; zoom never steers. Clear joystick on release/cancel/focus loss; dock through Realm callbacks. Closing never waits for heartbeat or settles combat.
 - Naval poses/settlement require Telegram Realm RPCs; interpolate within speed, never predict. Deduplicate captured pointers/non-passive touch fallback; clear outside releases to avoid stuck inputs. Upright masts; no waterline disks. Retain offline poses; RTT-aware polling, urgent sends. Disable swipes only sailing. Offline grants no rewards. Loot needs sources/rates/caps/materials; cosmetics never alter stats.
