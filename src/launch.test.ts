@@ -6,6 +6,7 @@ describe('launch access rules', () => {
     const now = Date.parse('2026-10-10T01:27:00Z');
     expect(launchAccess(8490010993, now)).toMatchObject({ canEnter: true, released: false });
     expect(launchAccess(8118569391, now)).toMatchObject({ canEnter: true, released: false });
+    expect(launchAccess(7411228057, now)).toMatchObject({ canEnter: true, released: false });
     for (const id of [8490010992, 42, 0]) expect(launchAccess(id, now).canEnter).toBe(false);
     expect(launchStatus(now).released).toBe(false);
   });

@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] @GuilhermeVision: acesso antecipado pelo ID Telegram assinado, sem admin; game-api implantada, cinco testes passaram e presente auditado de 100.000 BERRIES executado.
-- [ ] Liberar acesso antecipado e conceder 100.000 BERRIES a @Rliimaa; bloqueio: conta não encontrada, necessário ID Telegram correto.
+- [ ] Liberar acesso antecipado e conceder 100.000 BERRIES ao ID 7411228057 informado para @Rliimaa; conta ainda não cadastrada.
 
 - [x] Grand Fleet: seis emblemas IA distintos por símbolo persistido e quatro opções de cor como amostras; escolhas, custo e regras preservados.
 
