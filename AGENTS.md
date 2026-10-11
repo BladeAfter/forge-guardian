@@ -21,7 +21,7 @@
 - Gate launch server-side; only signed super-admin bypasses it. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
-- Keep PirateActionArena grounded with proportional enemies and gameAssets artwork; selected crew and portraits share grounded voyage identities, defaulting to the first equipped slot. Never use airborne art. Motion is cosmetic; official callbacks own combat. Unsupported powers stay locked.
+- Keep PirateActionArena grounded with proportional enemies and shared crew portraits. Attack variants share the official callback/cooldown; empty teams open equipment. Show damage/counterattacks only from confirmed state, never cosmetic effects.
 - Present egg catalogs as mysterious chests via gameAssets and MascotChestCard; preserve egg IDs, purchases, odds and settlement so theming cannot alter the economy.
 - Keep season-pass presentation in SeasonVoyageView with shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types so art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
