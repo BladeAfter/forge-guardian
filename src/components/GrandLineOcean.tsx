@@ -59,6 +59,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const dx=Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
+    if (!autopilot.current && !docking.current) return {dx:0,dy:0,throttle:0};
     const ship = approvedShip.current;
     return seaDestinationInput(ship ?? s.position, s.target, throttleRef.current, shipStats(ship ?? DEFAULT_SHIP).speed);
   });
