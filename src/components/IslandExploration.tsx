@@ -1,4 +1,4 @@
-import { useLocalizedText } from '../LanguageContext';
+import { useLocalizedText, useT } from '../LanguageContext';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Anchor, Footprints, Swords, Compass, ArrowUp, Wind, RotateCcw, Plus, Minus, X, Map } from 'lucide-react';
@@ -16,8 +16,10 @@ import { clearEncounterPoint, ISLAND_MAP } from '../illustratedIslandWorld';
 import { hasTreasureMap, treasureIsRevealed } from '../islandTreasure';
 import { captureTelegramGameGestures } from '../telegram';
 import { useGameViewport, useGameVisible } from '../useGameViewport';
+import { useIslandPirates } from '../useIslandPirates';
 
 type Props = {
+  initData?: string; onBalance?: (balance: number) => void;
   ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
   busy: boolean; notice?: string | null;
   onStart: (regionId: string) => Promise<RealmState | null>;
@@ -33,6 +35,7 @@ const motionLabels: Record<string, string> = { idle: 'Em terra', walk: 'Caminhan
 /** 3D movement is cosmetic; every rewarding encounter stays server-authoritative. */
 export default function IslandExploration(props: Props) {
   const localizeText = useLocalizedText();
+  const t = useT();
 
   const { islandIndex, captainStyle, data, busy } = props;
   const island = SEA_ISLANDS[islandIndex] ?? SEA_ISLANDS[1];
@@ -44,6 +47,10 @@ export default function IslandExploration(props: Props) {
   if (!mapCameraReady.current) { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; mapCameraReady.current = true; }
   const [palette, setPalette] = useState<IslandPalette | null>(null);
   const [telemetry, setTelemetry] = useState<IslandTelemetry>({ x: ISLAND_3D.spawn.x, y: 1, z: ISLAND_3D.spawn.z, speed: 0, motion: 'idle', phase: 'approaching', heading: Math.PI });
+  const pirates = useIslandPirates(props.initData, islandIndex, telemetry, props.onBalance);
+  const combat = pirates.session?.state;
+  const nearbyChest = combat?.enemies.find(e => e.hp <= 0 && !e.claimed && Math.hypot(e.x - combat.player.x, e.z - combat.player.z) <= 4);
+  const dead = Boolean(combat && combat.player.hp <= 0);
   const [talk, setTalk] = useState(false), [secret, setSecret] = useState(false);
   const [log, setLog] = useState<RealmExploreLog | null>(null), [openChest, setOpenChest] = useState<string | null>(null), [fighting, setFighting] = useState<string | null>(null);
   const [sprinting, setSprinting] = useState(false);
@@ -61,7 +68,7 @@ export default function IslandExploration(props: Props) {
     ...(activeRun ? (data?.exploreNodes ?? []).filter(n => !['locked', 'skipped'].includes(n.status) && (n.status !== 'resolved' || treasureIsRevealed(n, activeRun, openChest))).map(node => ({ id: node.id, ...nodePosition3D(node), name: labels[node.node_type] ?? 'Descoberta', node, kind: 'node' as const, revealed: treasureIsRevealed(node, activeRun, openChest) })) : []),
   ] satisfies IslandEncounter3D[]).map(e => e.kind === 'ship' ? e : { ...e, ...clearEncounterPoint(islandIndex, e) }), [props.ship?.name, island.destination, islandIndex, activeRun?.id, activeRun?.treasure_map_found_at, activeRun?.treasure_map_used_node, openChest, data?.exploreNodes]);
   const selected = encounters.filter(e => (!e.node || ['available', 'active'].includes(e.node.status)) && Math.hypot(e.x - telemetry.x, e.z - telemetry.z) < (e.kind === 'ship' ? 3.5 : 3.1)).sort((a, b) => Math.hypot(a.x - telemetry.x, a.z - telemetry.z) - Math.hypot(b.x - telemetry.x, b.z - telemetry.z))[0];
-  const locked = talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
+  const locked = dead || talk || Boolean(activeRun?.pending) || busy || Boolean(log && fighting);
   input.current.blocked = locked; input.current.sprint = sprinting;
   const report = useCallback((value: IslandTelemetry) => {
     setTelemetry(value);
@@ -80,7 +87,7 @@ export default function IslandExploration(props: Props) {
     const down = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest('input,textarea,select')) return;
       if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight','KeyQ','KeyF'].includes(e.code)) {
-        e.preventDefault(); keys.add(e.code); if (!e.repeat && e.code === 'KeyQ') input.current.dodge = true; if (!e.repeat && e.code === 'KeyF') input.current.attack = true; update();
+        e.preventDefault(); keys.add(e.code); if (!e.repeat && e.code === 'KeyQ') input.current.dodge = true; if (!e.repeat && e.code === 'KeyF' && !input.current.blocked) { input.current.attack = true; pirates.strike(); } update();
       }
     };
     const up = (e: KeyboardEvent) => { keys.delete(e.code); update(); };
@@ -127,18 +134,23 @@ export default function IslandExploration(props: Props) {
       onPointerMove={e => { const p = pointer.current; if (!p || p.id !== e.pointerId) return; input.current.zoom = Math.max(18, Math.min(55, input.current.zoom + (e.clientY - p.y) * .04)); p.x = e.clientX; p.y = e.clientY; }}
       onPointerUp={() => { pointer.current = null; }} onPointerCancel={() => { pointer.current = null; }} onLostPointerCapture={() => { pointer.current = null; }}
       onWheel={e => { input.current.zoom = Math.max(18, Math.min(55, input.current.zoom + e.deltaY * .02)); }}>
-      {palette && <Canvas frameloop={visible ? 'always' : 'demand'} orthographic dpr={1} camera={{ position: [0, 65, 70], zoom: 20, near: .1, far: 350 }} gl={{ antialias: false, powerPreference: 'high-performance' }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
+      {palette && <Canvas frameloop={visible ? 'always' : 'demand'} orthographic dpr={1} camera={{ position: [0, 65, 70], zoom: 20, near: .1, far: 350 }} gl={{ antialias: false, powerPreference: 'high-performance' }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} combat={pirates.session} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
     </div>
     <header className="ocean-hud"><div className="ocean-brand"><span>{localizeText("MYTHIC SEAS · GRAND LINE")}</span><h1>{island.name}</h1></div><div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{Math.floor(data?.fc ?? 0).toLocaleString('pt-BR')}</b></div></header>
     <div className="ocean-instruments"><span><Footprints size={15} />{telemetry.phase === 'approaching' ? localizeText("Atracando") : telemetry.phase === 'deploying' ? 'Preparando passarela' : telemetry.phase === 'landing' ? 'Desembarcando' : telemetry.phase === 'boarding' ? 'Embarcando' : motionLabels[telemetry.motion]}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
     {(props.notice || props.error) && <div className="island-notice" role="status">{props.notice || props.error}</div>}
+    {combat && <div className="island-combat-hud" aria-label={t('islandCombat.title')}><b>{t('islandCombat.health', { hp: combat.player.hp, max: combat.player.maxHp })}</b><progress max={combat.player.maxHp} value={combat.player.hp} />{combat.lastHit > 0 && <span>{t('islandCombat.hit', { damage: combat.lastHit })}</span>}{combat.lastReceived > 0 && <span className="island-combat-danger">{t('islandCombat.received', { damage: combat.lastReceived })}</span>}<small>{t('islandCombat.daily')}</small></div>}
+    {pirates.error && <div className="island-combat-status" role="status">{t('islandCombat.unavailable')}</div>}
+    {nearbyChest && !locked && <div className="island-combat-chest"><span>{t(nearbyChest.boss ? 'islandCombat.rareChest' : 'islandCombat.commonChest')}</span><OceanControl onClick={() => void pirates.open(nearbyChest.id)}>{t('islandCombat.open')}</OceanControl></div>}
+    {dead && <div className="island-dialog" role="dialog" aria-label={t('islandCombat.defeated')}><h2>{t('islandCombat.defeated')}</h2><p>{t('islandCombat.defeatedDetail')}</p><OceanControl onClick={props.onReturn}>{t('islandCombat.return')}</OceanControl></div>}
+    {pirates.reward && <div className="island3d-log" role="status"><span>{t('islandCombat.collected', { berries: pirates.reward.berries })}{pirates.reward.items.map((item, index) => <small key={index}> · {item.quantity}× {t(`islandCombat.item.${item.kind}`)} ({t(`islandCombat.rarity.${item.rarity}`)})</small>)}</span><OceanControl aria-label={t('islandCombat.close')} onClick={pirates.clearReward}><X size={16} /></OceanControl></div>}
     {mapRequired && !mapOwned && <div className="island-notice" role="status">{localizeText('Mapa de tesouro necessário.')}</div>}
     <IslandJoystick disabled={telemetry.phase !== 'exploring' || locked} onDirection={point => { input.current.x = point.x; input.current.y = point.y; }} />
     <nav className="island3d-actions" aria-label={localizeText("Ações do pirata")}>
       <OceanControl aria-label={localizeText("Pular")} title={localizeText("Pular")} disabled={locked} onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); input.current.jump = true; }} onPointerUp={() => { input.current.jump = false; }} onPointerCancel={() => { input.current.jump = false; }} onLostPointerCapture={() => { input.current.jump = false; }}><ArrowUp size={20} /></OceanControl>
       <OceanControl aria-label={localizeText("Sprint")} title={localizeText("Sprint")} aria-pressed={sprinting} disabled={locked} onClick={() => setSprinting(v => !v)}><Wind size={20} /></OceanControl>
       <OceanControl aria-label={localizeText("Esquivar")} title={localizeText("Esquivar")} disabled={locked} onClick={() => { input.current.dodge = true; }}><RotateCcw size={20} /></OceanControl>
-      <OceanControl aria-label={localizeText("Golpe")} title={localizeText("Golpe")} disabled={locked} onClick={() => { input.current.attack = true; }}><Swords size={20} /></OceanControl>
+      <OceanControl aria-label={localizeText("Golpe")} title={localizeText("Golpe")} disabled={locked} onClick={() => { input.current.attack = true; pirates.strike(); }}><Swords size={20} /></OceanControl>
     </nav>
     <nav className="island3d-camera" aria-label={localizeText("Câmera")}><OceanControl aria-label={localizeText("Aproximar câmera")} title={localizeText("Aproximar câmera")} onClick={() => { input.current.zoom = Math.max(18, input.current.zoom - 4); }}><Plus size={16} /></OceanControl><OceanControl aria-label={localizeText("Afastar câmera")} title={localizeText("Afastar câmera")} onClick={() => { input.current.zoom = Math.min(55, input.current.zoom + 4); }}><Minus size={16} /></OceanControl><OceanControl aria-label={localizeText("Centralizar câmera")} title={localizeText("Centralizar câmera")} onClick={() => { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; }}><Compass size={16} /></OceanControl></nav>
     {selected && telemetry.phase === 'exploring' && !locked && selected.kind !== 'secret' && <div className="ocean-dock"><span>{localizeText(selected.name)}</span><OceanControl disabled={busy} onClick={() => void interact()}>{selected.kind === 'ship' ? <Anchor size={17} /> : selected.kind === 'clue' ? <Map size={17} /> : <Compass size={17} />}{localizeText(selected.kind === 'ship' ? 'Voltar ao mar' : selected.kind === 'clue' ? 'Recolher mapa' : selected.kind === 'node' ? selected.node?.node_type === 'treasure' ? mapOwned ? 'Abrir' : 'Investigar' : 'Investigar' : selected.kind === 'npc' ? 'Conversar' : 'Entrar')}</OceanControl></div>}

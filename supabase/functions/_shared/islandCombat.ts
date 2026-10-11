@@ -27,7 +27,7 @@ export function advanceIslandCombat(previous:IslandCombatState, input:{x?:number
  // No offline catch-up and no client supplied damage/time/loot. Requested poses are swept from the last approved pose.
  if(s.player.hp>0&&typeof input.x==='number'&&typeof input.z==='number'&&Number.isFinite(input.x)&&Number.isFinite(input.z)){
   const goal={x:input.x,z:input.z};
-  if(Math.hypot(goal.x-s.player.x,goal.z-s.player.z)<=7*dt+.12&&islandLineClear(s.island,s.player,goal)) {s.player.x=goal.x;s.player.z=goal.z;}
+  if(Math.hypot(goal.x-s.player.x,goal.z-s.player.z)<=7*dt&&islandLineClear(s.island,s.player,goal)) {s.player.x=goal.x;s.player.z=goal.z;}
  }
  for(const e of s.enemies){
   if(e.hp<=0){e.mode='defeated';continue;}

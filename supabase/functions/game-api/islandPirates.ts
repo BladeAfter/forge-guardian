@@ -10,7 +10,7 @@ export async function islandPirates(db:Db,user:string,body:Record<string,any>){
  if(!Number.isInteger(island)||island<0||island>4||!['state','tick','open'].includes(action))throw new Error('ISLAND_INVALID_INPUT');
  const [configured,equipment]=await Promise.all([
   db.from('island_pirate_config').select('settings').eq('island_index',island).maybeSingle(),
-  db.from('equipment_templates').select('id,rarity').eq('is_active',true).eq('is_nft',false).in('rarity',['common','rare']).limit(1000)
+  db.from('equipment_templates').select('id,rarity').eq('is_active',true).eq('is_nft',false).eq('veteran_line',false).eq('founder_line',false).in('rarity',['common','rare']).limit(1000)
  ]);
  if(configured.error||equipment.error)throw new Error('ISLAND_CONFIGURATION_UNAVAILABLE');
  const cfg=validIslandSettings((configured.data?.settings??{}) as Partial<IslandSettings>,island);
