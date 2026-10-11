@@ -115,10 +115,11 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       hit={hit} attacking={isAttacking} active={combat?.bossActive!==false&&(!global||global.status==='active')}
       cooldown={secondsUntil(combat?.nextHeroAttackAt)} bossCountdown={combat?.bossNextAttackAt?secondsUntil(combat.bossNextAttackAt):null} bossLastAttackAt={combat?.bossLastAttackAt}
       damage={global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage} rank={global?.yourRank??null}
-      reward={Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} status={combat?.status}
+      reward={global?.rewardPoolTon !== undefined && global.rewardPoolTon !== null ? global.estimatedReward : Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} rewardCurrency={global?.rewardCurrency} status={combat?.status}
       swap={swap} onAttack={onAttack} onEquip={openHeroSelector} onRanking={()=>setIsRankingOpen(true)} />
     <div className="action-service-strip">
-      {global?.lastReward?<span>{localizeText("Último tesouro: ")}{compact(global.lastReward.rewardFc)} BERRIES</span>:null}
+      {global?.lastReward?<span>{localizeText("Último tesouro: ")}{global.lastReward.rewardTon ? `${global.lastReward.rewardTon.toLocaleString(languageCode, { maximumFractionDigits: 9 })} TON · ${t('boss.pendingTon')}` : `${compact(global.lastReward.rewardFc)} BERRIES`}</span>:null}
+      {global?.rewardPoolTon != null && <span>{global.rewardPoolTon} TON · {t('boss.topTen')} / {compact(global.rewardPoolFc)} BERRIES · {t('boss.remaining')}</span>}
       {global&&global.minimumDamage>0?<span>{localizeText("Dano mínimo: ")}{compact(global.minimumDamage)}</span>:null}
       {auto?<><span>{t('boss.autoAtk')} · {auto.active?t('boss.autoAtkOn'):t('boss.autoAtkOffLabel')}</span>
         <OceanControl disabled={autoBusy||!telegramInitData} onClick={async()=>{
@@ -133,14 +134,14 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
 
     {isRankingOpen&&<div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={()=>setIsRankingOpen(false)}><div className="forge-safe-page bounty-ranking w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between"><h3 className="text-sm font-bold text-amber-300">{t('boss.rankingTitle')}</h3><button type="button" aria-label={t('close')} onClick={()=>setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button></div>
-      <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]"><Stat label={t('boss.totalDamage')} value={compact(ranking.data?.cycle?.totalDamage??global?.totalDamage??0)}/><Stat label={t('boss.rewardPool')} value={`${compact(ranking.data?.cycle?.rewardPoolFc??global?.rewardPoolFc??0)} BERRIES`} gold/><Stat label={t('boss.yourRank')} value={ranking.data?.you?.rank?`#${ranking.data.you.rank}`:'—'}/></div>
+      <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]"><Stat label={t('boss.totalDamage')} value={compact(ranking.data?.cycle?.totalDamage??global?.totalDamage??0)}/><Stat label={t('boss.rewardPool')} value={`${ranking.data?.cycle?.rewardPoolTon??global?.rewardPoolTon??0} TON / ${compact(ranking.data?.cycle?.rewardPoolFc??global?.rewardPoolFc??0)} BERRIES`} gold/><Stat label={t('boss.yourRank')} value={ranking.data?.you?.rank?`#${ranking.data.you.rank}`:'—'}/></div>
       {ranking.isLoading&&!ranking.data?<p className="py-8 text-center text-xs text-slate-400">{t('boss.loadingRanking')}</p>
       :!ranking.data?.top.length?<p className="py-8 text-center text-xs text-slate-400">{t('boss.noRanking')}</p>
       :<div className="mt-3 max-h-[55vh] space-y-1.5 overflow-y-auto">{ranking.data.top.map(entry=><div key={entry.userId} className={`flex items-center gap-2 rounded-2xl border p-2 ${entry.isYou?'border-amber-300/60 bg-amber-400/10':'border-white/10 bg-black/60'}`}>
         <span className="w-7 text-center text-[11px] font-black text-amber-300">#{entry.rank}</span>
         <AvatarWithBorder photoUrl={entry.photoUrl} border={entry.avatarBorder} fallback={(entry.name[0]??'?').toUpperCase()} size={entry.avatarBorder?44:32}/>
         <div className="min-w-0 flex-1"><p className="truncate text-[11px] font-bold">{entry.name}{entry.isYou?<span className="ml-1 text-[8px] text-amber-300">({t('boss.you')})</span>:null}</p><p className="text-[9px] text-slate-400">{compact(entry.damage)} · {t('boss.share')} {entry.sharePercent.toFixed(2)}%</p></div>
-        <span className="text-[10px] font-bold text-amber-300">{compact(entry.estimatedReward)} BERRIES</span>
+        <span className="text-[10px] font-bold text-amber-300">{entry.estimatedReward.toLocaleString(languageCode, { maximumFractionDigits: 9 })} {entry.rewardCurrency ?? 'BERRIES'}</span>
       </div>)}</div>}
     </div></div>}
 

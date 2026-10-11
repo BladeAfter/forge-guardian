@@ -21,7 +21,7 @@ type Props = {
   name: string; image: string; hp: number; maxHp: number; heroes: CombatHero[];
   pet: { name: string; image: string } | null; telegramId?: string; hit: boolean;
   attacking?: boolean; active: boolean; cooldown: number; bossCountdown: number | null;
-  damage: number; rank: number | null; reward: number; status?: string; bossLastAttackAt?: string | null;
+  damage: number; rank: number | null; reward: number; rewardCurrency?: 'TON' | 'BERRIES'; status?: string; bossLastAttackAt?: string | null;
   swap: string | null; onAttack?: () => Promise<void> | void;
   onEquip: (slot: CombatSlot) => void; onRanking: () => void;
 };
@@ -149,7 +149,7 @@ export function PirateActionArena(props: Props) {
     {!active && <p className="action-feedback">{props.status === 'defeated' ? localizeText("Chefe derrotado") : localizeText("Aguardando próximo chefe")}</p>}
     {active && emptyTeam && <p className="action-feedback">{localizeText("Equipe um tripulante para atacar.")}</p>}
     {active && !emptyTeam && !heroes.some(hero => hero.isAlive) && <p className="action-feedback">{localizeText("Tripulação nocauteada. Aguardando recuperação.")}</p>}
-    <div className="action-player-hud"><Swords size={13}/><span>{props.damage.toLocaleString('pt-BR')} dano</span><span>#{props.rank ?? '—'}</span><b>{props.reward.toLocaleString('pt-BR')} BERRIES</b></div>
+    <div className="action-player-hud"><Swords size={13}/><span>{props.damage.toLocaleString('pt-BR')} dano</span><span>#{props.rank ?? '—'}</span><b>{props.reward.toLocaleString('pt-BR', { maximumFractionDigits: 9 })} {props.rewardCurrency ?? 'BERRIES'}</b></div>
     <IslandJoystick onDirection={value => { direction.current = value; }} disabled={false} />
     <nav className="action-controls" aria-label={localizeText("Ações de combate")}>
       <OceanControl className="action-basic" disabled={!canPress} onClick={() => void strike()} aria-label={localizeText("Ataque básico")} title={localizeText("Ataque básico")}><Hand />{!emptyTeam && (attacking || cooldown > 0) && <span>{attacking ? '…' : `${cooldown}s`}</span>}</OceanControl>

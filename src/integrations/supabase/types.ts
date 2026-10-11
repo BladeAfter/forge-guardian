@@ -6874,6 +6874,7 @@ export type Database = {
           participants: number
           rank_bonus: Json
           rank_bonus_enabled: boolean
+          reward_policy: Json | null
           reward_pool_fc: number
           rotation_number: number
           starts_at: string
@@ -6911,6 +6912,7 @@ export type Database = {
           participants?: number
           rank_bonus?: Json
           rank_bonus_enabled?: boolean
+          reward_policy?: Json | null
           reward_pool_fc?: number
           rotation_number?: number
           starts_at?: string
@@ -6948,6 +6950,7 @@ export type Database = {
           participants?: number
           rank_bonus?: Json
           rank_bonus_enabled?: boolean
+          reward_policy?: Json | null
           reward_pool_fc?: number
           rotation_number?: number
           starts_at?: string
@@ -7196,6 +7199,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      global_boss_ton_claims: {
+        Row: {
+          amount: number
+          boss_cycle_id: string
+          created_at: string
+          paid_at: string | null
+          payment_status: string
+          rank: number
+          transaction_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          boss_cycle_id: string
+          created_at?: string
+          paid_at?: string | null
+          payment_status?: string
+          rank: number
+          transaction_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          boss_cycle_id?: string
+          created_at?: string
+          paid_at?: string | null
+          payment_status?: string
+          rank?: number
+          transaction_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_boss_ton_claims_boss_cycle_id_fkey"
+            columns: ["boss_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "global_boss_cycles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       global_roulette_awards: {
         Row: {
@@ -23578,6 +23622,19 @@ export type Database = {
         Returns: string
       }
       boss_heroes_revive_at: { Args: { p_user: string }; Returns: string }
+      boss_pool_share: {
+        Args: {
+          p_count: number
+          p_index: number
+          p_pool: number
+          p_precision: number
+        }
+        Returns: number
+      }
+      boss_rank_reward: {
+        Args: { p_cycle: string; p_rank: number }
+        Returns: Json
+      }
       boss_team_json: { Args: { p_user: string }; Returns: Json }
       breeding_cost: { Args: { p_breed_number: number }; Returns: number }
       breeding_settings: {
@@ -24741,6 +24798,7 @@ export type Database = {
           participants: number
           rank_bonus: Json
           rank_bonus_enabled: boolean
+          reward_policy: Json | null
           reward_pool_fc: number
           rotation_number: number
           starts_at: string
@@ -27012,6 +27070,7 @@ export type Database = {
         Args: { p_default: string; p_key: string }
         Returns: string
       }
+      settle_ranked_boss_pools: { Args: { p_cycle_id: string }; Returns: Json }
       should_show_premium_offer_popup: {
         Args: { p_offer_id: string; p_user_id: string }
         Returns: string

@@ -12,8 +12,8 @@ describe('shared ocean chest presentation and contracts',()=>{
   expect(nearestOceanChest(chests,{x:0,y:0},100)?.id).toBe('near');expect(chests[0].id).toBe('far');expect(nearestOceanChest(chests,{x:500,y:0},100)).toBeNull();
  });
  it('sends only chest identity and authenticated session, never prize or position',async()=>{
-  vi.mocked(forgeFetch).mockResolvedValue(new Response(JSON.stringify({chests:[],reward:{kind:'ton',amount:.001,paymentStatus:'pending_review'}})));
-  const result=await oceanChestCall('test-session','claim','chest-id');
+   vi.mocked(forgeFetch).mockResolvedValue(new Response(JSON.stringify({poolTon:20,chests:[],reward:{kind:'ton',amount:.001,paymentStatus:'pending_review'}})));
+   const result=await oceanChestCall('test-session','claim','chest-id');expect(result.poolTon).toBe(20);
   expect(forgeFetch).toHaveBeenCalledWith('realm',{initData:'test-session',action:'ocean-chests',oceanAction:'claim',id:'chest-id'},12000);expect(result.reward?.paymentStatus).toBe('pending_review');
  });
  it('never displays a fabricated reward on rejection',async()=>{

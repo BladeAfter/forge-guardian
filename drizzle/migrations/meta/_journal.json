@@ -953,6 +953,20 @@
       "when": 1791752506287,
       "tag": "0135_kraken_counterattack_survival",
       "breakpoints": true
+    },
+    {
+      "idx": 136,
+      "version": "7",
+      "when": 1791753400817,
+      "tag": "0136_ranked_boss_reward_pools",
+      "breakpoints": true
+    },
+    {
+      "idx": 137,
+      "version": "7",
+      "when": 1791753511466,
+      "tag": "0137_ocean_total_pool_cap",
+      "breakpoints": true
     }
   ]
 }
