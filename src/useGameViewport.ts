@@ -1,4 +1,13 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
+export function useGameVisible() {
+  const [visible, setVisible] = useState(!document.hidden);
+  useEffect(() => {
+    const update = () => setVisible(!document.hidden);
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  return visible;
+}
 /** Stable sheet dimensions never affect logical game coordinates. */
 export function useGameViewport(host: RefObject<HTMLElement>) {
   useEffect(() => {

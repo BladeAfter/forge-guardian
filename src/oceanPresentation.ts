@@ -1,9 +1,21 @@
 import { SEA_SIZE, type SeaIsland } from './grandLineNavigation';
 
+const bitmapCache = new WeakMap<HTMLImageElement, Map<number, HTMLCanvasElement>>();
+const imageCache = new Map<string, HTMLImageElement>();
+export function oceanImage(url: string) {
+  const cached = imageCache.get(url);
+  if (cached) return cached;
+  const image = new Image(); image.src = url; imageCache.set(url, image); return image;
+}
+
 /** Cosmetic bounds only; official collision radii and dock positions do not change. */
 export const islandArtDiameter = (radius: number) => radius * 2.2;
 
 export function islandBitmap(atlas: HTMLImageElement, template: SeaIsland): HTMLCanvasElement {
+  let cache = bitmapCache.get(atlas);
+  if (!cache) { cache = new Map(); bitmapCache.set(atlas, cache); }
+  const cached = cache.get(template.templateIndex);
+  if (cached) return cached;
   const tile = document.createElement('canvas');
   tile.width = 512; tile.height = 512;
   const ctx = tile.getContext('2d');
@@ -21,6 +33,7 @@ export function islandBitmap(atlas: HTMLImageElement, template: SeaIsland): HTML
   mask.addColorStop(0, 'rgba(0,0,0,1)');
   mask.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = mask; ctx.fillRect(0, 0, 512, 512);
+  cache.set(template.templateIndex, tile);
   return tile;
 }
 

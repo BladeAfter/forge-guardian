@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { grandLineArt } from '../gameAssets';
 import { SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
 import { type NavalState } from '../naval';
-import { islandArtDiameter, islandBitmap } from '../oceanPresentation';
+import { islandArtDiameter, islandBitmap, oceanImage } from '../oceanPresentation';
 import { navalPalette } from '../navalRendering';
 import { OceanControl } from './OceanControl';
 import './NavalMiniMap.css';
@@ -21,12 +21,12 @@ export default function NavalMiniMap({ pose, network }: {
     const canvas = ref.current, ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
     const palette = navalPalette(canvas);
-    const atlas = new Image(), water = new Image();
+    const atlas = oceanImage(grandLineArt.ocean), water = oceanImage(grandLineArt.water);
     const islands: HTMLCanvasElement[] = [];
-    atlas.onload = () => SEA_ISLANDS.forEach((island, templateIndex) => {
+    const prepare = () => SEA_ISLANDS.forEach((island, templateIndex) => {
       islands[templateIndex] = islandBitmap(atlas, { ...island, id: `home:${templateIndex}`, templateIndex, procedural: false });
     });
-    atlas.src = grandLineArt.ocean; water.src = grandLineArt.water;
+    if (atlas.complete && atlas.naturalWidth) prepare(); else atlas.addEventListener('load', prepare);
     const draw = () => {
       if (document.hidden) return;
       const { position, heading } = pose.current;
@@ -69,7 +69,7 @@ export default function NavalMiniMap({ pose, network }: {
       canvas.dataset.players = String(network.current?.others.length ?? 0);
     };
     draw();const timer=window.setInterval(draw,200);
-    return () => { window.clearInterval(timer);atlas.onload=null; };
+    return () => { window.clearInterval(timer);atlas.removeEventListener('load',prepare); };
   }, [pose, network, expanded]);
   return <aside className={`naval-minimap ${expanded ? 'naval-minimap-expanded' : ''}`} aria-label={localizeText("Carta náutica local")}>
     <OceanControl className="naval-minimap-toggle" onClick={() => setExpanded(value=>!value)} aria-label={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")} aria-expanded={expanded} title={expanded?localizeText("Reduzir carta náutica"):localizeText("Ampliar carta náutica")}>

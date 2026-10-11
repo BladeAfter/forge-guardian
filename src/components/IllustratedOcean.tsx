@@ -4,7 +4,7 @@ import { grandLineArt, navalArt } from '../gameAssets';
 import { SEA_CHUNK, SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
 import { DEFAULT_SHIP, type NavalState } from '../naval';
 import { drawNavalShip, navalPalette } from '../navalRendering';
-import { drawOpenWater, islandArtDiameter, islandBitmap } from '../oceanPresentation';
+import { drawOpenWater, islandArtDiameter, islandBitmap, oceanImage } from '../oceanPresentation';
 import { qualityMonitor, qualitySettings } from '../gamePerformance';
 
 type Pose = { position: SeaPoint; camera: SeaPoint; scale: number; heading: number; moving: boolean };
@@ -22,14 +22,14 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, drawR
     let last = 0, resolution = 1;
     const monitor = qualityMonitor();
     let chunk = '', visibleIslands: ReturnType<typeof seaIslandsAround> = [];
-    const ocean = new Image(), water = new Image(), fleet = new Image();
+    const ocean = oceanImage(grandLineArt.ocean), water = oceanImage(grandLineArt.water), fleet = oceanImage(navalArt.fleet);
     const islandTiles: HTMLCanvasElement[] = [];
-    ocean.onload = () => {
+    const prepare = () => {
       SEA_ISLANDS.forEach((island, templateIndex) => {
         islandTiles[templateIndex] = islandBitmap(ocean, { ...island, id: `home:${templateIndex}`, templateIndex, procedural: false });
       });
     };
-    ocean.src = grandLineArt.ocean; water.src = grandLineArt.water; fleet.src = navalArt.fleet;
+    if (ocean.complete && ocean.naturalWidth) prepare(); else ocean.addEventListener('load', prepare);
     const palette = navalPalette(canvas);
     const resize = () => {
       const width = Math.max(1, Math.round(canvas.clientWidth * resolution)), height = Math.max(1, Math.round(canvas.clientHeight * resolution));
@@ -67,7 +67,7 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, drawR
       ctx.restore();
     };
     drawRef.current = render;
-    return () => { drawRef.current = null; observer.disconnect(); ocean.onload = null; islandTiles.length = 0; };
+    return () => { drawRef.current = null; observer.disconnect(); ocean.removeEventListener('load', prepare); islandTiles.length = 0; };
   }, [canvasRef, network, pose, wide, drawRef]);
   return <canvas ref={canvasRef} role="img" aria-label={localizeText("Oceano da Grand Line")} data-renderer="illustrated-2d" onClick={event => {
     const canvas = event.currentTarget, rect = canvas.getBoundingClientRect(), s = pose.current;
