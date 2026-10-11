@@ -36,11 +36,11 @@ export type GlobalBossState = {
   theme?: string | null; background?: string | null; totalBosses?: number | null;
   bossLevel?: number | null; endedReason?: 'defeated' | 'expired' | string | null;
   status: 'active' | 'defeated' | 'expired' | 'distributing' | 'completed';
-  maxHp: number; currentHp: number; rewardPoolFc: number; totalDamage: number;
+  maxHp: number; currentHp: number; rewardPoolFc: number; rewardPoolTon?: number; topPlaces?: number; rewardCurrency?: 'TON' | 'BERRIES'; totalDamage: number;
   participants: number; startsAt?: string | null; endsAt?: string | null; defeatedAt?: string | null;
   yourDamage: number; yourRank: number | null; yourSharePercent: number; estimatedReward: number;
   minimumDamage: number; minimumRewardFc: number; rankBonusEnabled: boolean;
-  lastReward?: { cycleNumber?: number; rewardFc: number; rank: number; damage: number } | null;
+  lastReward?: { cycleNumber?: number; rewardFc: number; rewardTon?: number; paymentStatus?: string; rank: number; damage: number } | null;
 };
 
 export type GlobalBossHistoryRow = {
@@ -55,11 +55,11 @@ export type GlobalBossHistoryRow = {
 
 export type GlobalBossRankingEntry = {
   rank: number; userId: string; name: string; username?: string | null; photoUrl?: string | null; avatarBorder?: string | null;
-  damage: number; sharePercent: number; estimatedReward: number; isYou: boolean;
+  damage: number; sharePercent: number; estimatedReward: number; rewardCurrency?: 'TON' | 'BERRIES'; isYou: boolean;
 };
 export type GlobalBossRanking = {
   cycle: { cycleId: string; cycleNumber: number; name: string; status: string; maxHp: number; currentHp: number;
-    rewardPoolFc: number; totalDamage: number; participants: number; minimumDamage: number } | null;
+    rewardPoolFc: number; rewardPoolTon?: number; topPlaces?: number; totalDamage: number; participants: number; minimumDamage: number } | null;
   top: GlobalBossRankingEntry[];
   you: { rank: number; damage: number; sharePercent: number; estimatedReward: number } | null;
 };

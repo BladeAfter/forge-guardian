@@ -3,6 +3,9 @@ import type { LocaleBundle } from './registry';
 /** boss namespace translations. */
 export const boss: LocaleBundle = {
   en: {
+    'boss.topTen': 'Top 10 · equal split',
+    'boss.remaining': 'Remaining participants · equal split',
+    'boss.pendingTon': 'Payment under review',
     'boss.noPetActive': 'No active pet',
     'boss.noPetEffect': 'No effect on the Boss',
     'boss.defaultName': 'Kraken of the Depths',
@@ -61,6 +64,9 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'Unable to update Auto ATK.',
   },
   pt: {
+    'boss.topTen': 'Top 10 · divisão igual',
+    'boss.remaining': 'Demais participantes · divisão igual',
+    'boss.pendingTon': 'Pagamento em análise',
     'boss.noPetActive': 'Nenhum pet ativo',
     'boss.noPetEffect': 'Sem efeito no Chefe',
     'boss.defaultName': 'Kraken das Profundezas',
@@ -119,6 +125,9 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'Não foi possível atualizar o Auto ATK.',
   },
   es: {
+    'boss.topTen': 'Top 10 · reparto igual',
+    'boss.remaining': 'Demás participantes · reparto igual',
+    'boss.pendingTon': 'Pago en revisión',
     'boss.noPetActive': 'Ninguna mascota activa',
     'boss.noPetEffect': 'Sin efecto sobre el Jefe',
     'boss.defaultName': 'Kraken de las Profundidades',
@@ -177,6 +186,9 @@ export const boss: LocaleBundle = {
     'boss.autoAtkError': 'No se pudo actualizar el Auto ATK.',
   },
   ru: {
+    'boss.topTen': 'Топ-10 · поровну',
+    'boss.remaining': 'Остальные участники · поровну',
+    'boss.pendingTon': 'Выплата на проверке',
     'boss.noPetActive': 'Нет активного питомца',
     'boss.noPetEffect': 'Нет эффекта на Босса',
     'boss.defaultName': 'Кракен глубин',
