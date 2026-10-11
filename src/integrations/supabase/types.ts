@@ -11532,6 +11532,179 @@ export type Database = {
         }
         Relationships: []
       }
+      ocean_chest_audit: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          reference: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          reference?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          reference?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ocean_chest_claims: {
+        Row: {
+          chest_id: string
+          created_at: string
+          paid_at: string | null
+          payment_status: string
+          reward: Json
+          ton: number
+          transaction_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          chest_id: string
+          created_at?: string
+          paid_at?: string | null
+          payment_status?: string
+          reward: Json
+          ton?: number
+          transaction_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          chest_id?: string
+          created_at?: string
+          paid_at?: string | null
+          payment_status?: string
+          reward?: Json
+          ton?: number
+          transaction_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocean_chest_claims_chest_id_fkey"
+            columns: ["chest_id"]
+            isOneToOne: true
+            referencedRelation: "ocean_chests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ocean_chest_control: {
+        Row: {
+          config: Json
+          earned: number
+          funded: number
+          id: boolean
+          next_spawn: string
+          paid: number
+          reserved: number
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          earned?: number
+          funded?: number
+          id?: boolean
+          next_spawn?: string
+          paid?: number
+          reserved?: number
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          earned?: number
+          funded?: number
+          id?: boolean
+          next_spawn?: string
+          paid?: number
+          reserved?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ocean_chests: {
+        Row: {
+          budget_day: string
+          collected_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          rarity: string
+          region: string
+          reservation: number
+          reward: Json | null
+          reward_table: Json
+          status: string
+          winner: string | null
+          x: number
+          y: number
+        }
+        Insert: {
+          budget_day?: string
+          collected_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          rarity: string
+          region: string
+          reservation?: number
+          reward?: Json | null
+          reward_table: Json
+          status?: string
+          winner?: string | null
+          x: number
+          y: number
+        }
+        Update: {
+          budget_day?: string
+          collected_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          rarity?: string
+          region?: string
+          reservation?: number
+          reward?: Json | null
+          reward_table?: Json
+          status?: string
+          winner?: string | null
+          x?: number
+          y?: number
+        }
+        Relationships: []
+      }
+      ocean_equipment_uses: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          materials: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          materials: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          materials?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_channels: {
         Row: {
           created_at: string
@@ -25782,6 +25955,29 @@ export type Database = {
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
       observe_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
+      ocean_chest_admin: {
+        Args: { p_admin: number; p_patch?: Json }
+        Returns: Json
+      }
+      ocean_chest_claim: {
+        Args: { p_chest: string; p_user: string }
+        Returns: Json
+      }
+      ocean_chest_tick: { Args: { p_user: string }; Returns: string }
+      ocean_chest_view: {
+        Args: { p_emission?: string; p_user: string }
+        Returns: Json
+      }
+      ocean_default_odds: { Args: never; Returns: Json }
+      ocean_equipment_use: {
+        Args: { p_equipment: string; p_user: string }
+        Returns: Json
+      }
+      ocean_random: { Args: never; Returns: number }
+      ocean_validate_odds: {
+        Args: { p_no_ton?: boolean; p_table: Json }
+        Returns: number
+      }
       open_calendar_hero_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json

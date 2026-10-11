@@ -932,6 +932,13 @@
       "when": 1791743558573,
       "tag": "0132_naval_real_material_upgrade_costs",
       "breakpoints": true
+    },
+    {
+      "idx": 133,
+      "version": "7",
+      "when": 1791751639375,
+      "tag": "0133_shared_ocean_chests",
+      "breakpoints": true
     }
   ]
 }
