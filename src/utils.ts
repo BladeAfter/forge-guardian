@@ -280,7 +280,7 @@ export const buildDefaults = (): GameState => ({
   lastCollectedAt: new Date().toISOString(),
   productionRate: 14800,
   settings: {
-    conversionRate: 100000,
+    conversionRate: 10000,
     minDepositTon: 0.1,
     minWithdrawalFc: 500000,
     withdrawalFeePercent: 5,

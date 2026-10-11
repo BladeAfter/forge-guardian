@@ -1,3 +1,4 @@
+import treasuryBanner from '../assets/treasury-banner.webp';
 import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -280,7 +281,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 
   return (
-    <section className="space-y-3 pb-5">
+    <section className="seas-treasury space-y-3 pb-5">
+      <div className="seas-treasury__banner"><img src={treasuryBanner} alt="" width={800} height={400} /><div><small>MYTHIC SEAS</small><h2>{localizeText("TESOURO DO CAPITÃO")}</h2><p>1 TON = {FC_PER_TON.toLocaleString('pt-BR')} BERRIES</p></div></div>
       <div className="rounded-2xl border border-amber-300/25 bg-[#080d16]/90 p-4 shadow-card">
         <div className="flex items-center justify-between">
           <div>
