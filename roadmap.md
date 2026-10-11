@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Destacar os cinco espaços oficiais da arena e corrigir acesso à seleção; refazer convites como convés Mythic Seas, preservando equipe, links e comissões oficiais.
+- [x] Cinco espaços oficiais com ícones de adicionar, toque ampliado e seleção acima da arena; convites renovados como convés Mythic Seas com faixas náuticas. Seleção dos cinco piratas e copiar/compartilhar conferidos com respostas locais, 24 testes passaram; equipe, links e comissões oficiais preservados.
+- [ ] Confirmar equipamento dos cinco piratas e convites no Telegram real; bloqueio: sessão Telegram assinada indisponível.
 
 - [x] Kraken das Profundezas: cinco controles ligados ao ataque oficial compartilhado; equipe vazia abre seleção, espera usa relógio do servidor, dano exibido somente quando confirmado e contra-ataque acompanha o evento oficial. Trinta testes passaram; cinco cliques, HP e reação conferidos com respostas locais simuladas. Dano, espera e recompensas preservados.
 - [ ] Confirmar ataque/dano e contra-ataque do Kraken no Telegram real; bloqueio: sessão móvel autenticada indisponível.
