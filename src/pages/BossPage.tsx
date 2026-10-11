@@ -132,7 +132,7 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
       {isFinalBoss?<span>{t('boss.comingSoon')}</span>:null}
     </div>
 
-    {isRankingOpen&&<div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={()=>setIsRankingOpen(false)}><div className="forge-safe-page w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e=>e.stopPropagation()}>
+    {isRankingOpen&&<div className="fixed inset-0 z-[85] flex items-end justify-center bg-black/80 p-2" onClick={()=>setIsRankingOpen(false)}><div className="forge-safe-page bounty-ranking w-full max-w-md rounded-t-3xl border border-amber-400/30 bg-[#090c12] p-3" onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between"><h3 className="text-sm font-bold text-amber-300">{t('boss.rankingTitle')}</h3><button type="button" aria-label={t('close')} onClick={()=>setIsRankingOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-black/60 text-slate-300">✕</button></div>
       <div className="mt-2 grid grid-cols-3 gap-1.5 text-[9px]"><Stat label={t('boss.totalDamage')} value={compact(ranking.data?.cycle?.totalDamage??global?.totalDamage??0)}/><Stat label={t('boss.rewardPool')} value={`${compact(ranking.data?.cycle?.rewardPoolFc??global?.rewardPoolFc??0)} BERRIES`} gold/><Stat label={t('boss.yourRank')} value={ranking.data?.you?.rank?`#${ranking.data.you.rank}`:'—'}/></div>
       {ranking.isLoading&&!ranking.data?<p className="py-8 text-center text-xs text-slate-400">{t('boss.loadingRanking')}</p>
