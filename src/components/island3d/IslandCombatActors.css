@@ -1,0 +1,11 @@
+.island-combat-hud { position: absolute; z-index: 8; top: 7.5rem; left: 1rem; display: grid; gap: .3rem; max-width: 15rem; padding: .65rem .85rem; color: var(--text-main, #f5edda); background: var(--panel-bg, #182527e8); border: 1px solid var(--border-soft, #b3985850); border-radius: .7rem; pointer-events: none; font-size: .8rem; }
+.island-combat-hud small { opacity: .7; font-size: .65rem; }
+.island-combat-hud progress, .island-enemy-label progress { width: 100%; height: .35rem; accent-color: #80b96b; }
+.island-combat-danger { color: #ff968b; }
+.island-combat-status { position: absolute; z-index: 8; top: 13.5rem; left: 1rem; right: 1rem; color: #ffcf90; font-size: .75rem; pointer-events: none; }
+.island-combat-chest { position: absolute; z-index: 12; bottom: 7.8rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: .6rem; padding: .65rem; background: #182527ed; border: 1px solid #b9a464; border-radius: .7rem; color: #eee0b8; font-size: .8rem; max-width: calc(100% - 2rem); }
+.island-enemy-label { display: grid; gap: .15rem; min-width: 7rem; max-width: 11rem; padding: .4rem .5rem; color: #f2e7ce; background: #171f23df; border: 1px solid #a38a56; border-radius: .4rem; text-align: center; pointer-events: none; font-size: .65rem; }
+.island-enemy-label--rare { border-color: #ac8dde; }
+.island-enemy-label small { opacity: .8; }
+.island-enemy-label strong { color: #ff9187; font-size: .6rem; }
+@media (max-height: 600px) { .island-combat-hud { top: 6rem; padding: .4rem; } }
