@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Ajustar e ativar baús TON quando houver reserva real comprovada; verificar pausa, orçamento e emissão sem criar financiamento ou alterar saldos/ativar workers.
+- [x] Verificar pausa dos baús TON: emissão já habilitada, pool/limites 20 TON, reserva financiada/disponível 0 TON, sem alternativa; configuração mantida habilitada conforme solicitado, sem criar financiamento ou alterar saldos/ativar workers.
+- [ ] Liberar emissão de prêmios TON dos baús; bloqueio: entrada futura de saldo não comprova reserva, falta financiamento real registrado e auditado para a pool. Não há registro automático de financiamento dos baús.
 
 - [x] Integrar NPCs nas cinco ilhas: migração 0140 aplicada, combate validado, três piratas e um líder por modelo/dia, baús únicos e inventário oficial; mapas/controles preservados.
 - [ ] Verificar combate/coleta reais no Telegram e apresentação final em computador/celular. 34 testes passaram; DOM isolado confirmou nomes, barras, baú e aviso do líder sem erros, mas capturas gráficas ficaram verdes no sandbox. Sem sessão Telegram assinada, nenhum resgate real foi executado.
