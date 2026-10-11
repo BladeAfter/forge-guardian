@@ -57,6 +57,10 @@ export function ClanHall({ clan, onOpen }: { clan?: ClanSummary | null; onOpen: 
           aria-label={clan ? `${t('clan.hall')}: ${clan.name}` : t('clan.hall')}
           className="clan-hall"
         />
+        <button type="button" onClick={onOpen} className="clan-hall-plate" tabIndex={-1} aria-hidden>
+          <span className="clan-hall-plate-icon">{clan ? <ClanCrest emblem={clan.emblem} size={22} /> : <Shield size={14} />}</span>
+          <span className="clan-hall-plate-text"><b>Grand Fleet</b><small>{clan ? clan.name : t('clan.chipJoin')}</small></span>
+        </button>
       </div>
     </div>
   );
