@@ -25398,6 +25398,15 @@ export type Database = {
         }
         Returns: Json
       }
+      kraken_damage_to_hero: {
+        Args: {
+          p_attack: number
+          p_max_hp: number
+          p_rarity: string
+          p_reduction?: number
+        }
+        Returns: number
+      }
       launch_referral_board: { Args: { p_telegram_id: number }; Returns: Json }
       leave_clan: { Args: { p_telegram_id: number }; Returns: Json }
       list_premium_titles: { Args: never; Returns: Json }
