@@ -28,8 +28,12 @@ export function replaceVoyageImage(image: string): string {
 export function replaceLegacyCreatureArt(payload: unknown): unknown {
   if (Array.isArray(payload)) return payload.map(replaceLegacyCreatureArt);
   if (!payload || typeof payload !== 'object') return payload;
+  const record = payload as Record<string, unknown>;
+  const kind = typeof record.kind === 'string' ? record.kind : record.slot === 'armor' || record.slot === 'ring' ? record.slot : null;
+  const equipment = pirateEquipmentImage(String(record.code ?? record.itemId ?? ''))
+    ?? (kind ? pirateEquipmentImage(`eq_${kind}_common_1`) : null);
   return Object.fromEntries(Object.entries(payload).map(([key, value]) => [key,
     typeof value === 'string' && /^(image|imageUrl|image_url|battle_image|image_.*_url)$/.test(key)
-      ? replaceVoyageImage(value) : replaceLegacyCreatureArt(value),
+      ? equipment ?? replaceVoyageImage(value) : replaceLegacyCreatureArt(value),
   ]));
 }

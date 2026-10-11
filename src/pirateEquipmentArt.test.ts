@@ -17,4 +17,8 @@ describe('pirate equipment presentation', () => {
     expect(pirateEquipmentImage('eq_unknown_rare_1')).toBeNull();
     expect(pirateEquipmentImage('/assets/game/chests/rare-chest.png')).toBeNull();
   });
+  it('covers legacy named equipment through its official kind', () => {
+    const item = { code: 'nft-nightshroud', kind: 'armor', slot: 'armor', rarity: 'nft_exclusive', image: '/assets/game/equipment/nft/nightshroud-garb.png', bonusDefense: 100 };
+    expect(replaceLegacyCreatureArt(item)).toEqual({ ...item, image: pirateEquipmentArt.armor });
+  });
 });
