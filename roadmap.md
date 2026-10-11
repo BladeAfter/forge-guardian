@@ -1,7 +1,7 @@
 # Roadmap
 
-- [ ] Integrar NPCs comuns/líderes nas cinco ilhas com patrulha, perseguição, combate validado, baús únicos e inventário oficial; preservar mapas/controles.
-- [ ] Verificar combate/coleta, segurança/repetição e apresentação em computador/celular; informar limitações de Telegram real.
+- [x] Integrar NPCs nas cinco ilhas: migração 0140 aplicada, combate validado, três piratas e um líder por modelo/dia, baús únicos e inventário oficial; mapas/controles preservados.
+- [ ] Verificar combate/coleta reais no Telegram e apresentação final em computador/celular. 34 testes passaram; DOM isolado confirmou nomes, barras, baú e aviso do líder sem erros, mas capturas gráficas ficaram verdes no sandbox. Sem sessão Telegram assinada, nenhum resgate real foi executado.
 
 - [x] Analisar bônus dos mascotes: catálogo atual com 68 habilitados, 31 chaves passivas e 8 campos de habilidade; consumidores oficiais conferidos. Relatório entregue com efeitos propostos de detecção, pistas e dano pirata/naval aleatório, sem ativação ou alterações econômicas; percentuais e distribuição são propostas de balanceamento, não regras existentes.
 
