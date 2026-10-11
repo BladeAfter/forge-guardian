@@ -431,7 +431,8 @@ export const pirateHeroIdentities: Record<string, { image: string; rarity: strin
 
 export function pirateHeroImage(keyOrImage: string): string | null {
   const queryKey = keyOrImage.match(/[?&]hero=([^&#]+)/)?.[1];
-  const fileKey = keyOrImage.match(/\/pirate-([^/?]+)\.png(?:[?#]|$)/)?.[1];
+  const fileKey = keyOrImage.match(/\/pirate-([^/?]+)\.png(?:[?#]|$)/)?.[1]
+    ?? keyOrImage.match(/\/pirates\/([^/?]+)\.png(?:[?#]|$)/)?.[1];
   const key = queryKey ?? fileKey ?? keyOrImage;
   return pirateHeroIdentities[key]?.image ?? null;
 }
