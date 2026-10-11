@@ -444,7 +444,7 @@ export function ClanCollectivePanel({
           </Section>
 
           {/* TREASURY SUMMARY */}
-          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} coins</span>}>
+          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} {localizeText("Fleet Coins")}</span>}>
             {donationRow}
           </Section>
 
@@ -463,7 +463,7 @@ export function ClanCollectivePanel({
 
       {sub === 'treasury' ? (
         <>
-          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro do Clã")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} Clan Coins</span>}>
+          <Section icon={<Gem className="h-3.5 w-3.5" />} title={localizeText("Tesouro do Clã")} right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(state.me?.coins ?? 0)} {localizeText("Fleet Coins")}</span>}>
             {donationRow}
             <p className="mt-2 text-[9px] text-slate-500">{localizeText("O tesouro não pode ser sacado: financia construções e buffs coletivos.")}</p>
           </Section>
@@ -491,11 +491,11 @@ export function ClanCollectivePanel({
         <Section
           icon={<ShoppingBag className="h-3.5 w-3.5" />}
           title={localizeText("Loja do Clã")}
-          right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(shop?.coins ?? state.me?.coins ?? 0)} coins</span>}
+          right={<span className="text-[9px] font-bold text-amber-300">{formatCurrency(shop?.coins ?? state.me?.coins ?? 0)} {localizeText("Fleet Coins")}</span>}
         >
           {shop ? (
             <div className="mb-1.5 flex items-center justify-between rounded-lg bg-black/40 px-2 py-1 text-[9px] text-slate-400">
-              <span>{localizeText("Semana ")}{shop.weeklyEarned}/{shop.weeklyCap} coins</span>
+              <span>{localizeText("Semana ")}{shop.weeklyEarned}/{shop.weeklyCap} {localizeText("Fleet Coins")}</span>
               <span>{localizeText("Preços x")}{shop.priceMultiplier.toFixed(2)} · {shop.effectiveActive} ativos</span>
             </div>
           ) : null}
