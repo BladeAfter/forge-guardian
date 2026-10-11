@@ -4,6 +4,7 @@ import { CapsuleCollider, RigidBody, useBeforePhysicsStep, useRapier, type Rapie
 import * as THREE from 'three';
 import { cameraRelativeMotion, HARBOR, ISLAND_3D, type HarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
 import { ISLAND_MAP, islandWalkable, safeIslandStep } from '../../illustratedIslandWorld';
+import { frameDelta } from '../../gamePerformance';
 
 type Props = { islandIndex: number; harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
 export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn, children }: Props) {
@@ -21,6 +22,8 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
   const cameraLook = useMemo(() => new THREE.Vector3(), []);
   const cameraDirection = useMemo(() => new THREE.Vector3(), []);
   const lastSafe = useRef({ ...ISLAND_3D.shore, y: ISLAND_MAP.floor + .035 });
+  const visualPosition = useMemo(() => new THREE.Vector3(), []);
+  const visualStarted = useRef(false);
 
   useBeforePhysicsStep(() => {
     const b = body.current;
@@ -94,8 +97,12 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
 
   useFrame(({ camera, clock, size }, rawDelta) => {
     const b = body.current; if (!b) return;
-    const dt = Math.min(rawDelta, .05), s = state.current, i = input.current, p = b.translation();
+    if (document.hidden) return;
+    const dt = frameDelta(rawDelta), s = state.current, i = input.current, p = b.translation();
     if (model.current) {
+      if (!visualStarted.current) { visualPosition.set(p.x, p.y, p.z); visualStarted.current = true; }
+      else visualPosition.lerp(cameraTarget.set(p.x, p.y, p.z), 1 - Math.exp(-30 * dt));
+      model.current.position.set(visualPosition.x - p.x, visualPosition.y - p.y, visualPosition.z - p.z);
       model.current.rotation.y = s.heading;
       model.current.rotation.z = motion.current === 'run' || motion.current === 'sprint' ? Math.sin(s.heading - i.yaw) * .035 : 0;
     }
@@ -117,7 +124,8 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
     cameraTarget.copy(cameraLook).addScaledVector(cameraDirection, distance);
     if (!s.cameraStarted) { camera.position.copy(cameraTarget); s.cameraStarted = true; }
     else camera.position.lerp(cameraTarget, 1 - Math.exp(-8 * dt));
-    camera.lookAt(cameraLook);
+    // Follow the same smoothed anchor for translation and orientation, avoiding aim jitter.
+    camera.lookAt(cameraTarget.copy(camera.position).addScaledVector(cameraDirection, -distance));
     if (clock.elapsedTime - s.lastHud > .2) {
       s.lastHud = clock.elapsedTime;
       onTelemetry({ x: p.x, y: p.y, z: p.z, motion: motion.current, speed: speed.current, phase: s.phase, heading: s.heading });
