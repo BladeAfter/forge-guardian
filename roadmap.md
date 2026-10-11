@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Aplicar artes IA exclusivas aos baús flutuantes sem alterar chances/coleta; mudar TON do chefe global para top 5 preservando pools e histórico liquidado.
+- [x] Aplicar três artes IA transparentes aos baús flutuantes e indicador de coleta; 26 testes passaram e seleção conferida em cena isolada. Chefe global: configuração e ciclo ativo confirmados top 5, mantendo 10 TON/200.000 BERRIES e histórico liquidado; texto acompanha quantidade oficial. Nenhum saldo/worker alterado; coleta/pagamento reais no Telegram não verificados.
 
 - [x] Remover painel, aba e selo Fleet Outpost da Grand Line; destino legado exibe exploração sem alterar coordenadas ou progresso. Onze testes passaram e compilação OK; cena isolada confirmou quatro abas e ausência do painel/selo. Retorno à ilha com fixture incompleta e sessão Telegram real não verificados.
 
