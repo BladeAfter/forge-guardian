@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Corrigir NAVAL_INVALID_INPUT no envio dos comandos navais, preservando validação, navegação e recompensas; testar o contrato e confirmar limites de verificação Telegram.
+- [x] Ajustar envio naval: heartbeat transforma valores inválidos em parada segura antes do JSON e respeita limites oficiais; destino por toque rejeita coordenadas/velocidade não finitas. Ataques, cosméticos, validação, saldos e recompensas intactos; 38 testes passaram, compilação OK.
+- [ ] Confirmar ausência de NAVAL_INVALID_INPUT na navegação real do Telegram; bloqueio: sessão Telegram assinada/aparelho indisponíveis, logs recentes não continham o aviso e causa no aparelho não reproduzida. Contrato e retomada conferidos em testes, não em sessão real.
 
 - [x] Verificar pausa dos baús TON: emissão já habilitada, pool/limites 20 TON, reserva financiada/disponível 0 TON, sem alternativa; configuração mantida habilitada conforme solicitado, sem criar financiamento ou alterar saldos/ativar workers.
 - [ ] Liberar emissão de prêmios TON dos baús; bloqueio: entrada futura de saldo não comprova reserva, falta financiamento real registrado e auditado para a pool. Não há registro automático de financiamento dos baús.
