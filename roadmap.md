@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Corrigir NAVAL_INVALID_INPUT no envio dos comandos navais, preservando validação, navegação e recompensas; testar o contrato e confirmar limites de verificação Telegram.
+
 - [x] Verificar pausa dos baús TON: emissão já habilitada, pool/limites 20 TON, reserva financiada/disponível 0 TON, sem alternativa; configuração mantida habilitada conforme solicitado, sem criar financiamento ou alterar saldos/ativar workers.
 - [ ] Liberar emissão de prêmios TON dos baús; bloqueio: entrada futura de saldo não comprova reserva, falta financiamento real registrado e auditado para a pool. Não há registro automático de financiamento dos baús.
 
