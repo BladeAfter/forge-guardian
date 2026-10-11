@@ -15,6 +15,7 @@ import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain'
 import { clearEncounterPoint, ISLAND_MAP } from '../illustratedIslandWorld';
 import { hasTreasureMap, treasureIsRevealed } from '../islandTreasure';
 import { captureTelegramGameGestures } from '../telegram';
+import { useGameViewport } from '../useGameViewport';
 
 type Props = {
   ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
@@ -36,6 +37,7 @@ export default function IslandExploration(props: Props) {
   const { islandIndex, captainStyle, data, busy } = props;
   const island = SEA_ISLANDS[islandIndex] ?? SEA_ISLANDS[1];
   const host = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null);
+  useGameViewport(host);
   const input = useRef(newIslandInput()), pending = useRef(false);
   const mapCameraReady = useRef(false);
   if (!mapCameraReady.current) { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; mapCameraReady.current = true; }
