@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Configurar pool de 20 TON para baús compartilhados, preservando financiamento comprovado; chefe global: 10 TON igualmente entre os dez primeiros e 200.000 BERRIES igualmente entre os participantes restantes, sem alterar saldos existentes ou ativar workers.
+- [x] Pools configuradas: baús com teto total de 20 TON e limites diário/mensal de 20; chefe global com 10 TON igualmente entre até dez primeiros e 200.000 BERRIES entre os restantes (arredondamento de até 1 BERRY por rank). Migrações 0136/0137, ciclo ativo e próximos ciclos; ranks com dano positivo, sem bônus pessoais que excedam a pool. TON gera somente direito privado em análise, sem crédito ou pagamento; financiamento dos baús segue zero. 25 testes passaram e PostgreSQL isolado validou 13 participantes, pools exclusivas, soma exata e repetição. UI isolada confirmou pool 20 TON e prêmio TON na arena. Nenhum saldo real alterado.
+- [ ] Conferir premiações ponta a ponta no Telegram e pagamentos TON financiados; bloqueios: sessão Telegram real e comprovação de financiamento/fluxo auditado indisponíveis.
 
 - [x] Removidas as duas elipses de linha d’água em drawNavalShip que formavam a bola atrás do casco; seis artes de classe confirmadas transparentes. Tamanho, orientação, posições, esteira e lógica naval preservados; 21 testes passaram. Cena isolada própria/outro jogador confirmou arte limpa, movimento sustentado e soltura; compilação OK. Telegram físico não verificado.
 
