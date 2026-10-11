@@ -13,6 +13,8 @@ import { captureTelegramGameGestures } from '../telegram';
 import NavalMiniMap from './NavalMiniMap';
 import { frameDelta, frameDiagnostics } from '../gamePerformance';
 import { useGameViewport } from '../useGameViewport';
+import { useOceanChests } from '../useOceanChests';
+import OceanChests from './OceanChests';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
@@ -68,6 +70,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     return {dx:distance>5 ? (s.target.x-s.position.x)/distance : 0,dy:distance>5 ? (s.target.y-s.position.y)/distance : 0,throttle:throttleRef.current};
   });
   const currentNetwork = network.current;
+  const oceanChests = useOceanChests(initData);
   const ownShip=network.data?.ship ?? DEFAULT_SHIP;
   const enemy=network.data?.others.find(s => s.user_id===selected);
   const battle=network.data?.battle?.status==='active' ? network.data.battle : null;
@@ -200,7 +203,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     steerAt(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
   };
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
-    <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
+    <IllustratedOcean pose={state} network={currentNetwork} chests={oceanChests.current} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
+    {initData && <OceanChests ocean={oceanChests} position={ownShip} unavailable={Boolean(battle) || !network.data || Boolean(network.error)} onStop={()=>{resetJoystick();state.current.keys.clear();}} />}
     <header className="ocean-hud">
       <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title={localizeText("Voltar ao porto")} aria-label={localizeText("Voltar ao porto")}><ArrowLeft size={20} /></OceanControl>
       <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{localizeText("GRAND LINE")}</h1></div>

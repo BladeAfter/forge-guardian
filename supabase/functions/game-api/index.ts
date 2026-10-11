@@ -3256,6 +3256,19 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'state');
     const key = String(body.idempotencyKey || '').slice(0, 80) || null;
 
+    if (action === 'ocean-chests') {
+      const oceanAction = String(body.oceanAction || 'state');
+      if (!['state','claim','salvage'].includes(oceanAction)) throw new Error('OCEAN_INVALID_INPUT');
+      let result: Record<string, unknown> = {};
+      if (oceanAction !== 'state') {
+        if (typeof body.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.id)) throw new Error('OCEAN_INVALID_INPUT');
+        result = await rpc(db, oceanAction === 'claim' ? 'ocean_chest_claim' : 'ocean_equipment_use', oceanAction === 'claim' ? { p_user: uid, p_chest: body.id } : { p_user: uid, p_equipment: body.id });
+        if (result.error) return result;
+      }
+      const emission = await rpc(db, 'ocean_chest_tick', { p_user: uid });
+      const state = await rpc(db, 'ocean_chest_view', { p_user: uid, p_emission: emission });
+      return { ...state, ...result };
+    }
     if (action === 'naval') {
       const navalAction = String(body.navalAction || 'state');
       if (!['state','heartbeat','customize','attack','fire','skill','board','escape','repair','upgrade','leave'].includes(navalAction)) throw new Error('NAVAL_INVALID_INPUT');

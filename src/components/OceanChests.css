@@ -1,0 +1,13 @@
+.ocean-chest-indicator { position:absolute; left:50%; bottom:calc(190px + env(safe-area-inset-bottom)); transform:translateX(-50%); display:flex; align-items:center; gap:8px; max-width:calc(100% - 24px); background:hsl(var(--ocean-hud)/.94); padding:8px; border:1px solid hsl(var(--ocean-gold)/.6); border-radius:6px; }
+.ocean-chest-indicator img { width:48px; height:48px; object-fit:contain; }
+.ocean-chest-toolbar { position:absolute; right:16px; top:calc(158px + var(--tg-safe-area-inset-top) + var(--tg-content-safe-area-inset-top)); display:flex; gap:8px; }
+.ocean-chest-sheet { position:absolute; inset:0; z-index:30; display:grid; place-items:center; background:hsl(var(--ocean-shadow)/.7); padding:18px; }
+.ocean-chest-dialog { width:min(420px,100%); max-height:80dvh; overflow:auto; padding:20px; background:hsl(var(--ocean-hud)); color:hsl(var(--ocean-foam)); border:1px solid hsl(var(--ocean-gold)/.5); border-radius:8px; }
+.ocean-chest-dialog header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:16px; }
+.ocean-chest-dialog h2 { font-size:16px; }
+.ocean-chest-dialog ul { list-style:none; padding:0; }.ocean-chest-dialog li { padding:10px 0; border-bottom:1px solid hsl(var(--ocean-foam)/.15); overflow-wrap:anywhere; }.ocean-chest-dialog li>div { display:flex; justify-content:space-between; gap:8px; }
+.ocean-chest-dialog small { display:block; color:hsl(var(--ocean-gold)); margin:8px 0; }
+.ocean-reward-art { display:block; width:140px; height:140px; object-fit:contain; margin:0 auto 16px; animation:oceanChestReveal .6s ease-out both; }
+.ocean-chest-notice { position:absolute; left:16px; right:16px; top:calc(196px + var(--tg-safe-area-inset-top) + var(--tg-content-safe-area-inset-top)); text-align:center; font-size:10px; color:hsl(var(--ocean-gold)); pointer-events:none; }
+@keyframes oceanChestReveal { from { transform:scale(.6) rotate(-8deg); opacity:0; } to { transform:scale(1) rotate(0); opacity:1; } }
+@media(prefers-reduced-motion:reduce) { .ocean-reward-art { animation:none; } }

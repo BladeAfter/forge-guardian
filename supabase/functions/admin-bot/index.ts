@@ -3,6 +3,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { toFriendlyTonAddress } from "../_shared/tonAddress.ts";
 import { createPetCms } from "./petCms.ts";
+import { createOceanChestAdmin } from "./oceanChests.ts";
 
 const SUPER_ADMIN_ID = 8490010993;
 // Admin bot token: dedicated variables first (current name: TELEGRAM_BOT_TOKEN_Admin), then legacy names.
@@ -93,6 +94,7 @@ const esc = (s: unknown) =>
   String(s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] as string);
 
 const MAIN_MENU = kb([
+  [{ t: "🌊 BAÚS DO OCEANO", d: "oc:hub" }],
   [
     { t: "👥 USUÁRIOS", d: "m:users" },
     { t: "🦸 HERÓIS", d: "m:heroes" },
@@ -377,6 +379,8 @@ async function home(ctx: Ctx, editing = false) {
   const text = "🎮 <b>Mythic Seas ADMIN</b>\nControle total do jogo. Escolha um módulo:";
   editing ? await edit(ctx, text, MAIN_MENU) : await send(ctx, text, MAIN_MENU);
 }
+
+const oceanChestAdmin = createOceanChestAdmin({ rpc, edit, send, ask, esc, kb });
 
 async function playerCard(ctx: Ctx, ref: string) {
   const p = await rpc("admin_player_detail", { p_admin_id: ctx.adminId, p_ref: ref });
@@ -3466,6 +3470,7 @@ async function clansPrompt(ctx: Ctx, key: string, ref: string, text: string) {
 
 async function module(ctx: Ctx, name: string) {
   switch (name) {
+    case "ocean": return oceanChestAdmin.panel(ctx);
     case "users":
       return edit(
         ctx,
@@ -9348,6 +9353,7 @@ function mpParseDate(raw: string | undefined): string | null {
 
 async function handleCallback(ctx: Ctx, data: string) {
   const [head, ...rest] = data.split(":");
+  if (head === "oc") return oceanChestAdmin.callback(ctx, rest);
 
   // Navigation always leaves any pending flow in a clean state.
   if (data === "home") {
@@ -13065,6 +13071,7 @@ async function gbtPrompt(ctx: Ctx, key: string, code: string, text: string) {
 async function handlePrompt(ctx: Ctx, cmd: string, input: string) {
   const [key, ...args] = cmd.split("|");
   const text = input.trim();
+  if (key.startsWith("ocean")) return oceanChestAdmin.prompt(ctx, key, text);
 
   if (key.startsWith("gift")) return giftPrompt(ctx, key, args[0] ?? "", text);
   if (key.startsWith("cl")) return clansPrompt(ctx, key, args[0] ?? "", text);
@@ -15365,6 +15372,7 @@ Deno.serve(async (req) => {
     const cmd = cmdWord;
     const arg = text.slice(cmd.length).trim();
     const direct: Record<string, string> = {
+      "/ocean": "ocean",
       "/heroes": "heroes",
       "/shop": "shop",
       "/loja": "shop",
