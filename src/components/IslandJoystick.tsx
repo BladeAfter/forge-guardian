@@ -27,8 +27,8 @@ export function IslandJoystick({ onDirection, disabled }: { onDirection: (point:
     if (knob.current) knob.current.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
   };
   return <nav className="ocean-helm" aria-label={localizeText("Direção do pirata")}><OceanControl className="ocean-joystick" aria-label={localizeText("Joystick do pirata")} title={localizeText("Joystick do pirata")} disabled={disabled}
-    onPointerDown={e => { if (pointer.current !== null) return; pointer.current = e.pointerId; e.currentTarget.setPointerCapture(e.pointerId); steer(e); }}
-    onPointerMove={steer} onPointerUp={reset} onPointerCancel={reset} onLostPointerCapture={reset} onBlur={reset}>
+    onPointerDown={e => { if (pointer.current !== null) return; e.preventDefault(); pointer.current = e.pointerId; try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Older WebViews. */ } steer(e); }}
+    onPointerMove={steer} onPointerUp={e => { if (pointer.current === e.pointerId) reset(); }} onPointerCancel={e => { if (pointer.current === e.pointerId) reset(); }} onLostPointerCapture={e => { if (pointer.current === e.pointerId) reset(); }} onBlur={reset}>
     <span className="ocean-joystick-ring" aria-hidden="true" /><span ref={knob} className="ocean-joystick-knob" aria-hidden="true"><Compass size={24} /></span>
   </OceanControl></nav>;
 }

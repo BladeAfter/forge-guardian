@@ -21,7 +21,7 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, drawR
     if (!canvas || !ctx) return;
     let last = 0, resolution = 1;
     const monitor = qualityMonitor();
-    let chunk = '', visibleIslands: ReturnType<typeof seaIslandsAround> = [];
+    let chunk = '', islandTime = 0, visibleIslands: ReturnType<typeof seaIslandsAround> = [];
     const ocean = oceanImage(grandLineArt.ocean), water = oceanImage(grandLineArt.water), fleet = oceanImage(navalArt.fleet);
     const islandTiles: HTMLCanvasElement[] = [];
     const prepare = () => {
@@ -51,7 +51,7 @@ export default function IllustratedOcean({ pose, network, wide, canvasRef, drawR
       ctx.save(); ctx.translate(w / 2, h * .58); ctx.scale(scale, scale); ctx.translate(-s.camera.x, -s.camera.y);
       if (water.complete && water.naturalWidth) drawOpenWater(ctx, water, s.camera, w / scale, h / scale);
       const nextChunk = `${Math.floor(s.position.x / SEA_CHUNK)}:${Math.floor(s.position.y / SEA_CHUNK)}`;
-      if (chunk !== nextChunk) { chunk = nextChunk; visibleIslands = seaIslandsAround(s.position, 1); }
+      if (chunk !== nextChunk || time - islandTime > 250) { chunk = nextChunk; islandTime = time; visibleIslands = seaIslandsAround(s.position, 1); }
       for (const island of visibleIslands) {
         const tile = islandTiles[island.templateIndex];
         const diameter = islandArtDiameter(island.radius);
