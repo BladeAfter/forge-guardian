@@ -23,10 +23,14 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   useGameViewport(host);
   const drawRef = useRef<((time: number, delta: number) => void) | null>(null);
   const joystickKnob = useRef<HTMLSpanElement>(null);
+  const joystickHost = useRef<HTMLElement>(null);
+  const joystickTouch = useRef<number | null>(null);
+  const touchSteer = useRef<(x: number, y: number, rect: DOMRect) => void>(() => {});
   const joystickPointer = useRef<number | null>(null);
   const joystickVector = useRef({ x: 0, y: 0 });
   const autopilot = useRef(false);
   const resetJoystick = () => {
+    joystickTouch.current = null;
     joystickPointer.current = null;
     joystickVector.current = { x: 0, y: 0 };
     network.steer({ dx: 0, dy: 0, throttle: 0 });
@@ -71,6 +75,38 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const openYard=() => { resetJoystick();state.current.keys.clear();setYardOpen(true); };
 
   useEffect(() => captureTelegramGameGestures(window.Telegram?.WebApp), []);
+
+  useEffect(() => {
+    const element = joystickHost.current;
+    if (!element) return;
+    // Prevent the Telegram sheet/scroll recognizer from stealing a held touch.
+    // Mouse/pen continue using captured pointer events, never both paths at once.
+    const start = (event: TouchEvent) => {
+      if (joystickTouch.current !== null || docking.current !== null) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      event.preventDefault(); joystickTouch.current = touch.identifier;
+      touchSteer.current(touch.clientX, touch.clientY, element.getBoundingClientRect());
+    };
+    const move = (event: TouchEvent) => {
+      const touch = Array.from(event.changedTouches).find(t => t.identifier === joystickTouch.current);
+      if (!touch) return;
+      event.preventDefault();
+      touchSteer.current(touch.clientX, touch.clientY, element.getBoundingClientRect());
+    };
+    const end = (event: TouchEvent) => {
+      if (!Array.from(event.changedTouches).some(t => t.identifier === joystickTouch.current)) return;
+      event.preventDefault(); resetJoystick();
+    };
+    element.addEventListener('touchstart', start, { passive: false });
+    element.addEventListener('touchmove', move, { passive: false });
+    element.addEventListener('touchend', end, { passive: false });
+    element.addEventListener('touchcancel', end, { passive: false });
+    return () => {
+      element.removeEventListener('touchstart', start); element.removeEventListener('touchmove', move);
+      element.removeEventListener('touchend', end); element.removeEventListener('touchcancel', end);
+    };
+  }, [initData]);
 
   useEffect(() => {
     // Bitmap rendering is separate from authoritative navigation and HUD.
@@ -143,11 +179,9 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     setSelected(null); autopilot.current = true; state.current.target = seaClickTarget(point);
   };
   const island = nearby;
-  const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (joystickPointer.current !== event.pointerId) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
+  const steerAt = (clientX: number, clientY: number, rect: DOMRect) => {
+    const x = clientX - rect.left - rect.width / 2;
+    const y = clientY - rect.top - rect.height / 2;
     const radius = rect.width * .29;
     const distance = Math.hypot(x, y);
     const ratio = distance > radius ? radius / distance : 1;
@@ -156,6 +190,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     network.steer({ dx: joystickVector.current.x, dy: joystickVector.current.y, throttle: yardRef.current ? 0 : throttleRef.current });
     if (distance < 6) state.current.target = { ...state.current.position };
     if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+  };
+  touchSteer.current = steerAt;
+  const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'touch' || joystickPointer.current !== event.pointerId) return;
+    steerAt(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
   };
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
     <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
@@ -176,10 +215,10 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     <div className="ocean-view"><OceanControl title={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} aria-label={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? localizeText("MAPA NA GARRAFA") : localizeText("DESCOBERTA")}</span><p>{message}</p></div>}
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; resetJoystick(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? localizeText("Atracando...") : localizeText("Atracar no porto")}</OceanControl></div>}
-    <nav className="ocean-helm" aria-label={localizeText("Direção do navio")}>
+    <nav ref={joystickHost} className="ocean-helm" aria-label={localizeText("Direção do navio")}>
       <OceanControl className="ocean-joystick" title={localizeText("Joystick do navio")} aria-label={localizeText("Joystick do navio")} disabled={dockingNow}
         onContextMenu={event => event.preventDefault()}
-        onPointerDown={event => { if (joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
+        onPointerDown={event => { if (event.pointerType === 'touch' || joystickPointer.current !== null) return; event.preventDefault(); joystickPointer.current = event.pointerId; try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Older WebViews. */ } steer(event); }}
         onPointerMove={steer}
         onPointerUp={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
         onPointerCancel={event => { if (joystickPointer.current === event.pointerId) resetJoystick(); }}
