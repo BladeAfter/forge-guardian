@@ -14,4 +14,9 @@ describe('approved ship motion', () => {
   it('does not invent movement when the approved ship is stationary', () => {
     expect(approachApprovedPose({ x: 10, y: 40 }, 0, { x: 10, y: 40, heading: 0 }, .05).position).toEqual({ x: 10, y: 40 });
   });
+  it('limits a delayed approved update to the ship presentation speed', () => {
+    const next = approachApprovedPose({ x: 0, y: 0 }, 0, { x: 250, y: 0, heading: 0 }, .016, 122);
+    expect(next.position.x).toBeGreaterThan(0);
+    expect(next.position.x).toBeLessThanOrEqual(122 * .016);
+  });
 });

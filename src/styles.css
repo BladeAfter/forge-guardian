@@ -144,7 +144,7 @@
 .ocean-compass span { font-size: 9px; }
 .ocean-view { position: absolute; right: 20px; bottom: calc(26px + var(--tg-safe-area-inset-bottom)); }
 .ocean-helm { position: absolute; left: 20px; bottom: calc(30px + var(--tg-safe-area-inset-bottom)); width: 112px; height: 112px; }
-.ocean-control.ocean-joystick { position: relative; width: 112px; height: 112px; padding: 0; border-radius: 50%; border: 1px solid hsl(var(--ocean-line) / .55); background: hsl(var(--ocean-hud) / .65); user-select: none; -webkit-user-select: none; cursor: grab; }
+.ocean-control.ocean-joystick { position: relative; width: 112px; height: 112px; padding: 0; border-radius: 50%; border: 1px solid hsl(var(--ocean-line) / .55); background: hsl(var(--ocean-hud) / .65); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: grab; }
 .ocean-control.ocean-joystick:active { transform: none; cursor: grabbing; border-color: hsl(var(--ocean-gold)); }
 .ocean-joystick-ring { position: absolute; inset: 14px; border: 1px solid hsl(var(--ocean-line) / .25); border-radius: 50%; pointer-events: none; }
 .ocean-joystick-knob { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; background: hsl(var(--ocean-hud) / .98); border: 2px solid hsl(var(--ocean-gold) / .8); color: hsl(var(--ocean-gold)); box-shadow: 0 4px 12px hsl(var(--ocean-shadow) / .5); pointer-events: none; }
