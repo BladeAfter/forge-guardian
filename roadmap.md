@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Kraken: retirar pirata fixo, permitir seis tripulantes selecionáveis e conferir dano/contra-ataque oficiais, preservando outras equipes e recompensas.
+- [x] Kraken: pirata/retrato fixos removidos; seis espaços reais no cliente, serviço e banco. Observação não consome golpe manual; contra-ataque/recuperação e automático preservados. Rotação aceita ciclo expirado. Migrações 0126–0128 aplicadas e game-api implantada; transação revertida validou seis membros, dano, contra-ataque, espera e rejeição do sétimo; 32 testes passaram. Cena isolada confirmou seis seleções, cinco ataques, barra e reação; compilação OK.
+- [ ] Confirmar seis tripulantes e golpes no Telegram físico; bloqueio: aparelho/sessão Telegram real indisponível e frontend ainda não publicado.
 
 - [x] Auditoria: 213 piratas usavam somente cinco imagens; agora 213 artes IA individuais, recortadas com pés no chão, registradas por identidade no catálogo, respostas, seleção, convés e arena. Atualizados os 13 personagens existentes, sem alterar atributos; zero divergências de raridade. Gundrek permanece comum; migração 0125 rejeita raridade diferente do catálogo e teste SQL revertido validou a rejeição. 14 testes passaram; cinco seleções, imagens e saída conferidas em cena isolada, sem erros. Confirmação no Telegram real indisponível.
 
