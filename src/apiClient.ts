@@ -114,7 +114,7 @@ async function requestWithDeadline(input: string, init: RequestInit = {}, timeou
 }
 
 
-export async function forgeFetch(feature: string, body: Record<string, unknown>): Promise<ForgeResponse> {
+export async function forgeFetch(feature: string, body: Record<string, unknown>, timeoutMs = 12_000): Promise<ForgeResponse> {
   const initData = typeof body.initData === 'string' ? body.initData : '';
   if (!functionsBase || !supabaseAnonKey || !hasSignedInitData(initData)) {
     console.error('[FORGE REQUEST FAILED]', {
@@ -138,7 +138,7 @@ export async function forgeFetch(feature: string, body: Record<string, unknown>)
         'X-Telegram-Init-Data': initData,
       },
       body: JSON.stringify({ ...body, platform: typeof window === 'undefined' ? undefined : window.Telegram?.WebApp?.platform }),
-    });
+    }, timeoutMs);
     let payload: unknown = null;
     try {
       payload = text ? replaceLegacyCreatureArt(JSON.parse(text)) : null;
