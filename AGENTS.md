@@ -3,10 +3,10 @@
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
 - Validate bot secrets; tutorials once by sender language, missing media never consumes claims, uncertain sends held. Consent once; respect refusal. Channel rewards need fresh membership and private atomic claims.
 
-- Use gameAssets/navalMaterialArt and semantic CSS; only official materials carry balances; art never alters gameplay.
-- Enforce retired creature rarities at database writes and reward-rate settings, deleting their catalogs and owned assets rather than downgrading them; retain legacy schema compatibility and payment replay records so hidden or admin paths cannot recreate retired creatures.
+- Use gameAssets/navalMaterialArt and semantic CSS; only official materials carry balances; art never alters gameplay. PortSideMenus shares edge-rail sizing and official callbacks to keep the house accessible.
+- Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
 - CrewDeck uses ship-scene selection and semantic crew tokens; archetypes map to cosmetic pirate roles. XP stays read-only, equipment server-owned; omit fusion/inventory navigation and invented progression/privileges.
-- Align the Clan Hall hotspot with the village background's centered cover geometry so building taps stay accurate across viewport sizes without a separate card.
+- Align Clan Hall hotspot to centered-cover village geometry for accurate taps at every viewport; no separate card.
 - `RecruitCrewView` receives existing shop prices, odds and payment callbacks; presentation cannot change purchase rules.
 - Normalize legacy creature image URLs through `voyageArtReplacement` at the game API response boundary; only artwork fields may change, preserving server-owned gameplay and ownership.
 - Separate display branding from persistent IDs, Telegram handles, mission hashtags and payment memos; preserve sessions, rewards and transfers.

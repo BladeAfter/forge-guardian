@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Porto: quatro atalhos simétricos por borda, ícones e molduras padronizados, centro livre; preservar oito destinos, HUD, navegação e entrada da Grand Fleet; conferir largura 360 px.
+- [x] Porto: quatro atalhos simétricos por borda, arte existente com moldura náutica única e centro livre; oito callbacks, HUD, navegação e entrada da Grand Fleet preservados. Cena isolada conferida em 360/480 px e altura reduzida: tamanhos iguais, espaçamento uniforme e oito acessos acionados; Telegram físico não verificado.
 
 - [x] Grand Fleet: identidade pirata anime, artes próprias, painel e vocabulário de frota; bônus adicional de 5% de BERRIES/materiais de gameplay ao líder, sem descontar da tripulação. Migrações e game-api implantados; ledger privado, fontes permanentes e exclusão de TON, depósitos, compras, presentes, transferências e passe pago. Teste SQL revertido validou crédito, repetição e exclusões; 239 testes passaram. Painel, membros, confirmação/cancelamento de saída e largura móvel conferidos com respostas simuladas, sem erros de console ou rolagem lateral.
 - [ ] Confirmar Grand Fleet no Telegram real e publicação frontend; validação local não substitui sessão Telegram real.
