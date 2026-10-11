@@ -1,5 +1,6 @@
 import { fleetEmblemImage } from '../gameAssets';
 import './FleetEmblems.css';
+import fleetPlate from '../assets/grand-fleet-plate.png';
 import { Plus, Shield } from 'lucide-react';
 import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
@@ -58,7 +59,7 @@ export function ClanHall({ clan, onOpen }: { clan?: ClanSummary | null; onOpen: 
           className="clan-hall"
         />
         <button type="button" onClick={onOpen} className="clan-hall-plate" tabIndex={-1} aria-hidden>
-          <span className="clan-hall-plate-icon">{clan ? <ClanCrest emblem={clan.emblem} size={22} /> : <Shield size={14} />}</span>
+          <img src={fleetPlate} width={1152} height={576} alt="" className="clan-hall-plate-art" />
           <span className="clan-hall-plate-text"><b>Grand Fleet</b><small>{clan ? clan.name : t('clan.chipJoin')}</small></span>
         </button>
       </div>
