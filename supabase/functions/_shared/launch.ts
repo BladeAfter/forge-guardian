@@ -1,8 +1,10 @@
 export const LAUNCH_AT = '2026-10-12T18:00:00Z';
+// Play access only: this list never grants administrative permissions.
+const EARLY_ACCESS_TELEGRAM_IDS = new Set([8490010993, 8118569391]);
 // Only pass an identity validated from signed Telegram initData, never a body ID.
 export function launchAccess(verifiedTelegramId: number, now = Date.now()) {
   const status = launchStatus(now);
-  return { ...status, canEnter: status.released || verifiedTelegramId === 8490010993 };
+  return { ...status, canEnter: status.released || EARLY_ACCESS_TELEGRAM_IDS.has(verifiedTelegramId) };
 }
 export function launchStatus(now = Date.now()) {
   return { launchAt: LAUNCH_AT, serverNow: new Date(now).toISOString(), released: now >= Date.parse(LAUNCH_AT) };
