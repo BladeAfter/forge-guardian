@@ -216,3 +216,5 @@
 - [x] Ocultar os cartões de NFT, breeding, roleta e eventos promocionais indicados, preservando os sistemas.
 
 - [x] Refazer a tela de duelos como Duelos do Convés: nova arte pirata, indicadores compactos, controles compartilhados e navegação em português; cabeçalho e botão de ingressos verificados isoladamente. Batalha real pelo Telegram não verificada.
+
+- [ ] Remover exigências de passe e depósito prévio para saque na interface e no servidor, preservando saldo, taxas, segurança e pausa dos trabalhadores financeiros.
