@@ -4513,3 +4513,21 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @keyframes actionKrakenSlash { 0%,42% { opacity:0; transform:scale(.6); } 50% { opacity:1; transform:scale(1.1); } 100% { opacity:0; transform:scale(1); } }
 @keyframes actionArenaShake { 20% { transform:translate(-6px,3px); } 40% { transform:translate(5px,-3px); } 60% { transform:translate(-4px,2px); } 80% { transform:translate(3px,-1px); } }
 @media (prefers-reduced-motion: reduce) { .action-counterattack .action-monster, .action-counterattack .action-world { animation:none; } }
+
+/* Kraken damage ranking: pirate bounty-board look (parchment, red and navy). */
+.bounty-ranking.bounty-ranking {
+  --bounty-paper: 40 62% 84%; --bounty-paper-deep: 34 52% 70%; --bounty-ink: 20 45% 14%;
+  --bounty-red: 2 70% 42%; --bounty-navy: 214 60% 18%; --bounty-gold: 42 85% 55%;
+  background: radial-gradient(ellipse at 50% 0%, hsl(var(--bounty-paper)), hsl(var(--bounty-paper-deep)));
+  color: hsl(var(--bounty-ink)); border: 3px solid hsl(var(--bounty-ink) / .75);
+  box-shadow: inset 0 0 28px hsl(var(--bounty-ink) / .35), 0 -6px 0 hsl(var(--bounty-red));
+}
+.bounty-ranking h3 { color: hsl(var(--bounty-red)); font-size: 18px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; text-shadow: 1px 1px 0 hsl(var(--bounty-paper)); }
+.bounty-ranking > div:first-child button { background: hsl(var(--bounty-red)); color: hsl(var(--bounty-paper)); border-color: hsl(var(--bounty-ink)); }
+.bounty-ranking .grid > * { background: hsl(var(--bounty-navy)); color: hsl(var(--bounty-paper)); border: 2px solid hsl(var(--bounty-gold) / .7); border-radius: 10px; }
+.bounty-ranking .grid > * * { color: inherit; }
+.bounty-ranking .grid > *:nth-child(2) b, .bounty-ranking .grid > *:nth-child(2) strong, .bounty-ranking .grid > *:nth-child(2) p:last-child { color: hsl(var(--bounty-gold)); }
+.bounty-ranking p.text-slate-400 { color: hsl(var(--bounty-ink) / .7); font-weight: 700; }
+.bounty-ranking .space-y-1\.5 > div { background: hsl(var(--bounty-paper) / .7); border: 2px solid hsl(var(--bounty-ink) / .35); color: hsl(var(--bounty-ink)); }
+.bounty-ranking .space-y-1\.5 > div .text-amber-300 { color: hsl(var(--bounty-red)); }
+.bounty-ranking .space-y-1\.5 > div .text-slate-400 { color: hsl(var(--bounty-ink) / .65); }
