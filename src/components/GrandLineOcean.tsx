@@ -1,5 +1,5 @@
 import { useLocalizedText } from '../LanguageContext';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves, Ship, Crosshair, Zap, Swords, Flag } from 'lucide-react';
 import { grandLineArt } from '../gameAssets';
 import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type NavalShip } from '../naval';
@@ -55,6 +55,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const secretFoundRef = useRef(false);
   const [yardOpen,setYardOpen] = useState(false);
   const yardRef = useRef(false); yardRef.current=yardOpen;
+  const chestModal = useRef(false);
+  const setChestModal = useCallback((open:boolean)=>{chestModal.current=open;},[]);
   const [selected,setSelected] = useState<string | null>(null);
   const [inspecting,setInspecting] = useState(false);
   const [throttle,setThrottle] = useState(1);
@@ -62,7 +64,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const networkPosition = useRef(false);
   const network = useNavalOcean(initData, () => {
     const s=state.current, k=s.keys;
-    if(yardRef.current || document.hidden) return {dx:0,dy:0,throttle:0};
+    if(yardRef.current || chestModal.current || document.hidden) return {dx:0,dy:0,throttle:0};
     const dx=joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
@@ -205,7 +207,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   };
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
     <IllustratedOcean pose={state} network={currentNetwork} chests={oceanChests.current} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} onChestSelect={id=>{resetJoystick();state.current.keys.clear();setChestSelection({id,nonce:Date.now()});}} />
-    {initData && <OceanChests ocean={oceanChests} selection={chestSelection} position={ownShip} unavailable={Boolean(battle) || !network.data || Boolean(network.error)} onStop={()=>{resetJoystick();state.current.keys.clear();}} />}
+    {initData && <OceanChests ocean={oceanChests} selection={chestSelection} onModalChange={setChestModal} position={ownShip} unavailable={Boolean(battle) || !network.data || Boolean(network.error)} onStop={()=>{resetJoystick();state.current.keys.clear();}} />}
     <header className="ocean-hud">
       <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title={localizeText("Voltar ao porto")} aria-label={localizeText("Voltar ao porto")}><ArrowLeft size={20} /></OceanControl>
       <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{localizeText("GRAND LINE")}</h1></div>

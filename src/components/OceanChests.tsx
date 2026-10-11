@@ -7,7 +7,7 @@ import { formatOceanTon, nearestOceanChest, type OceanOdds, type OceanReward } f
 import type { useOceanChests } from '../useOceanChests';
 import { OceanControl } from './OceanControl';
 import './OceanChests.css';
-export default function OceanChests({ ocean, position, unavailable, onStop, selection }: { ocean: ReturnType<typeof useOceanChests>; position: {x:number;y:number}; unavailable:boolean; onStop:()=>void; selection?:{id:string;nonce:number}|null }) {
+export default function OceanChests({ ocean, position, unavailable, onStop, selection, onModalChange }: { ocean: ReturnType<typeof useOceanChests>; position: {x:number;y:number}; unavailable:boolean; onStop:()=>void; selection?:{id:string;nonce:number}|null; onModalChange?:(open:boolean)=>void }) {
  const {t,language}=useLanguage(); const [view,setView]=useState<'odds'|'history'|null>(null);
  useEffect(()=>{if(selection)setView('odds');},[selection]);
  const near=nearestOceanChest(ocean.data?.chests ?? [],position,ocean.data?.collectRadius ?? 100);
@@ -15,6 +15,7 @@ export default function OceanChests({ ocean, position, unavailable, onStop, sele
  const odds=ocean.data?.chests.find(c=>c.id===selection?.id)?.odds ?? near?.odds ?? (ocean.data?.emission==='alternative' ? ocean.data.alternativeOdds : ocean.data?.odds) ?? [];
  const notice=ocean.error ? t(`ocean.${['OCEAN_CHEST_UNAVAILABLE','OCEAN_OUT_OF_RANGE','OCEAN_CLAIM_LIMIT','OCEAN_PAUSED','OCEAN_CATALOG_UNAVAILABLE'].includes(ocean.error) ? ocean.error : 'OCEAN_UNAVAILABLE'}`) : ocean.data && !['active','alternative'].includes(ocean.data.emission) ? t(`ocean.${ocean.data.emission}`) : '';
  const reward=ocean.reward;
+ useEffect(()=>{onModalChange?.(Boolean(view || reward));return()=>onModalChange?.(false);},[view,reward,onModalChange]);
  const materialKey=reward?.material as keyof typeof navalMaterialArt | undefined;
  const rewardArt=reward?.kind==='ton' ? balanceArt.ton : materialKey && navalMaterialArt[materialKey] ? navalMaterialArt[materialKey] : reward?.image ?? mascotChestArt.common;
  return <>
