@@ -103,7 +103,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
           s.position = { x: live.ship.x, y: live.ship.y }; s.heading = live.ship.heading;
           s.camera = { ...s.position }; networkPosition.current = true;
         }
-        const next = approachApprovedPose(s.position, s.heading, live.ship, dt);
+        const next = approachApprovedPose(s.position, s.heading, live.ship, dt, shipStats(live.ship).speed);
         s.moving = seaDistance(s.position, { x: live.ship.x, y: live.ship.y }) > .5;
         s.position = next.position; s.heading = next.heading;
         s.velocity = { x: 0, y: 0 };
