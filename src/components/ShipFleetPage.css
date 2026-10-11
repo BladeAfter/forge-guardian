@@ -93,3 +93,10 @@
 .ship-fleet__customization .ship-fleet__primary { background:hsl(var(--ship-gold)); color:hsl(var(--ship-abyss)); }
 .ship-fleet__customization .ship-fleet__ghost { background:transparent; color:hsl(var(--ship-ink)); }
 @media (prefers-reduced-motion: reduce) { .ship-fleet *, .ship-fleet__fog { animation: none !important; } }
+
+.ship-fleet__upgrade .ship-fleet__materials { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.ship-fleet__materials > div { min-width:0; text-align:center; justify-items:center; gap:3px; padding:6px 0; }
+.ship-fleet__materials img { width:48px; height:48px; object-fit:contain; }
+.ship-fleet__materials strong { font-size:11px; }
+.ship-fleet__materials b { font-size:10px; color:hsl(var(--ship-gold)); overflow-wrap:anywhere; }
+.ship-fleet__materials .is-short b { color:hsl(var(--ship-danger)); }

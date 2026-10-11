@@ -1,5 +1,11 @@
 import type { LanguageCode } from './registry';
 const copy: Record<string, [string, string, string, string]> = {
+  'Madeira, pregos ou corda insuficientes.': ['Insufficient wood, nails or rope.', 'Madera, clavos o cuerda insuficientes.', 'Недостаточно древесины, гвоздей или верёвки.', 'Yetersiz ahşap, çivi veya halat.'],
+  'Madeira': ['Wood', 'Madera', 'Древесина', 'Ahşap'],
+  'Pregos': ['Nails', 'Clavos', 'Гвозди', 'Çiviler'],
+  'Corda': ['Rope', 'Cuerda', 'Верёвка', 'Halat'],
+  'Estoque': ['Stock', 'Existencias', 'Запас', 'Stok'],
+  'Necessário': ['Required', 'Necesario', 'Требуется', 'Gerekli'],
   'Personalização disponível apenas nos navios comprados.': ['Customization is only available for purchased ships.', 'Personalización disponible solo para barcos comprados.', 'Настройка доступна только для купленных кораблей.', 'Özelleştirme yalnızca satın alınan gemilerde kullanılabilir.'],
   'Personalização salva!': ['Customization saved!', '¡Personalización guardada!', 'Настройки сохранены!', 'Özelleştirme kaydedildi!'],
   'Não foi possível salvar a personalização.': ['Unable to save customization.', 'No se pudo guardar la personalización.', 'Не удалось сохранить настройки.', 'Özelleştirme kaydedilemedi.'],

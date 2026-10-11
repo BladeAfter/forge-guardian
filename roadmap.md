@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Melhorias navais consomem estoque real de madeira, pregos e corda via ledger atômico; cotação oficial por nível, bloqueio por falta de estoque. Migração 0132 aplicada; corda/pregos no catálogo de exploração sem conceder bens. Transação revertida conferiu débito/nível/bloqueio; UI isolada conferiu atualização e releitura; 14 testes passaram.
+- [ ] Confirmar melhoria naval no Telegram físico; bloqueio: sessão Telegram assinada/aparelho indisponíveis e publicação frontend não solicitada.
+
 - [x] Personalização por navio comprado: cores do casco/velas/bandeira, emblema, proa, decoração e rastro salvos por classe; Grand Line compartilha renderização com cache de cores. Servidor bloqueia gratuito, não possuído e caminho legado. Migração 0131 e game-api implantadas; 11 testes e transação revertida passaram; UI isolada conferiu salvar/reabrir e bloqueio gratuito.
 - [ ] Confirmar personalização → salvar → Grand Line no Telegram real; bloqueio: sessão Telegram assinada e aparelho reais indisponíveis, publicação frontend não solicitada.
 

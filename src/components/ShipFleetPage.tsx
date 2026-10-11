@@ -7,10 +7,11 @@ import { ShipCustomizationPanel } from './ShipCustomizationPanel';
 import { ShipAppearancePreview } from './ShipAppearancePreview';
 import { canCustomizeShip, shipCosmetics } from '../shipCustomization';
 import type { ShipCosmetics } from '../naval';
+import { navalMaterialArt } from '../navalMaterialArt';
 
 type Stat = 'atk' | 'def' | 'hp' | 'spd' | 'acc';
 type ShipClass = { id: string; name: string; rarity: string; specialty: string; priceTon: number; atk: number; def: number; hp: number; spd: number; acc: number; skill: number };
-type Upgrade = { category: string; name: string; stat: string; perLevel: number; maxLevel: number; woodBase: number; ironBase: number; berriesBase: number; tonCost: number; growth: number };
+type Upgrade = { category: string; name: string; stat: string; perLevel: number; maxLevel: number; materialCosts: Record<string, Record<string, number>>; berriesBase: number; tonCost: number; growth: number };
 type Owned = { classId: string; level: number; xp: number; xpNext: number; points: number; allocated: Record<Stat, number>; upgrades: Record<string, number>; canCustomize?: boolean; cosmetics?: Partial<ShipCosmetics> };
 type FleetState = { active: string; settings: { pointsPerLevel: number; respecEnabled: boolean }; classes: ShipClass[]; upgrades: Upgrade[]; owned: Owned[]; balances: { ton: number; berries: number }; materials: Record<string, number> };
 
@@ -26,7 +27,7 @@ const PER_UPGRADE: Record<string, number> = { cannons: 15, hull: 150, armor: 6, 
 const ERRORS: Record<string, string> = {
   FLEET_PURCHASE_REQUIRED: 'Personalização disponível apenas nos navios comprados.', FLEET_NOT_OWNED: 'Personalização disponível apenas nos navios comprados.',
   FLEET_TON_REQUIRED: 'Saldo de TON insuficiente.', FLEET_ALREADY_OWNED: 'Você já possui este navio.', FLEET_POINTS_REQUIRED: 'Pontos insuficientes.',
-  NAVAL_XP_REQUIRED: 'XP insuficiente para evoluir.', NAVAL_MATERIALS_REQUIRED: 'Madeira ou ferro insuficientes.', FLEET_BERRIES_REQUIRED: 'BERRIES insuficientes.',
+  NAVAL_XP_REQUIRED: 'XP insuficiente para evoluir.', NAVAL_MATERIALS_REQUIRED: 'Madeira, pregos ou corda insuficientes.', FLEET_BERRIES_REQUIRED: 'BERRIES insuficientes.',
   FLEET_MAX_LEVEL: 'Nível máximo atingido.', NAVAL_IN_BATTLE: 'Indisponível durante uma batalha.',
 };
 
@@ -146,13 +147,28 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
       {tab === 'upgrade' && (owned ? <div className="ship-fleet__upgrades">
         {state.upgrades.map(u => {
           const lv = Number(owned.upgrades[u.category] ?? 0); const max = lv >= u.maxLevel; const f = Math.pow(u.growth, lv);
-          const wood = Math.ceil(u.woodBase * f), iron = Math.ceil(u.ironBase * f), berries = Math.ceil(u.berriesBase * f);
+          const materials = u.materialCosts?.[String(lv + 1)];
+          const berries = Math.ceil(u.berriesBase * f);
+          const insufficient = !materials || Object.entries(materials).some(([id, cost]) => Number(state.materials[id] ?? 0) < cost) || state.balances.berries < berries || state.balances.ton < u.tonCost;
           const key = UPGRADE_KEY[u.category]; const cur = key === 'skill' ? `+${lv * 5}%` : stats[key]; const next = key === 'skill' ? `+${(lv + 1) * 5}%` : stats[key] + PER_UPGRADE[u.category];
           return <div key={u.category} className="ship-fleet__upgrade">
             <div><strong>{text(u.name)}</strong><small>{text('Nível')} {lv}/{u.maxLevel}</small></div>
             <span>{cur} → <b>{max ? '—' : next}</b></span>
-            {!max && <small className="ship-fleet__cost">🪵 {wood} · ⛓ {iron} · {berries.toLocaleString()} BERRIES{u.tonCost > 0 ? ` · ${u.tonCost} TON` : ''}</small>}
-            <button className="ship-fleet__primary" disabled={max || busy} onClick={() => call('upgrade', { classId: ship.id, category: u.category }, 'Melhoria concluída!')}>{max ? text('MÁXIMO') : text('MELHORAR')}</button>
+            {!max && <>
+              <div className="ship-fleet__materials">
+                {materials && Object.entries(materials).map(([id, cost]) => {
+                  const amount = Number(state.materials[id] ?? 0);
+                  const label = id === 'magic_wood' ? 'Madeira' : id === 'nails' ? 'Pregos' : 'Corda';
+                  return <div key={id} className={amount < cost ? 'is-short' : ''}>
+                    <img src={navalMaterialArt[id as keyof typeof navalMaterialArt]} alt="" />
+                    <strong>{text(label)}</strong><small>{text('Estoque')}: {amount.toLocaleString()}</small>
+                    <b>{text('Necessário')}: {cost.toLocaleString()}</b>
+                  </div>;
+                })}
+              </div>
+              <small className="ship-fleet__cost">{text('Nível')} {lv + 1} · {berries.toLocaleString()} BERRIES{u.tonCost > 0 ? ` · ${u.tonCost} TON` : ''}</small>
+            </>}
+            <button className="ship-fleet__primary" disabled={max || busy || insufficient} onClick={() => call('upgrade', { classId: ship.id, category: u.category }, 'Melhoria concluída!')}>{max ? text('MÁXIMO') : text('MELHORAR')}</button>
           </div>;
         })}
       </div> : <p className="ship-fleet__note">{text('Compre este navio para melhorá-lo.')}</p>)}
