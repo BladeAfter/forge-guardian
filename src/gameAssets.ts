@@ -258,3 +258,13 @@ export const chests = [
   gameAsset('chests/epic-chest.png'),
   gameAsset('chests/legendary-chest.png')
 ];
+
+import shipMarinheiro from './assets/fleet/marinheiro.webp';
+import shipCorsario from './assets/fleet/corsario.webp';
+import shipDestruidor from './assets/fleet/destruidor.webp';
+import shipImperial from './assets/fleet/imperial.webp';
+import shipFantasma from './assets/fleet/fantasma.webp';
+import shipReiDosMares from './assets/fleet/rei-dos-mares.webp';
+import shipMenu from './assets/fleet/menu-ship.webp';
+/** Cosmetic ship-class art; stats always come from the server catalog. */
+export const fleetShipArt = { menu: shipMenu, classes: { marinheiro: shipMarinheiro, corsario: shipCorsario, destruidor: shipDestruidor, imperial: shipImperial, fantasma: shipFantasma, rei_dos_mares: shipReiDosMares } as Record<string, string> };
