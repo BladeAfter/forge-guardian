@@ -10,9 +10,9 @@ import './OceanChests.css';
 export default function OceanChests({ ocean, position, unavailable, onStop }: { ocean: ReturnType<typeof useOceanChests>; position: {x:number;y:number}; unavailable:boolean; onStop:()=>void }) {
  const {t,language}=useLanguage(); const [view,setView]=useState<'odds'|'history'|null>(null);
  const near=nearestOceanChest(ocean.data?.chests ?? [],position,ocean.data?.collectRadius ?? 100);
- const label=(r:OceanReward|OceanOdds)=>r.kind==='ton' ? `${formatOceanTon(r.amount ?? 0,language)} TON` : r.name ?? t(`ocean.${r.kind}`);
+ const label=(r:OceanReward|OceanOdds)=>r.kind==='ton' ? `${formatOceanTon(r.amount ?? 0,language)} TON` : ('name' in r ? r.name : undefined) ?? t(`ocean.${r.kind}`);
  const odds=near?.odds ?? (ocean.data?.emission==='alternative' ? ocean.data.alternativeOdds : ocean.data?.odds) ?? [];
- const notice=ocean.error ? t(`ocean.${ocean.error}`) : ocean.data && !['active','alternative'].includes(ocean.data.emission) ? t(`ocean.${ocean.data.emission}`) : '';
+ const notice=ocean.error ? t(`ocean.${['OCEAN_CHEST_UNAVAILABLE','OCEAN_OUT_OF_RANGE','OCEAN_CLAIM_LIMIT','OCEAN_PAUSED','OCEAN_CATALOG_UNAVAILABLE'].includes(ocean.error) ? ocean.error : 'OCEAN_UNAVAILABLE'}`) : ocean.data && !['active','alternative'].includes(ocean.data.emission) ? t(`ocean.${ocean.data.emission}`) : '';
  const reward=ocean.reward;
  const materialKey=reward?.material as keyof typeof navalMaterialArt | undefined;
  const rewardArt=reward?.kind==='ton' ? balanceArt.ton : materialKey && navalMaterialArt[materialKey] ? navalMaterialArt[materialKey] : reward?.image ?? mascotChestArt.common;

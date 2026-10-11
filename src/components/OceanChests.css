@@ -11,3 +11,4 @@
 .ocean-chest-notice { position:absolute; left:16px; right:16px; top:calc(196px + var(--tg-safe-area-inset-top) + var(--tg-content-safe-area-inset-top)); text-align:center; font-size:10px; color:hsl(var(--ocean-gold)); pointer-events:none; }
 @keyframes oceanChestReveal { from { transform:scale(.6) rotate(-8deg); opacity:0; } to { transform:scale(1) rotate(0); opacity:1; } }
 @media(prefers-reduced-motion:reduce) { .ocean-reward-art { animation:none; } }
+.ocean-chest-dialog { overscroll-behavior:contain; touch-action:pan-y; }.ocean-chest-dialog .ocean-control { touch-action:manipulation; }.ocean-chest-indicator .ocean-control:disabled { opacity:.45; cursor:not-allowed; }
