@@ -1,0 +1,3 @@
+ALTER TABLE public.global_boss_cycles DROP CONSTRAINT global_boss_cycles_status_check;
+ALTER TABLE public.global_boss_cycles ADD CONSTRAINT global_boss_cycles_status_check CHECK (status IN ('active','defeated','distributing','completed','expired'));
+COMMENT ON CONSTRAINT global_boss_cycles_status_check ON public.global_boss_cycles IS 'Accept the expired state emitted by the official rotation so elapsed cycles cannot block Kraken attacks.';
