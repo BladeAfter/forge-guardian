@@ -967,6 +967,13 @@
       "when": 1791753511466,
       "tag": "0137_ocean_total_pool_cap",
       "breakpoints": true
+    },
+    {
+      "idx": 138,
+      "version": "7",
+      "when": 1791757492621,
+      "tag": "0138_remove_withdrawal_purchase_requirements",
+      "breakpoints": true
     }
   ]
 }

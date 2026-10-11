@@ -1,6 +1,6 @@
 # Architecture Rules
 
-- Queue credited/paid notices via private triggers and atomic secret-authenticated claims; hold ambiguous sends for review. Never change balances or enable financial workers.
+- Private triggers/atomic secret claims queue paid notices; hold ambiguity. Never change balances/enable workers. Withdrawal helpers disable purchase gates; reads mirror them.
 - Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 
 - Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
@@ -26,6 +26,6 @@
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
-- ReferralDeckView preserves server links, rates and earnings.
+- ReferralDeckView preserves server links/rates/earnings.
 
 - Scope Grand Fleet to semantic tokens/gameAssets; resolve emblems by stored symbol so choices stay distinct. Preserve IDs/membership/anti-hopping. Leader bonuses use atomic settlement/private idempotent records; source allowlists exclude payments, transfers and recursive bonus income.
