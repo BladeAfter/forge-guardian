@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Criar gravação de combate naval simulado para download; simulação isolada, identificada e sem saques ou alterações no jogo real.
+- [x] Gravação de combate naval simulado entregue: 27 s vertical 1080×1920 com áudio sintetizado sem narração; captura da UI real com respostas locais roteirizadas, tiros/vida/impactos sobrepostos e navios parados durante os disparos. Movimento e quadros revisados, zero chamadas externas e nenhum saldo alterado; PvP real permanece desativado.
 
 - [ ] Ativar batalha naval com regras oficiais seguras e gravar combate simulado isolado para o tutorial, sem afetar jogadores ou saldos reais.
 
