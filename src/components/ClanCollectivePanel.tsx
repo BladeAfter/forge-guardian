@@ -7,6 +7,7 @@ import { clanErrorMessage } from '../lib/clanErrors';
 import { formatCurrency } from '../utils';
 import { ClanRaidScreen } from './ClanRaidScreen';
 import { ClanContributionHistory } from './ClanContributionHistory';
+import { OceanControl } from './OceanControl';
 
 /**
  * Collective clan layer as a COMPACT DASHBOARD.
@@ -66,13 +67,13 @@ function Bar({ value, tone = 'amber' }: { value: number; tone?: 'amber' | 'red' 
 /** Denser premium card: tighter padding and a single-line header. */
 function Section({ icon, title, right, children }: { icon: React.ReactNode; title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-b from-slate-900/80 to-black/60 p-2.5 shadow-lg">
+    <section className="fleet-section">
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300">{icon}{title}</div>
         {right}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -80,7 +81,7 @@ function Section({ icon, title, right, children }: { icon: React.ReactNode; titl
 function Collapsible({ icon, title, right, defaultOpen = false, children }: { icon: React.ReactNode; title: string; right?: React.ReactNode; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-b from-slate-900/80 to-black/60 shadow-lg">
+    <div className="fleet-section fleet-collapsible">
       <button onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2 p-2.5">
         <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300">{icon}{title}</span>
         <span className="flex items-center gap-2">{right}<ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition ${open ? 'rotate-180' : ''}`} /></span>
@@ -107,14 +108,14 @@ function Chip({ label, value, tone = 'slate' }: { label: string; value: string; 
 
 function SubTabButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
-    <button
+    <OceanControl
       onClick={onClick}
       className={`flex flex-col items-center gap-0.5 rounded-xl border py-1.5 text-[8px] font-black uppercase tracking-wider transition ${
-        active ? 'border-amber-300/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/45 text-slate-400'
+        active ? 'fleet-selected' : 'fleet-unselected'
       }`}
     >
       {icon}{label}
-    </button>
+    </OceanControl>
   );
 }
 
@@ -150,11 +151,11 @@ export function ClanCollectivePanel({
       const data = await clanRequest<HubState>(telegramInitData, { action: 'hub' });
       setState(data);
     } catch {
-      toast.error('Não foi possível carregar o Clan Hub.');
+      toast.error(localizeText('Não foi possível carregar a Grand Fleet.'));
     } finally {
       setLoading(false);
     }
-  }, [telegramInitData]);
+  }, [telegramInitData, localizeText]);
 
   // Shop prices/stock are cycle-locked server state, loaded when the tab opens.
   const loadShop = useCallback(async () => {
@@ -200,7 +201,7 @@ export function ClanCollectivePanel({
 
 
   if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-amber-400" /></div>;
-  if (!state?.inClan) return <p className="py-8 text-center text-sm text-slate-400">{localizeText("Entre em um clã para acessar a progressão coletiva.")}</p>;
+  if (!state?.inClan) return <p className="py-8 text-center text-sm text-slate-400">{localizeText("Entre em uma frota para acessar a progressão coletiva.")}</p>;
 
   const weekly = state.weekly;
   const raid = state.raid;
@@ -370,10 +371,10 @@ export function ClanCollectivePanel({
   );
 
   return (
-    <div className="space-y-2">
+    <div className="fleet-collective space-y-3">
       {/* SECONDARY NAVIGATION — keeps the default view short */}
       <div className="grid grid-cols-5 gap-1.5">
-        <SubTabButton active={sub === 'hub'} onClick={() => setSub('hub')} icon={<Trophy className="h-3.5 w-3.5" />} label="Hub" />
+        <SubTabButton active={sub === 'hub'} onClick={() => setSub('hub')} icon={<Trophy className="h-3.5 w-3.5" />} label="Grand Fleet" />
         <SubTabButton active={sub === 'raid'} onClick={() => setSub('raid')} icon={<Flame className="h-3.5 w-3.5" />} label="Raid" />
         <SubTabButton active={sub === 'treasury'} onClick={() => setSub('treasury')} icon={<Gem className="h-3.5 w-3.5" />} label="Tesouro" />
         <SubTabButton active={sub === 'upgrades'} onClick={() => setSub('upgrades')} icon={<Hammer className="h-3.5 w-3.5" />} label="Melhorias" />
@@ -426,7 +427,7 @@ export function ClanCollectivePanel({
           </Section>
 
           {/* RAID — compact status + single action */}
-          <Section icon={<Flame className="h-3.5 w-3.5" />} title={localizeText("Clan Raid")} right={raid ? <span className="text-[9px] font-bold text-slate-400">{raid.attacksUsed}/{raid.attacksPerDay} hoje</span> : null}>
+          <Section icon={<Flame className="h-3.5 w-3.5" />} title={localizeText("Grand Fleet Raid")} right={raid ? <span className="text-[9px] font-bold text-slate-400">{raid.attacksUsed}/{raid.attacksPerDay} hoje</span> : null}>
             {raid ? (
               <>
                 <div className="mb-1 flex items-baseline justify-between text-[11px]">
