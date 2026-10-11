@@ -4,7 +4,7 @@ import {forgeFetch} from './apiClient';
 import {formatOceanTon,nearestOceanChest,oceanChestCall,type OceanChest} from './oceanChests';
 import {oceanChests} from './locales/oceanChests';
 describe('shared ocean chest presentation and contracts',()=>{
- afterEach(()=>vi.clearAllMocks());
+ afterEach(()=>{vi.clearAllMocks();});
  const chest=(id:string,x:number,expiresAt=new Date(Date.now()+60000).toISOString()):OceanChest=>({id,x,y:0,region:'open-sea',rarity:'common',expiresAt,odds:[]});
  it('preserves the smallest TON prize',()=>{expect(formatOceanTon(.001,'pt-BR')).toBe('0,001');expect(formatOceanTon(.1,'en')).toBe('0.100');});
  it('selects only nearest unexpired chest within collection radius without mutating state',()=>{

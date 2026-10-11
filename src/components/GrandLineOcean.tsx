@@ -121,7 +121,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     let frame = 0; let previous = 0; let uiTime = 0;
     const diagnose = frameDiagnostics('ocean');
 
-    const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
+    const keydown = (e: KeyboardEvent) => { if (!chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
     const visibility = () => {
@@ -136,8 +136,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       if (document.hidden) return;
       const started = performance.now();
       const s = state.current; const k = s.keys;
-      const dx = yardRef.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
-      const dy = yardRef.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
+      const dx = yardRef.current || chestModal.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
+      const dy = yardRef.current || chestModal.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
       if (dx || dy) s.target = { x: s.position.x + dx * 120, y: s.position.y + dy * 120 };
       else if (!autopilot.current && !docking.current) s.target = { ...s.position };
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
