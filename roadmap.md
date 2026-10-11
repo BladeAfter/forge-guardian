@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Joystick Telegram: reduzir espera adicional por rede; conferir toque com latência móvel e validar no aplicativo real.
+- [x] Joystick: fila enviada imediatamente após resposta pendente e latência incluída no intervalo; 11 testes passaram, toque/soltura conferidos com respostas simuladas e compilação OK. Posições oficiais, autenticação e regras preservadas.
+- [ ] Confirmar joystick no Telegram real após publicar a atualização; bloqueio: sessão móvel Telegram indisponível e publicação não solicitada.
 
 - [x] Tutorial PT-BR v3 entregue: 67,74 s horizontal 1920×1080, música sem narração; navegação/exploração originais e captura de combate simulado, navios parados durante disparos, etapas internas pulam 1→3 por corte de aviso antigo. Mídia portuguesa registrada e game-bot implantado; 11 testes passaram. Enviado ao @MythicSeasChat mensagem 301 e administrador mensagem 21; novo fixado, antiga mensagem 299 excluída e fixação confirmada. Outros idiomas preservados; coleção atualizada; nenhuma movimentação de bens reais.
 
