@@ -4357,6 +4357,15 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .action-combo { position:absolute; right:20px; top:42%; z-index:6; color:hsl(var(--action-gold)); transform:rotate(-6deg); text-shadow:2px 3px 0 hsl(var(--action-shadow)); animation:actionFade 1.2s; }
 .action-combo strong { font-size:55px; display:block; font-weight:900; line-height:1; }.action-combo span { font-size:9px; font-weight:900; }
 .action-boss-hit .action-monster { animation:actionRecoil .4s; }
+.action-counterattack .action-monster { animation:actionEnemyLunge .9s ease-in-out; }
+.action-counterattack .action-actor>img { animation:actionActorRecoil .9s ease-out; }
+.action-enemy-strike { position:absolute; left:26%; top:59%; width:40%; height:12%; border-bottom:7px solid hsl(var(--action-danger)); border-radius:50%; filter:drop-shadow(0 0 8px hsl(var(--action-danger))); animation:actionFade .9s; pointer-events:none; z-index:4; }
+.action-variant-shield .action-slash { border-color:hsl(var(--action-life)); box-shadow:0 -5px 16px hsl(var(--action-life)); }
+.action-variant-flame .action-slash { border-color:hsl(var(--action-danger)); box-shadow:0 -5px 20px hsl(var(--action-gold)); }
+.action-variant-lightning .action-slash { border-color:hsl(var(--action-energy)); border-radius:0; box-shadow:0 -5px 20px hsl(var(--action-energy)); }
+.action-variant-star .action-slash { border-color:hsl(var(--action-gold)); box-shadow:0 -5px 24px hsl(var(--action-gold)); }
+@keyframes actionEnemyLunge { 40% { transform:translateX(-12%) skewX(-6deg); } }
+@keyframes actionActorRecoil { 45% { transform:translateX(-10%) skewX(5deg); } }
 .action-impact { position:absolute; left:55%; top:53%; width:30%; aspect-ratio:1; background:hsl(var(--action-gold)/.85); clip-path:polygon(50% 0,58% 37%,90% 10%,68% 45%,100% 50%,65% 57%,90% 90%,56% 68%,50% 100%,44% 65%,5% 90%,35% 55%,0 50%,35% 44%,10% 10%,44% 35%); animation:actionFade .5s; pointer-events:none; }
 .action-player-hud { position:absolute; bottom:26px; left:140px; right:232px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:10px; text-shadow:0 2px 3px hsl(var(--action-shadow)); }.action-player-hud b { color:hsl(var(--action-gold)); }
 .action-controls { position:absolute; right:18px; bottom:18px; width:196px; height:192px; z-index:6; }

@@ -5,7 +5,7 @@ export const boss: LocaleBundle = {
   en: {
     'boss.noPetActive': 'No active pet',
     'boss.noPetEffect': 'No effect on the Boss',
-    'boss.defaultName': 'Ancient Dragon',
+    'boss.defaultName': 'Kraken of the Depths',
     'boss.notActiveLine1': '👹 No boss active right now.',
     'boss.notActiveLine2': 'Wait for the next challenge — you can already prepare your team.',
     'boss.attacking': '⚔️ ATTACKING...',
@@ -63,7 +63,7 @@ export const boss: LocaleBundle = {
   pt: {
     'boss.noPetActive': 'Nenhum pet ativo',
     'boss.noPetEffect': 'Sem efeito no Chefe',
-    'boss.defaultName': 'Dragão Ancestral',
+    'boss.defaultName': 'Kraken das Profundezas',
     'boss.notActiveLine1': '👹 Nenhum chefe ativo no momento.',
     'boss.notActiveLine2': 'Aguarde o próximo desafio — você já pode preparar sua equipe.',
     'boss.attacking': '⚔️ ATACANDO...',
@@ -121,7 +121,7 @@ export const boss: LocaleBundle = {
   es: {
     'boss.noPetActive': 'Ninguna mascota activa',
     'boss.noPetEffect': 'Sin efecto sobre el Jefe',
-    'boss.defaultName': 'Dragón Ancestral',
+    'boss.defaultName': 'Kraken de las Profundidades',
     'boss.notActiveLine1': '👹 Ningún jefe activo por ahora.',
     'boss.notActiveLine2': 'Espera el próximo desafío — ya puedes preparar tu equipo.',
     'boss.attacking': '⚔️ ATACANDO...',
@@ -179,7 +179,7 @@ export const boss: LocaleBundle = {
   ru: {
     'boss.noPetActive': 'Нет активного питомца',
     'boss.noPetEffect': 'Нет эффекта на Босса',
-    'boss.defaultName': 'Древний Дракон',
+    'boss.defaultName': 'Кракен глубин',
     'boss.notActiveLine1': '👹 Сейчас нет активного босса.',
     'boss.notActiveLine2': 'Дождитесь следующего вызова — вы уже можете подготовить команду.',
     'boss.attacking': '⚔️ АТАКА...',

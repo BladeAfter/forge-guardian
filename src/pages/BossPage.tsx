@@ -30,6 +30,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
 
   const t=(key:string)=>translate(languageCode,key);
   const [now,setNow]=useState(Date.now()); const [selectedSlot,setSelectedSlot]=useState<CombatSlot|null>(null); const [isHeroModalOpen,setIsHeroModalOpen]=useState(false); const [filter,setFilter]=useState<HeroRarity|'all'>('all'); const [hit,setHit]=useState(false);
+  const serverClock = useRef({ server: Date.now(), received: Date.now() });
+  useEffect(() => { const value = Date.parse(combat?.serverNow ?? ''); if (Number.isFinite(value)) serverClock.current = { server: value, received: Date.now() }; }, [combat?.serverNow]);
   const [isRankingOpen,setIsRankingOpen]=useState(false);
   // Season Pass benefit: offline Auto ATK (server-side scheduler). UI only reflects/toggles state.
   const [autoBusy,setAutoBusy]=useState(false);
@@ -54,10 +56,11 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
     lastCycle.current=cycle;
   },[global?.cycleNumber,global?.endedReason]);
 
-  const previous=useRef(combat?.bossCurrentHp ?? game.boss.healthPercent);
+  const displayedHp=combat?.globalBoss?.currentHp ?? combat?.bossCurrentHp ?? game.boss.healthPercent;
+  const previous=useRef(displayedHp);
   const equipInFlight=useRef(false);
   useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer)},[]);
-  useEffect(()=>{const hp=combat?.bossCurrentHp ?? game.boss.healthPercent;if(hp<previous.current){setHit(true);const timer=window.setTimeout(()=>setHit(false),500);previous.current=hp;return()=>clearTimeout(timer)}previous.current=hp},[combat?.bossCurrentHp,game.boss.healthPercent]);
+  useEffect(()=>{if(displayedHp<previous.current){setHit(true);const timer=window.setTimeout(()=>setHit(false),500);previous.current=displayedHp;return()=>clearTimeout(timer)}previous.current=displayedHp},[displayedHp]);
 
   const heroes=useMemo<CombatHero[]>(()=>{
     if(combat?.heroes)return combat.heroes as CombatHero[];
@@ -82,7 +85,8 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const endsIn=global?.endsAt?Math.max(0,Math.ceil((new Date(global.endsAt).getTime()-now)/1000)):null;
 
   const remaining=calculateEstimatedSecondsRemaining(hp,damage); const totalAtk=heroes.reduce((s,h)=>s+h.finalAtk,0); const totalHp=heroes.reduce((s,h)=>s+h.currentHp,0); const totalMaxHp=heroes.reduce((s,h)=>s+h.maxHp,0);
-  const secondsUntil=(date?:string|null)=>date?Math.max(0,Math.ceil((new Date(date).getTime()-now)/1000)):0;
+  const serverNow=serverClock.current.server + (now-serverClock.current.received);
+  const secondsUntil=(date?:string|null)=>date?Math.max(0,Math.ceil((new Date(date).getTime()-serverNow)/1000)):0;
   // Single source of truth: the player's hero collection (player_heroes) — the same
   // list used by "Meus Heróis" and PvP. Boss never keeps a separate inventory.
   const owned=useMemo<OwnedHero[]>(()=>{
@@ -107,10 +111,10 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
   const telegramId = (()=>{try {const user=JSON.parse(new URLSearchParams(telegramInitData??'').get('user')??'null');return user?.id?String(user.id):undefined;}catch{return undefined;}})();
   return <section className="seas-combat">
-    <PirateActionArena name={global?.name??combat?.bossName??t('boss.defaultName')} image={bossArt}
+    <PirateActionArena name={bossNumber===1?t('boss.defaultName'):(global?.name??combat?.bossName??t('boss.defaultName'))} image={bossArt}
       hp={hp} maxHp={maxHp} heroes={heroes} pet={activePet} telegramId={telegramId}
       hit={hit} attacking={isAttacking} active={combat?.bossActive!==false&&(!global||global.status==='active')}
-      cooldown={secondsUntil(combat?.nextHeroAttackAt)} bossCountdown={combat?.bossNextAttackAt?secondsUntil(combat.bossNextAttackAt):null}
+      cooldown={secondsUntil(combat?.nextHeroAttackAt)} bossCountdown={combat?.bossNextAttackAt?secondsUntil(combat.bossNextAttackAt):null} bossLastAttackAt={combat?.bossLastAttackAt}
       damage={global?.yourDamage??combat?.totalDamageDealt??game.boss.playerDamage} rank={global?.yourRank??null}
       reward={Math.round((global?.estimatedReward??0)*(1+petRewardBonus/100))} status={combat?.status}
       swap={swap} onAttack={onAttack} onEquip={openHeroSelector} onRanking={()=>setIsRankingOpen(true)} />
