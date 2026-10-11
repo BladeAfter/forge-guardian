@@ -27,3 +27,5 @@
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
 - ReferralDeckView preserves server links, rates and earnings.
+
+- Scope Grand Fleet presentation to semantic fleet tokens and shared gameAssets; preserve clan IDs, membership and anti-hopping. Leader bonuses run only inside atomic gameplay settlement with private idempotent records; explicit source allowlists exclude payments, transfers and recursive bonus income.

@@ -1,3 +1,6 @@
+import grandFleetDeck from './assets/grand-fleet-deck.jpg';
+import grandFleetEmblem from './assets/grand-fleet-emblem.png';
+export const grandFleetArt = { deck: grandFleetDeck, emblem: grandFleetEmblem };
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
 import groundedCaptain from './assets/arena-grounded-captain.png';
 import groundedCaptainFemale from './assets/arena-grounded-captain-female.png';

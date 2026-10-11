@@ -1,84 +1,14 @@
+import { grandFleetArt } from '../gameAssets';
 import { Plus, Shield } from 'lucide-react';
 import type { ClanEmblem, ClanSummary } from '../clans';
 import { useT } from '../LanguageContext';
-import crestNavy from '../assets/clan-crest-navy.png';
-import crestPurple from '../assets/clan-crest-purple.png';
-import crestCrimson from '../assets/clan-crest-crimson.png';
-import crestEmerald from '../assets/clan-crest-emerald.png';
 
 
 
-/** Heraldic palette per emblem background: gem + inner field colours of the crest. */
-const CREST_COLORS: Record<string, { deep: string; mid: string; gem: string; glow: string }> = {
-  navy: { deep: '#050b18', mid: '#16305f', gem: '#57c8ff', glow: 'rgba(87,200,255,.55)' },
-  purple: { deep: '#0d0618', mid: '#3d1d68', gem: '#c084fc', glow: 'rgba(192,132,252,.5)' },
-  crimson: { deep: '#170406', mid: '#63161f', gem: '#ff6b7f', glow: 'rgba(255,107,127,.5)' },
-  emerald: { deep: '#03130e', mid: '#0f4436', gem: '#4ade9b', glow: 'rgba(74,222,155,.5)' },
-};
-
-/**
- * Plaque geometry of each rendered crest artwork (percentages of the image box),
- * so the clan initials sit exactly inside the engraved nameplate of the art.
- */
-const CREST_ART: Record<string, { src: string; x: number; y: number; w: number; ink: string; shadow: string }> = {
-  navy: { src: crestNavy, x: 50, y: 76.5, w: 27, ink: '#bfe4ff', shadow: 'rgba(0,0,0,.85)' },
-  purple: { src: crestPurple, x: 50, y: 63, w: 22, ink: '#2b1405', shadow: 'rgba(255,236,170,.55)' },
-  crimson: { src: crestCrimson, x: 50, y: 70, w: 33, ink: '#2b1a02', shadow: 'rgba(255,236,170,.55)' },
-  emerald: { src: crestEmerald, x: 50, y: 63.5, w: 26, ink: '#d8ffe9', shadow: 'rgba(0,0,0,.8)' },
-};
-
-/**
- * PREMIUM CLAN CREST — AAA rendered heraldic emblem artwork (gold shield, crown,
- * dragon, laurels and arcane gem) instead of a flat icon. The clan initials are
- * typeset into the engraved nameplate of the artwork for each colour variant.
- */
-export function ClanCrest({
-  emblem, size = 44, initials,
-}: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
-  const key = emblem?.background ?? 'navy';
-  const c = CREST_COLORS[key] ?? CREST_COLORS.navy;
-  const art = CREST_ART[key] ?? CREST_ART.navy;
-  const mark = (initials ?? '').replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
-
-  return (
-    <span
-      style={{ width: size, height: size, filter: `drop-shadow(0 0 ${size * 0.18}px ${c.glow})` }}
-      className="relative inline-block shrink-0 align-middle"
-      aria-hidden
-    >
-      <img
-        src={art.src}
-        alt=""
-        width={1024}
-        height={1024}
-        loading="lazy"
-        className="absolute inset-0 h-full w-full select-none object-contain"
-        draggable={false}
-      />
-      {mark && size >= 34 ? (
-        <span
-          className="absolute font-black leading-none"
-          style={{
-            left: `${art.x}%`,
-            top: `${art.y}%`,
-            width: `${art.w}%`,
-            transform: 'translate(-50%,-50%)',
-            fontSize: size * (art.w / 100) * (mark.length > 2 ? 0.42 : 0.56),
-            letterSpacing: '0.02em',
-            textAlign: 'center',
-            color: art.ink,
-            textShadow: `0 1px 1px ${art.shadow}`,
-            fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-          }}
-        >
-          {mark}
-        </span>
-      ) : null}
-    </span>
-  );
+/** Cosmetic pirate flag; existing emblem identifiers and membership stay unchanged. */
+export function ClanCrest({ size = 44, initials }: { emblem?: ClanEmblem | null; size?: number; initials?: string; shape?: 'shield' | 'badge' }) {
+  return <span className="fleet-crest" style={{ width: size, height: size }} aria-hidden><img src={grandFleetArt.emblem} width={1024} height={1024} loading="lazy" alt="" />{initials && size >= 34 ? <b>{initials.slice(0,5)}</b> : null}</span>;
 }
-
-
 
 /**
  * Legacy compact chip. No longer rendered in the village (the Clan Hall building is

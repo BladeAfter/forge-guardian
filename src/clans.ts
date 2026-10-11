@@ -69,6 +69,7 @@ export type ClanBoss = {
 
 export type ClanDashboard = {
   inClan: boolean;
+  leaderBonus?: { rate: number; berries: number; materials: Record<string, number> };
   role?: ClanRole;
   clan?: ClanSummary;
   me?: { contribution: number; clanPoints: number; role: ClanRole };
