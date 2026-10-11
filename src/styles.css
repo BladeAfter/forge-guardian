@@ -4531,3 +4531,31 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .bounty-ranking .space-y-1\.5 > div { background: hsl(var(--bounty-paper) / .7); border: 2px solid hsl(var(--bounty-ink) / .35); color: hsl(var(--bounty-ink)); }
 .bounty-ranking .space-y-1\.5 > div .text-amber-300 { color: hsl(var(--bounty-red)); }
 .bounty-ranking .space-y-1\.5 > div .text-slate-400 { color: hsl(var(--bounty-ink) / .65); }
+
+/* Wallet "Tesouro do Capitão": anime pirate treasury — deep ocean panels, gold rope frames, red sail accents. */
+.seas-treasury {
+  --tr-ocean: 212 64% 13%; --tr-ocean-2: 205 70% 22%; --tr-gold: 43 90% 58%; --tr-gold-soft: 44 80% 76%;
+  --tr-red: 2 74% 46%; --tr-paper: 40 64% 88%; --tr-ink: 22 45% 12%; --tr-sea: 190 80% 55%;
+}
+.seas-treasury__banner { position:relative; overflow:hidden; border-radius:18px; border:3px solid hsl(var(--tr-gold)); box-shadow:0 0 0 3px hsl(var(--tr-ink)), 0 10px 24px hsl(var(--tr-ink) / .6); }
+.seas-treasury__banner img { display:block; width:100%; height:150px; object-fit:cover; }
+.seas-treasury__banner > div { position:absolute; inset:auto 0 0 0; padding:26px 14px 10px; background:linear-gradient(transparent, hsl(var(--tr-ink) / .9)); }
+.seas-treasury__banner small { font-size:9px; letter-spacing:.3em; color:hsl(var(--tr-gold-soft)); }
+.seas-treasury__banner h2 { margin:0; font-size:22px; font-weight:900; color:hsl(var(--tr-gold)); letter-spacing:.04em; text-shadow:2px 2px 0 hsl(var(--tr-red)), 3px 3px 0 hsl(var(--tr-ink)); }
+.seas-treasury__banner p { margin:2px 0 0; display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:800; color:hsl(var(--tr-ink)); background:hsl(var(--tr-gold)); }
+.seas-treasury > div:not(.seas-treasury__banner):not(.grid), .seas-treasury > .grid > div {
+  background:linear-gradient(160deg, hsl(var(--tr-ocean-2) / .96), hsl(var(--tr-ocean) / .98)) !important;
+  border:2px solid hsl(var(--tr-gold) / .75) !important; border-radius:16px !important;
+  box-shadow:inset 0 0 0 1px hsl(var(--tr-ink) / .6), inset 0 0 22px hsl(var(--tr-ink) / .5), 0 6px 14px hsl(var(--tr-ink) / .45);
+  backdrop-filter:none;
+}
+.seas-treasury .text-amber-300, .seas-treasury .text-sky-300 { color:hsl(var(--tr-gold)) !important; }
+.seas-treasury .text-amber-200 { color:hsl(var(--tr-gold-soft)) !important; }
+.seas-treasury .text-slate-400, .seas-treasury .text-slate-300 { color:hsl(var(--tr-paper) / .78) !important; }
+.seas-treasury strong.text-lg { font-size:20px; text-shadow:1px 1px 0 hsl(var(--tr-ink)); }
+.seas-treasury input { background:hsl(var(--tr-paper)) !important; color:hsl(var(--tr-ink)) !important; border:2px solid hsl(var(--tr-ink) / .6) !important; font-weight:800; }
+.seas-treasury button[class*="from-"], .seas-treasury button[class*="bg-gradient"] { background:linear-gradient(180deg, hsl(var(--tr-red)), hsl(2 70% 34%)) !important; color:hsl(var(--tr-paper)) !important; border:2px solid hsl(var(--tr-gold)) !important; text-shadow:1px 1px 0 hsl(var(--tr-ink)); }
+.seas-treasury .bg-black\/30, .seas-treasury .bg-black\/40 { background:hsl(var(--tr-ink) / .45) !important; }
+.seas-treasury .treasury-primary { background:linear-gradient(180deg, hsl(var(--tr-red)), hsl(2 70% 34%)) !important; color:hsl(var(--tr-paper)) !important; border:2px solid hsl(var(--tr-gold)) !important; font-size:12px; letter-spacing:.08em; text-shadow:1px 1px 0 hsl(var(--tr-ink)); box-shadow:0 4px 0 hsl(var(--tr-ink)); }
+.seas-treasury .treasury-quick { border-color:hsl(var(--tr-gold) / .35) !important; }
+.seas-treasury .treasury-quick.is-active { background:hsl(var(--tr-gold)) !important; color:hsl(var(--tr-ink)) !important; border-color:hsl(var(--tr-gold)) !important; }

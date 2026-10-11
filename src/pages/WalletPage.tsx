@@ -1,3 +1,4 @@
+import treasuryBanner from '../assets/treasury-banner.webp';
 import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
@@ -280,7 +281,8 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 
 
   return (
-    <section className="space-y-3 pb-5">
+    <section className="seas-treasury space-y-3 pb-5">
+      <div className="seas-treasury__banner"><img src={treasuryBanner} alt="" width={800} height={400} /><div><small>MYTHIC SEAS</small><h2>{localizeText("TESOURO DO CAPITÃO")}</h2><p>1 TON = {FC_PER_TON.toLocaleString('pt-BR')} BERRIES</p></div></div>
       <div className="rounded-2xl border border-amber-300/25 bg-[#080d16]/90 p-4 shadow-card">
         <div className="flex items-center justify-between">
           <div>
@@ -422,7 +424,7 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
 }
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) { return <div className="rounded-2xl border border-amber-300/15 bg-[#080d16]/82 p-3"><div className="mb-3 flex items-center gap-2 text-amber-300"><span className="h-4 w-4">{icon}</span><h3 className="text-[9px] font-black tracking-[.2em]">{title}</h3></div>{children}</div>; }
-function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
+function Quick({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" onClick={onClick} className={`treasury-quick ${active ? "is-active" : ""} rounded-lg border px-1 py-2 text-[8px] font-bold ${active ? 'border-sky-300 bg-sky-500/20 text-sky-100' : 'border-white/10 bg-black/30 text-slate-300'}`}>{children}</button>; }
 /** Destination selector shown before the payment: buy BERRIES, or top up the internal TON balance. */
 function DepositModeCard({ active, disabled, title, hint, icon, onClick }: { active: boolean; disabled?: boolean; title: string; hint: string; icon: React.ReactNode; onClick: () => void }) {
   return (
@@ -445,6 +447,6 @@ function Line({ label, value, tone }: { label: string; value: string; tone?: 'fe
     </div>
   );
 }
-function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
+function Primary({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="treasury-primary w-full rounded-xl border border-amber-300/35 bg-amber-400/90 py-2.5 text-[10px] font-black text-black transition active:scale-[.98] disabled:grayscale disabled:opacity-35">{children}</button>; }
 function Status({ status }: { status: string }) { const done=['credited','completed','delivered','confirmed','paid'].includes(status);return done?<CheckCircle2 className="h-4 w-4 text-emerald-400"/>:<Clock3 className="h-4 w-4 text-amber-300"/>; }
 function statusLabel(status: string, t: (key: string) => string) { return t(`wallet.status.${status}`) ?? status; }
