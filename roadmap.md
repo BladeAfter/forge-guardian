@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Integrar NPCs comuns/líderes nas cinco ilhas com patrulha, perseguição, combate validado, baús únicos e inventário oficial; preservar mapas/controles.
+- [ ] Verificar combate/coleta, segurança/repetição e apresentação em computador/celular; informar limitações de Telegram real.
+
 - [x] Analisar bônus dos mascotes: catálogo atual com 68 habilitados, 31 chaves passivas e 8 campos de habilidade; consumidores oficiais conferidos. Relatório entregue com efeitos propostos de detecção, pistas e dano pirata/naval aleatório, sem ativação ou alterações econômicas; percentuais e distribuição são propostas de balanceamento, não regras existentes.
 
 - [x] Configurar cálculo contínuo TON para navios com débito de compra confirmado, valor pago ÷ 40/dia; gratuito/concessões excluídos. Migração 0139 e exibição traduzida; oito testes passaram e cena isolada confirmou taxa, ROI contínuo, exclusão do gratuito e saldo intacto. Acúmulo começa na ativação/aquisição, sem retroatividade; nenhum crédito ou worker ativado.
