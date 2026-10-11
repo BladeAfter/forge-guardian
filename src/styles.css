@@ -4486,3 +4486,11 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 
 .seas-action-arena>.action-crew-manage { position:absolute; left:8px; top:18px; z-index:6; width:44px; height:44px; padding:8px; }
 .seas-action-arena:not(.action-expanded) { min-height:540px; }
+
+.clan-hall-plate{position:absolute;left:59.5%;top:22%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;max-width:58%;padding:4px 10px 4px 5px;border-radius:999px;border:1.5px solid hsl(var(--pirate-gold));background:linear-gradient(180deg,hsl(var(--pirate-gold)/.25),hsl(220 60% 10%/.92));box-shadow:0 0 0 1px hsl(var(--pirate-gold)/.35),0 6px 16px hsl(220 70% 4%/.6),0 0 14px hsl(var(--pirate-gold)/.45);pointer-events:auto;cursor:pointer;animation:clanPlateGlow 2.6s ease-in-out infinite}
+.clan-hall-plate-icon{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:50%;background:hsl(220 60% 8%);border:1px solid hsl(var(--pirate-gold)/.7);color:hsl(var(--pirate-gold))}
+.clan-hall-plate-text{display:flex;flex-direction:column;min-width:0;line-height:1.05;text-align:left}
+.clan-hall-plate-text b{font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:hsl(var(--pirate-gold));text-shadow:0 1px 2px hsl(220 70% 4%)}
+.clan-hall-plate-text small{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:hsl(40 40% 88%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes clanPlateGlow{50%{box-shadow:0 0 0 1px hsl(var(--pirate-gold)/.5),0 6px 16px hsl(220 70% 4%/.6),0 0 22px hsl(var(--pirate-gold)/.7)}}
+@media (prefers-reduced-motion:reduce){.clan-hall-plate{animation:none}}
