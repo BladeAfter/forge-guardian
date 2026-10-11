@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Kraken: pirata/retrato fixos removidos; seis espaços reais no cliente, serviço e banco. Observação não consome golpe manual; contra-ataque/recuperação e automático preservados. Rotação aceita ciclo expirado. Migrações 0126–0128 aplicadas e game-api implantada; transação revertida validou seis membros, dano, contra-ataque, espera e rejeição do sétimo; 32 testes passaram. Cena isolada confirmou seis seleções, cinco ataques, barra e reação; compilação OK.
+- [ ] Confirmar seis tripulantes e golpes no Telegram físico; bloqueio: aparelho/sessão Telegram real indisponível e frontend ainda não publicado.
+
 - [x] Auditoria: 213 piratas usavam somente cinco imagens; agora 213 artes IA individuais, recortadas com pés no chão, registradas por identidade no catálogo, respostas, seleção, convés e arena. Atualizados os 13 personagens existentes, sem alterar atributos; zero divergências de raridade. Gundrek permanece comum; migração 0125 rejeita raridade diferente do catálogo e teste SQL revertido validou a rejeição. 14 testes passaram; cinco seleções, imagens e saída conferidas em cena isolada, sem erros. Confirmação no Telegram real indisponível.
 
 - [x] Tripulantes com poses apoiadas no convés e sem movimento vertical artificial; cinco seleções, ficha e saída conferidas em cena isolada de 360 px. Sete artes IA para espada, machado, arco, bastão, cetro, armadura e anel aplicadas por tipo oficial também aos equipamentos legados; atributos preservados. Chances ocultas divergentes removidas do sorteio: agora usa exatamente os percentuais anunciados (50/18/17/9/4,5/1,5%). Migração 0124 aplicada, teste SQL sem compras/saldos e 14 testes passaram; Telegram real não disponível.

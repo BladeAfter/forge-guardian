@@ -883,6 +883,27 @@
       "when": 1791686286445,
       "tag": "0125_pirate_catalog_identity_rarity_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 126,
+      "version": "7",
+      "when": 1791731037048,
+      "tag": "0126_kraken_six_crew_slots",
+      "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "7",
+      "when": 1791731097153,
+      "tag": "0127_kraken_observer_manual_attack",
+      "breakpoints": true
+    },
+    {
+      "idx": 128,
+      "version": "7",
+      "when": 1791731255921,
+      "tag": "0128_kraken_expired_cycle_status",
+      "breakpoints": true
     }
   ]
 }

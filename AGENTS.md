@@ -21,7 +21,7 @@
 - Gate launch server-side; only signed super-admin bypasses it. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
 - Keep PvP presentation scoped to `seas-duels`, with artwork in `gameAssets.ts`; preserve the existing server-owned teams, tickets and battle callbacks.
-- Keep PirateActionArena grounded with proportional enemies and shared crew portraits. Attack variants share the official callback/cooldown; empty teams open equipment. Show damage/counterattacks only from confirmed state, never cosmetic effects.
+- Kraken has six owned slots, no fixed captain. Observer settles enemy/revive events without consuming manual ticks; auto scheduler keeps its processor. Variants share official cooldown; confirmed damage only.
 - Egg catalogs use gameAssets/MascotChestCard mysterious chests; preserve egg IDs, purchases, odds and settlement.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.

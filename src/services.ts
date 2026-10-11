@@ -198,14 +198,14 @@ export async function recruitHeroesOnServer(telegramInitData:string,count:1|5|10
 }
 
 /** Equipping/removing heroes works with or without an active boss (team is persisted server-side). */
-export async function equipCombatHeroOnServer(telegramInitData:string,heroId:string,slot:1|2|3|4|5):Promise<BossCombat>{
+export async function equipCombatHeroOnServer(telegramInitData:string,heroId:string,slot:1|2|3|4|5|6):Promise<BossCombat>{
   const response=await forgeFetch('boss',({initData:telegramInitData,action:'equip',hero_id:heroId,slot}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string}|null;
   if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível equipar o herói.'));
   return payload;
 }
 
-export async function unequipCombatHeroOnServer(telegramInitData:string,slot:1|2|3|4|5):Promise<BossCombat>{
+export async function unequipCombatHeroOnServer(telegramInitData:string,slot:1|2|3|4|5|6):Promise<BossCombat>{
   const response=await forgeFetch('boss',({initData:telegramInitData,action:'unequip',slot}));
   const payload=await response.json().catch(()=>null) as BossCombat & {error?:string}|null;
   if(!response.ok||!payload)throw new Error(bossErrorMessage(payload?.error||'','Não foi possível remover o herói.'));

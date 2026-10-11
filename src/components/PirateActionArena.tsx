@@ -2,7 +2,6 @@ import { useLocalizedText } from '../LanguageContext';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Expand, Flame, Hand, Shield, Sparkles, Swords, Trophy, Wind, X, Zap, UserPlus, Users } from 'lucide-react';
 import { actionArenaArt, arenaCrewImage } from '../gameAssets';
-import { readCaptainStyle } from '../captainCharacter';
 import type { CombatHero } from '../combat';
 import type { CombatSlot } from '../combatSlots';
 import { COMBAT_SLOTS } from '../combatSlots';
@@ -39,7 +38,7 @@ export function PirateActionArena(props: Props) {
   const position = useRef({ x: 31, y: 76 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [action, setAction] = useState<'idle' | 'strike' | 'dodge'>('idle');
-  const [selectedHero, setSelectedHero] = useState<string | null | undefined>(undefined);
+  const [selectedHero, setSelectedHero] = useState<string | undefined>(undefined);
   const [variant, setVariant] = useState<AttackVariant>('basic');
   const [confirmedDamage, setConfirmedDamage] = useState(0);
   const [counterattack, setCounterattack] = useState(false);
@@ -52,9 +51,8 @@ export function PirateActionArena(props: Props) {
   const ratio = Math.max(0, Math.min(100, maxHp > 0 ? hp / maxHp * 100 : 0));
   const phase = ratio > 75 ? 1 : ratio > 50 ? 2 : ratio > 25 ? 3 : 4;
   const firstHero = [...heroes].sort((a, b) => a.slot - b.slot)[0];
-  const selected = selectedHero === null ? undefined : heroes.find(hero => hero.heroId === selectedHero) ?? firstHero;
-  const captain = readCaptainStyle(props.telegramId) === 'female' ? actionArenaArt.captainFemale : actionArenaArt.captain;
-  const actor = selected ? arenaCrewImage(selected) : captain;
+  const selected = heroes.find(hero => hero.heroId === selectedHero) ?? firstHero;
+  const actor = selected ? arenaCrewImage(selected) : null;
   const emptyTeam = heroes.length === 0;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
   const canPress = emptyTeam ? active && !attacking : ready;
@@ -72,7 +70,7 @@ export function PirateActionArena(props: Props) {
   useEffect(() => {
     const last = previousBossAttack.current;
     previousBossAttack.current = props.bossLastAttackAt;
-    if (!last || !props.bossLastAttackAt || props.bossLastAttackAt <= last) return;
+    if (!props.bossLastAttackAt || (last && props.bossLastAttackAt <= last)) return;
     setCounterattack(true);
     const timeout = setTimeout(() => setCounterattack(false), 900);
     return () => clearTimeout(timeout);
@@ -131,7 +129,6 @@ export function PirateActionArena(props: Props) {
     </header>
       <OceanControl className="action-crew-manage" onClick={() => props.onEquip(COMBAT_SLOTS.find(slot => !heroes.some(hero => Number(hero.slot) === slot)) ?? COMBAT_SLOTS[0])} aria-label={t('selectHero')} title={t('selectHero')}><Users /></OceanControl>
     <aside className="action-crew" aria-label={localizeText("Tripulação")}>
-      <OceanControl className={!selected ? 'action-crew-selected' : ''} aria-pressed={!selected} onClick={() => setSelectedHero(null)} title={localizeText("Capitão do perfil")} aria-label={localizeText("Capitão do perfil")}><img src={captain} alt={localizeText("Capitão")} /></OceanControl>
       {COMBAT_SLOTS.map(slot => { const hero = heroes.find(item => Number(item.slot) === slot); return <div key={slot}>
         <OceanControl className={hero ? (selected?.heroId === hero.heroId ? 'action-crew-selected' : '') : 'action-crew-empty'} aria-pressed={Boolean(hero && selected?.heroId === hero.heroId)} onClick={() => hero ? setSelectedHero(hero.heroId) : props.onEquip(slot)} aria-label={hero ? `${hero.name} · ${t('slot')} ${slot}` : `${t('selectHero')} · ${t('slot')} ${slot}`} title={hero ? `${hero.name} · HP ${hero.currentHp}/${hero.maxHp}` : `${t('selectHero')} · ${t('slot')} ${slot}`}>
           {hero ? <><img src={arenaCrewImage(hero)} alt={hero.name} width={768} height={1024} /><span className="action-crew-life"><i style={{ width: `${hero.maxHp > 0 ? hero.currentHp / hero.maxHp * 100 : 0}%` }} /></span>{!hero.isAlive && <span className="action-ko">{localizeText("KO")}</span>}</> : <><UserPlus /><small className="action-crew-slot">{slot}</small></>}
@@ -142,7 +139,7 @@ export function PirateActionArena(props: Props) {
     <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
     {telegraph && <div className="action-telegraph" role="status"><span>{localizeText("GOLPE IMINENTE")}</span></div>}
     {counterattack && <div className="action-enemy-strike" aria-hidden="true" />}
-    <div className={`action-actor ${selected && !selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected ? `${selected.name} em postura de combate` : localizeText("Pirata do perfil em postura de combate")} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>
+    {selected && actor && <div className={`action-actor ${!selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected.name} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>}
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
     {flash && <div className="action-combo" role="status"><strong>−{Math.ceil(confirmedDamage).toLocaleString()}</strong><span>{localizeText("Dano confirmado")}</span></div>}
     {hit && <div className="action-impact" aria-hidden="true" />}

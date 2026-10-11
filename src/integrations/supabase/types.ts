@@ -25568,6 +25568,7 @@ export type Database = {
       normalize_hero_rarity: { Args: { value: string }; Returns: string }
       normalize_language_code: { Args: { p_code: string }; Returns: string }
       normalize_pet_rarity: { Args: { v: string }; Returns: string }
+      observe_boss_combat: { Args: { p_telegram_id: number }; Returns: Json }
       open_calendar_hero_chest: {
         Args: { p_inventory_item_id: string; p_telegram_id: number }
         Returns: Json

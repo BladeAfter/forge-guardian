@@ -199,7 +199,7 @@ function App() {
     applyRemoteLanguage(remote.language,Boolean(remote.languageLocked??remote.language_locked));
   },[officialProfile,applyRemoteLanguage]);
   const equipHeroMutation=useMutation({
-    mutationFn:async({heroId,slot}:{heroId:string;slot:1|2|3|4|5})=>{
+    mutationFn:async({heroId,slot}:{heroId:string;slot:1|2|3|4|5|6})=>{
       if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
       return equipCombatHeroOnServer(telegramInitData,heroId,slot);
     },
@@ -215,7 +215,7 @@ function App() {
   });
   // Removing a hero from a Boss slot is also independent from an active boss.
   const unequipHeroMutation=useMutation({
-    mutationFn:async(slot:1|2|3|4|5)=>{
+    mutationFn:async(slot:1|2|3|4|5|6)=>{
       if(!backendEnabled||!telegramInitData)throw new Error(t('backendRequired'));
       return unequipCombatHeroOnServer(telegramInitData,slot);
     },
@@ -700,7 +700,7 @@ function App() {
         if(backendEnabled)return equipHeroMutation.mutateAsync({heroId,slot});
         setGame(current=>{
           if(!current)return current;
-          const next=current.bossTeam?.length===5?[...current.bossTeam]:['','','','',''];
+          const next=Array.from({length:6},(_,index)=>current.bossTeam?.[index]??'');
           next.forEach((equipped,index)=>{if(equipped===heroId)next[index]='';});
           next[slot-1]=heroId;
           return {...current,bossTeam:next};
@@ -712,7 +712,7 @@ function App() {
         if(backendEnabled)return void await unequipHeroMutation.mutateAsync(slot);
         setGame(current=>{
           if(!current)return current;
-          const next=current.bossTeam?.length===5?[...current.bossTeam]:['','','','',''];
+          const next=Array.from({length:6},(_,index)=>current.bossTeam?.[index]??'');
           next[slot-1]='';
           return {...current,bossTeam:next};
         });
