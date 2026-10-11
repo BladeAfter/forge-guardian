@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Corrigir navegação contínua ao segurar joystick no Telegram e saltos em gestos rápidos; preservar poses e velocidade oficiais, verificar fluidez da água.
+- [x] Joystick mantém direção sem novos eventos de arraste; pedidos ativos a 300 ms com RTT incluído, soltura/cancelamento preservados e menu de toque longo bloqueado. Apresentação limitada à velocidade do navio para reduzir saltos, sem extrapolar poses. Onze testes passaram e cena isolada verificou movimento sustentado/soltura; água existente preservada.
+- [ ] Confirmar joystick e fluidez no Telegram físico após publicação; bloqueio: aparelho e sessão Telegram reais indisponíveis.
 
 - [x] @GuilhermeVision: acesso antecipado pelo ID Telegram assinado, sem admin; game-api implantada, cinco testes passaram e presente auditado de 100.000 BERRIES executado.
 - [x] ID 7411228057: acesso antecipado sem admin implantado; conta criada do registro Telegram verificado, presente auditado de 100.000 BERRIES executado e cinco testes de acesso passaram.
