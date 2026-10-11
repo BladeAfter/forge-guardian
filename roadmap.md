@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Criar gravação de combate naval simulado para download; simulação isolada, identificada e sem saques ou alterações no jogo real.
+
 - [ ] Ativar batalha naval com regras oficiais seguras e gravar combate simulado isolado para o tutorial, sem afetar jogadores ou saldos reais.
 
 - [x] Tutorial v2 com trecho ilustrado de batalha naval enviado ao @MythicSeasChat (mensagem 299) e ao administrador pelo @MythicSeasbot (mensagem 17); nova publicação fixada e tutorial antigo (mensagem 4) excluído, com confirmação do Telegram. Envio por idioma no /start preservado.
