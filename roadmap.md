@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Mostrar na Grand Line a arte do navio oficialmente selecionado na frota, sem alterar compras, atributos ou navegação.
+
 - [x] Joystick mantém direção sem novos eventos de arraste; pedidos ativos a 300 ms com RTT incluído, soltura/cancelamento preservados e menu de toque longo bloqueado. Apresentação limitada à velocidade do navio para reduzir saltos, sem extrapolar poses. Onze testes passaram e cena isolada verificou movimento sustentado/soltura; água existente preservada.
 - [ ] Confirmar joystick e fluidez no Telegram físico após publicação; bloqueio: aparelho e sessão Telegram reais indisponíveis.
 
