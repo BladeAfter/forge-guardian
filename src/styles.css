@@ -4471,3 +4471,4 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 @media(max-width:360px) { .invite-content { padding-inline:14px; }.invite-routes>div { padding:0 8px; }.invite-link-actions .ocean-control { font-size:10px; gap:5px; } }
 
 .seas-action-arena>.action-crew-manage { position:absolute; left:8px; top:18px; z-index:6; width:44px; height:44px; padding:8px; }
+.seas-action-arena:not(.action-expanded) { min-height:540px; }
