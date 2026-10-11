@@ -1,6 +1,7 @@
 import type { Dict, LanguageCode, LocaleBundle } from './registry';
 import { common } from './common';
 import { oceanChests } from './oceanChests';
+import { shipMining } from './shipMining';
 import { errors } from './errors';
 import { home } from './home';
 import { heroes } from './heroes';
@@ -50,7 +51,7 @@ const BUNDLES: LocaleBundle[] = [common, errors, home, heroes, pets, pvp, boss, 
 
 function merge(language: LanguageCode): Dict {
   const dict: Dict = {};
-  for (const bundle of [...BUNDLES, oceanChests]) Object.assign(dict, bundle[language] ?? {});
+  for (const bundle of [...BUNDLES, oceanChests, shipMining]) Object.assign(dict, bundle[language] ?? {});
   return dict;
 }
 

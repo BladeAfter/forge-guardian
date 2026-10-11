@@ -3,7 +3,7 @@
 - Private triggers/atomic secret claims queue paid notices; hold ambiguity. Never change balances/enable workers. Withdrawal helpers disable purchase gates; reads mirror them.
 - Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 
-- Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
+- Use gameAssets/navalMaterialArt and semantic CSS; cosmetics never alter gameplay. Share server class art/cached paid cosmetics, gate by price_paid. Preserve grants/PortSideMenus/house callbacks; upgrades use server quotes and atomic wood/nails/rope debits.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
 - CrewDeck uses grounded poses on the deck; roles are cosmetic, XP read-only, equipment server-owned; omit fusion/inventory and invented powers.
 - Align Clan Hall hotspot to centered-cover village geometry for accurate taps at every viewport; no separate card.
@@ -11,7 +11,7 @@
 - Resolve hero art by catalog key via pirateHeroArt across API, deck and arena, never by rarity; enforce catalog rarity on owned writes. Equipment art stays cosmetic.
 - Separate display branding from persistent IDs, Telegram handles, mission hashtags and payment memos; preserve sessions, rewards and transfers.
 - Profile uses gameAssets, semantic CSS and container-responsive character/journal layouts for Telegram; preserve server-owned profile, pass and channel-reward callbacks.
-- MarketPulseView: read only; label art, never infer global sales from personal history.
+- MarketPulseView: read-only, labeled art; personal history never implies global sales.
 - Community-pool and nested event theming use `seas-community` and semantic tokens; preserve game rules.
 - Keep Grand Line bitmap with ship-relative camera and service-shared streaming/collision. Cache mirrored water patterns/feathered islands; cosmetics never move docks/collisions. One frame driver also draws read-only north-up radar; raw frame time adapts detail, never speed. Interpolate only approved real players. Tap uses fresh poses; stop on blur. Dock via Realm; exit never waits or settles combat.
 - Naval poses/settlement require Telegram Realm RPCs; interpolate within speed, never predict. Deduplicate pointer/non-passive touch; clear outside releases. Queue clicks after heartbeat once; never replay. Upright masts; no waterline disks. Retain offline poses; RTT-aware polling, urgent sends. Disable swipes only sailing. Offline grants no rewards. Loot needs sources/rates/caps/materials; cosmetics never alter stats.
@@ -22,7 +22,8 @@
 
 - Scope PvP to `seas-duels` and `gameAssets.ts`; preserve server-owned teams, tickets and battle callbacks.
 - Kraken: six owned slots, no fixed captain; monster after equip, art by cycle key. Cap hits by max HP; snapshot pools, share rank quotes; hold TON for review; observer preserves manual ticks, auto keeps processor. Variants share cooldown; confirmed damage only.
-- Egg/ocean chests use separate gameAssets art; cosmetics preserve IDs, purchases, odds and settlement.
+- Egg/ocean chest art is separate; preserve IDs/odds/settlement.
+- Ship mining needs positive price_paid and matched completed purchase debit; accrue from activation/acquisition. Read-only, funding-held, separate from wallets: no grant/client-clock minting.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
 - Retired UI never changes settlement. Realm outpost destination shows exploration, preserving docks/progression.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.

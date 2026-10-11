@@ -100,3 +100,8 @@
 .ship-fleet__materials strong { font-size:11px; }
 .ship-fleet__materials b { font-size:10px; color:hsl(var(--ship-gold)); overflow-wrap:anywhere; }
 .ship-fleet__materials .is-short b { color:hsl(var(--ship-danger)); }
+
+.ship-fleet__mining { display:grid; gap:5px; max-width:360px; margin:12px auto 0; padding:10px 0; text-align:center; border-block:1px solid hsl(var(--ship-line)/.3); overflow-wrap:anywhere; }
+.ship-fleet__mining strong { font-size:12px; color:hsl(var(--ship-muted)); }
+.ship-fleet__mining b { font-size:18px; color:hsl(var(--ship-gold)); }
+.ship-fleet__mining small, .ship-fleet__mining span { font-size:11px; color:hsl(var(--ship-muted)); }

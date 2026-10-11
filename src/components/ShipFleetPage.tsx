@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { forgeFetch } from '../apiClient';
 import { fleetShipArt } from '../gameAssets';
-import { useLocalizedText } from '../LanguageContext';
+import { useLocalizedText, useT } from '../LanguageContext';
 import './ShipFleetPage.css';
 import { ShipCustomizationPanel } from './ShipCustomizationPanel';
 import { ShipAppearancePreview } from './ShipAppearancePreview';
 import { canCustomizeShip, shipCosmetics } from '../shipCustomization';
 import type { ShipCosmetics } from '../naval';
 import { navalMaterialArt } from '../navalMaterialArt';
+import { approvedShipMining, type ShipMiningQuote } from '../shipMining';
 
 type Stat = 'atk' | 'def' | 'hp' | 'spd' | 'acc';
 type ShipClass = { id: string; name: string; rarity: string; specialty: string; priceTon: number; atk: number; def: number; hp: number; spd: number; acc: number; skill: number };
 type Upgrade = { category: string; name: string; stat: string; perLevel: number; maxLevel: number; materialCosts: Record<string, Record<string, number>>; berriesBase: number; tonCost: number; growth: number };
-type Owned = { classId: string; level: number; xp: number; xpNext: number; points: number; allocated: Record<Stat, number>; upgrades: Record<string, number>; canCustomize?: boolean; cosmetics?: Partial<ShipCosmetics> };
+type Owned = { classId: string; level: number; xp: number; xpNext: number; points: number; allocated: Record<Stat, number>; upgrades: Record<string, number>; canCustomize?: boolean; cosmetics?: Partial<ShipCosmetics>; mining?: ShipMiningQuote };
 type FleetState = { active: string; settings: { pointsPerLevel: number; respecEnabled: boolean }; classes: ShipClass[]; upgrades: Upgrade[]; owned: Owned[]; balances: { ton: number; berries: number }; materials: Record<string, number> };
 
 const STATS: { key: Stat; label: string; per: number; desc: string }[] = [
@@ -47,6 +48,7 @@ const power = (s: ReturnType<typeof shipStats>) => Math.round(s.atk * 3 + s.def 
 
 export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { telegramInitData: string; onClose: () => void; onFleetChest: () => void }) {
   const text = useLocalizedText();
+  const t = useT();
   const [state, setState] = useState<FleetState | null>(null);
   const [tab, setTab] = useState<'fleet' | 'stats' | 'upgrade' | 'style'>('fleet');
   const [viewId, setViewId] = useState<string>('');
@@ -73,6 +75,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
 
   const ship = state?.classes.find(c => c.id === viewId) ?? state?.classes[0];
   const owned = state?.owned.find(o => o.classId === ship?.id);
+  const mining = approvedShipMining(owned?.mining);
   const stats = useMemo(() => ship ? shipStats(ship, owned) : null, [ship, owned]);
   const used = Object.values(draft).reduce((a, b) => a + b, 0);
   const preview = ship && owned ? shipStats(ship, { ...owned, allocated: Object.fromEntries(STATS.map(s => [s.key, owned.allocated[s.key] + draft[s.key]])) as Record<Stat, number> }) : null;
@@ -101,6 +104,16 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
         {(['atk', 'def', 'hp', 'spd'] as Stat[]).map(k => <span key={k}><b>{k.toUpperCase()}</b>{stats[k]}</span>)}
       </div>
     </section>
+
+    {owned && <section className="ship-fleet__mining" aria-label={t('shipMining.title')}>
+      <strong>{t('shipMining.title')}</strong>
+      {mining ? <>
+        <b>{t('shipMining.daily', { value: mining.dailyTon.toFixed(3) })}</b>
+        <small>{t('shipMining.roi', { days: mining.roiDays })}</small>
+        <span>{t('shipMining.accrued', { value: mining.accruedTon.toFixed(6) })}</span>
+        <small>{t('shipMining.review')}</small>
+      </> : <small>{t('shipMining.excluded')}</small>}
+    </section>}
 
     <nav className="ship-fleet__tabs">
       {([['fleet', 'FROTA'], ['stats', 'ATRIBUTOS'], ['upgrade', 'MELHORAR'], ['style', 'PERSONALIZAR']] as const).map(([k, l]) =>
