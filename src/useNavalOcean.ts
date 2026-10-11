@@ -30,7 +30,7 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
     };
     const tick = async () => {
       urgent = false;
-      if(cancelled || !initData) return;
+      if(cancelled || !initData || document.hidden) return;
       const started = performance.now();
       if(!locked.current && !actionPending.current && !document.hidden) {
         locked.current = true;
@@ -42,15 +42,16 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
       // Count the round trip inside the cadence, rather than adding it on top.
       const active = held.current ?? input.current();
       const cadence = current.current ? (Math.hypot(active.dx, active.dy) > .01 && active.throttle > 0 ? 300 : 650) : 5000;
-      if(!cancelled) schedule(pending.current.length ? 0 : Math.max(0, cadence - (performance.now() - started)));
+       if(!cancelled && !document.hidden) schedule(urgent || pending.current.length ? 0 : Math.max(0, cadence - (performance.now() - started)));
     };
     wake.current = () => {
-      if(cancelled || locked.current || urgent) return;
+      if(cancelled || document.hidden || urgent) return;
       // Do not let successive drag events keep postponing an urgent send.
       urgent = true;
+       if (locked.current) return;
       schedule(0);
     };
-    const resume = () => { if(!document.hidden) wake.current?.(); };
+    const resume = () => { if(document.hidden) { clearTimeout(timer); urgent=false; } else wake.current?.(); };
     document.addEventListener('visibilitychange',resume);
     window.addEventListener('online',resume);
     void tick();

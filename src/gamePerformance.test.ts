@@ -20,4 +20,13 @@ describe('Telegram frame timing', () => {
     expect(monitor.quality).not.toBe('high');
     expect(qualitySettings.low.particles).toBe(15);
   });
+  it('restores quality gradually after sustained recovery', () => {
+    const monitor = qualityMonitor();
+    for (let i = 0; i < 260; i++) monitor.sample(.04);
+    expect(monitor.quality).toBe('low');
+    for (let i = 0; i < 650; i++) monitor.sample(1 / 60);
+    expect(monitor.quality).toBe('balanced');
+    for (let i = 0; i < 650; i++) monitor.sample(1 / 60);
+    expect(monitor.quality).toBe('high');
+  });
 });

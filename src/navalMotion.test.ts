@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { approachApprovedPose } from './navalMotion';
+import { approachApprovedPose, updateApprovedFleet } from './navalMotion';
+import { DEFAULT_SHIP, type NavalShip } from './naval';
 
 describe('approved ship motion', () => {
   it('continues moving between updates without passing the approved location', () => {
@@ -18,5 +19,15 @@ describe('approved ship motion', () => {
     const next = approachApprovedPose({ x: 0, y: 0 }, 0, { x: 250, y: 0, heading: 0 }, .016, 122);
     expect(next.position.x).toBeGreaterThan(0);
     expect(next.position.x).toBeLessThanOrEqual(122 * .016);
+  });
+  it('interpolates confirmed players and removes those no longer returned', () => {
+    const cache = new Map<string, NavalShip>();
+    const ship = { ...DEFAULT_SHIP, user_id: 'real-player', x: 0, y: 0 };
+    updateApprovedFleet(cache, [ship], .016);
+    updateApprovedFleet(cache, [{ ...ship, x: 120 }], .016);
+    expect(cache.get(ship.user_id)?.x).toBeGreaterThan(0);
+    expect(cache.get(ship.user_id)?.x).toBeLessThan(120);
+    updateApprovedFleet(cache, [], .016);
+    expect(cache.size).toBe(0);
   });
 });

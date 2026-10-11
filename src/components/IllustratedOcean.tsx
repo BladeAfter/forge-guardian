@@ -3,10 +3,11 @@ import { useEffect, type MutableRefObject, type RefObject } from 'react';
 import { grandLineArt, navalArt, mascotChestImage } from '../gameAssets';
 import type { OceanChestState } from '../oceanChests';
 import { SEA_CHUNK, SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
-import { DEFAULT_SHIP, type NavalState } from '../naval';
+import { DEFAULT_SHIP, type NavalState, type NavalShip } from '../naval';
 import { drawNavalShip, navalPalette } from '../navalRendering';
 import { drawOpenWater, islandArtDiameter, islandBitmap, oceanImage } from '../oceanPresentation';
 import { qualityMonitor, qualitySettings } from '../gamePerformance';
+import { updateApprovedFleet } from '../navalMotion';
 
 type Pose = { position: SeaPoint; camera: SeaPoint; scale: number; heading: number; moving: boolean };
 /** Single lightweight bitmap canvas; simulation and official naval actions stay outside. */
@@ -15,14 +16,16 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
   chests?: MutableRefObject<OceanChestState | null>;
   onChestSelect?: (id: string) => void;
   canvasRef: RefObject<HTMLCanvasElement>; onSail: (point: SeaPoint) => void; onSelect: (id: string) => void;
-  drawRef: MutableRefObject<((time: number, delta: number) => void) | null>;
+  drawRef: MutableRefObject<((time: number, delta: number, rawDelta?: number) => void) | null>;
 }) {
   const localizeText = useLocalizedText();
 
   useEffect(() => {
     const canvas = canvasRef.current, ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !ctx) return;
-    let last = 0, resolution = 1;
+    let last = 0, resolution = 1, width = 1, height = 1;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const displayedFleet = new Map<string, NavalShip>();
     const monitor = qualityMonitor();
     let chunk = '', islandTime = 0, visibleIslands: ReturnType<typeof seaIslandsAround> = [];
     const ocean = oceanImage(grandLineArt.ocean), water = oceanImage(grandLineArt.water), fleet = oceanImage(navalArt.fleet);
@@ -35,24 +38,34 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
     if (ocean.complete && ocean.naturalWidth) prepare(); else ocean.addEventListener('load', prepare);
     const palette = navalPalette(canvas);
     const resize = () => {
-      const width = Math.max(1, Math.round(canvas.clientWidth * resolution)), height = Math.max(1, Math.round(canvas.clientHeight * resolution));
-      if (canvas.width !== width) canvas.width = width;
-      if (canvas.height !== height) canvas.height = height;
+      width = Math.max(1, canvas.clientWidth); height = Math.max(1, canvas.clientHeight);
+      const pixelsWide = Math.round(width * resolution), pixelsHigh = Math.round(height * resolution);
+      if (canvas.width !== pixelsWide) canvas.width = pixelsWide;
+      if (canvas.height !== pixelsHigh) canvas.height = pixelsHigh;
     };
     const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
-    const render = (time: number, delta: number) => {
-      const settings = qualitySettings[monitor.sample(delta)];
-      if (resolution !== settings.resolution) { resolution = settings.resolution; resize(); }
-      const s = pose.current, scale = wide.current ? .32 : Math.min(.8, Math.max(.48, canvas.clientWidth / 660));
+    const render = (time: number, delta: number, rawDelta = delta) => {
+      const settings = qualitySettings[monitor.sample(rawDelta)];
+      // Spend extra density on phone-sized canvases, not millions of desktop pixels.
+      const densityBudget = Math.max(1, Math.sqrt(900000 / (width * height)));
+      const desiredResolution = monitor.quality === 'high' ? Math.min(window.devicePixelRatio || 1, 1.5, densityBudget) : settings.resolution;
+      if (resolution !== desiredResolution) { resolution = desiredResolution; resize(); }
+      const s = pose.current, scale = wide.current ? .32 : Math.min(.8, Math.max(.48, width / 660));
       s.scale = scale; const blend = 1 - Math.exp(-3.84 * delta);
       s.camera.x += (s.position.x - s.camera.x) * blend; s.camera.y += (s.position.y - s.camera.y) * blend;
-      if (document.hidden || time - last < (monitor.quality === 'low' ? 33 : 16)) return;
+      const live = network.current;
+      updateApprovedFleet(displayedFleet, (live?.others ?? []).filter(ship => Math.abs(ship.x-s.camera.x) < width/scale/2+250 && Math.abs(ship.y-s.camera.y) < height/scale+250), delta);
+      if (document.hidden || time - last < (monitor.quality === 'low' ? 32 : 15)) return;
       last = time;
-      const w = canvas.clientWidth, h = canvas.clientHeight;
+      const w = width, h = height;
       ctx.setTransform(resolution, 0, 0, resolution, 0, 0);
       ctx.fillStyle = palette.vitality; ctx.fillRect(0, 0, w, h);
       ctx.save(); ctx.translate(w / 2, h * .58); ctx.scale(scale, scale); ctx.translate(-s.camera.x, -s.camera.y);
-      if (water.complete && water.naturalWidth) drawOpenWater(ctx, water, s.camera, w / scale, h / scale);
+      if (water.complete && water.naturalWidth) {
+        const drift = reducedMotion.matches ? 0 : Math.sin(time / 4000) * 2;
+        ctx.save(); ctx.translate(drift, drift / 2);
+        drawOpenWater(ctx, water, { x: s.camera.x-drift, y: s.camera.y-drift/2 }, w / scale, h / scale); ctx.restore();
+      }
       const nextChunk = `${Math.floor(s.position.x / SEA_CHUNK)}:${Math.floor(s.position.y / SEA_CHUNK)}`;
       if (chunk !== nextChunk || time - islandTime > 250) { chunk = nextChunk; islandTime = time; visibleIslands = seaIslandsAround(s.position, 1); }
       for (const island of visibleIslands) {
@@ -61,7 +74,6 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
         if (!tile || Math.abs(island.center.x - s.camera.x) > w / scale + diameter || Math.abs(island.center.y - s.camera.y) > h / scale + diameter) continue;
         ctx.drawImage(tile, island.center.x - diameter / 2, island.center.y - diameter / 2, diameter, diameter);
       }
-      const live = network.current;
       for (const chest of chests?.current?.chests ?? []) {
         if (Date.parse(chest.expiresAt)<=Date.now() || Math.abs(chest.x-s.camera.x)>w/scale || Math.abs(chest.y-s.camera.y)>h/scale) continue;
         const image=oceanImage(mascotChestImage(chest.rarity));
@@ -70,11 +82,12 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
         if(image.complete && image.naturalWidth)ctx.drawImage(image,-40,-42,80,80);
         ctx.restore();
       }
-      for (const ship of live?.others ?? []) {
-        if (Math.abs(ship.x - s.camera.x) > w / scale / 2 + 250 || Math.abs(ship.y - s.camera.y) > h / scale + 250) continue;
-        drawNavalShip(ctx, fleet, ship, palette, time, undefined, settings.wake);
+      const animationTime = reducedMotion.matches ? 0 : time;
+      for (const ship of displayedFleet.values()) {
+        drawNavalShip(ctx, fleet, ship, palette, animationTime, undefined, settings.wake);
       }
-      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, time, 170, settings.wake);
+      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, animationTime, 170, settings.wake);
+      canvas.dataset.quality = monitor.quality; canvas.dataset.resolution = String(resolution);
       ctx.restore();
     };
     drawRef.current = render;
