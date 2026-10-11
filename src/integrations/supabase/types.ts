@@ -10183,6 +10183,7 @@ export type Database = {
           cosmetics: Json
           initial_points_granted: number
           level: number
+          mining_started_at: string
           points: number
           price_paid: number
           pts_acc: number
@@ -10200,6 +10201,7 @@ export type Database = {
           cosmetics?: Json
           initial_points_granted?: number
           level?: number
+          mining_started_at?: string
           points?: number
           price_paid?: number
           pts_acc?: number
@@ -10217,6 +10219,7 @@ export type Database = {
           cosmetics?: Json
           initial_points_granted?: number
           level?: number
+          mining_started_at?: string
           points?: number
           price_paid?: number
           pts_acc?: number
@@ -25836,6 +25839,10 @@ export type Database = {
       }
       naval_fleet_view: { Args: { p_user: string }; Returns: Json }
       naval_ocean_land: { Args: { p_x: number; p_y: number }; Returns: boolean }
+      naval_ship_mining_quote: {
+        Args: { p_class: string; p_user: string }
+        Returns: Json
+      }
       naval_stat: { Args: { p_stat: string; p_user: string }; Returns: number }
       naval_state: { Args: { p_user: string }; Returns: Json }
       naval_upgrade_material_costs: {
