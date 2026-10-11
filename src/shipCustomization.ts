@@ -30,7 +30,8 @@ export function customizedFleetImage(image: HTMLImageElement, cosmetics: ShipCos
       const d = bitmap.data; if (d[i + 3] < 20) continue;
       const y = Math.floor(i / 4 / canvas.width) / canvas.height;
       const high = Math.max(d[i], d[i + 1], d[i + 2]), low = Math.min(d[i], d[i + 1], d[i + 2]);
-      const tint = y < .62 && high > 110 && high - low < 85 ? sail : y > .52 ? hull : null;
+      const sailPixel = high > 70 && (high - low < 85 || d[i] > d[i + 1] * 1.25);
+      const tint = y < .62 && sailPixel ? sail : y > .62 ? hull : null;
       if (!tint) continue;
       const light = (.2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2]) / 180;
       for (let channel = 0; channel < 3; channel++) d[i + channel] = Math.min(255, tint[channel] * light);
