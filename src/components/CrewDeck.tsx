@@ -2,7 +2,7 @@ import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useState } from 'react';
 import { Anchor, ArrowLeft, ArrowRight, ChevronLeft, Heart, LockKeyhole, Shield, Sword, Users, X } from 'lucide-react';
 import type { PvpHero } from '../pvp';
-import { crewArt } from '../gameAssets';
+import { crewArt, arenaCrewImage } from '../gameAssets';
 import { captainCharacters, readCaptainStyle } from '../captainCharacter';
 import { OceanControl } from './OceanControl';
 import { HeroEquipmentSlots } from './HeroEquipmentSlots';
@@ -36,10 +36,10 @@ export function CrewDeck({ heroes, telegramInitData, telegramId, onClose, loadin
       <div className="crew-light" />
       <div className="crew-stage">
         {captain ? <OceanControl className={`crew-person crew-captain ${selected?.heroId === captain.heroId ? 'crew-person-selected' : ''}`} aria-label={`Selecionar capitão ${captain.name}`} aria-pressed={selected?.heroId === captain.heroId} onClick={() => select(captain)}>
-          <img src={captain.imageUrl} alt={captain.name} width={512} height={512} /><span><small>{localizeText("CAPITÃO")}</small><b>{captain.name}</b><em>{localizeText("Nível ")}{captain.level}</em></span>
+          <img src={arenaCrewImage({ image: captain.imageUrl, rarity: captain.rarity })} alt={captain.name} width={512} height={512} /><span><small>{localizeText("CAPITÃO")}</small><b>{captain.name}</b><em>{localizeText("Nível ")}{captain.level}</em></span>
         </OceanControl> : <div className="crew-person crew-captain crew-profile-captain"><img src={character.image} alt={localizeText("Capitão do perfil")} width={512} height={512} /><span><small>{localizeText("CAPITÃO")}</small><b>{localizeText("Seu capitão")}</b></span></div>}
         {members.map((hero, i) => <OceanControl key={hero.heroId} className={`crew-person crew-position-${i} ${selected?.heroId === hero.heroId ? 'crew-person-selected' : ''}`} aria-label={`Selecionar ${hero.name}`} aria-pressed={selected?.heroId === hero.heroId} onClick={() => select(hero)}>
-          <img src={hero.imageUrl} alt={hero.name} width={512} height={512} /><span><small>{crewRole(hero)}</small><b>{hero.name}</b><em>{localizeText("Nível ")}{hero.level}</em></span>
+          <img src={arenaCrewImage({ image: hero.imageUrl, rarity: hero.rarity })} alt={hero.name} width={512} height={512} /><span><small>{localizeText(crewRole(hero))}</small><b>{hero.name}</b><em>{localizeText("Nível ")}{hero.level}</em></span>
         </OceanControl>)}
       </div>
     </div>
