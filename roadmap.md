@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Remover painel, aba e selo Fleet Outpost da Grand Line; destino legado exibe exploração sem alterar coordenadas ou progresso. Onze testes passaram e compilação OK; cena isolada confirmou quatro abas e ausência do painel/selo. Retorno à ilha com fixture incompleta e sessão Telegram real não verificados.
+
 - [x] Otimizar Grand Line existente: água cacheada, radar no ciclo único, HUD sem atualizações redundantes, prioridade de toque durante heartbeat, pausa oculta, interpolação de jogadores confirmados, qualidade por tempo bruto e controle horizontal sem sobreposição; 51 testes e compilação OK. Comparação isolada: 90,1% menos cópias de imagem e 45,7% menos atualizações React, sem ganho comprovado de FPS/CPU. Cinco minutos isolados: 49,4 FPS médios, p95 33,4 ms. Detalhes em naval-performance-report.md.
 - [ ] Confirmar desempenho, múltiplos jogadores e fluxo ponta a ponta no Telegram Android físico; bloqueio: aparelho e sessão Telegram assinada indisponíveis. Teste de cinco minutos e toque/velocidade/pausa/orientação foram somente isolados; não comprovam eliminação do lag real.
 

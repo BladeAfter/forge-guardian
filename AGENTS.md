@@ -24,7 +24,7 @@
 - Kraken: six owned slots, no fixed captain; monster after equip, art by cycle key. Cap hits by max HP; snapshot pools, share rank quotes; hold TON for review; observer preserves manual ticks, auto keeps processor. Variants share cooldown; confirmed damage only.
 - Egg catalogs use gameAssets/MascotChestCard mysterious chests; preserve egg IDs, purchases, odds and settlement.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
-- Keep retired token/offer presentation separate from settlement and ownership for replay safety.
+- Retired UI never changes settlement. Realm outpost destination shows exploration, preserving docks/progression.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
 - ReferralDeckView preserves server links/rates/earnings.
 
