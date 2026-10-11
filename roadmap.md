@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Grand Fleet: renovar toda a área de clãs com identidade pirata anime e implementar bônus adicional de 5% de BERRIES/materiais de gameplay ao líder, sem descontar da tripulação nem incluir TON; preservar associações e antiabuso; validar regras e apresentação.
+
 - [x] Auditar desempenho e corrigir avanço acumulado da física após pausas, unificar navegação/desenho do oceano, suavizar personagem/câmera, reutilizar imagens/ilhas e adaptar efeitos por tempo medido. Altura estável do Telegram sem mudar mundo; controles limpos ao cancelar. 26 testes passaram; caminhada por dois minutos, direções/solturas repetidas, pausa de 1,5 s, retorno de visibilidade e densidade 3x conferidos em cenas isoladas. Compilação OK; sem chamadas de jogo ou alteração de bens.
 - [ ] Confirmar fluidez no Telegram em celular físico intermediário, orientação real e várias entidades com sessão assinada; bloqueio: aparelho/sessão Telegram física indisponível. Atualização ainda não publicada.
 
