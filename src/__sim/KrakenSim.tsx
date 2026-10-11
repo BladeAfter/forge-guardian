@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import '../styles.css';
 import { LanguageProvider } from '../LanguageContext';
 import { PirateActionArena } from '../components/PirateActionArena';
-import kraken from '../assets/kraken-boss.png';
+import { actionArenaArt } from '../gameAssets';
+const kraken = actionArenaArt.kraken;
 const hero = (i: number) => ({ id: 'h'+i, heroId: 'h'+i, name: 'Pirata '+i, rarity: 'Common', slot: i, level: 1, baseAtk: 100, finalAtk: 100, baseHp: 1000, maxHp: 1000, currentHp: 1000, isAlive: true, knockedOutAt: null, reviveAt: null });
 function Sim() {
   const [hp, setHp] = useState(67500); const [damage, setDamage] = useState(0);
