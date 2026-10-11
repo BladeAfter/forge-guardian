@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Ajustar alinhamento da arte do navio e destravar direção sustentada da Grand Line; preservar poses e velocidade oficiais, conferir controles e soltura.
+
 - [x] Verificação reforçada: IDs fixos dos três canais, identidade retornada igual ao jogador assinado, bot administrador e consulta nova; falhas bloqueiam crédito. Sete testes passaram; Telegram real confirmou membro aceito e não-membro bloqueado, sem créditos. RPC permanece service-only e atômica; game-api implantada. Os dois pagamentos recentes correspondiam a status member no Telegram; saldos não alterados.
 
 - [x] Água azul-profunda extraída da ilustração anterior, sem nova textura; cache e espelhamento preservados. Joystick touch não passivo separado de mouse/pen evita disputa com gestos do Telegram. Onze testes e cena isolada com toque Android sustentado/soltura passaram; poses oficiais preservadas.
