@@ -5,9 +5,10 @@ import * as THREE from 'three';
 import { cameraRelativeMotion, HARBOR, ISLAND_3D, type HarborState, type IslandInput, type IslandMotion, type IslandTelemetry } from '../../island3dWorld';
 import { ISLAND_MAP, islandWalkable, safeIslandStep } from '../../illustratedIslandWorld';
 import { frameDelta } from '../../gamePerformance';
+import type { IslandPirateSession } from '../../islandCombat';
 
-type Props = { islandIndex: number; harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
-export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn, children }: Props) {
+type Props = { approved?: IslandPirateSession | null; islandIndex: number; harbor: MutableRefObject<HarborState>; input: MutableRefObject<IslandInput>; onTelemetry: (value: IslandTelemetry) => void; onReturn: () => void; children: (motion: MutableRefObject<IslandMotion>, speed: MutableRefObject<number>) => React.ReactNode };
+export function IslandPlayer({ approved, islandIndex, harbor, input, onTelemetry, onReturn, children }: Props) {
   const body = useRef<RapierRigidBody>(null), model = useRef<THREE.Group>(null);
   const motion = useRef<IslandMotion>('walk'), speed = useRef(0);
   const { world, rapier } = useRapier();
@@ -24,6 +25,7 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
   const lastSafe = useRef({ ...ISLAND_3D.shore, y: ISLAND_MAP.floor + .035 });
   const visualPosition = useMemo(() => new THREE.Vector3(), []);
   const visualStarted = useRef(false);
+  const reconciled = useRef<string | null>(null);
 
   useBeforePhysicsStep(() => {
     const b = body.current;
@@ -37,6 +39,13 @@ export function IslandPlayer({ islandIndex, harbor, input, onTelemetry, onReturn
       return;
     }
     if (i.boarding && s.phase !== 'boarding') { s.phase = 'boarding'; s.waypoint = 0; }
+    if (s.phase === 'exploring' && approved && (reconciled.current !== approved.id || Math.hypot(p.x - approved.state.player.x, p.z - approved.state.player.z) > 3.6)) {
+      reconciled.current = approved.id;
+      const restored = { x: approved.state.player.x, y: ISLAND_MAP.floor + .035, z: approved.state.player.z };
+      b.setTranslation(restored, true); b.setNextKinematicTranslation(restored); lastSafe.current = restored;
+      s.vy = 0; s.action = 0; speed.current = 0;
+      return;
+    }
     if (s.phase === 'exploring' && (!islandWalkable(islandIndex, p) || !Number.isFinite(p.y) || p.y < ISLAND_MAP.floor - .2)) {
       b.setTranslation(lastSafe.current, true); b.setNextKinematicTranslation(lastSafe.current);
       s.vy = 0; s.grounded = true; s.action = 0; speed.current = 0; motion.current = 'idle';
