@@ -99,7 +99,7 @@ import profileChannelPayments from './assets/profile-channel-payments.png';
 import pirateMarketPort from './assets/pirate-market-port.jpg';
 import pirateCommunityCove from './assets/pirate-community-cove.jpg';
 import grandLineOcean from './assets/grand-line-ocean.jpg';
-import grandLineWater from './assets/grand-line-water.jpg';
+import grandLineWater from './assets/grand-line-water-original.jpg';
 import grandLineShip from './assets/grand-line-ship.png';
 import mascotChestCommon from './assets/mascot-chest-common.png';
 import mascotChestRare from './assets/mascot-chest-rare.png';

@@ -49,7 +49,8 @@ function waterTile(image: HTMLImageElement) {
 
 /** Mirrored neighbors share exactly the same boundary. Width/height are the full visible span. */
 export function drawOpenWater(ctx: CanvasRenderingContext2D, source: HTMLImageElement, camera: { x: number; y: number }, width: number, height: number) {
-  const size = 900, image = waterTile(source);
+  // Match the native detail scale of the original illustrated sea crop.
+  const size = 300, image = waterTile(source);
   const left = Math.floor((camera.x - width * .55) / size), top = Math.floor((camera.y - height * .65) / size);
   for (let x = left; x <= Math.floor((camera.x + width * .55) / size); x++) {
     for (let y = top; y <= Math.floor((camera.y + height * .5) / size); y++) {
