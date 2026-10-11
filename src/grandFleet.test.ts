@@ -10,7 +10,7 @@ describe('Grand Fleet server-owned captain bonus', () => {
   it('brands the supported languages and explains additive rewards', () => {
     for (const lang of ['pt', 'en', 'es', 'ru', 'tr'] as const) {
       expect(translate(lang, 'clan.title')).toBe('Grand Fleet');
-      expect(translate(lang, 'fleet.bonusDescription')).toContain('100%');
+      expect(translate(lang, 'fleet.bonusDescription')).toMatch(/100%|%100/);
       expect(translate(lang, 'fleet.bonusExclusions')).toContain('TON');
     }
   });
@@ -50,7 +50,7 @@ describe('Grand Fleet server-owned captain bonus', () => {
     expect(source('../supabase/functions/game-api/index.ts')).toContain("rpc(db, 'grand_fleet_bonus_state', { p_telegram_id: user.id })");
     const ui = source('./pages/ClanHubPage.tsx');
     expect(ui).toContain('data.leaderBonus');
-    expect(ui).toContain('data.antiAbuse?.cooldown?.active');
+    expect(ui).toContain('data?.antiAbuse?.cooldown?.active');
     expect(ui).toContain('grandFleetArt.deck');
     expect(ui).not.toContain('grand_fleet_credit_bonus');
   });
