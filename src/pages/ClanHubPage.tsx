@@ -211,7 +211,7 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
         <div><span>{t('clan.level')}</span><b>{clan.level}</b></div>
       </section>
       <div className="fleet-progress"><span>{t('clan.xp')} · {formatCurrency(clan.xp)} / {formatCurrency(clan.xpNeeded)}</span><progress max={Math.max(1,clan.xpNeeded)} value={clan.xp} /></div>
-      {data.leaderBonus ? <section className="fleet-bonus"><div><span>{t('fleet.leaderBonus')}</span><b>+{data.leaderBonus.rate * 100}%</b></div><p>{t('fleet.bonusDescription')}</p><small>{t('fleet.bonusExclusions')}</small>{data.role === 'leader' ? <strong>{t('fleet.received')}: {formatCurrency(data.leaderBonus.berries)} BERRIES</strong> : null}</section> : null}
+      {data.leaderBonus ? <section className="fleet-bonus"><div><span>{t('fleet.leaderBonus')}</span><b>+{data.leaderBonus.rate * 100}%</b></div><p>{t('fleet.bonusDescription')}</p><small>{t('fleet.bonusExclusions')}</small>{data.role === 'leader' ? <><strong>{t('fleet.received')}: {formatCurrency(data.leaderBonus.berries)} BERRIES</strong><dl className="fleet-material-receipts">{Object.entries(data.leaderBonus.materials).map(([material, amount]) => <div key={material}><dt>{material.replace(/_/g, ' ')}</dt><dd>+{formatCurrency(amount)}</dd></div>)}</dl></> : null}</section> : null}
 
 
 
@@ -374,7 +374,7 @@ function Shell({ children, onClose }: { children: React.ReactNode; onClose: () =
     <div className="fullscreen-page seas-fleet overflow-y-auto">
       <div className="forge-safe-page fleet-inner mx-auto min-h-full w-full p-3">
         <header className="mb-3 flex items-center justify-between">
-          <OceanControl onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border"><ArrowLeft /></OceanControl>
+          <OceanControl aria-label={t('clanx.close')} onClick={onClose} className="grid h-10 w-10 place-items-center rounded-xl border"><ArrowLeft /></OceanControl>
           <div className="text-center"><p className="text-[9px]">Mythic Seas</p><b>{t('clan.title')}</b></div>
           <Shield className="" />
         </header>
