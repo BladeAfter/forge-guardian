@@ -22,10 +22,10 @@ describe('bounded island physics driver', () => {
   it('does not advance hidden gameplay or replay time on resume', () => {
     IslandFrameDriver({ onQuality: vi.fn() });
     const state = { gl: { info: { render: { calls: 2 } } }, setDpr: vi.fn() };
-    document.hidden = true;
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true });
     harness.frame?.(state, 20);
     expect(harness.step).not.toHaveBeenCalled();
-    document.hidden = false;
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true });
     harness.frame?.(state, 20);
     expect(harness.step).toHaveBeenCalledWith(0);
   });
