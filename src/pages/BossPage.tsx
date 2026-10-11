@@ -15,7 +15,7 @@ import { OceanControl } from '../components/OceanControl';
 import { actionArenaArt } from '../gameAssets';
 import { activePetBonuses, effectiveReviveSeconds, formatPetBonus, petBonusValue } from '../petBonuses';
 import { useGlobalBossRanking, useGlobalBossRealtime } from '../hooks';
-import { globalBossArt, globalBossTheme } from '../globalBossThemes';
+import { globalBossArenaArt } from '../globalBossThemes';
 import type { PvpHero } from '../pvp';
 
 
@@ -105,13 +105,12 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
     equipInFlight.current=true;
     try{await onEquipHero(hero.id,selectedSlot);setIsHeroModalOpen(false);setSelectedSlot(null);}catch(error){console.error('Falha ao equipar herói',error);}finally{equipInFlight.current=false;}
   };
-  const theme=globalBossTheme(global?.bossKey,global?.bossNumber);
-  const bossArt=bossNumberForArt(global?.bossNumber)===1?actionArenaArt.kraken:(globalBossArt(global?.bossKey,global?.bossNumber,global?.image)||dragon);
+  const bossArt=globalBossArenaArt(global?.bossKey,global?.bossNumber,global?.image,actionArenaArt.kraken);
   const bossNumber=Number(global?.bossNumber??1); const totalBosses=Number(global?.totalBosses??10);
   const isFinalBoss=bossNumber>=totalBosses&&global?.status!=='active';
   const telegramId = (()=>{try {const user=JSON.parse(new URLSearchParams(telegramInitData??'').get('user')??'null');return user?.id?String(user.id):undefined;}catch{return undefined;}})();
   return <section className="seas-combat">
-    <PirateActionArena name={bossNumber===1?t('boss.defaultName'):(global?.name??combat?.bossName??t('boss.defaultName'))} image={bossArt}
+    <PirateActionArena name={bossArt===actionArenaArt.kraken?t('boss.defaultName'):(global?.name??combat?.bossName??t('boss.defaultName'))} image={bossArt}
       hp={hp} maxHp={maxHp} heroes={heroes} pet={activePet} telegramId={telegramId}
       hit={hit} attacking={isAttacking} active={combat?.bossActive!==false&&(!global||global.status==='active')}
       cooldown={secondsUntil(combat?.nextHeroAttackAt)} bossCountdown={combat?.bossNextAttackAt?secondsUntil(combat.bossNextAttackAt):null} bossLastAttackAt={combat?.bossLastAttackAt}
@@ -158,4 +157,3 @@ export function BossPage({game,lang,languageCode,combat,collection,collectionLoa
 }
 function Stat({label,value,gold=false}:{label:string;value:string;gold?:boolean}){return <div className="rounded-2xl bg-black/65 p-3"><p className="text-slate-400">{label}</p><p className={`mt-1 font-semibold ${gold?'text-amber-300':''}`}>{value}</p></div>}
 
-function bossNumberForArt(value?:number|null){return Number(value??1);}

@@ -56,7 +56,8 @@ export function PirateActionArena(props: Props) {
   const emptyTeam = heroes.length === 0;
   const ready = active && Boolean(onAttack) && !attacking && cooldown === 0 && heroes.some(hero => hero.isAlive);
   const canPress = emptyTeam ? active && !attacking : ready;
-  const telegraph = active && props.bossCountdown !== null && props.bossCountdown <= 2;
+  const showBoss = !emptyTeam && Boolean(props.image);
+  const telegraph = showBoss && active && props.bossCountdown !== null && props.bossCountdown <= 2;
 
   useEffect(() => {
     const delta = props.damage - previousDamage.current;
@@ -122,7 +123,7 @@ export function PirateActionArena(props: Props) {
     <div className="action-atmosphere" aria-hidden="true" />
     <div className="action-wind" aria-hidden="true"><i /><i /><i /></div>
     <header className="action-boss-hud">
-      <img className="action-boss-emblem" src={props.image} alt="" width={64} height={64} />
+      {props.image && <img className="action-boss-emblem" src={props.image} alt="" width={64} height={64} />}
       <div className="action-boss-title"><div><small>{localizeText("CHEFE GLOBAL")}</small><h2>{name}</h2></div><OceanControl onClick={props.onRanking} title={localizeText("Ranking")} aria-label={localizeText("Ranking")}><Trophy size={18} /></OceanControl><OceanControl onClick={() => setExpanded(value => !value)} title={expanded ? localizeText("Reduzir arena") : localizeText("Expandir arena")} aria-label={expanded ? localizeText("Reduzir arena") : localizeText("Expandir arena")}>{expanded ? <X size={18} /> : <Expand size={18} />}</OceanControl></div>
       <div className="action-boss-life" role="progressbar" aria-label={localizeText("Vida do chefe")} aria-valuenow={Math.ceil(hp)} aria-valuemax={maxHp} aria-valuemin={0}><span style={{ width: `${ratio}%` }} />{[25,50,75].map(value => <i key={value} style={{ left: `${value}%` }} />)}</div>
       <div className="action-boss-meta"><span>{Math.ceil(hp).toLocaleString('pt-BR')} / {maxHp.toLocaleString('pt-BR')}</span></div>
@@ -135,10 +136,10 @@ export function PirateActionArena(props: Props) {
         </OceanControl>{hero && <OceanControl className="action-crew-edit" onClick={() => props.onEquip(slot)} aria-label={`Trocar tripulante ${slot}`} title={localizeText("Trocar tripulante")}>↻</OceanControl>}
       </div>; })}
     </aside>
-    <div className="action-boss-ground" aria-hidden="true" />
-    <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} />
+    {showBoss && <><div className="action-boss-ground" aria-hidden="true" />
+    <img className="action-monster" src={props.image} width={1024} height={1024} alt={name} /></>}
     {telegraph && <div className="action-telegraph" role="status"><span>{localizeText("GOLPE IMINENTE")}</span></div>}
-    {counterattack && <div className="action-enemy-strike" aria-hidden="true" />}
+    {showBoss && counterattack && <div className="action-enemy-strike" aria-hidden="true" />}
     {selected && actor && <div className={`action-actor ${!selected.isAlive ? 'action-actor-ko' : ''}`}><span className="action-actor-shadow" /><img src={actor} alt={selected.name} width={768} height={1024} /><span className="action-slash" aria-hidden="true" /></div>}
     {pet && <div className="action-mascot"><img src={pet.image} alt={pet.name} /><span>{pet.name}</span></div>}
     {flash && <div className="action-combo" role="status"><strong>−{Math.ceil(confirmedDamage).toLocaleString()}</strong><span>{localizeText("Dano confirmado")}</span></div>}

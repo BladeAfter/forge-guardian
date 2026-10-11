@@ -228,3 +228,11 @@ export function globalBossTheme(key?: string | null, bossNumber?: number | null)
 /** Boss art with a safe fallback for cycles created before the progression. */
 export const globalBossArt = (key?: string | null, bossNumber?: number | null, image?: string | null) =>
   image && image.startsWith('/assets/game/global-boss/') ? image : globalBossTheme(key, bossNumber).art;
+
+/** Never let an assumed first cycle override the identity returned by the server. */
+export function globalBossArenaArt(key: string | null | undefined, bossNumber: number | null | undefined, image: string | null | undefined, krakenArt: string): string {
+  const normalized = String(key ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  if (normalized === 'ancestral_dragon' || normalized === 'kraken' || (!normalized && Number(bossNumber) === 1)) return krakenArt;
+  if (!normalized && !bossNumber) return '';
+  return globalBossArt(key, bossNumber, image);
+}
