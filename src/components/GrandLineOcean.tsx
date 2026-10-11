@@ -52,16 +52,18 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const [throttle,setThrottle] = useState(1);
   const throttleRef = useRef(1); throttleRef.current=throttle;
   const networkPosition = useRef(false);
+  const approvedShip = useRef<NavalShip | null>(null);
   const network = useNavalOcean(initData, () => {
     const s=state.current, k=s.keys;
     if(yardRef.current || chestModal.current || document.hidden) return {dx:0,dy:0,throttle:0};
     const dx=Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
-    const ship = network.current.current?.ship;
+    const ship = approvedShip.current;
     return seaDestinationInput(ship ?? s.position, s.target, throttleRef.current, shipStats(ship ?? DEFAULT_SHIP).speed);
   });
   const currentNetwork = network.current;
+  approvedShip.current = network.data?.ship ?? null;
   const oceanChests = useOceanChests(initData);
   const [chestSelection,setChestSelection] = useState<{id:string;nonce:number}|null>(null);
   const ownShip=network.data?.ship ?? DEFAULT_SHIP;
