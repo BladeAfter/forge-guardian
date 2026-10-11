@@ -54,4 +54,36 @@ describe('mobile naval input scheduling', () => {
     expect(vi.mocked(navalCall).mock.lastCall?.[2]).toEqual({ dx: 0, dy: 0, throttle: 0 });
     if (typeof cleanup === 'function') cleanup();
   });
+  it.each(['attack', 'leave'])('preserves %s clicked during a heartbeat and sends it once', async name => {
+    let resolve: ((value: NavalState) => void) | undefined;
+    vi.mocked(navalCall).mockImplementationOnce(() => new Promise(done => { resolve = done; })).mockResolvedValue(state);
+    const network = useNavalOcean('signed-test', () => ({ dx: 0, dy: 0, throttle: 0 }));
+    const cleanup = hooks.effects[0]?.();
+    const result = network.action(name, { target: 'other-player' });
+    expect(navalCall).toHaveBeenCalledTimes(1);
+    expect(await network.action(name)).toBe(false);
+    resolve?.(state);
+    expect(await result).toBe(true);
+    expect(navalCall).toHaveBeenNthCalledWith(2, 'signed-test', name, { target: 'other-player' });
+    if (typeof cleanup === 'function') cleanup();
+  });
+  it('does not send a waiting action after leaving the ocean', async () => {
+    vi.mocked(navalCall).mockImplementationOnce(() => new Promise(() => {}));
+    const network = useNavalOcean('signed-test', () => ({ dx: 0, dy: 0, throttle: 0 }));
+    const cleanup = hooks.effects[0]?.();
+    const result = network.action('leave');
+    if (typeof cleanup === 'function') cleanup();
+    expect(await result).toBe(false);
+    expect(navalCall).toHaveBeenCalledTimes(1);
+  });
+  it('does not retry a rejected attack and resumes polling', async () => {
+    vi.mocked(navalCall).mockResolvedValue(state).mockRejectedValueOnce(new Error('timeout')).mockRejectedValueOnce(new Error('NAVAL_OUT_OF_RANGE'));
+    const network = useNavalOcean('signed-test', () => ({ dx: 0, dy: 0, throttle: 0 }));
+    const cleanup = hooks.effects[0]?.();
+    expect(await network.action('attack')).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(vi.mocked(navalCall).mock.calls.filter(call => call[1] === 'attack')).toHaveLength(1);
+    expect(vi.mocked(navalCall).mock.lastCall?.[1]).toBe('heartbeat');
+    if (typeof cleanup === 'function') cleanup();
+  });
 });
