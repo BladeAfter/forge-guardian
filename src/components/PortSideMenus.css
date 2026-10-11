@@ -1,0 +1,10 @@
+.port-side-menus{position:relative;flex:1;min-height:0;width:calc(100% + 16px);margin:0 -8px;container-type:size;pointer-events:none;z-index:20}
+.port-side-rail{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-evenly;width:clamp(52px,15cqw,68px);pointer-events:none}
+.port-side-rail--left{left:0}.port-side-rail--right{right:0}
+.mythreon-pirate .port-side-button.ocean-control{position:relative;pointer-events:auto;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;width:100%;height:clamp(60px,18cqh,82px);min-height:44px;padding:4px 2px;border:2px solid hsl(var(--pirate-gold));border-radius:8px;background:linear-gradient(145deg,hsl(var(--pirate-ocean)),hsl(var(--pirate-ink)));color:hsl(var(--pirate-parchment));box-shadow:inset 0 0 0 2px hsl(var(--pirate-ink)),inset 0 0 0 3px hsl(var(--pirate-gold)/.35),0 2px 4px hsl(var(--pirate-ink)/.6);letter-spacing:0;touch-action:manipulation}
+.mythreon-pirate .port-side-button.ocean-control::before,.mythreon-pirate .port-side-button.ocean-control::after{display:none}
+.port-side-button img{width:clamp(30px,10cqw,44px);height:clamp(30px,10cqw,44px);object-fit:contain;flex-shrink:0;filter:drop-shadow(0 2px 2px hsl(var(--pirate-ink)/.6))}
+.port-side-button span{font-size:8px;font-weight:800;line-height:1.15;text-align:center;max-width:100%;white-space:normal;overflow-wrap:normal;letter-spacing:0}
+.port-side-button:focus-visible{outline:2px solid hsl(var(--pirate-parchment));outline-offset:2px}
+.port-side-button:active{transform:scale(.96)}
+@container(max-height:300px){.mythreon-pirate .port-side-button.ocean-control{height:58px;gap:2px}.port-side-button img{width:28px;height:28px}}

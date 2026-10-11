@@ -1,6 +1,7 @@
 import { mainScreenArt } from '../gameAssets';
 import { useLocalizedText } from '../LanguageContext';
 import { OceanControl } from './OceanControl';
+import './PortSideMenus.css';
 
 type PortSideMenusProps = {
   onRealm: () => void; onPool: () => void; onShop: () => void; onPass: () => void;
