@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { languageFromUpdate, tutorialLanguage, tutorialForLanguage } from '../supabase/functions/game-bot/tutorialLanguages';
+import { languageFromUpdate, tutorialLanguage, tutorialForLanguage, tutorialCaption } from '../supabase/functions/game-bot/tutorialLanguages';
 import { deliverFirstTutorial } from '../supabase/functions/game-bot/tutorial';
 import { welcomeReply } from '../supabase/functions/game-bot/format';
 describe('Telegram tutorial language', () => {
@@ -16,7 +16,7 @@ describe('Telegram tutorial language', () => {
   });
   it('uses the Portuguese video for Brazilian and Portuguese Telegram locales', () => {
     const original = tutorialForLanguage('pt');
-    expect(original?.video).toBeTruthy();
+    expect(original?.video).toMatch(/tutorial-v3-combate-naval\.mp4$/);
     expect(tutorialForLanguage('pt-BR')).toEqual(original);
     expect(tutorialForLanguage('pt-PT')).toEqual(original);
   });
@@ -27,8 +27,12 @@ describe('Telegram tutorial language', () => {
   });
   it('uses the naval tutorial revision for every existing supported language', () => {
     for (const language of ['pt', 'am', 'ar', 'az', 'be', 'bg', 'bn', 'ca', 'cs', 'de', 'el', 'en', 'es', 'fa', 'fi', 'fil', 'fr', 'he', 'hi', 'hr', 'hu', 'id', 'it', 'ja', 'kk', 'ko', 'ms', 'nl', 'no', 'pl', 'ro', 'ru', 'sk', 'sr', 'sw', 'ta', 'th', 'tr', 'uk', 'ur', 'uz', 'vi', 'zh']) {
-      expect(tutorialForLanguage(language)?.video).toMatch(/-v2-batalha-naval\.mp4$/);
+      expect(tutorialForLanguage(language)?.video).toMatch(language === 'pt' ? /tutorial-v3-combate-naval\.mp4$/ : /-v2-batalha-naval\.mp4$/);
     }
+  });
+  it('labels the Portuguese battle demonstration as simulated without real asset transfers', () => {
+    expect(tutorialCaption('pt')).toContain('batalha naval simulada');
+    expect(tutorialCaption('pt')).toContain('não movimenta bens reais');
   });
   it('never substitutes Portuguese or claims a missing-language delivery', async () => {
     const reply = welcomeReply({ update_id: 1, message: { text: '/start', chat: { id: 42, type: 'private' }, from: { id: 42 } } });

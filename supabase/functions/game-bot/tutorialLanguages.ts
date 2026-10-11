@@ -16,7 +16,7 @@ export function languageFromUpdate(update: unknown): string {
 }
 export function tutorialCaption(language: string): string {
   const copy: Record<string, string> = {
-    pt: '🏴‍☠️ Bem-vindo a Mythic Seas, capitão!\n\nAssista ao tutorial da Grand Line e comece sua aventura.',
+    pt: '🏴‍☠️ Bem-vindo a Mythic Seas, capitão!\n\nTutorial da Grand Line: navegação, exploração e batalha naval simulada. A demonstração não movimenta bens reais.',
     ru: '🏴‍☠️ Добро пожаловать в Mythic Seas, капитан!\n\nПосмотрите обучение Grand Line и начните приключение.',
     en: '🏴‍☠️ Welcome to Mythic Seas, captain!\n\nWatch the Grand Line tutorial and begin your adventure.',
   };
