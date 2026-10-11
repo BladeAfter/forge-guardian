@@ -1,6 +1,6 @@
 # Architecture Rules
 
-- Queue credited/paid notices via private triggers/atomic secret claims; hold ambiguity. Never change balances/enable workers. Private withdrawal helpers disable purchase gates; reads mirror them.
+- Private triggers/atomic secret claims queue paid notices; hold ambiguity. Never change balances/enable workers. Withdrawal helpers disable purchase gates; reads mirror them.
 - Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 
 - Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
