@@ -1,4 +1,5 @@
 import grandFleetDeck from './assets/grand-fleet-deck.jpg';
+import { pirateHeroImage } from './pirateHeroArt';
 import grandFleetEmblem from './assets/grand-fleet-emblem.png';
 export const grandFleetArt = { deck: grandFleetDeck, emblem: grandFleetEmblem };
 import pirateDuelDeck from './assets/pirate-duel-deck.jpg';
@@ -121,6 +122,8 @@ export const arenaCrewArt = { deckblade: arenaDeckblade, starshot: arenaStarshot
 /** Match voyage identity to a grounded cosmetic pose, never arbitrary catalog art. */
 export function arenaCrewImage(hero: { image?: string; rarity: string }): string {
   const image = hero.image ?? '';
+  const pirate = pirateHeroImage(image);
+  if (pirate) return pirate;
   const keys = Object.keys(arenaCrewArt) as Array<keyof typeof arenaCrewArt>;
   const key = keys.find(candidate => image === voyageHeroArt[candidate] || image.includes(`/new-voyage/heroes/${candidate}.`));
   if (key) return arenaCrewArt[key];

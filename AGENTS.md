@@ -8,7 +8,7 @@
 - CrewDeck uses grounded poses on the deck; roles are cosmetic, XP read-only, equipment server-owned; omit fusion/inventory and invented powers.
 - Align Clan Hall hotspot to centered-cover village geometry for accurate taps at every viewport; no separate card.
 - Recruitment rolls share advertised effective server odds, never hidden rates; independent draws have no pity. UI preserves prices/payment callbacks.
-- Normalize creature/equipment art at the API boundary with voyageArtReplacement and pirateEquipmentArt; stable kinds resolve art only, never ownership/stats.
+- Resolve hero art by catalog key via pirateHeroArt across API, deck and arena, never by rarity; enforce catalog rarity on owned writes. Equipment art stays cosmetic.
 - Separate display branding from persistent IDs, Telegram handles, mission hashtags and payment memos; preserve sessions, rewards and transfers.
 - Profile uses gameAssets, semantic CSS and container-responsive character/journal layouts for Telegram; preserve server-owned profile, pass and channel-reward callbacks.
 - MarketPulseView is read-only; label illustrations, never infer global sales from personal history.

@@ -1,4 +1,5 @@
 import { voyageHeroArt } from './voyageArt';
+import { pirateHeroImage } from './pirateHeroArt';
 
 export type HeroRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'ancestral' | 'nft_exclusive' | 'celestial';
 
@@ -43,7 +44,7 @@ export const HERO_CATALOG: ShopHero[] = [
   { id: 'legendary-3', name: 'Rei Titã', rarity: 'legendary', image: shop('legendary-3') },
   { id: 'legendary-4', name: 'Imperatriz Lunar', rarity: 'legendary', image: shop('legendary-4') },
   { id: 'legendary-5', name: 'Imperador da Forja', rarity: 'legendary', image: shop('legendary-5') }
-];
+].map(hero => ({ ...hero, rarity: hero.rarity as HeroRarity, image: pirateHeroImage(hero.id) ?? hero.image }));
 
 // Ancestral heroes are event/admin exclusive: they never appear in the recruit odds.
 export const RARITY_ODDS: Array<{ rarity: HeroRarity; chance: number }> = [
