@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Arena sem monstro antes de equipar; depois exibe só o chefe oficial por chave do ciclo, sem Kraken provisório. Contra-ataque limitado no servidor a 35% da vida máxima, preservando mitigação, KO posterior e recompensas; migração 0135 aplicada. 33 testes passaram; cena isolada confirmou seleção e troca de chefe, imagens carregadas e compilação OK. Fórmula oficial conferida sem modificar jogadores.
+- [ ] Confirmar seleção e contra-ataques com equipe real no Telegram; bloqueio: aparelho e sessão Telegram assinada indisponíveis, publicação frontend não solicitada.
+
 - [x] Grand Line complementada com baús compartilhados: geração segura, posições oficiais, coleta atômica única, inventário persistente, probabilidades anunciadas e histórico. Migrações 0133/0134 aplicadas; game-api/admin-bot implantados. Administração protegida via /ocean configura regiões, eventos, limites, tabelas e recuperação de materiais de equipamentos do oceano.
 - [x] Vinte e dois testes passaram; PostgreSQL isolado validou dois jogadores concorrentes, repetição, mascote/equipamento persistentes, recuperação única, orçamento e reconexão. Cena isolada confirmou aproximação, oito probabilidades, prêmio 0,001 TON em análise, diário e suspensão; nenhuma recompensa real concedida. Produção confirmou RPCs privadas e rejeição 401 sem Telegram.
 - [ ] Aprovar financiamento real e fluxo auditado de comprovação/registro de pagamento antes de ativar TON: verba inicial zero, nenhuma carteira/saldo/worker financeiro alterado; sem alternativa administrativa explícita, emissão suspensa. Validar ponta a ponta no Telegram físico e reinicialização real do backend; cena simulada e novas conexões SQL não substituem esses testes.

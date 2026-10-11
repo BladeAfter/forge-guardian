@@ -946,6 +946,13 @@
       "when": 1791751828443,
       "tag": "0134_ocean_chest_request_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 135,
+      "version": "7",
+      "when": 1791752506287,
+      "tag": "0135_kraken_counterattack_survival",
+      "breakpoints": true
     }
   ]
 }

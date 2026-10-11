@@ -116,6 +116,9 @@ export const calculateHeroMaxHp = (baseHp: number, level: number) =>
   Math.round(Math.max(0, baseHp) * (1 + (Math.max(1, level) - 1) * .05));
 export const calculateBossDamageToHero = (attack: number, rarity?: string | null) =>
   Math.max(1, Math.round(Math.max(0, attack) * RARITY_DAMAGE_RESISTANCE[normalizeRarity(rarity)]));
+/** Display/test mirror only; official combat remains server-owned. */
+export const calculateKrakenDamageToHero = (attack: number, rarity: string, maxHp: number) =>
+  Math.min(calculateBossDamageToHero(attack, rarity), Math.max(1, Math.floor(Math.max(0, maxHp) * .35)));
 export const calculateTeamDamagePerCycle = (heroes: CombatHero[]) =>
   Number(heroes.filter((hero) => hero.isAlive).reduce((sum, hero) => sum + calculateHeroAttack(hero.baseAtk, hero.level), 0).toFixed(3));
 export const calculateRarityEstimatedDuration = (heroes: CombatHero[]) =>
@@ -144,7 +147,7 @@ export function applyHeroCycle(bossHp:number, heroes:CombatHero[]){
   const damage=calculateTeamDamagePerCycle(heroes); return {damage:Math.min(Math.max(0,bossHp),damage),bossHp:clampHp(bossHp-damage,bossHp)};
 }
 export function applyBossHit(heroes:CombatHero[],bossAttack:number,targetId:string,at:number){
-  return heroes.map(hero=>{if(hero.id!==targetId||!hero.isAlive)return hero;const hp=Math.max(0,hero.currentHp-calculateBossDamageToHero(bossAttack,hero.rarity));return {...hero,currentHp:hp,isAlive:hp>0,knockedOutAt:hp?null:new Date(at).toISOString(),reviveAt:hp?null:new Date(at+HERO_REVIVE_SECONDS*1000).toISOString()}});
+  return heroes.map(hero=>{if(hero.id!==targetId||!hero.isAlive)return hero;const hp=Math.max(0,hero.currentHp-calculateKrakenDamageToHero(bossAttack,hero.rarity,hero.maxHp));return {...hero,currentHp:hp,isAlive:hp>0,knockedOutAt:hp?null:new Date(at).toISOString(),reviveAt:hp?null:new Date(at+HERO_REVIVE_SECONDS*1000).toISOString()}});
 }
 export function reviveDueHeroes(heroes:CombatHero[],at:number){
   return heroes.map(hero=>!hero.isAlive&&hero.reviveAt&&new Date(hero.reviveAt).getTime()<=at?{...hero,currentHp:hero.maxHp,isAlive:true,knockedOutAt:null,reviveAt:null}:hero);
