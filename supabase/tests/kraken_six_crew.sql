@@ -1,4 +1,6 @@
 BEGIN;
+UPDATE public.global_boss_cycles SET ends_at=now()+interval '1 day' WHERE status='active';
+UPDATE public.boss_templates SET ends_at=now()+interval '1 day' WHERE active;
 -- Exercise authoritative combat inside a rollback: no persistent player or balance changes.
 DO $test$
 DECLARE u uuid; tg bigint; ids uuid[]; c uuid; before_damage numeric; after_damage numeric;
