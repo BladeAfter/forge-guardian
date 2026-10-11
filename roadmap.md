@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Tripulantes com poses apoiadas no convés e sem movimento vertical artificial; cinco seleções, ficha e saída conferidas em cena isolada de 360 px. Sete artes IA para espada, machado, arco, bastão, cetro, armadura e anel aplicadas por tipo oficial também aos equipamentos legados; atributos preservados. Chances ocultas divergentes removidas do sorteio: agora usa exatamente os percentuais anunciados (50/18/17/9/4,5/1,5%). Migração 0124 aplicada, teste SQL sem compras/saldos e 14 testes passaram; Telegram real não disponível.
+
 - [x] Porto: quatro atalhos simétricos por borda, arte existente com moldura náutica única e centro livre; oito callbacks, HUD, navegação e entrada da Grand Fleet preservados. Cena isolada conferida em 360/480 px e altura reduzida: tamanhos iguais, espaçamento uniforme e oito acessos acionados; Telegram físico não verificado.
 
 - [x] Grand Fleet: identidade pirata anime, artes próprias, painel e vocabulário de frota; bônus adicional de 5% de BERRIES/materiais de gameplay ao líder, sem descontar da tripulação. Migrações e game-api implantados; ledger privado, fontes permanentes e exclusão de TON, depósitos, compras, presentes, transferências e passe pago. Teste SQL revertido validou crédito, repetição e exclusões; 239 testes passaram. Painel, membros, confirmação/cancelamento de saída e largura móvel conferidos com respostas simuladas, sem erros de console ou rolagem lateral.

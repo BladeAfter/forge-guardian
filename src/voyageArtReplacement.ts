@@ -1,5 +1,6 @@
 import { voyageHeroArt, voyagePetArt } from './voyageArt';
 import { mascotChestImage } from './gameAssets';
+import { pirateEquipmentImage } from './pirateEquipmentArt';
 
 const petImages = Object.values(voyagePetArt);
 const heroImages = Object.values(voyageHeroArt);
@@ -11,6 +12,8 @@ const stableIndex = (key: string, length: number) => {
 
 /** Legacy creature and mascot-container artwork only; gameplay values are untouched. */
 export function replaceVoyageImage(image: string): string {
+  const equipment = pirateEquipmentImage(image);
+  if (equipment) return equipment;
   if (/\/pet-eggs\/|\/veteran\/egg-|\/pets-sub-nft\/sub-egg|season-1-mythic-egg/i.test(image)) return mascotChestImage(image);
   if (image.includes('/new-voyage/')) return image;
   const kind = /\/(?:pets(?:-[^/]*)?|pet-images)\//.test(image) ? 'pet'
@@ -25,8 +28,12 @@ export function replaceVoyageImage(image: string): string {
 export function replaceLegacyCreatureArt(payload: unknown): unknown {
   if (Array.isArray(payload)) return payload.map(replaceLegacyCreatureArt);
   if (!payload || typeof payload !== 'object') return payload;
+  const record = payload as Record<string, unknown>;
+  const kind = typeof record.kind === 'string' ? record.kind : record.slot === 'armor' || record.slot === 'ring' ? record.slot : null;
+  const equipment = pirateEquipmentImage(String(record.code ?? record.itemId ?? ''))
+    ?? (kind ? pirateEquipmentImage(`eq_${kind}_common_1`) : null);
   return Object.fromEntries(Object.entries(payload).map(([key, value]) => [key,
     typeof value === 'string' && /^(image|imageUrl|image_url|battle_image|image_.*_url)$/.test(key)
-      ? replaceVoyageImage(value) : replaceLegacyCreatureArt(value),
+      ? equipment ?? replaceVoyageImage(value) : replaceLegacyCreatureArt(value),
   ]));
 }
