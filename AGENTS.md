@@ -21,11 +21,11 @@
 - Gate launch server-side by signed admin/tester IDs; tester access never grants admin. Lazy-mount after mobile Telegram auth; device signals aren't attestation. Bind inviter atomically from signed data/bot; rank verified arrivals; no prelaunch referral rewards.
 
 - Scope PvP to `seas-duels` and `gameAssets.ts`; preserve server-owned teams, tickets and battle callbacks.
-- Kraken: six owned slots, no fixed captain; monster after equip, art by cycle key. Server caps hits by max HP; snapshot ranked pools, share one quote across UI/settlement, hold TON privately for review; observer preserves manual ticks, auto keeps processor. Variants share cooldown; confirmed damage only.
+- Kraken: six owned slots, no fixed captain; monster after equip, art by cycle key. Cap hits by max HP; snapshot pools, share rank quotes; hold TON for review; observer preserves manual ticks, auto keeps processor. Variants share cooldown; confirmed damage only.
 - Egg catalogs use gameAssets/MascotChestCard mysterious chests; preserve egg IDs, purchases, odds and settlement.
 - SeasonVoyageView uses shared art and semantic tokens; preserve official reward titles in details and server-owned prices, claims and reward types. Art cannot promise nonexistent ship/map utility.
 - Keep retired token/offer presentation separate from settlement and ownership for replay safety.
 - Translate literals through LanguageContext and locale catalogs; never mutate DOM text or persistent IDs.
 - ReferralDeckView preserves server links, rates and earnings.
 
-- Scope Grand Fleet to semantic tokens/gameAssets; resolve emblems by stored symbol so choices stay distinct. Preserve IDs, membership and anti-hopping. Leader bonuses use atomic settlement/private idempotent records; source allowlists exclude payments, transfers and recursive bonus income.
+- Scope Grand Fleet to semantic tokens/gameAssets; resolve emblems by stored symbol so choices stay distinct. Preserve IDs/membership/anti-hopping. Leader bonuses use atomic settlement/private idempotent records; source allowlists exclude payments, transfers and recursive bonus income.
