@@ -14,16 +14,15 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
   const wake = useRef<(() => void) | null>(null);
   const apply = (next: NavalState) => { current.current = next; if(mounted.current) { setData(next);setError(''); } };
   useEffect(() => {
-    mounted.current = true; let cancelled = false, scheduled = false;
+    mounted.current = true; let cancelled = false, urgent = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const schedule = (delay: number) => {
       if (cancelled) return;
       clearTimeout(timer);
-      scheduled = true;
       timer = setTimeout(tick, delay);
     };
     const tick = async () => {
-      scheduled = false;
+      urgent = false;
       if(cancelled || !initData) return;
       const started = performance.now();
       if(!locked.current && !document.hidden) {
@@ -37,10 +36,10 @@ export function useNavalOcean(initData: string, direction: () => NavalInput) {
       if(!cancelled) schedule(pending.current.length ? 0 : Math.max(0, (current.current ? 650 : 5000) - (performance.now() - started)));
     };
     wake.current = () => {
-      if(cancelled || locked.current) return;
+      if(cancelled || locked.current || urgent) return;
       // Do not let successive drag events keep postponing an urgent send.
-      if (scheduled) clearTimeout(timer);
-      if (!scheduled || timer !== undefined) { schedule(0); }
+      urgent = true;
+      schedule(0);
     };
     const resume = () => { if(!document.hidden) wake.current?.(); };
     document.addEventListener('visibilitychange',resume);

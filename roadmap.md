@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Joystick Telegram: reduzir espera adicional por rede; conferir toque com latência móvel e validar no aplicativo real.
+
 - [x] Tutorial PT-BR v3 entregue: 67,74 s horizontal 1920×1080, música sem narração; navegação/exploração originais e captura de combate simulado, navios parados durante disparos, etapas internas pulam 1→3 por corte de aviso antigo. Mídia portuguesa registrada e game-bot implantado; 11 testes passaram. Enviado ao @MythicSeasChat mensagem 301 e administrador mensagem 21; novo fixado, antiga mensagem 299 excluída e fixação confirmada. Outros idiomas preservados; coleção atualizada; nenhuma movimentação de bens reais.
 
 - [x] Gravação de combate naval simulado entregue: 27 s vertical 1080×1920 com áudio sintetizado sem narração; captura da UI real com respostas locais roteirizadas, tiros/vida/impactos sobrepostos e navios parados durante os disparos. Movimento e quadros revisados, zero chamadas externas e nenhum saldo alterado; PvP real permanece desativado.
