@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Corrigir navegação contínua ao segurar joystick no Telegram e saltos em gestos rápidos; preservar poses e velocidade oficiais, verificar fluidez da água.
+
 - [x] @GuilhermeVision: acesso antecipado pelo ID Telegram assinado, sem admin; game-api implantada, cinco testes passaram e presente auditado de 100.000 BERRIES executado.
 - [x] ID 7411228057: acesso antecipado sem admin implantado; conta criada do registro Telegram verificado, presente auditado de 100.000 BERRIES executado e cinco testes de acesso passaram.
 
