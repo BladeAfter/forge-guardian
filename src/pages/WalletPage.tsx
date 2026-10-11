@@ -3,7 +3,7 @@ import { useLocalizedText } from '../LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Archive, Gift, Wallet } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock3, Coins, Gift, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GameState, LanguageStrings } from '../types';
 import type { LanguageCode } from '../i18n';
@@ -20,8 +20,6 @@ import { usePetDashboard, useTonWallet, useWalletSummary } from '../hooks';
 import { encodeCommentPayload } from '../tonComment';
 import { useLanguage, useT } from '../LanguageContext';
 import { sendTonPayment } from '../tonPayment';
-import { MascotChestCard } from '../components/MascotChestCard';
-import { OceanControl } from '../components/OceanControl';
 import { useItemName } from '../itemNames';
 
 
@@ -69,7 +67,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [reveal, setReveal] = useState<{ result: EggRevealResult; eggImage: string } | null>(null);
   const recoveredRef = useRef(false);
-  const premiumEggs = useMemo(() => pets?.eggs.filter(egg => egg.priceTon && egg.isPurchasable && egg.priceTon !== 10) ?? [], [pets?.eggs]);
   // Backend recalcula tudo; aqui é apenas a estimativa transparente para o jogador.
   const feePercent = tonWallet?.feePercent ?? summary?.withdrawFeePercent ?? DEFAULT_WITHDRAW_FEE_PERCENT;
   const quote = useMemo(() => tonWithdrawalQuote(withdrawTon, feePercent), [withdrawTon, feePercent]);
@@ -386,12 +383,6 @@ export function WalletPage({ game, telegramInitData, connected, address, onConne
           </div>
         </div>
       ) : null}
-
-      {premiumEggs.length ? <Panel title={t('wallet.premiumEggs')} icon={<Archive />}>
-        <div className="grid grid-cols-2 gap-2">{premiumEggs.map(egg => <MascotChestCard key={egg.id} egg={{ ...egg, quantity: 0 }} pending={!connected || buyEgg.isPending} onOpen={() => undefined} onBuy={() => buyEgg.mutate({ id: egg.id, image: mascotChestImage(egg.slug) })} />)}</div>
-        <OceanControl onClick={() => reconcile.mutate()} disabled={reconcile.isPending || buyEgg.isPending} className="mt-2 w-full">
-          {reconcile.isPending ? t('wallet.verifying') : t('wallet.receiveEgg')}
-        </OceanControl></Panel> : null}
 
       <Panel title={t('wallet.history')} icon={<Clock3 />}>
         <div className="max-h-72 space-y-2 overflow-y-auto">{summary?.history.length ? summary.history.map(item => <div key={`${item.type}-${item.id}`} className="flex items-start gap-2 rounded-xl bg-black/35 p-2"><Status status={item.status}/><div className="min-w-0 flex-1"><p className="break-words text-[10px] font-bold">{item.type === 'egg_order' ? `${itemName(cleanTonLabel(item.label)).toUpperCase()} · ${formatTon(Number(item.amountTon ?? 0))} TON` : cleanTonLabel(item.label)}</p>
