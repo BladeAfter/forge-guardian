@@ -2,7 +2,7 @@
 
 - [x] Gravação de combate naval simulado entregue: 27 s vertical 1080×1920 com áudio sintetizado sem narração; captura da UI real com respostas locais roteirizadas, tiros/vida/impactos sobrepostos e navios parados durante os disparos. Movimento e quadros revisados, zero chamadas externas e nenhum saldo alterado; PvP real permanece desativado.
 
-- [ ] Ativar combate naval real com saque de BERRIES do derrotado e materiais de melhoria do navio; aguarda definição de percentuais, teto de BERRIES e origem/quantidade dos materiais antes de permitir perdas reais. Simulação entregue separadamente.
+- [ ] Ativar combate naval real com 10% de BERRIES do derrotado, teto inicial conservador de 1.000 BERRIES, e materiais de melhoria já suportados (madeira e ferro), 5% limitado a 3 unidades por material; origem: derrotado. Não inventar utilidade naval para equipamentos/fragmentos. Simulação entregue separadamente.
 
 - [x] Tutorial v2 com trecho ilustrado de batalha naval enviado ao @MythicSeasChat (mensagem 299) e ao administrador pelo @MythicSeasbot (mensagem 17); nova publicação fixada e tutorial antigo (mensagem 4) excluído, com confirmação do Telegram. Envio por idioma no /start preservado.
 
