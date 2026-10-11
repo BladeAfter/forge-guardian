@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Corrigir desempenho no Telegram: auditar movimento/animação, loops, viewport e entradas; implementar qualidade adaptativa sem mudar velocidade, visual ou mecânicas; testar movimento prolongado, pausas e densidade alta. Confirmação física depende de aparelho Telegram real.
+
 - [x] Revisados 213 heróis e 69 mascotes cadastrados: nenhuma URL antiga nas imagens ou evoluções, nem raridades aposentadas; cinco artes base de heróis e oito de mascotes já são piratas, preservadas. Criadas cinco artes IA transparentes padronizadas (madeira, ferro, corda, pregos e tecido de vela), aplicadas ao estaleiro; madeira/ferro diferenciados no passe. Corda/pregos/tecido são apenas decoração, sem inventar materiais econômicos. Imagens, quantidades e callback de reparo conferidos em cena isolada; teste no Telegram real indisponível.
 
 - [x] Cinco espaços oficiais com ícones de adicionar, toque ampliado e seleção acima da arena; convites renovados como convés Mythic Seas com faixas náuticas. Seleção dos cinco piratas e copiar/compartilhar conferidos com respostas locais, 24 testes passaram; equipe, links e comissões oficiais preservados.
