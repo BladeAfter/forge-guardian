@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Auditar desempenho e corrigir avanço acumulado da física após pausas, unificar navegação/desenho do oceano, suavizar personagem/câmera, reutilizar imagens/ilhas e adaptar efeitos por tempo medido. Altura estável do Telegram sem mudar mundo; controles limpos ao cancelar. 26 testes passaram; caminhada por dois minutos, direções/solturas repetidas, pausa de 1,5 s, retorno de visibilidade e densidade 3x conferidos em cenas isoladas. Compilação OK; sem chamadas de jogo ou alteração de bens.
+- [ ] Confirmar fluidez no Telegram em celular físico intermediário, orientação real e várias entidades com sessão assinada; bloqueio: aparelho/sessão Telegram física indisponível. Atualização ainda não publicada.
+
 - [x] Revisados 213 heróis e 69 mascotes cadastrados: nenhuma URL antiga nas imagens ou evoluções, nem raridades aposentadas; cinco artes base de heróis e oito de mascotes já são piratas, preservadas. Criadas cinco artes IA transparentes padronizadas (madeira, ferro, corda, pregos e tecido de vela), aplicadas ao estaleiro; madeira/ferro diferenciados no passe. Corda/pregos/tecido são apenas decoração, sem inventar materiais econômicos. Imagens, quantidades e callback de reparo conferidos em cena isolada; teste no Telegram real indisponível.
 
 - [x] Cinco espaços oficiais com ícones de adicionar, toque ampliado e seleção acima da arena; convites renovados como convés Mythic Seas com faixas náuticas. Seleção dos cinco piratas e copiar/compartilhar conferidos com respostas locais, 24 testes passaram; equipe, links e comissões oficiais preservados.

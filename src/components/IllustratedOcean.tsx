@@ -4,57 +4,71 @@ import { grandLineArt, navalArt } from '../gameAssets';
 import { SEA_CHUNK, SEA_ISLANDS, seaIslandsAround, type SeaPoint } from '../grandLineNavigation';
 import { DEFAULT_SHIP, type NavalState } from '../naval';
 import { drawNavalShip, navalPalette } from '../navalRendering';
-import { drawOpenWater, islandArtDiameter, islandBitmap } from '../oceanPresentation';
+import { drawOpenWater, islandArtDiameter, islandBitmap, oceanImage } from '../oceanPresentation';
+import { qualityMonitor, qualitySettings } from '../gamePerformance';
 
 type Pose = { position: SeaPoint; camera: SeaPoint; scale: number; heading: number; moving: boolean };
 /** Single lightweight bitmap canvas; simulation and official naval actions stay outside. */
-export default function IllustratedOcean({ pose, network, wide, canvasRef, onSail, onSelect }: {
+export default function IllustratedOcean({ pose, network, wide, canvasRef, drawRef, onSail, onSelect }: {
   pose: MutableRefObject<Pose>; network: MutableRefObject<NavalState | null>; wide: MutableRefObject<boolean>;
   canvasRef: RefObject<HTMLCanvasElement>; onSail: (point: SeaPoint) => void; onSelect: (id: string) => void;
+  drawRef: MutableRefObject<((time: number, delta: number) => void) | null>;
 }) {
   const localizeText = useLocalizedText();
 
   useEffect(() => {
     const canvas = canvasRef.current, ctx = canvas?.getContext('2d', { alpha: false });
     if (!canvas || !ctx) return;
-    let frame = 0, last = 0;
-    const ocean = new Image(), water = new Image(), fleet = new Image();
+    let last = 0, resolution = 1;
+    const monitor = qualityMonitor();
+    let chunk = '', islandTime = 0, visibleIslands: ReturnType<typeof seaIslandsAround> = [];
+    const ocean = oceanImage(grandLineArt.ocean), water = oceanImage(grandLineArt.water), fleet = oceanImage(navalArt.fleet);
     const islandTiles: HTMLCanvasElement[] = [];
-    ocean.onload = () => {
+    const prepare = () => {
       SEA_ISLANDS.forEach((island, templateIndex) => {
         islandTiles[templateIndex] = islandBitmap(ocean, { ...island, id: `home:${templateIndex}`, templateIndex, procedural: false });
       });
     };
-    ocean.src = grandLineArt.ocean; water.src = grandLineArt.water; fleet.src = navalArt.fleet;
+    if (ocean.complete && ocean.naturalWidth) prepare(); else ocean.addEventListener('load', prepare);
     const palette = navalPalette(canvas);
-    const resize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; };
+    const resize = () => {
+      const width = Math.max(1, Math.round(canvas.clientWidth * resolution)), height = Math.max(1, Math.round(canvas.clientHeight * resolution));
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    };
     const observer = new ResizeObserver(resize); observer.observe(canvas); resize();
-    const render = (time: number) => {
-      frame = requestAnimationFrame(render);
-      if (document.hidden || time - last < 33) return;
+    const render = (time: number, delta: number) => {
+      const settings = qualitySettings[monitor.sample(delta)];
+      if (resolution !== settings.resolution) { resolution = settings.resolution; resize(); }
+      const s = pose.current, scale = wide.current ? .32 : Math.min(.8, Math.max(.48, canvas.clientWidth / 660));
+      s.scale = scale; const blend = 1 - Math.exp(-3.84 * delta);
+      s.camera.x += (s.position.x - s.camera.x) * blend; s.camera.y += (s.position.y - s.camera.y) * blend;
+      if (document.hidden || time - last < (monitor.quality === 'low' ? 33 : 16)) return;
       last = time;
-      const s = pose.current, scale = wide.current ? .32 : Math.min(.8, Math.max(.48, canvas.width / 660));
-      s.scale = scale; s.camera.x += (s.position.x - s.camera.x) * .12; s.camera.y += (s.position.y - s.camera.y) * .12;
-      const w = canvas.width, h = canvas.height;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.setTransform(resolution, 0, 0, resolution, 0, 0);
       ctx.fillStyle = palette.vitality; ctx.fillRect(0, 0, w, h);
       ctx.save(); ctx.translate(w / 2, h * .58); ctx.scale(scale, scale); ctx.translate(-s.camera.x, -s.camera.y);
       if (water.complete && water.naturalWidth) drawOpenWater(ctx, water, s.camera, w / scale, h / scale);
-      for (const island of seaIslandsAround(s.position, 1)) {
+      const nextChunk = `${Math.floor(s.position.x / SEA_CHUNK)}:${Math.floor(s.position.y / SEA_CHUNK)}`;
+      if (chunk !== nextChunk || time - islandTime > 250) { chunk = nextChunk; islandTime = time; visibleIslands = seaIslandsAround(s.position, 1); }
+      for (const island of visibleIslands) {
         const tile = islandTiles[island.templateIndex];
         const diameter = islandArtDiameter(island.radius);
         if (!tile || Math.abs(island.center.x - s.camera.x) > w / scale + diameter || Math.abs(island.center.y - s.camera.y) > h / scale + diameter) continue;
         ctx.drawImage(tile, island.center.x - diameter / 2, island.center.y - diameter / 2, diameter, diameter);
       }
       const live = network.current;
-      canvas.dataset.players = String(live ? 1 + live.others.length : 0);
-      for (const ship of live?.others ?? []) drawNavalShip(ctx, fleet, ship, palette, time);
-      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, time, 170);
+      for (const ship of live?.others ?? []) {
+        if (Math.abs(ship.x - s.camera.x) > w / scale / 2 + 250 || Math.abs(ship.y - s.camera.y) > h / scale + 250) continue;
+        drawNavalShip(ctx, fleet, ship, palette, time, undefined, settings.wake);
+      }
+      drawNavalShip(ctx, fleet, { ...(live?.ship ?? DEFAULT_SHIP), x: s.position.x, y: s.position.y, heading: s.heading, throttle: s.moving ? 1 : 0 }, palette, time, 170, settings.wake);
       ctx.restore();
-      canvas.dataset.chunk = `${Math.floor(s.position.x / SEA_CHUNK)}:${Math.floor(s.position.y / SEA_CHUNK)}`;
     };
-    frame = requestAnimationFrame(render);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); ocean.onload = null; };
-  }, [canvasRef, network, pose, wide]);
+    drawRef.current = render;
+    return () => { drawRef.current = null; observer.disconnect(); ocean.removeEventListener('load', prepare); islandTiles.length = 0; };
+  }, [canvasRef, network, pose, wide, drawRef]);
   return <canvas ref={canvasRef} role="img" aria-label={localizeText("Oceano da Grand Line")} data-renderer="illustrated-2d" onClick={event => {
     const canvas = event.currentTarget, rect = canvas.getBoundingClientRect(), s = pose.current;
     const point = { x: s.camera.x + (event.clientX - rect.left - rect.width / 2) / s.scale, y: s.camera.y + (event.clientY - rect.top - rect.height * .58) / s.scale };

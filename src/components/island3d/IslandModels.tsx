@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { islandModels } from '../../gameAssets';
 import { HARBOR, islandHeight, type IslandMotion } from '../../island3dWorld';
 import type { IslandPalette } from './IslandTerrain';
+import { frameDelta } from '../../gamePerformance';
 
 export function IslandProp({ model, x, z, scale = 1, y, rotation = 0, collider = 'hull', wind = false, open = false }: { model: keyof typeof islandModels; x: number; z: number; scale?: number; y?: number; rotation?: number; collider?: 'hull' | 'trimesh' | 'tree' | 'none'; wind?: boolean; open?: boolean }) {
   const { scene } = useGLTF(islandModels[model]);
@@ -19,7 +20,8 @@ export function IslandProp({ model, x, z, scale = 1, y, rotation = 0, collider =
   const lid = useRef<THREE.Object3D | null>(null);
   useEffect(() => { lid.current = object.getObjectByName('lid') ?? null; }, [object]);
   useFrame(({ clock }, rawDelta) => {
-    const dt = Math.min(rawDelta, .05);
+    if (document.hidden) return;
+    const dt = frameDelta(rawDelta);
     if (wind && group.current) group.current.rotation.z = Math.sin(clock.elapsedTime * .8 + x) * .012;
     if (lid.current && model === 'chest') lid.current.rotation.x += ((open ? -1.2 : 0) - lid.current.rotation.x) * (1 - Math.exp(-5 * dt));
   });
@@ -82,7 +84,8 @@ export function IslandPirate({ style, motion, speed, palette }: { style: 'male' 
   const previous = useRef('');
   useEffect(() => () => { mixer.stopAllAction(); mixer.uncacheRoot(object); }, [mixer, object]);
   useFrame((_, rawDelta) => {
-    const dt = Math.min(rawDelta, .05), name = clips[motion.current], action = actions[name];
+    if (document.hidden) return;
+    const dt = frameDelta(rawDelta), name = clips[motion.current], action = actions[name];
     if (action && previous.current !== name) {
       actions[previous.current]?.fadeOut(.14);
       action.reset().fadeIn(.14).play(); previous.current = name;

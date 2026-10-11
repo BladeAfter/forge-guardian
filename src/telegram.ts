@@ -11,6 +11,10 @@ export type TelegramUser = {
 export type TelegramWebApp = {
   initData: string;
   platform?: string;
+  viewportHeight?: number;
+  viewportStableHeight?: number;
+  onEvent?: (event: 'viewportChanged', callback: (event?: { isStateStable?: boolean }) => void) => void;
+  offEvent?: (event: 'viewportChanged', callback: (event?: { isStateStable?: boolean }) => void) => void;
   initDataUnsafe?: { user?: TelegramUser; start_param?: string };
   ready: () => void;
   expand: () => void;

@@ -6,7 +6,7 @@ export function navalPalette(element: Element): NavalPalette {
   const color = (token: string) => `hsl(${css.getPropertyValue(token).trim()})`;
   return { foam: color('--ocean-foam'), gold: color('--ocean-gold'), ink: color('--ocean-shadow'), vitality: color('--ocean-vitality'), ember: color('--pirate-red'), filters: Object.fromEntries(['black','inferno','deep','storm','reaper','king'].map(k => [k, css.getPropertyValue(`--naval-filter-${k}`).trim() || 'none'])) };
 }
-export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, ship: NavalShip, palette: NavalPalette, time: number, sizeOverride?: number) {
+export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageElement, ship: NavalShip, palette: NavalPalette, time: number, sizeOverride?: number, wakeCount = 6) {
   const index = Math.max(0, SHIP_MODELS.findIndex(m => m.id === ship.model));
   const size = sizeOverride ?? SHIP_MODELS[index].size;
   const cosmetics = ship.cosmetics ?? DEFAULT_SHIP.cosmetics;
@@ -20,8 +20,8 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
   if (ship.throttle > 0) {
     ctx.strokeStyle = cosmetics.trail === 'embers' ? palette.ember : cosmetics.trail === 'mist' ? palette.vitality : palette.foam;
     ctx.globalAlpha = .55; ctx.lineWidth = cosmetics.trail === 'mist' ? 8 : 3;
-    for (let i = 0; i < 6; i++) {
-      const phase = ((time / 700 + i / 6) % 1);
+    for (let i = 0; i < wakeCount; i++) {
+      const phase = ((time / 700 + i / wakeCount) % 1);
       ctx.globalAlpha = (1 - phase) * .6;
       ctx.beginPath(); ctx.ellipse(0, size * (.4 + phase * .85), size * (.13 + phase * .2), size * .06, 0, 0, Math.PI); ctx.stroke();
     }

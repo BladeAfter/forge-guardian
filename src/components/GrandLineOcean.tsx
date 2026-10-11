@@ -11,12 +11,17 @@ import { OceanControl } from './OceanControl';
 import { approachApprovedPose } from '../navalMotion';
 import { captureTelegramGameGestures } from '../telegram';
 import NavalMiniMap from './NavalMiniMap';
+import { frameDelta, frameDiagnostics } from '../gamePerformance';
+import { useGameViewport } from '../useGameViewport';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
   const localizeText = useLocalizedText();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const host = useRef<HTMLElement>(null);
+  useGameViewport(host);
+  const drawRef = useRef<((time: number, delta: number) => void) | null>(null);
   const joystickKnob = useRef<HTMLSpanElement>(null);
   const joystickPointer = useRef<number | null>(null);
   const joystickVector = useRef({ x: 0, y: 0 });
@@ -70,16 +75,22 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   useEffect(() => {
     // Bitmap rendering is separate from authoritative navigation and HUD.
     let frame = 0; let previous = 0; let uiTime = 0;
+    const diagnose = frameDiagnostics('ocean');
 
     const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
-    const visibility = () => { if (document.hidden) clear(); };
+    const visibility = () => {
+      previous = 0; cancelAnimationFrame(frame); frame = 0;
+      if (document.hidden) clear(); else frame = requestAnimationFrame(render);
+    };
     window.addEventListener('keydown', keydown); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
     document.addEventListener('visibilitychange', visibility);
     const render = (time: number) => {
-      const dt = Math.min((time - (previous || time)) / 1000, .05); previous = time;
-      if (document.hidden) { frame = requestAnimationFrame(render); return; }
+      const rawDelta = (time - (previous || time)) / 1000;
+      const dt = frameDelta(rawDelta); previous = time;
+      if (document.hidden) return;
+      const started = performance.now();
       const s = state.current; const k = s.keys;
       const dx = yardRef.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
       const dy = yardRef.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
@@ -109,7 +120,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       }
       if (time - uiTime > 180) {
         uiTime = time; setSpeed(live ? Math.round(8 * live.ship.throttle) : Math.round(Math.hypot(s.velocity.x, s.velocity.y) / 122 * 8));
-        setNearby(seaIslandsAround(s.position, 1).find(i => seaDistance(s.position, i.dock) < 190) ?? null);
+        const nextNearby = seaIslandsAround(s.position, 1).find(i => seaDistance(s.position, i.dock) < 190) ?? null;
+        setNearby(old => old?.id === nextNearby?.id ? old : nextNearby);
         const canvas = canvasRef.current;
         if (!canvas) { frame=requestAnimationFrame(render);return; }
         canvas.dataset.shipX = s.position.x.toFixed(0); canvas.dataset.shipY = s.position.y.toFixed(0);
@@ -118,6 +130,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         if (!bottleFoundRef.current && seaDistance(s.position, {x:1850,y:1470}) < 80) { bottleFoundRef.current = true; setBottleFound(true); setMessage('Uma garrafa! “Na selva, procure a praia a leste da caverna.”'); }
         if (bottleFoundRef.current && !secretFoundRef.current && seaDistance(s.position, {x:1090,y:1450}) < 80) { secretFoundRef.current = true; setSecretFound(true); setMessage('Passagem secreta descoberta — Selva dos Segredos.'); }
       }
+      drawRef.current?.(time, dt);
+      diagnose(rawDelta, performance.now() - started, 1 + (currentNetwork.current?.others.length ?? 0));
       frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);
@@ -143,8 +157,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     if (distance < 6) state.current.target = { ...state.current.position };
     if (joystickKnob.current) joystickKnob.current.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
   };
-  return <section className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
-    <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
+  return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
+    <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
     <header className="ocean-hud">
       <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title={localizeText("Voltar ao porto")} aria-label={localizeText("Voltar ao porto")}><ArrowLeft size={20} /></OceanControl>
       <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{localizeText("GRAND LINE")}</h1></div>

@@ -15,6 +15,7 @@ import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain'
 import { clearEncounterPoint, ISLAND_MAP } from '../illustratedIslandWorld';
 import { hasTreasureMap, treasureIsRevealed } from '../islandTreasure';
 import { captureTelegramGameGestures } from '../telegram';
+import { useGameViewport, useGameVisible } from '../useGameViewport';
 
 type Props = {
   ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
@@ -36,6 +37,8 @@ export default function IslandExploration(props: Props) {
   const { islandIndex, captainStyle, data, busy } = props;
   const island = SEA_ISLANDS[islandIndex] ?? SEA_ISLANDS[1];
   const host = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null);
+  useGameViewport(host);
+  const visible = useGameVisible();
   const input = useRef(newIslandInput()), pending = useRef(false);
   const mapCameraReady = useRef(false);
   if (!mapCameraReady.current) { input.current.yaw = 0; input.current.pitch = 1.15; input.current.zoom = ISLAND_MAP.cameraSpan; mapCameraReady.current = true; }
@@ -124,7 +127,7 @@ export default function IslandExploration(props: Props) {
       onPointerMove={e => { const p = pointer.current; if (!p || p.id !== e.pointerId) return; input.current.zoom = Math.max(18, Math.min(55, input.current.zoom + (e.clientY - p.y) * .04)); p.x = e.clientX; p.y = e.clientY; }}
       onPointerUp={() => { pointer.current = null; }} onPointerCancel={() => { pointer.current = null; }} onLostPointerCapture={() => { pointer.current = null; }}
       onWheel={e => { input.current.zoom = Math.max(18, Math.min(55, input.current.zoom + e.deltaY * .02)); }}>
-      {palette && <Canvas orthographic dpr={1} camera={{ position: [0, 65, 70], zoom: 20, near: .1, far: 350 }} gl={{ antialias: false, powerPreference: 'high-performance' }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
+      {palette && <Canvas frameloop={visible ? 'always' : 'demand'} orthographic dpr={1} camera={{ position: [0, 65, 70], zoom: 20, near: .1, far: 350 }} gl={{ antialias: false, powerPreference: 'high-performance' }}><IslandScene palette={palette} input={input} captainStyle={captainStyle} islandIndex={islandIndex} encounters={encounters} openChest={openChest} fighting={fighting} onTelemetry={report} onReturn={props.onReturn} /></Canvas>}
     </div>
     <header className="ocean-hud"><div className="ocean-brand"><span>{localizeText("MYTHIC SEAS · GRAND LINE")}</span><h1>{island.name}</h1></div><div className="ocean-berries"><img src={grandLineArt.berry} alt="" width={22} height={22} /><b>{Math.floor(data?.fc ?? 0).toLocaleString('pt-BR')}</b></div></header>
     <div className="ocean-instruments"><span><Footprints size={15} />{telemetry.phase === 'approaching' ? localizeText("Atracando") : telemetry.phase === 'deploying' ? 'Preparando passarela' : telemetry.phase === 'landing' ? 'Desembarcando' : telemetry.phase === 'boarding' ? 'Embarcando' : motionLabels[telemetry.motion]}</span>{activeRun && <span><Swords size={15} />{activeRun.hp} HP</span>}</div>
