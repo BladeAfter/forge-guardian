@@ -72,4 +72,24 @@
 .ship-fleet__modal { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: hsl(var(--ship-abyss) / .8); }
 .ship-fleet__modal > div { width: min(340px, 100%); padding: 16px; text-align: center; border-radius: 18px; background: hsl(var(--ship-panel)); border: 1px solid hsl(var(--ship-gold)); }
 .ship-fleet__modal img { width: 60%; }
+.ship-fleet__appearance-preview { display:block; width:min(100%,360px); aspect-ratio:6/5; height:auto; margin:0 auto; }
+.ship-fleet__customization { padding-bottom:16px; }
+.ship-fleet__customization fieldset { border:0; padding:12px 0; margin:0; border-bottom:1px solid hsl(var(--ship-line)/.25); }
+.ship-fleet__customization legend { font-size:12px; font-weight:700; color:hsl(var(--ship-gold)); }
+.ship-fleet__swatches { display:flex; flex-wrap:wrap; gap:6px; }
+.ship-fleet .ship-fleet__swatch { width:40px; height:40px; min-width:40px; min-height:40px; padding:0; border-radius:50%; color:hsl(var(--ship-color-white)); border:2px solid hsl(var(--ship-line)/.3); background:hsl(var(--ship-panel)); box-shadow:none; }
+.ship-fleet .ship-fleet__swatch[aria-pressed=true] { outline:2px solid hsl(var(--ship-gold)); outline-offset:2px; }
+.ship-fleet .ship-fleet__swatch--red { background:hsl(var(--ship-color-red)); }
+.ship-fleet .ship-fleet__swatch--blue { background:hsl(var(--ship-color-blue)); }
+.ship-fleet .ship-fleet__swatch--green { background:hsl(var(--ship-color-green)); }
+.ship-fleet .ship-fleet__swatch--gold { background:hsl(var(--ship-color-gold)); color:hsl(var(--ship-color-black)); }
+.ship-fleet .ship-fleet__swatch--black { background:hsl(var(--ship-color-black)); }
+.ship-fleet .ship-fleet__swatch--white { background:hsl(var(--ship-color-white)); color:hsl(var(--ship-color-black)); }
+.ship-fleet__style-selects { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.ship-fleet__style-selects label { min-width:0; font-size:11px; color:hsl(var(--ship-muted)); }
+.ship-fleet__style-selects select { display:block; margin-top:6px; width:100%; min-width:0; height:42px; border:1px solid hsl(var(--ship-line)/.4); border-radius:6px; padding:6px; background:hsl(var(--ship-panel)); color:hsl(var(--ship-ink)); }
+.ship-fleet__style-locked { text-align:center; color:hsl(var(--ship-muted)); padding:32px 16px; font-size:13px; display:grid; justify-items:center; gap:12px; }
+.ship-fleet__customization .ocean-control { letter-spacing:0; touch-action:manipulation; }
+.ship-fleet__customization .ship-fleet__primary { background:hsl(var(--ship-gold)); color:hsl(var(--ship-abyss)); }
+.ship-fleet__customization .ship-fleet__ghost { background:transparent; color:hsl(var(--ship-ink)); }
 @media (prefers-reduced-motion: reduce) { .ship-fleet *, .ship-fleet__fog { animation: none !important; } }

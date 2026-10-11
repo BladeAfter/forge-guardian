@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Personalização por navio comprado: cores do casco/velas/bandeira, emblema, proa, decoração e rastro salvos por classe; Grand Line compartilha renderização com cache de cores. Servidor bloqueia gratuito, não possuído e caminho legado. Migração 0131 e game-api implantadas; 11 testes e transação revertida passaram; UI isolada conferiu salvar/reabrir e bloqueio gratuito.
+- [ ] Confirmar personalização → salvar → Grand Line no Telegram real; bloqueio: sessão Telegram assinada e aparelho reais indisponíveis, publicação frontend não solicitada.
+
 - [x] Navios começam com 10 pontos; dois navios existentes receberam o crédito inicial uma única vez, preservando distribuições. Padrões de criação e incremento oficial de +5 por nível confirmados no servidor.
 
 - [x] Grand Line usa a arte da frota pelo class_id/active_class oficial, sem filtros legados sobre a classe escolhida; compras, atributos e navegação preservados. Sete testes passaram; três classes renderizadas em cena isolada, compilação OK.

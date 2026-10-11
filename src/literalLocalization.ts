@@ -3,9 +3,10 @@ import { TREASURE_TRANSLATIONS } from './locales/islandTreasure';
 import { ARENA_ACTION_TRANSLATIONS } from './locales/arenaActions';
 import type { LanguageCode } from './locales/registry';
 import { grandFleetLiteral } from './locales/grandFleetLiterals';
+import { shipCustomizationLiteral } from './locales/shipCustomization';
 
 export function localizeLiteral(language: LanguageCode, text: string): string {
-  const translation = grandFleetLiteral(language, text.trim()) ?? ARENA_ACTION_TRANSLATIONS[language]?.[text.trim()] ?? TREASURE_TRANSLATIONS[language][text.trim()] ?? LITERAL_TRANSLATIONS[language][text.trim()];
+  const translation = shipCustomizationLiteral(language, text.trim()) ?? grandFleetLiteral(language, text.trim()) ?? ARENA_ACTION_TRANSLATIONS[language]?.[text.trim()] ?? TREASURE_TRANSLATIONS[language][text.trim()] ?? LITERAL_TRANSLATIONS[language][text.trim()];
   if (!translation) return text;
   return `${text.match(/^\s*/)?.[0] ?? ''}${translation}${text.match(/\s*$/)?.[0] ?? ''}`;
 }

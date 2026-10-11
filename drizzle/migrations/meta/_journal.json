@@ -918,6 +918,13 @@
       "when": 1791742853720,
       "tag": "0130_naval_ship_initial_attribute_points",
       "breakpoints": true
+    },
+    {
+      "idx": 131,
+      "version": "7",
+      "when": 1791743105753,
+      "tag": "0131_purchased_ship_customization",
+      "breakpoints": true
     }
   ]
 }

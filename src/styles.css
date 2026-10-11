@@ -34,6 +34,12 @@
 
 :root {
   color-scheme: dark;
+  --ship-color-red: 358 69% 50%;
+  --ship-color-blue: 204 75% 42%;
+  --ship-color-green: 160 60% 34%;
+  --ship-color-gold: 43 85% 60%;
+  --ship-color-black: 210 25% 14%;
+  --ship-color-white: 180 25% 92%;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   --forge-black: 207 61% 10%;
   --forge-surface: 207 48% 16%;

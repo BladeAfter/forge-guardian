@@ -3,11 +3,15 @@ import { forgeFetch } from '../apiClient';
 import { fleetShipArt } from '../gameAssets';
 import { useLocalizedText } from '../LanguageContext';
 import './ShipFleetPage.css';
+import { ShipCustomizationPanel } from './ShipCustomizationPanel';
+import { ShipAppearancePreview } from './ShipAppearancePreview';
+import { canCustomizeShip, shipCosmetics } from '../shipCustomization';
+import type { ShipCosmetics } from '../naval';
 
 type Stat = 'atk' | 'def' | 'hp' | 'spd' | 'acc';
 type ShipClass = { id: string; name: string; rarity: string; specialty: string; priceTon: number; atk: number; def: number; hp: number; spd: number; acc: number; skill: number };
 type Upgrade = { category: string; name: string; stat: string; perLevel: number; maxLevel: number; woodBase: number; ironBase: number; berriesBase: number; tonCost: number; growth: number };
-type Owned = { classId: string; level: number; xp: number; xpNext: number; points: number; allocated: Record<Stat, number>; upgrades: Record<string, number> };
+type Owned = { classId: string; level: number; xp: number; xpNext: number; points: number; allocated: Record<Stat, number>; upgrades: Record<string, number>; canCustomize?: boolean; cosmetics?: Partial<ShipCosmetics> };
 type FleetState = { active: string; settings: { pointsPerLevel: number; respecEnabled: boolean }; classes: ShipClass[]; upgrades: Upgrade[]; owned: Owned[]; balances: { ton: number; berries: number }; materials: Record<string, number> };
 
 const STATS: { key: Stat; label: string; per: number; desc: string }[] = [
@@ -20,6 +24,7 @@ const STATS: { key: Stat; label: string; per: number; desc: string }[] = [
 const UPGRADE_KEY: Record<string, Stat | 'skill'> = { cannons: 'atk', hull: 'hp', armor: 'def', sails: 'spd', aim: 'acc', core: 'skill' };
 const PER_UPGRADE: Record<string, number> = { cannons: 15, hull: 150, armor: 6, sails: 3, aim: 4, core: 5 };
 const ERRORS: Record<string, string> = {
+  FLEET_PURCHASE_REQUIRED: 'Personalização disponível apenas nos navios comprados.', FLEET_NOT_OWNED: 'Personalização disponível apenas nos navios comprados.',
   FLEET_TON_REQUIRED: 'Saldo de TON insuficiente.', FLEET_ALREADY_OWNED: 'Você já possui este navio.', FLEET_POINTS_REQUIRED: 'Pontos insuficientes.',
   NAVAL_XP_REQUIRED: 'XP insuficiente para evoluir.', NAVAL_MATERIALS_REQUIRED: 'Madeira ou ferro insuficientes.', FLEET_BERRIES_REQUIRED: 'BERRIES insuficientes.',
   FLEET_MAX_LEVEL: 'Nível máximo atingido.', NAVAL_IN_BATTLE: 'Indisponível durante uma batalha.',
@@ -58,6 +63,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
       if (!res.ok || !body || body.error) { const code = String(body?.code || body?.error || ''); setMsg(text(ERRORS[code] || 'Não foi possível concluir. Tente novamente.')); return false; }
       setState((body.data ?? body) as FleetState); if (success) { setMsg(text(success)); setFlash(x => x + 1); }
       return true;
+    } catch { setMsg(text('Não foi possível salvar a personalização.')); return false;
     } finally { setBusy(false); }
   }, [telegramInitData, text]);
 
@@ -82,7 +88,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
     </header>
 
     <section className="ship-fleet__hero" key={ship.id + flash}>
-      <img src={fleetShipArt.classes[ship.id]} alt={ship.name} className="ship-fleet__art" />
+      {canCustomizeShip(owned) && Object.keys(owned?.cosmetics ?? {}).length > 0 ? <ShipAppearancePreview classId={ship.id} cosmetics={shipCosmetics(owned?.cosmetics)} /> : <img src={fleetShipArt.classes[ship.id]} alt={ship.name} className="ship-fleet__art" />}
       <div className="ship-fleet__plate">
         <span className={`ship-fleet__rarity ship-fleet__rarity--${ship.rarity.normalize('NFD').replace(/[^a-z]/gi, '').toLowerCase()}`}>{text(ship.rarity)}</span>
         <h2>{ship.name}</h2>
@@ -151,7 +157,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
         })}
       </div> : <p className="ship-fleet__note">{text('Compre este navio para melhorá-lo.')}</p>)}
 
-      {tab === 'style' && <p className="ship-fleet__note">{text('Cores do casco, velas, bandeira, proa e rastro são escolhidas no Estaleiro da Grand Line. A aparência nunca altera os atributos.')}</p>}
+      {tab === 'style' && <ShipCustomizationPanel key={ship.id} classId={ship.id} owned={owned} busy={busy} onSave={cosmetics => call('customize', { classId: ship.id, cosmetics }, 'Personalização salva!')} />}
     </section>
 
     {confirmBuy && <div className="ship-fleet__modal" role="dialog" aria-modal>

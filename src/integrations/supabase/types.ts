@@ -10136,6 +10136,7 @@ export type Database = {
         Row: {
           acquired_at: string
           class_id: string
+          cosmetics: Json
           initial_points_granted: number
           level: number
           points: number
@@ -10152,6 +10153,7 @@ export type Database = {
         Insert: {
           acquired_at?: string
           class_id: string
+          cosmetics?: Json
           initial_points_granted?: number
           level?: number
           points?: number
@@ -10168,6 +10170,7 @@ export type Database = {
         Update: {
           acquired_at?: string
           class_id?: string
+          cosmetics?: Json
           initial_points_granted?: number
           level?: number
           points?: number
@@ -25580,6 +25583,10 @@ export type Database = {
       naval_fleet: {
         Args: { p_action: string; p_input?: Json; p_user: string }
         Returns: Json
+      }
+      naval_fleet_customize: {
+        Args: { p_class: string; p_cosmetics: Json; p_user: string }
+        Returns: undefined
       }
       naval_fleet_view: { Args: { p_user: string }; Returns: Json }
       naval_ocean_land: { Args: { p_x: number; p_y: number }; Returns: boolean }

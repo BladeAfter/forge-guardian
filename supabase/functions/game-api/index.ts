@@ -3264,11 +3264,20 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     }
     if (action === 'fleet') {
       const fleetAction = String(body.fleetAction || 'state');
-      if (!['state','buy','select','levelup','allocate','upgrade'].includes(fleetAction)) throw new Error('FLEET_INVALID_INPUT');
+      if (!['state','buy','select','levelup','allocate','upgrade','customize'].includes(fleetAction)) throw new Error('FLEET_INVALID_INPUT');
       const raw = body.input && typeof body.input === 'object' && !Array.isArray(body.input) ? body.input : {};
       const input: Record<string, unknown> = {};
       if (raw.classId !== undefined) input.classId = String(raw.classId).slice(0, 40);
       if (raw.category !== undefined) input.category = String(raw.category).slice(0, 40);
+      if (fleetAction === 'customize') {
+        if (!raw.cosmetics || typeof raw.cosmetics !== 'object' || Array.isArray(raw.cosmetics)) throw new Error('FLEET_INVALID_INPUT');
+        const cosmetics: Record<string, string> = {};
+        for (const [k, v] of Object.entries(raw.cosmetics)) {
+          if (!['flag','prow','decoration','trail','hullColor','sailColor','flagColor'].includes(k) || typeof v !== 'string' || v.length > 20) throw new Error('FLEET_INVALID_INPUT');
+          cosmetics[k] = v;
+        }
+        input.cosmetics = cosmetics;
+      }
       for (const f of ['atk','def','hp','spd','acc']) {
         if (raw[f] === undefined) continue;
         if (!Number.isInteger(raw[f]) || raw[f] < 0 || raw[f] > 10000) throw new Error('FLEET_INVALID_INPUT');
