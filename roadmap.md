@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Configurar mineração contínua TON somente para navios com compra TON confirmada, taxa valor pago ÷ 40/dia; excluir gratuito, preservar saldos e não ativar workers.
+- [x] Configurar cálculo contínuo TON para navios com débito de compra confirmado, valor pago ÷ 40/dia; gratuito/concessões excluídos. Migração 0139 e exibição traduzida; oito testes passaram e cena isolada confirmou taxa, ROI contínuo, exclusão do gratuito e saldo intacto. Acúmulo começa na ativação/aquisição, sem retroatividade; nenhum crédito ou worker ativado.
+- [ ] Liberar ganhos de mineração naval para saldo/saque e verificar no Telegram real; bloqueios: financiamento comprovado e fluxo de liberação auditado indisponíveis, sem navio pago real nem sessão Telegram assinada para teste. Acúmulo permanece identificado como pendente de financiamento.
 
 - [x] Aplicar três artes IA transparentes aos baús flutuantes e indicador de coleta; 26 testes passaram e seleção conferida em cena isolada. Chefe global: configuração e ciclo ativo confirmados top 5, mantendo 10 TON/200.000 BERRIES e histórico liquidado; texto acompanha quantidade oficial. Nenhum saldo/worker alterado; coleta/pagamento reais no Telegram não verificados.
 
