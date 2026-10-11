@@ -25,6 +25,7 @@ import islandRock from './assets/island3d/rocks-a.glb.asset.json';
 import islandRockB from './assets/island3d/rocks-b.glb.asset.json';
 import islandChest from './assets/island3d/chest.glb.asset.json';
 import islandShip from './assets/island3d/ship-pirate-medium.glb.asset.json';
+import islandDockedShip from './assets/island-docked-ship.png';
 import islandStructure from './assets/island3d/structure.glb.asset.json';
 import islandGate from './assets/island3d/castle-gate.glb.asset.json';
 import islandWall from './assets/island3d/castle-wall.glb.asset.json';
@@ -40,6 +41,7 @@ export const islandModels = {
   crate: islandCrate.url, cannon: islandCannon.url, flag: islandFlag.url,
 };
 import crewSunriseDeck from './assets/crew-sunrise-deck.jpg';
+export const islandHarborArt = { ship: islandDockedShip };
 import seasActionArena from './assets/seas-action-arena.jpg';
 import seasStormDragon from './assets/seas-storm-dragon.png';
 import navalFleet from './assets/naval-fleet.png';

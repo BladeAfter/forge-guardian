@@ -14,6 +14,7 @@ import { IslandScene, type IslandEncounter3D } from './island3d/IslandScene';
 import { readIslandPalette, type IslandPalette } from './island3d/IslandTerrain';
 import { clearEncounterPoint, ISLAND_MAP } from '../illustratedIslandWorld';
 import { hasTreasureMap, treasureIsRevealed } from '../islandTreasure';
+import { captureTelegramGameGestures } from '../telegram';
 
 type Props = {
   ship?: NavalShip; islandIndex: number; captainStyle: CaptainStyle; data?: RealmState; loading: boolean; error?: string;
@@ -65,6 +66,7 @@ export default function IslandExploration(props: Props) {
   }, []);
 
   useEffect(() => { if (host.current) setPalette(readIslandPalette(host.current)); }, []);
+  useEffect(() => captureTelegramGameGestures(window.Telegram?.WebApp), []);
   useEffect(() => {
     const keys = new Set<string>();
     const update = () => {

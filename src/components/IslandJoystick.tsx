@@ -1,5 +1,5 @@
 import { useLocalizedText } from '../LanguageContext';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Compass } from 'lucide-react';
 import { OceanControl } from './OceanControl';
 import type { SeaPoint } from '../grandLineNavigation';
@@ -8,6 +8,15 @@ export function IslandJoystick({ onDirection, disabled }: { onDirection: (point:
 
   const pointer = useRef<number | null>(null);
   const knob = useRef<HTMLSpanElement>(null);
+  const direction = useRef(onDirection);
+  direction.current = onDirection;
+  useEffect(() => {
+    const clear = () => { pointer.current = null; direction.current({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; };
+    const visibility = () => { if (document.hidden) clear(); };
+    window.addEventListener('blur', clear); document.addEventListener('visibilitychange', visibility);
+    return () => { clear(); window.removeEventListener('blur', clear); document.removeEventListener('visibilitychange', visibility); };
+  }, []);
+  useEffect(() => { if (disabled) { pointer.current = null; direction.current({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; } }, [disabled]);
   const reset = () => { pointer.current = null; onDirection({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; };
   const steer = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (pointer.current !== event.pointerId) return;

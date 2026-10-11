@@ -1,39 +1,30 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody, useBeforePhysicsStep, type RapierRigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
-import { islandModels } from '../../gameAssets';
+import { islandHarborArt } from '../../gameAssets';
 import { advanceHarbor, HARBOR, ISLAND_3D, type HarborState } from '../../island3dWorld';
 import type { IslandPalette } from './IslandTerrain';
 
 export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<HarborState>; palette: IslandPalette }) {
-  const { scene } = useGLTF(islandModels.ship);
+  const texture = useTexture(islandHarborArt.ship);
+  texture.colorSpace = THREE.SRGBColorSpace;
   const ship = useRef<RapierRigidBody>(null), bridge = useRef<RapierRigidBody>(null);
-  const reflectionGroup = useRef<THREE.Group>(null), wake = useRef<THREE.Group>(null);
-  const { object, reflection } = useMemo(() => {
-    const object = scene.clone(true), reflection = scene.clone(true);
-    object.traverse(o => { if (o instanceof THREE.Mesh) { o.castShadow = true; o.receiveShadow = true; } });
-    reflection.traverse(o => { if (o instanceof THREE.Mesh) {
-      const materials = (Array.isArray(o.material) ? o.material : [o.material]).map(m => {
-        const copy = m.clone(); copy.transparent = true; copy.opacity = .16; copy.depthWrite = false; return copy;
-      }); o.material = Array.isArray(o.material) ? materials : materials[0];
-    } });
-    return { object, reflection };
-  }, [scene]);
-  useEffect(() => () => { reflection.traverse(o => { if (o instanceof THREE.Mesh) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.dispose(); }); }, [reflection]);
+  const wake = useRef<THREE.Group>(null);
+  const bridgeRotation = useMemo(() => new THREE.Quaternion(), []);
+  const bridgeEuler = useMemo(() => new THREE.Euler(), []);
   useBeforePhysicsStep(() => {
     advanceHarbor(harbor.current, 1 / 60);
     const h = harbor.current;
     ship.current?.setNextKinematicTranslation({ x: h.x, y: h.y, z: h.z });
     const length = HARBOR.gangway.end - HARBOR.gangway.start;
-    const rotation = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, (1 - h.deployment) * Math.PI / 2));
+    const rotation = bridgeRotation.setFromEuler(bridgeEuler.set(0, 0, (1 - h.deployment) * Math.PI / 2));
     bridge.current?.setTranslation({ x: (HARBOR.gangway.start + HARBOR.gangway.end) / 2, y: HARBOR.pier.top - .1 + (1 - h.deployment) * length / 2, z: HARBOR.gangway.z }, true);
     bridge.current?.setRotation(rotation, true);
   });
   useFrame(() => {
     const h = harbor.current;
-    if (reflectionGroup.current) reflectionGroup.current.position.set(h.x, 2 * ISLAND_3D.water - h.y, h.z);
     if (wake.current) {
       wake.current.position.set(h.x, ISLAND_3D.water + .19, h.z);
       wake.current.children.forEach((o, i) => {
@@ -46,7 +37,10 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
   const length = HARBOR.gangway.end - HARBOR.gangway.start;
   return <>
     <RigidBody ref={ship} type="kinematicPosition" colliders={false} position={[HARBOR.approach.x, HARBOR.ship.y, HARBOR.approach.z]} scale={HARBOR.ship.scale}>
-      <primitive object={object} />
+      <mesh rotation-x={-Math.PI / 2} position={[0, 2, 0]}>
+        <planeGeometry args={[8.2, 12.8]} />
+        <meshBasicMaterial map={texture} transparent alphaTest={.05} toneMapped={false} side={THREE.DoubleSide} />
+      </mesh>
       <CuboidCollider args={[2.35, .1, 4.3]} position={[0, 2, 0]} />
       <CuboidCollider args={[.1, .3, 4.3]} position={[2.3, 2.4, 0]} />
       <CuboidCollider args={[.1, .3, 1.4]} position={[-2.3, 2.4, -2.9]} />
@@ -54,7 +48,6 @@ export function IslandHarbor({ harbor, palette }: { harbor: MutableRefObject<Har
       <CuboidCollider args={[2.3, .3, .1]} position={[0, 2.4, 4.3]} />
       <CuboidCollider args={[2.3, .3, .1]} position={[0, 2.4, -4.3]} />
     </RigidBody>
-    <group ref={reflectionGroup} scale={[HARBOR.ship.scale, -HARBOR.ship.scale, HARBOR.ship.scale]}><primitive object={reflection} /></group>
     <group ref={wake}>{[0, 1, 2].map(i => <mesh key={i} rotation-x={-Math.PI / 2}>
       <ringGeometry args={[1, 1.025, 48]} /><meshBasicMaterial color={palette.foam} transparent opacity={.2} depthWrite={false} />
     </mesh>)}</group>

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Ajustar arte do navio atracado e fluidez da caminhada, preservando animações, colisões e retorno ao mar; verificar desembarque e controle por toque.
+
 - [x] Joystick: fila enviada imediatamente após resposta pendente e latência incluída no intervalo; 11 testes passaram, toque/soltura conferidos com respostas simuladas e compilação OK. Posições oficiais, autenticação e regras preservadas.
 - [ ] Confirmar joystick no Telegram real após publicar a atualização; bloqueio: sessão móvel Telegram indisponível e publicação não solicitada.
 
