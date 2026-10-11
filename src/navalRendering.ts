@@ -23,11 +23,8 @@ export function drawNavalShip(ctx: CanvasRenderingContext2D, atlas: HTMLImageEle
   const fleetImage = fleetUrl ? oceanImage(fleetUrl) : null;
   const w = atlas.naturalWidth / 3, h = atlas.naturalHeight / 2;
   ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.heading);
-  // Waterline stays attached to the hull, including when stationary.
-  ctx.fillStyle = palette.ink; ctx.globalAlpha = .24;
-  ctx.beginPath(); ctx.ellipse(0, size * .06, size * .19, size * .43, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = palette.foam; ctx.globalAlpha = .5; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.ellipse(0, size * .02, size * .22, size * .46, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  // Transparent hull art only: heading-rotated waterline disks looked like a blue ball
+  // behind upright broadside ships. Keep the existing moving wake below unchanged.
   if (ship.throttle > 0) {
     ctx.strokeStyle = cosmetics.trail === 'embers' ? palette.ember : cosmetics.trail === 'mist' ? palette.vitality : palette.foam;
     ctx.globalAlpha = .55; ctx.lineWidth = cosmetics.trail === 'mist' ? 8 : 3;
