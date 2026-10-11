@@ -72,7 +72,7 @@ export function PirateActionArena(props: Props) {
     previousBossAttack.current = props.bossLastAttackAt;
     if (!props.bossLastAttackAt || (last && props.bossLastAttackAt <= last)) return;
     setCounterattack(true);
-    const timeout = setTimeout(() => setCounterattack(false), 900);
+    const timeout = setTimeout(() => setCounterattack(false), 1200);
     return () => clearTimeout(timeout);
   }, [props.bossLastAttackAt]);
 

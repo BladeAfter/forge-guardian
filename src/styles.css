@@ -4494,3 +4494,21 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .clan-hall-plate-text small{max-width:100%;font-size:clamp(6px,2vw,8px);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:hsl(40 40% 88%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @keyframes clanPlateGlow{50%{filter:drop-shadow(0 6px 10px hsl(220 70% 4%/.6)) drop-shadow(0 0 8px hsl(var(--pirate-gold)/.55))}}
 @media (prefers-reduced-motion:reduce){.clan-hall-plate{animation:none}}
+
+/* Kraken HUD centered on the arena; Kraken attack has wind-up, slam and impact. */
+.seas-action-arena .action-boss-hud { left:50%; right:auto; transform:translateX(-50%); width:min(440px, calc(100% - 24px)); }
+.action-counterattack .action-monster { animation:actionKrakenAttack 1.2s cubic-bezier(.3,.1,.3,1); }
+.action-counterattack .action-world { animation:actionArenaShake .45s .55s; }
+.action-counterattack .action-enemy-strike { animation:actionKrakenSlash 1.2s; }
+.action-counterattack .action-enemy-strike::before, .action-counterattack .action-enemy-strike::after { content:""; position:absolute; inset:-35% 10%; border-bottom:5px solid hsl(var(--action-danger)); border-radius:50%; transform:rotate(-12deg); }
+.action-counterattack .action-enemy-strike::after { transform:rotate(10deg); inset:-10% 18%; }
+@keyframes actionKrakenAttack {
+  0% { transform:none; }
+  30% { transform:translateX(8%) scale(1.06) rotate(4deg); filter:brightness(1.25) drop-shadow(0 0 14px hsl(var(--action-danger))); }
+  48% { transform:translateX(-18%) scale(1.1) skewX(-8deg); }
+  62% { transform:translateX(-14%) scale(1.04) rotate(-3deg); }
+  100% { transform:none; }
+}
+@keyframes actionKrakenSlash { 0%,42% { opacity:0; transform:scale(.6); } 50% { opacity:1; transform:scale(1.1); } 100% { opacity:0; transform:scale(1); } }
+@keyframes actionArenaShake { 20% { transform:translate(-6px,3px); } 40% { transform:translate(5px,-3px); } 60% { transform:translate(-4px,2px); } 80% { transform:translate(3px,-1px); } }
+@media (prefers-reduced-motion: reduce) { .action-counterattack .action-monster, .action-counterattack .action-world { animation:none; } }
