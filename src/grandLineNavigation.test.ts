@@ -2,6 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { SEA_ISLANDS, SEA_CHUNK, seaIslandsAround, seaRegion, advanceSailing, sailToward, seaClickTarget, seaDistance, seaDestinationInput } from './grandLineNavigation';
 
 describe('Grand Line navigation', () => {
+  it('stops non-finite tap coordinates, throttle and speed', () => {
+    const origin = { x: 100, y: 100 }, target = { x: 300, y: 100 };
+    for (const value of [NaN, Infinity, -Infinity]) {
+      expect(seaDestinationInput({ x: value, y: 100 }, target, 1, 122)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+      expect(seaDestinationInput(origin, { x: 300, y: value }, 1, 122)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+      expect(seaDestinationInput(origin, target, value, 122)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+      expect(seaDestinationInput(origin, target, 1, value)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+    }
+    expect(seaDestinationInput(origin, target, -1, 122).throttle).toBe(0);
+    expect(seaDestinationInput({ x: -Number.MAX_VALUE, y: 0 }, { x: Number.MAX_VALUE, y: 0 }, 1, 122)).toEqual({ dx: 0, dy: 0, throttle: 0 });
+  });
   it('approaches a tapped destination without overshooting at the server time cap', () => {
     const target = { x: 2000, y: 1400 };
     let position = { x: 1994, y: 1400 };

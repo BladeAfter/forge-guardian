@@ -1,5 +1,9 @@
 # Architecture Rules
 
+<!-- LOVABLE:BEGIN -->
+- Normalize heartbeat numbers at the naval transport boundary and stop invalid tap input because JSON converts non-finite numbers to null; preserve authoritative rejection and never coerce combat or cosmetic payloads.
+<!-- LOVABLE:END -->
+
 - Private triggers/atomic secret claims queue paid notices; hold ambiguity. Never change balances/enable workers. Withdrawal helpers disable purchase gates; reads mirror them.
 - Validate bot secrets; tutorials once per sender language; missing media retains claims; hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; atomic/private, fail closed.
 

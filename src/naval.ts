@@ -26,7 +26,10 @@ const ERRORS: Record<string, string> = {
 };
 export async function navalCall(initData: string, navalAction: string, input: Record<string, unknown> = {}): Promise<NavalState> {
   // A stalled mobile heartbeat must be abandoned quickly so the next one can resume steering.
-  const response = await forgeFetch('realm', { initData, action: 'naval', navalAction, input }, navalAction === 'heartbeat' ? 4_000 : 12_000);
+  // JSON converts non-finite movement to null. Stop safely before sending it;
+  // leave combat and cosmetic payloads untouched for server validation.
+  const command = navalAction === 'heartbeat' ? navalHeartbeatInput(input) : input;
+  const response = await forgeFetch('realm', { initData, action: 'naval', navalAction, input: command }, navalAction === 'heartbeat' ? 4_000 : 12_000);
   const payload = await response.json() as NavalState & { error?: string; code?: string } | null;
   if (!response.ok || !payload?.ship) {
     const message = payload?.error ?? payload?.code ?? 'O oceano compartilhado não está disponível.';
@@ -34,4 +37,10 @@ export async function navalCall(initData: string, navalAction: string, input: Re
     throw new Error(key ? ERRORS[key] : message);
   }
   return payload;
+}
+
+export function navalHeartbeatInput(input: Record<string, unknown>) {
+  const { dx = 0, dy = 0, throttle = 1 } = input;
+  if (typeof dx !== 'number' || !Number.isFinite(dx) || typeof dy !== 'number' || !Number.isFinite(dy) || typeof throttle !== 'number' || !Number.isFinite(throttle)) return { dx: 0, dy: 0, throttle: 0 };
+  return { dx: Math.max(-1, Math.min(1, dx)), dy: Math.max(-1, Math.min(1, dy)), throttle: Math.max(0, Math.min(1, throttle)) };
 }

@@ -12,10 +12,11 @@ export const seaDistance = (a: SeaPoint, b: SeaPoint) => Math.hypot(a.x - b.x, a
 /** Tap input only: the server still owns steps, speed and coast collisions.
  * Its heartbeat caps elapsed time at two seconds, so approach conservatively. */
 export function seaDestinationInput(position: SeaPoint, target: SeaPoint, throttle: number, speed: number) {
+  if (![position.x, position.y, target.x, target.y, throttle, speed].every(Number.isFinite)) return { dx: 0, dy: 0, throttle: 0 };
   const distance = seaDistance(position, target);
-  if (distance <= 5) return { dx: 0, dy: 0, throttle: 0 };
+  if (!Number.isFinite(distance) || distance <= 5) return { dx: 0, dy: 0, throttle: 0 };
   return { dx: (target.x - position.x) / distance, dy: (target.y - position.y) / distance,
-    throttle: Math.min(throttle, distance / (Math.max(1, speed) * 2)) };
+    throttle: Math.max(0, Math.min(1, throttle, distance / (Math.max(1, speed) * 2))) };
 }
 export function sailToward(position: SeaPoint, target: SeaPoint, elapsed: number, speed = 240): SeaPoint {
   const distance = seaDistance(position, target);
