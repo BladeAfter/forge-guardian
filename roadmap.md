@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Gravação de combate naval simulado entregue: 27 s vertical 1080×1920 com áudio sintetizado sem narração; captura da UI real com respostas locais roteirizadas, tiros/vida/impactos sobrepostos e navios parados durante os disparos. Movimento e quadros revisados, zero chamadas externas e nenhum saldo alterado; PvP real permanece desativado.
+
 - [ ] Ativar batalha naval com regras oficiais seguras e gravar combate simulado isolado para o tutorial, sem afetar jogadores ou saldos reais.
 
 - [x] Tutorial v2 com trecho ilustrado de batalha naval enviado ao @MythicSeasChat (mensagem 299) e ao administrador pelo @MythicSeasbot (mensagem 17); nova publicação fixada e tutorial antigo (mensagem 4) excluído, com confirmação do Telegram. Envio por idioma no /start preservado.
