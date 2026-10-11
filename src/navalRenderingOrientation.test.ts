@@ -20,7 +20,7 @@ describe('upright catalog ships', () => {
     const palette: NavalPalette = { foam: '', gold: '', ink: '', vitality: '', ember: '', filters: {} };
     drawNavalShip(ctx, {} as HTMLImageElement, { ...DEFAULT_SHIP, class_id: 'marinheiro', throttle: 1 }, palette, 350, 170, 6);
     expect(ellipse).toHaveBeenCalledTimes(6);
-    for (const call of ellipse.mock.calls) expect(call[7]).toBe(Math.PI);
+    for (const call of ellipse.mock.calls) expect(call[6]).toBe(Math.PI);
   });
   it.each([0, Math.PI / 2, Math.PI, -Math.PI / 2])('cancels world rotation for broadside art at heading %s', heading => {
     const calls: Array<{ angle: number; mirrored: number }> = [];
