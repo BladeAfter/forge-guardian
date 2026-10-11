@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Apoiar tripulantes no convés, conferir chances oficiais de invocação e renovar artes de armas, anéis e armaduras sem alterar atributos.
+- [x] Tripulantes com poses apoiadas no convés e sem movimento vertical artificial; cinco seleções, ficha e saída conferidas em cena isolada de 360 px. Sete artes IA para espada, machado, arco, bastão, cetro, armadura e anel aplicadas por tipo oficial também aos equipamentos legados; atributos preservados. Chances ocultas divergentes removidas do sorteio: agora usa exatamente os percentuais anunciados (50/18/17/9/4,5/1,5%). Migração 0124 aplicada, teste SQL sem compras/saldos e 14 testes passaram; Telegram real não disponível.
 
 - [x] Porto: quatro atalhos simétricos por borda, arte existente com moldura náutica única e centro livre; oito callbacks, HUD, navegação e entrada da Grand Fleet preservados. Cena isolada conferida em 360/480 px e altura reduzida: tamanhos iguais, espaçamento uniforme e oito acessos acionados; Telegram físico não verificado.
 

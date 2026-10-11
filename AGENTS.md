@@ -5,10 +5,10 @@
 
 - Use gameAssets/navalMaterialArt and semantic CSS; only official materials carry balances; art never alters gameplay. PortSideMenus shares edge-rail sizing and official callbacks to keep the house accessible.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
-- CrewDeck uses ship-scene selection and semantic crew tokens; archetypes map to cosmetic pirate roles. XP stays read-only, equipment server-owned; omit fusion/inventory navigation and invented progression/privileges.
+- CrewDeck uses grounded poses on the deck; roles are cosmetic, XP read-only, equipment server-owned; omit fusion/inventory and invented powers.
 - Align Clan Hall hotspot to centered-cover village geometry for accurate taps at every viewport; no separate card.
-- `RecruitCrewView` receives existing shop prices, odds and payment callbacks; presentation cannot change purchase rules.
-- Normalize legacy creature image URLs through `voyageArtReplacement` at the game API response boundary; only artwork fields may change, preserving server-owned gameplay and ownership.
+- Recruitment rolls share advertised effective server odds, never hidden rates; independent draws have no pity. UI preserves prices/payment callbacks.
+- Normalize creature/equipment art at the API boundary with voyageArtReplacement and pirateEquipmentArt; stable kinds resolve art only, never ownership/stats.
 - Separate display branding from persistent IDs, Telegram handles, mission hashtags and payment memos; preserve sessions, rewards and transfers.
 - Profile uses gameAssets, semantic CSS and container-responsive character/journal layouts for Telegram; preserve server-owned profile, pass and channel-reward callbacks.
 - MarketPulseView is read-only; label illustrations, never infer global sales from personal history.
