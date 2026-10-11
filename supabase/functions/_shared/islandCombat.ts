@@ -14,7 +14,15 @@ export function validIslandSettings(raw:Partial<IslandSettings>,island:number):I
 export function createIslandCombat(island:number,cfg:IslandSettings,now:number):IslandCombatState {
  const spots=[{x:12,z:23},{x:-10,z:8},{x:4,z:-13},{x:0,z:-35}];
  const enemies=spots.map((spot,index)=>{
-  const point=clearEncounterPoint(island,spot);if(!islandWalkable(island,point))throw new Error('ISLAND_INVALID_SPAWN');
+  let point=clearEncounterPoint(island,spot);
+  if(!islandWalkable(island,point)) {
+   let found=false;
+   for(let r=1;r<=35&&!found;r++)for(let a=0;a<32;a++){
+    const p={x:spot.x+Math.cos(a*Math.PI/16)*r,z:spot.z+Math.sin(a*Math.PI/16)*r};
+    if(islandWalkable(island,p)&&!obstacleAt(island,p.x,p.z,1.2)){point=p;found=true;break;}
+   }
+   if(!found)throw new Error('ISLAND_INVALID_SPAWN');
+  }
   const boss=index===3,hp=boss?cfg.bossHp:cfg.commonHp;
   return {id:`pirate-${index}`,nameKey:`islandCombat.enemy.${island}.${index}`,boss,variant:island,x:point.x,z:point.z,homeX:point.x,homeZ:point.z,hp,maxHp:hp,damage:boss?cfg.bossDamage:cfg.commonDamage,speed:boss?cfg.speed*.8:cfg.speed,range:cfg.range,detect:cfg.detect,resistance:boss?.18:0,phase:1,mode:'patrol' as const,attackAt:0,warningAt:0,specialAt:now+6000,heading:Math.PI,claimed:false};
  });
