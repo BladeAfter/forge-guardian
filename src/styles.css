@@ -4556,3 +4556,6 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
 .seas-treasury input { background:hsl(var(--tr-paper)) !important; color:hsl(var(--tr-ink)) !important; border:2px solid hsl(var(--tr-ink) / .6) !important; font-weight:800; }
 .seas-treasury button[class*="from-"], .seas-treasury button[class*="bg-gradient"] { background:linear-gradient(180deg, hsl(var(--tr-red)), hsl(2 70% 34%)) !important; color:hsl(var(--tr-paper)) !important; border:2px solid hsl(var(--tr-gold)) !important; text-shadow:1px 1px 0 hsl(var(--tr-ink)); }
 .seas-treasury .bg-black\/30, .seas-treasury .bg-black\/40 { background:hsl(var(--tr-ink) / .45) !important; }
+.seas-treasury .treasury-primary { background:linear-gradient(180deg, hsl(var(--tr-red)), hsl(2 70% 34%)) !important; color:hsl(var(--tr-paper)) !important; border:2px solid hsl(var(--tr-gold)) !important; font-size:12px; letter-spacing:.08em; text-shadow:1px 1px 0 hsl(var(--tr-ink)); box-shadow:0 4px 0 hsl(var(--tr-ink)); }
+.seas-treasury .treasury-quick { border-color:hsl(var(--tr-gold) / .35) !important; }
+.seas-treasury .treasury-quick.is-active { background:hsl(var(--tr-gold)) !important; color:hsl(var(--tr-ink)) !important; border-color:hsl(var(--tr-gold)) !important; }
