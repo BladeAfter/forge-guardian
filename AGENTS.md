@@ -1,7 +1,7 @@
 # Architecture Rules
 
 - Queue credited/paid notices through private triggers and atomic secret-authenticated claims; hold ambiguous sends for review, never change balances or enable financial workers.
-- Validate bot secrets; tutorials once by sender language, missing media never consumes claims, hold uncertain sends. Consent once; respect refusal. Channel claims: fixed chat/member IDs, fresh bot-admin proof; private/atomic, fail closed.
+- Validate bot secrets; tutorials once by sender language, missing media never consumes claims, hold uncertain sends. Consent once; honor refusal. Channel claims: fixed chat/user IDs, bot-admin proof; private/atomic, fail closed.
 
 - Use gameAssets/navalMaterialArt and semantic CSS; art never alters gameplay. Grand Line shares server class art/cached paid cosmetics; server gates by price_paid and blocks bypass. Preserve grants/allocations and PortSideMenus/house callbacks. Upgrades use server level quotes and atomic real wood/nails/rope ledger debits.
 - Block retired rarities at database writes/reward rates; delete catalogs and owned assets, never downgrade. Preserve legacy schema/payment replay compatibility; hidden/admin paths must not recreate them.
