@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BookOpen, Info, PackageOpen, X } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { mascotChestArt, balanceArt } from '../gameAssets';
@@ -7,11 +7,12 @@ import { formatOceanTon, nearestOceanChest, type OceanOdds, type OceanReward } f
 import type { useOceanChests } from '../useOceanChests';
 import { OceanControl } from './OceanControl';
 import './OceanChests.css';
-export default function OceanChests({ ocean, position, unavailable, onStop }: { ocean: ReturnType<typeof useOceanChests>; position: {x:number;y:number}; unavailable:boolean; onStop:()=>void }) {
+export default function OceanChests({ ocean, position, unavailable, onStop, selection }: { ocean: ReturnType<typeof useOceanChests>; position: {x:number;y:number}; unavailable:boolean; onStop:()=>void; selection?:{id:string;nonce:number}|null }) {
  const {t,language}=useLanguage(); const [view,setView]=useState<'odds'|'history'|null>(null);
+ useEffect(()=>{if(selection)setView('odds');},[selection]);
  const near=nearestOceanChest(ocean.data?.chests ?? [],position,ocean.data?.collectRadius ?? 100);
  const label=(r:OceanReward|OceanOdds)=>r.kind==='ton' ? `${formatOceanTon(r.amount ?? 0,language)} TON` : ('name' in r ? r.name : undefined) ?? t(`ocean.${r.kind}`);
- const odds=near?.odds ?? (ocean.data?.emission==='alternative' ? ocean.data.alternativeOdds : ocean.data?.odds) ?? [];
+ const odds=ocean.data?.chests.find(c=>c.id===selection?.id)?.odds ?? near?.odds ?? (ocean.data?.emission==='alternative' ? ocean.data.alternativeOdds : ocean.data?.odds) ?? [];
  const notice=ocean.error ? t(`ocean.${['OCEAN_CHEST_UNAVAILABLE','OCEAN_OUT_OF_RANGE','OCEAN_CLAIM_LIMIT','OCEAN_PAUSED','OCEAN_CATALOG_UNAVAILABLE'].includes(ocean.error) ? ocean.error : 'OCEAN_UNAVAILABLE'}`) : ocean.data && !['active','alternative'].includes(ocean.data.emission) ? t(`ocean.${ocean.data.emission}`) : '';
  const reward=ocean.reward;
  const materialKey=reward?.material as keyof typeof navalMaterialArt | undefined;

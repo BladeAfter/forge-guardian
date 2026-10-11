@@ -10,9 +10,10 @@ import { qualityMonitor, qualitySettings } from '../gamePerformance';
 
 type Pose = { position: SeaPoint; camera: SeaPoint; scale: number; heading: number; moving: boolean };
 /** Single lightweight bitmap canvas; simulation and official naval actions stay outside. */
-export default function IllustratedOcean({ pose, network, chests, wide, canvasRef, drawRef, onSail, onSelect }: {
+export default function IllustratedOcean({ pose, network, chests, wide, canvasRef, drawRef, onSail, onSelect, onChestSelect }: {
   pose: MutableRefObject<Pose>; network: MutableRefObject<NavalState | null>; wide: MutableRefObject<boolean>;
   chests?: MutableRefObject<OceanChestState | null>;
+  onChestSelect?: (id: string) => void;
   canvasRef: RefObject<HTMLCanvasElement>; onSail: (point: SeaPoint) => void; onSelect: (id: string) => void;
   drawRef: MutableRefObject<((time: number, delta: number) => void) | null>;
 }) {
@@ -64,7 +65,7 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
       for (const chest of chests?.current?.chests ?? []) {
         if (Date.parse(chest.expiresAt)<=Date.now() || Math.abs(chest.x-s.camera.x)>w/scale || Math.abs(chest.y-s.camera.y)>h/scale) continue;
         const image=oceanImage(mascotChestImage(chest.rarity));
-        ctx.save(); ctx.translate(chest.x,chest.y); ctx.strokeStyle=palette.gold; ctx.lineWidth=2; ctx.globalAlpha=.7;
+        ctx.save(); ctx.translate(chest.x,chest.y); ctx.strokeStyle=palette.gold; ctx.lineWidth=2; ctx.globalAlpha=.55+Math.sin(time/500)*.15;
         ctx.beginPath();ctx.ellipse(0,20,42,18,0,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
         if(image.complete && image.naturalWidth)ctx.drawImage(image,-40,-42,80,80);
         ctx.restore();
@@ -82,6 +83,8 @@ export default function IllustratedOcean({ pose, network, chests, wide, canvasRe
   return <canvas ref={canvasRef} role="img" aria-label={localizeText("Oceano da Grand Line")} data-renderer="illustrated-2d" onClick={event => {
     const canvas = event.currentTarget, rect = canvas.getBoundingClientRect(), s = pose.current;
     const point = { x: s.camera.x + (event.clientX - rect.left - rect.width / 2) / s.scale, y: s.camera.y + (event.clientY - rect.top - rect.height * .58) / s.scale };
+    const chest = chests?.current?.chests.find(c => Date.parse(c.expiresAt)>Date.now() && Math.hypot(c.x-point.x,c.y-point.y)<60);
+    if(chest){onChestSelect?.(chest.id);return;}
     const other = network.current?.others.find(ship => Math.hypot(ship.x - point.x, ship.y - point.y) < 100);
     if (other) onSelect(other.user_id); else onSail(point);
   }} />;

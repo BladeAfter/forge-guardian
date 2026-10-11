@@ -3259,15 +3259,10 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     if (action === 'ocean-chests') {
       const oceanAction = String(body.oceanAction || 'state');
       if (!['state','claim','salvage'].includes(oceanAction)) throw new Error('OCEAN_INVALID_INPUT');
-      let result: Record<string, unknown> = {};
       if (oceanAction !== 'state') {
         if (typeof body.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.id)) throw new Error('OCEAN_INVALID_INPUT');
-        result = await rpc(db, oceanAction === 'claim' ? 'ocean_chest_claim' : 'ocean_equipment_use', oceanAction === 'claim' ? { p_user: uid, p_chest: body.id } : { p_user: uid, p_equipment: body.id });
-        if (result.error) return result;
       }
-      const emission = await rpc(db, 'ocean_chest_tick', { p_user: uid });
-      const state = await rpc(db, 'ocean_chest_view', { p_user: uid, p_emission: emission });
-      return { ...state, ...result };
+      return rpc(db, 'ocean_chest_request', { p_user: uid, p_action: oceanAction, p_id: oceanAction === 'state' ? null : body.id });
     }
     if (action === 'naval') {
       const navalAction = String(body.navalAction || 'state');
