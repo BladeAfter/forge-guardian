@@ -269,7 +269,7 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
   const args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'equip' || action === 'unequip') {
     const slot = Number(body.slot);
-    if (!Number.isInteger(slot) || slot < 1 || slot > 5) throw new Error('Slot inválido.');
+    if (!Number.isInteger(slot) || slot < 1 || slot > 6) throw new Error('Slot inválido.');
     args.p_slot = slot;
   }
   if (action === 'equip') {
