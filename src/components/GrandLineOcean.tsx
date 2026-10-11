@@ -1,5 +1,5 @@
 import { useLocalizedText } from '../LanguageContext';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Anchor, Compass, Maximize2, Minimize2, Waves, Ship, Crosshair, Zap, Swords, Flag } from 'lucide-react';
 import { grandLineArt } from '../gameAssets';
 import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type NavalShip } from '../naval';
@@ -13,6 +13,8 @@ import { captureTelegramGameGestures } from '../telegram';
 import NavalMiniMap from './NavalMiniMap';
 import { frameDelta, frameDiagnostics } from '../gamePerformance';
 import { useGameViewport } from '../useGameViewport';
+import { useOceanChests } from '../useOceanChests';
+import OceanChests from './OceanChests';
 
 type Props = { berries: number; onBack: () => void; onDock: (destination: SeaDestination, islandIndex: number, ship?: NavalShip) => void; initialPosition?: SeaPoint; initData?: string };
 export default function GrandLineOcean({ berries, onBack, onDock, initialPosition = { x: 1700, y: 1340 }, initData = '' }: Props) {
@@ -53,6 +55,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const secretFoundRef = useRef(false);
   const [yardOpen,setYardOpen] = useState(false);
   const yardRef = useRef(false); yardRef.current=yardOpen;
+  const chestModal = useRef(false);
+  const setChestModal = useCallback((open:boolean)=>{chestModal.current=open;},[]);
   const [selected,setSelected] = useState<string | null>(null);
   const [inspecting,setInspecting] = useState(false);
   const [throttle,setThrottle] = useState(1);
@@ -60,7 +64,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const networkPosition = useRef(false);
   const network = useNavalOcean(initData, () => {
     const s=state.current, k=s.keys;
-    if(yardRef.current || document.hidden) return {dx:0,dy:0,throttle:0};
+    if(yardRef.current || chestModal.current || document.hidden) return {dx:0,dy:0,throttle:0};
     const dx=joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
@@ -68,6 +72,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     return {dx:distance>5 ? (s.target.x-s.position.x)/distance : 0,dy:distance>5 ? (s.target.y-s.position.y)/distance : 0,throttle:throttleRef.current};
   });
   const currentNetwork = network.current;
+  const oceanChests = useOceanChests(initData);
+  const [chestSelection,setChestSelection] = useState<{id:string;nonce:number}|null>(null);
   const ownShip=network.data?.ship ?? DEFAULT_SHIP;
   const enemy=network.data?.others.find(s => s.user_id===selected);
   const battle=network.data?.battle?.status==='active' ? network.data.battle : null;
@@ -115,7 +121,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     let frame = 0; let previous = 0; let uiTime = 0;
     const diagnose = frameDiagnostics('ocean');
 
-    const keydown = (e: KeyboardEvent) => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
+    const keydown = (e: KeyboardEvent) => { if (!chestModal.current && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) { e.preventDefault(); state.current.keys.add(e.key); } };
     const keyup = (e: KeyboardEvent) => { state.current.keys.delete(e.key); if (!state.current.keys.size && !docking.current) state.current.target = { ...state.current.position }; };
     const clear = () => { state.current.keys.clear(); resetJoystick(); };
     const visibility = () => {
@@ -130,8 +136,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       if (document.hidden) return;
       const started = performance.now();
       const s = state.current; const k = s.keys;
-      const dx = yardRef.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
-      const dy = yardRef.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
+      const dx = yardRef.current || chestModal.current ? 0 : joystickVector.current.x || Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
+      const dy = yardRef.current || chestModal.current ? 0 : joystickVector.current.y || Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
       if (dx || dy) s.target = { x: s.position.x + dx * 120, y: s.position.y + dy * 120 };
       else if (!autopilot.current && !docking.current) s.target = { ...s.position };
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
@@ -200,7 +206,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     steerAt(event.clientX, event.clientY, event.currentTarget.getBoundingClientRect());
   };
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
-    <IllustratedOcean pose={state} network={currentNetwork} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} />
+    <IllustratedOcean pose={state} network={currentNetwork} chests={oceanChests.current} wide={wideRef} canvasRef={canvasRef} drawRef={drawRef} onSail={sail} onSelect={id => { setSelected(id); setInspecting(false); }} onChestSelect={id=>{resetJoystick();state.current.keys.clear();setChestSelection({id,nonce:Date.now()});}} />
+    {initData && <OceanChests ocean={oceanChests} selection={chestSelection} onModalChange={setChestModal} position={ownShip} unavailable={Boolean(battle) || !network.data || Boolean(network.error)} onStop={()=>{resetJoystick();state.current.keys.clear();}} />}
     <header className="ocean-hud">
       <OceanControl onClick={() => { resetJoystick(); state.current.keys.clear(); if (network.data && !battle) void network.action('leave'); onBack(); }} title={localizeText("Voltar ao porto")} aria-label={localizeText("Voltar ao porto")}><ArrowLeft size={20} /></OceanControl>
       <div className="ocean-brand"><span>MYTHIC SEAS</span><h1>{localizeText("GRAND LINE")}</h1></div>

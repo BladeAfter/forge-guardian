@@ -3256,6 +3256,14 @@ const handlers: Record<string, (db: Db, user: TelegramUser, body: Record<string,
     const action = String(body.action || 'state');
     const key = String(body.idempotencyKey || '').slice(0, 80) || null;
 
+    if (action === 'ocean-chests') {
+      const oceanAction = String(body.oceanAction || 'state');
+      if (!['state','claim','salvage'].includes(oceanAction)) throw new Error('OCEAN_INVALID_INPUT');
+      if (oceanAction !== 'state') {
+        if (typeof body.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.id)) throw new Error('OCEAN_INVALID_INPUT');
+      }
+      return rpc(db, 'ocean_chest_request', { p_user: uid, p_action: oceanAction, p_id: oceanAction === 'state' ? null : body.id });
+    }
     if (action === 'naval') {
       const navalAction = String(body.navalAction || 'state');
       if (!['state','heartbeat','customize','attack','fire','skill','board','escape','repair','upgrade','leave'].includes(navalAction)) throw new Error('NAVAL_INVALID_INPUT');
