@@ -8,6 +8,7 @@ import { voyageHeroArt } from '../voyageArt';
 import { isHiddenVeteranItem } from '../retiredOfferPresentation';
 import { isMythTokenReward } from '../tokenPresentation';
 import { OceanControl } from './OceanControl';
+import { navalMaterialArt } from '../navalMaterialArt';
 
 /** Nautical artwork does not change the kind, amount or utility of official rewards. */
 function rewardVisual(reward: PassReward) {
@@ -20,7 +21,7 @@ function rewardVisual(reward: PassReward) {
   if (/egg|nft_pet|pet_random/.test(type)) return { art: seasonVoyageArt.treasure, name: 'Baú de mascote' };
   if (/myth/.test(type)) return { art: seasonVoyageArt.essence, name: 'MYTH' };
   if (/fc/.test(type)) return { art: seasonVoyageArt.treasure, name: 'BERRIES' };
-  if (/wood|iron|material/.test(type)) return { art: seasonVoyageArt.timber, name: 'Materiais náuticos' };
+  if (/wood|iron|material/.test(type)) return { art: /iron/.test(type) ? navalMaterialArt.iron_ore : navalMaterialArt.magic_wood, name: 'Materiais náuticos' };
   return { art: seasonVoyageArt.treasure, name: 'Tesouro da tripulação' };
 }
 
