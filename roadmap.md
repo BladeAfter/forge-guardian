@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Destacar os cinco espaços oficiais da arena e corrigir acesso à seleção; refazer convites como convés Mythic Seas, preservando equipe, links e comissões oficiais.
+
 - [x] Kraken das Profundezas: cinco controles ligados ao ataque oficial compartilhado; equipe vazia abre seleção, espera usa relógio do servidor, dano exibido somente quando confirmado e contra-ataque acompanha o evento oficial. Trinta testes passaram; cinco cliques, HP e reação conferidos com respostas locais simuladas. Dano, espera e recompensas preservados.
 - [ ] Confirmar ataque/dano e contra-ataque do Kraken no Telegram real; bloqueio: sessão móvel autenticada indisponível.
 
