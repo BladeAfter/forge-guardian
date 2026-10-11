@@ -48,7 +48,8 @@
   --pirate-wood: 24 48% 19%;
   --pirate-ink: 210 68% 8%;
   --pirate-line: 42 76% 58%;
-  --balance-paper: 43 67% 86%;
+  --balance-paper: 352 58% 24%;
+  --balance-berries-text: 44 90% 72%;
   --balance-ink: 210 68% 8%;
   --balance-ton-surface: 204 75% 30%;
   --balance-ton-text: 190 80% 94%;
@@ -858,9 +859,9 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   padding:5px 8px 5px 4px;
   border:0;
   border-radius:3px;
-  border-bottom:3px solid hsl(var(--pirate-red));
-  background:hsl(var(--balance-paper));
-  color:hsl(var(--balance-ink));
+  border-bottom:3px solid hsl(var(--pirate-gold));
+  background:linear-gradient(180deg, hsl(var(--balance-paper) / .85), hsl(var(--balance-paper)));
+  color:hsl(var(--balance-berries-text));
   box-shadow:0 3px 0 hsl(var(--balance-ink) / .5);
   letter-spacing:0;
 }
@@ -868,7 +869,7 @@ div:has(> img[src*="/pet-eggs/ancestral-egg.webp"]) { border-color: rgba(248,113
   content:'';
   position:absolute;
   inset:3px;
-  border:1px solid hsl(var(--balance-ink) / .2);
+  border:1px solid hsl(var(--balance-berries-text) / .3);
   border-radius:1px;
   pointer-events:none;
 }
