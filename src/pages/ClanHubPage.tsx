@@ -149,17 +149,17 @@ export function ClanHubPage({ telegramInitData, onClose }: { telegramInitData: s
             </div>
             <Field label={t('clan.minTrophies')} value={String(form.minimumTrophies)} onChange={(v) => setForm({ ...form, minimumTrophies: Number(v.replace(/\D/g, '')) || 0 })} />
             <p className="pt-1 text-[9px] uppercase">{t('clan.emblem')}</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {['dragon', 'sword', 'wolf', 'crown', 'flame', 'skull'].map((symbol) => (
-                <OceanControl key={symbol} onClick={() => setForm({ ...form, symbol })} className={`rounded-xl border p-1 ${form.symbol === symbol ? 'fleet-selected' : 'fleet-unselected'}`}>
-                  <ClanCrest emblem={{ symbol, background: form.background }} size={34} />
+                <OceanControl key={symbol} aria-label={`${t('clan.emblem')} ${['dragon', 'sword', 'wolf', 'crown', 'flame', 'skull'].indexOf(symbol) + 1}`} aria-pressed={form.symbol === symbol} onClick={() => setForm({ ...form, symbol })} className={`grid place-items-center rounded-xl border p-2 ${form.symbol === symbol ? 'fleet-selected' : 'fleet-unselected'}`}>
+                  <ClanCrest emblem={{ symbol, background: form.background }} size={64} />
                 </OceanControl>
               ))}
             </div>
             <div className="flex flex-wrap gap-2">
               {['navy', 'purple', 'crimson', 'emerald'].map((background) => (
-                <OceanControl key={background} onClick={() => setForm({ ...form, background })} className={`rounded-xl border p-1 ${form.background === background ? 'fleet-selected' : 'fleet-unselected'}`}>
-                  <ClanCrest emblem={{ symbol: form.symbol, background }} size={26} />
+                <OceanControl key={background} aria-label={`${t('clan.emblem')} ${['navy', 'purple', 'crimson', 'emerald'].indexOf(background) + 7}`} aria-pressed={form.background === background} onClick={() => setForm({ ...form, background })} className={`grid place-items-center rounded-xl border p-2 ${form.background === background ? 'fleet-selected' : 'fleet-unselected'}`}>
+                  <span className="fleet-emblem-swatch" data-background={background} />
                 </OceanControl>
               ))}
             </div>
