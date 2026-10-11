@@ -47,6 +47,20 @@ function authoredClips(): THREE.AnimationClip[] {
   return [swim, dodge];
 }
 
+// Prepare in-place tracks once per loaded model, not once per island encounter.
+const preparedAnimations = new WeakMap<THREE.Object3D, THREE.AnimationClip[]>();
+function pirateAnimations(scene: THREE.Object3D, animations: THREE.AnimationClip[]) {
+  const cached = preparedAnimations.get(scene);
+  if (cached) return cached;
+  const prepared = [...animations, ...authoredClips()].map(original => {
+    const clip = original.clone();
+    for (const track of clip.tracks) if (track.name === 'root.position' && original.name !== 'island-dodge') for (let i = 0; i < track.values.length; i += 3) { track.values[i] = 0; track.values[i + 2] = 0; }
+    return clip;
+  });
+  preparedAnimations.set(scene, prepared);
+  return prepared;
+}
+
 export function IslandPirate({ style, motion, speed, palette }: { style: 'male' | 'female'; motion: MutableRefObject<IslandMotion>; speed: MutableRefObject<number>; palette: IslandPalette }) {
   const { scene, animations } = useGLTF(islandModels[style]);
   const { object, mixer, actions } = useMemo(() => {
@@ -60,10 +74,7 @@ export function IslandPirate({ style, motion, speed, palette }: { style: 'male' 
     });
     const mixer = new THREE.AnimationMixer(object);
     const actions: Record<string, THREE.AnimationAction> = {};
-    for (const original of [...animations, ...authoredClips()]) {
-      const clip = original.clone();
-      // Imported locomotion is in-place; strip root X/Z travel to avoid visual drift.
-      for (const track of clip.tracks) if (track.name === 'root.position' && original.name !== 'island-dodge') for (let i = 0; i < track.values.length; i += 3) { track.values[i] = 0; track.values[i + 2] = 0; }
+    for (const clip of pirateAnimations(scene, animations)) {
       actions[clip.name] = mixer.clipAction(clip);
     }
     return { object, mixer, actions };
