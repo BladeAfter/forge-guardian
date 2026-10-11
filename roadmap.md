@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Analisar bônus atuais dos mascotes e documentar substituição por efeitos de navegação, descoberta de tesouros e dano pirata/naval aleatório, distinguindo regras existentes de propostas; sem mudar economia nesta análise.
+
 - [x] Configurar cálculo contínuo TON para navios com débito de compra confirmado, valor pago ÷ 40/dia; gratuito/concessões excluídos. Migração 0139 e exibição traduzida; oito testes passaram e cena isolada confirmou taxa, ROI contínuo, exclusão do gratuito e saldo intacto. Acúmulo começa na ativação/aquisição, sem retroatividade; nenhum crédito ou worker ativado.
 - [ ] Liberar ganhos de mineração naval para saldo/saque e verificar no Telegram real; bloqueios: financiamento comprovado e fluxo de liberação auditado indisponíveis, sem navio pago real nem sessão Telegram assinada para teste. Acúmulo permanece identificado como pendente de financiamento.
 
