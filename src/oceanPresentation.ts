@@ -37,12 +37,22 @@ export function islandBitmap(atlas: HTMLImageElement, template: SeaIsland): HTML
   return tile;
 }
 
-/** Mirrored neighbors share exactly the same boundary. */
-export function drawOpenWater(ctx: CanvasRenderingContext2D, image: HTMLImageElement, camera: { x: number; y: number }, width: number, height: number) {
-  const size = 900;
-  const left = Math.floor((camera.x - width) / size), top = Math.floor((camera.y - height) / size);
-  for (let x = left; x <= Math.ceil((camera.x + width) / size); x++) {
-    for (let y = top; y <= Math.ceil((camera.y + height) / size); y++) {
+const waterCache = new WeakMap<HTMLImageElement, HTMLCanvasElement>();
+/** Decode the water JPEG once into a small canvas so mobile webviews never re-decode it per frame. */
+function waterTile(image: HTMLImageElement) {
+  let tile = waterCache.get(image);
+  if (tile) return tile;
+  tile = document.createElement('canvas'); tile.width = 512; tile.height = 512;
+  tile.getContext('2d', { alpha: false })?.drawImage(image, 0, 0, 512, 512);
+  waterCache.set(image, tile); return tile;
+}
+
+/** Mirrored neighbors share exactly the same boundary. Width/height are the full visible span. */
+export function drawOpenWater(ctx: CanvasRenderingContext2D, source: HTMLImageElement, camera: { x: number; y: number }, width: number, height: number) {
+  const size = 900, image = waterTile(source);
+  const left = Math.floor((camera.x - width * .55) / size), top = Math.floor((camera.y - height * .65) / size);
+  for (let x = left; x <= Math.floor((camera.x + width * .55) / size); x++) {
+    for (let y = top; y <= Math.floor((camera.y + height * .5) / size); y++) {
       const flipX = Math.abs(x % 2) === 1, flipY = Math.abs(y % 2) === 1;
       ctx.save(); ctx.translate(x * size + (flipX ? size : 0), y * size + (flipY ? size : 0));
       ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);

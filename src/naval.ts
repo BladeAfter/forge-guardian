@@ -25,7 +25,8 @@ const ERRORS: Record<string, string> = {
   GAME_RESET: 'O oceano compartilhado está pausado durante o novo início.', REALM_LOCKED: 'O oceano compartilhado ainda não está liberado para este capitão.',
 };
 export async function navalCall(initData: string, navalAction: string, input: Record<string, unknown> = {}): Promise<NavalState> {
-  const response = await forgeFetch('realm', { initData, action: 'naval', navalAction, input });
+  // A stalled mobile heartbeat must be abandoned quickly so the next one can resume steering.
+  const response = await forgeFetch('realm', { initData, action: 'naval', navalAction, input }, navalAction === 'heartbeat' ? 4_000 : 12_000);
   const payload = await response.json() as NavalState & { error?: string; code?: string } | null;
   if (!response.ok || !payload?.ship) {
     const message = payload?.error ?? payload?.code ?? 'O oceano compartilhado não está disponível.';
