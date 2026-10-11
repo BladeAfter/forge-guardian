@@ -890,6 +890,13 @@
       "when": 1791731037048,
       "tag": "0126_kraken_six_crew_slots",
       "breakpoints": true
+    },
+    {
+      "idx": 127,
+      "version": "7",
+      "when": 1791731097153,
+      "tag": "0127_kraken_observer_manual_attack",
+      "breakpoints": true
     }
   ]
 }

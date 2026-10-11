@@ -264,7 +264,7 @@ async function handleBoss(db: Db, user: TelegramUser, body: Record<string, any>)
     : action === 'recruit' ? 'recruit_heroes'
     : action === 'attack' ? 'attack_boss'
     : action === 'get' ? 'get_boss_combat'
-    : 'process_boss_combat';
+    : 'observe_boss_combat';
 
   const args: Record<string, unknown> = { p_telegram_id: user.id };
   if (action === 'equip' || action === 'unequip') {
