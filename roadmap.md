@@ -239,3 +239,5 @@
 - [x] Refazer a tela de duelos como Duelos do Convés: nova arte pirata, indicadores compactos, controles compartilhados e navegação em português; cabeçalho e botão de ingressos verificados isoladamente. Batalha real pelo Telegram não verificada.
 
 - [x] Remover exigências de passe e depósito prévio para saque na interface e no servidor; migração 0138 aplicada, 23 testes da carteira passaram. Saldo, taxas, segurança e pausa financeira preservados; saque real no Telegram não verificado por falta de sessão.
+
+- [ ] Corrigir travamento naval: comprovar causa, preservar mapa/dados, restaurar joystick com toque e teclado, conferir velocidade oficial, colisões e câmera; testar oito direções e parada em navegador móvel/desktop.
