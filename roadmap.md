@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Criar e aplicar vinte aparências ilustradas IA exclusivas aos piratas/líderes das cinco ilhas, sem modelo visual repetido; preservar combate, poses e colisões oficiais.
+
 - [x] Exibir taxa oficial de mineração em cada navio possuído, com seis casas decimais; gratuito identificado sem mineração. Cálculo/relógio conferidos no servidor, nove testes passaram incluindo avanço do relógio do celular e cena isolada confirmou taxas/saldo intacto. Crédito direto não ativado: falta financiamento comprovado e liquidação auditada; teste Telegram real permanece na pendência de liberação abaixo.
 
 - [x] Ajustar envio naval: heartbeat transforma valores inválidos em parada segura antes do JSON e respeita limites oficiais; destino por toque rejeita coordenadas/velocidade não finitas. Ataques, cosméticos, validação, saldos e recompensas intactos; 38 testes passaram, compilação OK.
