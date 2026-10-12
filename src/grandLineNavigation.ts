@@ -72,3 +72,41 @@ export function seaClickTarget(point: SeaPoint): SeaPoint {
   const island = seaIslandsAround(point, 1).find((i) => seaDistance(i.center, point) < i.radius);
   return island?.dock ?? point;
 }
+
+/** Route around the same circular coastlines enforced by the server. */
+export function seaRoute(origin: SeaPoint, destination: SeaPoint): SeaPoint[] {
+  if (![origin.x, origin.y, destination.x, destination.y].every(Number.isFinite)) return [];
+  const islands = [...new Map([...seaIslandsAround(origin, 1), ...seaIslandsAround(destination, 1)]
+    .map(island => [island.id, island])).values()];
+  const clear = (a: SeaPoint, b: SeaPoint) => islands.every(island => {
+    const dx = b.x - a.x, dy = b.y - a.y, length = dx * dx + dy * dy;
+    const t = length ? Math.max(0, Math.min(1, ((island.center.x - a.x) * dx + (island.center.y - a.y) * dy) / length)) : 0;
+    return seaDistance({ x: a.x + t * dx, y: a.y + t * dy }, island.center) >= island.radius * .7 + 8;
+  });
+  if (clear(origin, destination)) return [destination];
+  const nodes: SeaPoint[] = [origin, destination];
+  for (const island of islands) for (let i = 0; i < 16; i++) {
+    const angle = i * Math.PI / 8, radius = (island.radius * .7 + 12) / Math.cos(Math.PI / 16);
+    const point = { x: island.center.x + Math.cos(angle) * radius, y: island.center.y + Math.sin(angle) * radius };
+    if (clear(point, point)) nodes.push(point);
+  }
+  const costs = nodes.map(() => Infinity), previous = nodes.map(() => -1), visited = new Set<number>();
+  costs[0] = 0;
+  while (visited.size < nodes.length) {
+    let current = -1;
+    for (let i = 0; i < nodes.length; i++) if (!visited.has(i) && (current < 0 || costs[i] < costs[current])) current = i;
+    if (current < 0 || !Number.isFinite(costs[current])) break;
+    if (current === 1) {
+      const route: SeaPoint[] = [];
+      for (let i = 1; i !== 0; i = previous[i]) { if (i < 0) return []; route.unshift(nodes[i]); }
+      return route;
+    }
+    visited.add(current);
+    for (let i = 1; i < nodes.length; i++) {
+      if (visited.has(i) || !clear(nodes[current], nodes[i])) continue;
+      const cost = costs[current] + seaDistance(nodes[current], nodes[i]);
+      if (cost < costs[i]) { costs[i] = cost; previous[i] = current; }
+    }
+  }
+  return [];
+}

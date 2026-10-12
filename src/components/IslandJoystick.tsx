@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Compass } from 'lucide-react';
 import { OceanControl } from './OceanControl';
 import type { SeaPoint } from '../grandLineNavigation';
-export function IslandJoystick({ onDirection, disabled }: { onDirection: (point: SeaPoint) => void; disabled: boolean }) {
+export function IslandJoystick({ onDirection, disabled, naval = false }: { onDirection: (point: SeaPoint) => void; disabled: boolean; naval?: boolean }) {
   const localizeText = useLocalizedText();
 
   const pointer = useRef<number | null>(null);
@@ -13,8 +13,10 @@ export function IslandJoystick({ onDirection, disabled }: { onDirection: (point:
   useEffect(() => {
     const clear = () => { pointer.current = null; direction.current({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; };
     const visibility = () => { if (document.hidden) clear(); };
+    const release = (event: PointerEvent) => { if (pointer.current === event.pointerId) clear(); };
+    window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
     window.addEventListener('blur', clear); document.addEventListener('visibilitychange', visibility);
-    return () => { clear(); window.removeEventListener('blur', clear); document.removeEventListener('visibilitychange', visibility); };
+    return () => { clear(); window.removeEventListener('blur', clear); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
   }, []);
   useEffect(() => { if (disabled) { pointer.current = null; direction.current({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; } }, [disabled]);
   const reset = () => { pointer.current = null; onDirection({ x: 0, y: 0 }); if (knob.current) knob.current.style.transform = 'translate(0px, 0px)'; };
@@ -26,7 +28,7 @@ export function IslandJoystick({ onDirection, disabled }: { onDirection: (point:
     onDirection(d < 6 ? { x: 0, y: 0 } : { x: x * factor / radius, y: y * factor / radius });
     if (knob.current) knob.current.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
   };
-  return <nav className="ocean-helm" aria-label={localizeText("Direção do pirata")}><OceanControl className="ocean-joystick" aria-label={localizeText("Joystick do pirata")} title={localizeText("Joystick do pirata")} disabled={disabled}
+  return <nav className="ocean-helm" aria-label={localizeText(naval ? "Direção do navio" : "Direção do pirata")}><OceanControl className="ocean-joystick" aria-label={localizeText(naval ? "Joystick do navio" : "Joystick do pirata")} title={localizeText(naval ? "Joystick do navio" : "Joystick do pirata")} disabled={disabled}
     onPointerDown={e => { if (pointer.current !== null) return; e.preventDefault(); pointer.current = e.pointerId; try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Older WebViews. */ } steer(e); }}
     onPointerMove={steer} onPointerUp={e => { if (pointer.current === e.pointerId) reset(); }} onPointerCancel={e => { if (pointer.current === e.pointerId) reset(); }} onLostPointerCapture={e => { if (pointer.current === e.pointerId) reset(); }} onBlur={reset}>
     <span className="ocean-joystick-ring" aria-hidden="true" /><span ref={knob} className="ocean-joystick-knob" aria-hidden="true"><Compass size={24} /></span>
