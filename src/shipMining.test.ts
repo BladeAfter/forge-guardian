@@ -1,10 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { approvedShipMining, type ShipMiningQuote } from './shipMining';
 import { translate } from './i18n';
 import { readFileSync } from 'node:fs';
 const paid: ShipMiningQuote = { eligible: true, roiDays: 40, continuous: true, dailyTon: .125, accruedTon: 5.125, payoutStatus: 'funding_review' };
 describe('paid ship TON mining', () => {
   it('displays server accrual beyond ROI without marking it spendable', () => { expect(approvedShipMining(paid)).toEqual(paid); });
+  it('never increases the server quote when the device clock moves forward', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-10-12T00:00:00Z'));
+      const before = approvedShipMining(paid);
+      vi.setSystemTime(new Date('2036-10-12T00:00:00Z'));
+      expect(approvedShipMining(paid)?.dailyTon).toBe(0.125);
+      expect(approvedShipMining(paid)?.accruedTon).toBe(5.125);
+      expect(approvedShipMining(paid)).toEqual(before);
+    } finally { vi.useRealTimers(); }
+  });
   it('rejects free, missing and invalid quotes', () => {
     expect(approvedShipMining()).toBeNull();
     for (const q of [{ ...paid, eligible: false }, { ...paid, dailyTon: 0 }, { ...paid, dailyTon: NaN }, { ...paid, accruedTon: -1 }, { ...paid, payoutStatus: 'ineligible' as const }]) expect(approvedShipMining(q)).toBeNull();
