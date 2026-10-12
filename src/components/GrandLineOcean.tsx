@@ -6,7 +6,8 @@ import { DEFAULT_SHIP, SHIP_MODELS, SHIP_SKINS, shipMaxHp, shipStats, type Naval
 import IllustratedOcean from './IllustratedOcean';
 import { useNavalOcean } from '../useNavalOcean';
 import NavalShipyard from './NavalShipyard';
-import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, seaDestinationInput, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
+import { advanceSailing, seaIslandsAround, seaClickTarget, seaDistance, seaDestinationInput, seaRoute, type SeaIsland, type SeaDestination, type SeaPoint } from '../grandLineNavigation';
+import { IslandJoystick } from './IslandJoystick';
 import { OceanControl } from './OceanControl';
 import { approachApprovedPose } from '../navalMotion';
 import { captureTelegramGameGestures } from '../telegram';
@@ -26,7 +27,10 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
   const drawRef = useRef<((time: number, delta: number, rawDelta?: number) => void) | null>(null);
   const radarDrawRef = useRef<((time: number) => void) | null>(null);
   const autopilot = useRef(false);
+  const route = useRef<SeaPoint[]>([]);
+  const helm = useRef<SeaPoint>({ x: 0, y: 0 });
   const stopNavigation = () => {
+    helm.current = { x: 0, y: 0 }; route.current = [];
     network.steer({ dx: 0, dy: 0, throttle: 0 });
     autopilot.current = false;
     state.current.target = { ...(docking.current?.dock ?? state.current.position) };
@@ -60,8 +64,11 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     const dx=Number(k.has('ArrowRight') || k.has('d'))-Number(k.has('ArrowLeft') || k.has('a'));
     const dy=Number(k.has('ArrowDown') || k.has('s'))-Number(k.has('ArrowUp') || k.has('w'));
     if(dx || dy) return {dx,dy,throttle:throttleRef.current};
+    if (helm.current.x || helm.current.y) return { dx: helm.current.x, dy: helm.current.y, throttle: throttleRef.current };
     if (!autopilot.current && !docking.current) return {dx:0,dy:0,throttle:0};
     const ship = network.current.current?.ship ?? approvedShip.current;
+    while (route.current.length > 1 && seaDistance(ship ?? s.position, route.current[0]) <= 5) route.current.shift();
+    if (route.current[0]) s.target = route.current[0];
     return seaDestinationInput(ship ?? s.position, s.target, throttleRef.current, shipStats(ship ?? DEFAULT_SHIP).speed);
   });
   const currentNetwork = network.current;
@@ -97,8 +104,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
       if (document.hidden) return;
       const started = performance.now();
       const s = state.current; const k = s.keys;
-      const dx = yardRef.current || chestModal.current ? 0 : Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a'));
-      const dy = yardRef.current || chestModal.current ? 0 : Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w'));
+       const dx = yardRef.current || chestModal.current ? 0 : Number(k.has('ArrowRight') || k.has('d')) - Number(k.has('ArrowLeft') || k.has('a')) || helm.current.x;
+       const dy = yardRef.current || chestModal.current ? 0 : Number(k.has('ArrowDown') || k.has('s')) - Number(k.has('ArrowUp') || k.has('w')) || helm.current.y;
       if (dx || dy) s.target = { x: s.position.x + dx * 120, y: s.position.y + dy * 120 };
       else if (!autopilot.current && !docking.current) s.target = { ...s.position };
       const distance = seaDistance(s.position, s.target); s.moving = distance > 3;
@@ -114,6 +121,8 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
         s.velocity = { x: 0, y: 0 };
       } else if (!yardRef.current && !initData) {
         networkPosition.current = false;
+         while (route.current.length > 1 && seaDistance(s.position, route.current[0]) <= 5) route.current.shift();
+         if (autopilot.current && route.current[0]) s.target = route.current[0];
         s.position = advanceSailing(s.position, s.target, s, dt, 122 * throttleRef.current);
         s.moving = Math.hypot(s.velocity.x, s.velocity.y) > .5;
       }
@@ -148,7 +157,15 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
 
   const sail = (point: SeaPoint) => {
     if (docking.current !== null || yardRef.current || chestModal.current) return;
-    setSelected(null); autopilot.current = true; state.current.target = seaClickTarget(point); network.refresh();
+    setSelected(null); helm.current = { x: 0, y: 0 };
+    route.current = seaRoute(currentNetwork.current?.ship ?? state.current.position, seaClickTarget(point));
+    autopilot.current = route.current.length > 0;
+    state.current.target = route.current[0] ?? { ...state.current.position }; network.refresh();
+  };
+  const steerHelm = (point: SeaPoint) => {
+    if (docking.current || yardRef.current || chestModal.current) return;
+    autopilot.current = false; route.current = []; helm.current = point;
+    state.current.target = { ...state.current.position }; network.refresh();
   };
   const island = nearby;
   return <section ref={host} className="grand-line-ocean" aria-label={localizeText("Grand Line — oceano navegável")}>
@@ -168,6 +185,7 @@ export default function GrandLineOcean({ berries, onBack, onDock, initialPositio
     {enemy && <div className="naval-enemy" role="dialog" aria-label={localizeText("Navio inimigo")}><h2>{localizeText("NAVIO INIMIGO")}</h2><p>{enemy.name} {localizeText("· Nv. ")}{enemy.level}<br/>{SHIP_MODELS.find(m=>m.id===enemy.model)?.name} · {SHIP_SKINS.find(s=>s.id===enemy.skin)?.name}</p>{inspecting && <p>{localizeText("Vida ")}{enemy.hp}/{shipMaxHp(enemy)} {localizeText("· Canhões ")}{shipStats(enemy).cannons}<br/>{localizeText("Defesa ")}{shipStats(enemy).defense} {localizeText("· Tripulação ")}{shipStats(enemy).crew}</p>}<nav><OceanControl disabled={network.busy || !network.data?.rules.pvpEnabled || Boolean(battle)} onClick={() => void network.action('attack',{target:enemy.user_id}).then(ok=>{if(ok)setSelected(null);})}><Crosshair size={15}/>{localizeText("Atacar")}</OceanControl><OceanControl onClick={()=>setInspecting(true)}>{localizeText("Inspecionar")}</OceanControl><OceanControl onClick={()=>setSelected(null)}>{localizeText("Ignorar")}</OceanControl></nav>{!network.data?.rules.pvpEnabled && <small>{localizeText("Saque e guerra naval aguardam definição das regras.")}</small>}</div>}
     {yardOpen && <NavalShipyard ship={ownShip} state={network.data} busy={network.busy} onClose={()=>setYardOpen(false)} onSave={async input => {if(await network.action('customize',input))setYardOpen(false);}} onAction={async action => {await network.action(action);}}/>}
     <NavalMiniMap pose={state} network={currentNetwork} drawRef={radarDrawRef} />
+    <IslandJoystick naval onDirection={steerHelm} disabled={yardOpen || dockingNow || Boolean(initData && !network.data)} />
     <div className="ocean-view"><OceanControl title={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} aria-label={wide ? localizeText("Seguir navio") : localizeText("Ampliar visão do horizonte")} onClick={() => { wideRef.current = !wide; setWide(!wide); }}>{wide ? <Minimize2 size={19} /> : <Maximize2 size={19} />}</OceanControl></div>
     {message && <div className="ocean-discovery" role="status"><span>{bottleFound && !secretFound ? localizeText("MAPA NA GARRAFA") : localizeText("DESCOBERTA")}</span><p>{message}</p></div>}
     {island && !battle && <div className="ocean-dock"><span>{island.name}</span><OceanControl disabled={dockingNow || network.busy} onClick={() => { if (nearby === null) return; stopNavigation(); state.current.keys.clear(); state.current.target = { ...island.dock }; docking.current = island; setDockingNow(true); }}><Anchor size={17} />{dockingNow ? localizeText("Atracando...") : localizeText("Atracar no porto")}</OceanControl></div>}

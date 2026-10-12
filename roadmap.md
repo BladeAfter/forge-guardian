@@ -239,3 +239,6 @@
 - [x] Refazer a tela de duelos como Duelos do Convés: nova arte pirata, indicadores compactos, controles compartilhados e navegação em português; cabeçalho e botão de ingressos verificados isoladamente. Batalha real pelo Telegram não verificada.
 
 - [x] Remover exigências de passe e depósito prévio para saque na interface e no servidor; migração 0138 aplicada, 23 testes da carteira passaram. Saldo, taxas, segurança e pausa financeira preservados; saque real no Telegram não verificado por falta de sessão.
+
+- [x] Corrigir navegação naval: rota direta ao porto cruzava costa e repetia movimento bloqueado; novos pontos contornam colisões oficiais. Joystick restaurado preservando toque/teclado; velocidade oficial incluída no estado para não limitar navios melhorados pela fórmula antiga. 46 testes passaram; oito direções, toque móvel, teclado, parada e câmera conferidos em cena isolada 390×844/1280×1800; 100% deslocou aproximadamente o dobro de 50%. Mapa, radar, vida e saldos preservados.
+- [ ] Confirmar navegação real no Telegram e aparelho físico: depende de sessão Telegram assinada; transporte isolado não comprova fluxo autenticado.

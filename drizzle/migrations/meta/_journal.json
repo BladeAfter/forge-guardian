@@ -988,6 +988,13 @@
       "when": 1791761095482,
       "tag": "0140_island_pirate_encounters",
       "breakpoints": true
+    },
+    {
+      "idx": 141,
+      "version": "7",
+      "when": 1791763887030,
+      "tag": "0141_naval_authoritative_speed_quote",
+      "breakpoints": true
     }
   ]
 }

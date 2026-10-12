@@ -1,7 +1,27 @@
 import { describe, it, expect } from 'vitest';
-import { SEA_ISLANDS, SEA_CHUNK, seaIslandsAround, seaRegion, advanceSailing, sailToward, seaClickTarget, seaDistance, seaDestinationInput } from './grandLineNavigation';
+import { SEA_ISLANDS, SEA_CHUNK, seaIslandsAround, seaRegion, advanceSailing, sailToward, seaClickTarget, seaDistance, seaDestinationInput, seaRoute, seaLandAt } from './grandLineNavigation';
 
 describe('Grand Line navigation', () => {
+  it('routes a northern approach around Porto dos Ventos instead of repeatedly hitting its coast', () => {
+    const origin = { x: 1520, y: 570 }, destination = SEA_ISLANDS[1].dock;
+    expect(seaLandAt({ x: 1520, y: 800 })).toBe(true);
+    const route = seaRoute(origin, destination);
+    expect(route.length).toBeGreaterThan(1);
+    expect(route[route.length - 1]).toEqual(destination);
+    let start = origin;
+    for (const end of route) {
+      for (let step = 0; step <= 100; step++) expect(seaLandAt({ x: start.x + (end.x - start.x) * step / 100, y: start.y + (end.y - start.y) * step / 100 })).toBe(false);
+      start = end;
+    }
+  });
+  it.each([[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[1,-1],[-1,1],[1,1]])('keeps open-ocean direction %s,%s unobstructed', (dx,dy) => {
+    const origin = { x: 1700, y: 1800 }, target = { x: origin.x + dx * 100, y: origin.y + dy * 100 };
+    expect(seaRoute(origin,target)).toEqual([target]);
+    const full = seaDestinationInput(origin,target,1,120), half = seaDestinationInput(origin,target,.25,120);
+    expect(Math.sign(full.dx)).toBe(dx); expect(Math.sign(full.dy)).toBe(dy);
+    expect(half.throttle).toBe(.25); expect(full.throttle).toBeGreaterThan(half.throttle);
+    expect(seaDestinationInput(origin,target,0,120).throttle).toBe(0);
+  });
   it('stops non-finite tap coordinates, throttle and speed', () => {
     const origin = { x: 100, y: 100 }, target = { x: 300, y: 100 };
     for (const value of [NaN, Infinity, -Infinity]) {
