@@ -7,7 +7,7 @@ describe('Grand Line navigation', () => {
     expect(seaLandAt({ x: 1520, y: 800 })).toBe(true);
     const route = seaRoute(origin, destination);
     expect(route.length).toBeGreaterThan(1);
-    expect(route.at(-1)).toEqual(destination);
+    expect(route[route.length - 1]).toEqual(destination);
     let start = origin;
     for (const end of route) {
       for (let step = 0; step <= 100; step++) expect(seaLandAt({ x: start.x + (end.x - start.x) * step / 100, y: start.y + (end.y - start.y) * step / 100 })).toBe(false);

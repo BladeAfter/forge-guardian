@@ -10,12 +10,12 @@ export const SHIP_SKINS = [
   { id: 'storm', name: 'Tempestade' }, { id: 'reaper', name: 'Ceifador' }, { id: 'king', name: 'Rei dos Mares' },
 ] as const;
 export type ShipCosmetics = { flag: 'skull' | 'sun' | 'moon'; prow: 'lion' | 'blade' | 'none'; decoration: 'gold' | 'silver' | 'none'; trail: 'foam' | 'embers' | 'mist'; hullColor?: string; sailColor?: string; flagColor?: string };
-export type NavalShip = { user_id: string; name?: string; class_id?: string; active_class?: string; model: string; skin: string; cosmetics: ShipCosmetics; level: number; xp: number; reputation: number; hp: number; x: number; y: number; heading: number; throttle: number; battle_id: string | null };
+export type NavalShip = { user_id: string; name?: string; class_id?: string; active_class?: string; speed?: number; model: string; skin: string; cosmetics: ShipCosmetics; level: number; xp: number; reputation: number; hp: number; x: number; y: number; heading: number; throttle: number; battle_id: string | null };
 export type NavalEvent = { id: number; actor: string; kind: string; x: number; y: number; target_x: number; target_y: number; damage: number; created_at: string };
 export type NavalState = { ship: NavalShip; others: NavalShip[]; events: NavalEvent[]; battle: { id: string; status: string; attacker: string; defender: string; winner: string | null; loot: { berries?: number; items?: Record<string, number> } } | null; rules: { pvpEnabled: boolean; lootPercent: number; repairWood: number; repairIron: number }; materials: Record<string, number> };
 export const DEFAULT_SHIP: NavalShip = { user_id: '', model: 'small', skin: 'black', cosmetics: { flag: 'skull', prow: 'lion', decoration: 'gold', trail: 'foam' }, level: 1, xp: 0, reputation: 0, hp: 1000, x: 1700, y: 1340, heading: 0, throttle: 0, battle_id: null };
 export const shipMaxHp = (ship: NavalShip) => 1000 + (ship.level - 1) * 100;
-export const shipStats = (ship: NavalShip) => ({ hull: shipMaxHp(ship), cannons: 100 + ship.level * 8, defense: ship.level * 3, speed: 120 + ship.level * 2, vision: 700 + ship.level * 10, crew: 3 + Math.floor(ship.level / 5) });
+export const shipStats = (ship: NavalShip) => ({ hull: shipMaxHp(ship), cannons: 100 + ship.level * 8, defense: ship.level * 3, speed: typeof ship.speed === 'number' && Number.isFinite(ship.speed) && ship.speed > 0 ? ship.speed : 120 + ship.level * 2, vision: 700 + ship.level * 10, crew: 3 + Math.floor(ship.level / 5) });
 const ERRORS: Record<string, string> = {
   NAVAL_RULES_PENDING: 'Guerra naval aguarda definição do percentual e dos itens de saque.', NAVAL_MATERIALS_REQUIRED: 'Materiais insuficientes para o estaleiro.',
   NAVAL_XP_REQUIRED: 'Experiência naval insuficiente.', NAVAL_IN_BATTLE: 'Conclua a batalha antes de atracar ou mudar o navio.', NAVAL_TARGET_UNAVAILABLE: 'Esse navio não está mais disponível.',
