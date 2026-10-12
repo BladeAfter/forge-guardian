@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Criar e aplicar vinte aparências ilustradas IA exclusivas aos piratas/líderes das cinco ilhas, sem modelo visual repetido; preservar combate, poses e colisões oficiais.
+- [x] Criar e aplicar vinte aparências ilustradas IA exclusivas aos piratas/líderes das cinco ilhas: imagens individuais por nameKey, sem imagens repetidas ou fallback compartilhado. Modelos visuais ilustrados no mundo 3D, não malhas 3D exclusivas com animação esquelética; movimento oficial, queda, combate e colisões preservados. 19 testes passaram; cena isolada com câmera das ilhas confirmou as vinte artes transparentes. Verificação autenticada no Telegram segue pendente abaixo.
 
 - [x] Exibir taxa oficial de mineração em cada navio possuído, com seis casas decimais; gratuito identificado sem mineração. Cálculo/relógio conferidos no servidor, nove testes passaram incluindo avanço do relógio do celular e cena isolada confirmou taxas/saldo intacto. Crédito direto não ativado: falta financiamento comprovado e liquidação auditada; teste Telegram real permanece na pendência de liberação abaixo.
 
