@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Exibir a taxa oficial de mineração em cada navio da frota e conferir proteção exclusiva do servidor; crédito direto continua bloqueado por financiamento comprovado e liquidação auditada, sem alterar saldos/ativar workers.
+
 - [x] Ajustar envio naval: heartbeat transforma valores inválidos em parada segura antes do JSON e respeita limites oficiais; destino por toque rejeita coordenadas/velocidade não finitas. Ataques, cosméticos, validação, saldos e recompensas intactos; 38 testes passaram, compilação OK.
 - [ ] Confirmar ausência de NAVAL_INVALID_INPUT na navegação real do Telegram; bloqueio: sessão Telegram assinada/aparelho indisponíveis, logs recentes não continham o aviso e causa no aparelho não reproduzida. Contrato e retomada conferidos em testes, não em sessão real.
 
