@@ -108,7 +108,7 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
     {owned && <section className="ship-fleet__mining" aria-label={t('shipMining.title')}>
       <strong>{t('shipMining.title')}</strong>
       {mining ? <>
-        <b>{t('shipMining.daily', { value: mining.dailyTon.toFixed(3) })}</b>
+        <b>{t('shipMining.daily', { value: mining.dailyTon.toFixed(6) })}</b>
         <small>{t('shipMining.roi', { days: mining.roiDays })}</small>
         <span>{t('shipMining.accrued', { value: mining.accruedTon.toFixed(6) })}</span>
         <small>{t('shipMining.review')}</small>
@@ -125,11 +125,13 @@ export function ShipFleetPage({ telegramInitData, onClose, onFleetChest }: { tel
       {tab === 'fleet' && <div className="ship-fleet__grid">
         {state.classes.map(c => {
           const o = state.owned.find(x => x.classId === c.id); const st = shipStats(c, o);
+          const shipMining = approvedShipMining(o?.mining);
           return <button key={c.id} className={`ship-fleet__card ${c.id === ship.id ? 'is-viewing' : ''}`} onClick={() => setViewId(c.id)}>
             <img src={fleetShipArt.classes[c.id]} alt="" />
             <strong>{c.name}</strong>
             <small>{text(c.specialty)}</small>
             <em>ATK {st.atk} · DEF {st.def} · SPD {st.spd}</em>
+            {o && <small>{shipMining ? t('shipMining.daily', { value: shipMining.dailyTon.toFixed(6) }) : t('shipMining.excluded')}</small>}
             <span className="ship-fleet__tag">{state.active === c.id ? text('EM USO') : o ? text('POSSUÍDO') : c.priceTon > 0 ? `${c.priceTon} TON` : text('GRÁTIS')}</span>
           </button>;
         })}
